@@ -1915,7 +1915,7 @@ class C
     }
 }";
             // cover case in ConvertToArrayIndex
-            var comp = CreateCompilationWithIndex(source, WithNonNullTypesTrue(TestOptions.DebugExe));
+            var comp = CreateCompilationWithIndex(source, WithNullableEnable(TestOptions.DebugExe));
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "211");
         }

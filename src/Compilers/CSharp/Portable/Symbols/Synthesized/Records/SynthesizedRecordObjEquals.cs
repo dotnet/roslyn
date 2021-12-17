@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -16,50 +15,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly MethodSymbol _typedRecordEquals;
 
-        public SynthesizedRecordObjEquals(SourceMemberContainerTypeSymbol containingType, MethodSymbol typedRecordEquals, int memberOffset, DiagnosticBag diagnostics)
+        public SynthesizedRecordObjEquals(SourceMemberContainerTypeSymbol containingType, MethodSymbol typedRecordEquals, int memberOffset, BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.ObjectEquals, memberOffset, diagnostics)
         {
             _typedRecordEquals = typedRecordEquals;
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
+        protected override SpecialMember OverriddenSpecialMember => SpecialMember.System_Object__Equals;
+
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation)
+            MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
+            var annotation = ContainingType.IsRecordStruct ? NullableAnnotation.Oblivious : NullableAnnotation.Annotated;
             return (ReturnType: TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Boolean, location, diagnostics)),
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
-                                                                    TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Object, location, diagnostics), NullableAnnotation.Annotated),
-                                                                    ordinal: 0, RefKind.None, "obj", isDiscard: false, Locations)),
+                                                                    TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Object, location, diagnostics), annotation),
+                                                                    ordinal: 0, RefKind.None, "obj", Locations)),
                     IsVararg: false,
                     DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
         }
 
         protected override int GetParameterCountFromSyntax() => 1;
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, this.SyntaxNode, compilationState, diagnostics);
 
             try
             {
+                if (_typedRecordEquals.ReturnType.SpecialType != SpecialType.System_Boolean)
+                {
+                    // There is a signature mismatch, an error was reported elsewhere
+                    F.CloseMethod(F.ThrowNull());
+                    return;
+                }
+
                 var paramAccess = F.Parameter(Parameters[0]);
 
                 BoundExpression expression;
-                if (ContainingType.IsStructType())
+                if (ContainingType.IsRecordStruct)
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    // For record structs:
+                    //      return other is R && Equals((R)other)
+                    expression = F.LogicalAnd(
+                        F.Is(paramAccess, ContainingType),
+                        F.Call(F.This(), _typedRecordEquals, F.Convert(ContainingType, paramAccess)));
                 }
                 else
                 {
-                    if (_typedRecordEquals.ReturnType.SpecialType != SpecialType.System_Boolean)
-                    {
-                        // There is a signature mismatch, an error was reported elsewhere
-                        F.CloseMethod(F.ThrowNull());
-                        return;
-                    }
-
-                    // For classes:
+                    // For record classes:
                     //      return this.Equals(param as ContainingType);
                     expression = F.Call(F.This(), _typedRecordEquals, F.As(paramAccess, ContainingType));
                 }

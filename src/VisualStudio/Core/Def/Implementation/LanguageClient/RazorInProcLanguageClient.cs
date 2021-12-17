@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -41,19 +40,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     [Export(typeof(ILanguageClient))]
     internal class RazorInProcLanguageClient : AbstractInProcLanguageClient
     {
-        public const string ClientName = "RazorCSharp";
+        public const string ClientName = ProtocolConstants.RazorCSharp;
 
         private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
 
         /// <summary>
-        /// Gets the name of the language client (displayed to the user).
+        /// Gets the name of the language client (displayed in yellow bars).
         /// </summary>
-        public override string Name => ServicesVSResources.Razor_CSharp_Language_Server_Client;
+        public override string Name => "Razor C# Language Server Client";
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorInProcLanguageClient(
-            LanguageServerProtocol languageServerProtocol,
+            CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -61,19 +60,23 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             IThreadingContext threadingContext,
             [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, threadingContext, ClientName)
+            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, threadingContext, ClientName)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
-        protected internal override VSServerCapabilities GetCapabilities()
+        public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var capabilities = _defaultCapabilitiesProvider.GetCapabilities();
-
-            capabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
+            var capabilities = _defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
 
             // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
             capabilities.WorkspaceSymbolProvider = false;
+
+            if (capabilities is VSServerCapabilities vsServerCapabilities)
+            {
+                vsServerCapabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
+                return vsServerCapabilities;
+            }
 
             return capabilities;
         }

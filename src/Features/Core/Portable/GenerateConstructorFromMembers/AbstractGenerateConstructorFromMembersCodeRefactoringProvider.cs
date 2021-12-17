@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -11,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -18,7 +18,9 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
@@ -34,11 +36,11 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
     /// something like "new MyType(x, y, z)", nor is it responsible for generating constructors
     /// in a derived type that delegate to a base type. Both of those are handled by other services.
     /// </summary>
-    internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
+    internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider, IIntentProvider
     {
         private const string AddNullChecksId = nameof(AddNullChecksId);
 
-        private readonly IPickMembersService _pickMembersService_forTesting;
+        private readonly IPickMembersService? _pickMembersService_forTesting;
 
         protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
         {
@@ -47,16 +49,93 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         /// <summary>
         /// For testing purposes only.
         /// </summary>
-        protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService_forTesting)
+        protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService? pickMembersService_forTesting)
             => _pickMembersService_forTesting = pickMembersService_forTesting;
 
         protected abstract bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType);
         protected abstract string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format);
         protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
+            return ComputeRefactoringsAsync(context.Document, context.Span,
+                (action, applicableToSpan) => context.RegisterRefactoring(action, applicableToSpan),
+                (actions) => context.RegisterRefactorings(actions), context.CancellationToken);
+        }
+
+        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
+            Document priorDocument,
+            TextSpan priorSelection,
+            Document currentDocument,
+            string? serializedIntentData,
+            CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
+            await ComputeRefactoringsAsync(
+                priorDocument,
+                priorSelection,
+                (singleAction, applicableToSpan) => actions.Add(singleAction),
+                (multipleActions) => actions.AddRange(multipleActions),
+                cancellationToken).ConfigureAwait(false);
+
+            if (actions.IsEmpty())
+            {
+                return ImmutableArray<IntentProcessorResult>.Empty;
+            }
+
+            // The refactorings returned will be in the following order (if available)
+            // FieldDelegatingCodeAction, ConstructorDelegatingCodeAction, GenerateConstructorWithDialogCodeAction
+            using var resultsBuilder = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
+            foreach (var action in actions)
+            {
+                var intentResult = await GetIntentProcessorResultAsync(action, cancellationToken).ConfigureAwait(false);
+                results.AddIfNotNull(intentResult);
+            }
+
+            return results.ToImmutable();
+
+            static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(CodeAction codeAction, CancellationToken cancellationToken)
+            {
+                var operations = await GetCodeActionOperationsAsync(codeAction, cancellationToken).ConfigureAwait(false);
+
+                // Generate ctor will only return an ApplyChangesOperation or potentially document navigation actions.
+                // We can only return edits, so we only care about the ApplyChangesOperation.
+                var applyChangesOperation = operations.OfType<ApplyChangesOperation>().SingleOrDefault();
+                if (applyChangesOperation == null)
+                {
+                    return null;
+                }
+
+                var type = codeAction.GetType();
+                return new IntentProcessorResult(applyChangesOperation.ChangedSolution, codeAction.Title, type.Name);
+            }
+
+            static async Task<ImmutableArray<CodeActionOperation>> GetCodeActionOperationsAsync(
+                CodeAction action,
+                CancellationToken cancellationToken)
+            {
+                if (action is GenerateConstructorWithDialogCodeAction dialogAction)
+                {
+                    // Usually applying this code action pops up a dialog allowing the user to choose which options.
+                    // We can't do that here, so instead we just take the defaults until we have more intent data.
+                    var options = new PickMembersResult(dialogAction.ViableMembers, dialogAction.PickMembersOptions);
+                    var operations = await dialogAction.GetOperationsAsync(options: options, cancellationToken).ConfigureAwait(false);
+                    return operations == null ? ImmutableArray<CodeActionOperation>.Empty : operations.ToImmutableArray();
+                }
+                else
+                {
+                    return await action.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private async Task ComputeRefactoringsAsync(
+            Document document,
+            TextSpan textSpan,
+            Action<CodeAction, TextSpan> registerSingleAction,
+            Action<ImmutableArray<CodeAction>> registerMultipleActions,
+            CancellationToken cancellationToken)
+        {
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
@@ -64,43 +143,51 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             var actions = await GenerateConstructorFromMembersAsync(
                 document, textSpan, addNullChecks: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-            context.RegisterRefactorings(actions);
+            if (!actions.IsDefault)
+            {
+                registerMultipleActions(actions);
+            }
 
             if (actions.IsDefaultOrEmpty && textSpan.IsEmpty)
             {
-                await HandleNonSelectionAsync(context).ConfigureAwait(false);
+                var nonSelectionAction = await HandleNonSelectionAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+                if (nonSelectionAction != null)
+                {
+                    registerSingleAction(nonSelectionAction.Value.CodeAction, nonSelectionAction.Value.ApplicableToSpan);
+                }
             }
         }
 
-        private async Task HandleNonSelectionAsync(CodeRefactoringContext context)
+        private async Task<(CodeAction CodeAction, TextSpan ApplicableToSpan)?> HandleNonSelectionAsync(
+            Document document,
+            TextSpan textSpan,
+            CancellationToken cancellationToken)
         {
-            var (document, textSpan, cancellationToken) = context;
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
             if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
                 !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
             {
-                return;
+                return null;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Only supported on classes/structs.
-            var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration) as INamedTypeSymbol;
+            var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken: cancellationToken) as INamedTypeSymbol;
             if (containingType?.TypeKind != TypeKind.Class && containingType?.TypeKind != TypeKind.Struct)
             {
-                return;
+                return null;
             }
 
             // No constructors for static classes.
             if (containingType.IsStatic)
             {
-                return;
+                return null;
             }
 
             // Find all the possible writable instance fields/properties.  If there are any, then
@@ -109,7 +196,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             var viableMembers = containingType.GetMembers().WhereAsArray(IsWritableInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
             {
-                return;
+                return null;
             }
 
             using var _ = ArrayBuilder<PickMembersOption>.GetInstance(out var pickMemberOptions);
@@ -127,11 +214,9 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     optionValue));
             }
 
-            context.RegisterRefactoring(
-                new GenerateConstructorWithDialogCodeAction(
+            return (new GenerateConstructorWithDialogCodeAction(
                     this, document, textSpan, containingType, viableMembers,
-                    pickMemberOptions.ToImmutable()),
-                typeDeclaration.Span);
+                    pickMemberOptions.ToImmutable()), typeDeclaration.Span);
         }
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
@@ -166,10 +251,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         private static async Task<Document> AddNavigationAnnotationAsync(Document document, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var nodes = root.GetAnnotatedNodes(CodeGenerator.Annotation);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             foreach (var node in nodes)
             {

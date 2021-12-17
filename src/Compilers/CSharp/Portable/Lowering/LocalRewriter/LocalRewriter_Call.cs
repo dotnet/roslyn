@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var m in methods)
                     {
-                        module.EmbeddedTypesManagerOpt.EmbedMethodIfNeedTo(m.OriginalDefinition.GetCciAdapter(), syntaxNode, _diagnostics);
+                        module.EmbeddedTypesManagerOpt.EmbedMethodIfNeedTo(m.OriginalDefinition.GetCciAdapter(), syntaxNode, _diagnostics.DiagnosticBag);
                     }
                 }
             }
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var p in properties)
                     {
-                        module.EmbeddedTypesManagerOpt.EmbedPropertyIfNeedTo(p.OriginalDefinition.GetCciAdapter(), syntaxNode, _diagnostics);
+                        module.EmbeddedTypesManagerOpt.EmbedPropertyIfNeedTo(p.OriginalDefinition.GetCciAdapter(), syntaxNode, _diagnostics.DiagnosticBag);
                     }
                 }
             }
@@ -895,6 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol? arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
                 if (arrayEmpty != null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
                 {
+                    _diagnostics.ReportUseSite(arrayEmpty, syntax);
                     // return an invocation of "Array.Empty<T>()"
                     arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(ats.ElementType));
                     return new BoundCall(

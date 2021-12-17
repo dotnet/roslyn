@@ -14,5 +14,7 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// Gets the name of this assembly.
         /// </summary>
         AssemblyIdentity Identity { get; }
+
+        IAssemblySymbolInternal CorLibrary { get; }
     }
 }

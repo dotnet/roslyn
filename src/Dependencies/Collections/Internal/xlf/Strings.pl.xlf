@@ -7,6 +7,11 @@
         <target state="translated">Tablica docelowa ma zbyt małą długość, aby móc skopiować wszystkie elementy kolekcji. Sprawdź indeks tablicy i jej długość.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Arg_BogusIComparer">
+        <source>Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</source>
+        <target state="translated">Nie można wykonać sortowania, ponieważ metoda IComparer.Compare() zwraca niespójne wyniki. Albo porównanie wartości z samą sobą nie daje w wyniku równości, albo jedna wartość porównywana wielokrotnie z inną wartością daje różne wyniki. IComparer: „{0}”.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Arg_HTCapacityOverflow">
         <source>Hashtable's capacity overflowed and went negative. Check load factor, capacity and the current size of the table.</source>
         <target state="translated">Nastąpiło przepełnienie tabeli generowania skrótu i wystąpiły wartości ujemne. Sprawdź współczynnik i pojemność ładowania oraz bieżący rozmiar tabeli.</target>

@@ -2,13 +2,17 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -19,6 +23,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Microsoft.VisualStudio.Utilities
 
@@ -28,13 +33,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     <Name("VB Snippets")>
     <Order(After:=PredefinedCompletionNames.CompletionCommandHandler)>
     <Order(After:=PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)>
+    <Order(Before:=PredefinedCommandHandlerNames.AutomaticLineEnder)>
     Friend NotInheritable Class SnippetCommandHandler
         Inherits AbstractSnippetCommandHandler
 
+        Private ReadOnly _argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))
+
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New(threadingContext As IThreadingContext, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, serviceProvider As SVsServiceProvider)
-            MyBase.New(threadingContext, editorAdaptersFactoryService, serviceProvider)
+        Public Sub New(threadingContext As IThreadingContext, signatureHelpControllerProvider As SignatureHelpControllerProvider, editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, serviceProvider As SVsServiceProvider, <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)))
+            MyBase.New(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, serviceProvider)
+            _argumentProviders = argumentProviders.ToImmutableArray()
         End Sub
 
         Protected Overrides Function IsSnippetExpansionContext(document As Document, startPosition As Integer, cancellationToken As CancellationToken) As Boolean
@@ -46,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         End Function
 
         Protected Overrides Function GetSnippetExpansionClient(textView As ITextView, subjectBuffer As ITextBuffer) As AbstractSnippetExpansionClient
-            Return SnippetExpansionClient.GetSnippetExpansionClient(ThreadingContext, textView, subjectBuffer, EditorAdaptersFactoryService)
+            Return SnippetExpansionClient.GetSnippetExpansionClient(ThreadingContext, textView, subjectBuffer, SignatureHelpControllerProvider, EditorCommandHandlerServiceFactory, EditorAdaptersFactoryService, _argumentProviders)
         End Function
 
         Protected Overrides Function TryInvokeInsertionUI(textView As ITextView, subjectBuffer As ITextBuffer, Optional surroundWith As Boolean = False) As Boolean

@@ -48,6 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = new QuickAttributeChecker();
             result.AddName(AttributeDescription.TypeIdentifierAttribute.Name, QuickAttributes.TypeIdentifier);
             result.AddName(AttributeDescription.TypeForwardedToAttribute.Name, QuickAttributes.TypeForwardedTo);
+            result.AddName(AttributeDescription.AssemblyKeyNameAttribute.Name, QuickAttributes.AssemblyKeyName);
+            result.AddName(AttributeDescription.AssemblyKeyFileAttribute.Name, QuickAttributes.AssemblyKeyFile);
+            result.AddName(AttributeDescription.AssemblySignatureKeyAttribute.Name, QuickAttributes.AssemblySignatureKey);
 
 #if DEBUG
             result._sealed = true;
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _nameToAttributeMap[name] = newValue;
         }
 
-        internal QuickAttributeChecker AddAliasesIfAny(SyntaxList<UsingDirectiveSyntax> usingsSyntax)
+        internal QuickAttributeChecker AddAliasesIfAny(SyntaxList<UsingDirectiveSyntax> usingsSyntax, bool onlyGlobalAliases = false)
         {
             if (usingsSyntax.Count == 0)
             {
@@ -90,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var usingDirective in usingsSyntax)
             {
-                if (usingDirective.Alias != null)
+                if (usingDirective.Alias != null && (!onlyGlobalAliases || usingDirective.GlobalKeyword.IsKind(SyntaxKind.GlobalKeyword)))
                 {
                     string name = usingDirective.Alias.Name.Identifier.ValueText;
                     string target = usingDirective.Name.GetUnqualifiedName().Identifier.ValueText;
@@ -138,6 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         None = 0,
         TypeIdentifier = 1 << 0,
-        TypeForwardedTo = 2 << 0
+        TypeForwardedTo = 1 << 1,
+        AssemblyKeyName = 1 << 2,
+        AssemblyKeyFile = 1 << 3,
+        AssemblySignatureKey = 1 << 4,
     }
 }

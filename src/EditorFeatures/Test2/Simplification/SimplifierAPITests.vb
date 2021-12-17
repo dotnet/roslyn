@@ -11,142 +11,128 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class SimplifierAPITests
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestExpandAsync()
-            AssertEx.Throws(Of ArgumentNullException)(
-                Sub()
-                    Dim expandedNode = Simplifier.ExpandAsync(Of SyntaxNode)(Nothing, Nothing).Result
-                End Sub,
-                Sub(exception) Assert.Equal(exception.ParamName, "node"))
-        End Sub
+        Public Async Function TestExpandAsync() As Task
+            Await Assert.ThrowsAsync(Of ArgumentNullException)("node",
+                Function()
+                    Return Simplifier.ExpandAsync(Of SyntaxNode)(Nothing, Nothing)
+                End Function)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestExpandAsync2()
+        Public Async Function TestExpandAsync2() As Task
             Dim node = GetSyntaxNode()
-            AssertEx.Throws(Of ArgumentNullException)(
-                Sub()
-                    Dim expandedNode = Simplifier.ExpandAsync(node, Nothing).Result
-                End Sub,
-                Sub(exception) Assert.Equal(exception.ParamName, "document"))
-        End Sub
+            Await Assert.ThrowsAsync(Of ArgumentNullException)("document",
+                Function() As Task
+                    Return Simplifier.ExpandAsync(node, Nothing)
+                End Function)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestExpand()
-            AssertEx.Throws(Of ArgumentNullException)(
+            Assert.Throws(Of ArgumentNullException)("node",
                 Sub()
-                    Dim expandedNode = Simplifier.Expand(Of SyntaxNode)(Nothing, Nothing, Nothing)
-                End Sub,
-                Sub(exception) Assert.Equal(exception.ParamName, "node"))
+                    Simplifier.Expand(Of SyntaxNode)(Nothing, Nothing, Nothing)
+                End Sub)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestExpand2()
             Dim node = GetSyntaxNode()
-            AssertEx.Throws(Of ArgumentNullException)(
+            Assert.Throws(Of ArgumentNullException)("semanticModel",
                 Sub()
-                    Dim expandedNode = Simplifier.Expand(node, Nothing, Nothing)
-                End Sub,
-                Sub(exception) Assert.Equal(exception.ParamName, "semanticModel"))
+                    Simplifier.Expand(node, Nothing, Nothing)
+                End Sub)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestExpand3()
             Dim node = GetSyntaxNode()
             Dim semanticModel = GetSemanticModel()
-            AssertEx.Throws(Of ArgumentNullException)(
+            Assert.Throws(Of ArgumentNullException)("workspace",
                 Sub()
-                    Dim expandedNode = Simplifier.Expand(node, semanticModel, Nothing)
-                End Sub,
-                Sub(exception) Assert.Equal(exception.ParamName, "workspace"))
+                    Simplifier.Expand(node, semanticModel, Nothing)
+                End Sub)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestTokenExpandAsync()
-            AssertEx.Throws(Of ArgumentNullException)(
-                Sub()
-                    Dim expandedNode = Simplifier.ExpandAsync(Nothing, Nothing).Result
-                End Sub,
-                Sub(exception) Assert.Equal(exception.ParamName, "document"))
-        End Sub
+        Public Async Function TestTokenExpandAsync() As Task
+            Await Assert.ThrowsAsync(Of ArgumentNullException)("document",
+                Function()
+                    Return Simplifier.ExpandAsync(Nothing, Nothing)
+                End Function)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestTokenExpand()
-            AssertEx.Throws(Of ArgumentNullException)(
+            Assert.Throws(Of ArgumentNullException)("semanticModel",
                 Sub()
                     Dim expandedNode = Simplifier.Expand(Nothing, Nothing, Nothing)
-                End Sub,
-                Sub(exception) Assert.Equal(exception.ParamName, "semanticModel"))
+                End Sub)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestTokenExpand2()
             Dim semanticModel = GetSemanticModel()
-            AssertEx.Throws(Of ArgumentNullException)(
+            Assert.Throws(Of ArgumentNullException)("workspace",
                 Sub()
                     Dim expandedNode = Simplifier.Expand(Nothing, semanticModel, Nothing)
-                End Sub,
-                Sub(exception) Assert.Equal(exception.ParamName, "workspace"))
+                End Sub)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestReduceAsync()
-            AssertEx.Throws(Of ArgumentNullException)(
-                Sub()
-                    Dim simplifiedNode = Simplifier.ReduceAsync(Nothing).Result
-                End Sub,
-                Sub(exception) Assert.Equal(exception.ParamName, "document"))
-        End Sub
+        Public Async Function TestReduceAsync() As Task
+            Await Assert.ThrowsAsync(Of ArgumentNullException)("document",
+                Function()
+                    Return Simplifier.ReduceAsync(Nothing)
+                End Function)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestReduceAsync2()
+        Public Async Function TestReduceAsync2() As Task
             Dim syntaxAnnotation As SyntaxAnnotation = Nothing
-            AssertEx.Throws(Of ArgumentNullException)(
-                Sub()
-                    Dim simplifiedNode = Simplifier.ReduceAsync(Nothing, syntaxAnnotation).Result
-                End Sub,
-                Sub(exception) Assert.Equal(exception.ParamName, "document"))
-        End Sub
+            Await Assert.ThrowsAsync(Of ArgumentNullException)("document",
+                Function()
+                    Return Simplifier.ReduceAsync(Nothing, syntaxAnnotation)
+                End Function)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestReduceAsync3()
+        Public Async Function TestReduceAsync3() As Task
             Dim syntaxAnnotation As SyntaxAnnotation = Nothing
             Dim document = GetDocument()
-            AssertEx.Throws(Of ArgumentNullException)(
-                Sub()
-                    Dim simplifiedNode = Simplifier.ReduceAsync(document, syntaxAnnotation).Result
-                End Sub,
-                Sub(exception) Assert.Equal(exception.ParamName, "annotation"))
-        End Sub
+            Await Assert.ThrowsAsync(Of ArgumentNullException)("annotation",
+                Function()
+                    Return Simplifier.ReduceAsync(document, syntaxAnnotation)
+                End Function)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestReduceAsync4()
+        Public Async Function TestReduceAsync4() As Task
             Dim textSpan As TextSpan = Nothing
-            AssertEx.Throws(Of ArgumentNullException)(
-                Sub()
-                    Dim simplifiedNode = Simplifier.ReduceAsync(Nothing, textSpan).Result
-                End Sub,
-                Sub(exception) Assert.Equal(exception.ParamName, "document"))
-        End Sub
+            Await Assert.ThrowsAsync(Of ArgumentNullException)("document",
+                Function()
+                    Return Simplifier.ReduceAsync(Nothing, textSpan)
+                End Function)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestReduceAsync5()
+        Public Async Function TestReduceAsync5() As Task
             Dim spans As IEnumerable(Of TextSpan) = Nothing
-            AssertEx.Throws(Of ArgumentNullException)(
-                Sub()
-                    Dim simplifiedNode = Simplifier.ReduceAsync(Nothing, spans).Result
-                End Sub,
-                Sub(exception) Assert.Equal(exception.ParamName, "document"))
-        End Sub
+            Await Assert.ThrowsAsync(Of ArgumentNullException)("document",
+                Function()
+                    Return Simplifier.ReduceAsync(Nothing, spans)
+                End Function)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub TestReduceAsync6()
+        Public Async Function TestReduceAsync6() As Task
             Dim document = GetDocument()
             Dim spans As IEnumerable(Of TextSpan) = Nothing
-            AssertEx.Throws(Of ArgumentNullException)(
-                Sub()
-                    Dim simplifiedNode = Simplifier.ReduceAsync(document, spans).Result
-                End Sub,
-                Sub(exception) Assert.Equal(exception.ParamName, "spans"))
-        End Sub
+            Await Assert.ThrowsAsync(Of ArgumentNullException)("spans",
+                Function() As Task
+                    Return Simplifier.ReduceAsync(document, spans)
+                End Function)
+        End Function
 
         Private Shared Function GetDocument() As Document
             Dim workspace = New AdhocWorkspace()

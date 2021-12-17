@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -15,10 +16,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsFromPrimaryBranch(this Document document)
             => document.Project.Solution.BranchId == document.Project.Solution.Workspace.PrimaryBranchId;
 
-        public static ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
-            => SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken);
+        public static async ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
+        {
+            var result = await SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(result);
+            return result;
+        }
 
-        public static ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, CancellationToken cancellationToken)
+        public static ValueTask<SyntaxTreeIndex?> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, CancellationToken cancellationToken)
             => SyntaxTreeIndex.GetIndexAsync(document, loadOnly, cancellationToken);
 
         /// <summary>

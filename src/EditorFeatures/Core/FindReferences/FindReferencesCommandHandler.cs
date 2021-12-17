@@ -7,11 +7,13 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -84,13 +86,18 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             return false;
         }
 
-        private static (Document, IFindUsagesService) GetDocumentAndService(ITextSnapshot snapshot)
+        private static (Document, IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            return (document, document?.GetLanguageService<IFindUsagesService>());
+#pragma warning disable CS0618 // Type or member is obsolete
+            var legacyService = document?.GetLanguageService<IFindUsagesService>();
+#pragma warning restore CS0618 // Type or member is obsolete
+            return legacyService == null
+                ? (document, document?.GetLanguageService<IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess>())
+                : (document, new FindUsagesServiceWrapper(legacyService));
         }
 
-        private bool TryExecuteCommand(int caretPosition, Document document, IFindUsagesService findUsagesService)
+        private bool TryExecuteCommand(int caretPosition, Document document, IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess findUsagesService)
         {
             // See if we're running on a host that can provide streaming results.
             // We'll both need a FAR service that can stream results to us, and 
@@ -106,34 +113,36 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
 
         private async Task StreamingFindReferencesAsync(
             Document document, int caretPosition,
-            IFindUsagesService findUsagesService,
+            IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess findUsagesService,
             IStreamingFindUsagesPresenter presenter)
         {
             try
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync));
 
-                // Let the presented know we're starting a search.  It will give us back
-                // the context object that the FAR service will push results into.
+                // Let the presented know we're starting a search.  It will give us back the context object that the FAR
+                // service will push results into. This operation is not externally cancellable.  Instead, the find refs
+                // window will cancel it if another request is made to use it.
                 var context = presenter.StartSearchWithCustomColumns(
                     EditorFeaturesResources.Find_References,
                     supportsReferences: true,
                     includeContainingTypeAndMemberColumns: document.Project.SupportsCompilation,
-                    includeKindColumn: document.Project.Language != LanguageNames.FSharp);
+                    includeKindColumn: document.Project.Language != LanguageNames.FSharp,
+                    CancellationToken.None);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
                     context.CancellationToken))
                 {
-                    await findUsagesService.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
-
-                    // Note: we don't need to put this in a finally.  The only time we might not hit
-                    // this is if cancellation or another error gets thrown.  In the former case,
-                    // that means that a new search has started.  We don't care about telling the
-                    // context it has completed.  In the latter case something wrong has happened
-                    // and we don't want to run any more code in this particular context.
-                    await context.OnCompletedAsync().ConfigureAwait(false);
+                    try
+                    {
+                        await findUsagesService.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        await context.OnCompletedAsync().ConfigureAwait(false);
+                    }
                 }
             }
             catch (OperationCanceledException)

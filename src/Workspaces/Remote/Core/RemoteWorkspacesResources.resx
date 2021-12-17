@@ -145,7 +145,7 @@
     <value>Diagnostic analyzer runner</value>
   </data>
   <data name="FeatureName_DocumentHighlights" xml:space="preserve">
-    <value>Document higlights</value>
+    <value>Document highlights</value>
   </data>
   <data name="FeatureName_EncapsulateField" xml:space="preserve">
     <value>Encapsulate field refactoring</value>
@@ -191,5 +191,17 @@
   </data>
   <data name="FeatureName_SolutionAssetProvider" xml:space="preserve">
     <value>Asset provider</value>
+  </data>
+  <data name="FeatureName_EditAndContinue" xml:space="preserve">
+    <value>Edit and Continue</value>
+  </data>
+  <data name="FeatureName_NavigationBarItem" xml:space="preserve">
+    <value>Navigation bar</value>
+  </data>
+  <data name="FeatureName_InheritanceMargin" xml:space="preserve">
+    <value>Inheritance margin</value>
+  </data>
+  <data name="FeatureName_UnusedReferenceAnalysis" xml:space="preserve">
+    <value>Unused reference analysis</value>
   </data>
 </root>

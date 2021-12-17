@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Remote;
@@ -470,6 +471,32 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
             solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion: 2, CancellationToken.None);
+            Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task TestFrozenSourceGeneratedDocument()
+        {
+            using var workspace = TestWorkspace.CreateCSharp(@"");
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution
+                .Projects.Single()
+                .AddAnalyzerReference(new AnalyzerFileReference(typeof(Microsoft.CodeAnalysis.TestSourceGenerator.HelloWorldGenerator).Assembly.Location, new TestAnalyzerAssemblyLoader()))
+                .Solution;
+
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+            var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            var synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion: 0, CancellationToken.None);
+            Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
+
+            var documentIdentity = (await solution.Projects.Single().GetSourceGeneratedDocumentsAsync()).First().Identity;
+            var frozenText = SourceText.From("// Hello, World!");
+            solution = solution.WithFrozenSourceGeneratedDocument(documentIdentity, frozenText).Project.Solution;
+
+            assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+            solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: 1, CancellationToken.None);
             Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
         }
 

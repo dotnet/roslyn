@@ -745,8 +745,16 @@ namespace Microsoft.Cci
             DocumentHandle documentHandle;
             DebugSourceInfo info = document.GetSourceInfo();
 
+            var name = document.Location;
+            if (_usingNonSourceDocumentNameEnumerator)
+            {
+                var result = _nonSourceDocumentNameEnumerator.MoveNext();
+                Debug.Assert(result);
+                name = _nonSourceDocumentNameEnumerator.Current;
+            }
+
             documentHandle = _debugMetadataOpt.AddDocument(
-                name: _debugMetadataOpt.GetOrAddDocumentName(document.Location),
+                name: _debugMetadataOpt.GetOrAddDocumentName(name),
                 hashAlgorithm: info.Checksum.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(info.ChecksumAlgorithmId),
                 hash: info.Checksum.IsDefault ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(info.Checksum),
                 language: _debugMetadataOpt.GetOrAddGuid(document.Language));
@@ -836,7 +844,7 @@ namespace Microsoft.Cci
         }
 
         ///<summary>The version of the compilation options schema to be written to the PDB.</summary>
-        public const int CompilationOptionsSchemaVersion = 1;
+        private const int CompilationOptionsSchemaVersion = 2;
 
         /// <summary>
         /// Capture the set of compilation options to allow a compilation 
@@ -846,46 +854,58 @@ namespace Microsoft.Cci
         {
             var builder = new BlobBuilder();
 
-            var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
-            WriteValue(CompilationOptionNames.CompilationOptionsVersion, CompilationOptionsSchemaVersion.ToString());
-            WriteValue(CompilationOptionNames.CompilerVersion, compilerVersion);
-
-            WriteValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);
-            WriteValue(CompilationOptionNames.SourceFileCount, module.CommonCompilation.SyntaxTrees.Count().ToString());
-
-            if (module.EmitOptions.FallbackSourceFileEncoding != null)
+            if (this.Context.RebuildData is { } rebuildData)
             {
-                WriteValue(CompilationOptionNames.FallbackEncoding, module.EmitOptions.FallbackSourceFileEncoding.WebName);
+                var reader = rebuildData.OptionsBlobReader;
+                builder.WriteBytes(reader.ReadBytes(reader.RemainingBytes));
             }
-
-            if (module.EmitOptions.DefaultSourceFileEncoding != null)
+            else
             {
-                WriteValue(CompilationOptionNames.DefaultEncoding, module.EmitOptions.DefaultSourceFileEncoding.WebName);
+                var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+                WriteValue(CompilationOptionNames.CompilationOptionsVersion, CompilationOptionsSchemaVersion.ToString());
+                WriteValue(CompilationOptionNames.CompilerVersion, compilerVersion);
+
+                WriteValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);
+                WriteValue(CompilationOptionNames.SourceFileCount, module.CommonCompilation.SyntaxTrees.Count().ToString());
+                WriteValue(CompilationOptionNames.OutputKind, module.OutputKind.ToString());
+
+                if (module.EmitOptions.FallbackSourceFileEncoding != null)
+                {
+                    WriteValue(CompilationOptionNames.FallbackEncoding, module.EmitOptions.FallbackSourceFileEncoding.WebName);
+                }
+
+                if (module.EmitOptions.DefaultSourceFileEncoding != null)
+                {
+                    WriteValue(CompilationOptionNames.DefaultEncoding, module.EmitOptions.DefaultSourceFileEncoding.WebName);
+                }
+
+                int portabilityPolicy = 0;
+                if (module.CommonCompilation.Options.AssemblyIdentityComparer is DesktopAssemblyIdentityComparer identityComparer)
+                {
+                    portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightLibraryAssembliesPortability ? 0b1 : 0;
+                    portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
+                }
+
+                if (portabilityPolicy != 0)
+                {
+                    WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString());
+                }
+
+                var optimizationLevel = module.CommonCompilation.Options.OptimizationLevel;
+                var debugPlusMode = module.CommonCompilation.Options.DebugPlusMode;
+                if ((optimizationLevel, debugPlusMode) != OptimizationLevelFacts.DefaultValues)
+                {
+                    WriteValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
+                }
+
+                var platform = module.CommonCompilation.Options.Platform;
+                WriteValue(CompilationOptionNames.Platform, platform.ToString());
+
+                var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+                WriteValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);
+
+                module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
             }
-
-            int portabilityPolicy = 0;
-            if (module.CommonCompilation.Options.AssemblyIdentityComparer is DesktopAssemblyIdentityComparer identityComparer)
-            {
-                portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightLibraryAssembliesPortability ? 0b1 : 0;
-                portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
-            }
-
-            if (portabilityPolicy != 0)
-            {
-                WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString());
-            }
-
-            var optimizationLevel = module.CommonCompilation.Options.OptimizationLevel;
-            var debugPlusMode = module.CommonCompilation.Options.DebugPlusMode;
-            if (optimizationLevel != OptimizationLevel.Debug || debugPlusMode)
-            {
-                WriteValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
-            }
-
-            var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-            WriteValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);
-
-            module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
 
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,
@@ -917,13 +937,15 @@ namespace Microsoft.Cci
             // COFF header Timestamp field (4 byte int)
             // COFF header SizeOfImage field (4 byte int)
             // MVID (Guid, 24 bytes)
-            foreach (var metadataReference in module.CommonCompilation.ExternalReferences)
+            var referenceManager = module.CommonCompilation.GetBoundReferenceManager();
+            foreach (var pair in referenceManager.GetReferencedAssemblyAliases())
             {
-                if (metadataReference is PortableExecutableReference portableReference && portableReference.FilePath is object)
+                if (referenceManager.GetMetadataReference(pair.AssemblySymbol) is PortableExecutableReference { FilePath: { } } portableReference)
                 {
                     var fileName = PathUtilities.GetFileName(portableReference.FilePath);
-                    var reference = module.CommonCompilation.GetAssemblyOrModuleSymbol(portableReference);
-                    var peReader = GetReader(reference);
+                    var peReader = pair.AssemblySymbol.GetISymbol() is IAssemblySymbol assemblySymbol
+                        ? assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt
+                        : null;
 
                     // Don't write before checking that we can get a peReader for the metadata reference
                     if (peReader is null)
@@ -936,8 +958,8 @@ namespace Microsoft.Cci
                     builder.WriteByte(0);
 
                     // Extern alias
-                    if (portableReference.Properties.Aliases.Any())
-                        builder.WriteUTF8(string.Join(",", portableReference.Properties.Aliases));
+                    if (pair.Aliases.Length > 0)
+                        builder.WriteUTF8(string.Join(",", pair.Aliases.OrderBy(StringComparer.Ordinal)));
 
                     // Always null terminate the extern alias list
                     builder.WriteByte(0);
@@ -967,14 +989,6 @@ namespace Microsoft.Cci
                 parent: EntityHandle.ModuleDefinition,
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationMetadataReferences),
                 value: _debugMetadataOpt.GetOrAddBlob(builder));
-
-            static PEReader GetReader(ISymbol symbol)
-                => symbol switch
-                {
-                    IAssemblySymbol assemblySymbol => assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt,
-                    IModuleSymbol moduleSymbol => moduleSymbol.GetMetadata().Module.PEReaderOpt,
-                    _ => null
-                };
         }
     }
 }

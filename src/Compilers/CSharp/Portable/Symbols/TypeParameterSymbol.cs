@@ -69,9 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal virtual DiagnosticInfo GetConstraintsUseSiteErrorInfo()
+        internal virtual UseSiteInfo<AssemblySymbol> GetConstraintsUseSiteErrorInfo()
         {
-            return null;
+            return default;
         }
 
         /// <summary>
@@ -88,33 +88,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ImmutableArray<TypeWithAnnotations> ConstraintTypesWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal ImmutableArray<TypeWithAnnotations> ConstraintTypesWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var result = ConstraintTypesNoUseSiteDiagnostics;
 
-            AppendConstraintsUseSiteErrorInfo(ref useSiteDiagnostics);
+            AppendConstraintsUseSiteErrorInfo(ref useSiteInfo);
 
             foreach (var constraint in result)
             {
-                ((TypeSymbol)constraint.Type.OriginalDefinition).AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                ((TypeSymbol)constraint.Type.OriginalDefinition).AddUseSiteInfo(ref useSiteInfo);
             }
 
             return result;
         }
 
-        private void AppendConstraintsUseSiteErrorInfo(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void AppendConstraintsUseSiteErrorInfo(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            DiagnosticInfo errorInfo = this.GetConstraintsUseSiteErrorInfo();
-
-            if ((object)errorInfo != null)
-            {
-                if (useSiteDiagnostics == null)
-                {
-                    useSiteDiagnostics = new HashSet<DiagnosticInfo>();
-                }
-
-                useSiteDiagnostics.Add(errorInfo);
-            }
+            useSiteInfo.Add(this.GetConstraintsUseSiteErrorInfo());
         }
 
         /// <summary>
@@ -275,14 +265,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal NamedTypeSymbol EffectiveBaseClass(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal NamedTypeSymbol EffectiveBaseClass(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            AppendConstraintsUseSiteErrorInfo(ref useSiteDiagnostics);
+            AppendConstraintsUseSiteErrorInfo(ref useSiteInfo);
             var result = EffectiveBaseClassNoUseSiteDiagnostics;
 
             if ((object)result != null)
             {
-                result.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                result.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
             }
 
             return result;
@@ -312,14 +302,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal TypeSymbol DeducedBaseType(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal TypeSymbol DeducedBaseType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            AppendConstraintsUseSiteErrorInfo(ref useSiteDiagnostics);
+            AppendConstraintsUseSiteErrorInfo(ref useSiteInfo);
             var result = DeducedBaseTypeNoUseSiteDiagnostics;
 
             if ((object)result != null)
             {
-                ((TypeSymbol)result.OriginalDefinition).AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                ((TypeSymbol)result.OriginalDefinition).AddUseSiteInfo(ref useSiteInfo);
             }
 
             return result;
@@ -338,21 +328,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ImmutableArray<NamedTypeSymbol> AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal ImmutableArray<NamedTypeSymbol> AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var result = AllEffectiveInterfacesNoUseSiteDiagnostics;
 
             // Since bases affect content of AllInterfaces set, we need to make sure they all are good.
-            var current = DeducedBaseType(ref useSiteDiagnostics);
+            var current = DeducedBaseType(ref useSiteInfo);
 
             while ((object)current != null)
             {
-                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
             }
 
             foreach (var iface in result)
             {
-                iface.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                iface.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
             }
 
             return result;
@@ -584,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal sealed override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             return HasUnmanagedTypeConstraint ? ManagedKind.Unmanaged : ManagedKind.Managed;
         }
@@ -702,5 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsRecord => false;
+
+        internal override bool IsRecordStruct => false;
     }
 }

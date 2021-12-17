@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.ParseOptions:
                     case WellKnownSynchronizationKind.ProjectReference:
                     case WellKnownSynchronizationKind.OptionSet:
+                    case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
                         return Checksum.Create(kind, value, this);
 
                     case WellKnownSynchronizationKind.MetadataReference:
@@ -124,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.SolutionAttributes:
                     case WellKnownSynchronizationKind.ProjectAttributes:
                     case WellKnownSynchronizationKind.DocumentAttributes:
+                    case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
                         ((IObjectWritable)value).WriteTo(writer);
                         return;
 
@@ -132,7 +134,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return;
 
                     case WellKnownSynchronizationKind.ParseOptions:
-                        SerializeParseOptions((ParseOptions)value, writer, cancellationToken);
+                        cancellationToken.ThrowIfCancellationRequested();
+                        SerializeParseOptions((ParseOptions)value, writer);
                         return;
 
                     case WellKnownSynchronizationKind.ProjectReference:
@@ -196,6 +199,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return (T)(object)ProjectInfo.ProjectAttributes.ReadFrom(reader);
                     case WellKnownSynchronizationKind.DocumentAttributes:
                         return (T)(object)DocumentInfo.DocumentAttributes.ReadFrom(reader);
+                    case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
+                        return (T)(object)SourceGeneratedDocumentIdentity.ReadFrom(reader);
                     case WellKnownSynchronizationKind.CompilationOptions:
                         return (T)(object)DeserializeCompilationOptions(reader, cancellationToken);
                     case WellKnownSynchronizationKind.ParseOptions:
@@ -221,6 +226,9 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private IOptionsSerializationService GetOptionsSerializationService(string languageName)
             => _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetRequiredService<IOptionsSerializationService>());
+
+        public Checksum CreateParseOptionsChecksum(ParseOptions value)
+            => Checksum.Create(WellKnownSynchronizationKind.ParseOptions, value, this);
     }
 
     // TODO: convert this to sub class rather than using enum with if statement.

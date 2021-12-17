@@ -12,6 +12,16 @@
         <target state="translated">Agregar llaves a la instrucción '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
+        <source>Blank line not allowed after constructor initializer colon</source>
+        <target state="translated">No se permite una línea en blanco después del signo de dos puntos del inicializador del constructor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Consecutive_braces_must_not_have_a_blank_between_them">
+        <source>Consecutive braces must not have blank line between them</source>
+        <target state="translated">Las llaves consecutivas no deben tener una línea en blanco entre ellas</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
         <source>Convert switch statement to expression</source>
         <target state="translated">Convertir una instrucción switch en expresión</target>
@@ -32,9 +42,14 @@
         <target state="translated">El descarte se puede quitar.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Embedded_statements_must_be_on_their_own_line">
+        <source>Embedded statements must be on their own line</source>
+        <target state="translated">Las instrucciones incrustadas deben estar en su propia línea</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
-        <target state="translated">La indexación de direcciones puede ser simplificado</target>
+        <target state="translated">La indexación de direcciones se puede simplificar</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_variable_declaration">
@@ -98,8 +113,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="translated">Struct contiene una asignación a "this" fuera del constructor. Convertir en editables los campos de solo lectura</target>
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
+        <target state="translated">Struct contiene una asignación a "this" fuera del constructor. Convierta en editables los campos de solo lectura.</target>
         <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">

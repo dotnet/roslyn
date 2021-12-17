@@ -7,6 +7,11 @@
         <target state="translated">La matriz de destino no es lo suficientemente larga para copiar todos los elementos de la colección. Compruebe el índice y la longitud de la matriz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Arg_BogusIComparer">
+        <source>Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</source>
+        <target state="translated">No se puede ordenar porque el método IComparer.Compare() devuelve resultados incoherentes. No se compara un valor igual a sí mismo, o bien un valor comparado repetidamente con otro proporciona resultados diferentes. IComparer: '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Arg_HTCapacityOverflow">
         <source>Hashtable's capacity overflowed and went negative. Check load factor, capacity and the current size of the table.</source>
         <target state="translated">Se ha desbordado la capacidad de la tabla hash (actualmente es negativa). Compruebe el factor de carga, la capacidad y el tamaño actual de la tabla.</target>

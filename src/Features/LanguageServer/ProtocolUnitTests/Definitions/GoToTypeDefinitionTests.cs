@@ -26,9 +26,9 @@ class B
 {
     {|caret:|}A classA;
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
 
-            var results = await RunGotoTypeDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, locations["caret"].Single());
             AssertLocationsEqual(locations["definition"], results);
         }
 
@@ -52,9 +52,9 @@ class B
 }"
             };
 
-            using var workspace = CreateTestWorkspace(markups, out var locations);
+            using var testLspServer = CreateTestLspServer(markups, out var locations);
 
-            var results = await RunGotoTypeDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, locations["caret"].Single());
             AssertLocationsEqual(locations["definition"], results);
         }
 
@@ -70,16 +70,15 @@ class B
     A classA;
     {|caret:|}
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
 
-            var results = await RunGotoTypeDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, locations["caret"].Single());
             Assert.Empty(results);
         }
 
-        private static async Task<LSP.Location[]> RunGotoTypeDefinitionAsync(Solution solution, LSP.Location caret)
+        private static async Task<LSP.Location[]> RunGotoTypeDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)
         {
-            var queue = CreateRequestQueue(solution);
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(queue, LSP.Methods.TextDocumentTypeDefinitionName,
+            return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentTypeDefinitionName,
                            CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
     }

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         public static bool CanDelegateTo<TExpressionSyntax>(
             SemanticDocument document,
             ImmutableArray<IParameterSymbol> parameters,
-            ImmutableArray<TExpressionSyntax> expressions,
+            ImmutableArray<TExpressionSyntax?> expressions,
             IMethodSymbol constructor)
             where TExpressionSyntax : SyntaxNode
         {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             ISemanticFactsService semanticFacts,
             SemanticModel semanticModel,
             IMethodSymbol constructor,
-            ImmutableArray<TExpressionSyntax> expressions)
+            ImmutableArray<TExpressionSyntax?> expressions)
             where TExpressionSyntax : SyntaxNode
         {
             Debug.Assert(constructor.Parameters.Length == expressions.Length);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 // However, theoretically the public type from A could have a user-defined conversion.
                 // The alternative approach might be to map the type of the parameters back into B, and then
                 // classify the conversions in Project B, but that'll run into other issues if the experssions
-                // don't have a natural type (like default). We choose to ignore all potentially crazy cases here.
+                // don't have a natural type (like default). We choose to ignore all complicated cases here.
                 return false;
             }
 
@@ -106,6 +106,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var constructorParameter = constructorInCompilation.Parameters[i];
                 if (constructorParameter == null)
                     return false;
+
+                // In VB the argument may not have been specified at all if the parameter is optional
+                if (expressions[i] is null && constructorParameter.IsOptional)
+                    continue;
 
                 var conversion = semanticFacts.ClassifyConversion(semanticModel, expressions[i], constructorParameter.Type);
                 if (!conversion.IsIdentity && !conversion.IsImplicit)

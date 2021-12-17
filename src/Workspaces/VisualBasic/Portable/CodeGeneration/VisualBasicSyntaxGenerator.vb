@@ -32,10 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides ReadOnly Property SyntaxGeneratorInternal As SyntaxGeneratorInternal = VisualBasicSyntaxGeneratorInternal.Instance
 
-        Friend Overrides Function EndOfLine(text As String) As SyntaxTrivia
-            Return SyntaxFactory.EndOfLine(text)
-        End Function
-
         Friend Overrides Function Whitespace(text As String) As SyntaxTrivia
             Return SyntaxFactory.Whitespace(text)
         End Function

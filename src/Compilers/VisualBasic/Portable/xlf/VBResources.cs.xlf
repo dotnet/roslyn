@@ -57,6 +57,11 @@
         <target state="translated">Události sdílených proměnných WithEvents se nedají zpracovat metodami v jiném typu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">Atribut UnmanagedCallersOnly se nepodporuje.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">komentáře po pokračování řádku</target>

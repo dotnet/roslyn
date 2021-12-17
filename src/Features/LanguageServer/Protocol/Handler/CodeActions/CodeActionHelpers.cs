@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 Priority = UnifiedSuggestedActionSetPriorityToPriorityLevel(setPriority),
                 Group = $"Roslyn{currentSetNumber}",
                 ApplicableRange = applicableRange,
-                Data = new CodeActionResolveData(currentTitle, request.Range, request.TextDocument)
+                Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument)
             };
 
             static VSCodeAction[] GenerateNestedVSCodeActions(

@@ -35,12 +35,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return default;
         }
 
-        public ValueTask OnDefinitionFoundAsync(ISymbol symbol)
-        {
-            _progress.OnDefinitionFound(symbol);
-            return default;
-        }
-
         public ValueTask OnFindInDocumentCompletedAsync(Document document)
         {
             _progress.OnFindInDocumentCompleted(document);
@@ -53,7 +47,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return default;
         }
 
-        public ValueTask OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location)
+        public ValueTask OnDefinitionFoundAsync(SymbolGroup group)
+        {
+            foreach (var symbol in group.Symbols)
+                _progress.OnDefinitionFound(symbol);
+
+            return default;
+        }
+
+        public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location)
         {
             _progress.OnReferenceFound(symbol, location);
             return default;

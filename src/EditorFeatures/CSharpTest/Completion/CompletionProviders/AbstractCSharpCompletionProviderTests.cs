@@ -38,13 +38,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
+            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
             return base.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                inlineDescription, matchingFilters, flags);
+                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
         }
 
         private protected override async Task VerifyWorkerAsync(
@@ -52,20 +53,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger,
             bool checkForAbsence, int? glyph, int? matchPriority,
-            bool? hasSuggestionItem, string displayTextSuffix, string inlineDescription = null,
-            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            bool? hasSuggestionItem, string displayTextSuffix, string displayTextPrefix, string inlineDescription = null,
+            bool? isComplexTextEdit = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
-            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription, matchingFilters);
-            await VerifyInFrontOfCommentAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription, matchingFilters);
-            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription, matchingFilters);
+            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters);
+            await VerifyInFrontOfCommentAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters);
+            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters);
 
             // Items cannot be partially written if we're checking for their absence,
             // or if we're verifying that the list will show up (without specifying an actual item)
             if (!checkForAbsence && expectedItemOrNull != null)
             {
-                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription, matchingFilters);
-                await VerifyInFrontOfComment_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription, matchingFilters);
-                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription, matchingFilters);
+                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters);
+                await VerifyInFrontOfComment_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters);
+                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters);
             }
         }
 
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
             int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription, List<CompletionFilter> matchingFilters)
+            string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit, List<CompletionFilter> matchingFilters)
         {
             code = code.Substring(0, position) + insertText + "/**/" + code.Substring(position);
             position += insertText.Length;
@@ -85,8 +86,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return base.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph,
-                matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters, flags: null);
+                matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix,
+                inlineDescription, isComplexTextEdit, matchingFilters, flags: null);
         }
 
         private Task VerifyInFrontOfCommentAsync(
@@ -94,13 +95,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
             int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription, List<CompletionFilter> matchingFilters)
+            string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
+            List<CompletionFilter> matchingFilters)
         {
             return VerifyInFrontOfCommentAsync(
                 code, position, string.Empty, usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                 inlineDescription, matchingFilters);
+                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters);
         }
 
         private protected Task VerifyInFrontOfComment_ItemPartiallyWrittenAsync(
@@ -108,13 +110,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
             int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription, List<CompletionFilter> matchingFilters)
+            string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
+            List<CompletionFilter> matchingFilters)
         {
             return VerifyInFrontOfCommentAsync(
                 code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                inlineDescription, matchingFilters);
+                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters);
         }
 
         protected static string AddInsideMethod(string text)

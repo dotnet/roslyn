@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
-        async Task IFindUsagesService.FindReferencesAsync(
+        async Task IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess.FindReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var definitionTrackingContext = new DefinitionTrackingContext(context);
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
-            var options = FindSymbols.FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
+            var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
 
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.

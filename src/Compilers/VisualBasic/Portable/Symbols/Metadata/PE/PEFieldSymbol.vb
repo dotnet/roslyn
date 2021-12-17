@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyConstantValue As ConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset
         Private _lazyDocComment As Tuple(Of CultureInfo, String)
         Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
-        Private _lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
         Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
 
         Friend Sub New(
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     _name = String.Empty
                 End If
 
-                _lazyUseSiteErrorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, Me)
+                _lazyCachedUseSiteInfo.Initialize(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, Me))
             End Try
         End Sub
 
@@ -370,28 +370,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Me, _containingType.ContainingPEModule, preferredCulture, cancellationToken, _lazyDocComment)
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If _lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
-                Dim fieldUseSiteErrorInfo = CalculateUseSiteErrorInfo()
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
+
+            If Not _lazyCachedUseSiteInfo.IsInitialized Then
+                Dim fieldUseSiteInfo = CalculateUseSiteInfo()
 
                 ' if there was no previous use site error for this symbol, check the constant value
-                If fieldUseSiteErrorInfo Is Nothing Then
+                If fieldUseSiteInfo.DiagnosticInfo Is Nothing Then
 
                     ' report use site errors for invalid constant values 
                     Dim constantValue = GetConstantValue(ConstantFieldsInProgress.Empty)
                     If constantValue IsNot Nothing AndAlso
                         constantValue.IsBad Then
-                        fieldUseSiteErrorInfo = New DiagnosticInfo(MessageProvider.Instance,
-                                                                   ERRID.ERR_UnsupportedConstant2,
-                                                                   Me.ContainingType,
-                                                                   Me.Name)
+                        fieldUseSiteInfo = New UseSiteInfo(Of AssemblySymbol)(New DiagnosticInfo(MessageProvider.Instance,
+                                                                                                 ERRID.ERR_UnsupportedConstant2,
+                                                                                                 Me.ContainingType,
+                                                                                                 Me.Name))
                     End If
                 End If
 
-                _lazyUseSiteErrorInfo = fieldUseSiteErrorInfo
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, fieldUseSiteInfo)
             End If
 
-            Return _lazyUseSiteErrorInfo
+            Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
 
         Friend ReadOnly Property Handle As FieldDefinitionHandle

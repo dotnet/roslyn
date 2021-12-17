@@ -543,5 +543,19 @@ class C
     end sub
 end class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        <WorkItem(32822, "https://github.com/dotnet/roslyn/issues/32822")>
+        Public Async Function DoNotCrashOnInvalidCode() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Class C
+    Sub Test()
+        Dim list = New List(Of Integer)
+        [||]For newIndex = 0 To list.Count - 1 \' type the character '\' at the end of this line to invoke exception
+        Next
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

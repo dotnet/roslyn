@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Completion
             = new(nameof(CompletionServiceOptions), nameof(IsExpandedCompletion), defaultValue: false);
 
         /// <summary>
-        /// Indicates if the completion should be disallowed to add imports.
+        /// For testing only. Changing the default value in actual product might cause perf issues.
         /// </summary>
-        public static readonly Option2<bool> DisallowAddingImports
-            = new(nameof(CompletionServiceOptions), nameof(DisallowAddingImports), defaultValue: false);
+        public static readonly Option2<bool> UsePartialSemanticForImportCompletion
+            = new(nameof(CompletionServiceOptions), nameof(UsePartialSemanticForImportCompletion), defaultValue: true);
 
         /// <summary>
         /// Timeout value used for time-boxing completion of unimported extension methods.

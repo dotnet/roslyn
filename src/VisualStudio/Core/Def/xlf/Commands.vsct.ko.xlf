@@ -212,6 +212,21 @@
         <target state="translated">OpenActiveRuleSet</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|ButtonText">
+        <source>Remove &amp;Unused References...</source>
+        <target state="translated">사용하지 않는 참조 제거(&amp;U)...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|CommandName">
+        <source>RemoveUnusedReferences</source>
+        <target state="translated">RemoveUnusedReferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|LocCanonicalName">
+        <source>RemoveUnusedReferences</source>
+        <target state="translated">RemoveUnusedReferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidRunCodeAnalysisForProject|ButtonText">
         <source>Run C&amp;ode Analysis</source>
         <target state="translated">코드 분석 실행(&amp;O)</target>

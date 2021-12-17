@@ -939,11 +939,13 @@ End Class
 
                 AssertEx.AssertEqualToleratingWhitespaceDifferences("
 MethodDebugInformation (index: 0x31, size: 20): 
-==================================================
-1: nil
-2: nil
-3: nil
-4:
+================================================
+   IL   
+================================================
+1: nil  
+2: nil  
+3: nil  
+4:      
 {
   Kickoff Method: 0x06000002 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)
@@ -956,8 +958,7 @@ MethodDebugInformation (index: 0x31, size: 20):
   IL_002D: (7, 5) - (7, 12)
   IL_0037: <hidden>
 }
-5: nil
-", writer.ToString())
+5: nil", writer.ToString())
             End Using
         End Sub
 

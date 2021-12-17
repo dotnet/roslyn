@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 items.AddRange(GetAlwaysVisibleItems());
                 return items;
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return SpecializedCollections.EmptyEnumerable<CompletionItem>();
             }

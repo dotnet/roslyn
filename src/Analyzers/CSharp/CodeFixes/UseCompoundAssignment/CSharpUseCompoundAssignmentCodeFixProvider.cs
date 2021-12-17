@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.UseCompoundAssignment;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCompoundAssignment), Shared]
     internal class CSharpUseCompoundAssignmentCodeFixProvider
         : AbstractUseCompoundAssignmentCodeFixProvider<SyntaxKind, AssignmentExpressionSyntax, ExpressionSyntax>
     {

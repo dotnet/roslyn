@@ -39,7 +39,7 @@ namespace RunTests
             builder.Append($@"test");
             builder.Append($@" {sep}{assemblyInfo.AssemblyName}{sep}");
             var typeInfoList = assemblyInfo.PartitionInfo.TypeInfoList;
-            if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.Trait) || !string.IsNullOrWhiteSpace(Options.NoTrait))
+            if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.TestFilter))
             {
                 builder.Append($@" --filter {sep}");
                 var any = false;
@@ -50,22 +50,10 @@ namespace RunTests
                 }
                 builder.Append(sep);
 
-                if (Options.Trait is object)
+                if (Options.TestFilter is object)
                 {
-                    foreach (var trait in Options.Trait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        MaybeAddSeparator();
-                        builder.Append($"Trait={trait}");
-                    }
-                }
-
-                if (Options.NoTrait is object)
-                {
-                    foreach (var trait in Options.NoTrait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        MaybeAddSeparator('&');
-                        builder.Append($"Trait!~{trait}");
-                    }
+                    MaybeAddSeparator();
+                    builder.Append(Options.TestFilter);
                 }
 
                 void MaybeAddSeparator(char separator = '|')

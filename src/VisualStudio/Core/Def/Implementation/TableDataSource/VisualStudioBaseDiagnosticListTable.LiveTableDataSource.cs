@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -361,7 +362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Message;
                             return content != null;
                         case StandardTableKeyNames.DocumentName:
-                            content = GetFileName(data.DataLocation?.OriginalFilePath, data.DataLocation?.MappedFilePath);
+                            content = data.DataLocation?.GetFilePath();
                             return content != null;
                         case StandardTableKeyNames.Line:
                             content = data.DataLocation?.MappedStartLine ?? 0;

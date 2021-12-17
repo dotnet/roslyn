@@ -4453,14 +4453,14 @@ Block[B0] - Entry
 .locals {R1}
 {
     Locals: [System.Object a]
-    CaptureIds: [1]
+    CaptureIds: [0]
     .locals {R2}
     {
-        CaptureIds: [0]
+        CaptureIds: [1]
         Block[B1] - Block
             Predecessors: [B0]
             Statements (2)
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new MyClass ... }')
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new MyClass ... }')
                   Value: 
                     IObjectCreationOperation (Constructor: MyClass..ctor()) (OperationKind.ObjectCreation, Type: MyClass) (Syntax: 'new MyClass ... }')
                       Arguments(0)
@@ -4471,7 +4471,7 @@ Block[B0] - Entry
                   Left: 
                     IPropertyReferenceOperation: System.Object MyClass.A { get; set; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'A')
                       Instance Receiver: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'new MyClass ... }')
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'new MyClass ... }')
                   Right: 
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -4482,18 +4482,18 @@ Block[B0] - Entry
             Jump if True (Regular) to Block[B3]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new MyClass ... }')
                   Operand: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'new MyClass ... }')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'new MyClass ... }')
                 Leaving: {R2}
 
             Next (Regular) Block[B2]
         Block[B2] - Block
             Predecessors: [B1]
             Statements (1)
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.A')
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.A')
                   Value: 
                     IPropertyReferenceOperation: System.Object MyClass.A { get; set; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: '.A')
                       Instance Receiver: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'new MyClass ... }')
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'new MyClass ... }')
 
             Next (Regular) Block[B4]
                 Leaving: {R2}
@@ -4502,7 +4502,7 @@ Block[B0] - Entry
     Block[B3] - Block
         Predecessors: [B1]
         Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new MyClass ... }')
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new MyClass ... }')
               Value: 
                 IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'new MyClass ... }')
 
@@ -4514,7 +4514,7 @@ Block[B0] - Entry
               Left: 
                 ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'a = new MyC ... }?.A')
               Right: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'new MyClass ... }?.A')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'new MyClass ... }?.A')
 
         Next (Regular) Block[B5]
             Leaving: {R1}
@@ -7215,14 +7215,14 @@ Block[B0] - Entry
 .locals {R1}
 {
     Locals: [System.Object a]
-    CaptureIds: [1]
+    CaptureIds: [0]
     .locals {R2}
     {
-        CaptureIds: [0]
+        CaptureIds: [1]
         Block[B1] - Block
             Predecessors: [B0]
             Statements (2)
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new MyClass ... }')
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new MyClass ... }')
                   Value: 
                     IObjectCreationOperation (Constructor: MyClass..ctor()) (OperationKind.ObjectCreation, Type: MyClass) (Syntax: 'new MyClass ... }')
                       Arguments(0)
@@ -7233,7 +7233,7 @@ Block[B0] - Entry
                   Left: 
                     IFieldReferenceOperation: System.Object MyClass.A (OperationKind.FieldReference, Type: System.Object) (Syntax: 'A')
                       Instance Receiver: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'new MyClass ... }')
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'new MyClass ... }')
                   Right: 
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -7244,18 +7244,18 @@ Block[B0] - Entry
             Jump if True (Regular) to Block[B3]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new MyClass ... }')
                   Operand: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'new MyClass ... }')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'new MyClass ... }')
                 Leaving: {R2}
 
             Next (Regular) Block[B2]
         Block[B2] - Block
             Predecessors: [B1]
             Statements (1)
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.A')
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.A')
                   Value: 
                     IFieldReferenceOperation: System.Object MyClass.A (OperationKind.FieldReference, Type: System.Object) (Syntax: '.A')
                       Instance Receiver: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'new MyClass ... }')
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'new MyClass ... }')
 
             Next (Regular) Block[B4]
                 Leaving: {R2}
@@ -7264,7 +7264,7 @@ Block[B0] - Entry
     Block[B3] - Block
         Predecessors: [B1]
         Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new MyClass ... }')
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new MyClass ... }')
               Value: 
                 IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'new MyClass ... }')
 
@@ -7276,7 +7276,7 @@ Block[B0] - Entry
               Left: 
                 ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'a = new MyC ... }?.A')
               Right: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'new MyClass ... }?.A')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'new MyClass ... }?.A')
 
         Next (Regular) Block[B5]
             Leaving: {R1}
@@ -15182,6 +15182,136 @@ Block[B0] - Entry
 Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)");
+        }
+
+        [Fact]
+        public void IndexedPropertyWithDefaultArgumentInVB()
+        {
+            var source1 =
+@"Imports System
+Imports System.Collections.Generic
+Imports System.Runtime.InteropServices
+<Assembly: PrimaryInteropAssembly(0, 0)> 
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
+<ComImport()>
+<Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
+<CoClass(GetType(A))>
+Public Interface IA
+    Property P1(Optional index As Integer = 1) As Object
+    ReadOnly Property P2(Optional index As Integer = 2) As IA
+End Interface
+Public Class A
+    Implements IA
+    Property P1(Optional index As Integer = 1) As Object Implements IA.P1
+        Get
+            Return Nothing
+        End Get
+        Set(value As Object)
+        End Set
+    End Property
+    ReadOnly Property P2(Optional index As Integer = 2) As IA Implements IA.P2
+        Get
+            Return New A()
+        End Get
+    End Property
+End Class";
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
+            var source2 =
+@"class B
+{
+    static void M(IA a)
+    /*<bind>*/{
+        a = new IA() { P2 = { P1 = 5 } };
+    }/*</bind>*/
+}";
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source2, expectedDiagnostics: DiagnosticDescription.None, references: new[] { reference1 },
+                expectedFlowGraph: @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0] [1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+              Value: 
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: IA) (Syntax: 'a')
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new IA() {  ...  P1 = 5 } }')
+              Value: 
+                IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: IA) (Syntax: 'new IA() {  ...  P1 = 5 } }')
+                  Arguments(0)
+                  Initializer: 
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2}
+    .locals {R2}
+    {
+        CaptureIds: [2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'P2')
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'P2')
+            Next (Regular) Block[B3]
+                Entering: {R3}
+        .locals {R3}
+        {
+            CaptureIds: [3]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'P1')
+                      Value: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'P1')
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: 'P1 = 5')
+                      Left: 
+                        IPropertyReferenceOperation: System.Object IA.P1[[System.Int32 index = 1]] { get; set; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'P1')
+                          Instance Receiver: 
+                            IPropertyReferenceOperation: IA IA.P2[[System.Int32 index = 2]] { get; } (OperationKind.PropertyReference, Type: IA) (Syntax: 'P2')
+                              Instance Receiver: 
+                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: IA, IsImplicit) (Syntax: 'new IA() {  ...  P1 = 5 } }')
+                              Arguments(1):
+                                  IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: index) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'P2')
+                                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'P2')
+                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: index) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'P1')
+                                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'P1')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Right: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '5')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (Boxing)
+                          Operand: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                Next (Regular) Block[B4]
+                    Leaving: {R3} {R2}
+        }
+    }
+    Block[B4] - Block
+        Predecessors: [B3]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = new IA( ... P1 = 5 } };')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: IA) (Syntax: 'a = new IA( ...  P1 = 5 } }')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: IA, IsImplicit) (Syntax: 'a')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: IA, IsImplicit) (Syntax: 'new IA() {  ...  P1 = 5 } }')
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+");
         }
     }
 }

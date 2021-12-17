@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.RemoveRedundantEquality), Shared]
     internal sealed class RemoveRedundantEqualityCodeFixProvider
         : SyntaxEditorBasedCodeFixProvider
     {

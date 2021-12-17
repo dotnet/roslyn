@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -61,7 +60,7 @@ class C
     void M() {{}}
 }}";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypes(globalContext));
+            var comp = CreateCompilation(source, options: WithNullable(globalContext));
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -93,7 +92,7 @@ partial class C
     void M2();
 }";
 
-            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
 
             var syntaxTree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(syntaxTree1);
@@ -126,12 +125,12 @@ partial class C
         [Fact]
         public void NullableContextFlags()
         {
-            AssertEnabledForInheritence(NullableContext.Disabled, warningsEnabled: false, annotationsEnabled: false);
-            AssertEnabledForInheritence(NullableContext.WarningsEnabled, warningsEnabled: true, annotationsEnabled: false);
-            AssertEnabledForInheritence(NullableContext.AnnotationsEnabled, warningsEnabled: false, annotationsEnabled: true);
-            AssertEnabledForInheritence(NullableContext.Enabled, warningsEnabled: true, annotationsEnabled: true);
+            AssertEnabledForInheritance(NullableContext.Disabled, warningsEnabled: false, annotationsEnabled: false);
+            AssertEnabledForInheritance(NullableContext.WarningsEnabled, warningsEnabled: true, annotationsEnabled: false);
+            AssertEnabledForInheritance(NullableContext.AnnotationsEnabled, warningsEnabled: false, annotationsEnabled: true);
+            AssertEnabledForInheritance(NullableContext.Enabled, warningsEnabled: true, annotationsEnabled: true);
 
-            void AssertEnabledForInheritence(NullableContext context, bool warningsEnabled, bool annotationsEnabled)
+            void AssertEnabledForInheritance(NullableContext context, bool warningsEnabled, bool annotationsEnabled)
             {
                 Assert.Equal(warningsEnabled, context.WarningsEnabled());
                 Assert.Equal(annotationsEnabled, context.AnnotationsEnabled());
@@ -195,7 +194,7 @@ class Program
             void verify(CSharpParseOptions parseOptions, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(source, parseOptions: parseOptions);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 if (expectedAnalyzedKeys.Length > 0)
                 {
                     comp.VerifyDiagnostics(
@@ -244,7 +243,7 @@ class Program
             void verify(CSharpParseOptions parseOptions, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(source, parseOptions: parseOptions);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 if (expectedAnalyzedKeys.Length > 0)
                 {
                     comp.VerifyDiagnostics(
@@ -303,7 +302,7 @@ struct B2
             void verify(CSharpParseOptions parseOptions, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: parseOptions);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 if (expectedAnalyzedKeys.Length > 0)
                 {
                     comp.VerifyDiagnostics(
@@ -345,7 +344,7 @@ class Program
             void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(source, parseOptions: parseOptions);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 var syntaxTree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(syntaxTree);
                 var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Skip(1).Single();
@@ -384,7 +383,7 @@ class B
             void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(source, parseOptions: parseOptions);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 var syntaxTree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(syntaxTree);
                 var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Single();
@@ -419,7 +418,7 @@ class Program
             void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(source, parseOptions: parseOptions);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 var syntaxTree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(syntaxTree);
                 var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().First().Value;
@@ -454,40 +453,61 @@ class Program
             }
         }
 
-        public static IEnumerable<object[]> AnalyzeMethodsInEnabledContextOnly_01_Data()
+        private static readonly NullableDirectives[] s_nullableDirectives = new[]
+        {
+            new NullableDirectives(new string[0], NullableContextState.State.Unknown, NullableContextState.State.Unknown),
+            new NullableDirectives(new[] { "#nullable disable" }, NullableContextState.State.Disabled, NullableContextState.State.Disabled),
+            new NullableDirectives(new[] { "#nullable enable" }, NullableContextState.State.Enabled, NullableContextState.State.Enabled),
+            new NullableDirectives(new[] { "#nullable restore" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.ExplicitlyRestored),
+            new NullableDirectives(new[] { "#nullable disable annotations" }, NullableContextState.State.Unknown, NullableContextState.State.Disabled),
+            new NullableDirectives(new[] { "#nullable enable warnings", "#nullable disable annotations", }, NullableContextState.State.Enabled, NullableContextState.State.Disabled),
+            new NullableDirectives(new[] { "#nullable restore warnings", "#nullable disable annotations" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Disabled),
+            new NullableDirectives(new[] { "#nullable enable annotations" }, NullableContextState.State.Unknown, NullableContextState.State.Enabled),
+            new NullableDirectives(new[] { "#nullable disable warnings", "#nullable enable annotations" }, NullableContextState.State.Disabled, NullableContextState.State.Enabled),
+            new NullableDirectives(new[] { "#nullable restore warnings", "#nullable enable annotations" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Enabled),
+            new NullableDirectives(new[] { "#nullable restore annotations" }, NullableContextState.State.Unknown, NullableContextState.State.ExplicitlyRestored),
+            new NullableDirectives(new[] { "#nullable enable warnings" , "#nullable restore annotations" }, NullableContextState.State.Enabled, NullableContextState.State.ExplicitlyRestored),
+            new NullableDirectives(new[] { "#nullable disable warnings", "#nullable restore annotations" }, NullableContextState.State.Disabled, NullableContextState.State.ExplicitlyRestored),
+            new NullableDirectives(new[] { "#nullable disable warnings" }, NullableContextState.State.Disabled, NullableContextState.State.Unknown),
+            new NullableDirectives(new[] { "#nullable enable warnings" }, NullableContextState.State.Enabled, NullableContextState.State.Unknown),
+            new NullableDirectives(new[] { "#nullable restore warnings" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Unknown),
+        };
+
+        // AnalyzeMethodsInEnabledContextOnly_01_Data is split due to https://github.com/dotnet/roslyn/issues/50337
+        public static IEnumerable<object[]> AnalyzeMethodsInEnabledContextOnly_01_Data1()
         {
             var projectSettings = new[]
             {
                 (NullableContextOptions?)null,
                 NullableContextOptions.Disable,
+            };
+
+            foreach (var projectSetting in projectSettings)
+            {
+                foreach (var classDirectives in s_nullableDirectives)
+                {
+                    foreach (var methodDirectives in s_nullableDirectives)
+                    {
+                        yield return new object[] { projectSetting, classDirectives, methodDirectives };
+                    }
+                }
+            }
+        }
+
+        public static IEnumerable<object[]> AnalyzeMethodsInEnabledContextOnly_01_Data2()
+        {
+            var projectSettings = new[]
+            {
                 NullableContextOptions.Warnings,
                 NullableContextOptions.Annotations,
                 NullableContextOptions.Enable,
             };
-            var nullableDirectives = new[]
-            {
-                new NullableDirectives(new string[0], NullableContextState.State.Unknown, NullableContextState.State.Unknown),
-                new NullableDirectives(new[] { "#nullable disable" }, NullableContextState.State.Disabled, NullableContextState.State.Disabled),
-                new NullableDirectives(new[] { "#nullable enable" }, NullableContextState.State.Enabled, NullableContextState.State.Enabled),
-                new NullableDirectives(new[] { "#nullable restore" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.ExplicitlyRestored),
-                new NullableDirectives(new[] { "#nullable disable annotations" }, NullableContextState.State.Unknown, NullableContextState.State.Disabled),
-                new NullableDirectives(new[] { "#nullable enable warnings", "#nullable disable annotations", }, NullableContextState.State.Enabled, NullableContextState.State.Disabled),
-                new NullableDirectives(new[] { "#nullable restore warnings", "#nullable disable annotations" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Disabled),
-                new NullableDirectives(new[] { "#nullable enable annotations" }, NullableContextState.State.Unknown, NullableContextState.State.Enabled),
-                new NullableDirectives(new[] { "#nullable disable warnings", "#nullable enable annotations" }, NullableContextState.State.Disabled, NullableContextState.State.Enabled),
-                new NullableDirectives(new[] { "#nullable restore warnings", "#nullable enable annotations" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Enabled),
-                new NullableDirectives(new[] { "#nullable restore annotations" }, NullableContextState.State.Unknown, NullableContextState.State.ExplicitlyRestored),
-                new NullableDirectives(new[] { "#nullable enable warnings" , "#nullable restore annotations" }, NullableContextState.State.Enabled, NullableContextState.State.ExplicitlyRestored),
-                new NullableDirectives(new[] { "#nullable disable warnings", "#nullable restore annotations" }, NullableContextState.State.Disabled, NullableContextState.State.ExplicitlyRestored),
-                new NullableDirectives(new[] { "#nullable disable warnings" }, NullableContextState.State.Disabled, NullableContextState.State.Unknown),
-                new NullableDirectives(new[] { "#nullable enable warnings" }, NullableContextState.State.Enabled, NullableContextState.State.Unknown),
-                new NullableDirectives(new[] { "#nullable restore warnings" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Unknown),
-            };
+
             foreach (var projectSetting in projectSettings)
             {
-                foreach (var classDirectives in nullableDirectives)
+                foreach (var classDirectives in s_nullableDirectives)
                 {
-                    foreach (var methodDirectives in nullableDirectives)
+                    foreach (var methodDirectives in s_nullableDirectives)
                     {
                         yield return new object[] { projectSetting, classDirectives, methodDirectives };
                     }
@@ -496,9 +516,22 @@ class Program
         }
 
         [Theory]
-        [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data))]
+        [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data1))]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
-        public void AnalyzeMethodsInEnabledContextOnly_01(NullableContextOptions? projectContext, NullableDirectives classDirectives, NullableDirectives methodDirectives)
+        public void AnalyzeMethodsInEnabledContextOnly_01A(NullableContextOptions? projectContext, NullableDirectives classDirectives, NullableDirectives methodDirectives)
+        {
+            AnalyzeMethodsInEnabledContextOnly_01_Execute(projectContext, classDirectives, methodDirectives);
+        }
+
+        [Theory]
+        [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data2))]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_01B(NullableContextOptions? projectContext, NullableDirectives classDirectives, NullableDirectives methodDirectives)
+        {
+            AnalyzeMethodsInEnabledContextOnly_01_Execute(projectContext, classDirectives, methodDirectives);
+        }
+
+        private static void AnalyzeMethodsInEnabledContextOnly_01_Execute(NullableContextOptions? projectContext, NullableDirectives classDirectives, NullableDirectives methodDirectives)
         {
             var sourceA =
 @"#nullable enable
@@ -525,7 +558,7 @@ static class B
             var options = TestOptions.ReleaseDll;
             if (projectContext != null) options = options.WithNullableContextOptions(projectContext.Value);
             var comp = CreateCompilation(sourceB, options: options, references: new[] { refA });
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.NullableAnalysisData = new();
 
             if (isNullableEnabledForMethod)
             {
@@ -688,7 +721,7 @@ static class Program
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
@@ -947,7 +980,7 @@ struct S
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
@@ -1028,7 +1061,7 @@ partial class Program
             static void verify(string[] source, CSharpCompilationOptions options, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source, options: options);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
@@ -1112,7 +1145,7 @@ class Program
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
@@ -1171,7 +1204,7 @@ class Program
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
@@ -1262,7 +1295,7 @@ class Program
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
@@ -1319,7 +1352,7 @@ class B
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
@@ -1414,7 +1447,7 @@ record B2() : A(
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 var actualAnalyzedKeys = GetIsNullableEnabledMethods(comp.NullableAnalysisData, key => ((MethodSymbol)key).ToTestDisplayString());
@@ -1448,7 +1481,7 @@ record B2() : A(
 }";
 
             var comp = CreateCompilation(new[] { source1, source2 });
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.NullableAnalysisData = new();
             comp.VerifyDiagnostics(
                 // (4,43): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     partial void F1(ref object o1) { o1 = null; }
@@ -1478,7 +1511,7 @@ record B2() : A(
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.NullableAnalysisData = new();
             comp.VerifyDiagnostics(
                 // (4,32): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     partial void F1(object x = null);
@@ -1549,7 +1582,7 @@ class A : System.Attribute
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.NullableAnalysisData = new();
             comp.VerifyDiagnostics();
 
             var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
@@ -1701,7 +1734,7 @@ _ = x.ToString();
                 var options = TestOptions.ReleaseExe;
                 if (projectContext != null) options = options.WithNullableContextOptions(projectContext.GetValueOrDefault());
                 var comp = CreateCompilation(source, options: options);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
@@ -1731,7 +1764,7 @@ _ = x.ToString();
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.NullableAnalysisData = new();
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var returnStatements = syntaxTree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().ToArray();
@@ -1800,7 +1833,7 @@ _ = x.ToString();
             static void verify(string source, Microsoft.CodeAnalysis.NullableFlowState expectedFlowState, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(source);
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.NullableAnalysisData = new();
 
                 var syntaxTree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(syntaxTree);
@@ -1838,7 +1871,7 @@ class B2
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.NullableAnalysisData = new();
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var attributeArguments = syntaxTree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().ToArray();
@@ -1887,7 +1920,7 @@ class Program
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.NullableAnalysisData = new();
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var attributeArguments = syntaxTree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().ToArray();
@@ -1929,7 +1962,7 @@ class Program
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.NullableAnalysisData = new();
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var equalsValueClauses = syntaxTree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().ToArray();
@@ -1969,7 +2002,7 @@ class B
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.NullableAnalysisData = new();
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var declarations = syntaxTree.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>().Select(f => f.Declaration.Variables[0]).ToArray();
@@ -2008,7 +2041,7 @@ class B
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.NullableAnalysisData = new();
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var declarations = syntaxTree.GetRoot().DescendantNodes().OfType<PropertyDeclarationSyntax>().ToArray();
@@ -2136,16 +2169,26 @@ class Program
     {
     }
 }";
-            // https://github.com/dotnet/roslyn/issues/50160: Debug.Assert() failure in MemberSemanticModel.GetSnapshotManager().
-#if !DEBUG
             VerifySpeculativeSemanticModel(source, null, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
-#endif
         }
 
         [Theory]
-        [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data))]
+        [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data1))]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
-        public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel(NullableContextOptions? projectContext, NullableDirectives sourceDirectives, NullableDirectives speculativeDirectives)
+        public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_A(NullableContextOptions? projectContext, NullableDirectives sourceDirectives, NullableDirectives speculativeDirectives)
+        {
+            AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Execute(projectContext, sourceDirectives, speculativeDirectives);
+        }
+
+        [Theory]
+        [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data2))]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_B(NullableContextOptions? projectContext, NullableDirectives sourceDirectives, NullableDirectives speculativeDirectives)
+        {
+            AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Execute(projectContext, sourceDirectives, speculativeDirectives);
+        }
+
+        private static void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Execute(NullableContextOptions? projectContext, NullableDirectives sourceDirectives, NullableDirectives speculativeDirectives)
         {
             // https://github.com/dotnet/roslyn/issues/50234: SyntaxTreeSemanticModel.IsNullableAnalysisEnabledAtSpeculativePosition()
             // does not handle '#nullable restore'.
@@ -2188,17 +2231,17 @@ string";
             Assert.Equal(expectedAnnotation, typeInfo.Nullability.Annotation);
         }
 
-        private static string[] GetNullableDataKeysAsStrings(ConcurrentDictionary<object, NullableWalker.Data> nullableData, bool requiredAnalysis = false) =>
-            nullableData.
+        private static string[] GetNullableDataKeysAsStrings(CSharpCompilation.NullableData nullableData, bool requiredAnalysis = false) =>
+            nullableData.Data.
                 Where(pair => !requiredAnalysis || pair.Value.RequiredAnalysis).
                 Select(pair => GetNullableDataKeyAsString(pair.Key)).
                 OrderBy(key => key).
                 ToArray();
 
-        private static string[] GetIsNullableEnabledMethods(ConcurrentDictionary<object, NullableWalker.Data> nullableData, Func<object, string> toString = null)
+        private static string[] GetIsNullableEnabledMethods(CSharpCompilation.NullableData nullableData, Func<object, string> toString = null)
         {
             toString ??= GetNullableDataKeyAsString;
-            return nullableData.
+            return nullableData.Data.
                 Where(pair => pair.Value.RequiredAnalysis && pair.Key is MethodSymbol method && method.IsNullableAnalysisEnabled()).
                 Select(pair => toString(pair.Key)).
                 OrderBy(key => key).

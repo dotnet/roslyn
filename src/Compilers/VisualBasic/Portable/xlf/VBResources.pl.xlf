@@ -57,6 +57,11 @@
         <target state="translated">Zdarzenia udostępnionych zmiennych WithEvents nie mogą zostać obsłużone przez metody w innym typie.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">Atrybut „UnmanagedCallersOnly” jest nieobsługiwany.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">komentarze po kontynuacji wiersza</target>

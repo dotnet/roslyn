@@ -2179,5 +2179,117 @@ Class C
 End Class
 ")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(51040, "https://github.com/dotnet/roslyn/issues/51040")>
+        Public Async Function TestOmittedParameter() As Task
+
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private _a As Integer
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Function M() As C
+        Return New C(, [||]2)
+    End Function
+End Class
+",
+"Class C
+    Private _a As Integer
+    Private v As Integer
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Sub New(Optional a As Integer = 1, Optional v As Integer = Nothing)
+        Me.New(a)
+        Me.v = v
+    End Sub
+
+    Public Function M() As C
+        Return New C(, 2)
+    End Function
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(51040, "https://github.com/dotnet/roslyn/issues/51040")>
+        Public Async Function TestOmittedParameterAtEnd() As Task
+
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private _a As Integer
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Function M() As C
+        Return New C(1,[||])
+    End Function
+End Class
+",
+"Class C
+    Private _a As Integer
+    Private p As Object
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Sub New(Optional a As Integer = 1, Optional p As Object = Nothing)
+        Me.New(a)
+        Me.p = p
+    End Sub
+
+    Public Function M() As C
+        Return New C(1,)
+    End Function
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(51040, "https://github.com/dotnet/roslyn/issues/51040")>
+        Public Async Function TestOmittedParameterAtStartAndEnd() As Task
+
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private _a As Integer
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Function M() As C
+        Return New C(,[||])
+    End Function
+End Class
+",
+"Class C
+    Private _a As Integer
+    Private p As Object
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Sub New(Optional a As Integer = 1, Optional p As Object = Nothing)
+        Me.New(a)
+        Me.p = p
+    End Sub
+
+    Public Function M() As C
+        Return New C(,)
+    End Function
+End Class
+")
+        End Function
+
     End Class
 End Namespace

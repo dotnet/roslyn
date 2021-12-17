@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryParentheses), Shared]
     internal class CSharpRemoveUnnecessaryParenthesesCodeFixProvider :
         AbstractRemoveUnnecessaryParenthesesCodeFixProvider<SyntaxNode>
     {

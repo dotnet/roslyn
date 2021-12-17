@@ -12,6 +12,16 @@
         <target state="translated">Ajouter des accolades à l'instruction '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
+        <source>Blank line not allowed after constructor initializer colon</source>
+        <target state="translated">Ligne vide non autorisée après le signe des deux-points de l'initialiseur du constructeur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Consecutive_braces_must_not_have_a_blank_between_them">
+        <source>Consecutive braces must not have blank line between them</source>
+        <target state="translated">Les accolades consécutives ne doivent pas avoir de ligne vide entre elles</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
         <source>Convert switch statement to expression</source>
         <target state="translated">Convertir l'instruction switch en expression</target>
@@ -30,6 +40,11 @@
       <trans-unit id="Discard_can_be_removed">
         <source>Discard can be removed</source>
         <target state="translated">Vous pouvez supprimer le discard</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Embedded_statements_must_be_on_their_own_line">
+        <source>Embedded statements must be on their own line</source>
+        <target state="translated">Les instructions imbriquées doivent être placées sur leur propre ligne</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -98,8 +113,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="translated">Struct contient une assignation à 'this' en dehors du constructeur. Rendre les champs readonly accessibles en écriture</target>
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
+        <target state="translated">Struct contient une assignation à 'this' en dehors du constructeur. Rend les champs readonly accessibles en écriture.</target>
         <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">

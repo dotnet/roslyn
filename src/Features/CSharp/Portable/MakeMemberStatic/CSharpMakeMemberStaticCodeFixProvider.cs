@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.MakeMemberStatic;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeMemberStatic
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpMakeMemberStaticCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeMemberStatic), Shared]
     internal sealed class CSharpMakeMemberStaticCodeFixProvider : AbstractMakeMemberStaticCodeFixProvider
     {
         [ImportingConstructor]

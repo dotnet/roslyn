@@ -471,7 +471,7 @@ namespace Microsoft.Cci
         /// Returns types of awaiter slots allocated on the state machine,
         /// or null if the method isn't the kickoff method of a state machine.
         /// </summary>
-        ImmutableArray<ITypeReference> StateMachineAwaiterSlots { get; }
+        ImmutableArray<ITypeReference?> StateMachineAwaiterSlots { get; }
 
         ImmutableArray<ClosureDebugInfo> ClosureDebugInfo { get; }
         ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }

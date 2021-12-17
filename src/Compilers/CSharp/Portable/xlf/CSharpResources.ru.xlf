@@ -77,6 +77,11 @@
         <target state="translated">Атрибут "{0}" запрещено использовать в методах доступа к событиям. Он допустим только для объявлений "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributesRequireParenthesizedLambdaExpression">
+        <source>Attributes on lambda expressions require a parenthesized parameter list.</source>
+        <target state="translated">Для атрибутов в лямбда-выражениях требуется указать список параметров в круглых скобках.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">Автоматически реализуемое свойство "{0}" не может быть помечено как readonly, так как имеет метод доступа set.</target>
@@ -153,8 +158,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
-        <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
-        <target state="translated">Элемент записи "{0}" должен быть доступным для чтения свойством экземпляра типа "{1}", чтобы соответствовать позиционному параметру "{2}".</target>
+        <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
+        <target state="translated">Элемент записи "{0}" должен быть доступным для чтения свойством экземпляра или полем типа "{1}", чтобы соответствовать позиционному параметру "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -162,9 +167,19 @@
         <target state="translated">Ошибка в синтаксисе командной строки: "{0}" не является допустимым значением для параметра "{1}". Значение должно иметь форму "{2}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotClone">
+        <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
+        <target state="translated">Тип получателя "{0}" не является допустимым типом записи и не является типом структуры.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
         <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
         <target state="translated">Не удается преобразовать &amp;группу методов "{0}" в тип делегата "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotInferDelegateType">
+        <source>The delegate type could not be inferred.</source>
+        <target state="translated">Не удалось вывести тип делегата.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -427,9 +442,24 @@
         <target state="translated">Несоответствие ссылок между "{0}" и указателем на функцию "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
+        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
+        <target state="translated">Использование типа указателя на функцию в "typeof" атрибута не поддерживается.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
         <target state="translated">Невозможно вызвать указатель на функцию с именованными аргументами.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingInNamespace">
+        <source>A global using directive cannot be used in a namespace declaration.</source>
+        <target state="translated">Глобальную директиву using нельзя использовать в объявлении пространства имен.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingOutOfOrder">
+        <source>A global using directive must precede all non-global using directives.</source>
+        <target state="translated">Глобальная директива using должна предшествовать всем неглобальным директивам using.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -440,6 +470,11 @@
       <trans-unit id="ERR_GoToForwardJumpOverUsingVar">
         <source>A goto cannot jump to a location after a using declaration.</source>
         <target state="translated">Оператор goto не может переходить к расположению после объявления using.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_HiddenPositionalMember">
+        <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
+        <target state="translated">Обнаруженный позиционный элемент "{0}", соответствующий этому параметру, скрыт.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
@@ -477,6 +512,11 @@
         <target state="translated">Аргументы с модификатором "in" невозможно использовать в динамически диспетчеризируемых выражениях.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
+        <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
+        <target state="translated">Наследование от записи с запечатанным Object. ToString не поддерживается в C# {0}. Используйте версию языка "{1}" или более позднюю.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">Методы доступа "init" не могут быть помечены как доступные только для чтения. Вместо них пометьте "{0}" как доступные только для чтения.</target>
@@ -510,6 +550,11 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Недопустимое имя хэш-алгоритма: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidModifierForLanguageVersion">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="translated">Модификатор "{0}" недопустим для этого элемента в C# {1}. Используйте версию языка "{2}" или более позднюю.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
@@ -630,11 +675,6 @@
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Не удалось определить выходной каталог</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NoSingleCloneMethod">
-        <source>The receiver type '{0}' is not a valid record type.</source>
-        <target state="translated">Тип получателя "{0}" не является допустимым типом записи.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
@@ -957,9 +997,44 @@
         <target state="translated">пустые переменные</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureGlobalUsing">
+        <source>global using directive</source>
+        <target state="translated">глобальная директива using</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">создание объекта с типом целевого объекта</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInferredDelegateType">
+        <source>inferred delegate type</source>
+        <target state="translated">выводимый тип делегата</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaAttributes">
+        <source>lambda attributes</source>
+        <target state="translated">лямбда-атрибуты</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
+        <source>positional fields in records</source>
+        <target state="translated">позиционные поля в записях</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRecordStructs">
+        <source>record structs</source>
+        <target state="translated">структуры записей</target>
+        <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSealedToStringInRecord">
+        <source>sealed ToString in record</source>
+        <target state="translated">запечатанный ToString в записи</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureWithOnStructs">
+        <source>with on structs</source>
+        <target state="translated">с использованием структур</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1001,6 +1076,11 @@
         <source>Record defines 'Equals' but not 'GetHashCode'.</source>
         <target state="translated">Запись определяет "Equals", но не "GetHashCode".</target>
         <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
+        <source>Mixed declarations and expressions in deconstruction</source>
+        <target state="translated">Смешанные объявления и выражения в деконструировании</target>
+        <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
@@ -4137,8 +4217,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</source>
-        <target state="translated">Все разделяемые объявления "{0}" должны относиться к одному типу (классы, записи, структуры или интерфейсы).</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
+        <target state="translated">Все разделяемые объявления "{0}" должны относиться к одному типу (классы, классы записей, записи, структуры, структуры записей или интерфейсы)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
@@ -5076,8 +5156,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnSpecialMethod">
-        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation</source>
-        <target state="translated">Атрибут Conditional недопустим для "{0}", так как это конструктор, деструктор, оператор или явная реализация интерфейса.</target>
+        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation</source>
+        <target state="translated">Атрибут Conditional недопустим для "{0}", так как это конструктор, деструктор, оператор, лямбда-выражение или явная реализация интерфейса</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalMustReturnVoid">
@@ -8388,8 +8468,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">Параметры или локальные переменные типа "{0}" не могут объявляться в асинхронных методах или лямбда-выражениях.</target>
+        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="translated">Параметры или локальные переменные типа "{0}" не могут объявляться в асинхронных методах и в асинхронных лямбда-выражениях.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
@@ -9220,11 +9300,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_NoCanonicalView">
         <source>Cannot find the interop type that matches the embedded interop type '{0}'. Are you missing an assembly reference?</source>
         <target state="translated">Не удается найти тип взаимодействия, соответствующий внедренному типу взаимодействия "{0}". Возможно, отсутствует ссылка на сборку.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">Возвращаемый тип By-reference "ref {0}" не поддерживается.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
@@ -10507,11 +10582,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">Выражение Throw в данном контексте запрещено.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MixedDeconstructionUnsupported">
-        <source>A deconstruction cannot mix declarations and expressions on the left-hand-side.</source>
-        <target state="translated">Деконструирование не может содержать объявления и выражения в левой части.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DeclarationExpressionNotPermitted">
         <source>A declaration is not allowed in this context.</source>
         <target state="translated">Объявление недопустимо в этом контексте.</target>
@@ -10815,11 +10885,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
         <target state="translated">"{0}" не может реализовать член интерфейса "{1}" в типе "{2}", так как целевая среда выполнения не поддерживает реализацию интерфейса по умолчанию.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
-        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="translated">Модификатор "{0}" недопустим для этого элемента в C# {1}. Используйте версию языка "{2}" или более позднюю.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">

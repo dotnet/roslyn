@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -23,8 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
     [UseExportProvider]
     public class StructureTaggerTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task CSharpOutliningTagger_RegionIsDefinition()
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [CombinatorialData]
+        public async Task CSharpOutliningTagger(
+            bool collapseRegionsWhenCollapsingToDefinitions,
+            bool showBlockStructureGuidesForDeclarationLevelConstructs,
+            bool showBlockStructureGuidesForCodeLevelConstructs)
         {
             var code =
 @"using System;
@@ -35,6 +40,11 @@ namespace MyNamespace
     {
         static void Main(string[] args)
         {
+            if (false)
+            {
+                return;
+            }
+
             int x = 5;
         }
     }
@@ -43,75 +53,66 @@ namespace MyNamespace
 
             using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, true)));
+                .WithChangedOption(BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions)
+                .WithChangedOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForDeclarationLevelConstructs)
+                .WithChangedOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForCodeLevelConstructs)));
 
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
-            // ensure all 4 outlining region tags were found
-            Assert.Equal(4, tags.Count);
-
-            // ensure the method and #region outlining spans are marked as implementation
-            Assert.False(tags[0].IsImplementation);
-            Assert.True(tags[1].IsImplementation);
-            Assert.False(tags[2].IsImplementation);
-            Assert.True(tags[3].IsImplementation);
-
-            // verify line counts
-            var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().Select(vhc => vhc.TextView_TestOnly).ToList();
-            Assert.Equal(12, hints[0].TextSnapshot.LineCount); // namespace
-            Assert.Equal(9, hints[1].TextSnapshot.LineCount); // region
-            Assert.Equal(7, hints[2].TextSnapshot.LineCount); // class
-            Assert.Equal(4, hints[3].TextSnapshot.LineCount); // method
-            hints.Do(v => v.Close());
+            Assert.Collection(tags,
+                namespaceTag =>
+                {
+                    Assert.False(namespaceTag.IsImplementation);
+                    Assert.Equal(17, GetCollapsedHintLineCount(namespaceTag));
+                    Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Namespace : PredefinedStructureTagTypes.Nonstructural, namespaceTag.Type);
+                    Assert.Equal("namespace MyNamespace", GetHeaderText(namespaceTag));
+                },
+                regionTag =>
+                {
+                    Assert.Equal(collapseRegionsWhenCollapsingToDefinitions, regionTag.IsImplementation);
+                    Assert.Equal(14, GetCollapsedHintLineCount(regionTag));
+                    Assert.Equal(PredefinedStructureTagTypes.Nonstructural, regionTag.Type);
+                    Assert.Equal("#region MyRegion", GetHeaderText(regionTag));
+                },
+                classTag =>
+                {
+                    Assert.False(classTag.IsImplementation);
+                    Assert.Equal(12, GetCollapsedHintLineCount(classTag));
+                    Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Type : PredefinedStructureTagTypes.Nonstructural, classTag.Type);
+                    Assert.Equal("public class MyClass", GetHeaderText(classTag));
+                },
+                methodTag =>
+                {
+                    Assert.True(methodTag.IsImplementation);
+                    Assert.Equal(9, GetCollapsedHintLineCount(methodTag));
+                    Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Member : PredefinedStructureTagTypes.Nonstructural, methodTag.Type);
+                    Assert.Equal("static void Main(string[] args)", GetHeaderText(methodTag));
+                },
+                ifTag =>
+                {
+                    Assert.False(ifTag.IsImplementation);
+                    Assert.Equal(4, GetCollapsedHintLineCount(ifTag));
+                    Assert.Equal(showBlockStructureGuidesForCodeLevelConstructs ? PredefinedStructureTagTypes.Conditional : PredefinedStructureTagTypes.Nonstructural, ifTag.Type);
+                    Assert.Equal("if (false)", GetHeaderText(ifTag));
+                });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task CSharpOutliningTagger_RegionIsNotDefinition()
-        {
-            var code =
-@"using System;
-namespace MyNamespace
-{
-#region MyRegion
-    public class MyClass
-    {
-        static void Main(string[] args)
-        {
-            int x = 5;
-        }
-    }
-#endregion
-}";
-
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
-            var tags = await GetTagsFromWorkspaceAsync(workspace);
-
-            // ensure all 4 outlining region tags were found
-            Assert.Equal(4, tags.Count);
-
-            // ensure only the method is marked as implementation
-            Assert.False(tags[0].IsImplementation);
-            Assert.False(tags[1].IsImplementation);
-            Assert.False(tags[2].IsImplementation);
-            Assert.True(tags[3].IsImplementation);
-
-            // verify line counts
-            var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().Select(vhc => vhc.TextView_TestOnly).ToList();
-            Assert.Equal(12, hints[0].TextSnapshot.LineCount); // namespace
-            Assert.Equal(9, hints[1].TextSnapshot.LineCount); // region
-            Assert.Equal(7, hints[2].TextSnapshot.LineCount); // class
-            Assert.Equal(4, hints[3].TextSnapshot.LineCount); // method
-            hints.Do(v => v.Close());
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task VisualBasicOutliningTagger()
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [CombinatorialData]
+        public async Task VisualBasicOutliningTagger(
+            bool collapseRegionsWhenCollapsingToDefinitions,
+            bool showBlockStructureGuidesForDeclarationLevelConstructs,
+            bool showBlockStructureGuidesForCodeLevelConstructs)
         {
             var code = @"Imports System
 Namespace MyNamespace
 #Region ""MyRegion""
-    Module MyClass
+    Module M
         Sub Main(args As String())
+            If False Then
+                Return
+            End If
+
             Dim x As Integer = 5
         End Sub
     End Module
@@ -119,24 +120,50 @@ Namespace MyNamespace
 End Namespace";
 
             using var workspace = TestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.VisualBasic, collapseRegionsWhenCollapsingToDefinitions)
+                .WithChangedOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.VisualBasic, showBlockStructureGuidesForDeclarationLevelConstructs)
+                .WithChangedOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.VisualBasic, showBlockStructureGuidesForCodeLevelConstructs)));
+
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
-            // ensure all 4 outlining region tags were found
-            Assert.Equal(4, tags.Count);
+            Assert.Collection(tags,
+                namespaceTag =>
+                {
+                    Assert.False(namespaceTag.IsImplementation);
+                    Assert.Equal(13, GetCollapsedHintLineCount(namespaceTag));
+                    Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Namespace : PredefinedStructureTagTypes.Nonstructural, namespaceTag.Type);
+                    Assert.Equal("Namespace MyNamespace", GetHeaderText(namespaceTag));
+                },
+                regionTag =>
+                {
+                    Assert.Equal(collapseRegionsWhenCollapsingToDefinitions, regionTag.IsImplementation);
+                    Assert.Equal(11, GetCollapsedHintLineCount(regionTag));
+                    Assert.Equal(PredefinedStructureTagTypes.Nonstructural, regionTag.Type);
+                    Assert.Equal(@"#Region ""MyRegion""", GetHeaderText(regionTag));
+                },
+                moduleTag =>
+                {
+                    Assert.False(moduleTag.IsImplementation);
+                    Assert.Equal(9, GetCollapsedHintLineCount(moduleTag));
+                    Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Type : PredefinedStructureTagTypes.Nonstructural, moduleTag.Type);
+                    Assert.Equal("Module M", GetHeaderText(moduleTag));
+                },
+                methodTag =>
+                {
+                    Assert.True(methodTag.IsImplementation);
+                    Assert.Equal(7, GetCollapsedHintLineCount(methodTag));
+                    Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Member : PredefinedStructureTagTypes.Nonstructural, methodTag.Type);
+                    Assert.Equal("Sub Main(args As String())", GetHeaderText(methodTag));
+                },
+                ifTag =>
+                {
+                    Assert.False(ifTag.IsImplementation);
+                    Assert.Equal(3, GetCollapsedHintLineCount(ifTag));
+                    Assert.Equal(showBlockStructureGuidesForCodeLevelConstructs ? PredefinedStructureTagTypes.Conditional : PredefinedStructureTagTypes.Nonstructural, ifTag.Type);
+                    Assert.Equal("If False Then", GetHeaderText(ifTag));
+                });
 
-            // ensure only the method outlining region is marked as an implementation
-            Assert.False(tags[0].IsImplementation);
-            Assert.False(tags[1].IsImplementation);
-            Assert.False(tags[2].IsImplementation);
-            Assert.True(tags[3].IsImplementation);
-
-            // verify line counts
-            var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().Select(vhc => vhc.TextView_TestOnly).ToList();
-            Assert.Equal(9, hints[0].TextSnapshot.LineCount); // namespace
-            Assert.Equal(7, hints[1].TextSnapshot.LineCount); // region
-            Assert.Equal(5, hints[2].TextSnapshot.LineCount); // class
-            Assert.Equal(3, hints[3].TextSnapshot.LineCount); // method
-            hints.Do(v => v.Close());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -150,23 +177,42 @@ End Module";
             using var workspace = TestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
-            var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().ToArray();
+            var hints = tags.Select(x => x.GetCollapsedHintForm()).Cast<ViewHostingControl>().ToArray();
             Assert.Equal("Sub Main(args As String())\r\nEnd Sub", hints[1].GetText_TestOnly()); // method
             hints.Do(v => v.TextView_TestOnly.Close());
         }
 
-        private static async Task<List<IOutliningRegionTag>> GetTagsFromWorkspaceAsync(TestWorkspace workspace)
+        private static async Task<List<IStructureTag>> GetTagsFromWorkspaceAsync(TestWorkspace workspace)
         {
             var hostdoc = workspace.Documents.First();
             var view = hostdoc.GetTextView();
 
-            var provider = workspace.ExportProvider.GetExportedValue<VisualStudio14StructureTaggerProvider>();
+            var provider = workspace.ExportProvider.GetExportedValue<AbstractStructureTaggerProvider>();
 
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-            var context = new TaggerContext<IOutliningRegionTag>(document, view.TextSnapshot);
+            var context = new TaggerContext<IStructureTag>(document, view.TextSnapshot);
             await provider.GetTestAccessor().ProduceTagsAsync(context);
 
-            return context.tagSpans.Select(x => x.Tag).ToList();
+            return context.tagSpans.Select(x => x.Tag).OrderBy(t => t.OutliningSpan.Value.Start).ToList();
+        }
+
+        private static string GetHeaderText(IStructureTag namespaceTag)
+        {
+            return namespaceTag.Snapshot.GetText(namespaceTag.HeaderSpan.Value);
+        }
+
+        private static int GetCollapsedHintLineCount(IStructureTag tag)
+        {
+            var control = Assert.IsType<ViewHostingControl>(tag.GetCollapsedHintForm());
+            var view = control.TextView_TestOnly;
+            try
+            {
+                return view.TextSnapshot.LineCount;
+            }
+            finally
+            {
+                view.Close();
+            }
         }
     }
 }

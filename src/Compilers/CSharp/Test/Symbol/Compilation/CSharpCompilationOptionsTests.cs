@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void WithNullable()
+        public void TestWithNullable()
         {
             Assert.Equal(NullableContextOptions.Disable, new CSharpCompilationOptions(OutputKind.ConsoleApplication).NullableContextOptions);
 

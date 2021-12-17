@@ -77,6 +77,11 @@
         <target state="translated">属性 '{0}' はイベント アクセサーでは無効です。'{1}' 宣言でのみ有効です。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributesRequireParenthesizedLambdaExpression">
+        <source>Attributes on lambda expressions require a parenthesized parameter list.</source>
+        <target state="translated">ラムダ式での属性には、かっこで囲まれたパラメーター リストが必要です。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">'set' アクセサーがあるため、自動実装プロパティ '{0}' を 'readonly' とマークすることはできません。</target>
@@ -149,12 +154,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadRecordBase">
         <source>Records may only inherit from object or another record</source>
-        <target state="translated">レコードの継承元にできるのは、オブジェクトか別のレコードだけです</target>
+        <target state="translated">レコードの継承元にできるのは、object か別のレコードだけです</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
-        <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
-        <target state="translated">レコード メンバー '{0}' は、位置指定パラメーター '{2}' に一致させるための型 '{1}' の読み取り可能なインスタンス プロパティである必要があります。</target>
+        <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
+        <target state="translated">レコード メンバー '{0}' は、位置指定パラメーター '{2}' に一致させるための型 '{1}' の読み取り可能なインスタンス プロパティまたはフィールドである必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -162,9 +167,19 @@
         <target state="translated">コマンドライン構文エラー: '{0}' は、'{1}' オプションの有効な値ではありません。値は '{2}' の形式にする必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotClone">
+        <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
+        <target state="translated">レシーバーの種類 '{0}' は有効なレコード型でも構造体型でもありません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
         <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
         <target state="translated">メソッド グループ '{0}' をデリゲート型 '{0}' に変換することはできません。(&amp;M)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotInferDelegateType">
+        <source>The delegate type could not be inferred.</source>
+        <target state="translated">デリゲート型を推論できませんでした。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -427,9 +442,24 @@
         <target state="translated">'{0}' と関数ポインター '{1}' で参照が一致しません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
+        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
+        <target state="translated">属性内の 'typeof' で関数ポインター型を使用することはサポートされていません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
         <target state="translated">関数ポインターを名前付き引数で呼び出すことはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingInNamespace">
+        <source>A global using directive cannot be used in a namespace declaration.</source>
+        <target state="translated">グローバル using ディレクティブを名前空間宣言で使用することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingOutOfOrder">
+        <source>A global using directive must precede all non-global using directives.</source>
+        <target state="translated">グローバル using ディレクティブは、すべての非グローバル using ディレクティブの前に指定する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -440,6 +470,11 @@
       <trans-unit id="ERR_GoToForwardJumpOverUsingVar">
         <source>A goto cannot jump to a location after a using declaration.</source>
         <target state="translated">goto は using 宣言より後の位置にはジャンプできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_HiddenPositionalMember">
+        <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
+        <target state="translated">このパラメーターに対応する位置にあるメンバー '{0}' が非表示になっています。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
@@ -477,6 +512,11 @@
         <target state="translated">'in' 修飾子を持つ引数を、動的ディスパッチされる式で使用することはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
+        <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
+        <target state="translated">シールされた ' Object. ToString ' を含むレコードからの継承は、C# {0} ではサポートされていません。' {1} ' 以上の言語バージョンを使用してください。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">'init' アクセサーを 'readonly' としてマークできません。代わりに '{0}' を readonly としてマークします。</target>
@@ -510,6 +550,11 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">無効なハッシュ アルゴリズム名: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidModifierForLanguageVersion">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="translated">C# {1} では、修飾子 '{0}' はこの項目に対して有効ではありません。'{2}' 以上の言語バージョンをご使用ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
@@ -630,11 +675,6 @@
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">出力ディレクトリを特定できませんでした</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NoSingleCloneMethod">
-        <source>The receiver type '{0}' is not a valid record type.</source>
-        <target state="translated">レシーバーの種類 '{0}' は有効なレコードの種類ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
@@ -957,9 +997,44 @@
         <target state="translated">ディスカード</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureGlobalUsing">
+        <source>global using directive</source>
+        <target state="translated">グローバル using ディレクティブ</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">target-typed オブジェクトの作成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInferredDelegateType">
+        <source>inferred delegate type</source>
+        <target state="translated">推論されたデリゲート型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaAttributes">
+        <source>lambda attributes</source>
+        <target state="translated">ラムダ属性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
+        <source>positional fields in records</source>
+        <target state="translated">レコード内の位置指定フィールド</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRecordStructs">
+        <source>record structs</source>
+        <target state="translated">レコード構造体</target>
+        <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSealedToStringInRecord">
+        <source>sealed ToString in record</source>
+        <target state="translated">レコードでシールされた ToString</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureWithOnStructs">
+        <source>with on structs</source>
+        <target state="translated">構造体の場合</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1001,6 +1076,11 @@
         <source>Record defines 'Equals' but not 'GetHashCode'.</source>
         <target state="translated">レコードでは 'Equals' が定義されていますが、'GetHashCode' は定義されていません。</target>
         <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
+        <source>Mixed declarations and expressions in deconstruction</source>
+        <target state="translated">分解で宣言と式が混在しています</target>
+        <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
@@ -4137,8 +4217,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</source>
-        <target state="translated">'{0}' の partial 宣言は、すべてのクラス、すべてのレコード、すべての構造体、またはすべてのインターフェイスにする必要があります</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
+        <target state="translated">'{0}' の partial 宣言は、すべてのクラス、すべてのレコード クラス、すべての構造体、すべてのレコード構造体、すべてのインターフェイスのいずれかにする必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
@@ -5076,8 +5156,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnSpecialMethod">
-        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation</source>
-        <target state="translated">条件付き属性は、コンストラクター、デストラクター、演算子または明示的インターフェイスの実装であるため、'{0}' では無効です</target>
+        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation</source>
+        <target state="translated">条件付き属性は、コンストラクター、デストラクター、演算子、ラムダ式、明示的インターフェイスのいずれかの実装であるため、'{0}' では無効です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalMustReturnVoid">
@@ -8388,8 +8468,8 @@ C# では out と ref を区別しますが、CLR では同じと認識します
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">'{0}' 型のパラメーターまたはローカルは、非同期メソッドまたはラムダ式で宣言することができません。</target>
+        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="translated">'{0}' 型のパラメーターまたはローカルは、非同期メソッドまたは非同期ラムダ式で宣言することができません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
@@ -9220,11 +9300,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_NoCanonicalView">
         <source>Cannot find the interop type that matches the embedded interop type '{0}'. Are you missing an assembly reference?</source>
         <target state="translated">埋め込み相互運用型 '{0}' と一致する相互運用型が見つかりません。アセンブリ参照が指定されていることを確認してください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">参照渡しの戻り値の型 'ref {0}' はサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
@@ -10507,11 +10582,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">このコンテキストではスロー式は許可されていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MixedDeconstructionUnsupported">
-        <source>A deconstruction cannot mix declarations and expressions on the left-hand-side.</source>
-        <target state="translated">分解の左側で宣言と式を混用できません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DeclarationExpressionNotPermitted">
         <source>A declaration is not allowed in this context.</source>
         <target state="translated">宣言はこのコンテキストでは許可されていません。</target>
@@ -10815,11 +10885,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
         <target state="translated">ターゲットのランタイムは既定のインターフェイス実装をサポートしていないため、'{0}' は型 '{2}' のインターフェイス メンバー '{1}' を実装できません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
-        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="translated">C# {1} では、修飾子 '{0}' はこの項目に対して有効ではありません。'{2}' 以上の言語バージョンをご使用ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">

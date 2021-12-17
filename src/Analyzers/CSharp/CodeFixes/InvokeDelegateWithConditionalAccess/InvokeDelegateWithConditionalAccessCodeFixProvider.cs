@@ -24,7 +24,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(InvokeDelegateWithConditionalAccessCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.InvokeDelegateWithConditionalAccess), Shared]
     internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]

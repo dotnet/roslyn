@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
-    internal abstract partial class AbstractFindUsagesService : IFindUsagesService, IFindUsagesLSPService
+    internal abstract partial class AbstractFindUsagesService : IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess, IFindUsagesLSPService
     {
     }
 }

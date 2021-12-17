@@ -28,7 +28,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             Dim producer = New BraceHighlightingViewTaggerProvider(
                 workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                 workspace.GetService(Of IBraceMatchingService),
-                workspace.GetService(Of IForegroundNotificationService),
                 AsynchronousOperationListenerProvider.NullProvider)
 
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()

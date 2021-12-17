@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     cancellationToken);
 
                 if (result.Type != null &&
-                    token.GetAncestor<ParameterSyntax>().Parent.IsParentKind(SyntaxKind.RecordDeclaration))
+                    token.GetAncestor<ParameterSyntax>().Parent.IsParentKind(SyntaxKind.RecordDeclaration, SyntaxKind.RecordStructDeclaration))
                 {
                     return true;
                 }

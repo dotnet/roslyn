@@ -113,6 +113,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
+            if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsEntryPoint(compilation.TaskType(), compilation.TaskOfTType()))
+            {
+                return null;
+            }
+
             if (ShouldIgnore(symbol))
             {
                 return null;

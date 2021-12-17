@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 using Microsoft.CodeAnalysis.Host.Mef;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 {
@@ -48,7 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             var streamingPresenter = base.GetStreamingPresenter();
             if (streamingPresenter != null)
             {
-                _ = FindMemberOverloadsAsync(document, caretPosition, streamingPresenter);
+                // Fire and forget.  So no need for cancellation.
+                _ = FindMemberOverloadsAsync(document, caretPosition, streamingPresenter, CancellationToken.None);
                 return true;
             }
 
@@ -56,48 +58,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         }
 
         private async Task FindMemberOverloadsAsync(
-                  Document document, int caretPosition,
-                  IStreamingFindUsagesPresenter presenter)
+            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter, CancellationToken cancellationToken)
         {
             try
             {
-                using (var token = _asyncListener.BeginAsyncOperation(nameof(FindMemberOverloadsAsync)))
+                using var token = _asyncListener.BeginAsyncOperation(nameof(FindMemberOverloadsAsync));
+
+                var context = presenter.StartSearch(
+                    EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+
+                using (Logger.LogBlock(
+                    FunctionId.CommandHandler_FindAllReference,
+                    KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
+                    context.CancellationToken))
                 {
-                    // Let the presented know we're starting a search.
-                    var context = presenter.StartSearch(
-                        EditorFeaturesResources.Navigating, supportsReferences: true);
-
-                    using (Logger.LogBlock(
-                        FunctionId.CommandHandler_FindAllReference,
-                        KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                        context.CancellationToken))
+                    try
                     {
-                        try
-                        {
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
+                        var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
-                            // we need to get the containing type (i.e. class)
-                            var symbol = candidateSymbolProjectPair?.symbol;
+                        // we need to get the containing type (i.e. class)
+                        var symbol = candidateSymbolProjectPair?.symbol;
 
-                            // if we didn't get any symbol, that's it
-                            if (symbol == null || symbol.ContainingType == null)
-                                return;
+                        // if we didn't get any symbol, that's it
+                        if (symbol == null || symbol.ContainingType == null)
+                            return;
 
-                            foreach (var curSymbol in symbol.ContainingType.GetMembers()
-                                                            .Where(m => m.Kind == symbol.Kind && m.Name == symbol.Name))
-                            {
-                                var definitionItem = curSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                                await context.OnDefinitionFoundAsync(definitionItem);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
-                            }
-                        }
-                        finally
+                        foreach (var curSymbol in symbol.ContainingType.GetMembers()
+                                                        .Where(m => m.Kind == symbol.Kind && m.Name == symbol.Name))
                         {
-                            await context.OnCompletedAsync().ConfigureAwait(false);
+                            var definitionItem = curSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
+                            await context.OnDefinitionFoundAsync(definitionItem);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                         }
+                    }
+                    finally
+                    {
+                        await context.OnCompletedAsync().ConfigureAwait(false);
                     }
                 }
             }

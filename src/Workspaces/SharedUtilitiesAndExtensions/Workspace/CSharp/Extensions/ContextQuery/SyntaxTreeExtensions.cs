@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -446,6 +447,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   [Goo]
             //   |
 
+            // (all the class cases apply to structs, interfaces and records).
+
             var originalToken = tokenOnLeftOfPosition;
             var token = originalToken;
 
@@ -454,7 +457,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             token = token.GetPreviousTokenIfTouchingWord(position);
 
             // a type decl can't come before usings/externs
-            if (originalToken.GetNextToken(includeSkipped: true).IsUsingOrExternKeyword())
+            var nextToken = originalToken.GetNextToken(includeSkipped: true);
+            if (nextToken.IsUsingOrExternKeyword() ||
+                (nextToken.Kind() == SyntaxKind.GlobalKeyword && nextToken.GetAncestor<UsingDirectiveSyntax>()?.GlobalKeyword == nextToken))
             {
                 return false;
             }
@@ -466,8 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 // a type decl can't come before usings/externs
                 if (syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit &&
-                    (compilationUnit.Externs.Count > 0 ||
-                    compilationUnit.Usings.Count > 0))
+                    (compilationUnit.Externs.Count > 0 || compilationUnit.Usings.Count > 0))
                 {
                     return false;
                 }
@@ -475,17 +479,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.OpenBraceToken))
-            {
-                if (token.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.InterfaceDeclaration))
-                {
-                    return true;
-                }
-                else if (token.Parent.IsKind(SyntaxKind.NamespaceDeclaration))
-                {
-                    return true;
-                }
-            }
+            if (token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent is NamespaceDeclarationSyntax or TypeDeclarationSyntax)
+                return true;
 
             // extern alias a;
             // |
@@ -549,9 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 // assembly attributes belong to the containing compilation unit
                 if (token.Parent.IsParentKind(SyntaxKind.CompilationUnit))
-                {
                     return true;
-                }
 
                 // other attributes belong to a member which itself is in a
                 // container.
@@ -560,13 +553,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // the grandparent is the owner of the attribute
                 // the great-grandparent is the container that the owner is in
                 var container = token.Parent?.Parent?.Parent;
-                if (container.IsKind(SyntaxKind.CompilationUnit) ||
-                    container.IsKind(SyntaxKind.NamespaceDeclaration) ||
-                    container.IsKind(SyntaxKind.ClassDeclaration) ||
-                    container.IsKind(SyntaxKind.StructDeclaration))
-                {
+                if (container is CompilationUnitSyntax or NamespaceDeclarationSyntax or TypeDeclarationSyntax)
                     return true;
-                }
             }
 
             return false;
@@ -656,17 +644,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // ref $$
                 // readonly ref $$
                 if (container.IsKind(SyntaxKind.IncompleteMember, out IncompleteMemberSyntax? incompleteMember))
-                {
                     return incompleteMember.Type.IsKind(SyntaxKind.RefType);
-                }
 
-                if (container.IsKind(SyntaxKind.CompilationUnit) ||
-                    container.IsKind(SyntaxKind.NamespaceDeclaration) ||
-                    container.IsKind(SyntaxKind.ClassDeclaration) ||
-                    container.IsKind(SyntaxKind.StructDeclaration))
-                {
+                if (container is CompilationUnitSyntax or NamespaceDeclarationSyntax or TypeDeclarationSyntax)
                     return true;
-                }
             }
 
             return false;
@@ -1506,25 +1487,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             static bool IsAtEndOfSwitchStatementPattern(SyntaxToken leftToken)
             {
-                var node = leftToken.Parent;
+                SyntaxNode? node = leftToken.Parent as ExpressionSyntax;
+                if (node == null)
+                    return false;
 
-                // Walking up the tree for expressions such as 'case (((N.C.P $$'
-                while (node.IsParentKind(SyntaxKind.SimpleMemberAccessExpression))
-                {
-                    node = node.Parent;
-                }
+                // Walk up the right edge of all complete expressions.
+                while (node is ExpressionSyntax && node.GetLastToken(includeZeroWidth: true) == leftToken)
+                    node = node.GetRequiredParent();
 
                 // Getting rid of the extra parentheses to deal with cases such as 'case (((1 $$'
-                while (node.IsParentKind(SyntaxKind.ParenthesizedExpression))
-                {
-                    node = node.Parent;
-                }
+                while (node is ParenthesizedExpressionSyntax)
+                    node = node.GetRequiredParent();
 
                 // case (1 $$
-                if (node.IsParentKind(SyntaxKind.CaseSwitchLabel) && node.Parent.IsParentKind(SyntaxKind.SwitchSection))
-                {
+                if (node is CaseSwitchLabelSyntax { Parent: SwitchSectionSyntax })
                     return true;
-                }
 
                 return false;
             }

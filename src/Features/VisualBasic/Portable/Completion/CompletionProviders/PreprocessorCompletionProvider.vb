@@ -5,7 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.CSharp.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text

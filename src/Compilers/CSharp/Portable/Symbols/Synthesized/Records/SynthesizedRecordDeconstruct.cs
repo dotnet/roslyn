@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -16,29 +13,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedRecordDeconstruct : SynthesizedRecordOrdinaryMethod
     {
         private readonly SynthesizedRecordConstructor _ctor;
-        private readonly ImmutableArray<PropertySymbol> _properties;
+        private readonly ImmutableArray<Symbol> _positionalMembers;
 
         public SynthesizedRecordDeconstruct(
             SourceMemberContainerTypeSymbol containingType,
             SynthesizedRecordConstructor ctor,
-            ImmutableArray<PropertySymbol> properties,
+            ImmutableArray<Symbol> positionalMembers,
             int memberOffset,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.DeconstructMethodName, hasBody: true, memberOffset, diagnostics)
         {
-            Debug.Assert(properties.All(prop => prop.GetMethod is object));
+            Debug.Assert(positionalMembers.All(p => p is PropertySymbol { GetMethod: not null } or FieldSymbol));
             _ctor = ctor;
-            _properties = properties;
+            _positionalMembers = positionalMembers;
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, DiagnosticBag diagnostics)
+        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
             const DeclarationModifiers result = DeclarationModifiers.Public;
             Debug.Assert((result & ~allowedModifiers) == 0);
             return result;
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -50,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 param.Ordinal,
                                                 RefKind.Out,
                                                 param.Name,
-                                                isDiscard: false,
                                                 locations),
                                         arg: Locations),
                     IsVararg: false,
@@ -59,24 +55,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override int GetParameterCountFromSyntax() => _ctor.ParameterCount;
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
 
-            if (ParameterCount != _properties.Length)
+            if (ParameterCount != _positionalMembers.Length)
             {
                 // There is a mismatch, an error was reported elsewhere
                 F.CloseMethod(F.ThrowNull());
                 return;
             }
 
-            var statementsBuilder = ArrayBuilder<BoundStatement>.GetInstance(_properties.Length + 1);
-            for (int i = 0; i < _properties.Length; i++)
+            var statementsBuilder = ArrayBuilder<BoundStatement>.GetInstance(_positionalMembers.Length + 1);
+            for (int i = 0; i < _positionalMembers.Length; i++)
             {
                 var parameter = Parameters[i];
-                var property = _properties[i];
+                var positionalMember = _positionalMembers[i];
 
-                if (!parameter.Type.Equals(property.Type, TypeCompareKind.AllIgnoreOptions))
+                var type = positionalMember switch
+                {
+                    PropertySymbol property => property.Type,
+                    FieldSymbol field => field.Type,
+                    _ => throw ExceptionUtilities.Unreachable
+                };
+
+                if (!parameter.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
                 {
                     // There is a mismatch, an error was reported elsewhere
                     statementsBuilder.Free();
@@ -84,8 +87,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
                 }
 
-                // parameter_i = property_i;
-                statementsBuilder.Add(F.Assignment(F.Parameter(parameter), F.Property(F.This(), property)));
+                switch (positionalMember)
+                {
+                    case PropertySymbol property:
+                        // parameter_i = property_i;
+                        statementsBuilder.Add(F.Assignment(F.Parameter(parameter), F.Property(F.This(), property)));
+                        break;
+                    case FieldSymbol field:
+                        // parameter_i = field_i;
+                        statementsBuilder.Add(F.Assignment(F.Parameter(parameter), F.Field(F.This(), field)));
+                        break;
+                }
             }
 
             statementsBuilder.Add(F.Return());

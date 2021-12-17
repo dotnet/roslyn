@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Editing
     {
         internal abstract ISyntaxFacts SyntaxFacts { get; }
 
+        internal abstract SyntaxTrivia EndOfLine(string text);
+
         /// <summary>
         /// Creates a statement that declares a single local variable with an optional initializer.
         /// </summary>
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         internal abstract bool RequiresLocalDeclarationType();
 
-        internal abstract SyntaxToken InterpolatedStringTextToken(string content);
+        internal abstract SyntaxToken InterpolatedStringTextToken(string content, string value);
         internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
         internal abstract SyntaxNode Interpolation(SyntaxNode syntaxNode);
         internal abstract SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken);

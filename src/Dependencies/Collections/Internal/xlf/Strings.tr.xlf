@@ -7,6 +7,11 @@
         <target state="translated">Hedef dizi, koleksiyondaki tüm öğeleri kopyalamak için yeterince uzun değil. Dizi dizinini ve uzunluğunu denetleyin.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Arg_BogusIComparer">
+        <source>Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</source>
+        <target state="translated">IComparer.Compare() metodu tutarsız sonuçlar döndürdüğünden sıralanamıyor. Bir değer kendisiyle karşılaştırıldığında eşit olmuyor veya bir değer başka bir değerle art arda karşılaştırıldığında farklı sonuçlar oluşuyor. IComparer: '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Arg_HTCapacityOverflow">
         <source>Hashtable's capacity overflowed and went negative. Check load factor, capacity and the current size of the table.</source>
         <target state="translated">Karma tablosunun kapasitesi taştı ve negatif oldu. Yükleme faktörünü kapasitesini ve tablonun geçerli boyutunu denetleyin.</target>

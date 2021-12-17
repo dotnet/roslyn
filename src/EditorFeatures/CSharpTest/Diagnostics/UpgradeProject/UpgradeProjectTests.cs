@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UpgradeProject;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -1002,6 +1003,32 @@ interface I2<out T1>
 ",
                 expected: LanguageVersion.Preview,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForSealedToStringInRecords_CS8912()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <ProjectReference>Assembly2</ProjectReference>
+        <Document FilePath=""Derived.cs"">
+record [|Derived|] : Base;
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" LanguageVersion=""Preview"">
+        <Document FilePath=""Base.cs"">
+public record Base
+{
+    public sealed override string ToString() => throw null;
+}
+        </Document>
+    </Project>
+</Workspace>
+",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp9));
         }
     }
 }

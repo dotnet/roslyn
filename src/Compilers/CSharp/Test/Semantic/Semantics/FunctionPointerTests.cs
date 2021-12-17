@@ -33,8 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 using s = delegate*<void>;");
 
             comp.VerifyDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,26): error CS8805: Program using top-level statements must be an executable.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, ";").WithLocation(2, 26),
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = ").WithLocation(2, 1),
@@ -675,10 +676,9 @@ unsafe class C
         delegate* unmanaged[Thiscall, Stdcall]<void> ptr2 = param1;
         delegate* unmanaged[Stdcall, Stdcall, Thiscall]<void> ptr3 = param1;
     }
-}");
+}", targetFramework: TargetFramework.NetCoreApp);
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
-            CompileAndVerify(comp);
+            CompileAndVerify(comp, verify: Verification.Skipped);
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -962,15 +962,15 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (6,47): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<string>'. An explicit conversion exists (are you missing a cast?)
+                // (6,47): error CS0266: Cannot implicitly convert type 'delegate*<ref string>' to 'delegate*<ref readonly string>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate*<ref readonly string> ptr1 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(6, 47),
-                // (7,34): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<string>'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref string>", "delegate*<ref readonly string>").WithLocation(6, 47),
+                // (7,34): error CS0266: Cannot implicitly convert type 'delegate*<ref string>' to 'delegate*<string>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate*<string> ptr2 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(7, 34),
-                // (8,34): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<object>'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref string>", "delegate*<string>").WithLocation(7, 34),
+                // (8,34): error CS0266: Cannot implicitly convert type 'delegate*<ref string>' to 'delegate*<object>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate*<object> ptr3 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<object>").WithLocation(8, 34)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref string>", "delegate*<object>").WithLocation(8, 34)
             );
 
             var tree = comp.SyntaxTrees[0];
@@ -1039,9 +1039,7 @@ unsafe class C
         delegate* unmanaged[Cdecl, Stdcall]<void> ptr7 = param2;
         delegate* unmanaged[Thiscall, Stdcall, Cdecl]<void> ptr8 = param2;
     }
-}");
-
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+}", targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
                 // (6,49): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate* unmanaged[Cdecl]<void>'. An explicit conversion exists (are you missing a cast?)
@@ -1668,6 +1666,181 @@ IInvocationOperation ( void C.M1<T>(delegate*<T, T> param)) (OperationKind.Invoc
 ");
         }
 
+        [Fact, WorkItem(51037, "https://github.com/dotnet/roslyn/issues/51037")]
+        public void FunctionPointerGenericSubstitutionCustomModifiersTypesDefinedOnClass()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit A`1<T>
+    extends [mscorlib]System.Object
+{
+}
+.class public auto ansi beforefieldinit C`6<T1, T2, T3, T4, T5, T6>
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        void M1 (
+            method class A`1<!T1> modopt(class A`1<!T2>) & modopt(class A`1<!T3>) *(class A`1<!T4> modopt(class A`1<!T5>) & modopt(class A`1<!T6>)) param
+        ) cil managed 
+    {
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        nop
+        ret
+    }
+}
+";
+
+            var source = @"
+class Derived : C<D1, D2, D3, D4, D5, D6> {}
+
+class D1 {}
+class D2 {}
+class D3 {}
+class D4 {}
+class D5 {}
+class D6 {}
+";
+
+            var comp = CreateCompilationWithIL(source, il, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var derived = comp.GetTypeByMetadataName("Derived");
+            var m1 = derived!.BaseTypeNoUseSiteDiagnostics.GetMethod("M1");
+
+            AssertEx.Equal("void C<D1, D2, D3, D4, D5, D6>.M1(delegate*<ref modopt(A<D6>) A<D4> modopt(A<D5>), ref modopt(A<T3>) A<D1> modopt(A<D2>)> param)",
+                           m1.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(51037, "https://github.com/dotnet/roslyn/issues/51037")]
+        public void FunctionPointerGenericSubstitutionCustomModifiersTypesDefinedOnMethod()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit A`1<T>
+    extends [mscorlib]System.Object
+{
+}
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        void M1<T1, T2, T3, T4, T5, T6> (
+            method class A`1<!!T1> modopt(class A`1<!!T2>) & modopt(class A`1<!!T3>) *(class A`1<!!T4> modopt(class A`1<!!T5>) & modopt(class A`1<!!T6>)) param
+        ) cil managed 
+    {
+        ret
+    }
+}
+";
+
+            var source = @"
+unsafe
+{
+    C.M1<D1, D2, D3, D4, D5, D6>(null);
+}
+
+class D1 {}
+class D2 {}
+class D3 {}
+class D4 {}
+class D5 {}
+class D6 {}
+";
+
+            var comp = CreateCompilationWithIL(source, il, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            var symbol = model.GetSymbolInfo(invocation);
+
+            AssertEx.Equal("void C.M1<D1, D2, D3, D4, D5, D6>(delegate*<ref modopt(A<D6>) A<D4> modopt(A<D5>), ref modopt(A<T3>) A<D1> modopt(A<D2>)> param)",
+                           symbol.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitution_SubstitutionAddsCallConvModopts()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .field public static int32 modopt([mscorlib]System.Runtime.CompilerServices.CallConvCdecl) modopt([mscorlib]System.Runtime.CompilerServices.CallConvStdcall) Field
+}
+";
+
+            var code = @"
+unsafe
+{
+    delegate* unmanaged<int> ptr = M(C.Field);
+
+    delegate* unmanaged<T> M<T>(T arg) => null;
+}
+";
+
+            var comp = CreateCompilationWithIL(code, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var localSyntax = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            AssertEx.Equal("ptr = M(C.Field)", localSyntax.ToString());
+            var local = (ILocalSymbol)model.GetDeclaredSymbol(localSyntax)!;
+
+            AssertEx.Equal("delegate* unmanaged<System.Int32>", local.Type.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(localSyntax.Initializer!.Value);
+            AssertEx.Equal("delegate* unmanaged<System.Int32>", typeInfo.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitution_SubstitutionAddsCallConvModopts_InIL()
+        {
+            var cDefinition = @"
+public class C<T>
+{
+    public unsafe delegate* unmanaged<T> M() => null;
+}
+";
+            var cComp = CreateCompilation(cDefinition, assemblyName: "cLib");
+
+            var il = @"
+.assembly extern cLib
+{
+  .ver 0:0:0:0
+}
+.class public auto ansi beforefieldinit D
+    extends class [cLib]C`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.CallConvCdecl) modopt([mscorlib]System.Runtime.CompilerServices.CallConvStdcall)>
+{
+}
+";
+
+            var comp = CreateCompilationWithIL("", il, references: new[] { cComp.ToMetadataReference() }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var d = comp.GetTypeByMetadataName("D");
+            var m = d!.BaseTypeNoUseSiteDiagnostics.GetMethod("M");
+
+            var funcPtrType = (FunctionPointerTypeSymbol)m.ReturnType;
+            AssertEx.Equal("delegate* unmanaged[Stdcall, Cdecl]<System.Int32 modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>", funcPtrType.ToTestDisplayString());
+            AssertEx.SetEqual(new[]
+                {
+                    "System.Runtime.CompilerServices.CallConvCdecl",
+                    "System.Runtime.CompilerServices.CallConvStdcall"
+                },
+                funcPtrType.Signature.GetCallingConventionModifiers().Select(c => ((CSharpCustomModifier)c).ModifierSymbol.ToTestDisplayString()));
+        }
+
         [Fact]
         public void FunctionPointerAsConstraint()
         {
@@ -2015,9 +2188,9 @@ unsafe class C
                 // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string, void>[]' and 'delegate* unmanaged[Cdecl]<string, void>[]'
                 //         _ = b ? ptr1 : ptr4;
                 Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string, void>[]", "delegate* unmanaged[Cdecl]<string, void>[]").WithLocation(12, 13),
-                // (18,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<string>[]'
+                // (18,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<ref string>[]'
                 //         _ = b ? ptr5 : ptr6;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr6").WithArguments("delegate*<string>[]", "delegate*<string>[]").WithLocation(18, 13),
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr6").WithArguments("delegate*<string>[]", "delegate*<ref string>[]").WithLocation(18, 13),
                 // (19,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<int>[]'
                 //         _ = b ? ptr5 : ptr7;
                 Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr7").WithArguments("delegate*<string>[]", "delegate*<int>[]").WithLocation(19, 13),
@@ -2103,24 +2276,24 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string>'
+                // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<ref string>'
                 //         _ = b ? ptr1 : ptr3;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr3").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(12, 13),
-                // (13,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string?>'
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr3").WithArguments("delegate*<string>", "delegate*<ref string>").WithLocation(12, 13),
+                // (13,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<ref string?>'
                 //         _ = b ? ptr1 : ptr4;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string>", "delegate*<string?>").WithLocation(13, 13),
-                // (14,24): warning CS8619: Nullability of reference types in value of type 'delegate*<string?>' doesn't match target type 'delegate*<string>'.
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string>", "delegate*<ref string?>").WithLocation(13, 13),
+                // (14,24): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string?>' doesn't match target type 'delegate*<ref string>'.
                 //         _ = b ? ptr3 : ptr4;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr4").WithArguments("delegate*<string?>", "delegate*<string>").WithLocation(14, 24),
-                // (21,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string>'
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr4").WithArguments("delegate*<ref string?>", "delegate*<ref string>").WithLocation(14, 24),
+                // (21,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<ref string>'
                 //         _ = b ? ptr5 : ptr7;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr7").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(21, 13),
-                // (22,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string?>'
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr7").WithArguments("delegate*<string>", "delegate*<ref string>").WithLocation(21, 13),
+                // (22,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<ref string?>'
                 //         _ = b ? ptr5 : ptr8;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr8").WithArguments("delegate*<string>", "delegate*<string?>").WithLocation(22, 13),
-                // (23,24): warning CS8619: Nullability of reference types in value of type 'delegate*<string?>' doesn't match target type 'delegate*<string>'.
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr8").WithArguments("delegate*<string>", "delegate*<ref string?>").WithLocation(22, 13),
+                // (23,24): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string?>' doesn't match target type 'delegate*<ref string>'.
                 //         _ = b ? ptr7 : ptr8;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr8").WithArguments("delegate*<string?>", "delegate*<string>").WithLocation(23, 24)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr8").WithArguments("delegate*<ref string?>", "delegate*<ref string>").WithLocation(23, 24)
             );
 
             var tree = comp.SyntaxTrees[0];
@@ -2411,9 +2584,7 @@ unsafe
 
     static void Test1<T1>(delegate* unmanaged<T1, void>[] func) {}
 }
-", options: TestOptions.UnsafeReleaseExe);
-
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+", options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
                 // (5,5): error CS0411: The type arguments for method 'Test1<T1>(delegate* unmanaged<T1, void>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
@@ -2458,9 +2629,9 @@ unsafe
                 // (8,5): error CS0411: The type arguments for method 'Test1<T1, T2>(delegate*<T1, T2>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //     Test1(ptr2);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("Test1<T1, T2>(delegate*<T1, T2>[])").WithLocation(8, 5),
-                // (9,27): error CS1503: Argument 1: cannot convert from 'delegate*<string, string>[]' to 'delegate*<string, string>[]'
+                // (9,27): error CS1503: Argument 1: cannot convert from 'delegate*<string, ref string>[]' to 'delegate*<string, string>[]'
                 //     Test1<string, string>(ptr2);
-                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<string, string>[]", "delegate*<string, string>[]").WithLocation(9, 27)
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<string, ref string>[]", "delegate*<string, string>[]").WithLocation(9, 27)
             );
         }
 
@@ -2549,9 +2720,9 @@ unsafe
                 // (8,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //     Test(ptr2);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate*<T1, T2>)").WithLocation(8, 5),
-                // (9,26): error CS1503: Argument 1: cannot convert from 'delegate*<string, string>' to 'delegate*<string, string>'
+                // (9,26): error CS1503: Argument 1: cannot convert from 'delegate*<string, ref string>' to 'delegate*<string, string>'
                 //     Test<string, string>(ptr2);
-                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<string, string>", "delegate*<string, string>").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<string, ref string>", "delegate*<string, string>").WithLocation(9, 26)
             );
         }
 
@@ -2606,9 +2777,9 @@ unsafe
                 // (8,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate*<delegate*<T1, T2>, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //     Test(ptr2);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate*<delegate*<T1, T2>, void>)").WithLocation(8, 5),
-                // (9,26): error CS1503: Argument 1: cannot convert from 'delegate*<delegate*<string, string>, void>' to 'delegate*<delegate*<string, string>, void>'
+                // (9,26): error CS1503: Argument 1: cannot convert from 'delegate*<delegate*<string, ref string>, void>' to 'delegate*<delegate*<string, string>, void>'
                 //     Test<string, string>(ptr2);
-                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<delegate*<string, string>, void>", "delegate*<delegate*<string, string>, void>").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<delegate*<string, ref string>, void>", "delegate*<delegate*<string, string>, void>").WithLocation(9, 26)
             );
         }
 

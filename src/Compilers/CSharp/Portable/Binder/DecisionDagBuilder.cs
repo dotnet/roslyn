@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly CSharpCompilation _compilation;
         private readonly Conversions _conversions;
-        private readonly DiagnosticBag _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private readonly LabelSymbol _defaultLabel;
 
-        private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, DiagnosticBag diagnostics)
+        private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, BindingDiagnosticBag diagnostics)
         {
             this._compilation = compilation;
             this._conversions = compilation.Conversions;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression switchGoverningExpression,
             ImmutableArray<BoundSwitchSection> switchSections,
             LabelSymbol defaultLabel,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
             return builder.CreateDecisionDagForSwitchStatement(syntax, switchGoverningExpression, switchSections);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression switchExpressionInput,
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             LabelSymbol defaultLabel,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
             return builder.CreateDecisionDagForSwitchExpression(syntax, switchExpressionInput, switchArms);
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern pattern,
             LabelSymbol whenTrueLabel,
             LabelSymbol whenFalseLabel,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, diagnostics);
             return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel);
@@ -353,8 +353,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IsDerivedType(TypeSymbol possibleDerived, TypeSymbol possibleBase)
         {
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            return this._conversions.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref useSiteDiagnostics);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return this._conversions.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref discardedUseSiteInfo);
         }
 
         private Tests MakeTestsAndBindingsForDeclarationPattern(
@@ -421,9 +421,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!input.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
             {
                 TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
-                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                Conversion conversion = _conversions.ClassifyBuiltInConversion(inputType, type, ref useSiteDiagnostics);
-                _diagnostics.Add(syntax, useSiteDiagnostics);
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
+                Conversion conversion = _conversions.ClassifyBuiltInConversion(inputType, type, ref useSiteInfo);
+                _diagnostics.Add(syntax, useSiteInfo);
                 if (input.Type.IsDynamic() ? type.SpecialType == SpecialType.System_Object : conversion.IsImplicit)
                 {
                     // type test not needed, only the type cast
@@ -1107,8 +1107,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundDagTypeTest t2:
                             {
-                                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                                bool? matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(t1.Type, t2.Type, ref useSiteDiagnostics);
+                                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
+                                bool? matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(t1.Type, t2.Type, ref useSiteInfo);
                                 if (matches == false)
                                 {
                                     // If T1 could never be T2
@@ -1123,8 +1123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
 
                                 // If every T2 is a T1, then failure of T1 implies failure of T2.
-                                matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t2.Type, t1.Type, ref useSiteDiagnostics, out _);
-                                _diagnostics.Add(syntax, useSiteDiagnostics);
+                                matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t2.Type, t1.Type, ref useSiteInfo, out _);
+                                _diagnostics.Add(syntax, useSiteInfo);
                                 if (matches == true)
                                 {
                                     // If T2: T1
@@ -1234,9 +1234,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool? ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(
             TypeSymbol expressionType,
             TypeSymbol patternType,
-            ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            bool? result = Binder.ExpressionOfTypeMatchesPatternType(_conversions, expressionType, patternType, ref useSiteDiagnostics, out Conversion conversion);
+            bool? result = Binder.ExpressionOfTypeMatchesPatternType(_conversions, expressionType, patternType, ref useSiteInfo, out Conversion conversion);
             return (!conversion.Exists && isRuntimeSimilar(expressionType, patternType))
                 ? null // runtime and compile-time test behavior differ. Pretend we don't know what happens.
                 : result;

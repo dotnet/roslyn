@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -122,9 +120,98 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(classifiedSpans, "classifiedSpans is null");
 
-            // TO-DO: We should implement support for streaming once this LSP bug is fixed:
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1132601
-            return ComputeTokens(text.Lines, classifiedSpans.ToArray(), tokenTypesToIndex);
+            // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
+            // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
+            var updatedClassifiedSpans = ConvertMultiLineToSingleLineSpans(text, classifiedSpans.ToArray());
+
+            // TO-DO: We should implement support for streaming if LSP adds support for it:
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
+            return ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex);
+        }
+
+        private static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
+        {
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var updatedClassifiedSpans);
+
+            for (var spanIndex = 0; spanIndex < classifiedSpans.Length; spanIndex++)
+            {
+                var span = classifiedSpans[spanIndex];
+                text.GetLinesAndOffsets(span.TextSpan, out var startLine, out var startOffset, out var endLine, out var endOffSet);
+
+                // If the start and end of the classified span are not on the same line, we're dealing with a multi-line span.
+                // Since VS doesn't support multi-line spans/tokens, we need to break the span up into single-line spans.
+                if (startLine != endLine)
+                {
+                    spanIndex = ConvertToSingleLineSpan(
+                        text, classifiedSpans, updatedClassifiedSpans, spanIndex, span.ClassificationType,
+                        startLine, startOffset, endLine, endOffSet);
+                }
+                else
+                {
+                    // This is already a single-line span, so no modification is necessary.
+                    updatedClassifiedSpans.Add(span);
+                }
+            }
+
+            return updatedClassifiedSpans.ToArray();
+
+            static int ConvertToSingleLineSpan(
+                SourceText text,
+                ClassifiedSpan[] originalClassifiedSpans,
+                ArrayBuilder<ClassifiedSpan> updatedClassifiedSpans,
+                int spanIndex,
+                string classificationType,
+                int startLine,
+                int startOffset,
+                int endLine,
+                int endOffSet)
+            {
+                var numLinesInSpan = endLine - startLine + 1;
+                Contract.ThrowIfTrue(numLinesInSpan < 1);
+
+                var updatedSpanIndex = spanIndex;
+
+                for (var currentLine = 0; currentLine < numLinesInSpan; currentLine++)
+                {
+                    TextSpan? textSpan;
+
+                    // Case 1: First line of span
+                    if (currentLine == 0)
+                    {
+                        var absoluteStartOffset = text.Lines[startLine].Start + startOffset;
+                        var spanLength = text.Lines[startLine].End - absoluteStartOffset;
+                        textSpan = new TextSpan(absoluteStartOffset, spanLength);
+                    }
+                    // Case 2: Any of the span's middle lines
+                    else if (currentLine != numLinesInSpan - 1)
+                    {
+                        textSpan = text.Lines[startLine + currentLine].Span;
+                    }
+                    // Case 3: Last line of span
+                    else
+                    {
+                        textSpan = new TextSpan(text.Lines[endLine].Start, endOffSet);
+                    }
+
+                    var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, classificationType);
+                    updatedClassifiedSpans.Add(updatedClassifiedSpan);
+
+                    // Since spans are expected to be ordered, when breaking up a multi-line span, we may have to insert
+                    // other spans in-between. For example, we may encounter this case when breaking up a multi-line verbatim
+                    // string literal containing escape characters:
+                    //     var x = @"one ""
+                    //               two";
+                    // The check below ensures we correctly return the spans in the correct order, i.e. 'one', '""', 'two'.
+                    while (updatedSpanIndex + 1 < originalClassifiedSpans.Length &&
+                        textSpan.Value.Contains(originalClassifiedSpans[updatedSpanIndex + 1].TextSpan))
+                    {
+                        updatedClassifiedSpans.Add(originalClassifiedSpans[updatedSpanIndex + 1]);
+                        updatedSpanIndex++;
+                    }
+                }
+
+                return updatedSpanIndex;
+            }
         }
 
         private static int[] ComputeTokens(

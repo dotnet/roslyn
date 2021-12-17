@@ -90,6 +90,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Aggiungi il nome dell'elemento tupla '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
+        <target state="translated">Se si aggiunge '{0}' in un tipo generico, la sessione di debug non potrà continuare.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
         <target state="translated">Se si aggiunge '{0}' in un metodo di interfaccia, la sessione di debug non potrà continuare.</target>
@@ -98,6 +103,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
         <target state="translated">Se si aggiunge '{0}' in un'interfaccia, la sessione di debug non potrà continuare.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a positional parameter to a record will prevent the debug session from continuing.</source>
+        <target state="translated">Se si aggiunge un parametro posizionale a un record, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
@@ -124,6 +134,21 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <source>Alternation conditions do not capture and cannot be named</source>
         <target state="translated">Le condizioni di alternanza non consentono l'acquisizione e non possono essere denominate</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
+      </trans-unit>
+      <trans-unit id="Apply_file_header_preferences">
+        <source>Apply file header preferences</source>
+        <target state="translated">Applica le preferenze relative alle intestazioni di file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_collection_initialization_preferences">
+        <source>Apply object/collection initialization preferences</source>
+        <target state="translated">Applica le preferenze di inizializzazione di oggetti/raccolte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
+        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
+        <target state="translated">Un'istruzione attiva è stata rimossa dal metodo originale. Annullare le modifiche per continuare oppure riavviare la sessione di debug.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
@@ -205,6 +230,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Se si modifica '{0}' in '{1}', la sessione di debug non potrà continuare perché modifica la forma della macchina a stati.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
+        <target state="translated">Se si modifica la visibilità di {0}, la sessione di debug non potrà continuare.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configura lo stile del codice di {0}</target>
@@ -250,6 +280,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Converti in record</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record_struct">
+        <source>Convert to record struct</source>
+        <target state="translated">Converti in struct di record</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">Converti in struct</target>
@@ -278,6 +313,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">Crea e assegna rimanenti come proprietà</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing">
+        <source>Deleting a positional parameter from a record will prevent the debug session from continuing.</source>
+        <target state="translated">Se si elimina un parametro posizionale da un record, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -310,6 +350,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Le modifiche apportate al progetto '{0}' impediranno la continuazione della sessione di debug: {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
+        <source>Edit and continue is not supported by the runtime.</source>
+        <target state="translated">La funzione Modifica e continuazione non è supportata dal runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">Si è verificato un errore durante la lettura del file '{0}': {1}</target>
@@ -334,6 +379,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <source>Examples:</source>
         <target state="translated">Esempi:</target>
         <note>Plural form when we have multiple examples to show.</note>
+      </trans-unit>
+      <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
+        <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
+        <target state="translated">I metodi dei record implementati in modo esplicito devono avere nomi di parametro corrispondenti all'equivalente generato dal compilatore '{0}'</target>
+        <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
@@ -368,6 +418,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Correggi l'errore di ortografia '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="translated">Formatta documento</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -465,6 +520,16 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Implementa tramite '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing">
+        <source>Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</source>
+        <target state="translated">Se si implementa un parametro posizionale del record '{0}' come di sola lettura, la sessione di debug non potrà continuare.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing">
+        <source>Implementing a record positional parameter '{0}' with a set accessor will prevent the debug session from continuing.</source>
+        <target state="translated">Se si implementa un parametro posizionale del record '{0}' con una funzione di accesso set, la sessione di debug non potrà continuare.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">Sequenza di caratteri di escape \p{X} incompleta</target>
@@ -543,6 +608,16 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">Inverti espressione condizionale</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing">
+        <source>Making a method an iterator will prevent the debug session from continuing.</source>
+        <target state="translated">Se si imposta un metodo come iteratore, la sessione di debug non potrà continuare.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_async_will_prevent_the_debug_session_from_continuing">
+        <source>Making a method 'async' will prevent the debug session from continuing.</source>
+        <target state="translated">Se si imposta un metodo come 'async', la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -649,6 +724,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <source>Not enough )'s</source>
         <target state="translated">Parentesi chiuse insufficienti</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
+      </trans-unit>
+      <trans-unit id="Operators">
+        <source>Operators</source>
+        <target state="translated">Operatori</target>
+        <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
@@ -1830,6 +1910,16 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Rimuovi il modificatore 'async'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_casts">
+        <source>Remove unnecessary casts</source>
+        <target state="translated">Rimuovi i cast non necessari</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_variables">
+        <source>Remove unused variables</source>
+        <target state="translated">Rimuovi le variabili non usate</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Sostituisci '{0}' con '{1}'</target>
@@ -1843,6 +1933,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Modifica non applicabile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_accessibility_modifiers">
+        <source>Sort accessibility modifiers</source>
+        <target state="translated">Ordina i modificatori di accessibilità</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -2070,6 +2165,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Ritorno a capo</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
+        <source>You can use the navigation bar to switch contexts.</source>
+        <target state="translated">Per cambiare contesto, si può usare la barra di spostamento.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
         <target state="translated">'{0}' non può essere null o vuoto.</target>
@@ -2257,13 +2357,13 @@ Anche se è possibile visualizzare i decimillesimi di un componente relativo ai 
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="translated">L'identificatore di formato personalizzato "f" rappresenta la cifra più significativa della frazione di secondi, ovvero i decimi di secondo in un valore di data e ora.
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+        <target state="new">The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
 
-Se l'identificatore di formato "f" viene usato senza altri identificatori di formato, viene interpretato come l'identificatore di formato di data e ora standard "f".
+If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-Quando si usano identificatori di formato "f" come parte di una stringa di formato fornita al metodo ParseExact, TryParseExact, ParseExact o TryParseExact, il numero di identificatori di formato "f" indica il numero di cifre più significative della frazione di secondi che deve essere presente per analizzare correttamente la stringa.</target>
-        <note />
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
@@ -2329,6 +2429,11 @@ Se l'identificatore di formato "H" viene usato senza altri identificatori di for
       <trans-unit id="_24_hour_clock_2_digits_description">
         <source>The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</source>
         <target state="translated">L'identificatore di formato personalizzato "HH" (più qualsiasi numero di identificatori "H" aggiuntivi) rappresenta l'ora come numero compreso tra 00 e 23, ovvero l'ora rappresentata nell'orario in formato 24 ore a base zero in base al quale il conteggio riparte da mezzanotte. Un'ora costituita da una singola cifra viene formattata con uno zero iniziale.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="code">
+        <source>code</source>
+        <target state="translated">codice</target>
         <note />
       </trans-unit>
       <trans-unit id="date_separator">
@@ -2486,6 +2591,11 @@ L'identificatore di formato standard "f" rappresenta una combinazione degli sche
         <source>The "T" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.LongTimePattern property. For example, the custom format string for the invariant culture is "HH:mm:ss".</source>
         <target state="translated">L'identificatore di formato standard "T" rappresenta una stringa di formato di data e ora personalizzata definita dalla proprietà DateTimeFormatInfo.LongTimePattern di impostazioni cultura specifiche. Ad esempio, la stringa di formato personalizzata per le impostazioni cultura inglese non dipendenti da paese/area geografica è "HH:mm:ss".</target>
         <note />
+      </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="translated">{0} '{1}'</target>
+        <note>e.g. "method 'M'"</note>
       </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
@@ -2939,11 +3049,6 @@ Se l'identificatore di formato "g" viene usato senza altri identificatori di for
         <target state="translated">Se si aggiorna un'istruzione complessa contenente un'espressione await, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">Se si modifica la visibilità di un costruttore, la sessione di debug non potrà continuare.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
         <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
         <target state="translated">Se si acquisisce la variabile '{0}' che non è stata ancora acquisita, la sessione di debug non potrà continuare.</target>
@@ -3150,8 +3255,8 @@ Se l'identificatore di formato "g" viene usato senza altri identificatori di for
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Se si elimina '{0}', la sessione di debug non potrà continuare.</target>
+        <source>Deleting {0} will prevent the debug session from continuing.</source>
+        <target state="translated">Se si elimina {0}, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3167,11 +3272,6 @@ Se l'identificatore di formato "g" viene usato senza altri identificatori di for
       <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
         <source>Deleting a method body will prevent the debug session from continuing.</source>
         <target state="translated">Se si elimina un corpo del metodo, la sessione di debug non potrà continuare.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
-        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
-        <target state="translated">Un'istruzione attiva è stata rimossa dal metodo originale. Annullare le modifiche per continuare oppure riavviare la sessione di debug.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3202,11 +3302,6 @@ Se l'identificatore di formato "g" viene usato senza altri identificatori di for
       <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing">
         <source>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</source>
         <target state="translated">Se si modifica l'inizializzatore di '{0}' in un tipo generico, la sessione di debug non potrà continuare.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_the_initializer_of_0_in_a_partial_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</source>
-        <target state="translated">Se si modifica l'inizializzatore di '{0}' in un tipo parziale, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing">
@@ -3260,8 +3355,8 @@ Se l'identificatore di formato "g" viene usato senza altri identificatori di for
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Removing '{0}' that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Se si rimuove '{0}', che contiene un'istruzione attiva, la sessione di debug non potrà continuare.</target>
+        <source>Removing {0} that contains an active statement will prevent the debug session from continuing.</source>
+        <target state="translated">Se si rimuove {0}, che contiene un'istruzione attiva, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
@@ -3386,18 +3481,13 @@ Continuare?</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_Available">
-        <source>Not Available</source>
-        <target state="translated">Non disponibile</target>
+        <source>Not Available ⚠</source>
+        <target state="translated">Non disponibile ⚠</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
         <source>    {0} - {1}</source>
         <target state="translated">    {0} - {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_can_use_the_navigation_bar_to_switch_context">
-        <source>You can use the navigation bar to switch context.</source>
-        <target state="translated">Per cambiare contesto, si può usare la barra di spostamento.</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
@@ -3658,6 +3748,11 @@ When this standard format specifier is used, the formatting or parsing operation
 L'identificatore di formato "s" ha lo scopo di produrre stringhe di risultati organizzate coerentemente in ordine crescente o decrescente, in base ai valori di data e ora. Di conseguenza, anche se l'identificatore di formato standard "s" rappresenta un valore di data e ora in un formato coerente, l'operazione di formattazione non modifica il valore dell'oggetto data e ora che viene formattato per rispecchiare la proprietà DateTime.Kind o il valore DateTimeOffset.Offset corrispondente. Ad esempio, le stringhe di risultati generate dalla formattazione dei valori di data e ora 2014-11-15T18:32:17+00:00 e 2014-11-15T18:32:17+08:00 sono identiche.
 
 Quando si usa questo identificatore di formato standard, la formattazione o l'operazione di analisi usa sempre le impostazioni cultura inglese non dipendenti da paese/area geografica.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="translated">costruttore statico</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

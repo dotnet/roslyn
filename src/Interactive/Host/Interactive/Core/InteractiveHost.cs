@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -400,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <summary>
         /// Sets the current session's search paths and base directory.
         /// </summary>
-        public Task<RemoteExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
+        public Task<RemoteExecutionResult> SetPathsAsync(ImmutableArray<string> referenceSearchPaths, ImmutableArray<string> sourceSearchPaths, string baseDirectory)
         {
             Contract.ThrowIfNull(referenceSearchPaths);
             Contract.ThrowIfNull(sourceSearchPaths);

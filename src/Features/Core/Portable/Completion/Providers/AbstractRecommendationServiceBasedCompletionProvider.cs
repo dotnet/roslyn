@@ -32,17 +32,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CompletionContext? completionContext, TSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
-            var recommendedSymbols = await recommender.GetRecommendedSymbolsAtPositionAsync(context.Workspace, context.SemanticModel, position, options, cancellationToken).ConfigureAwait(false);
+            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(context.Workspace, context.SemanticModel, position, options, cancellationToken);
 
             var shouldPreselectInferredTypes = await ShouldPreselectInferredTypesAsync(completionContext, position, options, cancellationToken).ConfigureAwait(false);
             if (!shouldPreselectInferredTypes)
-                return recommendedSymbols.SelectAsArray(s => (s, preselect: false));
+                return recommendedSymbols.NamedSymbols.SelectAsArray(s => (s, preselect: false));
 
             var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToSet();
 
             using var _ = ArrayBuilder<(ISymbol symbol, bool preselect)>.GetInstance(out var result);
 
-            foreach (var symbol in recommendedSymbols)
+            foreach (var symbol in recommendedSymbols.NamedSymbols)
             {
                 // Don't preselect intrinsic type symbols so we can preselect their keywords instead. We will also
                 // ignore nullability for purposes of preselection -- if a method is returning a string? but we've

@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                 ProjectReference _ => WellKnownSynchronizationKind.ProjectReference,
                 MetadataReference _ => WellKnownSynchronizationKind.MetadataReference,
                 AnalyzerReference _ => WellKnownSynchronizationKind.AnalyzerReference,
-                TextDocumentState _ => WellKnownSynchronizationKind.RecoverableSourceText,
                 SerializableSourceText _ => WellKnownSynchronizationKind.SerializableSourceText,
                 SourceText _ => WellKnownSynchronizationKind.SourceText,
                 OptionSet _ => WellKnownSynchronizationKind.OptionSet,
+                SourceGeneratedDocumentIdentity _ => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
                 _ => throw ExceptionUtilities.UnexpectedValue(value),
             };
 

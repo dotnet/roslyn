@@ -45,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
         protected abstract SyntaxGenerator SyntaxGenerator { get; }
+        protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
 
         public void SetEncoding(bool value)
@@ -66,6 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             out Guid pguidCmdUI,
             out int pgrfCDW)
         {
+            Contract.ThrowIfNull(_oleServiceProvider);
+
             ppunkDocView = IntPtr.Zero;
             ppunkDocData = IntPtr.Zero;
             pbstrEditorCaption = string.Empty;
@@ -166,8 +169,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public object GetDocumentData(uint grfCreate, string pszMkDocument, IVsHierarchy pHier, uint itemid)
         {
+            Contract.ThrowIfNull(_oleServiceProvider);
             var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
-
             var contentTypeRegistryService = _componentModel.GetService<IContentTypeRegistryService>();
             var contentType = contentTypeRegistryService.GetContentType(ContentTypeName);
             var textBuffer = editorAdaptersFactoryService.CreateVsTextBufferAdapter(_oleServiceProvider, contentType);
@@ -335,7 +338,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var documentWithFileHeader = ThreadHelper.JoinableTaskFactory.Run(() =>
                 {
                     var newLineText = documentOptions.GetOption(FormattingOptions.NewLine, rootToFormat.Language);
-                    var newLineTrivia = SyntaxGenerator.EndOfLine(newLineText);
+                    var newLineTrivia = SyntaxGeneratorInternal.EndOfLine(newLineText);
                     return AbstractFileHeaderCodeFixProvider.GetTransformedSyntaxRootAsync(
                         SyntaxGenerator.SyntaxFacts,
                         FileHeaderHelper,

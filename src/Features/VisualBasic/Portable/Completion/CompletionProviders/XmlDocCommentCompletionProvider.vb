@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
 
                 Return items
-            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e)
+            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken)
                 Return SpecializedCollections.EmptyEnumerable(Of CompletionItem)
             End Try
         End Function

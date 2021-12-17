@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveConfusingSuppression), Shared]
     internal sealed partial class CSharpRemoveConfusingSuppressionCodeFixProvider : CodeFixProvider
     {
         public const string RemoveOperator = nameof(RemoveOperator);

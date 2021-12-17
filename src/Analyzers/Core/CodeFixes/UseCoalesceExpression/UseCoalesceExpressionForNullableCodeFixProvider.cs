@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpressionForNullable), Shared]
     internal class UseCoalesceExpressionForNullableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]

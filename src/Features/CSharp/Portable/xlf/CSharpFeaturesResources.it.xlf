@@ -32,11 +32,6 @@
         <target state="translated">Applica le preferenze relative al corpo dell'espressione o del blocco</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_file_header_preferences">
-        <source>Apply file header preferences</source>
-        <target state="translated">Applica le preferenze relative alle intestazioni di file</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
         <source>Apply implicit/explicit type preferences</source>
         <target state="translated">Applica le preferenze relative al tipo implicito/esplicito</target>
@@ -50,11 +45,6 @@
       <trans-unit id="Apply_language_framework_type_preferences">
         <source>Apply language/framework type preferences</source>
         <target state="translated">Applica le preferenze relative al tipo di linguaggio/framework</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_object_collection_initialization_preferences">
-        <source>Apply object/collection initialization preferences</source>
-        <target state="translated">Applica le preferenze di inizializzazione di oggetti/raccolte</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_this_qualification_preferences">
@@ -167,16 +157,6 @@
         <target state="translated">Rimuovi il modificatore 'new'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_casts">
-        <source>Remove unnecessary casts</source>
-        <target state="translated">Rimuovi i cast non necessari</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_variables">
-        <source>Remove unused variables</source>
-        <target state="translated">Rimuovi le variabili non usate</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">Inverti l'istruzione 'for'</target>
@@ -221,6 +201,11 @@
         <source>asynchronous using declaration</source>
         <target state="translated">dichiarazione using asincrona</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="extern_alias">
+        <source>extern alias</source>
+        <target state="translated">alias extern</target>
+        <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
@@ -427,6 +412,11 @@
         <target state="translated">Genera l'operatore di conversione implicito in '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="record_">
+        <source>record</source>
+        <target state="translated">record</target>
+        <note />
+      </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>
         <target state="translated">istruzione switch</target>
@@ -586,11 +576,6 @@
         <source>global statement</source>
         <target state="translated">istruzione global</target>
         <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="using_namespace">
-        <source>using namespace</source>
-        <target state="translated">spazio dei nomi using</target>
-        <note />
       </trans-unit>
       <trans-unit id="using_directive">
         <source>using directive</source>

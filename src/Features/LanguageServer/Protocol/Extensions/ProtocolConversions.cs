@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -70,7 +71,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
         // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
-        public static Completion.CompletionTrigger LSPToRoslynCompletionTrigger(LSP.CompletionContext? context)
+        public static async Task<Completion.CompletionTrigger> LSPToRoslynCompletionTriggerAsync(
+            LSP.CompletionContext? context,
+            Document document,
+            int position,
+            CancellationToken cancellationToken)
         {
             if (context == null)
             {
@@ -79,18 +84,53 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             else if (context.TriggerKind == LSP.CompletionTriggerKind.Invoked)
             {
-                return Completion.CompletionTrigger.Invoke;
+                if (context is not LSP.VSCompletionContext vsCompletionContext)
+                {
+                    return Completion.CompletionTrigger.Invoke;
+                }
+
+                switch (vsCompletionContext.InvokeKind)
+                {
+                    case LSP.VSCompletionInvokeKind.Explicit:
+                        return Completion.CompletionTrigger.Invoke;
+
+                    case LSP.VSCompletionInvokeKind.Typing:
+                        var insertionChar = await GetInsertionCharacterAsync(document, position, cancellationToken).ConfigureAwait(false);
+                        return Completion.CompletionTrigger.CreateInsertionTrigger(insertionChar);
+
+                    case LSP.VSCompletionInvokeKind.Deletion:
+                        Contract.ThrowIfNull(context.TriggerCharacter);
+                        Contract.ThrowIfFalse(char.TryParse(context.TriggerCharacter, out var triggerChar));
+                        return Completion.CompletionTrigger.CreateDeletionTrigger(triggerChar);
+
+                    default:
+                        // LSP added an InvokeKind that we need to support.
+                        Logger.Log(FunctionId.LSPCompletion_MissingLSPCompletionInvokeKind);
+                        return Completion.CompletionTrigger.Invoke;
+                }
             }
             else if (context.TriggerKind == LSP.CompletionTriggerKind.TriggerCharacter)
             {
                 Contract.ThrowIfNull(context.TriggerCharacter);
-                return Completion.CompletionTrigger.CreateInsertionTrigger(char.Parse(context.TriggerCharacter));
+                Contract.ThrowIfFalse(char.TryParse(context.TriggerCharacter, out var triggerChar));
+                return Completion.CompletionTrigger.CreateInsertionTrigger(triggerChar);
             }
             else
             {
                 // LSP added a TriggerKind that we need to support.
                 Logger.Log(FunctionId.LSPCompletion_MissingLSPCompletionTriggerKind);
                 return Completion.CompletionTrigger.Invoke;
+            }
+
+            // Local functions
+            static async Task<char> GetInsertionCharacterAsync(Document document, int position, CancellationToken cancellationToken)
+            {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                // We use 'position - 1' here since we want to find the character that was just inserted.
+                Contract.ThrowIfTrue(position < 1);
+                var triggerCharacter = text[position - 1];
+                return triggerCharacter;
             }
         }
 
@@ -157,11 +197,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static Task<LSP.Location?> DocumentSpanToLocationAsync(DocumentSpan documentSpan, CancellationToken cancellationToken)
-            => TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, cancellationToken);
+            => TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, isStale: false, cancellationToken);
 
-        public static async Task<LSP.LocationWithText?> DocumentSpanToLocationWithTextAsync(DocumentSpan documentSpan, ClassifiedTextElement text, CancellationToken cancellationToken)
+        public static async Task<LSP.LocationWithText?> DocumentSpanToLocationWithTextAsync(
+            DocumentSpan documentSpan, ClassifiedTextElement text, CancellationToken cancellationToken)
         {
-            var location = await TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, cancellationToken).ConfigureAwait(false);
+            var location = await TextSpanToLocationAsync(
+                documentSpan.Document, documentSpan.SourceSpan, isStale: false, cancellationToken).ConfigureAwait(false);
 
             return location == null ? null : new LSP.LocationWithText
             {
@@ -240,18 +282,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documentEdits;
         }
 
-        public static async Task<LSP.Location?> TextSpanToLocationAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public static async Task<LSP.Location?> TextSpanToLocationAsync(
+            Document document,
+            TextSpan textSpan,
+            bool isStale,
+            CancellationToken cancellationToken)
         {
             var result = await GetMappedSpanResultAsync(document, ImmutableArray.Create(textSpan), cancellationToken).ConfigureAwait(false);
             if (result == null)
             {
-                return await ConvertTextSpanToLocation(document, textSpan, cancellationToken).ConfigureAwait(false);
+                return await ConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
             }
 
             var mappedSpan = result.Value.Single();
             if (mappedSpan.IsDefault)
             {
-                return await ConvertTextSpanToLocation(document, textSpan, cancellationToken).ConfigureAwait(false);
+                return await ConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
             }
 
             return new LSP.Location
@@ -260,9 +306,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = MappedSpanResultToRange(mappedSpan)
             };
 
-            static async Task<LSP.Location> ConvertTextSpanToLocation(Document document, TextSpan span, CancellationToken cancellationToken)
+            static async Task<LSP.Location> ConvertTextSpanToLocation(
+                Document document,
+                TextSpan span,
+                bool isStale,
+                CancellationToken cancellationToken)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                if (isStale)
+                {
+                    // in the case of a stale item, the span may be out of bounds of the document. Cap
+                    // us to the end of the document as that's where we're going to navigate the user
+                    // to.
+                    span = TextSpan.FromBounds(
+                        Math.Min(text.Length, span.Start),
+                        Math.Min(text.Length, span.End));
+                }
 
                 return ConvertTextSpanWithTextToLocation(span, text, document.GetURI());
             }
@@ -555,6 +615,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ProjectId.CreateFromSerialized(
                 Guid.Parse(projectContext.Id.Substring(0, delimiter)),
                 debugName: projectContext.Id.Substring(delimiter + 1));
+        }
+
+        public static async Task<DocumentOptionSet> FormattingOptionsToDocumentOptionsAsync(
+            LSP.FormattingOptions options,
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            // LSP doesn't currently support indent size as an option. However, except in special
+            // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
+            var updatedOptions = documentOptions
+                .WithChangedOption(Formatting.FormattingOptions.UseTabs, !options.InsertSpaces)
+                .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize)
+                .WithChangedOption(Formatting.FormattingOptions.IndentationSize, options.TabSize);
+            return updatedOptions;
         }
 
         private static async Task<ImmutableArray<MappedSpanResult>?> GetMappedSpanResultAsync(TextDocument textDocument, ImmutableArray<TextSpan> textSpans, CancellationToken cancellationToken)

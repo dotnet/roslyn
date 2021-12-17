@@ -57,6 +57,11 @@
         <target state="translated">События общих переменных WithEvents не могут обрабатывать методы другого типа.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">Атрибут "UnmanagedCallersOnly" не поддерживается.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">комментарии после продолжения строки</target>

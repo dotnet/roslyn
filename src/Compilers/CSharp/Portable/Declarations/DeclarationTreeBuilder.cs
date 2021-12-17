@@ -186,13 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     membernames,
                     declFlags));
 
-            return new RootSingleNamespaceDeclaration(
-                hasUsings: compilationUnit.Usings.Any(),
-                hasExternAliases: compilationUnit.Externs.Any(),
-                treeNode: _syntaxTree.GetReference(compilationUnit),
-                children: rootChildren.ToImmutableAndFree(),
-                referenceDirectives: GetReferenceDirectives(compilationUnit),
-                hasAssemblyAttributes: compilationUnit.AttributeLists.Any());
+            return CreateRootSingleNamespaceDeclaration(compilationUnit, rootChildren.ToImmutableAndFree(), isForScript: true);
         }
 
         private static ImmutableArray<ReferenceDirective> GetReferenceDirectives(CompilationUnitSyntax compilationUnit)
@@ -261,13 +255,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var children = VisitNamespaceChildren(compilationUnit, compilationUnit.Members, ((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members);
 
+            return CreateRootSingleNamespaceDeclaration(compilationUnit, children, isForScript: false);
+        }
+
+        private RootSingleNamespaceDeclaration CreateRootSingleNamespaceDeclaration(CompilationUnitSyntax compilationUnit, ImmutableArray<SingleNamespaceOrTypeDeclaration> children, bool isForScript)
+        {
+            bool hasUsings = false;
+            bool hasGlobalUsings = false;
+            bool reportedGlobalUsingOutOfOrder = false;
+            var diagnostics = DiagnosticBag.GetInstance();
+
+            foreach (var directive in compilationUnit.Usings)
+            {
+                if (directive.GlobalKeyword.IsKind(SyntaxKind.GlobalKeyword))
+                {
+                    hasGlobalUsings = true;
+
+                    if (hasUsings && !reportedGlobalUsingOutOfOrder)
+                    {
+                        reportedGlobalUsingOutOfOrder = true;
+                        diagnostics.Add(ErrorCode.ERR_GlobalUsingOutOfOrder, directive.GlobalKeyword.GetLocation());
+                    }
+                }
+                else
+                {
+                    hasUsings = true;
+                }
+            }
+
             return new RootSingleNamespaceDeclaration(
-                hasUsings: compilationUnit.Usings.Any(),
+                hasGlobalUsings: hasGlobalUsings,
+                hasUsings: hasUsings,
                 hasExternAliases: compilationUnit.Externs.Any(),
                 treeNode: _syntaxTree.GetReference(compilationUnit),
                 children: children,
-                referenceDirectives: ImmutableArray<ReferenceDirective>.Empty,
-                hasAssemblyAttributes: compilationUnit.AttributeLists.Any());
+                referenceDirectives: isForScript ? GetReferenceDirectives(compilationUnit) : ImmutableArray<ReferenceDirective>.Empty,
+                hasAssemblyAttributes: compilationUnit.AttributeLists.Any(),
+                diagnostics: diagnostics.ToReadOnlyAndFree());
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
@@ -317,6 +341,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Modifiers.Count > 0)
             {
                 diagnostics.Add(ErrorCode.ERR_BadModifiersOnNamespace, node.Modifiers[0].GetLocation());
+            }
+
+            foreach (var directive in node.Usings)
+            {
+                if (directive.GlobalKeyword.IsKind(SyntaxKind.GlobalKeyword))
+                {
+                    diagnostics.Add(ErrorCode.ERR_GlobalUsingInNamespace, directive.GlobalKeyword.GetLocation());
+                    break;
+                }
             }
 
             // NOTE: *Something* has to happen for alias-qualified names.  It turns out that we
@@ -380,7 +413,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitRecordDeclaration(RecordDeclarationSyntax node)
-            => VisitTypeDeclaration(node, DeclarationKind.Record);
+        {
+            var declarationKind = node.Kind() switch
+            {
+                SyntaxKind.RecordDeclaration => DeclarationKind.Record,
+                SyntaxKind.RecordStructDeclaration => DeclarationKind.RecordStruct,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
+            };
+
+            return VisitTypeDeclaration(node, declarationKind);
+        }
 
         private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
@@ -627,6 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return (((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists).Any();
 
                 case SyntaxKind.DelegateDeclaration:

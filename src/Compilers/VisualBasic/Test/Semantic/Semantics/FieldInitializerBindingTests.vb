@@ -1578,7 +1578,7 @@ String
 
         Private Shared Function BindInitializersWithoutDiagnostics(typeSymbol As SourceNamedTypeSymbol, initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer))) As ImmutableArray(Of BoundInitializer)
             Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
-            Dim processedFieldInitializers = Binder.BindFieldAndPropertyInitializers(typeSymbol, initializers, Nothing, diagnostics)
+            Dim processedFieldInitializers = Binder.BindFieldAndPropertyInitializers(typeSymbol, initializers, Nothing, New BindingDiagnosticBag(diagnostics))
             Dim sealedDiagnostics = diagnostics.ToReadOnlyAndFree()
             For Each d In sealedDiagnostics
                 Console.WriteLine(d)

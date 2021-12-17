@@ -299,9 +299,9 @@ namespace Microsoft.CodeAnalysis.Completion
             // This allows a provider to be textually triggered but later decide to be an augmenting provider based on deeper syntactic analysis.
 
             var additionalAugmentingProviders = new List<CompletionProvider>();
-            foreach (var provider in triggeredProviders)
+            if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
-                if (trigger.Kind == CompletionTriggerKind.Insertion)
+                foreach (var provider in triggeredProviders)
                 {
                     if (!await provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false))
                     {
@@ -574,20 +574,6 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 return CompletionChange.Create(new TextChange(item.Span, item.DisplayText));
             }
-        }
-
-        internal override async Task<CompletionChange> GetChangeAsync(
-            Document document,
-            CompletionItem item,
-            TextSpan completionListSpan,
-            char? commitKey,
-            bool disallowAddingImports,
-            CancellationToken cancellationToken)
-        {
-            var provider = GetProvider(item);
-            return provider != null
-                ? await provider.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false)
-                : CompletionChange.Create(new TextChange(completionListSpan, item.DisplayText));
         }
 
         bool IEqualityComparer<ImmutableHashSet<string>>.Equals(ImmutableHashSet<string> x, ImmutableHashSet<string> y)

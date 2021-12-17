@@ -3,8 +3,8 @@
 <Project>
   <!--
     Roslyn ServiceHub services.
-    
-    Used to generate 
+
+    Used to generate
     1) {service-name}.servicehub.service.json files included in Roslyn setup VSIX and in ServiceHub install directory.
     2) ServiceHub brokered service registrations in pkgdef file.
 
@@ -24,6 +24,7 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SymbolFinder" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolFinderService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.FindUsages" ClassName="Microsoft.CodeAnalysis.Remote.RemoteFindUsagesService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.NavigateToSearch" ClassName="Microsoft.CodeAnalysis.Remote.RemoteNavigateToSearchService+Factory" IsBrokered="true" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.NavigationBarItem" ClassName="Microsoft.CodeAnalysis.Remote.RemoteNavigationBarItemService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.MissingImportDiscovery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteMissingImportDiscoveryService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ExtensionMethodImportCompletion" ClassName="Microsoft.CodeAnalysis.Remote.RemoteExtensionMethodImportCompletionService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DependentTypeFinder" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDependentTypeFinderService+Factory" IsBrokered="true" />
@@ -33,9 +34,12 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ProjectTelemetry" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProjectTelemetryService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SymbolSearchUpdate" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.TodoCommentsDiscovery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteTodoCommentsDiscoveryService+Factory" IsBrokered="true" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.EditAndContinue" ClassName="Microsoft.CodeAnalysis.EditAndContinue.RemoteEditAndContinueService+Factory" IsBrokered="true" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.InheritanceMargin" ClassName="Microsoft.CodeAnalysis.Remote.RemoteInheritanceMarginService+Factory" IsBrokered="true" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.UnusedReferenceAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.RemoteUnusedReferenceAnalysisService+Factory" IsBrokered="true" />
     <ServiceHubService Include="roslynRemoteLanguageServer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteLanguageServer" />
   </ItemGroup>
-  
+
   <!--
     Roslyn in-proc brokered services.
   -->

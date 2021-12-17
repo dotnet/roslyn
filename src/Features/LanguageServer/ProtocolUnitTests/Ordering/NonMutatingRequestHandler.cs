@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,17 +14,31 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    [Shared, ExportLspMethod(MethodName, mutatesSolutionState: false), PartNotDiscoverable]
+    [Shared, ExportLspRequestHandlerProvider, PartNotDiscoverable]
+    [ProvidesMethod(NonMutatingRequestHandler.MethodName)]
+    internal class NonMutatingRequestHandlerProvider : AbstractRequestHandlerProvider
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public NonMutatingRequestHandlerProvider()
+        {
+        }
+
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
+        {
+            return ImmutableArray.Create<IRequestHandler>(new NonMutatingRequestHandler());
+        }
+    }
+
     internal class NonMutatingRequestHandler : IRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(NonMutatingRequestHandler);
         private const int Delay = 100;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public NonMutatingRequestHandler()
-        {
-        }
+        public string Method => nameof(NonMutatingRequestHandler);
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
 

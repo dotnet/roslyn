@@ -1,0 +1,31 @@
+# Separate pipeline from normal integration CI to allow branches to change legs
+
+# Branches that trigger a build on commit
+trigger:
+- main
+- main-vs-deps
+- release/*
+- features/*
+- demos/*
+
+# Branches that trigger builds on PR
+pr:
+- main
+- main-vs-deps
+- release/*
+- features/*
+- demos/*
+
+jobs:
+- job: VS_Integration_LSP
+  pool:
+    name: NetCore1ESPool-Svc-Public
+    demands: ImageOverride -equals Build.Windows.10.Amd64.VS2019.Open
+  timeoutInMinutes: 135
+
+  steps:
+    - template: eng/pipelines/test-integration-job.yml
+      parameters:
+        configuration: Debug
+        oop64bit: true
+        lspEditor: true

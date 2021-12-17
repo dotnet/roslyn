@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var declaredReceiverTypeInOriginatingCompilation = SymbolFinder.FindSimilarSymbols(declaredReceiverType, _originatingSemanticModel.Compilation).FirstOrDefault();
+                    var declaredReceiverTypeInOriginatingCompilation = SymbolFinder.FindSimilarSymbols(declaredReceiverType, _originatingSemanticModel.Compilation, cancellationToken).FirstOrDefault();
                     if (declaredReceiverTypeInOriginatingCompilation == null)
                     {
                         // Bug: https://github.com/dotnet/roslyn/issues/45404

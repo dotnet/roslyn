@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 Action<ModuleSymbol>? symbolValidator = null,
                 string? expectedOutput = null,
                 TargetFramework targetFramework = TargetFramework.Standard,
-                CSharpCompilationOptions? options = null,
-                bool overrideUnmanagedSupport = false)
+                CSharpCompilationOptions? options = null)
         {
             var comp = CreateCompilation(
                 sources,
@@ -41,14 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 options: options ?? (expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe),
                 targetFramework: targetFramework);
 
-            if (overrideUnmanagedSupport) comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
-
             return CompileAndVerify(comp, symbolValidator: symbolValidator, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
-        private static CSharpCompilation CreateCompilationWithFunctionPointers(CSharpTestSource source, IEnumerable<MetadataReference>? references = null, CSharpCompilationOptions? options = null)
+        private static CSharpCompilation CreateCompilationWithFunctionPointers(CSharpTestSource source, IEnumerable<MetadataReference>? references = null, CSharpCompilationOptions? options = null, TargetFramework? targetFramework = null)
         {
-            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
+            return CreateCompilation(source, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: targetFramework ?? TargetFramework.NetCoreApp);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointersWithIl(string source, string ilStub, Action<ModuleSymbol>? symbolValidator = null, string? expectedOutput = null)
@@ -59,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         private static CSharpCompilation CreateCompilationWithFunctionPointersAndIl(string source, string ilStub, IEnumerable<MetadataReference>? references = null, CSharpCompilationOptions? options = null)
         {
-            return CreateCompilationWithIL(source, ilStub, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
+            return CreateCompilationWithIL(source, ilStub, references: references, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
         }
 
         [Theory]
@@ -80,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 class C
 {{
     public unsafe delegate* {conventionString}<string, int> M() => throw null;
-}}", symbolValidator: symbolValidator, overrideUnmanagedSupport: true);
+}}", symbolValidator: symbolValidator, targetFramework: TargetFramework.NetCoreApp);
 
             symbolValidator(GetSourceModule(verifier));
 
@@ -104,7 +101,7 @@ class C
 unsafe class C
 {
     public delegate* unmanaged[Thiscall, Stdcall]<void> M() => throw null;
-}", symbolValidator: symbolValidator, overrideUnmanagedSupport: true);
+}", symbolValidator: symbolValidator, targetFramework: TargetFramework.NetCoreApp);
 
             void symbolValidator(ModuleSymbol module)
             {
@@ -258,15 +255,15 @@ class D
             var comp = CreateCompilationWithFunctionPointersAndIl(source, il);
 
             comp.VerifyDiagnostics(
-                // (6,26): error CS0570: 'delegate*<int>' is not supported by the language
+                // (6,26): error CS0570: 'delegate*<ref int>' is not supported by the language
                 //         ref int i1 = ref c.Field1();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1()").WithArguments("delegate*<int>").WithLocation(6, 26),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1()").WithArguments("delegate*<ref int>").WithLocation(6, 26),
                 // (6,28): error CS0570: 'C.Field1' is not supported by the language
                 //         ref int i1 = ref c.Field1();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(6, 28),
-                // (7,26): error CS0570: 'delegate*<int>' is not supported by the language
+                // (7,26): error CS0570: 'delegate*<ref int>' is not supported by the language
                 //         ref int i2 = ref c.Field2();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field2()").WithArguments("delegate*<int>").WithLocation(7, 26),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field2()").WithArguments("delegate*<ref int>").WithLocation(7, 26),
                 // (7,28): error CS0570: 'C.Field2' is not supported by the language
                 //         ref int i2 = ref c.Field2();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("C.Field2").WithLocation(7, 28),
@@ -935,12 +932,21 @@ unsafe class D
 
             var comp = CreateCompilationWithFunctionPointersAndIl(source, ilSource);
             comp.VerifyDiagnostics(
+                // (6,9): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
+                //         c.Field(__arglist(1, 2));
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "c.Field(__arglist(1, 2))").WithArguments("delegate* unmanaged[]<void>").WithLocation(6, 9),
                 // (6,11): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Field(__arglist(1, 2));
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate* unmanaged[]<void>").WithLocation(6, 11),
+                // (7,9): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
+                //         c.Field(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "c.Field(1, 2, 3)").WithArguments("delegate* unmanaged[]<void>").WithLocation(7, 9),
                 // (7,11): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Field(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate* unmanaged[]<void>").WithLocation(7, 11),
+                // (8,9): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
+                //         c.Field();
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "c.Field()").WithArguments("delegate* unmanaged[]<void>").WithLocation(8, 9),
                 // (8,11): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Field();
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate* unmanaged[]<void>").WithLocation(8, 11),
@@ -950,6 +956,9 @@ unsafe class D
                 // (9,21): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Field = c.Field;
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate* unmanaged[]<void>").WithLocation(9, 21),
+                // (10,9): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
+                //         c.Prop();
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "c.Prop()").WithArguments("delegate* unmanaged[]<void>").WithLocation(10, 9),
                 // (10,11): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Prop();
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate* unmanaged[]<void>").WithLocation(10, 11),
@@ -1261,7 +1270,7 @@ unsafe
     [UnmanagedCallersOnly(CallConvs = new Type[] {{ {attributeArgumentString} }})]
     static void M() => Console.Write(1);
 }}
-", UnmanagedCallersOnlyAttribute }, expectedOutput: "1", overrideUnmanagedSupport: true);
+", UnmanagedCallersOnlyAttribute }, expectedOutput: "1", targetFramework: TargetFramework.NetCoreApp);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", $@"
 {{
@@ -1500,7 +1509,7 @@ unsafe struct S
         return s->i + i;
     }
 }
-", UnmanagedCallersOnlyAttribute }, expectedOutput: "15", overrideUnmanagedSupport: true);
+", UnmanagedCallersOnlyAttribute }, expectedOutput: "15", targetFramework: TargetFramework.NetCoreApp);
 
             verifier.VerifyIL(@"<Program>$.<<Main>$>g__TestSingle|0_0()", @"
 {
@@ -3214,18 +3223,18 @@ unsafe class C
                 // (26,36): error CS8758: Ref mismatch between 'C.M6()' and function pointer 'delegate*<object>'
                 //         delegate*<object> ptr14 = &M6;
                 Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M6").WithArguments("C.M6()", "delegate*<object>").WithLocation(26, 36),
-                // (27,40): error CS8758: Ref mismatch between 'C.M6()' and function pointer 'delegate*<object>'
+                // (27,40): error CS8758: Ref mismatch between 'C.M6()' and function pointer 'delegate*<ref object>'
                 //         delegate*<ref object> ptr15 = &M6;
-                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M6").WithArguments("C.M6()", "delegate*<object>").WithLocation(27, 40),
-                // (28,40): error CS8758: Ref mismatch between 'C.M7()' and function pointer 'delegate*<object>'
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M6").WithArguments("C.M6()", "delegate*<ref object>").WithLocation(27, 40),
+                // (28,40): error CS8758: Ref mismatch between 'C.M7()' and function pointer 'delegate*<ref object>'
                 //         delegate*<ref object> ptr16 = &M7;
-                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M7").WithArguments("C.M7()", "delegate*<object>").WithLocation(28, 40),
-                // (29,49): error CS8758: Ref mismatch between 'C.M5()' and function pointer 'delegate*<object>'
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M7").WithArguments("C.M7()", "delegate*<ref object>").WithLocation(28, 40),
+                // (29,49): error CS8758: Ref mismatch between 'C.M5()' and function pointer 'delegate*<ref readonly object>'
                 //         delegate*<ref readonly object> ptr17 = &M5;
-                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M5").WithArguments("C.M5()", "delegate*<object>").WithLocation(29, 49),
-                // (30,49): error CS8758: Ref mismatch between 'C.M7()' and function pointer 'delegate*<object>'
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M5").WithArguments("C.M5()", "delegate*<ref readonly object>").WithLocation(29, 49),
+                // (30,49): error CS8758: Ref mismatch between 'C.M7()' and function pointer 'delegate*<ref readonly object>'
                 //         delegate*<ref readonly object> ptr18 = &M7;
-                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M7").WithArguments("C.M7()", "delegate*<object>").WithLocation(30, 49)
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M7").WithArguments("C.M7()", "delegate*<ref readonly object>").WithLocation(30, 49)
             );
         }
 
@@ -3294,7 +3303,7 @@ public class C
         int? i = null;
         delegate*<int> ptr2 = &i.GetValueOrDefault;
     }
-}");
+}", targetFramework: TargetFramework.Standard);
 
             comp.VerifyDiagnostics(
                 // (6,33): error CS8759: Cannot bind function pointer to 'C.M()' because it is not a static method
@@ -5305,7 +5314,7 @@ unsafe class C
     }
 }");
 
-            verifier.VerifyIL(@"C.M<T>(delegate*<T>, delegate*<T>)", @"
+            verifier.VerifyIL(@"C.M<T>(delegate*<ref T>, delegate*<T>)", @"
 {
   // Code size       34 (0x22)
   .maxstack  1
@@ -5336,12 +5345,12 @@ public unsafe class C
     public delegate*<delegate*<string, int*>, delegate*<string?>, delegate*<void*, string>> F6;
 }";
 
-            var comp = CreateCompilationWithFunctionPointers(source, options: WithNonNullTypesTrue(TestOptions.UnsafeReleaseDll));
+            var comp = CreateCompilationWithFunctionPointers(source, options: WithNullableEnable(TestOptions.UnsafeReleaseDll));
             comp.VerifyDiagnostics();
 
             verifySymbolNullabilities(comp.GetTypeByMetadataName("C")!);
 
-            CompileAndVerify(comp, symbolValidator: symbolValidator);
+            CompileAndVerify(comp, symbolValidator: symbolValidator, verify: Verification.Skipped);
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -6110,8 +6119,6 @@ unsafe class Derived2 : Base
 }
 ");
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
-
             comp.VerifyDiagnostics(
                 // (11,29): error CS0115: 'Derived1.M1(delegate* unmanaged[Cdecl]<void>)': no suitable method found to override
                 //     protected override void M1(delegate* unmanaged[Cdecl]<void> ptr) {}
@@ -6138,46 +6145,93 @@ unsafe class Derived2 : Base
         public void Override_ConventionOrderingDoesNotMatter()
         {
             var source1 = @"
+using System;
 public unsafe class Base
 {
-    public virtual void M1(delegate* unmanaged[Thiscall, Stdcall]<void> param) => throw null;
-    public virtual delegate* unmanaged[Thiscall, Stdcall]<void> M2() => throw null;
-    public virtual void M3(delegate* unmanaged[Thiscall, Stdcall]<ref string> param) => throw null;
-    public virtual delegate* unmanaged[Thiscall, Stdcall]<ref string> M4() => throw null;
+    public virtual void M1(delegate* unmanaged[Thiscall, Stdcall]<void> param) => Console.WriteLine(""Base Thiscall, Stdcall param"");
+    public virtual delegate* unmanaged[Thiscall, Stdcall]<void> M2() { Console.WriteLine(""Base Thiscall, Stdcall return""); return null; }
+    public virtual void M3(delegate* unmanaged[Thiscall, Stdcall]<ref string> param) => Console.WriteLine(""Base Thiscall, Stdcall ref param"");
+    public virtual delegate* unmanaged[Thiscall, Stdcall]<ref string> M4() { Console.WriteLine(""Base Thiscall, Stdcall ref return""); return null; }
 }
 ";
 
             var source2 = @"
+using System;
 unsafe class Derived1 : Base
 {
-    public override void M1(delegate* unmanaged[Stdcall, Thiscall]<void> param) => throw null;
-    public override delegate* unmanaged[Stdcall, Thiscall]<void> M2() => throw null;
-    public override void M3(delegate* unmanaged[Stdcall, Thiscall]<ref string> param) => throw null;
-    public override delegate* unmanaged[Stdcall, Thiscall]<ref string> M4() => throw null;
+    public override void M1(delegate* unmanaged[Stdcall, Thiscall]<void> param) => Console.WriteLine(""Derived1 Stdcall, Thiscall param"");
+    public override delegate* unmanaged[Stdcall, Thiscall]<void> M2() { Console.WriteLine(""Derived1 Stdcall, Thiscall return""); return null; }
+    public override void M3(delegate* unmanaged[Stdcall, Thiscall]<ref string> param) => Console.WriteLine(""Derived1 Stdcall, Thiscall ref param"");
+    public override delegate* unmanaged[Stdcall, Thiscall]<ref string> M4() { Console.WriteLine(""Derived1 Stdcall, Thiscall ref return""); return null; }
 }
 unsafe class Derived2 : Base
 {
-    public override void M1(delegate* unmanaged[Stdcall, Stdcall, Thiscall]<void> param) => throw null;
-    public override delegate* unmanaged[Stdcall, Stdcall, Thiscall]<void> M2() => throw null;
-    public override void M3(delegate* unmanaged[Stdcall, Stdcall, Thiscall]<ref string> param) => throw null;
-    public override delegate* unmanaged[Stdcall, Stdcall, Thiscall]<ref string> M4() => throw null;
+    public override void M1(delegate* unmanaged[Stdcall, Stdcall, Thiscall]<void> param) => Console.WriteLine(""Derived2 Stdcall, Stdcall, Thiscall param"");
+    public override delegate* unmanaged[Stdcall, Stdcall, Thiscall]<void> M2() { Console.WriteLine(""Derived2 Stdcall, Stdcall, Thiscall return""); return null; }
+    public override void M3(delegate* unmanaged[Stdcall, Stdcall, Thiscall]<ref string> param) => Console.WriteLine(""Derived2 Stdcall, Stdcall, Thiscall ref param"");
+    public override delegate* unmanaged[Stdcall, Stdcall, Thiscall]<ref string> M4() { Console.WriteLine(""Derived2 Stdcall, Stdcall, Thiscall ref return""); return null; }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/46676: When we have a p8 runtime, verify output
-            // on these, that the correct overload is called.
 
-            var allSourceComp = CreateCompilationWithFunctionPointers(source1 + source2);
+            var executableCode = @"
+using System;
+unsafe
+{
+    delegate* unmanaged[Stdcall, Thiscall]<void> ptr1 = null;
+    delegate* unmanaged[Stdcall, Thiscall]<ref string> ptr3 = null;
 
-            allSourceComp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
-            CompileAndVerify(allSourceComp, symbolValidator: getSymbolValidator(separateAssembly: false));
+    Base b1 = new Base();
+    b1.M1(ptr1);
+    b1.M2();
+    b1.M3(ptr3);
+    b1.M4();
+
+    Base d1 = new Derived1();
+    d1.M1(ptr1);
+    d1.M2();
+    d1.M3(ptr3);
+    d1.M4();
+
+    Base d2 = new Derived2();
+    d2.M1(ptr1);
+    d2.M2();
+    d2.M3(ptr3);
+    d2.M4();
+}
+";
+
+            var expectedOutput = @"
+Base Thiscall, Stdcall param
+Base Thiscall, Stdcall return
+Base Thiscall, Stdcall ref param
+Base Thiscall, Stdcall ref return
+Derived1 Stdcall, Thiscall param
+Derived1 Stdcall, Thiscall return
+Derived1 Stdcall, Thiscall ref param
+Derived1 Stdcall, Thiscall ref return
+Derived2 Stdcall, Stdcall, Thiscall param
+Derived2 Stdcall, Stdcall, Thiscall return
+Derived2 Stdcall, Stdcall, Thiscall ref param
+Derived2 Stdcall, Stdcall, Thiscall ref return
+";
+
+            var allSourceComp = CreateCompilationWithFunctionPointers(new[] { executableCode, source1, source2 }, options: TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(
+                allSourceComp,
+                expectedOutput: RuntimeUtilities.IsCoreClrRuntime ? expectedOutput : null,
+                symbolValidator: getSymbolValidator(separateAssembly: false),
+                verify: Verification.Skipped);
 
             var baseComp = CreateCompilationWithFunctionPointers(source1);
-            baseComp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             var metadataRef = baseComp.EmitToImageReference();
 
-            var derivedComp = CreateCompilationWithFunctionPointers(source2, references: new[] { metadataRef });
-            derivedComp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
-            CompileAndVerify(derivedComp, symbolValidator: getSymbolValidator(separateAssembly: true));
+            var derivedComp = CreateCompilationWithFunctionPointers(new[] { executableCode, source2 }, references: new[] { metadataRef }, options: TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(
+                derivedComp,
+                expectedOutput: RuntimeUtilities.IsCoreClrRuntime ? expectedOutput : null,
+                symbolValidator: getSymbolValidator(separateAssembly: true),
+                verify: Verification.Skipped);
 
             static Action<ModuleSymbol> getSymbolValidator(bool separateAssembly)
             {
@@ -6267,10 +6321,10 @@ unsafe class Derived : Base
             comp.VerifyDiagnostics(
                 // (9,29): error CS0115: 'Derived.M1(delegate*<{refKind2} string>)': no suitable method found to override
                 //     protected override void M1(delegate*<{refKind2} string> ptr) {}
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments($"Derived.M1(delegate*<string>)").WithLocation(9, 29),
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments($"Derived.M1(delegate*<{(string.IsNullOrWhiteSpace(refKind2) ? "" : refKind2)}string>)").WithLocation(9, 29),
                 // (10,49): error CS0508: 'Derived.M2()': return type must be 'delegate*<{refKind1} string>' to match overridden member 'Base.M2()'
                 //     protected override delegate*<{refKind2} string> M2() => throw null;
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", $"delegate*<string>").WithLocation(10, 42 + refKind2.Length)
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", $"delegate*<{(string.IsNullOrWhiteSpace(refKind1) ? "" : refKind1)}string>").WithLocation(10, 42 + refKind2.Length)
             );
         }
 
@@ -6408,7 +6462,7 @@ unsafe class Derived : Base
             );
 
             assertMethods(comp.SourceModule);
-            CompileAndVerify(comp, symbolValidator: assertMethods);
+            CompileAndVerify(comp, symbolValidator: assertMethods, verify: Verification.Skipped);
 
             static void assertMethods(ModuleSymbol module)
             {
@@ -6532,7 +6586,7 @@ unsafe class Derived : Base
             );
 
             assertMethods(comp.SourceModule);
-            CompileAndVerify(comp, symbolValidator: assertMethods);
+            CompileAndVerify(comp, symbolValidator: assertMethods, verify: Verification.Skipped);
 
             static void assertMethods(ModuleSymbol module)
             {
@@ -6610,7 +6664,7 @@ unsafe class Derived : Base
             );
 
             assertMethods(comp.SourceModule);
-            CompileAndVerify(comp, symbolValidator: assertMethods);
+            CompileAndVerify(comp, symbolValidator: assertMethods, verify: Verification.Skipped);
 
             static void assertMethods(ModuleSymbol module)
             {
@@ -6688,7 +6742,7 @@ public unsafe class Derived : Base
             );
 
             assertMethods(comp.SourceModule);
-            CompileAndVerify(comp, symbolValidator: assertMethods);
+            CompileAndVerify(comp, symbolValidator: assertMethods, verify: Verification.Skipped);
 
             static void assertMethods(ModuleSymbol module)
             {
@@ -7024,12 +7078,12 @@ unsafe public class C
                 // (18,32): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
                 //         ref string? str3 = ref ptr1(ref str2);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1(ref str2)").WithArguments("string", "string?").WithLocation(18, 32),
-                // (19,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, string>' doesn't match target type 'delegate*<ref string?, string>'.
+                // (19,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, ref string>' doesn't match target type 'delegate*<ref string?, ref string>'.
                 //         delegate*<ref string?, ref string> ptr2 = ptr1;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, string>", "delegate*<ref string?, string>").WithLocation(19, 51),
-                // (20,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, string>' doesn't match target type 'delegate*<ref string, string?>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, ref string>", "delegate*<ref string?, ref string>").WithLocation(19, 51),
+                // (20,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, ref string>' doesn't match target type 'delegate*<ref string, ref string?>'.
                 //         delegate*<ref string, ref string?> ptr3 = ptr1;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, string>", "delegate*<ref string, string?>").WithLocation(20, 51)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, ref string>", "delegate*<ref string, ref string?>").WithLocation(20, 51)
             );
         }
 
@@ -7330,7 +7384,7 @@ unsafe class Test
         param1(o is var (a, b));
         param1(o is (var c, var d));
     }
-}");
+}", targetFramework: TargetFramework.Standard);
 
             comp.VerifyDiagnostics(
                 // (6,25): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
@@ -7396,7 +7450,7 @@ class C
         delegate* unmanaged<void> ptr1;
         delegate* unmanaged[Stdcall, Thiscall]<void> ptr2;
     }
-}");
+}", targetFramework: TargetFramework.NetStandard20);
 
             comp.VerifyDiagnostics(
                 // (7,19): error CS8889: The target runtime doesn't support extensible or runtime-environment default calling conventions.
@@ -7613,7 +7667,6 @@ unsafe class C
 ";
 
             var comp1 = CreateCompilationWithFunctionPointers(source1 + source2);
-            comp1.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp1.VerifyDiagnostics(
                 // (12,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr;
@@ -7632,7 +7685,6 @@ unsafe class C
 
             var reference = CreateCompilation(source1);
             var comp2 = CreateCompilationWithFunctionPointers(source2, new[] { reference.EmitToImageReference() });
-            comp2.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp2.VerifyDiagnostics(
                 // (7,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr;
@@ -7914,7 +7966,6 @@ class C
 }
 ", UnmanagedCallersOnlyAttribute });
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(
                 // (5,6): error CS8893: 'null' is not a valid calling convention type for 'UnmanagedCallersOnly'.
                 //     [UnmanagedCallersOnly(CallConvs = new System.Type[] { null })]
@@ -7954,7 +8005,6 @@ class D
 }
 ", il);
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(
                 // (6,9): error CS8901: 'C.M()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         C.M();
@@ -8184,7 +8234,6 @@ unsafe
     delegate* unmanaged<void> ptr = C.M<int>;
 }", il, options: TestOptions.UnsafeReleaseExe);
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(
                 // (4,37): error CS0570: 'C.M<T>()' is not supported by the language
                 //     delegate* unmanaged<void> ptr = C.M<int>;
@@ -8313,7 +8362,6 @@ unsafe
 }
 ", il, options: TestOptions.UnsafeReleaseExe);
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(
                 // (4,39): error CS0570: 'C<T>.M1()' is not supported by the language
                 //     delegate* unmanaged<void> ptr1 = &C<int>.M1;
@@ -8434,7 +8482,6 @@ public class C
 }
 ", UnmanagedCallersOnlyAttribute });
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(
                 // (10,9): error CS8901: 'C.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         M1();
@@ -8468,7 +8515,6 @@ public class D
 }
 ", UnmanagedCallersOnlyAttribute });
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(
                 // (8,9): error CS8901: 'D.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         E.M1();
@@ -8502,7 +8548,6 @@ public class D
 }
 ", UnmanagedCallersOnlyAttribute });
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(
                 // (8,9): error CS8901: 'D.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         M1();
@@ -8540,16 +8585,18 @@ class D
         delegate* unmanaged<void> p2 = &C.M1;
     }
 }
-", references: new[] { reference });
+", references: new[] { reference }, targetFramework: TargetFramework.Standard);
 
-                comp1.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
                 comp1.VerifyDiagnostics(
                     // (6,9): error CS8901: 'C.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                     //         C.M1();
                     Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "C.M1()").WithArguments("C.M1()").WithLocation(6, 9),
                     // (7,31): error CS8786: Calling convention of 'C.M1()' is not compatible with 'Default'.
                     //         delegate*<void> p1 = &C.M1;
-                    Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "C.M1", isSuppressed: false).WithArguments("C.M1()", "Default").WithLocation(7, 31)
+                    Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "C.M1", isSuppressed: false).WithArguments("C.M1()", "Default").WithLocation(7, 31),
+                    // (8,19): error CS8889: The target runtime doesn't support extensible or runtime-environment default calling conventions.
+                    //         delegate* unmanaged<void> p2 = &C.M1;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "unmanaged").WithLocation(8, 19)
                 );
             }
         }
@@ -8591,7 +8638,6 @@ class D
 }
 ", il);
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(
                 // (6,9): error CS8901: 'C.M1()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         C.M1();
@@ -10114,7 +10160,6 @@ class D
     }
 }";
             var sameComp = CreateCompilationWithFunctionPointers(source1 + source2);
-            sameComp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             sameComp.VerifyDiagnostics(
                 // (28,50): error CS8786: Calling convention of 'C.M()' is not compatible with 'CDecl'.
                 //         delegate* unmanaged[Cdecl]<void> ptr2 = &C.M;
@@ -10126,7 +10171,6 @@ class D
             var refComp = CreateCompilation(source1);
 
             var differentComp = CreateCompilationWithFunctionPointers(source2, new[] { refComp.EmitToImageReference() });
-            differentComp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             differentComp.VerifyDiagnostics(
                 // (7,50): error CS8786: Calling convention of 'C.M()' is not compatible with 'CDecl'.
                 //         delegate* unmanaged[Cdecl]<void> ptr2 = &C.M;
@@ -10178,7 +10222,6 @@ class D
     }
 }";
             var sameComp = CreateCompilationWithFunctionPointers(source1 + source2);
-            sameComp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             sameComp.VerifyDiagnostics(
                 // (26,43): error CS8786: Calling convention of 'C.M()' is not compatible with 'Unmanaged'.
                 //         delegate* unmanaged<void> ptr1 = &C.M;
@@ -10193,7 +10236,6 @@ class D
             var refComp = CreateCompilation(source1);
 
             var differentComp = CreateCompilationWithFunctionPointers(source2, new[] { refComp.EmitToImageReference() });
-            differentComp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             differentComp.VerifyDiagnostics(
                 // (6,43): error CS8786: Calling convention of 'C.M()' is not compatible with 'Unmanaged'.
                 //         delegate* unmanaged<void> ptr1 = &C.M;
@@ -10308,7 +10350,6 @@ unsafe class D
 }
 ", il);
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(
                 // (9,52): error CS8786: Calling convention of 'C.M()' is not compatible with 'Standard'.
                 //         delegate* unmanaged[Stdcall]<void> ptr2 = &C.M; // Error
@@ -10342,7 +10383,6 @@ class A
 }
 ", UnmanagedCallersOnlyAttribute });
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(
                 // (5,54): error CS0246: The type or namespace name 'Bad' could not be found (are you missing a using directive or an assembly reference?)
                 //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(Bad, Expression) })]
@@ -10460,7 +10500,6 @@ public unsafe class C
             }
 
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(diagnostics.ToArray());
         }
 
@@ -10496,7 +10535,6 @@ unsafe class C
 }
 ", UnmanagedCallersOnlyAttribute });
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(
                 // (20,11): error CS0655: 'PropUnmanaged' is not a valid named attribute argument because it is not a valid attribute parameter type
                 //     [Attr(PropUnmanaged = &M1)]
@@ -10528,7 +10566,7 @@ static void M()
 {
     Console.WriteLine(1);
 }
-", UnmanagedCallersOnlyAttribute }, options: TestOptions.UnsafeReleaseExe, overrideUnmanagedSupport: true);
+", UnmanagedCallersOnlyAttribute }, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.NetCoreApp);
 
             // TODO: Remove the manual unmanagedcallersonlyattribute definition and override and verify the
             // output of running this code when we move to p8
@@ -10592,7 +10630,6 @@ public unsafe class C
 }
 ", UnmanagedCallersOnlyAttribute });
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp.VerifyDiagnostics(
                 // (11,14): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
                 //         Func<delegate*<int, void>> a1 = () => &M1;
@@ -10738,7 +10775,7 @@ unsafe
     static ref int ReturnByRef(ref int i) => ref i;
 }", expectedOutput: "2");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int)", @"
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, ref int>, ref int)", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -10794,9 +10831,9 @@ unsafe
 }", options: TestOptions.UnsafeReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (10,20): error CS8347: Cannot use a result of 'delegate*<ref Span<int>, Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
+                // (10,20): error CS8347: Cannot use a result of 'delegate*<ref Span<int>, ref Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
                 //         return ref ptr(ref span);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(ref span)").WithArguments("delegate*<ref System.Span<int>, System.Span<int>>", "0").WithLocation(10, 20),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(ref span)").WithArguments("delegate*<ref System.Span<int>, ref System.Span<int>>", "0").WithLocation(10, 20),
                 // (10,28): error CS8168: Cannot return local 'span' by reference because it is not a ref local
                 //         return ref ptr(ref span);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "span").WithArguments("span").WithLocation(10, 28)
@@ -10824,7 +10861,7 @@ unsafe
 
             var verifier = CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Skipped);
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref System.Span<int>, System.Span<int>>, ref System.Span<int>)", @"
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref System.Span<int>, ref System.Span<int>>, ref System.Span<int>)", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -10855,9 +10892,9 @@ unsafe
 }", options: TestOptions.UnsafeReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,16): error CS8333: Cannot return method 'delegate*<ref int, int>' by writable reference because it is a readonly variable
+                // (8,16): error CS8333: Cannot return method 'delegate*<ref int, ref readonly int>' by writable reference because it is a readonly variable
                 //         => ref ptr(ref i);
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "ptr(ref i)").WithArguments("method", "delegate*<ref int, int>").WithLocation(8, 16)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "ptr(ref i)").WithArguments("method", "delegate*<ref int, ref readonly int>").WithLocation(8, 16)
             );
         }
 
@@ -10878,7 +10915,7 @@ unsafe
     static ref int ReturnByRef(ref int i) => ref i;
 }", expectedOutput: "2");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int)", @"
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, ref int>, ref int)", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -10986,7 +11023,7 @@ unsafe
     static ref int ReturnByRef(ref int i) => ref i;
 }", expectedOutput: "2");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int, ref int)", @"
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, ref int>, ref int, ref int)", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -11261,6 +11298,38 @@ False");
   IL_0014:  ret
 }
 ");
+        }
+
+        [Fact, WorkItem(48765, "https://github.com/dotnet/roslyn/issues/48765")]
+        public void TypeOfFunctionPointerInAttribute()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+[Attr(typeof(delegate*<void>))]
+[Attr(typeof(delegate*<void>[]))]
+[Attr(typeof(C<delegate*<void>[]>))]
+unsafe class Attr : System.Attribute
+{
+    public Attr(System.Type type) {}
+}
+
+class C<T> {}
+");
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario. Currently, we don't know how to
+            // encode these in metadata, and may need to work with the runtime team to define a new format.
+            comp.VerifyDiagnostics(
+                // (4,7): error CS8911: Using a function pointer type in a 'typeof' in an attribute is not supported.
+                // [Attr(typeof(delegate*<void>))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(delegate*<void>)").WithLocation(4, 7),
+                // (5,7): error CS8911: Using a function pointer type in a 'typeof' in an attribute is not supported.
+                // [Attr(typeof(delegate*<void>[]))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(delegate*<void>[])").WithLocation(5, 7),
+                // (6,7): error CS8911: Using a function pointer type in a 'typeof' in an attribute is not supported.
+                // [Attr(typeof(C<delegate*<void>[]>))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(C<delegate*<void>[]>)").WithLocation(6, 7)
+            );
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");

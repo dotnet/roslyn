@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="All_methods">
+        <source>All methods</source>
+        <target state="translated">Všechny metody</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_for_clarity">
+        <source>Always for clarity</source>
+        <target state="translated">Vždy kvůli srozumitelnosti</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">Relace přejmenování na řádku je pro identifikátor {0} aktivní. Pokud chcete získat přístup k dalším možnostem, znovu volejte přejmenování na řádku. Můžete kdykoli pokračovat v úpravách identifikátoru, který se přejmenovává.</target>
@@ -10,6 +20,11 @@
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">Aplikují se změny.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_parameters">
+        <source>Avoid unused parameters</source>
+        <target state="translated">Vyhněte se nepoužitým parametrům.</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
@@ -25,6 +40,11 @@
       <trans-unit id="Configure_it_now">
         <source>Configure it now</source>
         <target state="translated">Nakonfigurovat teď</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_prefer_this_or_Me">
+        <source>Do not prefer 'this.' or 'Me.'</source>
+        <target state="translated">Nepreferovat this. ani Me.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
@@ -57,9 +77,39 @@
         <target state="translated">Filtr</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
+      <trans-unit id="For_locals_parameters_and_members">
+        <source>For locals, parameters and members</source>
+        <target state="translated">Pro místní proměnné, parametry a členy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_member_access_expressions">
+        <source>For member access expressions</source>
+        <target state="translated">Pro výrazy přístupu členů</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
         <target state="translated">Příkaz Formátovat dokument provedl další čištění.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_help_for_0">
+        <source>Get help for '{0}'</source>
+        <target state="translated">Získat nápovědu pro: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_help_for_0_from_Bing">
+        <source>Get help for '{0}' from Bing</source>
+        <target state="translated">Získat nápovědu pro: {0} z Bingu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_0">
+        <source>Gathering Suggestions - '{0}'</source>
+        <target state="translated">Shromažďují se návrhy – {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
+        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
+        <target state="translated">Shromažďují se návrhy – čeká se na úplné načtení řešení.</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -67,9 +117,39 @@
         <target state="translated">Přejít na základní typ</target>
         <note />
       </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators</source>
+        <target state="translated">V aritmetických operátorech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators</source>
+        <target state="translated">V jiných binárních operátorech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_operators">
+        <source>In other operators</source>
+        <target state="translated">V jiných operátorech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators</source>
+        <target state="translated">V relačních operátorech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_Size">
+        <source>Indentation Size</source>
+        <target state="translated">Velikost odsazení</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
         <target state="translated">Vložené nápovědy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Final_Newline">
+        <source>Insert Final Newline</source>
+        <target state="translated">Vložit poslední nový řádek</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -92,6 +172,26 @@
         <target state="translated">Hledají se báze...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Never_if_unnecessary">
+        <source>Never if unnecessary</source>
+        <target state="translated">Nikdy, pokud jsou nadbytečné</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_Line">
+        <source>New Line</source>
+        <target state="translated">Nový řádek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No">
+        <source>No</source>
+        <target state="translated">Ne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_public_methods">
+        <source>Non-public methods</source>
+        <target state="translated">Neveřejné metody</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">Operátor – přetížení</target>
@@ -102,6 +202,91 @@
         <target state="translated">Sledování vkládání</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
+        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
+        <target state="translated">Upřednostňovat System.HashCode v GetHashCode</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_coalesce_expression">
+        <source>Prefer coalesce expression</source>
+        <target state="translated">Upřednostňovat sloučený výraz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_collection_initializer">
+        <source>Prefer collection initializer</source>
+        <target state="translated">Upřednostňovat inicializátor kolekce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_compound_assignments">
+        <source>Prefer compound assignments</source>
+        <target state="translated">Preferovat složená přiřazení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
+        <source>Prefer conditional expression over 'if' with assignments</source>
+        <target state="translated">Upřednostnit podmíněný výraz před if s přiřazeními</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
+        <source>Prefer conditional expression over 'if' with returns</source>
+        <target state="translated">Upřednostnit podmíněný výraz před if s vrácenými hodnotami</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicit_tuple_name">
+        <source>Prefer explicit tuple name</source>
+        <target state="translated">Preferovat explicitní název řazené kolekce členů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_framework_type">
+        <source>Prefer framework type</source>
+        <target state="translated">Upřednostňovat typ architektury</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inferred_anonymous_type_member_names">
+        <source>Prefer inferred anonymous type member names</source>
+        <target state="translated">Preferovat odvozené názvy členů anonymních typů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inferred_tuple_names">
+        <source>Prefer inferred tuple element names</source>
+        <target state="translated">Preferovat odvozené názvy elementů řazené kolekce členů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="translated">U kontrol rovnosti odkazů dávat přednost možnosti is null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_propagation">
+        <source>Prefer null propagation</source>
+        <target state="translated">Upřednostňovat šíření hodnoty null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_object_initializer">
+        <source>Prefer object initializer</source>
+        <target state="translated">Upřednostňovat inicializátor objektu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_predefined_type">
+        <source>Prefer predefined type</source>
+        <target state="translated">Upřednostňovat předem definovaný typ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly_fields">
+        <source>Prefer readonly fields</source>
+        <target state="translated">Preferovat pole s modifikátorem readonly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_boolean_expressions">
+        <source>Prefer simplified boolean expressions</source>
+        <target state="translated">Upřednostňovat zjednodušené logické výrazy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_this_or_Me">
+        <source>Prefer 'this.' or 'Me.'</source>
+        <target state="translated">Preferovat this. nebo Me.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Preprocessor_Text">
         <source>Preprocessor Text</source>
         <target state="translated">Text preprocesoru</target>
@@ -110,6 +295,26 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">Interpunkce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_event_access_with_this_or_Me">
+        <source>Qualify event access with 'this' or 'Me'</source>
+        <target state="translated">Kvalifikovat přístup k události pomocí this nebo Me</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_field_access_with_this_or_Me">
+        <source>Qualify field access with 'this' or 'Me'</source>
+        <target state="translated">Kvalifikovat přístup k poli pomocí this nebo Me</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_method_access_with_this_or_Me">
+        <source>Qualify method access with 'this' or 'Me'</source>
+        <target state="translated">Kvalifikovat přístup k metodě pomocí this nebo Me</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_property_access_with_this_or_Me">
+        <source>Qualify property access with 'this' or 'Me'</source>
+        <target state="translated">Kvalifikovat přístup k vlastnosti pomocí this nebo Me</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
@@ -142,6 +347,11 @@
         <target state="translated">Symbol – statický</target>
         <note />
       </trans-unit>
+      <trans-unit id="Tab_Size">
+        <source>Tab Size</source>
+        <target state="translated">Velikost tabulátoru</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
         <target state="translated">Tento symbol nemá žádný základ.</target>
@@ -165,6 +375,11 @@
       <trans-unit id="Toggling_line_comment">
         <source>Toggling line comment...</source>
         <target state="translated">Přepíná se komentář k řádku...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Tabs">
+        <source>Use Tabs</source>
+        <target state="translated">Používat tabulátory</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -240,6 +455,11 @@
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">Uživatelské typy – rozhraní</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Record_Structs">
+        <source>User Types - Record Structs</source>
+        <target state="translated">Typy uživatelů – Struktury záznamů</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Records">
@@ -390,6 +610,11 @@
       <trans-unit id="Rename_will_update_0_references_in_1_files">
         <source>Rename will update {0} references in {1} files.</source>
         <target state="translated">Při přejmenování dojde k aktualizaci {0} odkazů v {1} souborech.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Yes">
+        <source>Yes</source>
+        <target state="translated">Ano</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file">
@@ -610,6 +835,11 @@
       <trans-unit id="Already_tracking_document_with_identical_key">
         <source>Already tracking document with identical key</source>
         <target state="translated">Už se sleduje dokument se shodným klíčem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="analyzer_Prefer_auto_properties">
+        <source>Prefer auto properties</source>
+        <target state="translated">Preferovat automatické vlastnosti</target>
         <note />
       </trans-unit>
       <trans-unit id="document_is_not_currently_being_tracked">

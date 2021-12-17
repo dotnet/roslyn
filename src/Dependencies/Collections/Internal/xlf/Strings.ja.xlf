@@ -7,6 +7,11 @@
         <target state="translated">ターゲット配列の長さが不足しているため、コレクション内のすべての項目をコピーできません。配列のインデックスと長さをご確認ください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Arg_BogusIComparer">
+        <source>Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</source>
+        <target state="translated">IComparer.Compare() メソッドから矛盾する結果が返されたため、並べ替えできません。値をそれ自体と比較したときに等しい結果にならないか、またはある値を別の値と繰り返し比較したときに異なる結果が生じます。IComparer: '{0}'。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Arg_HTCapacityOverflow">
         <source>Hashtable's capacity overflowed and went negative. Check load factor, capacity and the current size of the table.</source>
         <target state="translated">ハッシュテーブルの容量がオーバーフローし、負の値になりました。テーブルの占有率と容量、および現在のサイズを確認してください。</target>

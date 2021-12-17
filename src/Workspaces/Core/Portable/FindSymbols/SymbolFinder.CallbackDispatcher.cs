@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ValueTask OnCompletedAsync(RemoteServiceCallbackId callbackId)
                 => GetFindReferencesCallback(callbackId).OnCompletedAsync();
 
-            public ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolAndProjectId definition)
-                => GetFindReferencesCallback(callbackId).OnDefinitionFoundAsync(definition);
+            public ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup symbolGroup)
+                => GetFindReferencesCallback(callbackId).OnDefinitionFoundAsync(symbolGroup);
 
             public ValueTask OnFindInDocumentCompletedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId)
                 => GetFindReferencesCallback(callbackId).OnFindInDocumentCompletedAsync(documentId);
@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ValueTask OnFindInDocumentStartedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId)
                 => GetFindReferencesCallback(callbackId).OnFindInDocumentStartedAsync(documentId);
 
-            public ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)
-                => GetFindReferencesCallback(callbackId).OnReferenceFoundAsync(definition, reference);
+            public ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup symbolGroup, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)
+                => GetFindReferencesCallback(callbackId).OnReferenceFoundAsync(symbolGroup, definition, reference);
 
             public ValueTask OnStartedAsync(RemoteServiceCallbackId callbackId)
                 => GetFindReferencesCallback(callbackId).OnStartedAsync();

@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,8 +29,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public readonly Guid ActivityId;
             private readonly ILspLogger _logger;
 
-            /// <inheritdoc cref="ExportLspMethodAttribute.MutatesSolutionState" />
+            /// <inheritdoc cref="IRequestHandler.MutatesSolutionState" />
             public readonly bool MutatesSolutionState;
+
+            /// <inheritdoc cref="IRequestHandler.RequiresLSPSolution" />
+            public readonly bool RequiresLSPSolution;
 
             /// <inheritdoc cref="RequestContext.ClientName" />
             public readonly string? ClientName;
@@ -48,22 +52,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// </summary>
             public readonly CancellationToken CancellationToken;
 
+            public readonly RequestMetrics Metrics;
+
             public QueueItem(
                 bool mutatesSolutionState,
+                bool requiresLSPSolution,
                 ClientCapabilities clientCapabilities,
                 string? clientName,
                 string methodName,
                 TextDocumentIdentifier? textDocument,
                 Guid activityId,
                 ILspLogger logger,
+                RequestTelemetryLogger telemetryLogger,
                 Func<RequestContext, CancellationToken, Task> callbackAsync,
                 CancellationToken cancellationToken)
             {
+                Metrics = new RequestMetrics(methodName, telemetryLogger);
+
                 _callbackAsync = callbackAsync;
                 _logger = logger;
 
                 ActivityId = activityId;
                 MutatesSolutionState = mutatesSolutionState;
+                RequiresLSPSolution = requiresLSPSolution;
                 ClientCapabilities = clientCapabilities;
                 ClientName = clientName;
                 MethodName = methodName;
@@ -82,15 +93,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 try
                 {
                     await _callbackAsync(context, cancellationToken).ConfigureAwait(false);
+                    this.Metrics.RecordSuccess();
                 }
                 catch (OperationCanceledException)
                 {
                     _logger.TraceInformation($"{MethodName} - Canceled");
+                    this.Metrics.RecordCancellation();
                     throw;
                 }
                 catch (Exception ex)
                 {
                     _logger.TraceException(ex);
+                    this.Metrics.RecordFailure();
                     throw;
                 }
                 finally

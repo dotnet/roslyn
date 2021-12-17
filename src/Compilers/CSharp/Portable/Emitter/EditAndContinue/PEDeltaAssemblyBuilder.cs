@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -49,9 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             var matchToMetadata = new CSharpSymbolMatcher(metadataSymbols.AnonymousTypes, sourceAssembly, context, metadataAssembly);
 
-            CSharpSymbolMatcher matchToPrevious = null;
+            CSharpSymbolMatcher? matchToPrevious = null;
             if (previousGeneration.Ordinal > 0)
             {
+                RoslynDebug.AssertNotNull(previousGeneration.Compilation);
+                RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
+
                 var previousAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
                 var previousContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
@@ -217,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _changes.GetTopLevelSourceTypeDefinitions(context);
         }
 
-        internal override VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
+        internal override VariableSlotAllocator? TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
             return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, Compilation, method, topLevelMethod, diagnostics);
         }
@@ -232,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _previousGeneration.GetNextAnonymousTypeIndex();
         }
 
-        internal override bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, out string name, out int index)
+        internal override bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
         {
             Debug.Assert(this.Compilation == template.DeclaringCompilation);
             return _previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);

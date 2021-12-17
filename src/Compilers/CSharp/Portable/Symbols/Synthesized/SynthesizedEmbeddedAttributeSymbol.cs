@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared => true;
 
-        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics) => ManagedKind.Managed;
+        internal override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Managed;
 
         public override NamedTypeSymbol ConstructedFrom => this;
 
@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<MethodSymbol> Constructors => _constructors;
 
         internal override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
         internal override bool HasPossibleWellKnownCloneMethod() => false;
     }
 
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             GenerateMethodBodyCore(compilationState, diagnostics);
         }

@@ -57,6 +57,11 @@
         <target state="translated">Os eventos das variáveis WithEvents compartilhadas não podem ser manipulados por métodos em um tipo diferente.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">Não há suporte para o atributo 'UnmanagedCallersOnly'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">comentários após a continuação da linha</target>

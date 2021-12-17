@@ -279,6 +279,7 @@ Show completion list after a character is deleted;
 Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -295,6 +296,7 @@ Show items from unimported namespaces (experimental);</source>
 Автоматически показывать список завершения в списках аргументов (экспериментальная функция);
 Выделять совпадающие части элементов списка завершения;
 Показывать фильтры элементов завершения;
+Автоматически завершать предложение при вводе точки с запятой;
 Поведение фрагментов кода;
 Никогда не включать фрагменты кода;
 Всегда включать фрагменты кода;

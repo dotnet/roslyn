@@ -77,6 +77,11 @@
         <target state="translated">Atribut {0} není platný pro přístupové objekty události. Je platný jenom pro deklarace {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributesRequireParenthesizedLambdaExpression">
+        <source>Attributes on lambda expressions require a parenthesized parameter list.</source>
+        <target state="translated">Atributy ve výrazech lambda vyžadují seznam parametrů v závorkách.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">Automaticky implementovanou vlastnost {0} nelze označit modifikátorem readonly, protože má přístupový objekt set.</target>
@@ -153,8 +158,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
-        <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
-        <target state="translated">Člen záznamu {0} musí být čitelná vlastnost instance typu {1}, která se bude shodovat s pozičním parametrem {2}.</target>
+        <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
+        <target state="translated">Člen záznamu {0} musí být čitelná vlastnost instance nebo pole typu {1}, která se bude shodovat s pozičním parametrem {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -162,9 +167,19 @@
         <target state="translated">Chyba syntaxe příkazového řádku: {0} není platná hodnota možnosti {1}. Hodnota musí mít tvar {2}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotClone">
+        <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
+        <target state="translated">Typ příjemce {0} není platným typem záznamu a není typem struktury.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
         <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
         <target state="translated">Skupina &amp;metody {0} se nedá převést na typ delegáta {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotInferDelegateType">
+        <source>The delegate type could not be inferred.</source>
+        <target state="translated">Nedal se odvodit typ delegáta.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -427,9 +442,24 @@
         <target state="translated">Mezi {0} a ukazatelem na funkci {1} se neshoduje odkaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
+        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
+        <target state="translated">V typeof v atributu se nepodporuje používání typu ukazatele funkce.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
         <target state="translated">Ukazatel na funkci se nedá zavolat s pojmenovanými argumenty.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingInNamespace">
+        <source>A global using directive cannot be used in a namespace declaration.</source>
+        <target state="translated">Globální direktiva using se nedá použít v deklaraci oboru názvů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingOutOfOrder">
+        <source>A global using directive must precede all non-global using directives.</source>
+        <target state="translated">Globální direktiva using musí předcházet všem direktivám using, které nejsou globální. </target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -440,6 +470,11 @@
       <trans-unit id="ERR_GoToForwardJumpOverUsingVar">
         <source>A goto cannot jump to a location after a using declaration.</source>
         <target state="translated">Příkaz goto nemůže přejít na místo za deklarací using.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_HiddenPositionalMember">
+        <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
+        <target state="translated">Poziční člen {0}, který odpovídá tomuto parametru je skrytý.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
@@ -477,6 +512,11 @@
         <target state="translated">Argumenty s modifikátorem in se nedají použít v dynamicky volaných výrazech.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
+        <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
+        <target state="translated">Dědění ze záznamu se zapečetěným objektem Object.ToString se v jazyce C# {0} nepodporuje. Použijte prosím jazykovou verzi {1} nebo vyšší.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">Přístupové objekty init se nedají označit jako jen pro čtení. Místo toho označte jako jen pro čtení {0}.</target>
@@ -510,6 +550,11 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Neplatný název algoritmu hash: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidModifierForLanguageVersion">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="translated">Modifikátor {0} není platný pro tuto položku v jazyce C# {1}. Použijte prosím verzi jazyka {2} nebo vyšší.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
@@ -630,11 +675,6 @@
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Nepovedlo se určit výstupní adresář.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NoSingleCloneMethod">
-        <source>The receiver type '{0}' is not a valid record type.</source>
-        <target state="translated">Typ příjemce {0} není platný typ záznamu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
@@ -957,9 +997,44 @@
         <target state="translated">discards</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureGlobalUsing">
+        <source>global using directive</source>
+        <target state="translated">globální direktiva using</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">Vytvoření objektu s cílovým typem</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInferredDelegateType">
+        <source>inferred delegate type</source>
+        <target state="translated">odvozený typ delegáta</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaAttributes">
+        <source>lambda attributes</source>
+        <target state="translated">atributy lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
+        <source>positional fields in records</source>
+        <target state="translated">pozice polí v záznamech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRecordStructs">
+        <source>record structs</source>
+        <target state="translated">struktury záznamů</target>
+        <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSealedToStringInRecord">
+        <source>sealed ToString in record</source>
+        <target state="translated">zapečetěný ToString v záznamu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureWithOnStructs">
+        <source>with on structs</source>
+        <target state="translated">se strukturami</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1001,6 +1076,11 @@
         <source>Record defines 'Equals' but not 'GetHashCode'.</source>
         <target state="translated">Záznam definuje Equals, ale ne GetHashCode</target>
         <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
+        <source>Mixed declarations and expressions in deconstruction</source>
+        <target state="translated">Smíšené deklarace a výrazy v dekonstrukci</target>
+        <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
@@ -4137,8 +4217,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</source>
-        <target state="translated">Částečné deklarace {0} musí být jen třídy, jen záznamy, jen struktury, nebo jen rozhraní.</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
+        <target state="translated">Částečné deklarace {0} musí být jen třídy, jen třídy záznamů, jen struktury, jen struktury záznamů nebo jen rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
@@ -5076,8 +5156,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnSpecialMethod">
-        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation</source>
-        <target state="translated">Atribut Conditional není pro {0} platný, protože je to konstruktor, destruktor, operátor nebo explicitní implementace rozhraní.</target>
+        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation</source>
+        <target state="translated">Atribut Conditional není pro {0} platný, protože je to konstruktor, destruktor, operátor, výraz lambda nebo explicitní implementace rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalMustReturnVoid">
@@ -8388,8 +8468,8 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">Parametry nebo lokální proměnné typu {0} nemůžou být deklarované v asynchronních metodách nebo lambda výrazech.</target>
+        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="translated">Parametry nebo lokální proměnné typu {0} nemůžou být deklarované v asynchronních metodách nebo asynchronních výrazech lambda.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
@@ -9220,11 +9300,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_NoCanonicalView">
         <source>Cannot find the interop type that matches the embedded interop type '{0}'. Are you missing an assembly reference?</source>
         <target state="translated">Nejde najít typ spolupráce, který odpovídá vloženému typu {0}. Nechybí odkaz na sestavení?</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">Návratový typ podle odkazu ref {0} se nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
@@ -10507,11 +10582,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">Výraz throw není v tomto kontextu povolený.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MixedDeconstructionUnsupported">
-        <source>A deconstruction cannot mix declarations and expressions on the left-hand-side.</source>
-        <target state="translated">Při dekonstrukci nejde na levé straně kombinovat deklarace a výrazy.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DeclarationExpressionNotPermitted">
         <source>A declaration is not allowed in this context.</source>
         <target state="translated">Deklarace není v tomto kontextu povolená.</target>
@@ -10815,11 +10885,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
         <target state="translated">{0} nemůže implementovat člen rozhraní {1} v typu {2}, protože cílový modul runtime nepodporuje implementaci výchozího rozhraní.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
-        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="translated">Modifikátor {0} není platný pro tuto položku v jazyce C# {1}. Použijte prosím verzi jazyka {2} nebo vyšší.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">

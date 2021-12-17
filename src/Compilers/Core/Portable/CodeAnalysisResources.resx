@@ -445,9 +445,6 @@
   <data name="ArgumentElementCannotBeNull" xml:space="preserve">
     <value>Argument cannot have a null element.</value>
   </data>
-  <data name="AsyncAnalyzerActionCannotBeRegistered" xml:space="preserve">
-    <value>Analyzer attempted to register an 'async' action, which is not supported.</value>
-  </data>
   <data name="UnsupportedDiagnosticReported" xml:space="preserve">
     <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
   </data>

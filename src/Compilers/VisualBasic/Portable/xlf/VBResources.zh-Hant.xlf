@@ -57,6 +57,11 @@
         <target state="translated">無法使用其他類型的方法，處理共用 WithEvents 變數的事件。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">不支援 'UnmanagedCallersOnly' 屬性。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">行接續符號後註解</target>

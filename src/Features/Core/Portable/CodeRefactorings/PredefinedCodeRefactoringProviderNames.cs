@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string PullMemberUp = "Pull Member Up Code Action Provider";
         public const string InlineMethod = "Inline Method Code Action Provider";
         public const string ReplaceDocCommentTextWithTag = "Replace Documentation Comment Text With Tag Code Action Provider";
-        public const string SimplifyLambda = "Simplify Lambda Code Action Provider";
         public const string SplitIntoConsecutiveIfStatements = "Split Into Consecutive If Statements Code Action Provider";
         public const string SplitIntoNestedIfStatements = "Split Into Nested If Statements Code Action Provider";
         public const string SyncNamespace = "Sync Namespace and Folder Name Code Action Provider";
@@ -48,5 +47,33 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string UseExpressionBody = "Use Expression Body Code Action Provider";
         public const string UseImplicitType = "Use Implicit Type Code Action Provider";
         public const string Wrapping = "Wrapping Code Action Provider";
+        public const string MakeLocalFunctionStatic = nameof(MakeLocalFunctionStatic);
+        public const string GenerateComparisonOperators = nameof(GenerateComparisonOperators);
+        public const string ReplacePropertyWithMethods = nameof(ReplacePropertyWithMethods);
+        public const string ReplaceMethodWithProperty = nameof(ReplaceMethodWithProperty);
+        public const string AddDebuggerDisplay = nameof(AddDebuggerDisplay);
+        public const string ConvertAutoPropertyToFullProperty = nameof(ConvertAutoPropertyToFullProperty);
+        public const string ReverseForStatement = nameof(ReverseForStatement);
+        public const string ConvertLocalFunctionToMethod = nameof(ConvertLocalFunctionToMethod);
+        public const string ConvertForEachToFor = nameof(ConvertForEachToFor);
+        public const string ConvertLinqQueryToForEach = nameof(ConvertLinqQueryToForEach);
+        public const string ConvertForEachToLinqQuery = nameof(ConvertForEachToLinqQuery);
+        public const string ConvertNumericLiteral = nameof(ConvertNumericLiteral);
+        public const string IntroduceLocalForExpression = nameof(IntroduceLocalForExpression);
+        public const string AddParameterCheck = nameof(AddParameterCheck);
+        public const string InitializeMemberFromParameter = nameof(InitializeMemberFromParameter);
+        public const string NameTupleElement = nameof(NameTupleElement);
+        public const string UseNamedArguments = nameof(UseNamedArguments);
+        public const string ConvertForToForEach = nameof(ConvertForToForEach);
+        public const string ConvertIfToSwitch = nameof(ConvertIfToSwitch);
+        public const string ConvertBetweenRegularAndVerbatimString = nameof(ConvertBetweenRegularAndVerbatimString);
+        public const string ConvertBetweenRegularAndVerbatimInterpolatedString = nameof(ConvertBetweenRegularAndVerbatimInterpolatedString);
+        public const string RenameTracking = nameof(RenameTracking);
+        public const string UseExpressionBodyForLambda = nameof(UseExpressionBodyForLambda);
+        public const string ImplementInterfaceExplicitly = nameof(ImplementInterfaceExplicitly);
+        public const string ImplementInterfaceImplicitly = nameof(ImplementInterfaceImplicitly);
+        public const string ConvertPlaceholderToInterpolatedString = nameof(ConvertPlaceholderToInterpolatedString);
+        public const string ConvertConcatenationToInterpolatedString = nameof(ConvertConcatenationToInterpolatedString);
+        public const string InvertMultiLineIf = nameof(InvertMultiLineIf);
     }
 }

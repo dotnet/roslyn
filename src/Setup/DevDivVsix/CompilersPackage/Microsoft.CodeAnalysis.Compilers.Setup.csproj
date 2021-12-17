@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -23,7 +24,7 @@
     </PropertyGroup>
   </Target>
 
-  <!-- 
+  <!--
     Calculates which external dependencies included in the target VSIX need to be updated with optimization data.
   -->
   <Target Name="_CalculateDesktopCompilerArtifactsToOptimize"
@@ -38,7 +39,7 @@
     </ItemGroup>
   </Target>
 
-  <!-- 
+  <!--
     Copies the artifacts that need optimization data to an intermediate output dir.
   -->
   <Target Name="_PrepareDesktopCompilerArtifactsForOptimization"
@@ -51,8 +52,8 @@
       <Output TaskParameter="CopiedFiles" ItemName="FileWrites"/>
     </Copy>
   </Target>
-  
-  <Target Name="_GenerateSwrFile" 
+
+  <Target Name="_GenerateSwrFile"
           AfterTargets="Build"
           BeforeTargets="SwixBuild"
           DependsOnTargets="_SetSwrFilePath;InitializeDesktopCompilerArtifacts;_PrepareDesktopCompilerArtifactsForOptimization;ApplyOptimizations"
@@ -191,7 +192,7 @@ folder InstallDir:\MSBuild\Current\Bin\Roslyn\zh-Hant
 ]]>
       </_Lines>
     </PropertyGroup>
-    
+
     <WriteLinesToFile File="$(_SwrFilePath)" Lines="$(_Lines)" Overwrite="true"/>
 
     <ItemGroup>

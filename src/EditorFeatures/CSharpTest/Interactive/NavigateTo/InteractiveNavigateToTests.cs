@@ -428,14 +428,14 @@ Class Program { FileStyleUriParser f; }", async w =>
 
                 VerifyNavigateToResultItems(expecteditems, items);
 
-                var item = items.ElementAt(0);
+                var item = items.ElementAt(1);
                 var itemDisplay = item.DisplayFactory.CreateItemDisplay(item);
                 var unused = itemDisplay.Glyph;
 
                 Assert.Equal("Name", itemDisplay.Name);
                 Assert.Equal(string.Format(FeaturesResources.in_0_project_1, "DogBed", "Test"), itemDisplay.AdditionalInformation);
 
-                item = items.ElementAt(1);
+                item = items.ElementAt(0);
                 itemDisplay = item.DisplayFactory.CreateItemDisplay(item);
                 unused = itemDisplay.Glyph;
 

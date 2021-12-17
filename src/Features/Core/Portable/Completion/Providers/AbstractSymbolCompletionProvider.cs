@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CancellationToken cancellationToken)
         {
             var relatedDocumentIds = document.GetLinkedDocumentIds();
-            options = GetUpdatedRecommendationOptions(options, document.Project.Language);
+            options = CompletionUtilities.GetUpdatedRecommendationOptions(options, document.Project.Language);
 
             if (relatedDocumentIds.IsEmpty)
             {
@@ -384,16 +384,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return syntaxFacts.IsInInactiveRegion(syntaxContext.SyntaxTree, syntaxContext.Position, cancellationToken)
                 ? default
                 : await GetSymbolsAsync(completionContext, syntaxContext, syntaxContext.Position, options, cancellationToken).ConfigureAwait(false);
-        }
-
-        protected static OptionSet GetUpdatedRecommendationOptions(OptionSet options, string language)
-        {
-            var filterOutOfScopeLocals = options.GetOption(CompletionControllerOptions.FilterOutOfScopeLocals);
-            var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, language);
-
-            return options
-                .WithChangedOption(RecommendationOptions.FilterOutOfScopeLocals, language, filterOutOfScopeLocals)
-                .WithChangedOption(RecommendationOptions.HideAdvancedMembers, language, hideAdvancedMembers);
         }
 
         protected static async Task<TSyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)

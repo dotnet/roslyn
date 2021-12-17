@@ -34,7 +34,7 @@ Below are the versions of the language available in the NuGet packages. Remember
 - ...
 - Version `3.8` includes C# 9.0 (Visual Studio 2019 version 16.8, .NET 5)
 
-See the [history of C# language features](https://github.com/dotnet/csharplang/blob/master/Language-Version-History.md) for more details.
+See the [history of C# language features](https://github.com/dotnet/csharplang/blob/main/Language-Version-History.md) for more details.
 
 ## Other packages
 

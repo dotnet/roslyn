@@ -329,6 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
             internal override bool IsRecord => false;
+            internal override bool IsRecordStruct => false;
 
             internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
             {

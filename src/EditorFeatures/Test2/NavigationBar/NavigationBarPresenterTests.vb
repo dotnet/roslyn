@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
-        Public Sub TestNavigationBarInCSharpLinkedFiles()
+        Public Async Function TestNavigationBarInCSharpLinkedFiles() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
@@ -117,6 +117,14 @@ class C
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.GetTextBuffer())
 
+                controller.SetWorkspace(workspace)
+
+                Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider).Value
+                Dim workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
+                Dim navbarWaiter = listenerProvider.GetWaiter(FeatureAttribute.NavigationBar)
+
+                Await navbarWaiter.ExpeditedWaitAsync()
+
                 memberName = Nothing
                 mockPresenter.RaiseDropDownFocused()
                 Assert.Equal("M1(int x)", memberName)
@@ -124,15 +132,18 @@ class C
 
                 workspace.SetDocumentContext(linkDocument.Id)
 
+                Await workspaceWaiter.ExpeditedWaitAsync()
+                Await navbarWaiter.ExpeditedWaitAsync()
+
                 memberName = Nothing
                 mockPresenter.RaiseDropDownFocused()
                 Assert.Equal("M2(int x)", memberName)
                 Assert.Equal(projectGlyph, Glyph.CSharpProject)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
-        Public Sub TestNavigationBarInVisualBasicLinkedFiles()
+        Public Async Function TestNavigationBarInVisualBasicLinkedFiles() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj" PreprocessorSymbols="Proj1=True">
@@ -175,6 +186,14 @@ End Class
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.GetTextBuffer())
 
+                controller.SetWorkspace(workspace)
+
+                Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider).Value
+                Dim workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
+                Dim navbarWaiter = listenerProvider.GetWaiter(FeatureAttribute.NavigationBar)
+
+                Await navbarWaiter.ExpeditedWaitAsync()
+
                 memberNames = Nothing
                 mockPresenter.RaiseDropDownFocused()
                 Assert.Contains("M1", memberNames)
@@ -183,13 +202,16 @@ End Class
 
                 workspace.SetDocumentContext(linkDocument.Id)
 
+                Await workspaceWaiter.ExpeditedWaitAsync()
+                Await navbarWaiter.ExpeditedWaitAsync()
+
                 memberNames = Nothing
                 mockPresenter.RaiseDropDownFocused()
                 Assert.Contains("M2", memberNames)
                 Assert.DoesNotContain("M1", memberNames)
                 Assert.Equal(projectGlyph, Glyph.BasicProject)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub TestProjectItemsAreSortedCSharp()

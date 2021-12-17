@@ -279,6 +279,7 @@ Show completion list after a character is deleted;
 Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -295,14 +296,15 @@ Show items from unimported namespaces (experimental);</source>
 인수 목록에 자동으로 완성 목록 표시(실험적);
 완성 목록 항목에서 일치하는 부분 강조 표시;
 완성 항목 필터 표시;
+세미콜론 입력 시 자동으로 문 완성;
 코드 조각 동작;
 코드 조각 포함 안 함;
 코드 조각 항상 포함;
 식별자 뒤에 ?-Tab을 입력하면 코드 조각 포함;
-&lt;Enter&gt; 키 동작;
-&lt;Enter&gt; 키를 누를 때 새 줄 추가 안 함;
-단어를 모두 입력한 후 &lt;Enter&gt; 키를 누를 때만 새 줄 추가;
-&lt;Enter&gt; 키를 누를 때 항상 새 줄 추가;
+&amp;lt;Enter&amp;gt; 키 동작;
+&amp;lt;Enter&amp;gt; 키를 누를 때 새 줄 추가 안 함;
+단어를 모두 입력한 후 &amp;lt;Enter&amp;gt; 키를 누를 때만 새 줄 추가;
+&amp;lt;Enter&amp;gt; 키를 누를 때 항상 새 줄 추가;
 이름 제안 표시;
 가져오지 않은 네임스페이스의 항목 표시(실험적);</target>
         <note>C# IntelliSense options page keywords</note>

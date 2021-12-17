@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             SyntaxKind.ClassDeclaration,
             SyntaxKind.RecordDeclaration,
             SyntaxKind.StructDeclaration,
+            SyntaxKind.RecordStructDeclaration,
             SyntaxKind.EnumDeclaration,
         };
 
@@ -82,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             SyntaxKind.ClassDeclaration,
             SyntaxKind.RecordDeclaration,
             SyntaxKind.StructDeclaration,
+            SyntaxKind.RecordStructDeclaration,
         };
 
         public static readonly ISet<SyntaxKind> ClassInterfaceRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
@@ -96,11 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             SyntaxKind.ClassDeclaration,
             SyntaxKind.RecordDeclaration,
             SyntaxKind.StructDeclaration,
+            SyntaxKind.RecordStructDeclaration,
         };
 
         public static readonly ISet<SyntaxKind> StructOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.StructDeclaration,
+            SyntaxKind.RecordStructDeclaration,
         };
     }
 }

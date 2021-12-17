@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="All_methods">
+        <source>All methods</source>
+        <target state="translated">Tutti i metodi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_for_clarity">
+        <source>Always for clarity</source>
+        <target state="translated">Sempre per chiarezza</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">Per l'identificatore '{0}' è attiva una sessione di ridenominazione inline. Richiamare nuovamente la ridenominazione inline per accedere alle opzioni aggiuntive. È possibile continuare a modificare l'identificatore da rinominare in qualsiasi momento.</target>
@@ -10,6 +20,11 @@
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">Applicazione delle modifiche in corso</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_parameters">
+        <source>Avoid unused parameters</source>
+        <target state="translated">Evita i parametri inutilizzati</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
@@ -25,6 +40,11 @@
       <trans-unit id="Configure_it_now">
         <source>Configure it now</source>
         <target state="translated">Configura ora</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_prefer_this_or_Me">
+        <source>Do not prefer 'this.' or 'Me.'</source>
+        <target state="translated">Non preferire 'this.' o 'Me.'</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
@@ -57,9 +77,39 @@
         <target state="translated">Filtro</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
+      <trans-unit id="For_locals_parameters_and_members">
+        <source>For locals, parameters and members</source>
+        <target state="translated">Per variabili locali, parametri e membri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_member_access_expressions">
+        <source>For member access expressions</source>
+        <target state="translated">Per espressioni di accesso ai membri</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
         <target state="translated">Formatta documento ha eseguito una pulizia aggiuntiva</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_help_for_0">
+        <source>Get help for '{0}'</source>
+        <target state="translated">Visualizza la Guida per '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_help_for_0_from_Bing">
+        <source>Get help for '{0}' from Bing</source>
+        <target state="translated">Visualizza la Guida per '{0}' disponibile in Bing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_0">
+        <source>Gathering Suggestions - '{0}'</source>
+        <target state="translated">Raccolta dei suggerimenti - '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
+        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
+        <target state="translated">Raccolta dei suggerimenti - In attesa del completamento del caricamento della soluzione</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -67,9 +117,39 @@
         <target state="translated">Vai a base</target>
         <note />
       </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators</source>
+        <target state="translated">In operatori aritmetici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators</source>
+        <target state="translated">In altri operatori binari</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_operators">
+        <source>In other operators</source>
+        <target state="translated">In altri operatori</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators</source>
+        <target state="translated">In operatori relazionali</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_Size">
+        <source>Indentation Size</source>
+        <target state="translated">Dimensione rientro</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
         <target state="translated">Suggerimenti inline</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Final_Newline">
+        <source>Insert Final Newline</source>
+        <target state="translated">Inserisci carattere di nuova riga finale</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -92,6 +172,26 @@
         <target state="translated">Individuazione delle basi...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Never_if_unnecessary">
+        <source>Never if unnecessary</source>
+        <target state="translated">Mai se non necessario</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_Line">
+        <source>New Line</source>
+        <target state="translated">Nuova riga</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No">
+        <source>No</source>
+        <target state="translated">No</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_public_methods">
+        <source>Non-public methods</source>
+        <target state="translated">Metodi non pubblici</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">Operatore - Overload</target>
@@ -102,6 +202,91 @@
         <target state="translated">Verifica Incolla</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
+        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
+        <target state="translated">Preferisci 'System.HashCode' in 'GetHashCode'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_coalesce_expression">
+        <source>Prefer coalesce expression</source>
+        <target state="translated">Preferisci espressione COALESCE</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_collection_initializer">
+        <source>Prefer collection initializer</source>
+        <target state="translated">Preferisci inizializzatore di insieme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_compound_assignments">
+        <source>Prefer compound assignments</source>
+        <target state="translated">Preferisci assegnazioni composte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
+        <source>Prefer conditional expression over 'if' with assignments</source>
+        <target state="translated">Preferisci l'espressione condizionale a 'if' con assegnazioni</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
+        <source>Prefer conditional expression over 'if' with returns</source>
+        <target state="translated">Preferisci l'espressione condizionale a 'if' con valori restituiti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicit_tuple_name">
+        <source>Prefer explicit tuple name</source>
+        <target state="translated">Preferisci nome di tupla esplicito</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_framework_type">
+        <source>Prefer framework type</source>
+        <target state="translated">Preferisci tipo di framework</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inferred_anonymous_type_member_names">
+        <source>Prefer inferred anonymous type member names</source>
+        <target state="translated">Preferisci nomi di membro di tipo anonimo dedotti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inferred_tuple_names">
+        <source>Prefer inferred tuple element names</source>
+        <target state="translated">Preferisci nomi di elemento di tupla dedotti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="translated">Preferisci 'is null' per i controlli di uguaglianza dei riferimenti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_propagation">
+        <source>Prefer null propagation</source>
+        <target state="translated">Preferisci propagazione di valori Null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_object_initializer">
+        <source>Prefer object initializer</source>
+        <target state="translated">Preferisci inizializzatore di oggetto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_predefined_type">
+        <source>Prefer predefined type</source>
+        <target state="translated">Preferisci tipo predefinito</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly_fields">
+        <source>Prefer readonly fields</source>
+        <target state="translated">Preferisci campi readonly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_boolean_expressions">
+        <source>Prefer simplified boolean expressions</source>
+        <target state="translated">Preferisci espressioni booleane semplificate</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_this_or_Me">
+        <source>Prefer 'this.' or 'Me.'</source>
+        <target state="translated">Preferisci 'this.' o 'Me.'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Preprocessor_Text">
         <source>Preprocessor Text</source>
         <target state="translated">Testo preprocessore</target>
@@ -110,6 +295,26 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">Punteggiatura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_event_access_with_this_or_Me">
+        <source>Qualify event access with 'this' or 'Me'</source>
+        <target state="translated">Qualifica l'accesso agli eventi con 'this' o 'Me'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_field_access_with_this_or_Me">
+        <source>Qualify field access with 'this' or 'Me'</source>
+        <target state="translated">Qualifica l'accesso ai campi con 'this' o 'Me'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_method_access_with_this_or_Me">
+        <source>Qualify method access with 'this' or 'Me'</source>
+        <target state="translated">Qualifica l'accesso ai metodi con 'this' o 'Me'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_property_access_with_this_or_Me">
+        <source>Qualify property access with 'this' or 'Me'</source>
+        <target state="translated">Qualifica l'accesso alle proprietà con 'this' o 'Me'</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
@@ -142,6 +347,11 @@
         <target state="translated">Simbolo - Statico</target>
         <note />
       </trans-unit>
+      <trans-unit id="Tab_Size">
+        <source>Tab Size</source>
+        <target state="translated">Dimensione tabulazione</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
         <target state="translated">Non è presente alcuna base per il simbolo.</target>
@@ -165,6 +375,11 @@
       <trans-unit id="Toggling_line_comment">
         <source>Toggling line comment...</source>
         <target state="translated">Attivazione/disattivazione del commento per la riga...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Tabs">
+        <source>Use Tabs</source>
+        <target state="translated">Usa tabulazioni</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -240,6 +455,11 @@
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">Tipi utente - Interfacce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Record_Structs">
+        <source>User Types - Record Structs</source>
+        <target state="translated">Tipi di utente - Struct di record</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Records">
@@ -390,6 +610,11 @@
       <trans-unit id="Rename_will_update_0_references_in_1_files">
         <source>Rename will update {0} references in {1} files.</source>
         <target state="translated">Con la ridenominazione verranno aggiornati {0} riferimenti in {1} file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Yes">
+        <source>Yes</source>
+        <target state="translated">Sì</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file">
@@ -610,6 +835,11 @@
       <trans-unit id="Already_tracking_document_with_identical_key">
         <source>Already tracking document with identical key</source>
         <target state="translated">La verifica del documento con chiave identica è già in corso</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="analyzer_Prefer_auto_properties">
+        <source>Prefer auto properties</source>
+        <target state="translated">Preferisci proprietà automatiche</target>
         <note />
       </trans-unit>
       <trans-unit id="document_is_not_currently_being_tracked">

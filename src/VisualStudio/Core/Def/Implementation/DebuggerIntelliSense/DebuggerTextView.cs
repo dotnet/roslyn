@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         {
             get
             {
-                throw new NotSupportedException();
+                return _innerTextView.TextDataModel;
             }
         }
 

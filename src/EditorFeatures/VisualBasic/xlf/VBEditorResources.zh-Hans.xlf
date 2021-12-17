@@ -22,16 +22,6 @@
         <target state="translated">正在更正单词的大小写...</target>
         <note />
       </trans-unit>
-      <trans-unit id="New_">
-        <source>New</source>
-        <target state="translated">新建</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_Events">
-        <source>({0} Events)</source>
-        <target state="translated">({0} 事件)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_call_is_required_by_the_designer">
         <source>This call is required by the designer.</source>
         <target state="translated">此调用是设计器所必需的。</target>
@@ -50,11 +40,6 @@
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
         <target state="translated">智能缩进</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">设置文档的格式</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_Document">

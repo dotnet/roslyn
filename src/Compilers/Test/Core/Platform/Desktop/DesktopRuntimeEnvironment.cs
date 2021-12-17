@@ -110,7 +110,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
             var runtimeData = GetOrCreateRuntimeData(allModules);
 
-            // Many prominent assemblys like mscorlib are already in the RuntimeAssemblyManager.  Only
+            // Many prominent assemblies like mscorlib are already in the RuntimeAssemblyManager.  Only
             // add in the delta values to reduce serialization overhead going across AppDomains.
             var manager = runtimeData.Manager;
             var missingList = manager

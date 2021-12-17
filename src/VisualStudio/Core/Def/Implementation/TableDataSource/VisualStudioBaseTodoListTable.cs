@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -225,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Value.Message;
                             return content != null;
                         case StandardTableKeyNames.DocumentName:
-                            content = GetFileName(data.Value.OriginalFilePath, data.Value.MappedFilePath);
+                            content = DiagnosticDataLocation.GetFilePath(data.Value.OriginalFilePath, data.Value.MappedFilePath);
                             return content != null;
                         case StandardTableKeyNames.Line:
                             content = GetLineColumn(item).Line;

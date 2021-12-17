@@ -7,6 +7,11 @@
         <target state="translated">目的地陣列的長度不足以複製集合中的所有項目。請檢查陣列索引以及長度。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Arg_BogusIComparer">
+        <source>Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</source>
+        <target state="translated">無法排序，因為 IComparer.Compare() 方法傳回不一致的結果。可能是某個值與自己比較卻不相等，或是一個值反覆與另一個值比較但產生不同的結果。IComparer: '{0}'。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Arg_HTCapacityOverflow">
         <source>Hashtable's capacity overflowed and went negative. Check load factor, capacity and the current size of the table.</source>
         <target state="translated">Hashtable 的容量溢位，並且成為負值。請檢查載入因數、容量，以及表格目前的大小。</target>

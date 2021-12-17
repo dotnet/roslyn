@@ -7,10 +7,8 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
@@ -22,10 +20,8 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
-using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
@@ -141,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // This method should only contain calls to acquire services off of the component model
             // or service providers.  Anything else which is more complicated should go in Initialize
             // instead.
-            this.Workspace = this.Package.Workspace;
+            this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
             this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
             this.HostDiagnosticUpdateSource = this.Package.ComponentModel.GetService<HostDiagnosticUpdateSource>();
             this.AnalyzerFileWatcherService = this.Package.ComponentModel.GetService<AnalyzerFileWatcherService>();
@@ -225,9 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var outliningManagerService = this.Package.ComponentModel.GetService<IOutliningManagerService>();
             var outliningManager = outliningManagerService.GetOutliningManager(wpfTextView);
             if (outliningManager == null)
-            {
                 return;
-            }
 
             if (!workspace.Options.GetOption(FeatureOnOffOptions.Outlining, this.RoslynLanguageName))
             {
@@ -239,71 +233,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 {
                     if (isOpenMetadataAsSource)
                     {
-                        // If this file is a metadata-from-source file, we want to force-collapse any implementations.
-                        // First make sure we know what all the outlining spans are.  Then ask the outlining mananger
-                        // to collapse all the implementation spans.
-                        EnsureOutliningTagsComputed(wpfTextView);
+                        // If this file is a metadata-from-source file, we want to force-collapse any implementations
+                        // to keep the display clean and condensed.
                         outliningManager.CollapseAll(wpfTextView.TextBuffer.CurrentSnapshot.GetFullSpan(), c => c.Tag.IsImplementation);
                     }
                     else
                     {
-                        // We also want to automatically collapse any region tags *on the first 
-                        // load of a file* if the file contains them.  In order to not do expensive
-                        // parsing, we only do this if the file contains #region in it.
-                        if (ContainsRegionTag(wpfTextView.TextSnapshot))
-                        {
-                            // Make sure we at least know what the outlining spans are.
-                            // Then when we call PersistOutliningState below the editor will 
-                            // get these outlining tags and automatically collapse any 
-                            // IsDefaultCollapsed spans the first time around. 
-                            //
-                            // If it is not the first time opening a file, VS will simply use
-                            // the data stored in the SUO file.  
-                            EnsureOutliningTagsComputed(wpfTextView);
-                        }
-
+                        // Otherwise, attempt to persist any outlining state we have computed. This
+                        // ensures that any new opened files that have any IsDefaultCollapsed spans
+                        // will both have them collapsed and remembered in the SUO file.
                         viewEx.PersistOutliningState();
                     }
                 }
             }
-        }
-
-        private bool ContainsRegionTag(ITextSnapshot textSnapshot)
-        {
-            foreach (var line in textSnapshot.Lines)
-            {
-                if (StartsWithRegionTag(line))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool StartsWithRegionTag(ITextSnapshotLine line)
-        {
-            var start = line.GetFirstNonWhitespacePosition();
-            if (start != null)
-            {
-                var index = start.Value;
-                return line.StartsWith(index, "#region", ignoreCase: true);
-            }
-
-            return false;
-        }
-
-        private void EnsureOutliningTagsComputed(IWpfTextView wpfTextView)
-        {
-            // We need to get our outlining tag source to notify it to start blocking
-            var outliningTaggerProvider = this.Package.ComponentModel.GetService<VisualStudio14StructureTaggerProvider>();
-
-            var subjectBuffer = wpfTextView.TextBuffer;
-            var snapshot = subjectBuffer.CurrentSnapshot;
-            var tagger = outliningTaggerProvider.CreateTagger<IOutliningRegionTag>(subjectBuffer);
-
-            using var disposable = tagger as IDisposable;
-            tagger.GetAllTags(new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan()), CancellationToken.None);
         }
 
         private void InitializeLanguageDebugInfo()
@@ -335,7 +277,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             return new ContainedLanguage(
                 bufferCoordinator,
                 this.Package.ComponentModel,
-                this.Package.Workspace,
+                this.Workspace,
                 project.Id,
                 project,
                 filePath,

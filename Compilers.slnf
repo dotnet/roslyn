@@ -30,6 +30,8 @@
       "src\\Compilers\\Core\\MSBuildTaskTests\\Microsoft.Build.Tasks.CodeAnalysis.UnitTests.csproj",
       "src\\Compilers\\Core\\MSBuildTask\\Microsoft.Build.Tasks.CodeAnalysis.csproj",
       "src\\Compilers\\Core\\Portable\\Microsoft.CodeAnalysis.csproj",
+      "src\\Compilers\\Core\\RebuildTest\\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj",
+      "src\\Compilers\\Core\\Rebuild\\Microsoft.CodeAnalysis.Rebuild.csproj",
       "src\\Compilers\\Extension\\Roslyn.Compilers.Extension.csproj",
       "src\\Compilers\\Server\\VBCSCompilerTests\\VBCSCompiler.UnitTests.csproj",
       "src\\Compilers\\Server\\VBCSCompiler\\VBCSCompiler.csproj",

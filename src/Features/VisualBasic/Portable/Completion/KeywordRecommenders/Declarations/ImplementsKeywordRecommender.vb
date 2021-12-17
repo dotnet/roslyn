@@ -35,10 +35,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 If typeBlock IsNot Nothing Then
                     ' We need to check to see if any of the partial types parts declare an implements statement.
                     ' If not, we don't show the Implements keyword.
-                    Dim typeSymbol = context.SemanticModel.GetDeclaredSymbol(typeBlock)
+                    Dim typeSymbol = context.SemanticModel.GetDeclaredSymbol(typeBlock, cancellationToken)
                     If typeSymbol IsNot Nothing Then
                         For Each reference In typeSymbol.DeclaringSyntaxReferences
-                            Dim typeStatement = TryCast(reference.GetSyntax(), TypeStatementSyntax)
+                            Dim typeStatement = TryCast(reference.GetSyntax(cancellationToken), TypeStatementSyntax)
 
                             If typeStatement IsNot Nothing AndAlso
                                TypeOf typeStatement.Parent Is TypeBlockSyntax AndAlso

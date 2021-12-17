@@ -1400,6 +1400,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 FileWatchedReferenceFactory.ReferenceChanged -= RefreshMetadataReferencesForFile;
+
+                if (_lazyExternalErrorDiagnosticUpdateSource.IsValueCreated)
+                {
+                    _lazyExternalErrorDiagnosticUpdateSource.Value.Dispose();
+                }
             }
 
             base.Dispose(finalize);
@@ -1615,6 +1620,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 base.OnProjectRemoved(projectId);
 
+                // Try to update the UI context info.  But cancel that work if we're shutting down.
                 _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -1727,6 +1733,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private bool CanConvertMetadataReferenceToProjectReference_NoLock(ProjectId projectIdWithMetadataReference, ProjectId referencedProjectId)
         {
             Debug.Assert(Monitor.IsEntered(_gate));
+
+            // We can never make a project reference ourselves. This isn't a meaningful scenario, but if somebody does this by accident
+            // we do want to throw exceptions.
+            if (projectIdWithMetadataReference == referencedProjectId)
+            {
+                return false;
+            }
 
             // PERF: call GetProjectState instead of GetProject, otherwise creating a new project might force all
             // Project instances to get created.
@@ -1968,8 +1981,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void EnsureDocumentOptionProvidersInitialized()
+        internal async Task EnsureDocumentOptionProvidersInitializedAsync(CancellationToken cancellationToken)
         {
+            // HACK: switch to the UI thread, ensure we initialize our options provider which depends on a
+            // UI-affinitized experimentation service
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             _foregroundObject.AssertIsForeground();
 
             if (_documentOptionsProvidersInitialized)

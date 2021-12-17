@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="312">
         <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Modifica impostazioni di completamento elenco;Preseleziona membri usati più di recente</target>
+        <target state="translated">Modifica impostazioni dell'elenco di completamento;Preseleziona membri usati di recente</target>
         <note>IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="114">

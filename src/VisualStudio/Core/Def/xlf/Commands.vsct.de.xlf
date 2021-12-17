@@ -212,6 +212,21 @@
         <target state="translated">OpenActiveRuleSet</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|ButtonText">
+        <source>Remove &amp;Unused References...</source>
+        <target state="translated">&amp;Nicht verwendete Verweise entfernen...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|CommandName">
+        <source>RemoveUnusedReferences</source>
+        <target state="translated">RemoveUnusedReferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|LocCanonicalName">
+        <source>RemoveUnusedReferences</source>
+        <target state="translated">RemoveUnusedReferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidRunCodeAnalysisForProject|ButtonText">
         <source>Run C&amp;ode Analysis</source>
         <target state="translated">C&amp;ode Analysis ausführen</target>

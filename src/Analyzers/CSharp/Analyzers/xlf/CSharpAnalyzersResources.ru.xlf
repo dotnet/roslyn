@@ -12,6 +12,16 @@
         <target state="translated">Добавить фигурные скобки в оператор "{0}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
+        <source>Blank line not allowed after constructor initializer colon</source>
+        <target state="translated">После инициализатора конструктора с двоеточием не допускается пустая строка.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Consecutive_braces_must_not_have_a_blank_between_them">
+        <source>Consecutive braces must not have blank line between them</source>
+        <target state="translated">Между последовательными фигурными скобками не должно быть пустых строк.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
         <source>Convert switch statement to expression</source>
         <target state="translated">Преобразовать оператор switch в выражение</target>
@@ -30,6 +40,11 @@
       <trans-unit id="Discard_can_be_removed">
         <source>Discard can be removed</source>
         <target state="translated">Пустую переменную можно удалить</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Embedded_statements_must_be_on_their_own_line">
+        <source>Embedded statements must be on their own line</source>
+        <target state="translated">Встроенные операторы должны располагаться на отдельной строке.</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -98,8 +113,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="translated">Struct содержит назначение для "this" вне конструктора. Сделайте поля, доступные только для чтения, доступными для записи.</target>
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
+        <target state="translated">Структура (Struct) содержит присваивание "this" вне конструктора. Сделайте поля, доступные только для чтения, доступными для записи.</target>
         <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">
@@ -269,7 +284,7 @@
       </trans-unit>
       <trans-unit id="default_expression_can_be_simplified">
         <source>'default' expression can be simplified</source>
-        <target state="translated">'выражение default можно упростить</target>
+        <target state="translated">выражение default можно упростить</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
@@ -279,7 +294,7 @@
       </trans-unit>
       <trans-unit id="new_expression_can_be_simplified">
         <source>'new' expression can be simplified</source>
-        <target state="translated">выражение "new" можно упростить</target>
+        <target state="translated">выражение new можно упростить</target>
         <note />
       </trans-unit>
       <trans-unit id="typeof_can_be_converted_ to_nameof">

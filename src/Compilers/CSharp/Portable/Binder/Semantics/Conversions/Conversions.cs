@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -40,29 +39,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Conversions(_binder, currentRecursionDepth, includeNullability, this);
         }
 
-        public override Conversion GetMethodGroupDelegateConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public override Conversion GetMethodGroupDelegateConversion(BoundMethodGroup source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Must be a bona fide delegate type, not an expression tree type.
-            if (!destination.IsDelegateType())
+            if (!(destination.IsDelegateType() || (destination.SpecialType == SpecialType.System_Delegate && IsFeatureInferredDelegateTypeEnabled(source))))
             {
                 return Conversion.NoConversion;
             }
 
-            var (methodSymbol, isFunctionPointer, callingConventionInfo) = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(destination);
+            var (methodSymbol, isFunctionPointer, callingConventionInfo) = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(source, destination, ref useSiteInfo);
             if ((object)methodSymbol == null)
             {
                 return Conversion.NoConversion;
             }
 
-            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteDiagnostics);
+            Debug.Assert(destination.SpecialType == SpecialType.System_Delegate || methodSymbol == ((NamedTypeSymbol)destination).DelegateInvokeMethod);
+
+            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
-                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, ((NamedTypeSymbol)destination).DelegateInvokeMethod.ParameterCount);
+                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, methodSymbol.ParameterCount);
             resolution.Free();
             return conversion;
         }
 
-        public override Conversion GetMethodGroupFunctionPointerConversion(BoundMethodGroup source, FunctionPointerTypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public override Conversion GetMethodGroupFunctionPointerConversion(BoundMethodGroup source, FunctionPointerTypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(
                 _binder,
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination.Signature,
                 isFunctionPointer: true,
                 new CallingConventionInfo(destination.Signature.CallingConvention, destination.Signature.GetCallingConventionModifiers()),
-                ref useSiteDiagnostics);
+                ref useSiteInfo);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, destination.Signature.ParameterCount);
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        protected override Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        protected override Conversion GetInterpolatedStringConversion(BoundUnconvertedInterpolatedString source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // An interpolated string expression may be converted to the types
             // System.IFormattable and System.FormattableString
@@ -91,13 +92,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Resolve method group based on the optional delegate invoke method.
         /// If the invoke method is null, ignore arguments in resolution.
         /// </summary>
-        private static MethodGroupResolution ResolveDelegateOrFunctionPointerMethodGroup(Binder binder, BoundMethodGroup source, MethodSymbol delegateInvokeMethodOpt, bool isFunctionPointer, in CallingConventionInfo callingConventionInfo, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static MethodGroupResolution ResolveDelegateOrFunctionPointerMethodGroup(Binder binder, BoundMethodGroup source, MethodSymbol delegateInvokeMethodOpt, bool isFunctionPointer, in CallingConventionInfo callingConventionInfo, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if ((object)delegateInvokeMethodOpt != null)
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 GetDelegateOrFunctionPointerArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
-                var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteDiagnostics: ref useSiteDiagnostics, inferWithDynamic: true,
+                var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo, inferWithDynamic: true,
                     isMethodGroupConversion: true, returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType,
                     isFunctionPointerResolution: isFunctionPointer, callingConventionInfo: callingConventionInfo);
                 analyzedArguments.Free();
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return binder.ResolveMethodGroup(source, analyzedArguments: null, isMethodGroupConversion: true, ref useSiteDiagnostics);
+                return binder.ResolveMethodGroup(source, analyzedArguments: null, isMethodGroupConversion: true, ref useSiteInfo);
             }
         }
 
@@ -113,14 +114,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Return the Invoke method symbol if the type is a delegate
         /// type and the Invoke method is available, otherwise null.
         /// </summary>
-        private static (MethodSymbol, bool isFunctionPointer, CallingConventionInfo callingConventionInfo) GetDelegateInvokeOrFunctionPointerMethodIfAvailable(TypeSymbol type)
+        private (MethodSymbol, bool isFunctionPointer, CallingConventionInfo callingConventionInfo) GetDelegateInvokeOrFunctionPointerMethodIfAvailable(
+            BoundMethodGroup methodGroup,
+            TypeSymbol type,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (type is FunctionPointerTypeSymbol { Signature: { } signature })
             {
                 return (signature, true, new CallingConventionInfo(signature.CallingConvention, signature.GetCallingConventionModifiers()));
             }
 
-            var delegateType = type.GetDelegateType();
+            var delegateType = (type.SpecialType == SpecialType.System_Delegate) && methodGroup.Syntax.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) ?
+                // https://github.com/dotnet/roslyn/issues/52869: Avoid calculating the delegate type multiple times during conversion.
+                _binder.GetMethodGroupDelegateType(methodGroup, ref useSiteInfo) :
+                type.GetDelegateType();
+
             if ((object)delegateType == null)
             {
                 return (null, false, default);
@@ -135,12 +143,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (methodSymbol, false, default);
         }
 
-        public static bool ReportDelegateOrFunctionPointerMethodGroupDiagnostics(Binder binder, BoundMethodGroup expr, TypeSymbol targetType, DiagnosticBag diagnostics)
+        public bool ReportDelegateOrFunctionPointerMethodGroupDiagnostics(Binder binder, BoundMethodGroup expr, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
         {
-            var (invokeMethodOpt, isFunctionPointer, callingConventionInfo) = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(targetType);
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(binder, expr, invokeMethodOpt, isFunctionPointer, callingConventionInfo, ref useSiteDiagnostics);
-            diagnostics.Add(expr.Syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+            var (invokeMethodOpt, isFunctionPointer, callingConventionInfo) = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(expr, targetType, ref useSiteInfo);
+            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(binder, expr, invokeMethodOpt, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
+            diagnostics.Add(expr.Syntax, useSiteInfo);
 
             bool hasErrors = resolution.HasAnyErrors;
 
@@ -196,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             !resolution.IsEmpty &&
                             resolution.ResultKind == LookupResultKind.Viable)
                     {
-                        var overloadDiagnostics = DiagnosticBag.GetInstance();
+                        var overloadDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
 
                         result.ReportDiagnostics(
                             binder: binder, location: expr.Syntax.Location, nodeOpt: expr.Syntax, diagnostics: overloadDiagnostics,
@@ -206,13 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             typeContainingConstructor: null, delegateTypeBeingInvoked: null,
                             isMethodGroupConversion: true, returnRefKind: invokeMethodOpt?.RefKind, delegateOrFunctionPointerType: targetType);
 
-                        if (!overloadDiagnostics.IsEmptyWithoutResolution)
-                        {
-                            hasErrors = overloadDiagnostics.HasAnyErrors();
-                            diagnostics.AddRange(overloadDiagnostics);
-                        }
-
-                        overloadDiagnostics.Free();
+                        hasErrors = overloadDiagnostics.HasAnyErrors();
+                        diagnostics.AddRangeAndFree(overloadDiagnostics);
                     }
                 }
             }
@@ -221,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return hasErrors;
         }
 
-        public Conversion MethodGroupConversion(SyntaxNode syntax, MethodGroup methodGroup, NamedTypeSymbol delegateType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public Conversion MethodGroupConversion(SyntaxNode syntax, MethodGroup methodGroup, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
             var result = OverloadResolutionResult<MethodSymbol>.GetInstance();
@@ -236,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver: methodGroup.Receiver,
                 arguments: analyzedArguments,
                 result: result,
-                useSiteDiagnostics: ref useSiteDiagnostics,
+                useSiteInfo: ref useSiteInfo,
                 isMethodGroupConversion: true,
                 returnRefKind: delegateInvokeMethod.RefKind,
                 returnType: delegateInvokeMethod.ReturnType);
@@ -328,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Conversion(ConversionKind.MethodGroup, method, methodGroup.IsExtensionMethodGroup);
         }
 
-        public override Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public override Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (sourceExpression.NeedsToBeConverted())
             {
@@ -336,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)sourceExpression.ElementType != null);
 
                 var sourceAsPointer = new PointerTypeSymbol(TypeWithAnnotations.Create(sourceExpression.ElementType));
-                var pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
+                var pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteInfo);
 
                 if (pointerConversion.IsValid)
                 {
@@ -344,11 +347,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var spanType = _binder.GetWellKnownType(WellKnownType.System_Span_T, ref useSiteDiagnostics);
+                    var spanType = _binder.GetWellKnownType(WellKnownType.System_Span_T, ref useSiteInfo);
                     if (spanType.TypeKind == TypeKind.Struct && spanType.IsRefLikeType)
                     {
                         var spanType_T = spanType.Construct(sourceExpression.ElementType);
-                        var spanConversion = ClassifyImplicitConversionFromType(spanType_T, destination, ref useSiteDiagnostics);
+                        var spanConversion = ClassifyImplicitConversionFromType(spanType_T, destination, ref useSiteInfo);
 
                         if (spanConversion.Exists)
                         {

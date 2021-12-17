@@ -21,16 +21,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Given a project, and the name of a stream to read/write, gets the integral DB ID to 
         /// use to find the data inside the ProjectData table.
         /// </summary>
-        private bool TryGetProjectDataId(SqlConnection connection, ProjectKey project, Project? bulkLoadSnapshot, string name, out long dataId)
+        private bool TryGetProjectDataId(SqlConnection connection, ProjectKey project, string name, out long dataId)
         {
             dataId = 0;
-
-            // First, try to get all the IDs for this project in sync with the DB.
-            // This will only be expensive the first time we do this.  But will save
-            // us from tons of back-and-forth as any BG analyzer processes all the
-            // documents in a solution.
-            if (bulkLoadSnapshot != null)
-                BulkPopulateProjectIds(connection, bulkLoadSnapshot.Solution.State, bulkLoadSnapshot.State, fetchStringTable: true);
 
             var projectId = TryGetProjectId(connection, project);
             var nameId = TryGetStringId(connection, name);

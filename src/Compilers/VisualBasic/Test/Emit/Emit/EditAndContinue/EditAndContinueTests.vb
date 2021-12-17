@@ -5299,7 +5299,70 @@ End Class")
 ")
         End Sub
 
+        <Fact>
+        Public Sub AddImports_AmbiguousCode()
 
+            Dim source0 = MarkedSource("
+Imports System.Threading
+
+Class C
+    Shared Sub E()
+        Dim t = New Timer(Sub(s) System.Console.WriteLine(s))
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System.Threading
+Imports System.Timers
+
+Class C
+    Shared Sub E()
+        Dim t = New Timer(Sub(s) System.Console.WriteLine(s))
+    End Sub
+
+    Shared Sub G()
+        System.Console.WriteLine(new TimersDescriptionAttribute(""""))
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilation(source0.Tree, targetFramework:=TargetFramework.NetStandard20, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim e0 = compilation0.GetMember(Of MethodSymbol)("C.E")
+            Dim e1 = compilation1.GetMember(Of MethodSymbol)("C.E")
+            Dim g1 = compilation1.GetMember(Of MethodSymbol)("C.G")
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            ' Pretend there was an update to C.E to ensure we haven't invalidated the test
+
+            Dim diffError = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, e0, e1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diffError.EmitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_AmbiguousInImports2, "Timer").WithArguments("Timer", "System.Threading, System.Timers").WithLocation(7, 21))
+
+            Dim diff = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, g1)))
+
+            diff.EmitResult.Diagnostics.Verify()
+
+            diff.VerifyIL("C.G", "
+{
+    // Code size       18 (0x12)
+    .maxstack  1
+    IL_0000:  nop
+    IL_0001:  ldstr      """"
+    IL_0006:  newobj     ""Sub System.Timers.TimersDescriptionAttribute..ctor(String)""
+    IL_000b:  call       ""Sub System.Console.WriteLine(Object)""
+    IL_0010:  nop
+    IL_0011:  ret
+}")
+        End Sub
 
     End Class
 End Namespace

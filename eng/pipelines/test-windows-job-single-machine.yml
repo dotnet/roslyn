@@ -29,6 +29,9 @@ jobs:
     name: NetCore1ESPool-Svc-Public
     demands: ImageOverride -equals ${{ parameters.queueName }}
   timeoutInMinutes: 120
+  variables:
+    DOTNET_ROLL_FORWARD: LatestMajor
+    DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
   steps:
     - checkout: none
 

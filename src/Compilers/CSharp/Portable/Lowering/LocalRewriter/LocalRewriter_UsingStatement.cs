@@ -164,6 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _compilation.GetSpecialType(SpecialType.System_IDisposable) :
                     _compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable);
 
+                _diagnostics.ReportUseSite(iDisposableType, usingSyntax);
+
                 BoundExpression tempInit = MakeConversionNode(
                     expressionSyntax,
                     rewrittenExpression,
@@ -238,6 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol iDisposableType = awaitOpt is null ?
                     _compilation.GetSpecialType(SpecialType.System_IDisposable) :
                     _compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable);
+
+                _diagnostics.ReportUseSite(iDisposableType, usingSyntax);
 
                 BoundExpression tempInit = MakeConversionNode(
                     declarationSyntax,

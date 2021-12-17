@@ -7,6 +7,11 @@
         <target state="translated">Cílové pole není dostatečně dlouhé, aby bylo možné zkopírovat všechny položky v kolekci. Zkontrolujte index a délku pole.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Arg_BogusIComparer">
+        <source>Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</source>
+        <target state="translated">Řazení není možné, protože metoda IComparer.Compare() vrací nekonzistentní výsledky. Buď není výsledkem porovnání hodnoty samé se sebou rovnost, nebo opakované porovnání jedné hodnoty s jinou hodnotou vrací různé výsledky. IComparer: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Arg_HTCapacityOverflow">
         <source>Hashtable's capacity overflowed and went negative. Check load factor, capacity and the current size of the table.</source>
         <target state="translated">Kapacita tabulky hash přetekla a přešla do záporných hodnot. Zkontrolujte faktor zaplnění, kapacitu a aktuální velikost tabulky.</target>

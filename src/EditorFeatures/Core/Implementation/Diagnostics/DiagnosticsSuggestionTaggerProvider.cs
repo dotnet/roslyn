@@ -37,9 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         public DiagnosticsSuggestionTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, notificationService, listenerProvider)
+            : base(threadingContext, diagnosticService, listenerProvider)
         {
         }
 

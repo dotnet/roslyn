@@ -38,7 +38,7 @@ Console.WriteLine(1)/*4*/;
 
             // pre-matched:
 
-            var match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches);
+            var match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches);
 
             var actual = ToMatchingPairs(match);
 
@@ -52,7 +52,7 @@ Console.WriteLine(1)/*4*/;
 
             // not pre-matched:
 
-            match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2);
+            match = SyntaxComparer.Statement.ComputeMatch(m1, m2);
 
             actual = ToMatchingPairs(match);
 
@@ -80,7 +80,7 @@ Console.WriteLine(2);
             var m2 = MakeMethodBody(src2);
 
             var knownMatches = new[] { new KeyValuePair<SyntaxNode, SyntaxNode>(m1, m2) };
-            var match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches);
+            var match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs
@@ -225,6 +225,7 @@ return (2, () => {
                 { "return (10, e, 22);", "return (10, e);" },
                 { "return (2, () => {      int a = 6;     return 1; });", "return (2, () => {     int a = 6;     return 5; });" },
                 { "() => {      int a = 6;     return 1; }", "() => {     int a = 6;     return 5; }" },
+                { "()", "()" },
                 { "{      int a = 6;     return 1; }", "{     int a = 6;     return 5; }" },
                 { "int a = 6;", "int a = 6;" },
                 { "int a = 6", "int a = 6" },
@@ -521,6 +522,7 @@ var (a1, a3) = (1, () => { return 8; });
                 { "a1", "a1" },
                 { "a2", "a3" },
                 { "() => { return 7; }", "() => { return 8; }" },
+                { "()", "()" },
                 { "{ return 7; }", "{ return 8; }" },
                 { "return 7;", "return 8;" }
             };
@@ -594,6 +596,8 @@ ref int32 a = ref G1(new int[] { 1, 2 });
                 { "ref int a = ref G(new int[] { 1, 2 })", "ref int32 a = ref G1(new int[] { 1, 2 })" },
                 { "a = ref G(new int[] { 1, 2 })", "a = ref G1(new int[] { 1, 2 })" },
                 { "ref int G(int[] p)     {         return ref p[1];     }", "ref int G1(int[] p)     {         return ref p[2];     }" },
+                { "(int[] p)", "(int[] p)" },
+                { "int[] p", "int[] p" },
                 { "{         return ref p[1];     }", "{         return ref p[2];     }" },
                 { "return ref p[1];", "return ref p[2];" }
             };
@@ -642,9 +646,13 @@ F(y => y + 1, G(), x => x + 1, (int x) => x, u => u, async (u, v) => u + v);
             {
                 { "F(x => x + 1, 1, y => y + 1, delegate(int x) { return x; }, async u => u);", "F(y => y + 1, G(), x => x + 1, (int x) => x, u => u, async (u, v) => u + v);" },
                 { "x => x + 1", "x => x + 1" },
+                { "x", "x" },
                 { "y => y + 1", "y => y + 1" },
+                { "y", "y" },
                 { "delegate(int x) { return x; }", "(int x) => x" },
-                { "async u => u", "async (u, v) => u + v" },
+                { "(int x)", "(int x)" },
+                { "int x", "int x" },
+                { "async u => u", "async (u, v) => u + v" }
             };
 
             expected.AssertEqual(actual);
@@ -688,7 +696,8 @@ a += u => u;
             var expected = new MatchingPairs
             {
                 { "a += async u => u;", "a += u => u;" },
-                { "async u => u", "u => u" }
+                { "async u => u", "u => u" },
+                { "u", "u" }
             };
 
             expected.AssertEqual(actual);
@@ -722,6 +731,7 @@ foreach (var a in z)
                 { "e = from q in a.Where(l => l > 10) select q + 1", "e = from q in a.Where(l => l < 0) select q + 1" },
                 { "from q in a.Where(l => l > 10)", "from q in a.Where(l => l < 0)" },
                 { "l => l > 10", "l => l < 0" },
+                { "l", "l" },
                 { "select q + 1", "select q + 1" },  // select clause
                 { "select q + 1", "select q + 1" }   // query body
             };
@@ -746,8 +756,11 @@ F(a => b => c => d);
             {
                 { "F(a => b => c => d);", "F(a => b => c => d);" },
                 { "a => b => c => d", "a => b => c => d" },
+                { "a", "a" },
                 { "b => c => d", "b => c => d" },
-                { "c => d", "c => d" }
+                { "b", "b" },
+                { "c => d", "c => d" },
+                { "c", "c" }
             };
 
             expected.AssertEqual(actual);
@@ -770,8 +783,11 @@ F(a => G(b => H(c => I(d))));
             {
                 { "F(a => b => c => d);", "F(a => G(b => H(c => I(d))));" },
                 { "a => b => c => d", "a => G(b => H(c => I(d)))" },
+                { "a", "a" },
                 { "b => c => d", "b => H(c => I(d))" },
-                { "c => d", "c => I(d)" }
+                { "b", "b" },
+                { "c => d", "c => I(d)" },
+                { "c", "c" }
             };
 
             expected.AssertEqual(actual);
@@ -812,18 +828,27 @@ F(a =>
                   "F(a =>  {      F(c => /*1*/d + 1);     F((u, v) =>      {         F((w) => c => /*2*/d + 1);         F(p => p*2);     }); });" },
                 { "a =>  {      F(c => /*1*/d);     F((u, v) =>      {         F((w) => c => /*2*/d);         F(p => p);     }); }",
                   "a =>  {      F(c => /*1*/d + 1);     F((u, v) =>      {         F((w) => c => /*2*/d + 1);         F(p => p*2);     }); }" },
+                { "a", "a" },
                 { "{      F(c => /*1*/d);     F((u, v) =>      {         F((w) => c => /*2*/d);         F(p => p);     }); }",
                   "{      F(c => /*1*/d + 1);     F((u, v) =>      {         F((w) => c => /*2*/d + 1);         F(p => p*2);     }); }" },
                 { "F(c => /*1*/d);", "F(c => /*1*/d + 1);" },
                 { "c => /*1*/d", "c => /*1*/d + 1" },
+                { "c", "c" },
                 { "F((u, v) =>      {         F((w) => c => /*2*/d);         F(p => p);     });", "F((u, v) =>      {         F((w) => c => /*2*/d + 1);         F(p => p*2);     });" },
                 { "(u, v) =>      {         F((w) => c => /*2*/d);         F(p => p);     }", "(u, v) =>      {         F((w) => c => /*2*/d + 1);         F(p => p*2);     }" },
+                { "(u, v)", "(u, v)" },
+                { "u", "u" },
+                { "v", "v" },
                 { "{         F((w) => c => /*2*/d);         F(p => p);     }", "{         F((w) => c => /*2*/d + 1);         F(p => p*2);     }" },
                 { "F((w) => c => /*2*/d);", "F((w) => c => /*2*/d + 1);" },
                 { "(w) => c => /*2*/d", "(w) => c => /*2*/d + 1" },
+                { "(w)", "(w)" },
+                { "w", "w" },
                 { "c => /*2*/d", "c => /*2*/d + 1" },
+                { "c", "c" },
                 { "F(p => p);", "F(p => p*2);" },
-                { "p => p", "p => p*2" }
+                { "p => p", "p => p*2" },
+                { "p", "p" }
             };
 
             expected.AssertEqual(actual);
@@ -843,7 +868,8 @@ F(a =>
                 { "var x = new int[F(a => 1)];", "var x = new int[F(a => 2)];" },
                 { "var x = new int[F(a => 1)]", "var x = new int[F(a => 2)]" },
                 { "x = new int[F(a => 1)]", "x = new int[F(a => 2)]" },
-                { "a => 1", "a => 2" }
+                { "a => 1", "a => 2" },
+                { "a", "a" }
             };
 
             expected.AssertEqual(actual);
@@ -863,7 +889,8 @@ F(a =>
                 { "var x = new int[] { F(a => 1) };", "var x = new int[] { F(a => 2) };" },
                 { "var x = new int[] { F(a => 1) }", "var x = new int[] { F(a => 2) }" },
                 { "x = new int[] { F(a => 1) }", "x = new int[] { F(a => 2) }" },
-                { "a => 1", "a => 2" }
+                { "a => 1", "a => 2" },
+                { "a", "a" }
             };
 
             expected.AssertEqual(actual);
@@ -883,7 +910,8 @@ F(a =>
                 { "var x = stackalloc int[F(a => 1)];", "var x = stackalloc int[F(a => 2)];" },
                 { "var x = stackalloc int[F(a => 1)]", "var x = stackalloc int[F(a => 2)]" },
                 { "x = stackalloc int[F(a => 1)]", "x = stackalloc int[F(a => 2)]" },
-                { "a => 1", "a => 2" }
+                { "a => 1", "a => 2" },
+                { "a", "a" }
             };
 
             expected.AssertEqual(actual);
@@ -904,6 +932,7 @@ F(a =>
                 { "var x = stackalloc[] { F(a => 1) }", "var x = stackalloc[] { F(a => 2) }" },
                 { "x = stackalloc[] { F(a => 1) }", "x = stackalloc[] { F(a => 2) }" },
                 { "a => 1", "a => 2" },
+                { "a", "a" }
             };
 
             expected.AssertEqual(actual);
@@ -934,12 +963,18 @@ F(a =>
             var expected = new MatchingPairs
             {
                 { "(int a, string c) F1(int i) { return null; }", "(int a, int b) F1(int i) { return null; }" },
+                { "(int i)", "(int i)" },
+                { "int i", "int i" },
                 { "{ return null; }", "{ return null; }" },
                 { "return null;", "return null;" },
                 { "(int a, int b) F2(int i) { return null; }", "(int a, int b, string c) F2(int i) { return null; }" },
+                { "(int i)", "(int i)" },
+                { "int i", "int i" },
                 { "{ return null; }", "{ return null; }" },
                 { "return null;", "return null;" },
                 { "(int a, int b, int c) F3(int i) { return null; }", "(int a, int b) F3(int i) { return null; }" },
+                { "(int i)", "(int i)" },
+                { "int i", "int i" },
                 { "{ return null; }", "{ return null; }" },
                 { "return null;", "return null;" }
             };
@@ -989,6 +1024,8 @@ F(localF1, localF2, G(), localF2, localF3, localF4, localF5);
                 { "x => x + 1", "int localF2(int x) => x + 1;" },
                 { "y => y + 1", "int localF1(int y) => y + 1;" },
                 { "delegate(int x) { return x; }", "int localF3(int x) => x;" },
+                { "(int x)", "(int x)" },
+                { "int x", "int x" },
                 { "async u => u", "int localF4(int u) => u;" }
             };
 
@@ -1054,15 +1091,19 @@ a += localF;
             {
                 { "int a() { int b() { int c() { int d() { return 0; } } return c(); } return b(); }",
                     "int a() { int b() { int c() { int d() { return 0; } } return c(); } return b(); }" },
+                { "()", "()" },
                 { "{ int b() { int c() { int d() { return 0; } } return c(); } return b(); }",
                     "{ int b() { int c() { int d() { return 0; } } return c(); } return b(); }" },
                 { "int b() { int c() { int d() { return 0; } } return c(); }",
                     "int b() { int c() { int d() { return 0; } } return c(); }" },
+                { "()", "()" },
                 { "{ int c() { int d() { return 0; } } return c(); }",
                     "{ int c() { int d() { return 0; } } return c(); }" },
                 { "int c() { int d() { return 0; } }", "int c() { int d() { return 0; } }" },
+                { "()", "()" },
                 { "{ int d() { return 0; } }", "{ int d() { return 0; } }" },
                 { "int d() { return 0; }", "int d() { return 0; }" },
+                { "()", "()" },
                 { "{ return 0; }", "{ return 0; }" },
                 { "return 0;", "return 0;" },
                 { "return c();", "return c();" },
@@ -1120,19 +1161,30 @@ void G6(int a)
             {
                 { "void G6(int a) {      int G5(int c) => /*1*/d;     F(G5);      void G4()     {         void G1(int x) => x;         int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }         F(G3);         F(G1);     };     F(G4); }",
                     "void G6(int a) {      int G5(int c) => /*1*/d + 1;F(G5);      void G4()     {         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     }     F(G4); }" },
+                { "(int a)", "(int a)" },
+                { "int a", "int a" },
                 { "{      int G5(int c) => /*1*/d;     F(G5);      void G4()     {         void G1(int x) => x;         int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }         F(G3);         F(G1);     };     F(G4); }",
                     "{      int G5(int c) => /*1*/d + 1;F(G5);      void G4()     {         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     }     F(G4); }" },
                 { "int G5(int c) => /*1*/d;", "int G5(int c) => /*1*/d + 1;" },
+                { "(int c)", "(int c)" },
+                { "int c", "int c" },
                 { "F(G5);", "F(G5);" },
                 { "void G4()     {         void G1(int x) => x;         int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }         F(G3);         F(G1);     }",
                     "void G4()     {         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     }" },
+                { "()", "()" },
                 { "{         void G1(int x) => x;         int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }         F(G3);         F(G1);     }",
                     "{         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     }" },
                 { "void G1(int x) => x;", "int G6(int p) => p *2;" },
+                { "(int x)", "(int p)" },
+                { "int x", "int p" },
                 { "int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }",
                     "int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }" },
+                { "(int w)", "(int w)" },
+                { "int w", "int w" },
                 { "{              int G2(int c) => /*2*/d;             return G2(w);         }", "{              int G2(int c) => /*2*/d + 1; return G2(w);         }" },
                 { "int G2(int c) => /*2*/d;", "int G2(int c) => /*2*/d + 1;" },
+                { "(int c)", "(int c)" },
+                { "int c", "int c" },
                 { "return G2(w);", "return G2(w);" },
                 { "F(G3);", "F(G3);" },
                 { "F(G1);", "F(G1);" },
@@ -1154,9 +1206,11 @@ void G6(int a)
             var expected = new MatchingPairs
             {
                 { "int f() { return local(); int local() { return 1; }}", "int f() { return local(); int local() => 2; }" },
+                { "()", "()" },
                 { "{ return local(); int local() { return 1; }}", "{ return local(); int local() => 2; }" },
                 { "return local();", "return local();" },
-                { "int local() { return 1; }", "int local() => 2;" }
+                { "int local() { return 1; }", "int local() => 2;" },
+                { "()", "()" },
             };
 
             expected.AssertEqual(actual);
@@ -1174,9 +1228,11 @@ void G6(int a)
             var expected = new MatchingPairs
             {
                 { "int f() { return local(); int local() => 2; }", "int f() { return local(); int local() { return 1; }}" },
+                { "()", "()" },
                 { "{ return local(); int local() => 2; }", "{ return local(); int local() { return 1; }}" },
                 { "return local();", "return local();" },
-                { "int local() => 2;", "int local() { return 1; }" }
+                { "int local() => 2;", "int local() { return 1; }" },
+                { "()", "()" },
             };
 
             expected.AssertEqual(actual);
@@ -1323,12 +1379,16 @@ var q = from a in await seq1
                 { "join c in await seq2 on F(u => u) equals G(s => s) into g1", "join c in await seq2 on F(u => u + 1) equals G(s => s + 3) into g1" },
                 { "await seq2", "await seq2" },
                 { "u => u", "u => u + 1" },
+                { "u", "u" },
                 { "s => s", "s => s + 3" },
+                { "s", "s" },
                 { "into g1", "into g1" },
                 { "join l in await seq3 on F(v => v) equals G(t => t) into g2", "join c in await seq3 on F(vv => vv + 2) equals G(tt => tt + 4) into g2" },
                 { "await seq3", "await seq3" },
                 { "v => v", "vv => vv + 2" },
+                { "v", "vv" },
                 { "t => t", "tt => tt + 4" },
+                { "t", "tt" },
                 { "into g2", "into g2" },
                 { "select a", "select a + 1" }
             };
@@ -1438,7 +1498,10 @@ foreach (var x in y) { yield return /*3*/ 2; }
 
             var expected = new MatchingPairs
             {
+                { "(int x = 1)", "(int x = 1)" },
+                { "int x = 1", "int x = 1" },
                 { "a => a + 1", "a => a + 1" },
+                { "a", "a" },
                 { "{ Console.WriteLine(1); }", "{ Console.WriteLine(1); }" },
                 { "Console.WriteLine(1);", "Console.WriteLine(1);" }
             };
@@ -1461,6 +1524,7 @@ foreach (var x in y) { yield return /*3*/ 2; }
 
             var expected = new MatchingPairs
             {
+                { "()", "()" },
                 { "{ Console.WriteLine(1); }", "{ Console.WriteLine(1); }" },
                 { "Console.WriteLine(1);", "Console.WriteLine(1);" }
             };

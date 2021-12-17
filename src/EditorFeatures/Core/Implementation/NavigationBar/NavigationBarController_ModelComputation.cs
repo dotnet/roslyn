@@ -4,17 +4,20 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
@@ -25,22 +28,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// The computation of the last model.
         /// </summary>
         private Task<NavigationBarModel> _modelTask;
-        private NavigationBarModel _lastCompletedModel;
+
         private CancellationTokenSource _modelTaskCancellationSource = new();
+        private CancellationTokenSource _selectedItemInfoTaskCancellationSource = new();
 
         /// <summary>
         /// Starts a new task to compute the model based on the current text.
         /// </summary>
-        private void StartModelUpdateAndSelectedItemUpdateTasks(int modelUpdateDelay, int selectedItemUpdateDelay, bool updateUIWhenDone)
+        private void StartModelUpdateAndSelectedItemUpdateTasks(int modelUpdateDelay)
         {
             AssertIsForeground();
 
             var textSnapshot = _subjectBuffer.CurrentSnapshot;
-            var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return;
-            }
 
             // Cancel off any existing work
             _modelTaskCancellationSource.Cancel();
@@ -50,36 +49,70 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             // Enqueue a new computation for the model
             var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".StartModelUpdateTask");
-            _modelTask =
-                Task.Delay(modelUpdateDelay, cancellationToken)
-                    .SafeContinueWithFromAsync(
-                        _ => ComputeModelAsync(document, textSnapshot, cancellationToken),
-                        cancellationToken,
-                        TaskContinuationOptions.OnlyOnRanToCompletion,
-                        TaskScheduler.Default);
+            _modelTask = ComputeModelAfterDelayAsync(_modelTask, textSnapshot, modelUpdateDelay, cancellationToken);
             _modelTask.CompletesAsyncOperation(asyncToken);
 
-            StartSelectedItemUpdateTask(selectedItemUpdateDelay, updateUIWhenDone);
+            StartSelectedItemUpdateTask(delay: 0);
+        }
+
+        private static async Task<NavigationBarModel> ComputeModelAfterDelayAsync(
+            Task<NavigationBarModel> modelTask, ITextSnapshot textSnapshot, int modelUpdateDelay, CancellationToken cancellationToken)
+        {
+            var previousModel = await modelTask.ConfigureAwait(false);
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    await Task.Delay(modelUpdateDelay, cancellationToken).ConfigureAwait(false);
+                    return await ComputeModelAsync(previousModel, textSnapshot, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
+                {
+                }
+            }
+
+            // If we canceled, then just return along whatever we have computed so far.  Note: this means the
+            // _modelTask task will never enter the canceled state.  It always represents the last successfully
+            // computed model.
+            return previousModel;
         }
 
         /// <summary>
         /// Computes a model for the given snapshot.
         /// </summary>
-        private async Task<NavigationBarModel> ComputeModelAsync(Document document, ITextSnapshot snapshot, CancellationToken cancellationToken)
+        private static async Task<NavigationBarModel> ComputeModelAsync(
+            NavigationBarModel lastCompletedModel, ITextSnapshot snapshot, CancellationToken cancellationToken)
         {
+            // Ensure we switch to the threadpool before calling GetDocumentWithFrozenPartialSemantics.  It ensures
+            // that any IO that performs is not potentially on the UI thread.
+            await TaskScheduler.Default;
+
+            // When computing items just get the partial semantics workspace.  This will ensure we can get data for this
+            // file, and hopefully have enough loaded to get data for other files in the case of partial types.  In the
+            // event the other files aren't available, then partial-type information won't be correct.  That's ok though
+            // as this is just something that happens during solution load and will pass once that is over.  By using
+            // partial semantics, we can ensure we don't spend an inordinate amount of time computing and using full
+            // compilation data (like skeleton assemblies).
+            var document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
+            if (document == null)
+                return null;
+
             // TODO: remove .FirstOrDefault()
-            var languageService = document.GetLanguageService<INavigationBarItemService>();
+            var languageService = GetNavBarService(document);
             if (languageService != null)
             {
                 // check whether we can re-use lastCompletedModel. otherwise, update lastCompletedModel here.
                 // the model should be only updated here
-                if (_lastCompletedModel != null)
+                if (lastCompletedModel != null)
                 {
                     var semanticVersion = await document.Project.GetDependentSemanticVersionAsync(CancellationToken.None).ConfigureAwait(false);
-                    if (_lastCompletedModel.SemanticVersionStamp == semanticVersion && SpanStillValid(_lastCompletedModel, snapshot, cancellationToken))
+                    if (lastCompletedModel.SemanticVersionStamp == semanticVersion && SpanStillValid(lastCompletedModel, snapshot, cancellationToken))
                     {
                         // it looks like we can re-use previous model
-                        return _lastCompletedModel;
+                        return lastCompletedModel;
                     }
                 }
 
@@ -91,70 +124,62 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                         items.Do(i => i.InitializeTrackingSpans(snapshot));
                         var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
-                        _lastCompletedModel = new NavigationBarModel(items, version, languageService);
-                        return _lastCompletedModel;
+                        return new NavigationBarModel(items.ToImmutableArray(), version, languageService);
                     }
                 }
             }
 
-            _lastCompletedModel ??= new NavigationBarModel(SpecializedCollections.EmptyList<NavigationBarItem>(), new VersionStamp(), null);
-            return _lastCompletedModel;
+            return new NavigationBarModel(ImmutableArray<NavigationBarItem>.Empty, new VersionStamp(), null);
         }
-
-        private Task<NavigationBarSelectedTypeAndMember> _selectedItemInfoTask;
-        private CancellationTokenSource _selectedItemInfoTaskCancellationSource = new();
 
         /// <summary>
         /// Starts a new task to compute what item should be selected.
         /// </summary>
-        private void StartSelectedItemUpdateTask(int delay, bool updateUIWhenDone)
+        private void StartSelectedItemUpdateTask(int delay)
         {
             AssertIsForeground();
 
             var currentView = _presenter.TryGetCurrentView();
-            if (currentView == null)
-            {
+            var subjectBufferCaretPosition = currentView?.GetCaretPoint(_subjectBuffer);
+            if (!subjectBufferCaretPosition.HasValue)
                 return;
-            }
 
             // Cancel off any existing work
             _selectedItemInfoTaskCancellationSource.Cancel();
             _selectedItemInfoTaskCancellationSource = new CancellationTokenSource();
-
             var cancellationToken = _selectedItemInfoTaskCancellationSource.Token;
-            var subjectBufferCaretPosition = currentView.GetCaretPoint(_subjectBuffer);
-
-            if (!subjectBufferCaretPosition.HasValue)
-            {
-                return;
-            }
 
             var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".StartSelectedItemUpdateTask");
+            var selectedItemInfoTask = DetermineSelectedItemInfoAsync(_modelTask, delay, subjectBufferCaretPosition.Value, cancellationToken);
+            selectedItemInfoTask.CompletesAsyncOperation(asyncToken);
+        }
 
-            // Enqueue a new computation for the selected item
-            _selectedItemInfoTask = _modelTask.ContinueWithAfterDelay(
-                t => t.IsCanceled ? new NavigationBarSelectedTypeAndMember(null, null)
-                                  : ComputeSelectedTypeAndMember(t.Result, subjectBufferCaretPosition.Value, cancellationToken),
-                cancellationToken,
-                delay,
-                TaskContinuationOptions.None,
-                TaskScheduler.Default);
-            _selectedItemInfoTask.CompletesAsyncOperation(asyncToken);
+        private async Task DetermineSelectedItemInfoAsync(
+            Task<NavigationBarModel> lastModelTask,
+            int delay,
+            SnapshotPoint caretPosition,
+            CancellationToken cancellationToken)
+        {
+            // First wait the delay before doing any other work.  That way if we get canceled due to other events (like
+            // the user moving around), we don't end up doing anything, and the next task can take over.
+            await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 
-            if (updateUIWhenDone)
-            {
-                asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".StartSelectedItemUpdateTask.UpdateUI");
-                _selectedItemInfoTask.SafeContinueWithFromAsync(
-                    async t =>
-                    {
-                        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+            var lastModel = await lastModelTask.ConfigureAwait(false);
+            if (cancellationToken.IsCancellationRequested)
+                return;
 
-                        PushSelectedItemsToPresenter(t.Result);
-                    },
-                    cancellationToken,
-                    TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
-                    TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
-            }
+            var currentSelectedItem = ComputeSelectedTypeAndMember(lastModel, caretPosition, cancellationToken);
+
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            AssertIsForeground();
+
+            // Update the UI to show *just* the type/member that was selected.  We don't need it to know about all items
+            // as the user can only see one at a time as they're editing in a document.  However, once we've done this,
+            // store the full list of items as well so that if the user expands the dropdown, we can take all those
+            // values and shove them in so it appears as if the lists were always fully realized.
+            _latestModelAndSelectedInfo_OnlyAccessOnUIThread = (lastModel, currentSelectedItem);
+            PushSelectedItemsToPresenter(currentSelectedItem);
         }
 
         internal static NavigationBarSelectedTypeAndMember ComputeSelectedTypeAndMember(NavigationBarModel model, SnapshotPoint caretPosition, CancellationToken cancellationToken)
@@ -177,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// positioned after the cursor.
         /// </summary>
         /// <returns>A tuple of the matching item, and if it should be shown grayed.</returns>
-        private static (T item, bool gray) GetMatchingItem<T>(IEnumerable<T> items, SnapshotPoint point, INavigationBarItemService itemsService, CancellationToken cancellationToken) where T : NavigationBarItem
+        private static (T item, bool gray) GetMatchingItem<T>(IEnumerable<T> items, SnapshotPoint point, INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess itemsService, CancellationToken cancellationToken) where T : NavigationBarItem
         {
             T exactItem = null;
             var exactItemStart = 0;

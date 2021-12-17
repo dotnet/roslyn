@@ -18,7 +18,6 @@
     <ProjectReference Include="..\..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
     <ProjectReference Include="..\..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
-    <ProjectReference Include="..\..\..\EditorFeatures\CSharp.Wpf\Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj">
       <Aliases>InteractiveHost</Aliases>
     </ProjectReference>
@@ -53,18 +52,19 @@
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Cache" Version="$(MicrosoftVisualStudioCacheVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
     <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x86\native\e_sqlite3.dll">
-      <Link>x86\e_sqlite3.dll</Link>
+    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3\$(SQLitePCLRawbundle_greenVersion)\runtimes\win-x86\native\e_sqlite3.dll">
+      <Link>runtimes\win-x86\native\e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x64\native\e_sqlite3.dll">
-      <Link>x64\e_sqlite3.dll</Link>
+    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3\$(SQLitePCLRawbundle_greenVersion)\runtimes\win-x64\native\e_sqlite3.dll">
+      <Link>runtimes\win-x64\native\e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

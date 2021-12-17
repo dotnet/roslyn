@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -31,39 +30,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     [Export(typeof(AlwaysActivateInProcLanguageClient))]
     internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
     {
+        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public AlwaysActivateInProcLanguageClient(
-            LanguageServerProtocol languageServerProtocol,
+            CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider,
             IThreadingContext threadingContext)
-            : base(languageServerProtocol, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, threadingContext, diagnosticsClientName: null)
+            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, threadingContext, diagnosticsClientName: null)
         {
+            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
-        public override string Name
-            => ServicesVSResources.CSharp_Visual_Basic_Language_Server_Client;
+        public override string Name => CSharpVisualBasicLanguageServerFactory.UserVisibleName;
 
-        protected internal override VSServerCapabilities GetCapabilities()
+        public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
-            var isTextSyncEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.LspTextSyncEnabled);
+            var serverCapabilities = new VSServerCapabilities();
 
-            return new VSServerCapabilities
+            // If the LSP editor feature flag is enabled advertise support for LSP features here so they are available locally and remote.
+            var isLspEditorEnabled = Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(VisualStudioWorkspaceContextService.LspEditorFeatureFlagName);
+            if (isLspEditorEnabled)
             {
-                TextDocumentSync = new TextDocumentSyncOptions
+                serverCapabilities = (VSServerCapabilities)_defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
+            }
+            else
+            {
+                // Even if the flag is off, we want to include text sync capabilities.
+                serverCapabilities.TextDocumentSync = new TextDocumentSyncOptions
                 {
-                    Change = isTextSyncEnabled ? TextDocumentSyncKind.Incremental : TextDocumentSyncKind.None,
-                    OpenClose = isTextSyncEnabled,
-                },
-                SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode),
-                // This flag ensures that ctrl+, search locally uses the old editor APIs so that only ctrl+Q search is powered via LSP.
-                DisableGoToWorkspaceSymbols = true,
-                WorkspaceSymbolProvider = true,
-            };
+                    Change = TextDocumentSyncKind.Incremental,
+                    OpenClose = true,
+                };
+            }
+
+            serverCapabilities.SupportsDiagnosticRequests = Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+
+            // This capability is always enabled as we provide cntrl+Q VS search only via LSP in ever scenario.
+            serverCapabilities.WorkspaceSymbolProvider = true;
+            // This capability prevents NavigateTo (cntrl+,) from using LSP symbol search when the server also supports WorkspaceSymbolProvider.
+            // Since WorkspaceSymbolProvider=true always to allow cntrl+Q VS search to function, we set DisableGoToWorkspaceSymbols=true
+            // when not running the experimental LSP editor.  This ensures NavigateTo uses the existing editor APIs.
+            // However, when the experimental LSP editor is enabled we want LSP to power NavigateTo, so we set DisableGoToWorkspaceSymbols=false.
+            serverCapabilities.DisableGoToWorkspaceSymbols = !isLspEditorEnabled;
+
+            return serverCapabilities;
         }
     }
 }

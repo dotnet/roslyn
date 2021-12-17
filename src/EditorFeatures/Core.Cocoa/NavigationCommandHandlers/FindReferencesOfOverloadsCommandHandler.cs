@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
         protected override bool TryExecuteCommand(int caretPosition, Document document, CommandExecutionContext context)
         {
-            var streamingService = document.GetLanguageService<IFindUsagesService>();
+            var streamingService = document.GetLanguageService<IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess>();
             var streamingPresenter = GetStreamingPresenter();
 
             //See if we're running on a host that can provide streaming results.
@@ -64,7 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             // a presenter that can accept streamed results.
             if (streamingService != null && streamingPresenter != null)
             {
-                _ = StreamingFindReferencesAsync(document, caretPosition, streamingPresenter);
+                // Fire and forget.  So no need for cancellation.
+                _ = StreamingFindReferencesAsync(document, caretPosition, streamingPresenter, CancellationToken.None);
                 return true;
             }
 
@@ -87,8 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         }
 
         private async Task StreamingFindReferencesAsync(
-            Document document, int caretPosition,
-            IStreamingFindUsagesPresenter presenter)
+            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter, CancellationToken cancellationToken)
         {
             try
             {
@@ -101,56 +101,52 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     return; // would be useful if we could notify the user why we didn't do anything
                             // maybe using something like an info bar?
 
-                var findUsagesService = document.GetLanguageService<IFindUsagesService>();
+                var findUsagesService = document.GetLanguageService<IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess>();
 
-                using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync)))
+                using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync));
+
+                var context = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
+
+                using (Logger.LogBlock(
+                    FunctionId.CommandHandler_FindAllReference,
+                    KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
+                    context.CancellationToken))
                 {
-                    // Let the presented know we're starting a search.  It will give us back
-                    // the context object that the FAR service will push results into.
-                    var context = presenter.StartSearch(
-                        EditorFeaturesResources.Find_References, supportsReferences: true);
+                    var symbolsToLookup = new List<ISymbol>();
 
-                    using (Logger.LogBlock(
-                        FunctionId.CommandHandler_FindAllReference,
-                        KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                        context.CancellationToken))
+                    foreach (var curSymbol in symbol.ContainingType.GetMembers()
+                                                    .Where(m => m.Kind == symbol.Kind && m.Name == symbol.Name))
                     {
-                        var symbolsToLookup = new List<ISymbol>();
-
-                        foreach (var curSymbol in symbol.ContainingType.GetMembers()
-                                                        .Where(m => m.Kind == symbol.Kind && m.Name == symbol.Name))
+                        Compilation compilation;
+                        if (!document.Project.TryGetCompilation(out compilation))
                         {
-                            Compilation compilation;
-                            if (!document.Project.TryGetCompilation(out compilation))
-                            {
-                                // TODO: should we do anything more here?
-                                continue;
-                            }
-
-                            foreach (var sym in SymbolFinder.FindSimilarSymbols(curSymbol, compilation, context.CancellationToken))
-                            {
-                                // assumption here is, that FindSimilarSymbols returns symbols inside same project
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                                var symbolsToAdd = await GatherSymbolsAsync(sym, document.Project.Solution, context.CancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
-                                symbolsToLookup.AddRange(symbolsToAdd);
-                            }
+                            // TODO: should we do anything more here?
+                            continue;
                         }
 
-                        foreach (var candidate in symbolsToLookup)
+                        foreach (var sym in SymbolFinder.FindSimilarSymbols(curSymbol, compilation, context.CancellationToken))
                         {
+                            // assumption here is, that FindSimilarSymbols returns symbols inside same project
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            await AbstractFindUsagesService.FindSymbolReferencesAsync(context, candidate, document.Project);
+                            var symbolsToAdd = await GatherSymbolsAsync(sym, document.Project.Solution, context.CancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                            symbolsToLookup.AddRange(symbolsToAdd);
                         }
-
-                        // Note: we don't need to put this in a finally.  The only time we might not hit
-                        // this is if cancellation or another error gets thrown.  In the former case,
-                        // that means that a new search has started.  We don't care about telling the
-                        // context it has completed.  In the latter case something wrong has happened
-                        // and we don't want to run any more code in this particular context.
-                        await context.OnCompletedAsync().ConfigureAwait(false);
                     }
+
+                    foreach (var candidate in symbolsToLookup)
+                    {
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
+                        await AbstractFindUsagesService.FindSymbolReferencesAsync(context, candidate, document.Project);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                    }
+
+                    // Note: we don't need to put this in a finally.  The only time we might not hit
+                    // this is if cancellation or another error gets thrown.  In the former case,
+                    // that means that a new search has started.  We don't care about telling the
+                    // context it has completed.  In the latter case something wrong has happened
+                    // and we don't want to run any more code in this particular context.
+                    await context.OnCompletedAsync().ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

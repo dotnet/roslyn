@@ -22,7 +22,7 @@ using SyntaxNodeOrTokenExtensions = Microsoft.CodeAnalysis.Shared.Extensions.Syn
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertForEachToLinqQueryProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertForEachToLinqQuery), Shared]
     internal sealed class CSharpConvertForEachToLinqQueryProvider
         : AbstractConvertForEachToLinqQueryProvider<ForEachStatementSyntax, StatementSyntax>
     {

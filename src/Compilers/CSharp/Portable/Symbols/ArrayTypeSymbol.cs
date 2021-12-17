@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo>? useSiteDiagnostics) => ManagedKind.Managed;
+        internal sealed override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Managed;
 
         public sealed override bool IsRefLikeType
         {
@@ -448,16 +448,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            DiagnosticInfo? result = null;
+            UseSiteInfo<AssemblySymbol> result = default;
 
             // check element type
             // check custom modifiers
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.ElementTypeWithAnnotations, AllowedRequiredModifierType.None))
-            {
-                return result;
-            }
+            DeriveUseSiteInfoFromType(ref result, this.ElementTypeWithAnnotations, AllowedRequiredModifierType.None);
 
             return result;
         }
@@ -483,6 +480,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsRecord => false;
+
+        internal override bool IsRecordStruct => false;
 
         /// <summary>
         /// Represents SZARRAY - zero-based one-dimensional array 

@@ -150,6 +150,20 @@ namespace Microsoft.CodeAnalysis
             return Create(stream);
         }
 
+        public static Checksum Create(ParseOptions value, ISerializerService serializer)
+        {
+            using var stream = SerializableBytes.CreateWritableStream();
+
+            using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
+            {
+                objectWriter.WriteInt32((int)WellKnownSynchronizationKind.ParseOptions);
+                serializer.SerializeParseOptions(value, objectWriter);
+            }
+
+            stream.Position = 0;
+            return Create(stream);
+        }
+
         private static void AppendData(IncrementalHash hash, byte[] buffer, string value)
         {
             var stringBytes = MemoryMarshal.AsBytes(value.AsSpan());

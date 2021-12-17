@@ -8724,30 +8724,33 @@ record C : [|I|]
         }
 
         [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestImplementOnRecord_WithSemiColonAndTrivia()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task TestImplementOnRecord_WithSemiColonAndTrivia(string record)
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScriptAsync($@"
 interface I
-{
+{{
     void M1();
-}
+}}
 
-record C : [|I|]; // hello
+{record} C : [|I|]; // hello
 ",
-@"
+$@"
 interface I
-{
+{{
     void M1();
-}
+}}
 
-record C : [|I|] // hello
-{
+{record} C : [|I|] // hello
+{{
     public void M1()
-    {
+    {{
         throw new System.NotImplementedException();
-    }
-}
+    }}
+}}
 ");
         }
 
@@ -8937,6 +8940,49 @@ class C : IGoo<string>
     }
 }
 ");
+        }
+
+        [WorkItem(51779, "https://github.com/dotnet/roslyn/issues/51779")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementTwoPropertiesOfCSharp5()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface ITest
+{
+    int Bar { get; }
+    int Foo { get; }
+}
+
+class Program : [|ITest|]
+{
+}
+",
+@"
+interface ITest
+{
+    int Bar { get; }
+    int Foo { get; }
+}
+
+class Program : ITest
+{
+    public int Bar
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
+    public int Foo
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
     }
 }

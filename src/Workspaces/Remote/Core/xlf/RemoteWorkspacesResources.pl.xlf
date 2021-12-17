@@ -38,8 +38,13 @@
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_DocumentHighlights">
-        <source>Document higlights</source>
+        <source>Document highlights</source>
         <target state="translated">Wyróżnienia dokumentów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="translated">Edytuj i kontynuuj</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EncapsulateField">
@@ -62,6 +67,11 @@
         <target state="translated">Dostarczanie powiadomień globalnych</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_InheritanceMargin">
+        <source>Inheritance margin</source>
+        <target state="translated">Margines dziedziczenia</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
         <source>Missing import discovery</source>
         <target state="translated">Odnajdywanie brakujących importów</target>
@@ -70,6 +80,11 @@
       <trans-unit id="FeatureName_NavigateToSearch">
         <source>Navigate to</source>
         <target state="translated">Przejdź do</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_NavigationBarItem">
+        <source>Navigation bar</source>
+        <target state="translated">Pasek nawigacyjny</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
@@ -110,6 +125,11 @@
       <trans-unit id="FeatureName_TodoCommentsDiscovery">
         <source>TODO comments discovery</source>
         <target state="translated">Odnajdywanie komentarzy TODO</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">Nieużywane analizy referencyjne</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">

@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
     Friend Class MockSymbolNavigationService
@@ -20,9 +21,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             Return True
         End Function
 
-        Public Function TrySymbolNavigationNotify(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Boolean Implements ISymbolNavigationService.TrySymbolNavigationNotify
+        Public Function TrySymbolNavigationNotifyAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ISymbolNavigationService.TrySymbolNavigationNotifyAsync
             _triedSymbolNavigationNotify = True
-            Return True
+            Return SpecializedTasks.True
         End Function
 
         Public Function WouldNavigateToSymbol(definitionItem As DefinitionItem, solution As Solution, cancellationToken As CancellationToken, ByRef filePath As String, ByRef lineNumber As Integer, ByRef charOffset As Integer) As Boolean Implements ISymbolNavigationService.WouldNavigateToSymbol

@@ -34,13 +34,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private bool HideAdvancedMembers { get; set; }
 
+        private bool UsePartialSemantic { get; set; } = false;
+
         protected override OptionSet WithChangedOptions(OptionSet options)
         {
             return options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
                 .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds);
+                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds)
+                .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, UsePartialSemantic);
         }
 
         protected override TestComposition GetComposition()
@@ -1889,8 +1892,10 @@ namespace Foo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestCommitWithSemicolonForMethod()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task TestCommitWithCustomizedCharForMethod(char commitChar)
         {
             var markup = @"
 public class C
@@ -1917,90 +1922,33 @@ namespace BB
     }
 }";
 
-            var expected = @"
+            var expected = $@"
 using AA;
 
 public class C
-{
-}
+{{
+}}
 namespace AA
-{
+{{
     public static class Ext
-    {
+    {{
         public static int ToInt(this C c)
             => 1;
-    }
-}
+    }}
+}}
 
 namespace BB
-{
+{{
     public class B
-    {
+    {{
         public void M()
-        {
+        {{
             var c = new C();
-            c.ToInt();
-        }
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestCommitWithSemicolonForMethodForDelegateContext()
-        {
-            var markup = @"
-public class C
-{
-}
-namespace AA
-{
-    public static class Ext
-    {
-        public static int ToInt(this C c)
-            => 1;
-    }
-}
-
-namespace BB
-{
-    public class B
-    {
-        public void M()
-        {
-            var c = new C();
-            c.$$
-        }
-    }
-}";
-
-            var expected = @"
-using AA;
-
-public class C
-{
-}
-namespace AA
-{
-    public static class Ext
-    {
-        public static int ToInt(this C c)
-            => 1;
-    }
-}
-
-namespace BB
-{
-    public class B
-    {
-        public void M()
-        {
-            var c = new C();
-            c.ToInt();
-        }
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
+            c.ToInt(){commitChar}
+        }}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2095,7 +2043,7 @@ namespace NS1
         }
 
         private Task VerifyImportItemExistsAsync(string markup, string expectedItem, string inlineDescription, int? glyph = null, string displayTextSuffix = null, string expectedDescriptionOrNull = null, List<CompletionFilter> expectedFilters = null)
-            => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, matchingFilters: expectedFilters);
+            => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, matchingFilters: expectedFilters);
 
         private Task VerifyImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
             => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);

@@ -1199,6 +1199,27 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        internal ImmutableHashSet<string> GetStringValuesOfNotNullIfNotNullAttribute(EntityHandle token)
+        {
+            var attributeInfos = FindTargetAttributes(token, AttributeDescription.NotNullIfNotNullAttribute);
+
+            var result = ImmutableHashSet<string>.Empty;
+            if (attributeInfos is null)
+            {
+                return result;
+            }
+
+            foreach (var attributeInfo in attributeInfos)
+            {
+                if (TryExtractStringValueFromAttribute(attributeInfo.Handle, out string parameterName))
+                {
+                    result = result.Add(parameterName);
+                }
+            }
+
+            return result;
+        }
+
         internal CustomAttributeHandle GetAttributeUsageAttributeHandle(EntityHandle token)
         {
             AttributeInfo info = FindTargetAttribute(token, AttributeDescription.AttributeUsageAttribute);
@@ -2064,7 +2085,7 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        private AttributeInfo FindTargetAttribute(EntityHandle hasAttribute, AttributeDescription description)
+        internal AttributeInfo FindTargetAttribute(EntityHandle hasAttribute, AttributeDescription description)
         {
             return FindTargetAttribute(MetadataReader, hasAttribute, description);
         }

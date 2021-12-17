@@ -257,8 +257,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
         }

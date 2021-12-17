@@ -711,11 +711,6 @@
         <target state="translated">L'argomento non può contenere un elemento Null.</target>
         <note />
       </trans-unit>
-      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
-        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">L'analizzatore ha provato a registrare un'azione 'async', che non è supportata.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">
         <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
         <target state="translated">La diagnostica restituita con ID '{0}' non è supportata dall'analizzatore.</target>

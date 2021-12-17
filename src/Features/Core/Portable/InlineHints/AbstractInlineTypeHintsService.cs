@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                 result.Add(new InlineHint(
                     span, finalParts.ToTaggedText(),
-                    InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey())));
+                    InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken))));
             }
 
             return result.ToImmutable();

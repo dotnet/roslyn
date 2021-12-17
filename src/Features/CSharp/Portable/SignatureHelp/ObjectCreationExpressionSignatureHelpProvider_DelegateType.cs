@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private static (IList<SignatureHelpItem> items, int? selectedItem) GetDelegateTypeConstructors(
+        private static (IList<SignatureHelpItem>? items, int? selectedItem) GetDelegateTypeConstructors(
             BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,

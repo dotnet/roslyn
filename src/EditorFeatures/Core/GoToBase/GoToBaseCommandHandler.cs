@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
@@ -31,6 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             IStreamingFindUsagesPresenter streamingPresenter) : base(threadingContext, streamingPresenter)
         {
         }
+
+        protected override IGoToBaseService GetService(Document document)
+            => document?.GetLanguageService<IGoToBaseService>();
 
         public override string DisplayName => EditorFeaturesResources.Go_To_Base;
 

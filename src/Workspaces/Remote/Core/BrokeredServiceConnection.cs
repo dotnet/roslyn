@@ -284,6 +284,15 @@ namespace Microsoft.CodeAnalysis.Remote
             cancellationToken.ThrowIfCancellationRequested();
             var mustNotCancelToken = CancellationToken.None;
 
+            // After this point, the full cancellation sequence is as follows:
+            //  1. 'cancellationToken' indicates cancellation is requested
+            //  2. 'invocation' and 'readerTask' have cancellation requested
+            //  3. 'invocation' stops writing to 'pipe.Writer'
+            //  4. 'pipe.Writer' is completed
+            //  5. 'readerTask' continues reading until EndOfStreamException (workaround for https://github.com/AArnott/Nerdbank.Streams/issues/361)
+            //  6. 'pipe.Reader' is completed
+            //  7. OperationCanceledException is thrown back to the caller
+
             var pipe = new Pipe();
 
             // Create new tasks that both start executing, rather than invoking the delegates directly
@@ -306,14 +315,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }, mustNotCancelToken);
 
-            // Create a separate cancellation token for the reader, which we keep open until after the call to invoke
-            // completes. If we close the reader before cancellation is processed by the remote call, it might block
-            // (deadlock) while writing to a stream which is no longer processing data.
-            using var readerCancellationSource = new CancellationTokenSource();
-
-            // Make sure the reader is cancelled if the writer completes abnormally
-            readerCancellationSource.CancelOnAbnormalCompletion(writerTask);
-
             var readerTask = Task.Run(
                 async () =>
                 {
@@ -321,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     try
                     {
-                        return await reader(pipe.Reader, readerCancellationSource.Token).ConfigureAwait(false);
+                        return await reader(pipe.Reader, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when ((exception = e) == null)
                     {
@@ -331,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         await pipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
                     }
-                }, readerCancellationSource.Token);
+                }, mustNotCancelToken);
 
             await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
 

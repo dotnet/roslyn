@@ -401,8 +401,8 @@
     <value>global statement</value>
     <comment>{Locked="global"} "global" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="using_namespace" xml:space="preserve">
-    <value>using namespace</value>
+  <data name="extern_alias" xml:space="preserve">
+    <value>extern alias</value>
   </data>
   <data name="using_directive" xml:space="preserve">
     <value>using directive</value>
@@ -546,17 +546,8 @@
   <data name="Apply_inline_out_variable_preferences" xml:space="preserve">
     <value>Apply inline 'out' variables preferences</value>
   </data>
-  <data name="Apply_object_collection_initialization_preferences" xml:space="preserve">
-    <value>Apply object/collection initialization preferences</value>
-  </data>
   <data name="Make_private_field_readonly_when_possible" xml:space="preserve">
     <value>Make private fields readonly when possible</value>
-  </data>
-  <data name="Remove_unnecessary_casts" xml:space="preserve">
-    <value>Remove unnecessary casts</value>
-  </data>
-  <data name="Remove_unused_variables" xml:space="preserve">
-    <value>Remove unused variables</value>
   </data>
   <data name="Use_0" xml:space="preserve">
     <value>Use '{0}'</value>
@@ -621,13 +612,13 @@
     <value>Remove 'in' keyword</value>
     <comment>{Locked="in"} "in" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="Apply_file_header_preferences" xml:space="preserve">
-    <value>Apply file header preferences</value>
-  </data>
   <data name="Change_to_as_expression" xml:space="preserve">
     <value>Change to 'as' expression</value>
   </data>
   <data name="Change_to_cast" xml:space="preserve">
     <value>Change to cast</value>
+  </data>
+  <data name="record_" xml:space="preserve">
+    <value>record</value>
   </data>
 </root>

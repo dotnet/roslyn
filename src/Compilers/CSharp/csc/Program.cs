@@ -29,12 +29,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 
         private static int MainCore(string[] args)
         {
+            var requestId = Guid.NewGuid();
+            using var logger = new CompilerServerLogger($"csc {requestId}");
+
 #if BOOTSTRAP
-            ExitingTraceListener.Install();
+            ExitingTraceListener.Install(logger);
 #endif
 
-            using var logger = new CompilerServerLogger();
-            return BuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run, logger);
+            return BuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run, logger, requestId);
         }
 
         public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)

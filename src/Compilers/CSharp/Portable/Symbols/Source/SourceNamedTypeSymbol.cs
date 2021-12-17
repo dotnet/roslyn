@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base)
         {
             Location backupLocation = null;
-            var unusedDiagnostics = DiagnosticBag.GetInstance();
 
             foreach (SyntaxReference part in SyntaxReferences)
             {
@@ -69,20 +68,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (BaseTypeSyntax baseTypeSyntax in inheritedTypeDecls)
                 {
                     TypeSyntax t = baseTypeSyntax.Type;
-                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics).Type;
+                    TypeSymbol bt = baseBinder.BindType(t, BindingDiagnosticBag.Discarded).Type;
 
                     if (TypeSymbol.Equals(bt, @base, TypeCompareKind.ConsiderEverything2))
                     {
-                        unusedDiagnostics.Free();
                         return t.GetLocation();
                     }
                 }
             }
-            unusedDiagnostics.Free();
+
             return backupLocation;
         }
 
-        internal SourceNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, DiagnosticBag diagnostics, TupleExtraData tupleData = null)
+        internal SourceNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics, TupleExtraData tupleData = null)
             : base(containingSymbol, declaration, diagnostics, tupleData)
         {
             switch (declaration.Kind)
@@ -93,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Delegate:
                 case DeclarationKind.Class:
                 case DeclarationKind.Record:
+                case DeclarationKind.RecordStruct:
                     break;
                 default:
                     Debug.Assert(false, "bad declaration kind");
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            return new SourceNamedTypeSymbol(ContainingType, declaration, new DiagnosticBag(), newData);
+            return new SourceNamedTypeSymbol(ContainingType, declaration, BindingDiagnosticBag.Discarded, newData);
         }
 
         #region Syntax
@@ -125,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return ((BaseTypeDeclarationSyntax)node).Identifier;
                 default:
                     return default(SyntaxToken);
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Type Parameters
 
-        private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)
+        private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(BindingDiagnosticBag diagnostics)
         {
             if (declaration.Arity == 0)
             {
@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         tpl = ((TypeDeclarationSyntax)typeDecl).TypeParameterList;
                         break;
 
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var location = new SourceLocation(tp.Identifier);
                     var varianceKind = typeParameterVarianceKeywords[i];
 
-                    ReportTypeNamedRecord(tp.Identifier.Text, this.DeclaringCompilation, diagnostics, location);
+                    ReportTypeNamedRecord(tp.Identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
 
                     if (name == null)
                     {
@@ -272,7 +273,7 @@ next:;
             {
                 GetTypeParameterConstraintKinds();
 
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
                 if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintTypes, MakeTypeParameterConstraintTypes(diagnostics)))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
@@ -305,7 +306,7 @@ next:;
             return constraintKinds;
         }
 
-        private ImmutableArray<ImmutableArray<TypeWithAnnotations>> MakeTypeParameterConstraintTypes(DiagnosticBag diagnostics)
+        private ImmutableArray<ImmutableArray<TypeWithAnnotations>> MakeTypeParameterConstraintTypes(BindingDiagnosticBag diagnostics)
         {
             var typeParameters = this.TypeParameters;
             var results = ImmutableArray<TypeParameterConstraintClause>.Empty;
@@ -426,9 +427,8 @@ next:;
                         Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
                         binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressTypeArgumentBinding);
 
-                        var discarded = DiagnosticBag.GetInstance(); // We will recompute this diagnostics more accurately later, when binding without BinderFlags.SuppressTypeArgumentBinding  
-                        constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, discarded, performOnlyCycleSafeValidation: true);
-                        discarded.Free();
+                        // We will recompute this diagnostics more accurately later, when binding without BinderFlags.SuppressTypeArgumentBinding  
+                        constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, BindingDiagnosticBag.Discarded, performOnlyCycleSafeValidation: true);
                     }
 
                     Debug.Assert(constraints.Length == arity);
@@ -465,6 +465,7 @@ next:;
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     var typeDeclaration = (TypeDeclarationSyntax)node;
                     typeParameterList = typeDeclaration.TypeParameterList;
                     return typeDeclaration.ConstraintClauses;
@@ -482,7 +483,7 @@ next:;
         /// </summary>
         private ImmutableArray<TypeParameterConstraintClause> MergeConstraintTypesForPartialDeclarations(ImmutableArray<TypeParameterConstraintClause> constraintClauses,
                                                                                                          ArrayBuilder<ImmutableArray<TypeParameterConstraintClause>> otherPartialClauses,
-                                                                                                         DiagnosticBag diagnostics)
+                                                                                                         BindingDiagnosticBag diagnostics)
         {
             if (otherPartialClauses == null)
             {
@@ -741,7 +742,7 @@ next:;
             {
                 if (_lazyTypeParameters.IsDefault)
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
+                    var diagnostics = BindingDiagnosticBag.GetInstance();
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters, MakeTypeParameters(diagnostics)))
                     {
                         AddDeclarationDiagnostics(diagnostics);
@@ -995,6 +996,7 @@ next:;
         internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -1002,7 +1004,7 @@ next:;
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.AttributeUsageAttribute))
             {
-                DecodeAttributeUsageAttribute(attribute, arguments.AttributeSyntaxOpt, diagnose: true, diagnosticsOpt: arguments.Diagnostics);
+                DecodeAttributeUsageAttribute(attribute, arguments.AttributeSyntaxOpt, diagnose: true, diagnosticsOpt: diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultMemberAttribute))
             {
@@ -1014,11 +1016,11 @@ next:;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ConditionalAttribute))
             {
-                ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.GuidAttribute))
             {
-                arguments.GetOrCreateData<TypeWellKnownAttributeData>().GuidString = attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().GuidString = attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
@@ -1043,11 +1045,11 @@ next:;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ClassInterfaceAttribute))
             {
-                attribute.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                attribute.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.InterfaceTypeAttribute))
             {
-                attribute.DecodeInterfaceTypeAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                attribute.DecodeInterfaceTypeAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.WindowsRuntimeImportAttribute))
             {
@@ -1056,7 +1058,7 @@ next:;
             else if (attribute.IsTargetAttribute(this, AttributeDescription.RequiredAttributeAttribute))
             {
                 // CS1608: The Required attribute is not permitted on C# types
-                arguments.Diagnostics.Add(ErrorCode.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.Name.Location);
+                diagnostics.Add(ErrorCode.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.Name.Location);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NullableContextAttribute | ReservedAttributes.NativeIntegerAttribute | ReservedAttributes.CaseSensitiveExtensionAttribute))
@@ -1140,7 +1142,7 @@ next:;
         }
 
         // Process the specified AttributeUsage attribute on the given ownerSymbol
-        private AttributeUsageInfo DecodeAttributeUsageAttribute(CSharpAttributeData attribute, AttributeSyntax node, bool diagnose, DiagnosticBag diagnosticsOpt = null)
+        private AttributeUsageInfo DecodeAttributeUsageAttribute(CSharpAttributeData attribute, AttributeSyntax node, bool diagnose, BindingDiagnosticBag diagnosticsOpt = null)
         {
             Debug.Assert(diagnose == (diagnosticsOpt != null));
             Debug.Assert(!attribute.HasErrors);
@@ -1214,7 +1216,7 @@ next:;
             }
         }
 
-        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, DiagnosticBag diagnostics)
+        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.IsConditional);
             Debug.Assert(!attribute.HasErrors);
@@ -1292,24 +1294,12 @@ next:;
 
         private bool HasInstanceFields()
         {
-            var members = this.GetMembersUnordered();
-            for (var i = 0; i < members.Length; i++)
+            var fields = this.GetFieldsToEmit();
+            foreach (var field in fields)
             {
-                var m = members[i];
-                if (!m.IsStatic)
+                if (!field.IsStatic)
                 {
-                    switch (m.Kind)
-                    {
-                        case SymbolKind.Field:
-                            return true;
-
-                        case SymbolKind.Event:
-                            if (((EventSymbol)m).AssociatedField != null)
-                            {
-                                return true;
-                            }
-                            break;
-                    }
+                    return true;
                 }
             }
 
@@ -1398,7 +1388,7 @@ next:;
             return data != null ? data.ConditionalSymbols : ImmutableArray<string>.Empty;
         }
 
-        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);

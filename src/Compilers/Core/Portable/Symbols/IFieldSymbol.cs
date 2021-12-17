@@ -92,5 +92,10 @@ namespace Microsoft.CodeAnalysis
         /// to the corresponding default element field such as "Item1"
         /// </remarks>
         IFieldSymbol? CorrespondingTupleField { get; }
+
+        /// <summary>
+        /// Returns true if this field represents a tuple element which was given an explicit name.
+        /// </summary>
+        bool IsExplicitlyNamedTupleElement { get; }
     }
 }

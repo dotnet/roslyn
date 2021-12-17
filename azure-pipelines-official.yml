@@ -2,14 +2,25 @@ resources:
 - repo: self
   clean: true
 
-# Variables defined in yml cannot be overridden at queue time instead overrideable variables must be defined in the web gui.
-# Commenting out until AzDO supports something like the runtime parameters outlined here: https://github.com/Microsoft/azure-pipelines-yaml/pull/129
-#variables:
-#  SignType: real
-#  SkipTests: false
-#  SkipApplyOptimizationData: false
-#  IbcDrop: 'default'
-#  PRNumber: 'default'
+parameters:
+- name: IbcDrop
+  type: string
+  default: default
+
+- name: SignType
+  default: real
+  type: string
+  values:
+  - real
+  - test
+
+- name: SkipApplyOptimizationData
+  type: boolean
+  default: false
+
+- name: SkipTests
+  type: boolean
+  default: true
 
 # The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
@@ -20,65 +31,50 @@ variables:
   - group: DotNet-Roslyn-SDLValidation-Params
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
-  # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
-  # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-GitHub-Versions-Repo-Write
-  - ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-    - group: DotNet-GitHub-Versions-Repo-Write
-    - name: _DevDivDropAccessToken
-      value: $(System.AccessToken)
-  # For publishing from devdiv pipeline to devdiv feed, the API key can 
-  # be any non-empty string as authentication is done in the pipeline. 
-    - name: _DevDivNugetFeedAccessToken
-      value: "AzureArtifacts"
-  # If the pipeline is running in dnceng:
   # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
   # Get $dotnetfeed-storage-access-key-1 from DotNet-Blob-Feed
   # Get $microsoft-symbol-server-pat and $symweb-symbol-server-pat from DotNet-Symbol-Server-Pats
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
-  # Get $dn-bot-devdiv-packaging-rw from DotNet-DevDiv-Insertion-Workflow-Variables
-  - ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-    - group: DotNet-Blob-Feed
-    - group: DotNet-Symbol-Server-Pats
-    - group: DotNet-Versions-Publish
-    - group: DotNet-VSTS-Infra-Access
-    - group: DotNet-DevDiv-Insertion-Workflow-Variables
-    - name: _DevDivDropAccessToken
-      value: $(dn-bot-devdiv-drop-rw-code-rw)
-    - name: _DevDivNugetFeedAccessToken
-      value: $(dn-bot-devdiv-packaging-rw)
+  - group: DotNet-Blob-Feed
+  - group: DotNet-Symbol-Server-Pats
+  - group: DotNet-Versions-Publish
+  - group: DotNet-VSTS-Infra-Access
+  - group: DotNet-DevDiv-Insertion-Workflow-Variables
+  - name: _DevDivDropAccessToken
+    value: $(dn-bot-devdiv-drop-rw-code-rw)
+  - group: ManagedLanguageSecrets
+
+  - name: BuildConfiguration
+    value: release
+  - name: Roslyn.GitHubEmail
+    value: dotnet-build-bot@microsoft.com
+  - name: Roslyn.GitHubToken
+    value: $(AccessToken-dotnet-build-bot-public-repo)
+  - name: Roslyn.GitHubUserName
+    value: dotnet-build-bot
+
+  - name: Insertion.InsertToolset
+    value: true
+  - name: Insertion.CreateDraftPR
+    value: true
+  - name: Insertion.TitlePrefix
+    value: '[Auto Insertion]'
+  - name: Insertion.TitleSuffix
+    value: '[Skip-SymbolCheck]'
 
 stages:
 - stage: build
   displayName: Build and Test
+  pool:
+    name: NetCore1ESPool-Svc-Internal
+    demands: ImageOverride -equals Build.Server.Amd64.VS2017
 
   jobs:
   - job: OfficialBuild
     displayName: Official Build
     timeoutInMinutes: 360
-    # Conditionally set build pool so we can share this YAML when building with different pipeline (devdiv vs dnceng) 
-    pool:      
-      ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-        name: VSEng-MicroBuildVS2017
-        demands: 
-        - msbuild
-        - visualstudio
-        - DotNetFramework
-      ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-        name: NetCore1ESPool-Svc-Internal
-        demands: ImageOverride -equals Build.Windows.10.Amd64.VS2019.Pre
 
-    steps:        
-    # Make sure our two pipelines generate builds with distinct build numbers to avoid confliction.
-    # i.e. DevDiv builds will have even rev# whereas dnceng builds will be odd.
-    - task: PowerShell@2
-      displayName: Update BuildNumber
-      inputs:
-        filePath: 'eng\update-build-number.ps1'
-        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-          arguments: '-buildNumber $(Build.BuildNumber) -oddOrEven even'
-        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-          arguments: '-buildNumber $(Build.BuildNumber) -oddOrEven odd'
-
+    steps:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
       condition: succeeded()
@@ -88,41 +84,22 @@ stages:
       inputs:
         type: 'Build'
         tags: 'OfficialBuild'
-      condition: and(succeeded(), endsWith(variables['SourceBranchName'], '-vs-deps'), eq(variables['PRNumber'], 'default'))
-          
+      condition: and(succeeded(), endsWith(variables['SourceBranchName'], '-vs-deps'))
+
     - task: tagBuildOrRelease@0
-      displayName: Tag PR validation build
+      displayName: Tag main validation build
       inputs:
         type: 'Build'
         tags: |
-          PRValidationBuild
-          PRNumber:$(PRNumber)
-      condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
+          MainValidationBuild
+      condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
 
     - task: PowerShell@2
-      displayName: Setup branch for insertion validation
+      displayName: Merge main-vs-deps into source branch
       inputs:
-        filePath: 'eng\setup-pr-validation.ps1'
-        arguments: '-sourceBranchName $(SourceBranchName) -prNumber $(PRNumber)'
-      condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
-
-    - task: tagBuildOrRelease@0
-      displayName: Tag master validation build
-      inputs:
-        type: 'Build'
-        tags: |
-          MasterValidationBuild
-      condition: and(succeeded(), eq(variables['SourceBranchName'], 'master'))
-
-    - task: PowerShell@2
-      displayName: Merge master-vs-deps into source branch
-      inputs:
-        filePath: 'scripts\merge-vs-deps.ps1'        
-        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-          arguments: '-userName "$(Build.RequestedFor)" -userEmail $(Build.RequestedForEmail)'
-        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-          arguments: '-userName "$(Build.RequestedFor)" -userEmail $(Build.RequestedForEmail) -accessToken $(dn-bot-dnceng-build-rw-code-rw)'
-      condition: and(succeeded(), eq(variables['SourceBranchName'], 'master'))
+        filePath: 'scripts\merge-vs-deps.ps1'
+        arguments: '-accessToken $(dn-bot-dnceng-build-rw-code-rw)'
+      condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
@@ -134,11 +111,17 @@ stages:
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
     - task: NuGetAuthenticate@0
       inputs:
-        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-          nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
-        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-          nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
+        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
 
+    # Needed because the build fails the NuGet Tools restore without it
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk'
+      inputs:
+        packageType: sdk
+        useGlobalJson: true
+        workingDirectory: '$(Build.SourcesDirectory)'
+
+    # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
     - task: NuGetCommand@2
       displayName: Restore internal tools
       inputs:
@@ -152,22 +135,20 @@ stages:
       inputs:
         signType: $(SignType)
         zipSources: false
-        # If running in dnceng, we need to use a feed different from default
-        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-          feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
+        feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
       condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
     - task: PowerShell@2
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -ci 
+        arguments: -ci
                    -restore
                    -build
                    -pack
                    -sign
                    -publish
-                   -binaryLog 
+                   -binaryLog
                    -configuration $(BuildConfiguration)
                    -officialBuildId $(Build.BuildNumber)
                    -officialSkipTests $(SkipTests)
@@ -192,8 +173,8 @@ stages:
       displayName: Publish Assets
       inputs:
         filePath: 'eng\publish-assets.ps1'
-        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(AccessToken-dotnet-build-bot-public-repo) -gitHubEmail $(Roslyn.GitHubEmail) -devdivApiKey $(_DevDivNugetFeedAccessToken)'
-      condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
+        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)"'
+      condition: succeeded()
 
     # Publish OptProf configuration files
     # The env variable is required to enable cross account access using PAT (dnceng -> devdiv)
@@ -202,7 +183,7 @@ stages:
         ARTIFACTSERVICES_DROP_PAT: $(_DevDivDropAccessToken)
       inputs:
         dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
-        buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
+        buildNumber: 'ProfilingInputs/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
         sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
         toLowerCase: false
         usePat: false
@@ -258,17 +239,13 @@ stages:
 
     # Publish insertion packages to CoreXT store.
     - task: NuGetCommand@2
-      displayName: Publish CoreXT Packages 
+      displayName: Publish CoreXT Packages
       inputs:
         command: push
         packagesToPush: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
         allowPackageConflicts: true
-        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-          feedsToUse: config
-          publishVstsFeed: '97a41293-2972-4f48-8c0e-05493ae82010'
-        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-          nuGetFeedType: external
-          publishFeedCredentials: 'DevDiv - VS package feed'
+        nuGetFeedType: external
+        publishFeedCredentials: 'DevDiv - VS package feed'
       condition: succeeded()
 
     # Publish an artifact that the RoslynInsertionTool is able to find by its name.
@@ -279,7 +256,7 @@ stages:
         ArtifactName: 'VSSetup'
       condition: succeeded()
 
-    # Publish our NuPkgs as an artifact. The name of this artifact must be PackageArtifacts as the 
+    # Publish our NuPkgs as an artifact. The name of this artifact must be PackageArtifacts as the
     # arcade templates depend on the name.
     - task: PublishBuildArtifacts@1
       displayName: Publish Artifact Packages
@@ -304,45 +281,103 @@ stages:
   - template: /eng/common/templates/job/publish-build-assets.yml
     parameters:
       publishUsingPipelines: true
-      dependsOn:	
+      dependsOn:
         - OfficialBuild
-      ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-        queue:
-          name: Hosted VS2017
-      ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-        pool:
-          vmImage: vs2017-win2016
+      pool:
+        vmImage: windows-2019
 
-# We need to skip post-build stages for PR validation build, but it can only be identified by 
-# the runtime variable 'PRNumber', thus this dummy stage. Also the dummy job is required
-# otherwise AzDO would just repeat jobs from previous stage.
-- stage: SetValidateDependency
-  displayName: Setup the dependency for post-build stages
-  condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
+- stage: insert
+  dependsOn:
+  - build
+  displayName: Insert to VS
+
   jobs:
-  - job: Log
-    displayName: Log
+  - job: insert
+    displayName: Insert to VS
+    pool:
+      vmImage: windows-2019
     steps:
-    - powershell: Write-Host "Setup the dependency for post-build stages."
-      displayName: Log
+    - checkout: none
+
+    - task: NuGetCommand@2
+      displayName: 'Install RIT from Azure Artifacts'
+      inputs:
+        command: custom
+        arguments: 'install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
+
+    - powershell: |
+        $response = Invoke-RestMethod -Headers @{Authorization = "Bearer $(System.AccessToken)"} "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
+        $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
+        $branchData = $response.branches.$branchName
+        if (!$branchData)
+        {
+          Write-Host "No PublishData found for branch '$branchName'. Using PublishData for branch 'main'."
+          $branchData = $response.branches.main
+        }
+        if ($null -ne $branchData.insertionCreateDraftPR)
+        {
+          Write-Host "##vso[task.setvariable variable=Insertion.CreateDraftPR]$($branchData.insertionCreateDraftPR)"
+        }
+        if ($null -ne $branchData.insertionTitlePrefix)
+        {
+          Write-Host "##vso[task.setvariable variable=Insertion.TitlePrefix]$($branchData.insertionTitlePrefix)"
+        }
+        if ($null -ne $branchData.insertToolset)
+        {
+          Write-Host "##vso[task.setvariable variable=Insertion.InsertToolset]$($branchData.insertToolset)"
+        }
+
+        Write-Host "##vso[task.setvariable variable=Insertion.AutoComplete]$(-not $branchData.insertionCreateDraftPR)"
+        Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
+        Write-Host "##vso[task.setvariable variable=VSBranchName]$($branchData.vsBranch)"
+      displayName: Set Insertion Variables
+
+    - powershell: |
+        mv RoslynTools.VisualStudioInsertionTool.* RIT
+        .\RIT\tools\net46\OneOffInsertion.ps1 `
+          -autoComplete "$(Insertion.AutoComplete)" `
+          -buildQueueName "$(Build.DefinitionName)" `
+          -cherryPick "(default)" `
+          -clientId "$(ClientId)" `
+          -clientSecret "$(ClientSecret)" `
+          -componentAzdoUri "$(System.CollectionUri)" `
+          -componentBranchName "$(ComponentBranchName)" `
+          -componentGitHubRepoName "dotnet/roslyn" `
+          -componentName "Roslyn" `
+          -componentProjectName "internal" `
+          -createDraftPR "$(Insertion.CreateDraftPR)" `
+          -defaultValueSentinel "(default)" `
+          -dropPath "(default)" `
+          -insertCore "(default)" `
+          -insertDevDiv "(default)" `
+          -insertionCount "1" `
+          -insertToolset "$(Insertion.InsertToolset)" `
+          -titlePrefix "$(Insertion.TitlePrefix)" `
+          -titleSuffix "$(Insertion.TitleSuffix)" `
+          -queueValidation "true" `
+          -requiredValueSentinel "REQUIRED" `
+          -reviewerGUID "6c25b447-1d90-4840-8fde-d8b22cb8733e" `
+          -specificBuild "$(Build.BuildNumber)" `
+          -updateAssemblyVersions "(default)" `
+          -updateCoreXTLibraries "(default)" `
+          -visualStudioBranchName "$(VSBranchName)" `
+          -writePullRequest "prid.txt" `
+      displayName: 'Run OneOffInsertion.ps1'
+
+    - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'
+      displayName: 'Report PR URL'
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
+      publishingInfraVersion: 3
       # Symbol validation is not entirely reliable as of yet, so should be turned off until
       # https://github.com/dotnet/arcade/issues/2871 is resolved.
       enableSymbolValidation: false
       enableSourceLinkValidation: false
-      # It's important that post-build stages are depends on 'SetValidateDependency' stage instead of 'build', 
-      # since we don't want to publish validation build. 
-      validateDependsOn:
-        - SetValidateDependency
-      dependsOn:
-        - SetValidateDependency
       # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
       SDLValidationParameters:
-        # Disable SDL because of https://github.com/dotnet/core-eng/issues/11902
-        enable: false
+        enable: true
         params: >-
           -SourceToolsList @("policheck","credscan")
           -TsaInstanceURL $(_TsaInstanceURL)

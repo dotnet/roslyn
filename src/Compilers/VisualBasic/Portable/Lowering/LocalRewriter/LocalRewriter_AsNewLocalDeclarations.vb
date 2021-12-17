@@ -83,14 +83,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         placeholder.SetWasCompilerGenerated()
 
                         ' Rebind and discard diagnostics
-                        Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
                         initializerToRewrite = objectInitializer.Binder.BindObjectCreationExpression(asNew.Type,
                                                                                                      objectCreationExpressionSyntax.ArgumentList,
                                                                                                      localType,
                                                                                                      objectCreationExpressionSyntax,
-                                                                                                     diagnostics,
+                                                                                                     BindingDiagnosticBag.Discarded,
                                                                                                      placeholder)
-                        diagnostics.Free()
                     End If
 
                     If Not objectInitializer.CreateTemporaryLocalForInitialization Then
