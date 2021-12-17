@@ -87,11 +87,6 @@
         <target state="translated">Преобразовать в условное выражение</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">Преобразовать в кортеж</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="translated">Значение выражения никогда не используется</target>

@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenIndex,
                     rewrittenExpression.Type,
                     method: null,
+                    constrainedToTypeOpt: null,
                     isPointerElementAccess: true), //see RewriterPointerNumericOperator
                 node.Type);
         }

@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -44,7 +45,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             var optionProvider = new BlockStructureOptionProvider(
                 document.Project.Solution.Options,
                 isMetadataAsSource: document.Project.Solution.Workspace.Kind == CodeAnalysis.WorkspaceKind.MetadataAsSource);
-            outliner.CollectBlockSpans(node, ref actualRegions.AsRef(), optionProvider, CancellationToken.None);
+            // Calculate previousToken for tests the same way it is derived in production code
+            var previousToken = root.DescendantNodesAndTokens(descendIntoTrivia: true).TakeWhile(nodeOrToken => nodeOrToken != node).LastOrDefault(nodeOrToken => nodeOrToken.IsToken).AsToken();
+            outliner.CollectBlockSpans(previousToken, node, ref actualRegions.AsRef(), optionProvider, CancellationToken.None);
 
             // TODO: Determine why we get null outlining spans.
             return actualRegions.ToImmutableAndClear();

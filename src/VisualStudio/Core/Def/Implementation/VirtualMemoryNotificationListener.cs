@@ -2,26 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Composition;
 using System.Runtime;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.LanguageServices.Remote;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -29,7 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// Listens to broadcast notifications from the Visual Studio Shell indicating that the application is running
     /// low on available virtual memory.
     /// </summary>
-    [Export, Shared]
     internal sealed class VirtualMemoryNotificationListener : ForegroundThreadAffinitizedObject, IVsBroadcastMessageEvents
     {
         // memory threshold to turn off full solution analysis - 200MB
@@ -39,15 +34,13 @@ namespace Microsoft.VisualStudio.LanguageServices
         private const string LowVMMoreInfoLink = "https://go.microsoft.com/fwlink/?LinkID=799402&clcid=0x409";
 
         private readonly VisualStudioWorkspace _workspace;
-        private readonly WorkspaceCacheService _workspaceCacheService;
+        private readonly WorkspaceCacheService? _workspaceCacheService;
 
         private bool _alreadyLogged;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VirtualMemoryNotificationListener(
+        private VirtualMemoryNotificationListener(
             IThreadingContext threadingContext,
-            SVsServiceProvider serviceProvider,
+            IVsShell shell,
             VisualStudioWorkspace workspace)
             : base(threadingContext, assertIsForeground: true)
         {
@@ -63,9 +56,18 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
-            var shell = (IVsShell)serviceProvider.GetService(typeof(SVsShell));
             // Note: We never unhook this event sink. It lives for the lifetime of the host.
             ErrorHandler.ThrowOnFailure(shell.AdviseBroadcastMessages(this, out var cookie));
+        }
+
+        public static async Task<VirtualMemoryNotificationListener> CreateAsync(VisualStudioWorkspace workspace, IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+        {
+            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var shell = (IVsShell?)await serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+            Assumes.Present(shell);
+
+            return new VirtualMemoryNotificationListener(threadingContext, shell, workspace);
         }
 
         /// <summary>
@@ -149,8 +151,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             // Show info bar.
-            _workspace.Services.GetService<IErrorReportingService>()
+            _workspace.Services.GetRequiredService<IErrorReportingService>()
                 .ShowGlobalErrorInfo(ServicesVSResources.Visual_Studio_has_suspended_some_advanced_features_to_improve_performance,
+                    exception: null,
                     new InfoBarUI(ServicesVSResources.Re_enable, InfoBarUI.UIKind.Button, RenableBackgroundAnalysis),
                     new InfoBarUI(ServicesVSResources.Learn_more, InfoBarUI.UIKind.HyperLink,
                         () => VisualStudioNavigateToLinkService.StartBrowser(new Uri(LowVMMoreInfoLink)), closeAfterAction: false));

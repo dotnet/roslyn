@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             => IsArgumentListCharacter(text[characterPosition]);
 
         internal static bool IsArgumentListCharacter(char ch)
-            => ch == '(' || ch == '[' || ch == ' ';
+            => ch is '(' or '[' or ' ';
 
         internal static bool IsTriggerAfterSpaceOrStartOfWordCharacter(SourceText text, int characterPosition, OptionSet options)
         {

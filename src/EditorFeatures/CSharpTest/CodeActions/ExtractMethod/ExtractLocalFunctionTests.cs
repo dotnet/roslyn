@@ -1864,10 +1864,10 @@ class Program
     void M()
     {
         int a = 1;
-        var t = {|Rename:GetT|}(a);
+        var t = {|Rename:GetT|}();
         System.Console.Write(t.a);
 
-        (int a, int b) GetT(int a)
+        (int a, int b) GetT()
         {
             return (a, b: 2);
         }
@@ -1893,10 +1893,10 @@ class Program
     void M()
     {
         int x, y;
-        {|Rename:NewMethod|}(out x, out y);
+        {|Rename:NewMethod|}();
         System.Console.Write(x + y);
 
-        void NewMethod(out int x, out int y)
+        void NewMethod()
         {
             var (x, y) = (1, 2);
         }
@@ -1922,10 +1922,10 @@ class Program
     void M()
     {
         int x, y;
-        {|Rename:NewMethod|}(out x, out y);
+        {|Rename:NewMethod|}();
         System.Console.Write(x + y);
 
-        void NewMethod(out int x, out int y)
+        void NewMethod()
         {
             (x, y) = (1, 2);
         }
@@ -3234,9 +3234,9 @@ class Program
     static void Main(string[] args)
     {
         bool b = true;
-        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+        System.Console.WriteLine({|Rename:NewMethod|}() ? b = true : b = false);
 
-        bool NewMethod(bool b)
+        bool NewMethod()
         {
             return b != true;
         }
@@ -3261,9 +3261,9 @@ class Program
     static void Main(string[] args)
     {
         bool b = true;
-        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+        System.Console.WriteLine({|Rename:NewMethod|}() ? b = true : b = false);
 
-        bool NewMethod(bool b)
+        bool NewMethod()
         {
             return b != true;
         }
@@ -4759,7 +4759,7 @@ static string NewMethod()
     return ""string"";
 }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: CodeActionIndex);
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
         }
 
         [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
@@ -4782,7 +4782,7 @@ static string NewMethod()
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: CodeActionIndex);
+            await TestInRegularAndScriptAsync(code, expected, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
         }
 
         [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
@@ -4802,7 +4802,17 @@ System.Console.WriteLine([|""string""|]);
     }
 }";
 
-            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9), index: CodeActionIndex);
+            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9), index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingOnExtractLocalFunctionInNamespace()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+namespace C
+{
+    private bool TestMethod() => [|false|];
+}", codeActionIndex: 1);
         }
 
         [WorkItem(45422, "https://github.com/dotnet/roslyn/issues/45422")]
@@ -4850,6 +4860,186 @@ class C
         }
     }
 }", codeActionIndex: 1);
+        }
+
+        [WorkItem(55031, "https://github.com/dotnet/roslyn/issues/55031")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractLocalConst_CSharp7()
+        {
+            var code = @"
+using NUnit.Framework;
+
+public class Tests
+{
+    public string SomeOtherMethod(int k)
+    {
+        return "";
+    }
+
+    int j = 2;
+    [Test]
+    public void Test1()
+    {
+        const string NAME = ""SOMETEXT"";
+        [|Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));|]
+    }
+}";
+
+            var expected = @"
+using NUnit.Framework;
+
+public class Tests
+{
+    public string SomeOtherMethod(int k)
+    {
+        return "";
+    }
+
+    int j = 2;
+    [Test]
+    public void Test1()
+    {
+        const string NAME = ""SOMETEXT"";
+        {|Rename:NewMethod|}();
+
+        void NewMethod()
+        {
+            Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));
+        }
+    }
+}";
+            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+        }
+
+        [WorkItem(55031, "https://github.com/dotnet/roslyn/issues/55031")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractParameter_CSharp7()
+        {
+            var code = @"
+using NUnit.Framework;
+
+public class Tests
+{
+    public string SomeOtherMethod(int k)
+    {
+        return "";
+    }
+
+    int j = 2;
+    [Test]
+    public void Test1(string NAME)
+    {
+        [|Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));|]
+    }
+}";
+
+            var expected = @"
+using NUnit.Framework;
+
+public class Tests
+{
+    public string SomeOtherMethod(int k)
+    {
+        return "";
+    }
+
+    int j = 2;
+    [Test]
+    public void Test1(string NAME)
+    {
+        {|Rename:NewMethod|}();
+
+        void NewMethod()
+        {
+            Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));
+        }
+    }
+}";
+            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+        }
+
+        [WorkItem(55031, "https://github.com/dotnet/roslyn/issues/55031")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractLocal_CSharp7()
+        {
+            var code = @"
+using NUnit.Framework;
+
+public class Tests
+{
+    public string SomeOtherMethod(int k)
+    {
+        return "";
+    }
+
+    int j = 2;
+    [Test]
+    public void Test1()
+    {
+        var NAME = ""SOMETEXT"";
+        [|Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));|]
+    }
+}";
+
+            var expected = @"
+using NUnit.Framework;
+
+public class Tests
+{
+    public string SomeOtherMethod(int k)
+    {
+        return "";
+    }
+
+    int j = 2;
+    [Test]
+    public void Test1()
+    {
+        var NAME = ""SOMETEXT"";
+        {|Rename:NewMethod|}();
+
+        void NewMethod()
+        {
+            Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));
+        }
+    }
+}";
+            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+        }
+
+        [WorkItem(55031, "https://github.com/dotnet/roslyn/issues/55031")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractRangeVariable_CSharp7()
+        {
+            var code = @"
+using System.Linq;
+
+public class Class
+{
+    public void M()
+    {
+        _ = from a in new object[0]
+            select [|a.ToString()|];
+    }
+}";
+
+            var expected = @"
+using System.Linq;
+
+public class Class
+{
+    public void M()
+    {
+        _ = from a in new object[0]
+            select {|Rename:NewMethod|}(a);
+
+        string NewMethod(object a)
+        {
+            return a.ToString();
+        }
+    }
+}";
+            await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
         }
     }
 }

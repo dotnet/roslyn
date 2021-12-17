@@ -43,6 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             If SyntaxFacts.GetKeywordKind(text) <> SyntaxKind.None Then
                 text = "[" & text & "]"
             End If
+
             Return New SeparatedSyntaxList(Of IdentifierNameSyntax)().Add(SyntaxFactory.IdentifierName(text))
         End Function
 

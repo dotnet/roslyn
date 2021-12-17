@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
         public static readonly Option2<bool> Enabled = new(
             nameof(SymbolSearchOptions), nameof(Enabled), defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Enabled)));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Enabled)));
 
         public static PerLanguageOption2<bool> SuggestForTypesInReferenceAssemblies =
             new(nameof(SymbolSearchOptions), nameof(SuggestForTypesInReferenceAssemblies), defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies"));
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies"));
 
         public static PerLanguageOption2<bool> SuggestForTypesInNuGetPackages =
             new(nameof(SymbolSearchOptions), nameof(SuggestForTypesInNuGetPackages), defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages"));
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages"));
     }
 }

@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         private class ChangeNamespaceCodeAction : SolutionChangeAction
         {
             public ChangeNamespaceCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
+                : base(title, createChangedSolution, title)
             {
             }
         }

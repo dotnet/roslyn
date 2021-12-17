@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     {
-        protected static bool ShouldFindReferencesInGlobalSuppressions(ISymbol symbol, [NotNullWhen(returnValue: true)] out string? documentationCommentId)
+        private static bool ShouldFindReferencesInGlobalSuppressions(ISymbol symbol, [NotNullWhen(returnValue: true)] out string? documentationCommentId)
         {
             if (!SupportsGlobalSuppression(symbol))
             {
@@ -54,29 +54,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentInsideGlobalSuppressionsAsync(
             Document document,
             SemanticModel semanticModel,
-            ISyntaxFacts syntaxFacts,
-            string docCommentId,
+            ISymbol symbol,
             CancellationToken cancellationToken)
         {
+            if (!ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId))
+                return ImmutableArray<FinderLocation>.Empty;
+
             // Check if we have any relevant global attributes in this document.
             var info = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
             if (!info.ContainsGlobalAttributes)
-            {
                 return ImmutableArray<FinderLocation>.Empty;
-            }
 
             var suppressMessageAttribute = semanticModel.Compilation.SuppressMessageAttributeType();
             if (suppressMessageAttribute == null)
-            {
                 return ImmutableArray<FinderLocation>.Empty;
-            }
 
             // Check if we have any instances of the symbol documentation comment ID string literals within global attributes.
             // These string literals represent references to the symbol.
             if (!TryGetExpectedDocumentationCommentId(docCommentId, out var expectedDocCommentId))
-            {
                 return ImmutableArray<FinderLocation>.Empty;
-            }
+
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // We map the positions of documentation ID literals in tree to string literal tokens,
             // perform semantic checks to ensure these are valid references to the symbol

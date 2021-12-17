@@ -65,6 +65,7 @@
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.UnitTests" />
     <Import Include="Roslyn.Test.Utilities" />
     <Import Include="System.Threading.Tasks" />
+    <Import Include="System.Xml.Linq" />
     <Import Include="Xunit" />
   </ItemGroup>
   <Import Project="..\..\..\Analyzers\VisualBasic\Tests\VisualBasicAnalyzers.UnitTests.projitems" Label="Shared" />

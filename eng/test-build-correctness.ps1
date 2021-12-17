@@ -44,10 +44,10 @@ try {
 
   # Verify no PROTOTYPE marker left in main
   if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "main") {
-    Write-Host "Checking no PROTOTYPE markers in compiler source"
-    $prototypes = Get-ChildItem -Path src/Compilers/*.cs, src/Compilers/*.vb,src/Compilers/*.xml -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch
+    Write-Host "Checking no PROTOTYPE markers in source"
+    $prototypes = Get-ChildItem -Path src, eng, scripts -Exclude *.dll,*.exe,*.pdb,*.xlf,test-build-correctness.ps1 -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch
     if ($prototypes) {
-      Write-Host "Found PROTOTYPE markers in compiler source:"
+      Write-Host "Found PROTOTYPE markers in source:"
       Write-Host $prototypes
       throw "PROTOTYPE markers disallowed in compiler source"
     }
@@ -59,15 +59,15 @@ try {
   # Verify the state of our various build artifacts
   Write-Host "Running BuildBoss"
   $buildBossPath = GetProjectOutputBinary "BuildBoss.exe"
-  Exec-Console $buildBossPath "-r `"$RepoRoot`" -c $configuration" -p Roslyn.sln
+  Exec-Console $buildBossPath "-r `"$RepoRoot/`" -c $configuration" -p Roslyn.sln
   Write-Host ""
 
   # Verify the state of our generated syntax files
   Write-Host "Checking generated compiler files"
   Exec-Block { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test -configuration:$configuration }
-  Exec-Console dotnet "format . --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --check -f"
-  Write-Host ""  
-  
+  Exec-Console dotnet "tool run dotnet-format . --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --check -f"
+  Write-Host ""
+
   exit 0
 }
 catch [exception] {

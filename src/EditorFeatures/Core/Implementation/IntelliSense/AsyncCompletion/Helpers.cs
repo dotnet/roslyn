@@ -140,14 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         // Tab, Enter and Null (call invoke commit) are always commit characters. 
         internal static bool IsStandardCommitCharacter(char c)
-            => c == '\t' || c == '\n' || c == '\0';
-
-        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
-        // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.
-        // We check both the display text and the display text prefix to account for IntelliCode item providers
-        // that may be using the prefix to include the ★.
-        internal static bool IsPreferredItem(this RoslynCompletionItem completionItem)
-            => completionItem.DisplayText.StartsWith("★") || completionItem.DisplayTextPrefix.StartsWith("★");
+            => c is '\t' or '\n' or '\0';
 
         // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
         // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.

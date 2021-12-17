@@ -353,6 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 errorReportingService.ShowGlobalErrorInfo(
                     string.Format(EditorFeaturesWpfResources.Error_performing_rename_0, ex.Message),
+                    ex,
                     new InfoBarUI(
                         WorkspacesResources.Show_Stack_Trace,
                         InfoBarUI.UIKind.HyperLink,

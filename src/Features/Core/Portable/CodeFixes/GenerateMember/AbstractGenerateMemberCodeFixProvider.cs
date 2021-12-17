@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
             }
         }
 
-        protected virtual SyntaxNode GetTargetNode(SyntaxNode node)
+        protected virtual SyntaxNode? GetTargetNode(SyntaxNode node)
             => node;
 
         private IEnumerable<SyntaxNode> GetTargetNodes(

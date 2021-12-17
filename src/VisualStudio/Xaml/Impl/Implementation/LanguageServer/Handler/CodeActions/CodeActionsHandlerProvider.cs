@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// </remarks>
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
     [ProvidesMethod(LSP.Methods.TextDocumentCodeActionName)]
-    [ProvidesMethod(LSP.MSLSPMethods.TextDocumentCodeActionResolveName)]
+    [ProvidesMethod(LSP.Methods.CodeActionResolveName)]
     [ProvidesCommand(CodeActionsHandler.RunCodeActionCommandName)]
     internal class CodeActionsHandlerProvider : AbstractRequestHandlerProvider
     {

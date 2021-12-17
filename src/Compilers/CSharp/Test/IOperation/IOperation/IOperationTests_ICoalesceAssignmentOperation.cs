@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.IOperation)]
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_ICoalesceAssignmentOperation : SemanticModelTestBase
     {
         [Fact]
         public void CoalesceAssignment_SimpleCase()

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
             {
                 failureReason = null;
                 var val = ReadInteger();
-                Debug.Assert(val == 0 || val == 1);
+                Debug.Assert(val is 0 or 1);
                 return val == 1;
             }
 

@@ -11,9 +11,10 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.UnusedReferences;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -68,11 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         {
             var command = (OleMenuCommand)sender;
 
-            var experimentationService = _workspace.Services.GetRequiredService<IExperimentationService>();
-
             // If the option hasn't been expicitly set then fallback to whether this is enabled as part of an experiment.
             var isOptionEnabled = _workspace.Options.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferences)
-                ?? experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RemoveUnusedReferences);
+                ?? _workspace.Options.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag);
 
             var isDotNetCpsProject = VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy) &&
                 hierarchy.IsCapabilityMatch("CPS") &&

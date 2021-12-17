@@ -6,10 +6,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
@@ -25,7 +28,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     {
         private IGlobalOptionService _optionService;
         private IThreadingContext _threadingContext;
-        private IRemoteHostClientProvider _remoteClientProvider;
+        private HostWorkspaceServices _workspaceServices;
 
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
@@ -37,7 +40,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 _threadingContext = componentModel.GetService<IThreadingContext>();
 
                 var workspace = componentModel.GetService<VisualStudioWorkspace>();
-                _remoteClientProvider = workspace.Services.GetService<IRemoteHostClientProvider>();
+                _workspaceServices = workspace.Services;
             }
 
             return new InternalOptionsControl(nameof(LoggerOptions), optionStore);
@@ -47,47 +50,29 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         {
             base.OnApply(e);
 
-            SetLoggers(_optionService, _threadingContext, _remoteClientProvider);
+            SetLoggers(_optionService, _threadingContext, _workspaceServices);
         }
 
-        public static void SetLoggers(IGlobalOptionService optionService, IThreadingContext threadingContext, IRemoteHostClientProvider remoteClientProvider)
+        public static void SetLoggers(IGlobalOptionService optionService, IThreadingContext threadingContext, HostWorkspaceServices workspaceServices)
         {
-            var loggerTypes = GetLoggerTypes(optionService).ToList();
+            var loggerTypeNames = GetLoggerTypes(optionService).ToImmutableArray();
 
-            // first set VS options
-            var options = Logger.GetLoggingChecker(optionService);
+            // update loggers in VS
+            var isEnabled = Logger.GetLoggingChecker(optionService);
 
-            SetRoslynLogger(loggerTypes, () => new EtwLogger(options));
-            SetRoslynLogger(loggerTypes, () => new TraceLogger(options));
-            SetRoslynLogger(loggerTypes, () => new OutputWindowLogger(options));
+            SetRoslynLogger(loggerTypeNames, () => new EtwLogger(isEnabled));
+            SetRoslynLogger(loggerTypeNames, () => new TraceLogger(isEnabled));
+            SetRoslynLogger(loggerTypeNames, () => new OutputWindowLogger(isEnabled));
 
-            // second set RemoteHost options
-            var client = threadingContext.JoinableTaskFactory.Run(() => remoteClientProvider.TryGetRemoteHostClientAsync(CancellationToken.None));
-            if (client == null)
+            // update loggers in remote process
+            var client = threadingContext.JoinableTaskFactory.Run(() => RemoteHostClient.TryGetClientAsync(workspaceServices, CancellationToken.None));
+            if (client != null)
             {
-                // Remote host is disabled
-                return;
-            }
+                var functionIds = Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>().Where(isEnabled).ToImmutableArray();
 
-            var functionIds = GetFunctionIds(options).ToList();
-
-            threadingContext.JoinableTaskFactory.Run(() => client.RunRemoteAsync(
-                WellKnownServiceHubService.RemoteHost,
-                nameof(IRemoteHostService.SetLoggingFunctionIds),
-                solution: null,
-                new object[] { loggerTypes, functionIds },
-                callbackTarget: null,
-                CancellationToken.None));
-        }
-
-        private static IEnumerable<string> GetFunctionIds(Func<FunctionId, bool> options)
-        {
-            foreach (var functionId in Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>())
-            {
-                if (options(functionId))
-                {
-                    yield return functionId.ToString();
-                }
+                threadingContext.JoinableTaskFactory.Run(async () => _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
+                    (service, cancellationToken) => service.EnableLoggingAsync(loggerTypeNames, functionIds, cancellationToken),
+                    CancellationToken.None).ConfigureAwait(false));
             }
         }
 
@@ -109,9 +94,9 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             }
         }
 
-        private static void SetRoslynLogger<T>(List<string> loggerTypes, Func<T> creator) where T : ILogger
+        private static void SetRoslynLogger<T>(ImmutableArray<string> loggerTypeNames, Func<T> creator) where T : ILogger
         {
-            if (loggerTypes.Contains(typeof(T).Name))
+            if (loggerTypeNames.Contains(typeof(T).Name))
             {
                 Logger.SetLogger(AggregateLogger.AddOrReplace(creator(), Logger.GetLogger(), l => l is T));
             }

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     // We don't need arity to recover symbol if we already have SymbolKeyData or it's 0.
                     // (but it still needed below to decide whether to show generic suffix)
-                    builder.Add(TypeAritySuffixName, AbstractDeclaredSymbolInfoFactoryService.GetMetadataAritySuffix(arity));
+                    builder.Add(TypeAritySuffixName, ArityUtilities.GetMetadataAritySuffix(arity));
                 }
 
                 properties = builder.ToImmutableDictionaryAndFree();

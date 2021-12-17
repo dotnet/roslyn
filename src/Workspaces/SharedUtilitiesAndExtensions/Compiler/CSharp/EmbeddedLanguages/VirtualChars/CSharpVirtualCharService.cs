@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         }
 
         protected override bool IsStringOrCharLiteralToken(SyntaxToken token)
-            => token.Kind() == SyntaxKind.StringLiteralToken ||
-               token.Kind() == SyntaxKind.CharacterLiteralToken;
+            => token.Kind() is SyntaxKind.StringLiteralToken or
+               SyntaxKind.CharacterLiteralToken;
 
         protected override VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
         {
@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
                 return default;
             }
+
             if (endDelimiter.Length > 0 && !tokenText.EndsWith(endDelimiter))
             {
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 }
                 else
                 {
-                    Debug.Assert(uintChar > 0x0000FFFF && uintChar <= 0x0010FFFF);
+                    Debug.Assert(uintChar is > 0x0000FFFF and <= 0x0010FFFF);
                     var lowSurrogate = ((uintChar - 0x00010000) % 0x0400) + 0xDC00;
                     var highSurrogate = ((uintChar - 0x00010000) / 0x0400) + 0xD800;
 
@@ -390,14 +391,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         private static int HexValue(char c)
         {
             Debug.Assert(IsHexDigit(c));
-            return (c >= '0' && c <= '9') ? c - '0' : (c & 0xdf) - 'A' + 10;
+            return (c is >= '0' and <= '9') ? c - '0' : (c & 0xdf) - 'A' + 10;
         }
 
         private static bool IsHexDigit(char c)
         {
-            return (c >= '0' && c <= '9') ||
-                   (c >= 'A' && c <= 'F') ||
-                   (c >= 'a' && c <= 'f');
+            return c is >= '0' and <= '9' or
+                   >= 'A' and <= 'F' or
+                   >= 'a' and <= 'f';
         }
     }
 }

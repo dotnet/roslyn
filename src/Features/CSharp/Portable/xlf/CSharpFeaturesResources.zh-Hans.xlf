@@ -182,6 +182,11 @@
         <target state="translated">Unseal 类 "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="translated">使用递归模式</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
         <target state="translated">警告: 即将在条件方法调用中内联临时内容。</target>
@@ -297,21 +302,6 @@
         <target state="translated">无效的选择。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">所选内容不包含有效令牌。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">没有执行提取的有效选择。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">没有可用于提取的公共根节点。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Contains_invalid_selection">
         <source>Contains invalid selection.</source>
         <target state="translated">包含无效的选择。</target>
@@ -415,6 +405,11 @@
       <trans-unit id="record_">
         <source>record</source>
         <target state="translated">记录</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="translated">记录结构</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

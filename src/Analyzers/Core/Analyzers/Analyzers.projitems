@@ -17,10 +17,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)AbstractCodeQualityDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer_Core.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractParenthesesDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AbstractAddAccessibilityModifiers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AbstractAddAccessibilityModifiersDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\IAddAccessibilityModifiersService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AbstractAddRequiredParenthesesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesConstants.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ConvertAnonymousTypeToTuple\AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\AbstractConvertTypeOfToNameOfDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCustomTags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderDiagnosticAnalyzer.cs" />
