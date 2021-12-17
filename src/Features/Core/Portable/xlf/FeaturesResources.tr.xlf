@@ -882,7 +882,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Malformed_named_back_reference">
         <source>Malformed \k&lt;...&gt; named back reference</source>
-        <target state="translated">Hatalı biçimlendirilmiş \k &lt;&gt;... arka başvuru adı</target>
+        <target state="translated">Hatalı biçimlendirilmiş \k&lt;...&gt; arka başvuru adı</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k'</note>
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
@@ -3642,7 +3642,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Pending">
         <source>&lt;Pending&gt;</source>
-        <target state="translated">&lt; bekleyen &gt;</target>
+        <target state="translated">&lt;bekleyen&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">

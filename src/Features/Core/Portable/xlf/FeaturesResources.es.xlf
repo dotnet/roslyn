@@ -3627,7 +3627,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="in_Suppression_File">
         <source>in Suppression File</source>
-        <target state="translated">En&amp; archivo de supresión</target>
+        <target state="translated">En archivo de supresión</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Suppression_0">
