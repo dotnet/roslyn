@@ -299,10 +299,14 @@ namespace Roslyn.Test.Utilities
 
         private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string[] sourceGeneratedMarkups, string languageName)
         {
+            var exportProvider = Composition.ExportProviderFactory.CreateExportProvider();
+            var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
+            globalOptions.SetGlobalOption(new OptionKey(WorkspaceConfigurationOptions.EnableOpeningSourceGeneratedFilesInWorkspace), true);
+
             var workspace = languageName switch
             {
-                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markups, sourceGeneratedMarkups, composition: Composition),
-                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markups, sourceGeneratedMarkups, composition: Composition),
+                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markups, sourceGeneratedMarkups, exportProvider: exportProvider),
+                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markups, sourceGeneratedMarkups, exportProvider: exportProvider),
                 _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
             };
 

@@ -394,8 +394,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         // If the file isn't already open, open it now. We may transition between opening and closing
                         // if the file is repeatedly appearing and disappearing.
-                        var connectToWorkspace = _workspace.Options.GetOption(Options.EnableOpeningInWorkspace) ??
-                                                 _workspace.Options.GetOption(Options.EnableOpeningInWorkspaceFeatureFlag);
+                        var connectToWorkspace = WorkspaceConfigurationOptions.ShouldConnectSourceGeneratedFilesToWorkspace(_workspace.Options);
 
                         if (connectToWorkspace && !_workspace.IsDocumentOpen(_documentIdentity.DocumentId))
                         {
@@ -503,32 +502,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 var sourceText = _textBuffer.CurrentSnapshot.AsText();
                 _fileManager._visualStudioDocumentNavigationService.NavigateTo(_textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan), cancellationToken);
-            }
-        }
-
-        [Export(typeof(IOptionProvider))]
-        internal sealed class Options : IOptionProvider
-        {
-            private const string FeatureName = "SourceGeneratedFileManager";
-
-            /// <summary>
-            /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
-            /// surprised by this and we want some time to work through those issues.
-            /// </summary>
-            internal static readonly Option2<bool?> EnableOpeningInWorkspace = new(FeatureName, nameof(EnableOpeningInWorkspace), defaultValue: null,
-                new RoamingProfileStorageLocation("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment"));
-
-            internal static readonly Option2<bool> EnableOpeningInWorkspaceFeatureFlag = new(FeatureName, nameof(EnableOpeningInWorkspaceFeatureFlag), defaultValue: false,
-                new FeatureFlagStorageLocation("Roslyn.SourceGeneratorsEnableOpeningInWorkspace"));
-
-            ImmutableArray<IOption> IOptionProvider.Options => ImmutableArray.Create<IOption>(
-                EnableOpeningInWorkspace,
-                EnableOpeningInWorkspaceFeatureFlag);
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Options()
-            {
             }
         }
     }

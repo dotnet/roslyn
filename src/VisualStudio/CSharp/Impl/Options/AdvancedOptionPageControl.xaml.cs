@@ -109,11 +109,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.CSharp);
             BindToOption(Underline_reassigned_variables, ClassificationOptions.Metadata.ClassifyReassignedVariables, LanguageNames.CSharp);
-            BindToOption(Enable_all_features_in_opened_files_from_source_generators, SourceGeneratedFileManager.Options.EnableOpeningInWorkspace, () =>
+            BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptions.EnableOpeningSourceGeneratedFilesInWorkspace, () =>
             {
                 // If the option has not been set by the user, check if the option is enabled from experimentation.
                 // If so, default to that.
-                return optionStore.GetOption(SourceGeneratedFileManager.Options.EnableOpeningInWorkspaceFeatureFlag);
+                return optionStore.GetOption(WorkspaceConfigurationOptions.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
             });
 
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.CSharp);

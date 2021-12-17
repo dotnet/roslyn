@@ -114,10 +114,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Go To Definition
             BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic)
-            BindToOption(Enable_all_features_in_opened_files_from_source_generators, SourceGeneratedFileManager.Options.EnableOpeningInWorkspace,
+            BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptions.EnableOpeningSourceGeneratedFilesInWorkspace,
                          Function()
                              ' If the option has Not been set by the user, check if the option is enabled from experimentation.
-                             Return optionStore.GetOption(SourceGeneratedFileManager.Options.EnableOpeningInWorkspaceFeatureFlag)
+                             Return optionStore.GetOption(WorkspaceConfigurationOptions.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag)
                          End Function)
 
             ' Regular expressions
