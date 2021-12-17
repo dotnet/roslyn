@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
         <source>&amp;Current Document</source>
-        <target state="translated">&amp;Document actif</target>
+        <target state="translated">Document a&amp;ctif</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|CommandName">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
         <source>&amp;Open Documents</source>
-        <target state="translated">&amp;Documents ouverts</target>
+        <target state="translated">Documents &amp;ouverts</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|CommandName">
