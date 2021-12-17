@@ -403,12 +403,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // we see an initializer. In this case binding is needed to know whether it's an auto property. See CreateBackingField method.
                     if (this is SourcePropertySymbol { ContainsFieldKeyword: true } propertySymbol)
                     {
-                        if (_lazyBackingFieldSymbol is null && propertySymbol.GetMethod is SourceMemberMethodSymbol getMethod)
+                        if (propertySymbol.GetMethod is SourceMemberMethodSymbol getMethod)
                         {
                             var binder = getMethod.TryGetBodyBinder();
                             binder?.BindMethodBody(getMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
                         }
-                        if (_lazyBackingFieldSymbol is null && propertySymbol.SetMethod is SourceMemberMethodSymbol setMethod)
+                        if (propertySymbol.SetMethod is SourceMemberMethodSymbol setMethod)
                         {
                             setMethod.TryGetBodyBinder()?.BindMethodBody(setMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
                         }

@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 thisReference = new BoundThisReference(syntax, thisSymbol.Type) { WasCompilerGenerated = true };
             }
 
-            var field = property.BackingField;
+            var field = property.BackingField; // PROTOTYPE: Can we hit this with field keyword backing field?
             var fieldAccess = new BoundFieldAccess(syntax, thisReference, field, ConstantValue.NotAvailable) { WasCompilerGenerated = true };
             BoundStatement statement;
 

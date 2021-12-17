@@ -50525,10 +50525,7 @@ public class C2 : I1
             ValidatePropertyReAbstraction_018(source1,
                 // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21),
-                // (9,26): error CS8051: Auto-implemented properties must have get accessors.
-                //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C2.I1.P1.set").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21)
                 );
         }
 
@@ -50550,10 +50547,7 @@ public struct C2 : I1
             ValidatePropertyReAbstraction_018(source1,
                 // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21),
-                // (9,26): error CS8051: Auto-implemented properties must have get accessors.
-                //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C2.I1.P1.set").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21)
                 );
         }
 
