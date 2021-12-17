@@ -7066,7 +7066,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadOperatorSyntax">
         <source>Declaration is not valid; use '{0} operator &lt;dest-type&gt; (...' instead</source>
-        <target state="translated">Bildirim geçerli değil; bunun yerine '{0} işleç &lt; hedef-tür&gt; (...' kullanın</target>
+        <target state="translated">Bildirim geçerli değil; bunun yerine '{0} işleç &lt;hedef-tür&gt; (...' kullanın</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotFound">
@@ -7661,7 +7661,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_CantConvAsyncAnonFuncReturns">
         <source>Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.</source>
-        <target state="translated">Zaman uyumsuz {0}, '{1}' temsilci türüne dönüştürülemez. Zaman uyumsuz {0} void, Task veya Task&lt; T&gt; döndürebilir ve bunların hiçbiri '{1}' türüne dönüştürülemez.</target>
+        <target state="translated">Zaman uyumsuz {0}, '{1}' temsilci türüne dönüştürülemez. Zaman uyumsuz {0} void, Task veya Task&lt;T&gt; döndürebilir ve bunların hiçbiri '{1}' türüne dönüştürülemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalFixedType">
@@ -8864,7 +8864,7 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutAsyncMethod">
         <source>The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task&lt;{0}&gt;'.</source>
-        <target state="translated">await' işleci yalnızca bir async metot içerisinde kullanılabilir. Bu metodu 'async' değiştiricisi ile işaretlemeyi ve dönüş tipini 'Task&lt;{0}&gt;' olarak değiştirmeyi düşünün.</target>
+        <target state="translated">'await' işleci yalnızca bir async metot içerisinde kullanılabilir. Bu metodu 'async' değiştiricisi ile işaretlemeyi ve dönüş tipini 'Task&lt;{0}&gt;' olarak değiştirmeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutVoidAsyncMethod">

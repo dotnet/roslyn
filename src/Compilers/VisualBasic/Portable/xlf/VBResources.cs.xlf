@@ -7395,7 +7395,7 @@
       </trans-unit>
       <trans-unit id="ERR_XmlEndCDataNotAllowedInContent">
         <source>The literal string ']]&gt;' is not allowed in element content.</source>
-        <target state="translated">V obsahu elementu není povolený řetězec literálu ]]&gt;.</target>
+        <target state="translated">V obsahu elementu není povolený řetězec literálu ']]&gt;'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadsModifierInModule">
