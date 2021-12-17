@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Fading
 
             ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
                 FadeOutUnusedImports,
-                FadeOutUnreachableCode);
+                FadeOutUnreachableCode,
+                AllFadingEnabled);
         }
 
         private const string FeatureName = "FadingOptions";
@@ -36,5 +37,8 @@ namespace Microsoft.CodeAnalysis.Fading
         public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new(
             FeatureName, "FadeOutUnreachableCode", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.FadeOutUnreachableCode"));
+
+        public static readonly Option2<bool> AllFadingEnabled = new(
+            FeatureName, "AllFadingEnabled", defaultValue: true);
     }
 }

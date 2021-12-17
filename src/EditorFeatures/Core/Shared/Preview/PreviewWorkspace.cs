@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             : base(solution.Workspace.Services.HostServices, WorkspaceKind.Preview)
         {
             var oldSolution = this.CurrentSolution;
-            var newSolution = this.SetCurrentSolution(solution);
+            var newSolution = this.SetCurrentSolution(solution.WithOptions(solution.Options.WithChangedOption(Fading.FadingOptions.AllFadingEnabled, false)));
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }

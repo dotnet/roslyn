@@ -67,8 +67,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected internal override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
             => new TagSpan<ClassificationTag>(span, _classificationTag);
 
-        protected internal override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
+        protected internal override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData, Workspace workspace)
         {
+            if (!workspace.CurrentSolution.Options.GetOption(Fading.FadingOptions.AllFadingEnabled))
+            {
+                return base.GetLocationsToTag(diagnosticData, workspace);
+            }
+
             // If there are 'unnecessary' locations specified in the property bag, use those instead of the main diagnostic location.
             if (diagnosticData.AdditionalLocations.Length > 0
                 && diagnosticData.Properties != null
@@ -84,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             }
 
             // Default to the base implementation for the diagnostic data
-            return base.GetLocationsToTag(diagnosticData);
+            return base.GetLocationsToTag(diagnosticData, workspace);
 
             static IEnumerable<int> GetLocationIndices(string indicesProperty)
             {

@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         /// </summary>
         /// <param name="diagnosticData">the diagnostic containing the location(s).</param>
         /// <returns>an array of locations that should have the tag applied.</returns>
-        protected internal virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
+        protected internal virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData, Workspace workspace)
             => diagnosticData.DataLocation is object ? ImmutableArray.Create(diagnosticData.DataLocation) : ImmutableArray<DiagnosticDataLocation>.Empty;
 
         protected override Task ProduceTagsAsync(
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         //    So we'll eventually reach a point where the diagnostics exactly match the
                         //    editorSnapshot.
 
-                        var diagnosticSpans = this.GetLocationsToTag(diagnosticData)
+                        var diagnosticSpans = this.GetLocationsToTag(diagnosticData, workspace)
                             .Select(location => GetDiagnosticSnapshotSpan(location, diagnosticSnapshot, editorSnapshot, sourceText));
                         foreach (var diagnosticSpan in diagnosticSpans)
                         {
