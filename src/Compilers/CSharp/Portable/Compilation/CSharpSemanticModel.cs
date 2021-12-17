@@ -2131,17 +2131,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (type, nullability) = getTypeAndNullability(initializer.Expression);
 
                     // the most pertinent conversion is the pointer conversion 
-                    conversion = initializer.ElementPointerTypeConversion;
+                    conversion = BoundNode.GetConversion(initializer.ElementPointerConversion, initializer.ElementPointerPlaceholder);
                 }
                 else if (boundExpr is BoundConvertedSwitchExpression { WasTargetTyped: true } convertedSwitch)
                 {
-                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.SwitchExpression })
+                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.SwitchExpression, Conversion: var convertedSwitchConversion })
                     {
                         // There was an implicit cast.
                         type = convertedSwitch.NaturalTypeOpt;
                         convertedType = convertedSwitch.Type;
                         convertedNullability = convertedSwitch.TopLevelNullability;
-                        conversion = convertedSwitch.Conversion.IsValid ? convertedSwitch.Conversion : Conversion.NoConversion;
+                        conversion = convertedSwitchConversion.IsValid ? convertedSwitchConversion : Conversion.NoConversion;
                     }
                     else
                     {
@@ -3427,18 +3427,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    {
-                        var indexerAccess = (BoundIndexOrRangePatternIndexerAccess)boundNode;
-
-                        resultKind = indexerAccess.ResultKind;
-
-                        // The only time a BoundIndexOrRangePatternIndexerAccess is created, overload resolution succeeded
-                        // and returned only 1 result
-                        Debug.Assert(indexerAccess.PatternSymbol is object);
-                        symbols = ImmutableArray.Create<Symbol>(indexerAccess.PatternSymbol);
-                    }
-                    break;
+                case BoundKind.ImplicitIndexerAccess:
+                    return GetSemanticSymbols(((BoundImplicitIndexerAccess)boundNode).IndexerOrSliceAccess,
+                        boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out memberGroup);
 
                 case BoundKind.EventAssignmentOperator:
                     var eventAssignment = (BoundEventAssignmentOperator)boundNode;

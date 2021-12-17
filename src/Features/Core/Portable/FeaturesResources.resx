@@ -225,23 +225,23 @@
   <data name="Generate_all" xml:space="preserve">
     <value>Generate all</value>
   </data>
-  <data name="Generate_enum_member_1_0" xml:space="preserve">
-    <value>Generate enum member '{1}.{0}'</value>
+  <data name="Generate_enum_member_0" xml:space="preserve">
+    <value>Generate enum member '{0}'</value>
   </data>
-  <data name="Generate_constant_1_0" xml:space="preserve">
-    <value>Generate constant '{1}.{0}'</value>
+  <data name="Generate_constant_0" xml:space="preserve">
+    <value>Generate constant '{0}'</value>
   </data>
-  <data name="Generate_read_only_property_1_0" xml:space="preserve">
-    <value>Generate read-only property '{1}.{0}'</value>
+  <data name="Generate_read_only_property_0" xml:space="preserve">
+    <value>Generate read-only property '{0}'</value>
   </data>
-  <data name="Generate_property_1_0" xml:space="preserve">
-    <value>Generate property '{1}.{0}'</value>
+  <data name="Generate_property_0" xml:space="preserve">
+    <value>Generate property '{0}'</value>
   </data>
-  <data name="Generate_read_only_field_1_0" xml:space="preserve">
-    <value>Generate read-only field '{1}.{0}'</value>
+  <data name="Generate_read_only_field_0" xml:space="preserve">
+    <value>Generate read-only field '{0}'</value>
   </data>
-  <data name="Generate_field_1_0" xml:space="preserve">
-    <value>Generate field '{1}.{0}'</value>
+  <data name="Generate_field_0" xml:space="preserve">
+    <value>Generate field '{0}'</value>
   </data>
   <data name="Generate_local_0" xml:space="preserve">
     <value>Generate local '{0}'</value>
@@ -297,8 +297,8 @@
   <data name="Introduce_query_variable_for_0" xml:space="preserve">
     <value>Introduce query variable for '{0}'</value>
   </data>
-  <data name="Anonymous_Types_colon" xml:space="preserve">
-    <value>Anonymous Types:</value>
+  <data name="Types_colon" xml:space="preserve">
+    <value>Types:</value>
   </data>
   <data name="is_" xml:space="preserve">
     <value>is</value>
@@ -587,14 +587,14 @@
   <data name="Unknown_symbol_kind" xml:space="preserve">
     <value>Unknown symbol kind</value>
   </data>
-  <data name="Generate_abstract_property_1_0" xml:space="preserve">
-    <value>Generate abstract property '{1}.{0}'</value>
+  <data name="Generate_abstract_property_0" xml:space="preserve">
+    <value>Generate abstract property '{0}'</value>
   </data>
-  <data name="Generate_abstract_method_1_0" xml:space="preserve">
-    <value>Generate abstract method '{1}.{0}'</value>
+  <data name="Generate_abstract_method_0" xml:space="preserve">
+    <value>Generate abstract method '{0}'</value>
   </data>
-  <data name="Generate_method_1_0" xml:space="preserve">
-    <value>Generate method '{1}.{0}'</value>
+  <data name="Generate_method_0" xml:space="preserve">
+    <value>Generate method '{0}'</value>
   </data>
   <data name="Requested_assembly_already_loaded_from_0" xml:space="preserve">
     <value>Requested assembly already loaded from '{0}'.</value>
@@ -965,11 +965,12 @@ This version used in: {2}</value>
   <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
     <value>Asynchronously waits for the task to finish.</value>
   </data>
-  <data name="Make_containing_scope_async" xml:space="preserve">
-    <value>Make containing scope async</value>
+  <data name="Await_the_preceding_expression" xml:space="preserve">
+    <value>Await the preceding expression</value>
   </data>
-  <data name="Make_containing_scope_async_return_Task" xml:space="preserve">
-    <value>Make containing scope async (return Task)</value>
+  <data name="Await_the_preceding_expression_and_add_ConfigureAwait_0" xml:space="preserve">
+    <value>Await the preceding expression and add ConfigureAwait({0}).</value>
+    <comment>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</comment>
   </data>
   <data name="paren_Unknown_paren" xml:space="preserve">
     <value>(Unknown)</value>
@@ -2439,7 +2440,7 @@ If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]<
   </data>
   <data name="Regex_balancing_group_long" xml:space="preserve">
     <value>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</value>
@@ -2929,10 +2930,22 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
     <value>Renaming {0} requires restarting the application because it is not supported by the runtime.</value>
   </data>
+  <data name="Move_static_members_to_another_type" xml:space="preserve">
+    <value>Move static members to another type...</value>
+  </data>
   <data name="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application" xml:space="preserve">
     <value>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</value>
   </data>
   <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
     <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>
+  </data>
+  <data name="Miscellaneous_Files" xml:space="preserve">
+    <value>Miscellaneous Files</value>
+  </data>
+  <data name="Explicitly_inherit_documentation" xml:space="preserve">
+    <value>Explicitly inherit documentation</value>
+  </data>
+  <data name="Silent" xml:space="preserve">
+    <value>Silent</value>
   </data>
 </root>

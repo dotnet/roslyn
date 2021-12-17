@@ -222,6 +222,11 @@
         <target state="translated">Das AsyncMethodBuilder-Attribut ist für anonyme Methoden ohne expliziten Rückgabetyp unzulässig.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotBeMadeNullable">
+        <source>'{0}' cannot be made nullable.</source>
+        <target state="new">'{0}' cannot be made nullable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotClone">
         <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
         <target state="translated">Der Empfängertyp "{0}" ist kein gültiger Datensatztyp und kein Strukturtyp.</target>
@@ -255,6 +260,11 @@
       <trans-unit id="ERR_CannotUseReducedExtensionMethodInAddressOf">
         <source>Cannot use an extension method with a receiver as the target of a '&amp;' operator.</source>
         <target state="translated">Eine Erweiterungsmethode mit einem Empfänger kann nicht als Ziel eines &amp;-Operators verwendet werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotUseRefInUnmanagedCallersOnly">
+        <source>Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="new">Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument">
@@ -452,9 +462,9 @@
         <target state="translated">Eine Ausdrucksbaumstruktur darf keine Handler-Konvertierung einer interpolierten Zeichenfolge enthalten.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
+      <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="translated">Eine Ausdrucksbaumstruktur darf keinen System.Index- oder System.Range-Musterindexerzugriff enthalten.</target>
+        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
@@ -677,6 +687,11 @@
         <target state="translated">Die Handlermethode „{0}“ einer interpolierten Zeichenfolgen ist falsch formatiert. „Void“ oder „bool“ wird nicht zurückgegeben.</target>
         <note>void and bool are keywords</note>
       </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
+        <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
+        <target state="new">Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">"{0}" ist kein gültiger Rückgabetyp-Modifizierer für Funktionszeiger. Gültige Modifizierer sind "ref" und "ref readonly".</target>
@@ -747,9 +762,14 @@
         <target state="translated">Die Methode "{0}" mit einem Iteratorblock muss "async" lauten, um "{1}" zurückzugeben.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
+        <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
+        <target state="new">The contextual keyword 'var' cannot be used as an explicit lambda return type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
-        <target state="translated">Ein Lambdaausdruck mit Attributen kann nicht in eine Ausdrucksbaumstruktur konvertiert werden.</target>
+        <target state="new">A lambda expression with attributes cannot be converted to an expression tree</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -765,6 +785,11 @@
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Keine Überladung für "{0}" stimmt mit dem Funktionszeiger "{1}" überein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedSlicePattern">
+        <source>Slice patterns may only be used once and directly inside a list pattern.</source>
+        <target state="new">Slice patterns may only be used once and directly inside a list pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -828,8 +853,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
-        <source>Newlines are not allowed inside a non-verbatim interpolated string</source>
-        <target state="translated">Zeilenumbrüche sind in einer nicht wörtlichen interpolierten Zeichenfolge nicht zulässig.</target>
+        <source>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</source>
+        <target state="new">Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
@@ -1207,6 +1232,16 @@
         <target state="translated">"{0}" ist mit dem Attribut "UnmanagedCallersOnly" versehen und kann nicht in einen Delegattyp konvertiert werden. Rufen Sie einen Funktionszeiger auf diese Methode ab.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForListPattern">
+        <source>List patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">List patterns may not be used for a value of type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
+        <source>Slice patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">Slice patterns may not be used for a value of type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Ein generischer aufgabenähnlicher Rückgabetyp wurde erwartet, aber der Typ „{0}“, der im Attribut „AsyncMethodBuilder“ gefunden wurde, war nicht geeignet. Es muss sich um einen ungebundenen generischen Typ von Stelligkeit Eins handelt, und der enthaltende Typ (falls vorhanden) muss nicht generisch sein.</target>
@@ -1282,9 +1317,24 @@
         <target state="translated">Lambda-Rückgabetyp</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLengthPattern">
+        <source>length pattern</source>
+        <target state="new">length pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureLineSpanDirective">
         <source>line span directive</source>
         <target state="translated">Zeilenabstand-Anweisung</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureListPattern">
+        <source>list pattern</source>
+        <target state="new">list pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNewLinesInInterpolations">
+        <source>newlines in interpolations</source>
+        <target state="new">newlines in interpolations</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
@@ -1409,12 +1459,12 @@
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
         <source>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</source>
-        <target state="translated">Der Vorgang kann zur Laufzeit einen Überlauf von „{0}“ verursachen (verwenden Sie zum Überschreiben die Syntax „unchecked“)</target>
+        <target state="new">The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
-        <target state="translated">Der Vorgang kann zur Laufzeit überlaufen (verwenden Sie zum Überschreiben die Syntax „unchecked“)</target>
+        <target state="new">The operation may overflow at runtime (use 'unchecked' syntax to override)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -1439,12 +1489,12 @@
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
-        <target state="translated">Die Methodengruppe „{0}“ wird in den Nichtdelegattyp „{1}“ konvertiert. Wollten Sie die Methode aufrufen?</target>
+        <target state="new">Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
-        <target state="translated">Die Methodengruppe wird in einen Nichtdelegattyp konvertiert.</target>
+        <target state="new">Converting method group to non-delegate type</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1458,8 +1508,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
-        <source>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="translated">Der Parameter {0} tritt nach {1} in der Parameterliste auf, wird jedoch als Argument für die Handler-Konvertierungen einer interpolierten Zeichenfolge verwendet. Dies erfordert, dass der Aufrufer Parameter mit benannten Argumenten an der Aufrufsite neu anordnen kann. Erwägen Sie, den Handler-Parameter einer interpolierten Zeichenfolge hinter alle beteiligten Argumenten zu platzieren.</target>
+        <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
+        <target state="needs-review-translation">Der Parameter {0} tritt nach {1} in der Parameterliste auf, wird jedoch als Argument für die Handler-Konvertierungen einer interpolierten Zeichenfolge verwendet. Dies erfordert, dass der Aufrufer Parameter mit benannten Argumenten an der Aufrufsite neu anordnen kann. Erwägen Sie, den Handler-Parameter einer interpolierten Zeichenfolge hinter alle beteiligten Argumenten zu platzieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">

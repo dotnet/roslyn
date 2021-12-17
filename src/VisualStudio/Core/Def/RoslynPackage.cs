@@ -10,9 +10,9 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Completion.Log;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -34,6 +34,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleS
 using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
+using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -50,6 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
     // The option page configuration is duplicated in PackageRegistration.pkgdef
     [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
+    [ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]
     internal sealed class RoslynPackage : AbstractPackage
     {
         // The randomly-generated key name is used for serializing the Background Analysis Scope preference to the .SUO
@@ -242,9 +244,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         // Overrides for VSSDK003 fix 
         // See https://github.com/Microsoft/VSSDK-Analyzers/blob/main/doc/VSSDK003.md
         public override IVsAsyncToolWindowFactory GetAsyncToolWindowFactory(Guid toolWindowType)
-            => toolWindowType == typeof(ValueTracking.ValueTrackingToolWindow).GUID
-                ? this
-                : base.GetAsyncToolWindowFactory(toolWindowType);
+        {
+            if (toolWindowType == typeof(ValueTracking.ValueTrackingToolWindow).GUID)
+            {
+                return this;
+            }
+
+            if (toolWindowType == typeof(StackTraceExplorerToolWindow).GUID)
+            {
+                return this;
+            }
+
+            return base.GetAsyncToolWindowFactory(toolWindowType);
+        }
 
         protected override string GetToolWindowTitle(Type toolWindowType, int id)
                 => base.GetToolWindowTitle(toolWindowType, id);
@@ -257,6 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             await TaskScheduler.Default;
 
             await LoadInteractiveMenusAsync(cancellationToken).ConfigureAwait(true);
+            await LoadCallstackExplorerMenusAsync(cancellationToken).ConfigureAwait(true);
 
             // Initialize keybinding reset detector
             await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync().ConfigureAwait(true);
@@ -280,6 +293,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             await new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
                 .InitializeResetInteractiveFromProjectCommandAsync()
                 .ConfigureAwait(true);
+        }
+
+        private async Task LoadCallstackExplorerMenusAsync(CancellationToken cancellationToken)
+        {
+            // Obtain services and QueryInterface from the main thread
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
+            StackTraceExplorerCommandHandler.Initialize(menuCommandService, this);
         }
 
         internal IComponentModel ComponentModel

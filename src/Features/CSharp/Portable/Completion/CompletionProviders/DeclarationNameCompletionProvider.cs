@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, insertedCharacterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var cancellationToken = completionContext.CancellationToken;
                 var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
-                if (!completionContext.Options.GetOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp))
+                if (!completionContext.CompletionOptions.ShowNameSuggestions)
                 {
                     return;
                 }
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return baseNames;
         }
 
-        private static bool IsValidType(ITypeSymbol type)
+        private static bool IsValidType([NotNullWhen(true)] ITypeSymbol? type)
         {
             if (type == null)
             {

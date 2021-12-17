@@ -17,6 +17,11 @@
         <target state="translated">CodeLens başvuruları</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="new">Project semantics availability</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
         <source>Convert tuple to struct refactoring</source>
         <target state="translated">Demeti yapıya dönüştürme yeniden düzenlemesi</target>
@@ -115,6 +120,11 @@
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">Varlık sağlayıcısı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="new">Stack Trace Explorer</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">

@@ -4,7 +4,6 @@ const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RecordStruct
 Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider
 Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.DocumentBasedFixAllProvider() -> void
 Microsoft.CodeAnalysis.CommandLineProject
-Microsoft.CodeAnalysis.Host.IPersistentStorageService.GetStorageAsync(Microsoft.CodeAnalysis.Solution solution, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Host.IPersistentStorage>
 Microsoft.CodeAnalysis.Project.GetSourceGeneratedDocumentAsync(Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.SourceGeneratedDocument>
 Microsoft.CodeAnalysis.Project.GetSourceGeneratedDocumentsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SourceGeneratedDocument>>
 Microsoft.CodeAnalysis.Editing.DeclarationKind.RecordClass = 29 -> Microsoft.CodeAnalysis.Editing.DeclarationKind

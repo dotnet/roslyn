@@ -675,14 +675,14 @@ End Module]]></a>.Value
             expectedOrderedItems.Add(New SignatureHelpTestItem(
 $"List(Of 'a).Add(item As 'a)
 
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} New With {{ .A As Integer, .B As Integer }}",
                                      String.Empty,
                                      String.Empty,
                                      currentParameterIndex:=0,
                                      description:=$"
 
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} New With {{ .A As Integer, .B As Integer }}"))
 
             Await TestAsync(markup, expectedOrderedItems)

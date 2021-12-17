@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly string? _workspaceKind;
         private readonly HostWorkspaceServices _services;
-        private readonly BranchId _primaryBranchId;
 
         private readonly IOptionService _optionService;
 
@@ -71,7 +70,6 @@ namespace Microsoft.CodeAnalysis
         /// <param name="workspaceKind">A string that can be used to identify the kind of workspace. Usually this matches the name of the class.</param>
         protected Workspace(HostServices host, string? workspaceKind)
         {
-            _primaryBranchId = BranchId.GetNextId();
             _workspaceKind = workspaceKind;
 
             _services = host.CreateWorkspaceServices(this);
@@ -87,9 +85,8 @@ namespace Microsoft.CodeAnalysis
             // initialize with empty solution
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
 
-            var emptyOptions = new SerializableOptionSet(languages: ImmutableHashSet<string>.Empty, _optionService,
-                serializableOptions: ImmutableHashSet<IOption>.Empty, values: ImmutableDictionary<OptionKey, object?>.Empty,
-                changedOptionKeysSerializable: ImmutableHashSet<OptionKey>.Empty);
+            var emptyOptions = new SerializableOptionSet(
+                _optionService, ImmutableDictionary<OptionKey, object?>.Empty, changedOptionKeysSerializable: ImmutableHashSet<OptionKey>.Empty);
 
             _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
 
@@ -110,11 +107,6 @@ namespace Microsoft.CodeAnalysis
         /// Services provider by the host for implementing workspace features.
         /// </summary>
         public HostWorkspaceServices Services => _services;
-
-        /// <summary>
-        /// primary branch id that current solution has
-        /// </summary>
-        internal BranchId PrimaryBranchId => _primaryBranchId;
 
         /// <summary>
         /// Override this property if the workspace supports partial semantics for documents.
@@ -1199,13 +1191,8 @@ namespace Microsoft.CodeAnalysis
 
                 // make sure that newSolution is a branch of the current solution
 
-                // the given solution must be a branched one.
-                // otherwise, there should be no change to apply.
-                if (oldSolution.BranchId == newSolution.BranchId)
-                {
-                    CheckNoChanges(oldSolution, newSolution);
+                if (oldSolution == newSolution)
                     return true;
-                }
 
                 var solutionChanges = newSolution.GetChanges(oldSolution);
                 this.CheckAllowedSolutionChanges(solutionChanges);
@@ -1628,15 +1615,6 @@ namespace Microsoft.CodeAnalysis
                     documentId,
                     new DocumentInfo(newDoc.State.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
             }
-        }
-
-        [Conditional("DEBUG")]
-        private static void CheckNoChanges(Solution oldSolution, Solution newSolution)
-        {
-            var changes = newSolution.GetChanges(oldSolution);
-            Contract.ThrowIfTrue(changes.GetAddedProjects().Any());
-            Contract.ThrowIfTrue(changes.GetRemovedProjects().Any());
-            Contract.ThrowIfTrue(changes.GetProjectChanges().Any());
         }
 
         private static ProjectInfo CreateProjectInfo(Project project)

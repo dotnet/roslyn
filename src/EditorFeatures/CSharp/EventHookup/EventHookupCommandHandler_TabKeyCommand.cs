@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             AssertIsForeground();
-            if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.EventHookup))
+            if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.EventHookup))
             {
                 nextHandler();
                 return;
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             SyntaxAnnotation plusEqualsTokenAnnotation,
             CancellationToken cancellationToken)
         {
-            var root = document.Root as SyntaxNode;
+            var root = document.Root;
             var eventHookupExpression = root.GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation).Single().AsToken().GetAncestor<AssignmentExpressionSyntax>();
 
             var generatedMethodSymbol = GetMethodSymbol(document, eventHandlerMethodName, eventHookupExpression, cancellationToken);
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             AssignmentExpressionSyntax eventHookupExpression,
             CancellationToken cancellationToken)
         {
-            var semanticModel = semanticDocument.SemanticModel as SemanticModel;
+            var semanticModel = semanticDocument.SemanticModel;
             var symbolInfo = semanticModel.GetSymbolInfo(eventHookupExpression.Left, cancellationToken);
 
             var symbol = symbolInfo.Symbol;

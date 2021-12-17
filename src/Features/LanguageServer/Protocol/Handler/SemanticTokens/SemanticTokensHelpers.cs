@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,8 +18,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal class SemanticTokensHelpers
     {
-        internal static readonly string[] RoslynCustomTokenTypes =
-        {
+        /// <summary>
+        /// Maps an LSP token type to the index LSP associates with the token.
+        /// Required since we report tokens back to LSP as a series of ints,
+        /// and LSP needs a way to decipher them.
+        /// </summary>
+        public static readonly Dictionary<string, int> TokenTypeToIndex;
+
+        public static readonly ImmutableArray<string> RoslynCustomTokenTypes = ImmutableArray.Create(
             ClassificationTypeNames.ClassName,
             ClassificationTypeNames.ConstantName,
             ClassificationTypeNames.ControlKeyword,
@@ -87,8 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassificationTypeNames.XmlLiteralEntityReference,
             ClassificationTypeNames.XmlLiteralName,
             ClassificationTypeNames.XmlLiteralProcessingInstruction,
-            ClassificationTypeNames.XmlLiteralText
-        };
+            ClassificationTypeNames.XmlLiteralText);
 
         // TO-DO: Expand this mapping once support for custom token types is added:
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1085998
@@ -102,6 +107,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 [ClassificationTypeNames.Operator] = LSP.SemanticTokenTypes.Operator,
                 [ClassificationTypeNames.StringLiteral] = LSP.SemanticTokenTypes.String,
             };
+
+        static SemanticTokensHelpers()
+        {
+            // Computes the mapping between a LSP token type and its respective index recognized by LSP.
+            TokenTypeToIndex = new Dictionary<string, int>();
+            var index = 0;
+            foreach (var lspTokenType in LSP.SemanticTokenTypes.AllTypes)
+            {
+                TokenTypeToIndex.Add(lspTokenType, index);
+                index++;
+            }
+
+            foreach (var roslynTokenType in SemanticTokensHelpers.RoslynCustomTokenTypes)
+            {
+                TokenTypeToIndex.Add(roslynTokenType, index);
+                index++;
+            }
+        }
 
         /// <summary>
         /// Returns the semantic tokens data for a given document with an optional range.
@@ -122,12 +145,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
             // results but will speed up how quickly we can respond to the client's request.
             var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
-            var semanticModel = await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(semanticModel);
+            var semanticModel = await frozenDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var isFinalized = document.Project.TryGetCompilation(out var compilation) && compilation == semanticModel.Compilation;
             document = frozenDocument;
 
-            var classifiedSpans = Classifier.GetClassifiedSpans(semanticModel, textSpan, document.Project.Solution.Workspace, cancellationToken);
+            var options = ClassificationOptions.From(document.Project);
+            var classifiedSpans = Classifier.GetClassifiedSpans(document.Project.Solution.Workspace.Services, semanticModel, textSpan, options, cancellationToken);
             Contract.ThrowIfNull(classifiedSpans, "classifiedSpans is null");
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).

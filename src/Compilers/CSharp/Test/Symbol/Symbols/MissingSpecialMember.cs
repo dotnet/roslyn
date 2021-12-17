@@ -964,6 +964,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags:
                     case WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear:
+                    case WellKnownMember.System_Index__op_Implicit_FromInt32:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
@@ -2403,7 +2404,7 @@ class C
         }
 
         [Fact]
-        public void System_Decimal__op_Implicit_FromInt32()
+        public void System_Decimal__op_Implicit_FromInt32_1()
         {
             var source =
 @"using System;
@@ -2430,6 +2431,74 @@ public class Test
                 // (16,78): error CS0656: Missing compiler required member 'System.Decimal.op_Implicit'
                 //         Expression<Func<SampStruct?, decimal, decimal>> testExpr = (x, y) => x ?? y;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x ?? y").WithArguments("System.Decimal", "op_Implicit").WithLocation(16, 78)
+                );
+        }
+
+        [Fact]
+        public void System_Decimal__op_Implicit_FromInt32_2()
+        {
+            var source =
+@"
+public class Test
+{
+    static void Main()
+    {
+        int x = 1;
+        decimal y = x;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_Decimal__op_Implicit_FromInt32);
+            compilation.VerifyEmitDiagnostics(
+                // (7,21): error CS0656: Missing compiler required member 'System.Decimal.op_Implicit'
+                //         decimal y = x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Decimal", "op_Implicit").WithLocation(7, 21)
+                );
+        }
+
+        [Fact]
+        public void System_Decimal__op_Implicit_FromInt32_3()
+        {
+            var source =
+@"
+public class Test
+{
+    static void Main()
+    {
+        int? x = 1;
+        decimal? y = x;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_Decimal__op_Implicit_FromInt32);
+            compilation.VerifyEmitDiagnostics(
+                // (7,22): error CS0656: Missing compiler required member 'System.Decimal.op_Implicit'
+                //         decimal? y = x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Decimal", "op_Implicit").WithLocation(7, 22)
+                );
+        }
+
+        [Fact]
+        public void System_Decimal__op_Implicit_FromInt32_4()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+public class Test
+{
+    static void Main()
+    {
+        Expression<Func<int?, decimal?>> testExpr = (x) => x;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_Decimal__op_Implicit_FromInt32);
+            compilation.VerifyEmitDiagnostics(
+                // (9,60): error CS0656: Missing compiler required member 'System.Decimal.op_Implicit'
+                //         Expression<Func<int?, decimal?>> testExpr = (x) => x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Decimal", "op_Implicit").WithLocation(9, 60)
                 );
         }
 

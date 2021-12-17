@@ -50,19 +50,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
             => Task.FromResult<IEnumerable<SuggestedActionSet>>(NestedActionSets);
 
-        protected override void InnerInvoke(IProgressTracker progressTracker, CancellationToken cancellationToken)
+        protected override Task InnerInvokeAsync(IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             // A code action with nested actions is itself never invokable.  So just do nothing if this ever gets asked.
             // Report a message in debug and log a watson exception so that if this is hit we can try to narrow down how
             // this happened.
-            Debug.Fail("InnerInvoke should not be called on a SuggestedActionWithNestedActions");
+            Debug.Fail($"{nameof(InnerInvokeAsync)} should not be called on a {nameof(SuggestedActionWithNestedActions)}");
             try
             {
-                throw new InvalidOperationException("Invoke should not be called on a SuggestedActionWithNestedActions");
+                throw new InvalidOperationException($"{nameof(InnerInvokeAsync)} should not be called on a {nameof(SuggestedActionWithNestedActions)}");
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
+
+            return Task.CompletedTask;
         }
     }
 }

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
             // We also must set the handlers for the compiler layer as well.
             var compilerAssembly = typeof(Compilation).Assembly;
-            var compilerFatalErrorType = compilerAssembly.GetType("Microsoft.CodeAnalysis.FatalError", throwOnError: true)!;
+            var compilerFatalErrorType = compilerAssembly.GetType(typeof(FatalError).FullName, throwOnError: true)!;
             var compilerFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public)!;
             var compilerNonFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.NonFatalHandler), BindingFlags.Static | BindingFlags.Public)!;
             compilerFatalErrorHandlerProperty.SetValue(null, fatalHandler);
@@ -206,8 +206,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                         // name our services more consistently to simplify filtering
 
                         // filter logs that are not relevant to Roslyn investigation
-                        if (!name.Contains("-" + ServiceDescriptors.ServiceNameTopLevelPrefix) &&
-                            !name.Contains("-" + ServiceDescriptors.Prefix) &&
+                        if (!name.Contains("-" + ServiceDescriptor.ServiceNameTopLevelPrefix) &&
                             !name.Contains("-CodeLens") &&
                             !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
                             !name.Contains("-hub"))
