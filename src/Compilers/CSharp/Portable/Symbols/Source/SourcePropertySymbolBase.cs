@@ -46,10 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly DeclarationModifiers _modifiers;
         private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 #nullable enable
-        [Obsolete("Use GetMethod property instead.")]
-        private SourcePropertyAccessorSymbol? _getMethod;
-        [Obsolete("Use SetMethod property instead.")]
-        private SourcePropertyAccessorSymbol? _setMethod;
+        private readonly SourcePropertyAccessorSymbol? _getMethod;
+        private readonly SourcePropertyAccessorSymbol? _setMethod;
 #nullable disable
         private readonly TypeSymbol _explicitInterfaceType;
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
@@ -174,6 +172,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(!IsIndexer);
                 _ = CreateBackingField(isCreatedForFieldKeyword: false);
+            }
+
+            if (hasGetAccessor)
+            {
+                _getMethod = CreateGetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics); // PROTOTYPE: Getter and setters may have different values of isAutoPropertyAccessor.
+                // Consider public string P { get; set => field = value ?? ""; }
+            }
+            if (hasSetAccessor)
+            {
+                _setMethod = CreateSetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
             }
         }
 
@@ -600,30 +608,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The method is called at the end of <see cref="SourcePropertySymbolBase"/> constructor.
         /// The implementation may depend only on information available from the <see cref="SourcePropertySymbolBase"/> type.
         /// </summary>
-        protected abstract SourcePropertyAccessorSymbol CreateGetAccessorSymbol(BindingDiagnosticBag diagnostics);
+        protected abstract SourcePropertyAccessorSymbol CreateGetAccessorSymbol(
+            bool isAutoPropertyAccessor,
+            BindingDiagnosticBag diagnostics);
 
         /// <summary>
         /// The method is called at the end of <see cref="SourcePropertySymbolBase"/> constructor.
         /// The implementation may depend only on information available from the <see cref="SourcePropertySymbolBase"/> type.
         /// </summary>
-        protected abstract SourcePropertyAccessorSymbol CreateSetAccessorSymbol(BindingDiagnosticBag diagnostics);
-
-        private SourcePropertyAccessorSymbol? GetMethodAccessorMethod => GetMethod as SourcePropertyAccessorSymbol;
-
-        private SourcePropertyAccessorSymbol? SetMethodAccessorMethod => SetMethod as SourcePropertyAccessorSymbol;
+        protected abstract SourcePropertyAccessorSymbol CreateSetAccessorSymbol(
+            bool isAutoPropertyAccessor,
+            BindingDiagnosticBag diagnostics);
 
         public sealed override MethodSymbol? GetMethod
         {
             get
             {
-#pragma warning disable CS0618
-                if ((_propertyFlags & Flags.HasGetAccessor) != 0 && _getMethod is null)
-                {
-                    InterlockedOperations.Initialize(ref _getMethod, CreateGetAccessorSymbol(_diagnostics));
-                }
-
                 return _getMethod;
-#pragma warning restore CS0618
             }
         }
 
@@ -631,14 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-#pragma warning disable CS0618
-                if ((_propertyFlags & Flags.HasSetAccessor) != 0 && _setMethod is null)
-                {
-                    InterlockedOperations.Initialize(ref _setMethod, CreateSetAccessorSymbol(_diagnostics));
-                }
-
                 return _setMethod;
-#pragma warning restore CS0618
             }
         }
 
@@ -711,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal bool IsAutoPropertyWithGetAccessor
-            => IsAutoProperty && GetMethod is object;
+            => IsAutoProperty && _getMethod is object;
 
         internal bool IsAutoProperty
         {
@@ -829,28 +823,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (hasGetAccessor && hasSetAccessor)
                 {
-                    Debug.Assert(GetMethodAccessorMethod is object);
-                    Debug.Assert(SetMethodAccessorMethod is object);
+                    Debug.Assert(_getMethod is object);
+                    Debug.Assert(_setMethod is object);
 
                     if (_refKind != RefKind.None)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, SetMethodAccessorMethod.Locations[0], SetMethodAccessorMethod);
+                        diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, _setMethod.Locations[0], _setMethod);
                     }
-                    else if ((GetMethodAccessorMethod.LocalAccessibility != Accessibility.NotApplicable) &&
-                        (SetMethodAccessorMethod.LocalAccessibility != Accessibility.NotApplicable))
+                    else if ((_getMethod.LocalAccessibility != Accessibility.NotApplicable) &&
+                        (_setMethod.LocalAccessibility != Accessibility.NotApplicable))
                     {
                         // Check accessibility is set on at most one accessor.
                         diagnostics.Add(ErrorCode.ERR_DuplicatePropertyAccessMods, Location, this);
                     }
-                    else if (GetMethodAccessorMethod.LocalDeclaredReadOnly && SetMethodAccessorMethod.LocalDeclaredReadOnly)
+                    else if (_getMethod.LocalDeclaredReadOnly && _setMethod.LocalDeclaredReadOnly)
                     {
                         diagnostics.Add(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, Location, this);
                     }
                     else if (this.IsAbstract)
                     {
                         // Check abstract property accessors are not private.
-                        CheckAbstractPropertyAccessorNotPrivate(GetMethodAccessorMethod, diagnostics);
-                        CheckAbstractPropertyAccessorNotPrivate(SetMethodAccessorMethod, diagnostics);
+                        CheckAbstractPropertyAccessorNotPrivate(_getMethod, diagnostics);
+                        CheckAbstractPropertyAccessorNotPrivate(_setMethod, diagnostics);
                     }
                 }
                 else
@@ -873,7 +867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (!this.IsOverride)
                     {
-                        var accessor = GetMethodAccessorMethod ?? SetMethodAccessorMethod;
+                        var accessor = _getMethod ?? _setMethod;
                         if (accessor is object)
                         {
                             // Check accessibility is not set on the one accessor.
@@ -892,8 +886,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // Check accessor accessibility is more restrictive than property accessibility.
-                CheckAccessibilityMoreRestrictive(GetMethodAccessorMethod, diagnostics);
-                CheckAccessibilityMoreRestrictive(SetMethodAccessorMethod, diagnostics);
+                CheckAccessibilityMoreRestrictive(_getMethod, diagnostics);
+                CheckAccessibilityMoreRestrictive(_setMethod, diagnostics);
             }
 
             PropertySymbol? explicitlyImplementedProperty = ExplicitInterfaceImplementations.FirstOrDefault();
