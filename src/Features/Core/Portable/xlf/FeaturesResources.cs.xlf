@@ -242,12 +242,12 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression">
         <source>Await the preceding expression</source>
-        <target state="new">Await the preceding expression</target>
+        <target state="translated">Počkat na předchozí výraz</target>
         <note />
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
         <source>Await the preceding expression and add ConfigureAwait({0}).</source>
-        <target state="new">Await the preceding expression and add ConfigureAwait({0}).</target>
+        <target state="translated">Počkejte na předchozí výraz a přidejte ConfigureAwait({0}).</target>
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -567,7 +567,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Explicitly_inherit_documentation">
         <source>Explicitly inherit documentation</source>
-        <target state="new">Explicitly inherit documentation</target>
+        <target state="translated">Explicitně dědit dokumentaci</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -617,12 +617,12 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
         <source>Generate abstract method '{0}'</source>
-        <target state="new">Generate abstract method '{0}'</target>
+        <target state="translated">Generovat abstraktní metodu {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_property_0">
         <source>Generate abstract property '{0}'</source>
-        <target state="new">Generate abstract property '{0}'</target>
+        <target state="translated">Generovat abstraktní vlastnost {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">
@@ -632,7 +632,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Generate_constant_0">
         <source>Generate constant '{0}'</source>
-        <target state="new">Generate constant '{0}'</target>
+        <target state="translated">Generovat konstantu {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -647,12 +647,12 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
-        <target state="new">Generate enum member '{0}'</target>
+        <target state="translated">Generovat člena výčtu {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_field_0">
         <source>Generate field '{0}'</source>
-        <target state="new">Generate field '{0}'</target>
+        <target state="translated">Generovat pole {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -662,7 +662,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Generate_method_0">
         <source>Generate method '{0}'</source>
-        <target state="new">Generate method '{0}'</target>
+        <target state="translated">Generovat metodu {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -677,17 +677,17 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Generate_property_0">
         <source>Generate property '{0}'</source>
-        <target state="new">Generate property '{0}'</target>
+        <target state="translated">Generovat vlastnost {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_field_0">
         <source>Generate read-only field '{0}'</source>
-        <target state="new">Generate read-only field '{0}'</target>
+        <target state="translated">Generovat pole {0} jen pro čtení</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_property_0">
         <source>Generate read-only property '{0}'</source>
-        <target state="new">Generate read-only property '{0}'</target>
+        <target state="translated">Generovat vlastnost {0} jen pro čtení</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -912,7 +912,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
-        <target state="new">Miscellaneous Files</target>
+        <target state="translated">Různé soubory</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_control_character">
@@ -1022,7 +1022,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Move_static_members_to_another_type">
         <source>Move static members to another type...</source>
-        <target state="new">Move static members to another type...</target>
+        <target state="translated">Přesunout statické členy do jiného typu…</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1230,11 +1230,11 @@ Tato možnost se doporučuje, pokud víte, že zpětné vyhledávání nepovede 
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="new">A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
+        <target state="translated">Definice vyrovnávací skupiny odstraní definici dříve definované skupiny a uloží interval mezi dříve definovanou skupinou a aktuální skupinou do aktuální skupiny.
 
-'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
+Skupina name1 je aktuální skupina (volitelná), skupina name2 je dříve definovaná skupina a subexpression je libovolný platný vzor regulárního výrazu. Definice vyrovnávací skupiny odstraní definici skupiny name2 a uloží interval mezi skupinami name2 a name1 do skupiny name1. Pokud není definována žádná skupina name2, porovnávání se vrátí zpět. Vzhledem k tomu, že odstraněním poslední definice skupiny name2 se odkryje předchozí definice skupiny name2, umožňuje tento konstruktor použít zásobník zachycení pro skupinu name2 jako čítač pro uchování přehledu o vnořených konstruktorech, jako jsou kulaté nebo hranaté otevírací a uzavírací závorky.
 
-The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</target>
+Definice vyrovnávací skupiny používá jako zásobník skupinu name2. Počáteční znak každého vnořeného konstruktoru se umístí do této skupiny a do její kolekce Group.Captures. Po nalezení uzavíracího znaku se odpovídající otevírací znak odebere ze skupiny a kolekce Captures se zmenší o jednu položku. Po nalezení otevíracích a uzavíracích znaků všech vnořených konstruktorů bude skupina name1 prázdná.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
@@ -2307,7 +2307,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="Silent">
         <source>Silent</source>
-        <target state="new">Silent</target>
+        <target state="translated">Silent</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
@@ -2377,7 +2377,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
-        <target state="new">Types:</target>
+        <target state="translated">Typy:</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">

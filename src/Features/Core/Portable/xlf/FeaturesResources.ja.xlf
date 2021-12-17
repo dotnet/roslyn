@@ -242,12 +242,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression">
         <source>Await the preceding expression</source>
-        <target state="new">Await the preceding expression</target>
+        <target state="translated">前の式を待機する</target>
         <note />
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
         <source>Await the preceding expression and add ConfigureAwait({0}).</source>
-        <target state="new">Await the preceding expression and add ConfigureAwait({0}).</target>
+        <target state="translated">前の式を待機し、ConfigureAwait ({0}) を追加します。</target>
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -567,7 +567,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Explicitly_inherit_documentation">
         <source>Explicitly inherit documentation</source>
-        <target state="new">Explicitly inherit documentation</target>
+        <target state="translated">ドキュメントを明示的に継承する</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -617,12 +617,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
         <source>Generate abstract method '{0}'</source>
-        <target state="new">Generate abstract method '{0}'</target>
+        <target state="translated">抽象メソッド '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_property_0">
         <source>Generate abstract property '{0}'</source>
-        <target state="new">Generate abstract property '{0}'</target>
+        <target state="translated">抽象プロパティ '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">
@@ -632,7 +632,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_constant_0">
         <source>Generate constant '{0}'</source>
-        <target state="new">Generate constant '{0}'</target>
+        <target state="translated">定数 '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -647,12 +647,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
-        <target state="new">Generate enum member '{0}'</target>
+        <target state="translated">列挙型メンバー '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_field_0">
         <source>Generate field '{0}'</source>
-        <target state="new">Generate field '{0}'</target>
+        <target state="translated">フィールド '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -662,7 +662,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_method_0">
         <source>Generate method '{0}'</source>
-        <target state="new">Generate method '{0}'</target>
+        <target state="translated">メソッド '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -677,17 +677,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_property_0">
         <source>Generate property '{0}'</source>
-        <target state="new">Generate property '{0}'</target>
+        <target state="translated">プロパティ '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_field_0">
         <source>Generate read-only field '{0}'</source>
-        <target state="new">Generate read-only field '{0}'</target>
+        <target state="translated">読み取り専用フィールド '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_property_0">
         <source>Generate read-only property '{0}'</source>
-        <target state="new">Generate read-only property '{0}'</target>
+        <target state="translated">読み取り専用プロパティ '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -912,7 +912,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
-        <target state="new">Miscellaneous Files</target>
+        <target state="translated">その他のファイル</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_control_character">
@@ -1022,7 +1022,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Move_static_members_to_another_type">
         <source>Move static members to another type...</source>
-        <target state="new">Move static members to another type...</target>
+        <target state="translated">静的メンバーを別の型に移行する...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1230,11 +1230,11 @@ This option is recommended if you know that backtracking will not succeed. Preve
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="new">A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
+        <target state="translated">グループ定義の均等化では、既に定義されていたグループの定義を削除し、現在のグループにおいて、既に定義されていたグループと現在のグループの間の差分を保存します。
 
-'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
+ "name1" は現在のグループ (オプション) で、"name2" は既に定義されていたグループで、"subexpression" は有効な正規表現パターンです。グループ定義の均等化では、name2 の定義を削除し、name2 と name1 の間の差分を name1 に格納します。name2 グループが定義されていない場合、一致は差し戻します。name2 の最新の定義を削除すると、name2 の以前の定義が明らかになるため、このコンストラクトによって、かっこや左右の角かっこなど入れ子になったコンストラクトを追跡するカウンターとして name2 グループのキャプチャのスタックを使用できます。
 
-The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</target>
+グループ定義の均等化では、"name2" をスタックとして使用します。入れ子になった各コンストラクトの開始文字が、グループとその Group.Captures コレクションに配置されます。終了文字が一致すると、対応する開始文字がグループから削除され、Captures コレクションが 1 つ減らされます。入れ子になったすべてのコンストラクトの開始文字と終了文字が一致したら、"name1" は空になります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
@@ -2307,7 +2307,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Silent">
         <source>Silent</source>
-        <target state="new">Silent</target>
+        <target state="translated">サイレント</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
@@ -2377,7 +2377,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
-        <target state="new">Types:</target>
+        <target state="translated">型:</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">

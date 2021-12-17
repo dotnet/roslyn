@@ -242,12 +242,12 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression">
         <source>Await the preceding expression</source>
-        <target state="new">Await the preceding expression</target>
+        <target state="translated">Önceki ifadeyi bekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
         <source>Await the preceding expression and add ConfigureAwait({0}).</source>
-        <target state="new">Await the preceding expression and add ConfigureAwait({0}).</target>
+        <target state="translated">Önceki ifadeyi bekleyin ve ConfigureAwait({0}) ekleyin.</target>
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -567,7 +567,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Explicitly_inherit_documentation">
         <source>Explicitly inherit documentation</source>
-        <target state="new">Explicitly inherit documentation</target>
+        <target state="translated">Belgeleri açıkça devral</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -617,12 +617,12 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
         <source>Generate abstract method '{0}'</source>
-        <target state="new">Generate abstract method '{0}'</target>
+        <target state="translated">'{0}' soyut metodunu üret</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_property_0">
         <source>Generate abstract property '{0}'</source>
-        <target state="new">Generate abstract property '{0}'</target>
+        <target state="translated">'{0}' soyut özelliğini üret</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">
@@ -632,7 +632,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Generate_constant_0">
         <source>Generate constant '{0}'</source>
-        <target state="new">Generate constant '{0}'</target>
+        <target state="translated">'{0}' sabitini üret</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -647,12 +647,12 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
-        <target state="new">Generate enum member '{0}'</target>
+        <target state="translated">'{0}' sabit listesi üyesini üret</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_field_0">
         <source>Generate field '{0}'</source>
-        <target state="new">Generate field '{0}'</target>
+        <target state="translated">'{0}' alanını üret</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -662,7 +662,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Generate_method_0">
         <source>Generate method '{0}'</source>
-        <target state="new">Generate method '{0}'</target>
+        <target state="translated">'{0}' metodunu üret</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -677,17 +677,17 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Generate_property_0">
         <source>Generate property '{0}'</source>
-        <target state="new">Generate property '{0}'</target>
+        <target state="translated">'{0}' özelliğini üret</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_field_0">
         <source>Generate read-only field '{0}'</source>
-        <target state="new">Generate read-only field '{0}'</target>
+        <target state="translated">'{0}' salt okunur alanını üret</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_property_0">
         <source>Generate read-only property '{0}'</source>
-        <target state="new">Generate read-only property '{0}'</target>
+        <target state="translated">'{0}' salt okunur özelliğini üret</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -912,7 +912,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
-        <target state="new">Miscellaneous Files</target>
+        <target state="translated">Diğer Dosyalar</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_control_character">
@@ -1022,7 +1022,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Move_static_members_to_another_type">
         <source>Move static members to another type...</source>
-        <target state="new">Move static members to another type...</target>
+        <target state="translated">Statik üyeleri başka bir türe taşı...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1230,11 +1230,11 @@ Bu seçenek, geri izlemenin başarısız olacağını biliyorsanız önerilir. N
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="new">A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
+        <target state="translated">Bir dengeleme grubu tanımı, geçerli grupta, önceden tanımlanmış grup ile geçerli grup arasındaki aralıkta, önceden tanımlanmış bir grubun ve depoların tanımını siler.
 
-'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
+'name1' geçerli grup (isteğe bağlı), 'name2' önceden tanımlanmış bir grup ve 'subexpression' ise herhangi bir geçerli normal ifade desenidir. Dengeleme grubu tanımı name2'nin tanımını siler ve name2 ile name1 arasındaki aralığı name1'e depolar. Bir name2 grubu tanımlanmamışsa, eşleşme geri iz sürer. name2'nin son tanımını silmek, name2'nin önceki tanımını ortaya çıkardığından, bu yapı name2 grubu için yakalama yığınını, parantez veya açma ve kapama ayracı gibi iç içe yapıları izlemek için bir sayaç olarak kullanmanıza olanak sağlar.
 
-The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</target>
+Dengeleme grubu tanımı 'name2' öğesini bir yığın olarak kullanır. Her iç içe yapının başlangıç karakteri, gruba ve grubun Group.Captures koleksiyonuna yerleştirilir. Kapanış karakteri eşleştiğinde, karşılık gelen açma karakteri gruptan kaldırılır ve Captures koleksiyonunda bir öğe azalır. İç içe tüm yapıların açılış ve kapanış karakterleri eşleştirildikten sonra, 'name1' boş olur.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
@@ -2307,7 +2307,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Silent">
         <source>Silent</source>
-        <target state="new">Silent</target>
+        <target state="translated">Sessiz</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
@@ -2377,7 +2377,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
-        <target state="new">Types:</target>
+        <target state="translated">Türler:</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">

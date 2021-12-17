@@ -242,12 +242,12 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression">
         <source>Await the preceding expression</source>
-        <target state="new">Await the preceding expression</target>
+        <target state="translated">Oczekuj poprzedniego wyrażenia</target>
         <note />
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
         <source>Await the preceding expression and add ConfigureAwait({0}).</source>
-        <target state="new">Await the preceding expression and add ConfigureAwait({0}).</target>
+        <target state="translated">Oczekuj poprzedniego wyrażenia i dodaj ConfigureAwait({0}).</target>
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -567,7 +567,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Explicitly_inherit_documentation">
         <source>Explicitly inherit documentation</source>
-        <target state="new">Explicitly inherit documentation</target>
+        <target state="translated">Wyraźnie dziedziczona dokumentacja</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -617,12 +617,12 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
         <source>Generate abstract method '{0}'</source>
-        <target state="new">Generate abstract method '{0}'</target>
+        <target state="translated">Generuj metodę abstrakcyjną „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_property_0">
         <source>Generate abstract property '{0}'</source>
-        <target state="new">Generate abstract property '{0}'</target>
+        <target state="translated">Generuj właściwość abstrakcyjną „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">
@@ -632,7 +632,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Generate_constant_0">
         <source>Generate constant '{0}'</source>
-        <target state="new">Generate constant '{0}'</target>
+        <target state="translated">Generuj stałą „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -647,12 +647,12 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
-        <target state="new">Generate enum member '{0}'</target>
+        <target state="translated">Generuj składową wyliczenia „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_field_0">
         <source>Generate field '{0}'</source>
-        <target state="new">Generate field '{0}'</target>
+        <target state="translated">Generuj pole „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -662,7 +662,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Generate_method_0">
         <source>Generate method '{0}'</source>
-        <target state="new">Generate method '{0}'</target>
+        <target state="translated">Generuj metodę „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -677,17 +677,17 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Generate_property_0">
         <source>Generate property '{0}'</source>
-        <target state="new">Generate property '{0}'</target>
+        <target state="translated">Generuj właściwość „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_field_0">
         <source>Generate read-only field '{0}'</source>
-        <target state="new">Generate read-only field '{0}'</target>
+        <target state="translated">Generuj pole tylko do odczytu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_property_0">
         <source>Generate read-only property '{0}'</source>
-        <target state="new">Generate read-only property '{0}'</target>
+        <target state="translated">Generuj właściwość tylko do odczytu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -912,7 +912,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
-        <target state="new">Miscellaneous Files</target>
+        <target state="translated">Różne pliki</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_control_character">
@@ -1022,7 +1022,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Move_static_members_to_another_type">
         <source>Move static members to another type...</source>
-        <target state="new">Move static members to another type...</target>
+        <target state="translated">Przenieś statyczne składowe do innego typu...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1230,11 +1230,11 @@ Ta opcja jest zalecana, jeśli wiesz, że cofanie się nie powiedzie się. Zapob
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="new">A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
+        <target state="translated">Definicja grupy dopasowywania usuwa definicję uprzednio sprecyzowanej grupy i zapisuje w aktualnej grupie interwał między poprzednio zdefiniowaną grupą a aktualną grupą.
 
-'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
+Element „name1” to aktualna grupa (opcjonalna), element „name2” to wcześniej zdefiniowana grupa, a element „subexpression” to dowolny prawidłowy wzorzec wyrażenia regularnego. Definicja grupy dopasowywania usuwa definicję elementu name2 i zapisuje interwał między elementami name2 i name1 w elemencie name1. Jeśli nie zdefiniowano grupy name2, następują śledzenia wsteczne dopasowania. Ponieważ usunięcie ostatniej definicji elementu name2 ujawnia jego poprzednią definicję, ta konstrukcja umożliwia użycie stosu przechwyceń dla grupy name2 jako licznika służącego do śledzenia zagnieżdżonych konstrukcji, takich jak nawiasy lub otwierające i zamykające nawiasy klamrowe.
 
-The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</target>
+Definicja grupy dopasowywania używa elementu „name2” jako stosu. Początkowy znak każdej zagnieżdżonej konstrukcji jest umieszczany w grupie i w jej kolekcji Group.Captures. Po dopasowaniu znaku zamykającego odpowiadający mu znak otwierający jest usuwany z grupy, a kolekcja Captures jest zmniejszana o jeden. Po dopasowaniu otwierających i zamykających znaków wszystkich zagnieżdżonych konstrukcji element „name1” będzie pusty.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
@@ -2307,7 +2307,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Silent">
         <source>Silent</source>
-        <target state="new">Silent</target>
+        <target state="translated">Cichy</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
@@ -2377,7 +2377,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
-        <target state="new">Types:</target>
+        <target state="translated">Typy:</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
