@@ -71,8 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private SynthesizedBackingFieldSymbol _lazyBackingFieldSymbol;
 
-        private readonly BindingDiagnosticBag _diagnostics;
-
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
 
         public Location Location { get; }
@@ -106,7 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = refKind;
             _modifiers = modifiers;
             _explicitInterfaceType = explicitInterfaceType;
-            _diagnostics = diagnostics;
 
             if (isExplicitInterfaceImplementation)
             {
@@ -168,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name = _lazySourceName = memberName;
             }
 
-            if ((isAutoProperty && hasGetAccessor) || hasInitializer)
+            if (isAutoProperty || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
                 _ = CreateBackingField(isCreatedForFieldKeyword: false);
@@ -406,12 +403,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // we see an initializer. In this case binding is needed to know whether it's an auto property. See CreateBackingField method.
                     if (this is SourcePropertySymbol { ContainsFieldKeyword: true } propertySymbol)
                     {
-                        if (propertySymbol.GetMethod is SourceMemberMethodSymbol getMethod)
+                        if (_lazyBackingFieldSymbol is null && propertySymbol.GetMethod is SourceMemberMethodSymbol getMethod)
                         {
                             var binder = getMethod.TryGetBodyBinder();
                             binder?.BindMethodBody(getMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
                         }
-                        if (propertySymbol.SetMethod is SourceMemberMethodSymbol setMethod)
+                        if (_lazyBackingFieldSymbol is null && propertySymbol.SetMethod is SourceMemberMethodSymbol setMethod)
                         {
                             setMethod.TryGetBodyBinder()?.BindMethodBody(setMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
                         }
@@ -859,10 +856,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, Location, this);
                         }
-                    }
-                    else if (!hasGetAccessor && IsAutoProperty)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, SetMethod!.Locations[0], SetMethod);
                     }
 
                     if (!this.IsOverride)

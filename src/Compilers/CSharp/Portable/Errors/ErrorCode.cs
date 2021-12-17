@@ -1291,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         INF_UnableToLoadSomeTypesInAnalyzer = 8040,
         // available 8041-8049
         ERR_InitializerOnNonAutoProperty = 8050,
-        ERR_AutoPropertyMustHaveGetAccessor = 8051,
+        // ERR_AutoPropertyMustHaveGetAccessor = 8051, Removed with semi auto properties.
         // ERR_AutoPropertyInitializerInInterface = 8052,
         ERR_InstancePropertyInitializerInInterface = 8053,
         ERR_EnumsCantContainDefaultConstructor = 8054,
