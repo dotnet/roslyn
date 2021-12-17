@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using System;
 using System.Threading;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
 
@@ -12,6 +14,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract class AbstractPackage : AsyncPackage
     {
+        private IComponentModel _componentModel_doNotAccessDirectly;
+
+        internal IComponentModel ComponentModel
+        {
+            get
+            {
+                Assumes.Present(_componentModel_doNotAccessDirectly);
+                return _componentModel_doNotAccessDirectly;
+            }
+        }
+
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            _componentModel_doNotAccessDirectly = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+        }
+
         protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
         {
             // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
