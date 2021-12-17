@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
@@ -32,9 +33,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public async Task ErrorTagGeneratedForErrorInSourceGeneratedDocument()
+        {
+            var spans = await GetTagSpansInSourceGeneratedDocumentAsync("class C {");
+            Assert.Equal(1, spans.Count());
+
+            var firstSpan = spans.First();
+            Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
+        }
+
         private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(string content)
         {
             using var workspace = TestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
+            return await GetTagSpansAsync(workspace);
+        }
+
+        private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansInSourceGeneratedDocumentAsync(string content)
+        {
+            var workspaceElement = $@"<Workspace>
+  <Project AssemblyName=""Test"" Language=""C#"" CommonReferences=""true"">
+    <DocumentFromSourceGenerator FilePath=""test1.cs"">{new XText(content)}</DocumentFromSourceGenerator>
+  </Project>
+</Workspace>";
+            using var workspace = TestWorkspace.Create(workspaceElement, composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
             return await GetTagSpansAsync(workspace);
         }
 
