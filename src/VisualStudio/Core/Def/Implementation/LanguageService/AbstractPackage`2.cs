@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             get
             {
-                Contract.ThrowIfNull(_componentModel_doNotAccessDirectly);
+                Assumes.Present(_componentModel_doNotAccessDirectly);
                 return _componentModel_doNotAccessDirectly;
             }
         }
