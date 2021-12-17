@@ -42,11 +42,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-            await TaskScheduler.Default;
-            _componentModel_doNotAccessDirectly = await this.GetServiceAsync<SComponentModel, IComponentModel>(throwOnFailure: true).ConfigureAwait(false);
-
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            _componentModel_doNotAccessDirectly = await this.GetServiceAsync<SComponentModel, IComponentModel>(throwOnFailure: true).ConfigureAwait(true);
             var shell = (IVsShell7)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
             var solution = (IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
             cancellationToken.ThrowIfCancellationRequested();
