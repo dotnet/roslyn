@@ -25807,9 +25807,9 @@ abstract record C
                 // (6,16): error CS0144: Cannot create an instance of the abstract type or interface 'C'
                 //         C x0 = new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(6, 16),
-                // (7,21): error CS0144: Cannot create an instance of the abstract type or interface 'C'
+                // (7,18): error CS0144: Cannot create an instance of the abstract type or interface 'C'
                 //         var x1 = (C)new();
-                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(7, 21)
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "(C)new()").WithArguments("C").WithLocation(7, 18)
                 );
         }
 
