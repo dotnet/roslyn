@@ -30,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             _componentModel_doNotAccessDirectly = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+            Assumes.Present(_componentModel_doNotAccessDirectly);
         }
 
         protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
