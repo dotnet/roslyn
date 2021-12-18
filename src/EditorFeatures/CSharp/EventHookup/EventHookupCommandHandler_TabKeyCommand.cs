@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -307,7 +307,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                         editSpan = memberAccessExpression.Name.Span;
                     }
 
-                    _inlineRenameService.StartInlineSession(document, editSpan, cancellationToken);
+                    var options = new SymbolRenameOptions();
+                    _inlineRenameService.StartInlineSession(document, editSpan, options, cancellationToken);
                     textView.SetSelection(editSpan.ToSnapshotSpan(textView.TextSnapshot));
                 }
             }

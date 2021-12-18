@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         /// multiple times.  For example, this can be called one time for the initial set of
         /// locations to rename, as well as any time the rename options are changed by the user.
         /// </summary>
-        Task<IVSTypeScriptInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken);
+        Task<IVSTypeScriptInlineRenameLocationSet> FindRenameLocationsAsync(bool renameInComments, bool renameInStrings, CancellationToken cancellationToken);
 
         /// <summary>
         /// Called before the rename is applied to the specified documents in the workspace.  Return 

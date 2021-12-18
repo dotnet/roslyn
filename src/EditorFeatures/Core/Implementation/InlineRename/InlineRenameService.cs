@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     [Export(typeof(IInlineRenameService))]
     [Export(typeof(InlineRenameService))]
-    internal class InlineRenameService : IInlineRenameService
+    internal sealed class InlineRenameService : IInlineRenameService
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public InlineRenameSessionInfo StartInlineSession(
             Document document,
             TextSpan textSpan,
+            SymbolRenameOptions options,
             CancellationToken cancellationToken)
         {
             if (_activeRenameSession != null)
@@ -86,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 document.Project.Solution.Workspace,
                 renameInfo.TriggerSpan.ToSnapshotSpan(snapshot),
                 renameInfo,
+                options,
                 _uiThreadOperationExecutor,
                 _textBufferAssociatedViewService,
                 _textBufferFactoryService,

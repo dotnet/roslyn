@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
@@ -154,7 +154,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             var methodNameAtInvocation = result.InvocationNameToken;
             var snapshotAfterFormatting = textBuffer.CurrentSnapshot;
             var documentAfterFormatting = snapshotAfterFormatting.GetOpenDocumentInCurrentContextWithChanges();
-            _renameService.StartInlineSession(documentAfterFormatting, methodNameAtInvocation.Span, cancellationToken);
+            var options = new SymbolRenameOptions();
+            _renameService.StartInlineSession(documentAfterFormatting, methodNameAtInvocation.Span, options, cancellationToken);
 
             // select invocation span
             view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(snapshotAfterFormatting, methodNameAtInvocation.Span.End));

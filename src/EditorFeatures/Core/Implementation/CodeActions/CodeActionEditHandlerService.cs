@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -345,7 +346,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                                 var snapshot = openDocument.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
                                 if (snapshot != null)
                                 {
-                                    _renameService.StartInlineSession(openDocument, resolvedRenameToken.AsToken().Span, cancellationToken);
+                                    var options = new SymbolRenameOptions();
+                                    _renameService.StartInlineSession(openDocument, resolvedRenameToken.AsToken().Span, options, cancellationToken);
                                 }
                             }
                         }

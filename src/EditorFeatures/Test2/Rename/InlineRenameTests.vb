@@ -123,11 +123,7 @@ class [|Test1$$|]
                         </Project>
                     </Workspace>, host)
 
-                Dim options = workspace.CurrentSolution.Options
-                workspace.TryApplyChanges(
-                    workspace.CurrentSolution.WithOptions(options.WithChangedOption(RenameOptions.RenameFile, True)))
-
-                Dim session = StartSession(workspace)
+                Dim session = StartSession(workspace, New SymbolRenameOptions(RenameFile:=True))
 
                 Dim selectedSpan = workspace.DocumentWithCursor.CursorPosition.Value
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
@@ -243,14 +239,11 @@ class Deconstructable
                                                            Optional renameInComments As Boolean = False,
                                                            Optional renameFile As Boolean = False,
                                                            Optional fileToRename As DocumentId = Nothing) As Task
-            Dim optionSet = workspace.Options
-            optionSet = optionSet.WithChangedOption(RenameOptions.RenameOverloads, renameOverloads)
-            optionSet = optionSet.WithChangedOption(RenameOptions.RenameInStrings, renameInStrings)
-            optionSet = optionSet.WithChangedOption(RenameOptions.RenameInComments, renameInComments)
-            optionSet = optionSet.WithChangedOption(RenameOptions.RenameFile, renameFile)
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet))
-
-            Dim session = StartSession(workspace)
+            Dim session = StartSession(workspace, New SymbolRenameOptions(
+                RenameOverloads:=renameOverloads,
+                RenameInStrings:=renameInStrings,
+                RenameInComments:=renameInComments,
+                RenameFile:=renameFile))
 
             ' Type a bit in the file
             Dim renameDocument As TestHostDocument = workspace.DocumentWithCursor
@@ -2101,7 +2094,7 @@ class [|C|]
                 Dim session = StartSession(workspace)
 
                 session.ApplyReplacementText("Example", True)
-                session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameInComments, True)
+                session.RefreshRenameSessionWithOptionsChanged(New SymbolRenameOptions(RenameInComments:=True))
 
                 session.Commit()
 

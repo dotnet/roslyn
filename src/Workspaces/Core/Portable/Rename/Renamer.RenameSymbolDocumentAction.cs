@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Rename
             public override string GetDescription(CultureInfo? culture)
                 => string.Format(WorkspacesResources.ResourceManager.GetString("Rename_0_to_1", culture ?? WorkspacesResources.Culture)!, _analysis.OriginalDocumentName, _analysis.NewDocumentName);
 
-            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
+            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, DocumentRenameOptions options, CancellationToken cancellationToken)
             {
                 var solution = document.Project.Solution;
 
@@ -51,8 +51,14 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var symbol = semanticModel.GetRequiredDeclaredSymbol(matchingTypeDeclaration, cancellationToken);
+                    
+                    var symbolRenameOptions = new SymbolRenameOptions(
+                        RenameOverloads: false,
+                        RenameInComments: options.RenameMatchingTypeInComments,
+                        RenameInStrings: options.RenameMatchingTypeInStrings,
+                        RenameFile: false);
 
-                    solution = await RenameSymbolAsync(solution, symbol, _analysis.NewSymbolName, optionSet, cancellationToken).ConfigureAwait(false);
+                    solution = await RenameSymbolAsync(solution, symbol, _analysis.NewSymbolName, symbolRenameOptions, cancellationToken).ConfigureAwait(false);
                 }
 
                 return solution;

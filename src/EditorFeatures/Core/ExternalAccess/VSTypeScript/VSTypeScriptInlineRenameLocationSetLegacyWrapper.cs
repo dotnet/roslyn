@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Rename;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
@@ -30,9 +31,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public IList<InlineRenameLocation> Locations { get; }
 
-        public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, OptionSet optionSet, CancellationToken cancellationToken)
+        public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, SymbolRenameOptions options, CancellationToken cancellationToken)
         {
-            var info = await _set.GetReplacementsAsync(replacementText, optionSet, cancellationToken).ConfigureAwait(false);
+            var info = await _set.GetReplacementsAsync(replacementText, optionSet: null, cancellationToken).ConfigureAwait(false);
             if (info != null)
             {
                 return new VSTypeScriptInlineRenameReplacementInfoLegacyWrapper(info);

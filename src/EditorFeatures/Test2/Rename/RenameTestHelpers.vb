@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -42,27 +43,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return (solution.GetDocument(hostdoc.Id), token.Span)
         End Function
 
-        Public Function StartSession(workspace As TestWorkspace) As InlineRenameSession
+        Public Function StartSession(workspace As TestWorkspace, Optional options As SymbolRenameOptions = Nothing) As InlineRenameSession
             Dim renameService = workspace.GetService(Of IInlineRenameService)()
             Dim sessionInfo = GetSessionInfo(workspace)
 
-            Return DirectCast(renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan).Session, InlineRenameSession)
+            Return DirectCast(renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan, options, CancellationToken.None).Session, InlineRenameSession)
         End Function
 
-        Public Sub AssertTokenRenamable(workspace As TestWorkspace)
+        Public Sub AssertTokenRenamable(workspace As TestWorkspace, Optional options As SymbolRenameOptions = Nothing)
             Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)
             Dim sessionInfo = GetSessionInfo(workspace)
 
-            Dim result = renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan, CancellationToken.None)
+            Dim result = renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan, options, CancellationToken.None)
             Assert.True(result.CanRename)
             Assert.Null(result.LocalizedErrorMessage)
         End Sub
 
-        Public Sub AssertTokenNotRenamable(workspace As TestWorkspace)
+        Public Sub AssertTokenNotRenamable(workspace As TestWorkspace, Optional options As SymbolRenameOptions = Nothing)
             Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)
             Dim sessionInfo = GetSessionInfo(workspace)
 
-            Dim result = renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan, CancellationToken.None)
+            Dim result = renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan, options, CancellationToken.None)
             Assert.False(result.CanRename)
             Assert.NotNull(result.LocalizedErrorMessage)
         End Sub

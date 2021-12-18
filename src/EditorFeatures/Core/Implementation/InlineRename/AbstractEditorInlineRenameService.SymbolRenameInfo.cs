@@ -183,11 +183,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return replacementText;
             }
 
-            public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet? optionSet, CancellationToken cancellationToken)
+            public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(SymbolRenameOptions options, CancellationToken cancellationToken)
             {
                 var solution = _document.Project.Solution;
                 var locations = await Renamer.FindRenameLocationsAsync(
-                    solution, this.RenameSymbol, RenameOptionSet.From(solution, optionSet), cancellationToken).ConfigureAwait(false);
+                    solution, this.RenameSymbol, options, cancellationToken).ConfigureAwait(false);
 
                 return new InlineRenameLocationSet(this, locations);
             }

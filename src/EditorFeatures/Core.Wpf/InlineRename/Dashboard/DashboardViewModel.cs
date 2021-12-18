@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _renameOverloadsVisibility = session.HasRenameOverloads ? Visibility.Visible : Visibility.Collapsed;
             _isRenameOverloadsEditable = !session.ForceRenameOverloads;
 
-            _defaultRenameOverloadFlag = session.OptionSet.GetOption(RenameOptions.RenameOverloads) || session.ForceRenameOverloads;
-            _defaultRenameInStringsFlag = session.OptionSet.GetOption(RenameOptions.RenameInStrings);
-            _defaultRenameInCommentsFlag = session.OptionSet.GetOption(RenameOptions.RenameInComments);
-            _defaultPreviewChangesFlag = session.OptionSet.GetOption(RenameOptions.PreviewChanges);
+            _defaultRenameOverloadFlag = session.Options.RenameOverloads || session.ForceRenameOverloads;
+            _defaultRenameInStringsFlag = session.Options.RenameInStrings;
+            _defaultRenameInCommentsFlag = session.Options.RenameInComments;
+            _defaultPreviewChangesFlag = session.PreviewChanges;
 
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             _session.ReplacementsComputed += OnReplacementsComputed;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             // If replacementText is invalid, we won't rename the file.
             DefaultRenameFileFlag = _isReplacementTextValid
-                && (_session.OptionSet.GetOption(RenameOptions.RenameFile) || AllowFileRename);
+                && (_session.Options.RenameFile || AllowFileRename);
         }
 
         private void OnReplacementsComputed(object sender, IInlineRenameReplacementInfo result)
@@ -271,7 +271,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 if (IsRenameOverloadsEditable)
                 {
                     _defaultRenameOverloadFlag = value;
-                    _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameOverloads, value);
+
+                    if (_session.Options.RenameOverloads != value)
+                    {
+                        _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameOverloads = value });
+                    }
                 }
             }
         }
@@ -286,7 +290,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             set
             {
                 _defaultRenameInStringsFlag = value;
-                _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameInStrings, value);
+                if (_session.Options.RenameInStrings != value)
+                {
+                    _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInStrings = value });
+                }
             }
         }
 
@@ -300,7 +307,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             set
             {
                 _defaultRenameInCommentsFlag = value;
-                _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameInComments, value);
+                if (_session.Options.RenameInComments != value)
+                {
+                    _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInComments = value });
+                }
             }
         }
 
@@ -310,7 +320,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             set
             {
                 _defaultRenameFileFlag = value;
-                _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameFile, value);
+                if (_session.Options.RenameFile != value)
+                {
+                    _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameFile = value });
+                }
             }
         }
 
@@ -324,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             set
             {
                 _defaultPreviewChangesFlag = value;
-                _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.PreviewChanges, value);
+                _session.SetPreviewChanges(value);
             }
         }
 
