@@ -49,13 +49,11 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
         public void ConvertTypeOfToNameOf(SemanticModel semanticModel, SyntaxEditor editor, SyntaxNode nodeToReplace, CancellationToken cancellationToken)
         {
             var typeExpression = GetSymbolTypeExpression(semanticModel, nodeToReplace, cancellationToken);
-            Contract.ThrowIfNull(typeExpression);
-
             var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
             editor.ReplaceNode(nodeToReplace, nameOfSyntax);
         }
 
-        protected abstract SyntaxNode? GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract SyntaxNode GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
 
         protected abstract string GetCodeFixTitle();
 

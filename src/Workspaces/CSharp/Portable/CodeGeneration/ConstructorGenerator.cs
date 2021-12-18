@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 var expressionBodyPreference = options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
                 if (declaration.Body?.TryConvertToArrowExpressionBody(
-                    declaration.Kind(), CSharpCodeGenerationService.GetLanguageVersion(options), expressionBodyPreference,
+                    declaration.Kind(), options.Preferences.LanguageVersion, expressionBodyPreference,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     return declaration.WithBody(null)

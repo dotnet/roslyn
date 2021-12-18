@@ -84,7 +84,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract CodeGenerationDestination GetDestination(SyntaxNode node);
         public abstract SyntaxNode CreateEventDeclaration(IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken);
         public abstract SyntaxNode CreateFieldDeclaration(IFieldSymbol field, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken);
+
+        // TODO: Change to not return null (https://github.com/dotnet/roslyn/issues/58243)
         public abstract SyntaxNode? CreateMethodDeclaration(IMethodSymbol method, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken);
+
         public abstract SyntaxNode CreatePropertyDeclaration(IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken);
         public abstract SyntaxNode CreateNamedTypeDeclaration(INamedTypeSymbol namedType, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken);
         public abstract SyntaxNode CreateNamespaceDeclaration(INamespaceSymbol @namespace, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken);

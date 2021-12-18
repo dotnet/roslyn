@@ -181,10 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var expressionBodyPreference = options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
                 if (declaration.Initializer == null)
                 {
-                    var languageVersion = CSharpCodeGenerationService.GetLanguageVersion(options);
-
                     if (TryGetExpressionBody(
-                            declaration, languageVersion, expressionBodyPreference,
+                            declaration, options.Preferences.LanguageVersion, expressionBodyPreference,
                             out var expressionBody, out var semicolonToken))
                     {
                         declaration = declaration.WithAccessorList(null)
@@ -203,10 +201,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (declaration.ExpressionBody == null)
             {
                 var expressionBodyPreference = options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers).Value;
-                var languageVersion = CSharpCodeGenerationService.GetLanguageVersion(options);
 
                 if (TryGetExpressionBody(
-                        declaration, languageVersion, expressionBodyPreference,
+                        declaration, options.Preferences.LanguageVersion, expressionBodyPreference,
                         out var expressionBody, out var semicolonToken))
                 {
                     declaration = declaration.WithAccessorList(null)
@@ -224,10 +221,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (declaration.ExpressionBody == null)
             {
                 var expressionBodyPreference = options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
-                var languageVersion = CSharpCodeGenerationService.GetLanguageVersion(options);
 
                 if (declaration.Body?.TryConvertToArrowExpressionBody(
-                    declaration.Kind(), languageVersion, expressionBodyPreference,
+                    declaration.Kind(), options.Preferences.LanguageVersion, expressionBodyPreference,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     declaration = declaration.WithBody(null)

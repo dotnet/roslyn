@@ -506,6 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return destinationMember.ReplaceNode(oldBlock, newBlock)
         End Function
 
+        ' TODO Change to Not return null (https://github.com/dotnet/roslyn/issues/58243)
         Public Overrides Function CreateMethodDeclaration(method As IMethodSymbol,
                                                           destination As CodeGenerationDestination,
                                                           options As CodeGenerationOptions,

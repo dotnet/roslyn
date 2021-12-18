@@ -30,9 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override CodeGenerationPreferences GetPreferences(ParseOptions parseOptions, OptionSet documentOptions)
             => new CSharpCodeGenerationPreferences((CSharpParseOptions)parseOptions, documentOptions);
 
-        internal static LanguageVersion GetLanguageVersion(CSharpCodeGenerationOptions options)
-            => ((CSharpCodeGenerationPreferences)options.Preferences).LanguageVersion;
-
         public override CodeGenerationDestination GetDestination(SyntaxNode node)
             => CSharpCodeGenerationHelpers.GetDestination(node);
 
@@ -582,6 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 : FieldGenerator.GenerateFieldDeclaration(field, (CSharpCodeGenerationOptions)options, cancellationToken);
         }
 
+        // TODO: Change to not return null (https://github.com/dotnet/roslyn/issues/58243)
         public override SyntaxNode? CreateMethodDeclaration(
             IMethodSymbol method, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken)
         {

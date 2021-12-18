@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Diagnostics.CodeAnalysis;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public abstract ArrowExpressionClauseSyntax? GetExpressionBody(SyntaxNode declaration);
 
         public abstract bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
-        public abstract (bool canOffer, bool fixesError) CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
+        public abstract bool CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer, out bool fixesError, [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionBody);
         public abstract SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, bool useExpressionBody);
 
         public abstract Location GetDiagnosticLocation(SyntaxNode declaration);

@@ -153,10 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (methodDeclaration.ExpressionBody == null)
             {
                 var expressionBodyPreference = options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
-                var languageVersion = CSharpCodeGenerationService.GetLanguageVersion(options);
 
                 if (methodDeclaration.Body?.TryConvertToArrowExpressionBody(
-                    methodDeclaration.Kind(), languageVersion, expressionBodyPreference,
+                    methodDeclaration.Kind(), options.Preferences.LanguageVersion, expressionBodyPreference,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     return methodDeclaration.WithBody(null)
@@ -174,10 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (localFunctionDeclaration.ExpressionBody == null)
             {
                 var expressionBodyPreference = options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions).Value;
-                var languageVersion = CSharpCodeGenerationService.GetLanguageVersion(options);
 
                 if (localFunctionDeclaration.Body?.TryConvertToArrowExpressionBody(
-                    localFunctionDeclaration.Kind(), languageVersion, expressionBodyPreference,
+                    localFunctionDeclaration.Kind(), options.Preferences.LanguageVersion, expressionBodyPreference,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     return localFunctionDeclaration.WithBody(null)

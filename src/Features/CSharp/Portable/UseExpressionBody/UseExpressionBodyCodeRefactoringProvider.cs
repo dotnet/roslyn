@@ -106,8 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 succeeded = true;
             }
 
-            var (canOffer, _) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false);
-            if (canOffer)
+            if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false, out _, out _))
             {
                 context.RegisterRefactoring(
                     new MyCodeAction(

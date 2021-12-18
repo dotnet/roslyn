@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (destination == CodeGenerationDestination.CompilationUnit &&
                 options.Preferences.Options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations).Value == NamespaceDeclarationPreference.FileScoped &&
-                CSharpCodeGenerationService.GetLanguageVersion(options) >= LanguageVersion.CSharp10)
+                options.Preferences.LanguageVersion >= LanguageVersion.CSharp10)
             {
                 return SyntaxFactory.FileScopedNamespaceDeclaration(SyntaxFactory.ParseName(name)).WithUsings(usings);
             }

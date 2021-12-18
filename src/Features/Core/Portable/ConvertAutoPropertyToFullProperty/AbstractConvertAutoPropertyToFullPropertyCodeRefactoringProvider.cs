@@ -11,23 +11,22 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 {
-    internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<TPropertyDeclarationNode, TTypeDeclarationNode>
-        : CodeRefactoringProvider
+    internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<TPropertyDeclarationNode, TTypeDeclarationNode, TCodeGenerationPreferences> : CodeRefactoringProvider
         where TPropertyDeclarationNode : SyntaxNode
         where TTypeDeclarationNode : SyntaxNode
+        where TCodeGenerationPreferences : CodeGenerationPreferences
     {
         internal abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken);
         internal abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
-            CodeGenerationOptions options, SyntaxNode property, string fieldName, SyntaxGenerator generator);
+            TCodeGenerationPreferences preferences, SyntaxNode property, string fieldName, SyntaxGenerator generator);
         internal abstract SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property);
         internal abstract SyntaxNode GetInitializerValue(SyntaxNode property);
-        internal abstract SyntaxNode ConvertPropertyToExpressionBodyIfDesired(CodeGenerationOptions options, SyntaxNode fullProperty);
+        internal abstract SyntaxNode ConvertPropertyToExpressionBodyIfDesired(TCodeGenerationPreferences preferences, SyntaxNode fullProperty);
         internal abstract SyntaxNode GetTypeBlock(SyntaxNode syntaxNode);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -90,12 +89,12 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
             var services = document.Project.Solution.Workspace.Services;
 
-            var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, document, cancellationToken).ConfigureAwait(false);
+            var preferences = (TCodeGenerationPreferences)await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Create full property. If the auto property had an initial value
             // we need to remove it and later add it to the backing field
             var fieldName = await GetFieldNameAsync(document, propertySymbol, cancellationToken).ConfigureAwait(false);
-            var (newGetAccessor, newSetAccessor) = GetNewAccessors(codeGenOptions, property, fieldName, generator);
+            var (newGetAccessor, newSetAccessor) = GetNewAccessors(preferences, property, fieldName, generator);
             var fullProperty = generator
                 .WithAccessorDeclarations(
                     GetPropertyWithoutInitializer(property),
@@ -103,7 +102,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                         ? new SyntaxNode[] { newGetAccessor }
                         : new SyntaxNode[] { newGetAccessor, newSetAccessor })
                 .WithLeadingTrivia(property.GetLeadingTrivia());
-            fullProperty = ConvertPropertyToExpressionBodyIfDesired(codeGenOptions, fullProperty);
+            fullProperty = ConvertPropertyToExpressionBodyIfDesired(preferences, fullProperty);
             var editor = new SyntaxEditor(root, services);
             editor.ReplaceNode(property, fullProperty.WithAdditionalAnnotations(Formatter.Annotation));
 
@@ -114,6 +113,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 propertySymbol.Type, fieldName,
                 initializer: GetInitializerValue(property));
 
+            var codeGenOptions = new CodeGenerationOptions(CodeGenerationContext.Default, preferences);
             var typeDeclaration = propertySymbol.ContainingType.DeclaringSyntaxReferences;
             foreach (var td in typeDeclaration)
             {

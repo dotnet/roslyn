@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var obsoleteAttribute = await GetObsoleteAttributeAsync(document, cancellationToken).ConfigureAwait(false);
+
+            // RegisterCodeFixesAsync checked for null
             Contract.ThrowIfNull(obsoleteAttribute);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

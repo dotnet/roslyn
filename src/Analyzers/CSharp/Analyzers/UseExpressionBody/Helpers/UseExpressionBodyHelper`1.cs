@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
             => CanOfferUseExpressionBody(optionSet, (TDeclaration)declaration, forAnalyzer);
 
-        public override (bool canOffer, bool fixesError) CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
-            => CanOfferUseBlockBody(optionSet, (TDeclaration)declaration, forAnalyzer);
+        public override bool CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer, out bool fixesError, [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionBody)
+            => CanOfferUseBlockBody(optionSet, (TDeclaration)declaration, forAnalyzer, out fixesError, out expressionBody);
 
         public sealed override SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, bool useExpressionBody)
             => Update(semanticModel, (TDeclaration)declaration, useExpressionBody);
@@ -173,55 +173,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return false;
         }
 
-        public (bool canOffer, bool fixesError) CanOfferUseBlockBody(
-            OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
+        public bool CanOfferUseBlockBody(
+            OptionSet optionSet,
+            TDeclaration declaration,
+            bool forAnalyzer,
+            out bool fixesError,
+            [NotNullWhen(true)] out ArrowExpressionClauseSyntax? expressionBody)
         {
             var currentOptionValue = optionSet.GetOption(Option);
             var preference = currentOptionValue.Value;
             var userPrefersBlockBodies = preference == ExpressionBodyPreference.Never;
             var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
 
-            var expressionBodyOpt = GetExpressionBody(declaration);
-            var canOffer = expressionBodyOpt?.TryConvertToBlock(
-                SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, block: out _) == true;
-            if (!canOffer)
+            expressionBody = GetExpressionBody(declaration);
+            if (expressionBody?.TryConvertToBlock(
+                SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, block: out _) != true)
             {
-                return (canOffer, fixesError: false);
+                fixesError = false;
+                return false;
             }
 
-            var languageVersion = ((CSharpParseOptions)declaration.SyntaxTree.Options).LanguageVersion;
-            if (expressionBodyOpt!.Expression.IsKind(SyntaxKind.ThrowExpression) &&
-                languageVersion < LanguageVersion.CSharp7)
+            var languageVersion = declaration.GetLanguageVersion();
+            if (languageVersion < LanguageVersion.CSharp7)
             {
-                // If they're using a throw expression in a declaration and it's prior to C# 7
-                // then always mark this as something that can be fixed by the analyzer.  This way
-                // we'll also get 'fix all' working to fix all these cases.
-                return (canOffer, fixesError: true);
+                if (expressionBody!.Expression.IsKind(SyntaxKind.ThrowExpression))
+                {
+                    // If they're using a throw expression in a declaration and it's prior to C# 7
+                    // then always mark this as something that can be fixed by the analyzer.  This way
+                    // we'll also get 'fix all' working to fix all these cases.
+                    fixesError = true;
+                    return true;
+                }
+
+                if (declaration is AccessorDeclarationSyntax or ConstructorDeclarationSyntax)
+                {
+                    // If they're using expression bodies for accessors/constructors and it's prior to C# 7
+                    // then always mark this as something that can be fixed by the analyzer.  This way
+                    // we'll also get 'fix all' working to fix all these cases.
+                    fixesError = true;
+                    return true;
+                }
             }
 
-            var isAccessorOrConstructor = declaration is AccessorDeclarationSyntax or
-                                          ConstructorDeclarationSyntax;
-            if (isAccessorOrConstructor &&
-                languageVersion < LanguageVersion.CSharp7)
-            {
-                // If they're using expression bodies for accessors/constructors and it's prior to C# 7
-                // then always mark this as something that can be fixed by the analyzer.  This way
-                // we'll also get 'fix all' working to fix all these cases.
-                return (canOffer, fixesError: true);
-            }
-            else if (languageVersion < LanguageVersion.CSharp6)
+            if (languageVersion < LanguageVersion.CSharp6)
             {
                 // If they're using expression bodies prior to C# 6, then always mark this as something
                 // that can be fixed by the analyzer.  This way we'll also get 'fix all' working to fix
                 // all these cases.
-                return (canOffer, fixesError: true);
+                fixesError = true;
+                return true;
             }
 
             // If the user likes block bodies, then we offer block bodies from the diagnostic analyzer.
             // If the user does not like block bodies then we offer block bodies from the refactoring provider.
             // If the analyzer is disabled completely, the refactoring is enabled in both directions.
-            canOffer = userPrefersBlockBodies == forAnalyzer || (!forAnalyzer && analyzerDisabled);
-            return (canOffer, fixesError: false);
+            fixesError = false;
+            return userPrefersBlockBodies == forAnalyzer || (!forAnalyzer && analyzerDisabled);
         }
 
         public TDeclaration Update(SemanticModel semanticModel, TDeclaration declaration, bool useExpressionBody)
