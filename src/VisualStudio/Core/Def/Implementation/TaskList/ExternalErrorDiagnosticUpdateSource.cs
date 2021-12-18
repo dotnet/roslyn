@@ -104,6 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _notificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
         }
 
+        public DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _diagnosticService.AnalyzerInfoCache;
+
         /// <summary>
         /// Event generated from the serialized <see cref="_taskQueue"/> whenever the build progress in Visual Studio changes.
         /// Events are guaranteed to be generated in a serial fashion, but may be invoked on any thread.

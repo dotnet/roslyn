@@ -313,7 +313,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticTableItem>, IWpfTableEntriesSnapshot
             {
                 private readonly DiagnosticTableEntriesSource _source;
-                private FrameworkElement[]? _descriptions;
 
                 public TableEntriesSnapshot(
                     DiagnosticTableEntriesSource source,
@@ -476,74 +475,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 #region IWpfTableEntriesSnapshot
 
                 public bool CanCreateDetailsContent(int index)
-                {
-                    var item = GetItem(index)?.Data;
-                    if (item == null)
-                    {
-                        return false;
-                    }
-
-                    return !string.IsNullOrWhiteSpace(item.Description);
-                }
+                    => CanCreateDetailsContent(index, GetItem);
 
                 public bool TryCreateDetailsContent(int index, [NotNullWhen(returnValue: true)] out FrameworkElement? expandedContent)
-                {
-                    var item = GetItem(index)?.Data;
-                    if (item == null)
-                    {
-                        expandedContent = null;
-                        return false;
-                    }
-
-                    expandedContent = GetOrCreateTextBlock(ref _descriptions, this.Count, index, item, i => GetDescriptionTextBlock(i));
-                    return true;
-                }
+                    => TryCreateDetailsContent(index, GetItem, out expandedContent);
 
                 public bool TryCreateDetailsStringContent(int index, [NotNullWhen(returnValue: true)] out string? content)
-                {
-                    var item = GetItem(index)?.Data;
-                    if (item == null)
-                    {
-                        content = null;
-                        return false;
-                    }
-
-                    if (string.IsNullOrWhiteSpace(item.Description))
-                    {
-                        content = null;
-                        return false;
-                    }
-
-                    content = item.Description;
-                    return content != null;
-                }
-
-                private static FrameworkElement GetDescriptionTextBlock(DiagnosticData item)
-                {
-                    return new TextBlock()
-                    {
-                        Background = null,
-                        Padding = new Thickness(10, 6, 10, 8),
-                        TextWrapping = TextWrapping.Wrap,
-                        Text = item.Description
-                    };
-                }
-
-                private static FrameworkElement GetOrCreateTextBlock(
-                    [NotNull] ref FrameworkElement[]? caches, int count, int index, DiagnosticData item, Func<DiagnosticData, FrameworkElement> elementCreator)
-                {
-                    if (caches == null)
-                    {
-                        caches = new FrameworkElement[count];
-                    }
-
-                    if (caches[index] == null)
-                    {
-                        caches[index] = elementCreator(item);
-                    }
-
-                    return caches[index];
-                }
+                    => TryCreateDetailsStringContent(index, GetItem, out content);
 
                 // unused ones                    
                 public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, [NotNullWhen(returnValue: true)] out FrameworkElement? content)
@@ -567,14 +505,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public bool TryCreateToolTip(int index, string columnName, [NotNullWhen(returnValue: true)] out object? toolTip)
                 {
                     toolTip = null;
-                    return false;
-                }
-
-#pragma warning disable IDE0060 // Remove unused parameter - TODO: remove this once we moved to new drop 
-                public bool TryCreateStringContent(int index, string columnName, bool singleColumnView, [NotNullWhen(returnValue: true)] out string? content)
-#pragma warning restore IDE0060 // Remove unused parameter
-                {
-                    content = null;
                     return false;
                 }
 

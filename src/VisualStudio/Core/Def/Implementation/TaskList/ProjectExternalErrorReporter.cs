@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -41,6 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             ThreadHelper.ThrowIfNotOnUIThread();
             _workspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
         }
+
+        private DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _workspace.ExternalErrorDiagnosticUpdateSource.AnalyzerInfoCache;
 
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, string language, VisualStudioWorkspaceImpl workspace)
         {
@@ -112,7 +115,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     originalStartLine: 0,
                     originalStartColumn: 0,
                     originalEndLine: 0,
-                    originalEndColumn: 0));
+                    originalEndColumn: 0,
+                    AnalyzerInfoCache));
             }
 
             DiagnosticProvider.AddNewErrors(_projectId, projectErrors, documentErrorsMap);
@@ -195,7 +199,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 originalStartLine: line,
                 originalStartColumn: column,
                 originalEndLine: line,
-                originalEndColumn: column);
+                originalEndColumn: column,
+                AnalyzerInfoCache);
         }
 
         public int ReportError(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
@@ -250,7 +255,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 mappedFilePath: null,
                 iStartLine, iStartColumn, iEndLine, iEndColumn,
                 bstrFileName,
-                iStartLine, iStartColumn, iEndLine, iEndColumn);
+                iStartLine, iStartColumn, iEndLine, iEndColumn,
+                AnalyzerInfoCache);
 
             if (documentId == null)
             {
@@ -284,19 +290,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             int originalStartLine,
             int originalStartColumn,
             int originalEndLine,
-            int originalEndColumn)
+            int originalEndColumn,
+            DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
+            string title, description, category;
+            DiagnosticSeverity defaultSeverity;
+            bool isEnabledByDefault;
+            ImmutableArray<string> customTags;
+
+            if (analyzerInfoCache != null && analyzerInfoCache.TryGetDescriptorForDiagnosticId(errorId, out var descriptor))
+            {
+                title = descriptor.Title.ToString(CultureInfo.CurrentCulture);
+                description = descriptor.Description.ToString(CultureInfo.CurrentCulture);
+                category = descriptor.Category;
+                defaultSeverity = descriptor.DefaultSeverity;
+                isEnabledByDefault = descriptor.IsEnabledByDefault;
+                customTags = descriptor.CustomTags.AsImmutableOrEmpty();
+            }
+            else
+            {
+                title = message;
+                description = message;
+                category = WellKnownDiagnosticTags.Build;
+                defaultSeverity = severity;
+                isEnabledByDefault = true;
+                customTags = IsCompilerDiagnostic(errorId) ? CompilerDiagnosticCustomTags : CustomTags;
+            }
+
             return new DiagnosticData(
                 id: errorId,
-                category: WellKnownDiagnosticTags.Build,
+                category: category,
                 message: message,
-                title: message,
+                title: title,
                 enuMessageForBingSearch: message, // Unfortunately, there is no way to get ENU text for this since this is an external error.
+                description: description,
                 severity: severity,
-                defaultSeverity: severity,
-                isEnabledByDefault: true,
+                defaultSeverity: defaultSeverity,
+                isEnabledByDefault: isEnabledByDefault,
                 warningLevel: (severity == DiagnosticSeverity.Error) ? 0 : 1,
-                customTags: IsCompilerDiagnostic(errorId) ? CompilerDiagnosticCustomTags : CustomTags,
+                customTags: customTags,
                 properties: DiagnosticData.PropertiesForBuildDiagnostic,
                 projectId: projectId,
                 location: new DiagnosticDataLocation(
