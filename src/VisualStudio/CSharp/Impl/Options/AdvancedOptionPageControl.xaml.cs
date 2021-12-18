@@ -95,6 +95,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptions.Metadata.ShowRemarksInQuickInfo, LanguageNames.CSharp);
             BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.CSharp);
 
+            // Quick Actions
+            BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous, () =>
+            {
+                // If the option has not been set by the user, check if the option is disabled from experimentation.
+                return !optionStore.GetOption(SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag);
+            });
+
             // Highlighting
             BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.CSharp);
             BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.CSharp);
@@ -110,11 +117,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
 
-            BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.CSharp);
-            BindToOption(at_the_end, ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd, LanguageNames.CSharp);
+            BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptions.Metadata.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.CSharp);
+            BindToOption(at_the_end, ImplementTypeOptions.Metadata.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd, LanguageNames.CSharp);
 
-            BindToOption(prefer_throwing_properties, ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferThrowingProperties, LanguageNames.CSharp);
-            BindToOption(prefer_auto_properties, ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties, LanguageNames.CSharp);
+            BindToOption(prefer_throwing_properties, ImplementTypeOptions.Metadata.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferThrowingProperties, LanguageNames.CSharp);
+            BindToOption(prefer_auto_properties, ImplementTypeOptions.Metadata.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties, LanguageNames.CSharp);
 
             BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp);
 

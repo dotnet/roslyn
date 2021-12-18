@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ICodeFixService codeFixService,
             Document document,
             TextSpan selection,
-            bool includeSuppressionFixes,
             CodeActionRequestPriority priority,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
@@ -45,7 +44,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             var fixes = await Task.Run(() => codeFixService.GetFixesAsync(
                 document,
                 selection,
-                includeSuppressionFixes,
                 priority,
                 isBlocking,
                 addOperationScope,

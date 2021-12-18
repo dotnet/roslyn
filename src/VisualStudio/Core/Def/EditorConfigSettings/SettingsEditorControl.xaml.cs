@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Drawing;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,23 +21,25 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
     /// </summary>
     internal partial class SettingsEditorControl : UserControl
     {
-        private readonly ISettingsEditorView _whitespaceView;
-        private readonly ISettingsEditorView _codeStyleView;
-        private readonly ISettingsEditorView _analyzerView;
+        private readonly ISettingsEditorView[] _views;
+        private readonly IWpfTableControl[] _tableControls;
         private readonly Workspace _workspace;
         private readonly string _filepath;
         private readonly IThreadingContext _threadingContext;
         private readonly EditorTextUpdater _textUpdater;
 
         public static string WhitespaceTabTitle => ServicesVSResources.Whitespace;
-        public UserControl WhitespaceControl => _whitespaceView.SettingControl;
+        public UserControl WhitespaceControl { get; }
         public static string CodeStyleTabTitle => ServicesVSResources.Code_Style;
-        public UserControl CodeStyleControl => _codeStyleView.SettingControl;
+        public UserControl CodeStyleControl { get; }
+        public static string NamingStyleTabTitle => ServicesVSResources.Naming_Style;
+        public UserControl NamingStyleControl { get; }
         public static string AnalyzersTabTitle => ServicesVSResources.Analyzers;
-        public UserControl AnalyzersControl => _analyzerView.SettingControl;
+        public UserControl AnalyzersControl { get; }
 
         public SettingsEditorControl(ISettingsEditorView whitespaceView,
                                      ISettingsEditorView codeStyleView,
+                                     ISettingsEditorView namingStyleView,
                                      ISettingsEditorView analyzerView,
                                      Workspace workspace,
                                      string filepath,
@@ -51,9 +52,22 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             _filepath = filepath;
             _threadingContext = threadingContext;
             _textUpdater = new EditorTextUpdater(editorAdaptersFactoryService, textLines);
-            _whitespaceView = whitespaceView;
-            _codeStyleView = codeStyleView;
-            _analyzerView = analyzerView;
+
+            WhitespaceControl = whitespaceView.SettingControl;
+            CodeStyleControl = codeStyleView.SettingControl;
+            NamingStyleControl = namingStyleView.SettingControl;
+            AnalyzersControl = analyzerView.SettingControl;
+
+            _views = new[]
+            {
+                whitespaceView,
+                codeStyleView,
+                namingStyleView,
+                analyzerView
+            };
+
+            _tableControls = _views.SelectAsArray(view => view.TableControl).ToArray();
+
             InitializeComponent();
         }
 
@@ -77,29 +91,27 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             _threadingContext.JoinableTaskFactory.Run(async () =>
             {
                 var originalText = await analyzerConfigDocument.GetTextAsync(default).ConfigureAwait(false);
-                var updatedText = await _whitespaceView.UpdateEditorConfigAsync(originalText).ConfigureAwait(false);
-                updatedText = await _codeStyleView.UpdateEditorConfigAsync(updatedText).ConfigureAwait(false);
-                updatedText = await _analyzerView.UpdateEditorConfigAsync(updatedText).ConfigureAwait(false);
+                var updatedText = originalText;
+                foreach (var view in _views)
+                {
+                    updatedText = await view.UpdateEditorConfigAsync(updatedText).ConfigureAwait(false);
+                }
+
                 _textUpdater.UpdateText(updatedText.GetTextChanges(originalText));
             });
         }
 
-        internal IWpfTableControl[] GetTableControls()
-            => new[]
-            {
-                _whitespaceView.TableControl,
-                _codeStyleView.TableControl,
-                _analyzerView.TableControl,
-            };
+        internal IWpfTableControl[] GetTableControls() => _tableControls;
 
         internal void OnClose()
         {
-            _whitespaceView.OnClose();
-            _codeStyleView.OnClose();
-            _analyzerView.OnClose();
+            foreach (var view in _views)
+            {
+                view.OnClose();
+            }
         }
 
-        private void tabsSettingsEditor_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void TabsSettingsEditor_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var previousTabItem = e.RemovedItems.Count > 0 ? e.RemovedItems[0] as TabItem : null;
             var selectedTabItem = e.AddedItems.Count > 0 ? e.AddedItems[0] as TabItem : null;
@@ -128,6 +140,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 else if (ReferenceEquals(tag, CodeStyleControl))
                 {
                     return CodeStyleFrame;
+                }
+                else if (ReferenceEquals(tag, NamingStyleControl))
+                {
+                    return NamingStyleFrame;
                 }
                 else if (ReferenceEquals(tag, AnalyzersControl))
                 {

@@ -112,14 +112,14 @@
         <target state="translated">Semantische Klassifizierung</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_SemanticClassificationCache">
-        <source>Semantic classification cache</source>
-        <target state="translated">Cache für semantische Klassifizierung</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">Objektanbieter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="new">Stack Trace Explorer</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">

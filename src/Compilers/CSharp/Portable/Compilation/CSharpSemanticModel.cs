@@ -2412,7 +2412,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within an expression. 
+        /// Analyze data-flow within an <see cref="ConstructorInitializerSyntax"/>. 
+        /// </summary>
+        /// <param name="constructorInitializer">The ctor-init within the associated SyntaxTree to analyze.</param>
+        /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
+        public virtual DataFlowAnalysis AnalyzeDataFlow(ConstructorInitializerSyntax constructorInitializer)
+        {
+            // Only supported on a SyntaxTreeSemanticModel.
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// Analyze data-flow within an <see cref="PrimaryConstructorBaseTypeSyntax.ArgumentList"/>. 
+        /// </summary>
+        /// <param name="primaryConstructorBaseType">The node within the associated SyntaxTree to analyze.</param>
+        /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
+        public virtual DataFlowAnalysis AnalyzeDataFlow(PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
+        {
+            // Only supported on a SyntaxTreeSemanticModel.
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// Analyze data-flow within an <see cref="ExpressionSyntax"/>. 
         /// </summary>
         /// <param name="expression">The expression within the associated SyntaxTree to analyze.</param>
         /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
@@ -3427,18 +3449,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    {
-                        var indexerAccess = (BoundIndexOrRangePatternIndexerAccess)boundNode;
-
-                        resultKind = indexerAccess.ResultKind;
-
-                        // The only time a BoundIndexOrRangePatternIndexerAccess is created, overload resolution succeeded
-                        // and returned only 1 result
-                        Debug.Assert(indexerAccess.PatternSymbol is object);
-                        symbols = ImmutableArray.Create<Symbol>(indexerAccess.PatternSymbol);
-                    }
-                    break;
+                case BoundKind.ImplicitIndexerAccess:
+                    return GetSemanticSymbols(((BoundImplicitIndexerAccess)boundNode).IndexerOrSliceAccess,
+                        boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out memberGroup);
 
                 case BoundKind.EventAssignmentOperator:
                     var eventAssignment = (BoundEventAssignmentOperator)boundNode;
@@ -5245,8 +5258,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.AnalyzeDataFlow(statementSyntax);
                 case ExpressionSyntax expressionSyntax:
                     return this.AnalyzeDataFlow(expressionSyntax);
+                case ConstructorInitializerSyntax constructorInitializer:
+                    return this.AnalyzeDataFlow(constructorInitializer);
+                case PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType:
+                    return this.AnalyzeDataFlow(primaryConstructorBaseType);
                 default:
-                    throw new ArgumentException("statementOrExpression is not a StatementSyntax or an ExpressionSyntax.");
+                    throw new ArgumentException("statementOrExpression is not a StatementSyntax or an ExpressionSyntax or a ConstructorInitializerSyntax or a PrimaryConstructorBaseTypeSyntax.");
             }
         }
 

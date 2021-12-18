@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -19,6 +18,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal class SemanticTokensHelpers
     {
+        /// <summary>
+        /// Maps an LSP token type to the index LSP associates with the token.
+        /// Required since we report tokens back to LSP as a series of ints,
+        /// and LSP needs a way to decipher them.
+        /// </summary>
+        public static readonly Dictionary<string, int> TokenTypeToIndex;
+
         public static readonly ImmutableArray<string> RoslynCustomTokenTypes = ImmutableArray.Create(
             ClassificationTypeNames.ClassName,
             ClassificationTypeNames.ConstantName,
@@ -102,6 +108,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 [ClassificationTypeNames.StringLiteral] = LSP.SemanticTokenTypes.String,
             };
 
+        static SemanticTokensHelpers()
+        {
+            // Computes the mapping between a LSP token type and its respective index recognized by LSP.
+            TokenTypeToIndex = new Dictionary<string, int>();
+            var index = 0;
+            foreach (var lspTokenType in LSP.SemanticTokenTypes.AllTypes)
+            {
+                TokenTypeToIndex.Add(lspTokenType, index);
+                index++;
+            }
+
+            foreach (var roslynTokenType in RoslynCustomTokenTypes)
+            {
+                TokenTypeToIndex.Add(roslynTokenType, index);
+                index++;
+            }
+        }
+
         /// <summary>
         /// Returns the semantic tokens data for a given document with an optional range.
         /// </summary>
@@ -109,6 +133,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Document document,
             Dictionary<string, int> tokenTypesToIndex,
             LSP.Range? range,
+            bool includeSyntacticClassifications,
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -125,17 +150,55 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var isFinalized = document.Project.TryGetCompilation(out var compilation) && compilation == semanticModel.Compilation;
             document = frozenDocument;
 
-            var options = ClassificationOptions.From(document.Project);
-            var classifiedSpans = Classifier.GetClassifiedSpans(document.Project.Solution.Workspace.Services, semanticModel, textSpan, options, cancellationToken);
-            Contract.ThrowIfNull(classifiedSpans, "classifiedSpans is null");
+            var classifiedSpans = await GetClassifiedSpansForDocumentAsync(
+                document, textSpan, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
             // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
-            var updatedClassifiedSpans = ConvertMultiLineToSingleLineSpans(text, classifiedSpans.ToArray());
+            var updatedClassifiedSpans = ConvertMultiLineToSingleLineSpans(text, classifiedSpans);
 
             // TO-DO: We should implement support for streaming if LSP adds support for it:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
             return (ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex), isFinalized);
+        }
+
+        private static async Task<ClassifiedSpan[]> GetClassifiedSpansForDocumentAsync(
+            Document document,
+            TextSpan textSpan,
+            bool includeSyntacticClassifications,
+            CancellationToken cancellationToken)
+        {
+            var classificationService = document.GetRequiredLanguageService<IClassificationService>();
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
+
+            // Case 1 - Generated Razor documents:
+            //     In Razor, the C# syntax classifier does not run on the client. This means we need to return both
+            //     syntactic and semantic classifications.
+            // Case 2 - C# and VB documents:
+            //     In C#/VB, the syntax classifier runs on the client. This means we only need to return semantic
+            //     classifications.
+            //
+            // Ideally, Razor will eventually run the classifier on their end so we can get rid of this special
+            // casing: https://github.com/dotnet/razor-tooling/issues/5850
+            if (includeSyntacticClassifications)
+            {
+                // `removeAdditiveSpans` will remove token modifiers such as 'static', which we want to include in LSP.
+                // `fillInClassifiedSpanGaps` includes whitespace in the results, which we don't care about in LSP.
+                // Therefore, we set both optional parameters to false.
+                var spans = await ClassifierHelper.GetClassifiedSpansAsync(
+                    document, textSpan, cancellationToken, removeAdditiveSpans: false, fillInClassifiedSpanGaps: false).ConfigureAwait(false);
+                classifiedSpans.AddRange(spans);
+            }
+            else
+            {
+                var options = ClassificationOptions.From(document.Project);
+                await classificationService.AddSemanticClassificationsAsync(
+                    document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+            }
+
+            // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.
+            classifiedSpans.Sort(ClassifiedSpanComparer.Instance);
+            return classifiedSpans.ToArray();
         }
 
         private static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
@@ -346,6 +409,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             Contract.ThrowIfFalse(tokenTypesToIndex.TryGetValue(tokenTypeStr, out var tokenTypeIndex), "No matching token type index found.");
             return tokenTypeIndex;
+        }
+
+        private class ClassifiedSpanComparer : IComparer<ClassifiedSpan>
+        {
+            public static readonly ClassifiedSpanComparer Instance = new();
+
+            public int Compare(ClassifiedSpan x, ClassifiedSpan y) => x.TextSpan.CompareTo(y.TextSpan);
         }
     }
 }

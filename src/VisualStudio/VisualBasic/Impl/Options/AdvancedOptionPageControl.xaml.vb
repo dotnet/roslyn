@@ -73,6 +73,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                              Return False
                          End Function)
 
+            ' Quick Actions
+            BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous,
+                         Function()
+                             ' If the option has Not been set by the user, check if the option is disabled from experimentation.
+                             Return Not optionStore.GetOption(SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag)
+                         End Function)
+
             ' Highlighting
             BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.VisualBasic)
             BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.VisualBasic)
@@ -126,11 +133,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.VisualBasic)
 
             ' Implement Interface or Abstract Class
-            BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.VisualBasic)
-            BindToOption(at_the_end, ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd, LanguageNames.VisualBasic)
+            BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptions.Metadata.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.VisualBasic)
+            BindToOption(at_the_end, ImplementTypeOptions.Metadata.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd, LanguageNames.VisualBasic)
 
-            BindToOption(prefer_throwing_properties, ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferThrowingProperties, LanguageNames.VisualBasic)
-            BindToOption(prefer_auto_properties, ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties, LanguageNames.VisualBasic)
+            BindToOption(prefer_throwing_properties, ImplementTypeOptions.Metadata.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferThrowingProperties, LanguageNames.VisualBasic)
+            BindToOption(prefer_auto_properties, ImplementTypeOptions.Metadata.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties, LanguageNames.VisualBasic)
 
             ' Inline hints
             BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsViewOptions.DisplayAllHintsWhilePressingAltF1)

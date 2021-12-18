@@ -544,6 +544,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.Equal(new[] { operation.ArrayReference }.Concat(operation.Indices), operation.Children);
         }
 
+        public override void VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation)
+        {
+            Assert.Equal(OperationKind.ImplicitIndexerReference, operation.Kind);
+            AssertEx.Equal(new[] { operation.Instance, operation.Argument }, operation.Children);
+
+            Assert.NotNull(operation.LengthSymbol);
+            Assert.NotNull(operation.IndexerSymbol);
+        }
+
         internal override void VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);
@@ -1271,6 +1280,39 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             Assert.Empty(operation.Children);
+        }
+
+        public override void VisitSlicePattern(ISlicePatternOperation operation)
+        {
+            Assert.Equal(OperationKind.SlicePattern, operation.Kind);
+            VisitPatternCommon(operation);
+
+            if (operation.Pattern != null)
+            {
+                Assert.Same(operation.Pattern, operation.Children.Single());
+            }
+            else
+            {
+                Assert.Empty(operation.Children);
+            }
+        }
+
+        public override void VisitListPattern(IListPatternOperation operation)
+        {
+            Assert.Equal(OperationKind.ListPattern, operation.Kind);
+            VisitPatternCommon(operation);
+            var designation = (operation.Syntax as CSharp.Syntax.ListPatternSyntax)?.Designation;
+            if (designation.IsKind(CSharp.SyntaxKind.SingleVariableDesignation))
+            {
+                Assert.NotNull(operation.DeclaredSymbol);
+            }
+            else
+            {
+                Assert.Null(operation.DeclaredSymbol);
+            }
+
+            IEnumerable<IOperation> children = operation.Patterns.Cast<IOperation>();
+            AssertEx.Equal(children, operation.Children);
         }
 
         public override void VisitRecursivePattern(IRecursivePatternOperation operation)

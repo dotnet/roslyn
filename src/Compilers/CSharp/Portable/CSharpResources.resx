@@ -363,6 +363,9 @@
   <data name="IDS_FeatureTypeVariance" xml:space="preserve">
     <value>type variance</value>
   </data>
+  <data name="IDS_ParameterNullChecking" xml:space="preserve">
+    <value>parameter null-checking</value>
+  </data>
   <data name="IDS_Parameter" xml:space="preserve">
     <value>parameter</value>
   </data>
@@ -6166,6 +6169,30 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DuplicateNullSuppression" xml:space="preserve">
     <value>Duplicate null suppression operator ('!')</value>
   </data>
+  <data name="ERR_IncorrectNullCheckSyntax" xml:space="preserve">
+    <value>Incorrect parameter null checking syntax. Should be '!!'.</value>
+  </data>
+  <data name="ERR_MustNullCheckInImplementation" xml:space="preserve">
+    <value>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</value>
+  </data>
+  <data name="ERR_NonNullableValueTypeIsNullChecked" xml:space="preserve">
+    <value>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</value>
+  </data>
+  <data name="WRN_NullCheckedHasDefaultNull" xml:space="preserve">
+    <value>Parameter '{0}' is null-checked but is null by default.</value>
+  </data>
+  <data name="WRN_NullCheckedHasDefaultNull_Title" xml:space="preserve">
+    <value>Parameter is null-checked but is null by default.</value>
+  </data>
+  <data name="ERR_NullCheckingOnByRefParameter" xml:space="preserve">
+    <value>By-reference parameter '{0}' cannot be null-checked.</value>
+  </data>
+  <data name="WRN_NullCheckingOnNullableType" xml:space="preserve">
+    <value>Nullable type '{0}' is null-checked and will throw if null.</value>
+  </data>
+  <data name="WRN_NullCheckingOnNullableType_Title" xml:space="preserve">
+    <value>Nullable type is null-checked and will throw if null.</value>
+  </data>
   <data name="ERR_ReAbstractionInNoPIAType" xml:space="preserve">
     <value>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</value>
   </data>
@@ -6247,7 +6274,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureImplicitObjectCreation" xml:space="preserve">
     <value>target-typed object creation</value>
   </data>
-  <data name="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer" xml:space="preserve">
+  <data name="ERR_ExpressionTreeContainsPatternImplicitIndexer" xml:space="preserve">
     <value>An expression tree may not contain a pattern System.Index or System.Range indexer access</value>
   </data>
   <data name="ERR_ExpressionTreeContainsFromEndIndexExpression" xml:space="preserve">
@@ -6727,6 +6754,21 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InheritingFromRecordWithSealedToString" xml:space="preserve">
     <value>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</value>
   </data>
+  <data name="IDS_FeatureListPattern" xml:space="preserve">
+    <value>list pattern</value>
+  </data>
+  <data name="IDS_FeatureLengthPattern" xml:space="preserve">
+    <value>length pattern</value>
+  </data>
+  <data name="ERR_UnsupportedTypeForListPattern" xml:space="preserve">
+    <value>List patterns may not be used for a value of type '{0}'.</value>
+  </data>
+  <data name="ERR_UnsupportedTypeForSlicePattern" xml:space="preserve">
+    <value>Slice patterns may not be used for a value of type '{0}'.</value>
+  </data>
+  <data name="ERR_MisplacedSlicePattern" xml:space="preserve">
+    <value>Slice patterns may only be used once and directly inside a list pattern.</value>
+  </data>
   <data name="ERR_HiddenPositionalMember" xml:space="preserve">
     <value>The positional member '{0}' found corresponding to this parameter is hidden.</value>
   </data>
@@ -6869,6 +6911,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_LambdaWithAttributesToExpressionTree" xml:space="preserve">
     <value>A lambda expression with attributes cannot be converted to an expression tree</value>
   </data>
+  <data name="ERR_RecordStructConstructorCallsDefaultConstructor" xml:space="preserve">
+    <value>A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.</value>
+  </data>
   <data name="WRN_CompileTimeCheckedOverflow" xml:space="preserve">
     <value>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</value>
   </data>
@@ -6886,5 +6931,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_CannotBeMadeNullable" xml:space="preserve">
     <value>'{0}' cannot be made nullable.</value>
+  </data>
+  <data name="WRN_LowerCaseTypeName" xml:space="preserve">
+    <value>The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</value>
+  </data>
+  <data name="WRN_LowerCaseTypeName_Title" xml:space="preserve">
+    <value>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</value>
   </data>
 </root>

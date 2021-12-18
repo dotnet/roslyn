@@ -169,11 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
             {
-                if (node.InterpolatedStringHandlerData is { } data)
-                {
-                    Visit(data.Construction);
-                }
-
                 VisitBinaryOperatorChildren(node);
                 return null;
             }
@@ -217,6 +212,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitListPattern(BoundListPattern node)
+            {
+                VisitList(node.Subpatterns);
+                Visit(node.VariableAccess);
+                // Ignore indexer access (just a node to hold onto some symbols)
+                return null;
+            }
+
+            public override BoundNode? VisitSlicePattern(BoundSlicePattern node)
+            {
+                this.Visit(node.Pattern);
+                // Ignore indexer access (just a node to hold onto some symbols)
+                return null;
+            }
+
             public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
             {
                 this.Visit(node.Pattern);
@@ -231,17 +241,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
-            {
-                // We're not handling nopia object creations correctly
-                // https://github.com/dotnet/roslyn/issues/45082
-                if (node.InitializerExpressionOpt is object)
-                {
-                    VerifyExpression(node.InitializerExpressionOpt, overrideSkippedExpression: true);
-                }
-                return null;
-            }
-
             public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
             {
                 // These nodes are only involved in return type inference for unbound lambdas. We don't analyze their subnodes, and no
@@ -249,14 +248,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
+            public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
             {
-                if (node.InterpolationData is { Construction: var construction })
-                {
-                    Visit(construction);
-                }
-                base.VisitInterpolatedString(node);
+                Visit(node.Receiver);
+                Visit(node.Argument);
+                Visit(node.IndexerOrSliceAccess);
                 return null;
+            }
+
+            public override BoundNode? VisitConversion(BoundConversion node)
+            {
+                if (node.ConversionKind == ConversionKind.InterpolatedStringHandler)
+                {
+                    Visit(node.Operand.GetInterpolatedStringHandlerData().Construction);
+                }
+
+                return base.VisitConversion(node);
             }
         }
 #endif

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
         private readonly object _guard = new object();
         private readonly Dictionary<string, DirectoryLoadContext> _loadContextByDirectory = new Dictionary<string, DirectoryLoadContext>(StringComparer.Ordinal);
 
-        protected override Assembly LoadFromPathImpl(string fullPath)
+        protected override Assembly LoadFromPathUncheckedImpl(string fullPath)
         {
             DirectoryLoadContext? loadContext;
 

@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Presence of sequence points in the tree affects final IL, therefore, we always generate them.
                 var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
                                                       dynamicInstrumenter != null ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton);
-
                 statement.CheckLocalsDefined();
                 var loweredStatement = localRewriter.VisitStatement(statement);
                 Debug.Assert(loweredStatement is { });
@@ -124,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 #if DEBUG
                 LocalRewritingValidator.Validate(loweredStatement);
+                localRewriter.AssertNoPlaceholderReplacements();
 #endif
                 return loweredStatement;
             }
@@ -259,7 +259,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
                 }
-                return base.VisitLambda(node)!;
+
+                var visited = (BoundLambda)base.VisitLambda(node)!;
+                if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
+                {
+                    visited = visited.Update(visited.UnboundLambda, visited.Symbol, newBody, visited.Diagnostics, visited.Binder, visited.Type);
+                }
+                return visited;
             }
             finally
             {
@@ -310,6 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 _factory.CurrentFunction = localFunction;
+
                 if (localFunction.IsDirectlyExcludedFromCodeCoverage)
                 {
                     _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
@@ -323,7 +330,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, localFunctionOrdinal);
                 }
 
-                return base.VisitLocalFunctionStatement(node)!;
+                var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node)!;
+
+                if (!localFunction.IsIterator && RewriteNullChecking(visited.Body) is BoundBlock newBody)
+                {
+                    visited = visited.Update(localFunction, newBody, null);
+                }
+                return visited;
             }
             finally
             {
@@ -417,6 +430,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void AssertPlaceholderReplacement(BoundValuePlaceholderBase placeholder, BoundExpression value)
         {
             Debug.Assert(value.Type is { } && (value.Type.Equals(placeholder.Type, TypeCompareKind.AllIgnoreOptions) || value.HasErrors));
+        }
+
+        [Conditional("DEBUG")]
+        private void AssertNoPlaceholderReplacements()
+        {
+            if (_placeholderReplacementMapDoNotUseDirectly is not null)
+            {
+                Debug.Assert(_placeholderReplacementMapDoNotUseDirectly.Count == 0);
+            }
         }
 
         /// <summary>
@@ -676,33 +698,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode resultExpr;
             if (TypeSymbol.Equals(
                 indexType,
-                _compilation.GetWellKnownType(WellKnownType.System_Index),
-                TypeCompareKind.ConsiderEverything))
-            {
-                // array[Index] is treated like a pattern-based System.Index indexing
-                // expression, except that array indexers don't actually exist (they
-                // don't have symbols)
-
-                var arrayLocal = F.StoreToTemp(
-                    VisitExpression(node.Expression),
-                    out BoundAssignmentOperator arrayAssign);
-
-                BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Indices[0], out PatternIndexOffsetLoweringStrategy strategy);
-
-                var indexOffsetExpr = MakePatternIndexOffsetExpression(
-                    makeOffsetInput,
-                    F.ArrayLength(arrayLocal),
-                    strategy);
-
-                resultExpr = F.Sequence(
-                    ImmutableArray.Create(arrayLocal.LocalSymbol),
-                    ImmutableArray.Create<BoundExpression>(arrayAssign),
-                    F.ArrayAccess(
-                        arrayLocal,
-                        ImmutableArray.Create(indexOffsetExpr)));
-            }
-            else if (TypeSymbol.Equals(
-                indexType,
                 _compilation.GetWellKnownType(WellKnownType.System_Range),
                 TypeCompareKind.ConsiderEverything))
             {
@@ -955,20 +950,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexerAccess:
                     return ((BoundIndexerAccess)expr).Indexer.RefKind != RefKind.None;
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    var refKind = patternIndexer.PatternSymbol switch
-                    {
-                        PropertySymbol p => p.RefKind,
-                        MethodSymbol m => m.RefKind,
-                        _ => throw ExceptionUtilities.UnexpectedValue(patternIndexer.PatternSymbol)
-                    };
-                    return refKind != RefKind.None;
+                case BoundKind.ImplicitIndexerAccess:
+                    return CanBePassedByReference(((BoundImplicitIndexerAccess)expr).IndexerOrSliceAccess);
+
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                    // That placeholder is always replaced with a temp local
+                    return true;
+
+                case BoundKind.ImplicitIndexerValuePlaceholder:
+                    // Implicit Index or Range indexers only have by-value parameters:
+                    // this[int], Slice(int, int), Substring(int, int)
+                    return false;
+
+                case BoundKind.ListPatternReceiverPlaceholder:
+                case BoundKind.SlicePatternReceiverPlaceholder:
+                case BoundKind.SlicePatternRangePlaceholder:
+                case BoundKind.ListPatternIndexPlaceholder:
+                    throw ExceptionUtilities.UnexpectedValue(expr.Kind);
 
                 case BoundKind.Conversion:
-                    var conversion = ((BoundConversion)expr);
                     return expr is BoundConversion { Conversion: { IsInterpolatedStringHandler: true }, Type: { IsValueType: true } };
             }
+
+            Debug.Assert(expr is not BoundValuePlaceholderBase, $"Placeholder kind {expr.Kind} must be handled explicitly");
 
             return false;
         }
@@ -990,6 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
         /// <summary>
         /// Note: do not use a static/singleton instance of this type, as it holds state.
+        /// Consider generating this type from BoundNodes.xml for easier maintenance.
         /// </summary>
         private sealed class LocalRewritingValidator : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
@@ -1045,6 +1050,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitImplicitIndexerValuePlaceholder(BoundImplicitIndexerValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitListPatternIndexPlaceholder(BoundListPatternIndexPlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitListPatternReceiverPlaceholder(BoundListPatternReceiverPlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitSlicePatternRangePlaceholder(BoundSlicePatternRangePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitSlicePatternReceiverPlaceholder(BoundSlicePatternReceiverPlaceholder node)
             {
                 Fail(node);
                 return null;

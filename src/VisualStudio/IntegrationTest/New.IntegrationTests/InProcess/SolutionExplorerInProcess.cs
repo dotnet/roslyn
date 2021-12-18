@@ -462,7 +462,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
         private async Task<EnvDTE.Project> GetProjectAsync(string nameOrFileName, CancellationToken cancellationToken)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
             var solution = (EnvDTE80.Solution2)dte.Solution;

@@ -1537,8 +1537,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAssignmentOperator(node, op1, op2, isRef, type, hasErrors);
         }
 
-        private static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out SyntaxNode propertySyntax)
+        internal static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out SyntaxNode propertySyntax)
         {
+            if (expr is null)
+            {
+                receiver = null;
+                propertySyntax = null;
+                return null;
+            }
+
             PropertySymbol propertySymbol;
             switch (expr.Kind)
             {
@@ -1556,16 +1563,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                         propertySymbol = indexerAccess.Indexer;
                     }
                     break;
-                case BoundKind.IndexOrRangePatternIndexerAccess:
+                case BoundKind.ImplicitIndexerAccess:
                     {
-                        var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                        receiver = patternIndexer.Receiver;
-                        propertySymbol = (PropertySymbol)patternIndexer.PatternSymbol;
+                        var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
+
+                        switch (implicitIndexerAccess.IndexerOrSliceAccess)
+                        {
+                            case BoundIndexerAccess indexerAccess:
+                                propertySymbol = indexerAccess.Indexer;
+                                receiver = implicitIndexerAccess.Receiver;
+                                break;
+
+                            case BoundCall or BoundArrayAccess:
+                                receiver = null;
+                                propertySyntax = null;
+                                return null;
+
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.IndexerOrSliceAccess.Kind);
+                        }
                     }
                     break;
                 default:
                     receiver = null;
-                    propertySymbol = null;
                     propertySyntax = null;
                     return null;
             }
@@ -1592,6 +1612,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return propertySymbol;
         }
+
+#nullable enable
+        internal static Symbol? GetIndexerOrImplicitIndexerSymbol(BoundExpression? e)
+        {
+            return e switch
+            {
+                null => null,
+                // this[Index], this[Range]
+                BoundIndexerAccess indexerAccess => indexerAccess.Indexer,
+                // Slice(int, int), Substring(int, int)
+                BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundCall call } => call.Method,
+                // this[int]
+                BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundIndexerAccess indexerAccess } => indexerAccess.Indexer,
+                // array[Index]
+                BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundArrayAccess } => null,
+                // array[int or Range]
+                BoundArrayAccess => null,
+                BoundDynamicIndexerAccess => null,
+                BoundBadExpression => null,
+                _ => throw ExceptionUtilities.UnexpectedValue(e.Kind)
+            };
+        }
+#nullable disable
 
         private static SyntaxNode GetEventName(BoundEventAccess expr)
         {
@@ -1888,7 +1931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (anonymousFunction.FunctionType is { } functionType &&
-                    functionType.GetValue() is null)
+                    functionType.GetInternalDelegateType() is null)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     if (Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo))
@@ -3454,7 +3497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool thisInitializer = initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) == true;
             if (!thisInitializer &&
-                ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any())
+                hasAnyRecordConstructors())
             {
                 var constructorSymbol = (MethodSymbol)this.ContainingMember();
                 if (!constructorSymbol.IsStatic &&
@@ -3471,6 +3514,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && thisInitializer
                 && ContainingType.IsDefaultValueTypeConstructor(initializer);
 
+            if (skipInitializer &&
+                hasAnyRecordConstructors())
+            {
+                Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+            }
+
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
@@ -3481,6 +3530,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       null :
                                                       bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
                                                                                            constructor.Body == null ? diagnostics : BindingDiagnosticBag.Discarded));
+
+            bool hasAnyRecordConstructors() =>
+                ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any();
         }
 
         internal virtual BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax initializer, BindingDiagnosticBag diagnostics)

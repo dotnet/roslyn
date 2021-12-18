@@ -323,6 +323,163 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractMethodInCtorInit()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Foo
+{
+    public Foo(int a, int b){}
+    public Foo(int i) : this([|i * 10 + 2|], 2)
+    {}
+}",
+@"
+class Foo
+{
+    public Foo(int a, int b){}
+    public Foo(int i) : this({|Rename:NewMethod|}(i), 2)
+    { }
+
+    private static int NewMethod(int i) => i * 10 + 2;
+}",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractMethodInCtorInitWithOutVar()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Foo
+{
+    public Foo(int a, int b){}
+    public Foo(int i, out int q) : this([|i * 10 + (q = 2)|], 2)
+    {}
+}",
+@"
+class Foo
+{
+    public Foo(int a, int b){}
+    public Foo(int i, out int q) : this({|Rename:NewMethod|}(i, out q), 2)
+    { }
+
+    private static int NewMethod(int i, out int q) => i * 10 + (q = 2);
+}",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestExtractMethodInCtorInitWithByRefVar()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System;
+
+namespace Test
+{
+    public class BaseX
+    {
+        public BaseX(out int s, int sx, ref int r, in int inRef)
+        {
+            Console.WriteLine(""begin base ctor"");
+
+            s = 42;
+            Console.WriteLine(sx);
+            Console.WriteLine(r);
+            Console.WriteLine(inRef);
+
+            r = 777;
+            Console.WriteLine(inRef);
+            Console.WriteLine(r);
+
+            Console.WriteLine(""end base ctor"");
+        }
+    }
+
+    public class X : BaseX
+    {
+        static int PrintX(int i)
+        {
+            Console.WriteLine(i);
+            return i;
+        }
+
+
+        public X(out int x, ref int r) :
+            base(out x, x = PrintX(x = 12), ref r, [|r++|])
+        {
+            Console.WriteLine($""in ctor {x}"");
+        }
+
+        static void Main()
+        {
+            int val = 33;
+            var x = new X(out var f, ref val);
+            Console.WriteLine(val);
+        }
+    }
+}
+",
+@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System;
+
+namespace Test
+{
+    public class BaseX
+    {
+        public BaseX(out int s, int sx, ref int r, in int inRef)
+        {
+            Console.WriteLine(""begin base ctor"");
+
+            s = 42;
+            Console.WriteLine(sx);
+            Console.WriteLine(r);
+            Console.WriteLine(inRef);
+
+            r = 777;
+            Console.WriteLine(inRef);
+            Console.WriteLine(r);
+
+            Console.WriteLine(""end base ctor"");
+        }
+    }
+
+    public class X : BaseX
+    {
+        static int PrintX(int i)
+        {
+            Console.WriteLine(i);
+            return i;
+        }
+
+
+        public X(out int x, ref int r) :
+            base(out x, x = PrintX(x = 12), ref r, {|Rename:NewMethod|}(ref r))
+        {
+            Console.WriteLine($""in ctor {x}"");
+        }
+
+        private static int NewMethod(ref int r) => r++;
+
+        static void Main()
+        {
+            int val = 33;
+            var x = new X(out var f, ref val);
+            Console.WriteLine(val);
+        }
+    }
+}
+",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine3()
         {
             await TestInRegularAndScript1Async(

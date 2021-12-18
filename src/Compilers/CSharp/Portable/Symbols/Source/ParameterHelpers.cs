@@ -138,6 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
+                if (refKind != RefKind.None && parameterSyntax is ParameterSyntax { ExclamationExclamationToken: var exExToken, Identifier: var identifier } && exExToken.Kind() != SyntaxKind.None)
+                {
+                    diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, exExToken.GetLocation(), identifier.ValueText);
+                }
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
                 {
                     diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
@@ -183,6 +187,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // error CS0631: ref and out are not valid in this context
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, refnessKeyword.GetLocation());
+                }
+
+                if (parameterSyntax is ParameterSyntax { ExclamationExclamationToken: var exExToken1, Identifier: var identifier1 } && exExToken1.Kind() == SyntaxKind.ExclamationExclamationToken)
+                {
+                    if (owner.IsAbstract || owner.IsPartialDefinition() || owner.IsExtern)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, identifier1.GetLocation(), identifier1.ValueText);
+                    }
                 }
 
                 TParameterSymbol parameter = parameterCreationFunc(binder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, diagnostics);
@@ -775,6 +787,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return refKind;
+        }
+
+        // https://github.com/dotnet/roslyn/issues/58335: consider whether we should adjust the set of locations where we call this
+        internal static void ReportParameterNullCheckingErrors(DiagnosticBag diagnostics, ParameterSymbol parameter)
+        {
+            if (!parameter.IsNullChecked)
+            {
+                return;
+            }
+            Location location = parameter.Locations.FirstOrNone();
+            // https://github.com/dotnet/roslyn/issues/58335: can we simplify with the other overload?
+            if (Binder.GetWellKnownTypeMember(parameter.DeclaringCompilation, WellKnownMember.System_ArgumentNullException__ctorString, out UseSiteInfo<AssemblySymbol> useSiteInfo) is null)
+            {
+                diagnostics.Add(useSiteInfo.DiagnosticInfo, location);
+            }
+            if (parameter.TypeWithAnnotations.NullableAnnotation.IsAnnotated()
+                || parameter.Type.IsNullableTypeOrTypeParameter())
+            {
+                diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableType, location, parameter);
+            }
+            else if (parameter.Type.IsValueType && !parameter.Type.IsPointerOrFunctionPointer())
+            {
+                diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, location, parameter);
+            }
         }
 
         internal static ImmutableArray<CustomModifier> ConditionallyCreateInModifiers(RefKind refKind, bool addRefReadOnlyModifier, Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)

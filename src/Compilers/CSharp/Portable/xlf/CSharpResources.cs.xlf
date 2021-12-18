@@ -462,9 +462,9 @@
         <target state="translated">Strom výrazů nesmí obsahovat převod obslužné rutiny interpolovaného řetězce.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
+      <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="translated">Strom výrazů možná neobsahuje vzor přístupu indexeru System.Index nebo System.Range.</target>
+        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
@@ -627,6 +627,11 @@
         <target state="translated">Argumenty s modifikátorem in se nedají použít v dynamicky volaných výrazech.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IncorrectNullCheckSyntax">
+        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
+        <target state="new">Incorrect parameter null checking syntax. Should be '!!'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
         <target state="translated">Dědění ze záznamu se zapečetěným objektem Object.ToString se v jazyce C# {0} nepodporuje. Použijte prosím jazykovou verzi {1} nebo vyšší.</target>
@@ -769,7 +774,7 @@
       </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
-        <target state="translated">Výraz lambda s atributy nejde převést na strom výrazu.</target>
+        <target state="new">A lambda expression with attributes cannot be converted to an expression tree</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -785,6 +790,11 @@
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Žádná přetížená metoda {0} neodpovídá ukazateli na funkci {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedSlicePattern">
+        <source>Slice patterns may only be used once and directly inside a list pattern.</source>
+        <target state="new">Slice patterns may only be used once and directly inside a list pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -842,6 +852,11 @@
         <target state="translated">Seznam parametrů může mít jenom částečná deklarace jednoho záznamu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MustNullCheckInImplementation">
+        <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
+        <target state="new">Parameter '{0}' can only have exclamation-point null checking in implementation methods.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Omezení new() nejde používat s omezením unmanaged.</target>
@@ -882,6 +897,11 @@
         <target state="translated">Nepovedlo se určit výstupní adresář.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
+        <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
+        <target state="new">Parameter '{0}' is a non-nullable value type and cannot be null-checked.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
         <source>Record member '{0}' must be private.</source>
         <target state="translated">Člen záznamu {0} musí být privátní.</target>
@@ -910,6 +930,11 @@
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">{0} musí povolovat přepisování, protože obsahující záznam není zapečetěný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullCheckingOnByRefParameter">
+        <source>By-reference parameter '{0}' cannot be null-checked.</source>
+        <target state="new">By-reference parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1040,6 +1065,11 @@
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">Primární konstruktor je v konfliktu se syntetizovaně zkopírovaným konstruktorem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
+        <source>A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.</source>
+        <target state="new">A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1227,6 +1257,16 @@
         <target state="translated">{0} má atribut UnmanagedCallersOnly a nedá se převést na typ delegáta. Pro tuto metodu získejte ukazatel na funkci.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForListPattern">
+        <source>List patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">List patterns may not be used for a value of type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
+        <source>Slice patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">Slice patterns may not be used for a value of type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Očekával se obecný návratový typ podobný úloze, ale typ {0} nalezený v atributu AsyncMethodBuilder nebyl vhodný. Musí se jednat o nevázaný obecný typ arity a jeho nadřazený typ (pokud existuje) nesmí být obecný.</target>
@@ -1302,9 +1342,19 @@
         <target state="translated">návratový typ lambda</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLengthPattern">
+        <source>length pattern</source>
+        <target state="new">length pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureLineSpanDirective">
         <source>line span directive</source>
         <target state="translated">direktiva line span</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureListPattern">
+        <source>list pattern</source>
+        <target state="new">list pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
@@ -1350,6 +1400,11 @@
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
         <target state="translated">se strukturami</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_ParameterNullChecking">
+        <source>parameter null-checking</source>
+        <target state="new">parameter null-checking</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1434,12 +1489,12 @@
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
         <source>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</source>
-        <target state="translated">Operace může při běhu přetéct {0} (pro přepis použijte syntaxi unchecked)</target>
+        <target state="new">The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
-        <target state="translated">Operace může při běhu přetéct (pro přepis použijte syntaxi unchecked)</target>
+        <target state="new">The operation may overflow at runtime (use 'unchecked' syntax to override)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -1462,14 +1517,44 @@
         <target state="translated">Argument InterpolatedStringHandlerArgument nemá při použití u parametrů lambda žádný účinek a bude se ignorovat v lokalitě volání.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_LowerCaseTypeName">
+        <source>The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
+        <target state="new">The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_LowerCaseTypeName_Title">
+        <source>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
+        <target state="new">The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
-        <target state="translated">Převádí se skupina metod {0} na nedelegující typ {1}. Chtěli jste volat tuto metodu?</target>
+        <target state="new">Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
-        <target state="translated">Převádí se skupina metod na nedelegující typ.</target>
+        <target state="new">Converting method group to non-delegate type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull">
+        <source>Parameter '{0}' is null-checked but is null by default.</source>
+        <target state="new">Parameter '{0}' is null-checked but is null by default.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
+        <source>Parameter is null-checked but is null by default.</source>
+        <target state="new">Parameter is null-checked but is null by default.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableType">
+        <source>Nullable type '{0}' is null-checked and will throw if null.</source>
+        <target state="new">Nullable type '{0}' is null-checked and will throw if null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableType_Title">
+        <source>Nullable type is null-checked and will throw if null.</source>
+        <target state="new">Nullable type is null-checked and will throw if null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">

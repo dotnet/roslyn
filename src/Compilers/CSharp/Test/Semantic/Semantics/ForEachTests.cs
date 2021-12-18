@@ -1626,7 +1626,7 @@ class C
         foreach (var x in a) { }
     }
 
-    class var { }
+    class @var { }
 }
 ";
             var boundNode = GetBoundForEachStatement(text);

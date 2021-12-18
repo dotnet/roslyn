@@ -462,9 +462,9 @@
         <target state="translated">式ツリーには、補間された文字列ハンドラー変換を含めることはできません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
+      <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="translated">式ツリーに、System.Index または System.Range インデクサー アクセスのパターンを含めることはできません</target>
+        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
@@ -627,6 +627,11 @@
         <target state="translated">'in' 修飾子を持つ引数を、動的ディスパッチされる式で使用することはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IncorrectNullCheckSyntax">
+        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
+        <target state="new">Incorrect parameter null checking syntax. Should be '!!'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
         <target state="translated">シールされた ' Object. ToString ' を含むレコードからの継承は、C# {0} ではサポートされていません。' {1} ' 以上の言語バージョンを使用してください。</target>
@@ -769,7 +774,7 @@
       </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
-        <target state="translated">属性を含むラムダ式は、式ツリーに変換できません</target>
+        <target state="new">A lambda expression with attributes cannot be converted to an expression tree</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -785,6 +790,11 @@
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">関数ポインター '{1}' に一致する '{0}' のオーバーロードはありません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedSlicePattern">
+        <source>Slice patterns may only be used once and directly inside a list pattern.</source>
+        <target state="new">Slice patterns may only be used once and directly inside a list pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -842,6 +852,11 @@
         <target state="translated">1 つのレコードの部分宣言のみがパラメーター リストを持つことができます</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MustNullCheckInImplementation">
+        <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
+        <target state="new">Parameter '{0}' can only have exclamation-point null checking in implementation methods.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">new()' 制約は 'unmanaged' 制約と一緒には使用できません</target>
@@ -882,6 +897,11 @@
         <target state="translated">出力ディレクトリを特定できませんでした</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
+        <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
+        <target state="new">Parameter '{0}' is a non-nullable value type and cannot be null-checked.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
         <source>Record member '{0}' must be private.</source>
         <target state="translated">レコード メンバー '{0}' は private でなければなりません。</target>
@@ -910,6 +930,11 @@
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">'{0}' ではオーバーライドを許可する必要があります。これが含まれているレコードが sealed ではないためです。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullCheckingOnByRefParameter">
+        <source>By-reference parameter '{0}' cannot be null-checked.</source>
+        <target state="new">By-reference parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1040,6 +1065,11 @@
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">プライマリ コンストラクターが、合成されたコピー コンストラクターと競合しています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
+        <source>A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.</source>
+        <target state="new">A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1227,6 +1257,16 @@
         <target state="translated">'{0}' は 'UnmanagedCallersOnly' 属性が設定されているため、デリゲート型に変換できません。このメソッドへの関数ポインターを取得してください。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForListPattern">
+        <source>List patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">List patterns may not be used for a value of type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
+        <source>Slice patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">Slice patterns may not be used for a value of type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">汎用タスクのような戻り値の型が必要ですが、'AsyncMethodBuilder' 属性で見つかった型 '{0}' が適切ではありませんでした。アリティの非バインド ジェネリック型である必要があり、それを含む型 (存在する場合) は非ジェネリックでなければなりません。</target>
@@ -1302,9 +1342,19 @@
         <target state="translated">ラムダ戻り値の型</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLengthPattern">
+        <source>length pattern</source>
+        <target state="new">length pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureLineSpanDirective">
         <source>line span directive</source>
         <target state="translated">line span ディレクティブ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureListPattern">
+        <source>list pattern</source>
+        <target state="new">list pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
@@ -1350,6 +1400,11 @@
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
         <target state="translated">構造体の場合</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_ParameterNullChecking">
+        <source>parameter null-checking</source>
+        <target state="new">parameter null-checking</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1434,12 +1489,12 @@
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
         <source>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</source>
-        <target state="translated">実行時に操作がオーバーフロー '{0}' する可能性があります (オーバーライドするには 'unchecked' 構文を使用してください)</target>
+        <target state="new">The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
-        <target state="translated">実行時に操作がオーバーフローする可能性があります (オーバーライドするには 'unchecked' 構文を使用してください)</target>
+        <target state="new">The operation may overflow at runtime (use 'unchecked' syntax to override)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -1462,14 +1517,44 @@
         <target state="translated">ラムダ パラメーターに適用しても InterpolatedStringHandlerArgument は効果がありません。呼び出しサイトでは無視されます。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_LowerCaseTypeName">
+        <source>The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
+        <target state="new">The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_LowerCaseTypeName_Title">
+        <source>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
+        <target state="new">The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
-        <target state="translated">メソッド グループ '{0}' を非デリゲート型 '{1}' に変換中です。このメソッドを呼び出すつもりでしたか?</target>
+        <target state="new">Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
-        <target state="translated">メソッド グループを非デリゲート型に変換しています</target>
+        <target state="new">Converting method group to non-delegate type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull">
+        <source>Parameter '{0}' is null-checked but is null by default.</source>
+        <target state="new">Parameter '{0}' is null-checked but is null by default.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
+        <source>Parameter is null-checked but is null by default.</source>
+        <target state="new">Parameter is null-checked but is null by default.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableType">
+        <source>Nullable type '{0}' is null-checked and will throw if null.</source>
+        <target state="new">Nullable type '{0}' is null-checked and will throw if null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableType_Title">
+        <source>Nullable type is null-checked and will throw if null.</source>
+        <target state="new">Nullable type is null-checked and will throw if null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
