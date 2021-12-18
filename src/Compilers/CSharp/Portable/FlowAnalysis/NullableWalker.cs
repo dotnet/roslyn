@@ -8018,11 +8018,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
+                bool save_completingTargetTypedExpression;
+
                 if (previousArgumentConversionResults == null)
                 {
                     Debug.Assert(handlerData.ArgumentPlaceholders.IsEmpty
                                  || handlerData.ArgumentPlaceholders.Single().ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter);
+
+                    save_completingTargetTypedExpression = _completingTargetTypedExpression;
+                    _completingTargetTypedExpression = false;
                     VisitRvalue(handlerData.Construction);
+                    _completingTargetTypedExpression = save_completingTargetTypedExpression;
                     return;
                 }
 
@@ -8051,7 +8057,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                save_completingTargetTypedExpression = _completingTargetTypedExpression;
+                _completingTargetTypedExpression = false;
                 VisitRvalue(handlerData.Construction);
+                _completingTargetTypedExpression = save_completingTargetTypedExpression;
 
                 if (addedPlaceholders)
                 {
