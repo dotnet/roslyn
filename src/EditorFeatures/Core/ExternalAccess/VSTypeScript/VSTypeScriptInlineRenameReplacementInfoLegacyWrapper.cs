@@ -4,18 +4,21 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    internal sealed class VSTypeScriptInlineRenameReplacementInfo : IInlineRenameReplacementInfo
+    [Obsolete]
+    internal sealed class VSTypeScriptInlineRenameReplacementInfoLegacyWrapper : IInlineRenameReplacementInfo
     {
         private readonly IVSTypeScriptInlineRenameReplacementInfo _info;
 
-        public VSTypeScriptInlineRenameReplacementInfo(IVSTypeScriptInlineRenameReplacementInfo info)
+        public VSTypeScriptInlineRenameReplacementInfoLegacyWrapper(IVSTypeScriptInlineRenameReplacementInfo info)
         {
             Contract.ThrowIfNull(info);
             _info = info;
