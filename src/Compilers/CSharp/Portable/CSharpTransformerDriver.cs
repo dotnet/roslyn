@@ -28,22 +28,22 @@ namespace Metalama.Compiler
                 (type, instance) => services.AddService(type, instance),
                 () => services.GetServiceProvider());
 
-            serviceProviderBuilder.AddSingleton<IBackstageDiagnosticSink>(new CaravelaTryBackstageDiagnosticsSink());
-            serviceProviderBuilder.AddSingleton<ILicenseConsumptionManager>(new CaravelaTryLicenseConsumptionManager());
+            serviceProviderBuilder.AddSingleton<IBackstageDiagnosticSink>(new MetalamaTryBackstageDiagnosticsSink());
+            serviceProviderBuilder.AddSingleton<ILicenseConsumptionManager>(new MetalamaTryLicenseConsumptionManager());
 
             var diagnostics = DiagnosticBag.GetInstance();
             var results = CSharpCompiler.RunTransformers(input, transformers, null, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader, serviceProviderBuilder.ServiceProvider, CancellationToken.None);
             return (results.TransformedCompilation, diagnostics.ToReadOnlyAndFree());
         }
 
-        private class CaravelaTryLicenseConsumptionManager : ILicenseConsumptionManager
+        private class MetalamaTryLicenseConsumptionManager : ILicenseConsumptionManager
         {
             public bool CanConsumeFeatures(ILicenseConsumer consumer, LicensedFeatures requiredFeatures) => true;
 
             public void ConsumeFeatures(ILicenseConsumer consumer, LicensedFeatures requiredFeatures) { }
         }
 
-        private class CaravelaTryBackstageDiagnosticsSink : IBackstageDiagnosticSink
+        private class MetalamaTryBackstageDiagnosticsSink : IBackstageDiagnosticSink
         {
             public void ReportError(string message, IDiagnosticsLocation? location = null)
             {
