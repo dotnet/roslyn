@@ -15,7 +15,6 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.AsynchronousOperationListener" ClassName="Microsoft.CodeAnalysis.Remote.RemoteAsynchronousOperationListenerService+Factory" Audience="AllClientsIncludingGuests"/>
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DiagnosticAnalyzer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDiagnosticAnalyzerService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SemanticClassification" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSemanticClassificationService+Factory" />
-    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SemanticClassificationCache" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSemanticClassificationCacheService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DocumentHighlights" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDocumentHighlightsService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.EncapsulateField" ClassName="Microsoft.CodeAnalysis.Remote.RemoteEncapsulateFieldService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.Renamer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteRenamerService+Factory" />
