@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract SyntaxNode TryGetLastStatement(IBlockOperation? blockStatementOpt);
+        protected abstract SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatementOpt);
 
         protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
 
@@ -53,8 +53,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
-            Document document, IParameterSymbol parameter, SyntaxNode constructorDeclaration, IMethodSymbol method,
-            IBlockOperation? blockStatementOpt, CancellationToken cancellationToken)
+            Document document,
+            TParameterSyntax parameterSyntax,
+            IParameterSymbol parameter,
+            SyntaxNode constructorDeclaration,
+            IMethodSymbol method,
+            IBlockOperation? blockStatementOpt,
+            CancellationToken cancellationToken)
         {
             // Only supported for constructor parameters.
             if (method.MethodKind != MethodKind.Constructor)

@@ -9,7 +9,7 @@ Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Task = System.Threading.Tasks.Task
 
-Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
+Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Friend Class MockVsFileChangeEx
         Implements IVsFileChangeEx
         Implements IVsAsyncFileChangeEx
