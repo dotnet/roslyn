@@ -1214,11 +1214,11 @@ namespace CSharpSyntaxGenerator
                     node.Fields.Select(f => CamelCase(f.Name))));
                 WriteLine(");");
                 WriteLine("var annotations = GetAnnotations();");
-                // <Caravela>
-                WriteLine("// <Caravela> This change is generated. See Modifications.md for details.");
-                WriteLine("Caravela.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);");
-                WriteLine("// </Caravela>");
-                // </Caravela>
+                // <Metalama>
+                WriteLine("// <Metalama> This change is generated. See Modifications.md for details.");
+                WriteLine("Metalama.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);");
+                WriteLine("// </Metalama>");
+                // </Metalama>
                 WriteLine("return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;");
                 CloseBlock();
             }
@@ -1592,7 +1592,7 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
-            // <Caravela>
+            // <Metalama>
             // annotate parameters with original locations
             foreach (var field in nodeFields)
             {
@@ -1603,12 +1603,12 @@ namespace CSharpSyntaxGenerator
                 }
                 else
                 {
-                    WriteLine("// <Caravela> This change is generated. See Modifications.md for details.");
-                    WriteLine($"{CamelCase(field.Name)} = Caravela.Compiler.TreeTracker.TrackIfNeeded({CamelCase(field.Name)});");
-                    WriteLine("// </Caravela>");
+                    WriteLine("// <Metalama> This change is generated. See Modifications.md for details.");
+                    WriteLine($"{CamelCase(field.Name)} = Metalama.Compiler.TreeTracker.TrackIfNeeded({CamelCase(field.Name)});");
+                    WriteLine("// </Metalama>");
                 }
             }
-            // </Caravela>
+            // </Metalama>
 
             Write($"return ({nd.Name})Syntax.InternalSyntax.SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
             Write(CommaJoin(

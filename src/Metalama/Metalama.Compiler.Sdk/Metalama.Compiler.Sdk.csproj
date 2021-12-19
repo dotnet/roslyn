@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DefineConstants>METALAMA_COMPILER_INTERFACE</DefineConstants>
+    <IsPackable>true</IsPackable>
+    <AssemblyName>Metalama.Compiler.Interface</AssemblyName>
+    <PackageId>Metalama.Compiler.Sdk</PackageId>
+  </PropertyGroup>
+
+  <Import Project="..\Metalama.Compiler.Shared\Metalama.Compiler.Shared.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <None Include="build\Metalama.Compiler.Sdk.targets" Pack="true" PackagePath="build" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
+  </ItemGroup>
+
+  <!-- based on https://claires.site/2018/07/03/create-and-pack-reference-assemblies/ -->
+  <Target Name="_GetReferenceAssemblies" DependsOnTargets="Build" Returns="@(ReferenceAssembliesOutput)">
+    <ItemGroup>
+      <ReferenceAssembliesOutput Include="@(IntermediateRefAssembly->'%(FullPath)')" TargetFramework="$(TargetFramework)" />
+      <ReferenceAssembliesOutput Include="@(DocumentationProjectOutputGroupOutput->'%(FullPath)')" TargetFramework="$(TargetFramework)" />
+    </ItemGroup>
+  </Target>
+  
+</Project>

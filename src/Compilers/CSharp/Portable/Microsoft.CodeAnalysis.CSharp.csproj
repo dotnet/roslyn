@@ -21,12 +21,12 @@
     <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <!-- <Caravela> See CommandLine\CSharpCompiler.cs. -->
-    <ProjectReference Include="..\..\..\Caravela\Caravela.Compiler.Interface.TypeForwards\Caravela.Compiler.Interface.TypeForwards.csproj">
-      <!-- This is to avoid adding a dependency on non-existing Caravela.Compiler.Interface NuGet package to Caravela.Roslyn.CodeAnalysis.CSharp NuGet package. -->
+    <!-- <Metalama> See CommandLine\CSharpCompiler.cs. -->
+    <ProjectReference Include="..\..\..\Metalama\Metalama.Compiler.Interface.TypeForwards\Metalama.Compiler.Interface.TypeForwards.csproj">
+      <!-- This is to avoid adding a dependency on non-existing Metalama.Compiler.Interface NuGet package to Metalama.Roslyn.CodeAnalysis.CSharp NuGet package. -->
       <PrivateAssets>All</PrivateAssets>
     </ProjectReference>
-    <!-- </Caravela> -->
+    <!-- </Metalama> -->
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\Source\CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj">
       <OutputItemType>Analyzer</OutputItemType>
@@ -89,9 +89,9 @@
     <InternalsVisibleTo Include="CompilerBenchmarks" />
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.Test.PdbUtilities" />
-    <!-- <Caravela> -->
-    <InternalsVisibleTo Include="Caravela.Compiler.UnitTests" Key="$(MetalamaKey)" />
-    <!-- </Caravela> -->
+    <!-- <Metalama> -->
+    <InternalsVisibleTo Include="Metalama.Compiler.UnitTests" Key="$(MetalamaKey)" />
+    <!-- </Metalama> -->
   </ItemGroup>
   <Import Project="..\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
 </Project>

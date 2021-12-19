@@ -19,9 +19,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-// <Caravela>
-using Caravela.Compiler;
-// </Caravela>
+// <Metalama>
+using Metalama.Compiler;
+// </Metalama>
 
 namespace Microsoft.CodeAnalysis
 {
@@ -67,9 +67,9 @@ namespace Microsoft.CodeAnalysis
         internal const int Succeeded = 0;
 
 
-        // <Caravela>
+        // <Metalama>
         private readonly string _workingDirectory;
-        // </Caravela>
+        // </Metalama>
 
         /// <summary>
         /// Fallback encoding that is lazily retrieved if needed. If <see cref="EncodedStringText.CreateFallbackEncoding"/> is
@@ -122,24 +122,24 @@ namespace Microsoft.CodeAnalysis
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
             bool skipAnalyzers,
-            // <Caravela>
+            // <Metalama>
             ImmutableArray<string?> transformerOrder,
-            // </Caravela>
+            // </Metalama>
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
-            // <Caravela>
+            // <Metalama>
             out ImmutableArray<ISourceGenerator> generators,
             out ImmutableArray<ISourceTransformer> transformers,
             out ImmutableArray<object> plugins
-            // </Caravela>
+            // </Metalama>
             );
 
         public CommonCompiler(CommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader, GeneratorDriverCache? driverCache)
         {
             IEnumerable<string> allArgs = args;
 
-            // <Caravela>
+            // <Metalama>
             _workingDirectory = buildPaths.WorkingDirectory;
-            // </Caravela>
+            // </Metalama>
 
             Debug.Assert(null == responseFile || PathUtilities.IsAbsolute(responseFile));
             if (!SuppressDefaultResponseFile(args) && File.Exists(responseFile))
@@ -575,10 +575,10 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
-                // <Caravela>
+                // <Metalama>
                 var unmappedDiagnostic = diag;
                 diag = TreeTracker.MapDiagnostic(diag);
-                // </Caravela
+                // </Metalama
 
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
@@ -808,7 +808,7 @@ namespace Microsoft.CodeAnalysis
 
         private protected abstract GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts);
 
-        // <Caravela>
+        // <Metalama>
 
         private protected virtual TransformersResult RunTransformers(
             Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis
 
 
         }
-        // </Caravela>
+        // </Metalama>
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger? errorLogger, CancellationToken cancellationToken)
         {
@@ -862,9 +862,9 @@ namespace Microsoft.CodeAnalysis
             AnalyzerConfigSet? analyzerConfigSet = null;
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
             AnalyzerConfigOptionsResult globalConfigOptions = default;
-            // <Caravela>
+            // <Metalama>
             ImmutableArray<string?> transformerOrder = default;
-            // </Caravela>
+            // </Metalama>
 
             if (Arguments.AnalyzerConfigPaths.Length > 0)
             {
@@ -883,14 +883,14 @@ namespace Microsoft.CodeAnalysis
                     diagnostics.AddRange(sourceFileAnalyzerConfigOption.Diagnostics);
                 }
 
-                // <Caravela>
-                globalConfigOptions.AnalyzerOptions.TryGetValue("build_property.CaravelaCompilerTransformerOrder", out var transformerOrderString);
+                // <Metalama>
+                globalConfigOptions.AnalyzerOptions.TryGetValue("build_property.MetalamaCompilerTransformerOrder", out var transformerOrderString);
 
                 if (!string.IsNullOrWhiteSpace(transformerOrderString))
                 {
                     transformerOrder = transformerOrderString.Split(';').ToImmutableArray<string?>();
                 }
-                // </Caravela>
+                // </Metalama>
             }
 
             Compilation? compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions, globalConfigOptions);
@@ -920,10 +920,10 @@ namespace Microsoft.CodeAnalysis
                 ref compilation,
                 analyzers,
                 generators,
-                // <Caravela>
+                // <Metalama>
                 transformers,
                 plugins,
-                // </Caravela>
+                // </Metalama>
                 additionalTexts,
                 analyzerConfigSet,
                 sourceFileAnalyzerConfigOptions,
@@ -1008,24 +1008,24 @@ namespace Microsoft.CodeAnalysis
             return existing.WithAdditionalTreeOptions(builder.ToImmutable());
         }
 
-        // <Caravela>
+        // <Metalama>
         protected static bool ShouldDebugTransformedCode(AnalyzerConfigOptionsProvider options)
         {
-            options.GlobalOptions.TryGetValue("build_property.CaravelaDebugTransformedCode", out var value);
+            options.GlobalOptions.TryGetValue("build_property.MetalamaDebugTransformedCode", out var value);
             bool.TryParse(value, out var parsedValue);
             return parsedValue;
         }
 
         protected static bool ShouldAttachDebugger(AnalyzerConfigOptionsProvider options)
         {
-            options.GlobalOptions.TryGetValue("build_property.CaravelaDebugCompiler", out var value);
+            options.GlobalOptions.TryGetValue("build_property.MetalamaDebugCompiler", out var value);
             bool.TryParse(value, out var parsedValue);
             return parsedValue;
         }
 
         protected string? GetTransformedFilesOutputDirectory(AnalyzerConfigOptionsProvider options)
         {
-            if (!options.GlobalOptions.TryGetValue("build_property.CaravelaCompilerTransformedFilesOutputPath", out var transformedFilesOutputDirectory))
+            if (!options.GlobalOptions.TryGetValue("build_property.MetalamaCompilerTransformedFilesOutputPath", out var transformedFilesOutputDirectory))
             {
                 return null;
             }
@@ -1038,7 +1038,7 @@ namespace Microsoft.CodeAnalysis
         private (ImmutableArray<DiagnosticAnalyzer> SourceOnlyAnalyzers, ImmutableArray<DiagnosticAnalyzer> WholeCodeAnalyzers) 
             SplitAnalyzers(AnalyzerConfigOptionsProvider options, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
-            if (!options.GlobalOptions.TryGetValue("build_property.CaravelaSourceOnlyAnalyzers", out var sourceOnlyAnalyzers))
+            if (!options.GlobalOptions.TryGetValue("build_property.MetalamaSourceOnlyAnalyzers", out var sourceOnlyAnalyzers))
             {
                 return ( ImmutableArray<DiagnosticAnalyzer>.Empty, analyzers );
             }
@@ -1115,7 +1115,7 @@ namespace Microsoft.CodeAnalysis
         }
 
 
-        // </Caravela>
+        // </Metalama>
 
         /// <summary>
         /// Perform all the work associated with actual compilation
@@ -1127,10 +1127,10 @@ namespace Microsoft.CodeAnalysis
             ref Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
-            // <Caravela>
+            // <Metalama>
             ImmutableArray<ISourceTransformer> transfomers,
             ImmutableArray<object> plugins,
-            // </Caravela>
+            // </Metalama>
             ImmutableArray<AdditionalText> additionalTextFiles,
             AnalyzerConfigSet? analyzerConfigSet,
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
@@ -1154,9 +1154,9 @@ namespace Microsoft.CodeAnalysis
 
             DiagnosticBag? analyzerExceptionDiagnostics = null;
             if (!analyzers.IsEmpty || !generators.IsEmpty
-                                   // <Caravela>
+                                   // <Metalama>
                                    || !transfomers.IsEmpty
-                                   // </Caravela>
+                                   // </Metalama>
                                    )
             {
                 var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
@@ -1255,7 +1255,7 @@ namespace Microsoft.CodeAnalysis
                     additionalTextFiles, analyzerConfigProvider);
 
 
-                // <Caravela>
+                // <Metalama>
                 bool shouldAttachDebugger = ShouldAttachDebugger(analyzerConfigProvider);
                 if (shouldAttachDebugger)
                 {
@@ -1296,7 +1296,7 @@ namespace Microsoft.CodeAnalysis
                         if (shouldDebugTransformedCode && !hasTransformedOutputPath)
                         {
                             var diagnostic = Diagnostic.Create(new DiagnosticInfo(
-                                CaravelaCompilerMessageProvider.Instance, (int)ErrorCode.WRN_NoTransformedOutputPathWhenDebuggingTransformed));
+                                MetalamaCompilerMessageProvider.Instance, (int)ErrorCode.WRN_NoTransformedOutputPathWhenDebuggingTransformed));
                             diagnostics.Add(diagnostic);
                         }
 
@@ -1383,13 +1383,13 @@ namespace Microsoft.CodeAnalysis
                     // Add a suppressor to handle the suppressions given by the transformations.
                     analyzers = analyzers.Add(new TransformerDiagnosticSuppressor(transformersResult.DiagnosticFilters));
                 }
-                // </Caravela>
+                // </Metalama>
 
 
                 if (!analyzers.IsEmpty)
                 {
-                    analyzerCts ??= CancellationTokenSource.CreateLinkedTokenSource(cancellationToken); // <Caravela /> ??=
-                    analyzerExceptionDiagnostics ??= new DiagnosticBag(); // <Caravela /> ??=
+                    analyzerCts ??= CancellationTokenSource.CreateLinkedTokenSource(cancellationToken); // <Metalama /> ??=
+                    analyzerExceptionDiagnostics ??= new DiagnosticBag(); // <Metalama /> ??=
 
                     // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
                     //  1. Always filter out 'Hidden' analyzer diagnostics in build.
@@ -1607,9 +1607,9 @@ namespace Microsoft.CodeAnalysis
                     }
 
 
-                    // <Caravela>
+                    // <Metalama>
                     RemoveDiagnosticsFromGeneratedCode(diagnostics);
-                    // </Caravela>
+                    // </Metalama>
 
 
 
@@ -1701,7 +1701,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        // <Caravela>
+        // <Metalama>
         private static void MapDiagnosticSyntaxTreesToFinalCompilation(DiagnosticBag sourceDiagnostics, DiagnosticBag targetDiagnostics, Compilation compilation)
         {
             foreach (var diagnostic in sourceDiagnostics.AsEnumerable())
@@ -1784,7 +1784,7 @@ namespace Microsoft.CodeAnalysis
                 inputDiagnostics.Where(diagnostic => diagnostic.Severity >= DiagnosticSeverity.Error && diagnostic.Id.StartsWith("CS", StringComparison.OrdinalIgnoreCase) ||
                                                      !TreeTracker.IsTransformedLocation(diagnostic.Location)));
         }
-        // </Caravela>
+        // </Metalama>
 
         // virtual for testing
         protected virtual Diagnostics.AnalyzerOptions CreateAnalyzerOptions(

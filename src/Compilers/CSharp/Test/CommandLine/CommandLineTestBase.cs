@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Caravela.Compiler;
+using Metalama.Compiler;
 using PostSharp.Backstage.Licensing.Consumption;
 using static Roslyn.Test.Utilities.TestMetadata;
 
@@ -53,17 +53,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 
         internal MockCSharpCompiler CreateCSharpCompiler(string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null)
         {
-            // <Caravela>
+            // <Metalama>
             return CreateCSharpCompiler(null, WorkingDirectory, args, analyzers, generators, default, loader, driverCache);
-            // </Caravela>
+            // </Metalama>
         }
 
         internal MockCSharpCompiler CreateCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, ImmutableArray<ISourceTransformer> transformers = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null, bool bypassLicensing = true)
         {
             var buildPaths = RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory: SdkDirectory);
-            // <Caravela>
+            // <Metalama>
             return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers, generators, transformers, loader, driverCache, bypassLicensing);
-            // </Caravela>
+            // </Metalama>
         }
     }
 }

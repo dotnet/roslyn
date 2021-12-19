@@ -9,9 +9,9 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-// <Caravela> This fixes XML comment warning
+// <Metalama> This fixes XML comment warning
 using Microsoft.CodeAnalysis.Options;
-// </Caravela>
+// </Metalama>
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;

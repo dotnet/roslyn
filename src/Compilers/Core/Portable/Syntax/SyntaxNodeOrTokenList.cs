@@ -11,7 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxNodeOrTokenList);
             }
 
-            // <Caravela>
+            // <Metalama>
             for (int i = 0; i < items.Count; i++)
             {
                 var node = items[i].AsNode();
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis
                     items[i] = newNode;
                 }
             }
-            // </Caravela>
+            // </Metalama>
 
             var newGreen = GreenNode.CreateList(items, static n => n.RequiredUnderlyingNode)!;
             if (newGreen.IsToken)

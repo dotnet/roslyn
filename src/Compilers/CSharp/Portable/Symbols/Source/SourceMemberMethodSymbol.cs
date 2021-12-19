@@ -1001,9 +1001,9 @@ done:
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            // <Caravela>
+            // <Metalama>
             // Debug.Assert(this.SyntaxNode.SyntaxTree == localTree);
-            // </Caravela>
+            // </Metalama>
 
             (BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody) = Bodies;
 
@@ -1021,9 +1021,9 @@ done:
             else
             {
                 // Method without body doesn't declare locals.
-                // <Caravela>
+                // <Metalama>
                 // Debug.Assert(bodySyntax != null);
-                // </Caravela>
+                // </Metalama>
                 
                 return -1;
             }

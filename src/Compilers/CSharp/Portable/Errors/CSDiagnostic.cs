@@ -5,7 +5,7 @@
 #nullable disable
 
 using System;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class CSDiagnostic : DiagnosticWithInfo
     {
-        // <Caravela>
+        // <Metalama>
         static DiagnosticInfo GetPreTransformationInfo(DiagnosticInfo info)
         {
             for (int i = 0; i < info.Arguments.Length; i++)
@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return info;
         }
-        // </Caravela>
+        // </Metalama>
 
         internal CSDiagnostic(DiagnosticInfo info, Location location, bool isSuppressed = false)
-            // <Caravela> - Call GetPreTransformationInfo
+            // <Metalama> - Call GetPreTransformationInfo
             : base(GetPreTransformationInfo(info), location, isSuppressed)
-            // </Caravela>
+            // </Metalama>
         {
         }
 

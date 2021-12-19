@@ -29,7 +29,7 @@ using Microsoft.Metadata.Tools;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using Caravela.Compiler;
+using Metalama.Compiler;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -236,12 +236,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedValueSourcePath,
             bool expectedIsXmlLiteral)
         {
-            // <Caravela>
-            if (CaravelaCompilerTest.ShouldExecuteTransformer)
+            // <Metalama>
+            if (MetalamaCompilerTest.ShouldExecuteTransformer)
             {
-                compilation = CaravelaCompilerTest.ExecuteTransformer(compilation, new CaravelaCompilerTest.TokenPerLineTransformer());
+                compilation = MetalamaCompilerTest.ExecuteTransformer(compilation, new MetalamaCompilerTest.TokenPerLineTransformer());
             }
-            // </Caravela>
+            // </Metalama>
 
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
 
@@ -407,13 +407,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             RemoveEmptyMethods(expectedXml);
             RemoveFormatAttributes(expectedXml);
 
-            // <Caravela>
-            if (CaravelaCompilerTest.ShouldExecuteTransformer)
+            // <Metalama>
+            if (MetalamaCompilerTest.ShouldExecuteTransformer)
             {
                 RemoveEnc(actualXml);
                 RemoveEnc(expectedXml);
             }
-            // </Caravela>
+            // </Metalama>
             
             return (actualXml.ToString(), expectedXml.ToString());
         }
@@ -430,14 +430,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return array.Length > 0;
         }
 
-        // <Caravela>
+        // <Metalama>
         private static void RemoveEnc(XElement pdb)
         {
             RemoveElements(from e in pdb.DescendantsAndSelf()
                            where e.Name.LocalName.StartsWith("enc")
                            select e);
         }
-        // </Caravela>
+        // </Metalama>
 
         private static void RemoveEmptyCustomDebugInfo(XElement pdb)
         {

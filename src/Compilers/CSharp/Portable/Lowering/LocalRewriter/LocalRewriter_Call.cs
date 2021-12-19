@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
-using Caravela.Compiler;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -227,18 +227,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenArguments[1],
                     type);
             }
-            // <Caravela>
+            // <Metalama>
             else if (method.IsStatic &&
-                // global::Caravela.Compiler.Intrinsics
+                // global::Metalama.Compiler.Intrinsics
                 method.ContainingType is
                 {
                     Name: nameof(Intrinsics),
                     ContainingNamespace:
                     {
-                        Name: nameof(Caravela.Compiler),
+                        Name: nameof(Metalama.Compiler),
                         ContainingNamespace:
                         {
-                            Name: nameof(Caravela),
+                            Name: nameof(Metalama),
                             ContainingNamespace:
                             {
                                 IsGlobalNamespace: true
@@ -291,12 +291,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundBadExpression Error()
                 {
                     _diagnostics.Add(new DiagnosticInfo(
-                        CaravelaCompilerMessageProvider.Instance, (int)Caravela.Compiler.ErrorCode.ERR_InvalidIntrinsicUse, rewrittenArguments[0].Syntax, method), syntax.Location);
+                        MetalamaCompilerMessageProvider.Instance, (int)Metalama.Compiler.ErrorCode.ERR_InvalidIntrinsicUse, rewrittenArguments[0].Syntax, method), syntax.Location);
 
                     return _factory.BadExpression(_compilation.GetSpecialType(SpecialType.System_Void));
                 }
             }
-            // </Caravela>
+            // </Metalama>
             else if (node == null)
             {
                 rewrittenBoundCall = new BoundCall(

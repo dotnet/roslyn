@@ -10172,7 +10172,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="IDS_ToolName">
-        <source>PostSharp "Caravela" Compiler</source>
+        <source>Metalama Compiler</source>
         <target state="needs-review-translation">Microsoft (R) Visual C# Compiler</target>
         <note />
       </trans-unit>

@@ -7,9 +7,9 @@
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
-    <!-- <Caravela> -->
+    <!-- <Metalama> -->
     <AutoGenerateAssemblyVersion>false</AutoGenerateAssemblyVersion>
-    <!-- </Caravela> -->
+    <!-- </Metalama> -->
     <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
     <NoWarn>$(NoWarn);CA1819</NoWarn>
 

@@ -34,10 +34,10 @@ namespace BoundTreeGenerator
         [XmlAttribute]
         public string HasValidate;
 
-        // <Caravela>
+        // <Metalama>
         [XmlAttribute]
-        public bool IsCaravelaSpecific;
-        // </Caravela>
+        public bool IsMetalamaSpecific;
+        // </Metalama>
     }
 
     public class PredefinedNode : TreeType

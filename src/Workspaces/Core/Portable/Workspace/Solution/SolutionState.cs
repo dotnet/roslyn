@@ -1797,10 +1797,10 @@ namespace Microsoft.CodeAnalysis
                 : SpecializedTasks.Null<Compilation>();
         }
 
-        // <Caravela> This code is used by Try.Caravela.
+        // <Metalama> This code is used by Try.Metalama.
         internal Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(ProjectState projectState, CancellationToken cancellationToken)
             => GetCompilationTracker(projectState.Id).GetTransformerDiagnosticsAsync(this, cancellationToken);
-        // </Caravela>
+        // </Metalama>
 
         /// <summary>
         /// Return reference completeness for the given project and all projects this references.
