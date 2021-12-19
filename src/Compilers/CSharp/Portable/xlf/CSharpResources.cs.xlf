@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="ERR_AddressOfMethodGroupInExpressionTree">
         <source>'&amp;' on method groups cannot be used in expression trees</source>
-        <target state="translated">&amp; pro skupiny metod se nedá použít ve stromech výrazů.</target>
+        <target state="translated">'&amp;' pro skupiny metod se nedá použít ve stromech výrazů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AddressOfToNonFunctionPointer">
@@ -3498,7 +3498,7 @@
       </trans-unit>
       <trans-unit id="XML_LessThanInAttributeValue">
         <source>The character '&lt;' cannot be used in an attribute value.</source>
-        <target state="translated">Znak &lt; se nedá použít v hodnotě atributu.</target>
+        <target state="translated">Znak '&lt;' se nedá použít v hodnotě atributu.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_MissingEqualsAttribute">
@@ -3553,7 +3553,7 @@
       </trans-unit>
       <trans-unit id="XML_CDataEndTagNotAllowed">
         <source>The literal string ']]&gt;' is not allowed in element content.</source>
-        <target state="translated">V obsahu elementu není povolený řetězec literálu ]]&gt;.</target>
+        <target state="translated">V obsahu elementu není povolený řetězec literálu ']]&gt;'.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_DuplicateAttribute">

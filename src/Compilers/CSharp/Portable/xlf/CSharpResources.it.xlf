@@ -2209,7 +2209,7 @@
       </trans-unit>
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
-        <target state="translated">&lt;Null&gt;</target>
+        <target state="translated">&lt;null&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_OverrideWithConstraints">

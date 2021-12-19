@@ -2169,7 +2169,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSwitchExpression">
         <source>&lt;switch expression&gt;</source>
-        <target state="translated">&lt;switch expression&gt;</target>
+        <target state="translated">&lt;开关表达式&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTargetTypedConditional">
