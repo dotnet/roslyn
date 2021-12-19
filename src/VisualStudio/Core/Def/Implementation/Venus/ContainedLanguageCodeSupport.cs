@@ -217,9 +217,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 throw new InvalidOperationException(ServicesVSResources.Can_t_find_where_to_insert_member);
             }
 
-            var options = new CodeGenerationOptions(
-                new CodeGenerationContext(autoInsertionLocation: false),
-                codeGenerationService.GetPreferences(targetSyntaxTree.Options, documentOptions));
+            var options = codeGenerationService.GetOptions(
+                targetSyntaxTree.Options,
+                documentOptions,
+                new CodeGenerationContext(autoInsertionLocation: false));
 
             var newType = codeGenerationService.AddMethod(destinationType, newMethod, options, cancellationToken);
             var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);

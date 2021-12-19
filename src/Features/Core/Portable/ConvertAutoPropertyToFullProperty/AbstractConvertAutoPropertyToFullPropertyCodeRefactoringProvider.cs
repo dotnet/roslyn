@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 propertySymbol.Type, fieldName,
                 initializer: GetInitializerValue(property));
 
-            var codeGenOptions = new CodeGenerationOptions(CodeGenerationContext.Default, preferences);
+            var codeGenOptions = preferences.GetOptions(CodeGenerationContext.Default);
             var typeDeclaration = propertySymbol.ContainingType.DeclaringSyntaxReferences;
             foreach (var td in typeDeclaration)
             {

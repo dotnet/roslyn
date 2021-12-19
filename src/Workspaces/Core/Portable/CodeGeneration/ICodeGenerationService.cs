@@ -188,4 +188,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         Task<SyntaxNode?> FindMostRelevantNameSpaceOrTypeDeclarationAsync(Solution solution, INamespaceOrTypeSymbol namespaceOrType, CodeGenerationContext context, CancellationToken cancellationToken);
     }
+
+    internal static class ICodeGenerationServiceExtensions
+    {
+        public static CodeGenerationOptions GetOptions(this ICodeGenerationService service, ParseOptions parseOptions, OptionSet documentOptions, CodeGenerationContext context)
+            => service.GetPreferences(parseOptions, documentOptions).GetOptions(context);
+    }
 }

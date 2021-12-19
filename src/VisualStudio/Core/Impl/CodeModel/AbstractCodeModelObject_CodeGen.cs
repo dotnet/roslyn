@@ -25,11 +25,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             bool generateMethodBodies = true)
         {
             var generateDefaultAccessibility = (access & EnvDTE.vsCMAccess.vsCMAccessDefault) == 0;
-            return new CodeGenerationOptions(
+            return CodeGenerationService.GetOptions(
+                containerNode.SyntaxTree.Options,
+                options ?? Workspace.Options,
                 new CodeGenerationContext(
                     generateDefaultAccessibility: generateDefaultAccessibility,
-                    generateMethodBodies: generateMethodBodies),
-                CodeGenerationService.GetPreferences(containerNode.SyntaxTree.Options, options ?? Workspace.Options));
+                    generateMethodBodies: generateMethodBodies));
         }
 
         protected SyntaxNode CreateConstructorDeclaration(SyntaxNode containerNode, string typeName, EnvDTE.vsCMAccess access)

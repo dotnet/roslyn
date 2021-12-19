@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             LanguageVersion = languageVersion;
         }
 
+        public override CodeGenerationOptions GetOptions(CodeGenerationContext context)
+            => new CSharpCodeGenerationOptions(context, this);
+
         public static new async Task<CSharpCodeGenerationPreferences> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             var parseOptions = (CSharpParseOptions?)document.Project.ParseOptions;

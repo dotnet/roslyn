@@ -105,11 +105,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                             OperationStatus.NoValidLocationToInsertMethodCall, callSiteDocument, cancellationToken).ConfigureAwait(false);
                     }
 
-                    var options = new CodeGenerationOptions(
+                    var options = codeGenerationService.GetOptions(
+                        destination.SyntaxTree.Options,
+                        Options,
                         new CodeGenerationContext(
                             generateDefaultAccessibility: false,
-                            generateMethodBodies: true),
-                        codeGenerationService.GetPreferences(destination.SyntaxTree.Options, Options));
+                            generateMethodBodies: true));
 
                     var localMethod = codeGenerationService.CreateMethodDeclaration(result.Data, CodeGenerationDestination.Unspecified, options, cancellationToken);
                     newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, options, cancellationToken);
@@ -121,12 +122,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
                     destination = previousMemberNode.Parent ?? previousMemberNode;
 
-                    var options = new CodeGenerationOptions(
+                    var options = codeGenerationService.GetOptions(
+                        destination.SyntaxTree.Options,
+                        Options,
                         new CodeGenerationContext(
                             afterThisLocation: previousMemberNode.GetLocation(),
                             generateDefaultAccessibility: true,
-                            generateMethodBodies: true),
-                        codeGenerationService.GetPreferences(destination.SyntaxTree.Options, Options));
+                            generateMethodBodies: true));
 
                     newContainer = codeGenerationService.AddMethod(destination, result.Data, options, cancellationToken);
                 }

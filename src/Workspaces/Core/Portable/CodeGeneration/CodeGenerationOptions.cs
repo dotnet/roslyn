@@ -11,12 +11,31 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal readonly record struct CodeGenerationOptions(
-        CodeGenerationContext Context,
-        CodeGenerationPreferences Preferences)
+    /// <summary>
+    /// Context and preferences.
+    /// </summary>
+    internal abstract class CodeGenerationOptions
     {
+        public readonly CodeGenerationContext Context;
+
+        protected CodeGenerationOptions(CodeGenerationContext context)
+        {
+            Context = context;
+        }
+
         public static async ValueTask<CodeGenerationOptions> FromDocumentAsync(CodeGenerationContext context, Document document, CancellationToken cancellationToken)
-            => new(context, await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false));
+        {
+            var preferences = await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            return preferences.GetOptions(context);
+        }
+
+        public CodeGenerationOptions WithContext(CodeGenerationContext value)
+            => WithContextImpl(value);
+
+        public CodeGenerationPreferences Preferences => PreferencesImpl;
+
+        protected abstract CodeGenerationPreferences PreferencesImpl { get; }
+        protected abstract CodeGenerationOptions WithContextImpl(CodeGenerationContext value);
     }
 
     /// <summary>

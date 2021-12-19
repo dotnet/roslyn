@@ -8,17 +8,29 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
-    internal readonly record struct CSharpCodeGenerationOptions(
-        CodeGenerationContext Context,
-        CSharpCodeGenerationPreferences Preferences)
+    internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions
     {
-        public static async ValueTask<CSharpCodeGenerationOptions> FromDocumentAsync(CodeGenerationContext context, Document document, CancellationToken cancellationToken)
+        private readonly CSharpCodeGenerationPreferences _preferences;
+
+        public CSharpCodeGenerationOptions(CodeGenerationContext Context, CSharpCodeGenerationPreferences Preferences)
+            : base(Context)
+        {
+            _preferences = Preferences;
+        }
+
+        public new CSharpCodeGenerationPreferences Preferences
+            => _preferences;
+
+        protected override CodeGenerationPreferences PreferencesImpl
+            => _preferences;
+
+        public new CSharpCodeGenerationOptions WithContext(CodeGenerationContext value)
+            => (Context == value) ? this : new(value, Preferences);
+
+        protected override CodeGenerationOptions WithContextImpl(CodeGenerationContext value)
+            => WithContext(value);
+
+        public static new async ValueTask<CSharpCodeGenerationOptions> FromDocumentAsync(CodeGenerationContext context, Document document, CancellationToken cancellationToken)
             => new(context, await CSharpCodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false));
-
-        public static implicit operator CodeGenerationOptions(CSharpCodeGenerationOptions options)
-            => new(options.Context, options.Preferences);
-
-        public static explicit operator CSharpCodeGenerationOptions(CodeGenerationOptions options)
-            => new(options.Context, (CSharpCodeGenerationPreferences)options.Preferences);
     }
 }

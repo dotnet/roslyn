@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             MyBase.New(options)
         End Sub
 
+        Public Overrides Function GetOptions(context As CodeGenerationContext) As CodeGenerationOptions
+            Return New VisualBasicCodeGenerationOptions(context, Me)
+        End Function
+
         Public Shared Shadows Async Function FromDocumentAsync(document As Document, cancellationToken As CancellationToken) As Task(Of VisualBasicCodeGenerationPreferences)
             Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
             Return New VisualBasicCodeGenerationPreferences(documentOptions)

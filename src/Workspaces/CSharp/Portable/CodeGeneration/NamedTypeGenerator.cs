@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 // If we're generating a ComImport type, then do not attempt to do any
                 // reordering of members.
                 if (namedType.IsComImport)
-                    options = options with { Context = options.Context.With(autoInsertionLocation: false, sortMembers: false) };
+                    options = options.WithContext(options.Context.With(autoInsertionLocation: false, sortMembers: false));
 
                 if (options.Context.GenerateMembers && namedType.TypeKind != TypeKind.Delegate)
                     declaration = service.AddMembers(declaration, members, options, cancellationToken);

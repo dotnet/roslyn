@@ -73,9 +73,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 var codeGenService = _document.GetLanguageService<ICodeGenerationService>();
                 var root = _state.IdentifierToken.GetAncestors<SyntaxNode>().Last();
 
-                var options = new CodeGenerationOptions(
-                    new CodeGenerationContext(beforeThisLocation: _state.IdentifierToken.GetLocation()),
-                    preferences);
+                var options = preferences.GetOptions(
+                    new CodeGenerationContext(beforeThisLocation: _state.IdentifierToken.GetLocation()));
 
                 return codeGenService.AddStatements(
                     root,

@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal abstract partial class AbstractCodeGenerationService
+    internal abstract partial class AbstractCodeGenerationService<TCodeGenerationOptions>
     {
         protected abstract IList<bool>? GetAvailableInsertionIndices(SyntaxNode destination, CancellationToken cancellationToken);
 

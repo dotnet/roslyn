@@ -18,7 +18,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
     Friend Class VisualBasicCodeGenerationService
-        Inherits AbstractCodeGenerationService
+        Inherits AbstractCodeGenerationService(Of VisualBasicCodeGenerationOptions)
 
         Public Sub New(provider As HostLanguageServices)
             MyBase.New(provider.GetService(Of ISymbolDeclarationService)())
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Protected Overrides Function AddEvent(Of TDeclarationNode As SyntaxNode)(
                 destinationType As TDeclarationNode,
                 [event] As IEventSymbol,
-                options As CodeGenerationOptions,
+                options As VisualBasicCodeGenerationOptions,
                 availableIndices As IList(Of Boolean),
                 cancellationToken As CancellationToken) As TDeclarationNode
             CheckDeclarationNode(Of TypeBlockSyntax)(destinationType)
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Protected Overrides Function AddField(Of TDeclarationNode As SyntaxNode)(
                 destinationType As TDeclarationNode,
                 field As IFieldSymbol,
-                options As CodeGenerationOptions,
+                options As VisualBasicCodeGenerationOptions,
                 availableIndices As IList(Of Boolean),
                 cancellationToken As CancellationToken) As TDeclarationNode
             CheckDeclarationNode(Of EnumBlockSyntax, TypeBlockSyntax, CompilationUnitSyntax)(destinationType)
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Protected Overrides Function AddProperty(Of TDeclarationNode As SyntaxNode)(
                 destinationType As TDeclarationNode,
                 [property] As IPropertySymbol,
-                options As CodeGenerationOptions,
+                options As VisualBasicCodeGenerationOptions,
                 availableIndices As IList(Of Boolean),
                 cancellationToken As CancellationToken) As TDeclarationNode
             CheckDeclarationNode(Of TypeBlockSyntax, CompilationUnitSyntax)(destinationType)
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Protected Overrides Function AddMethod(Of TDeclarationNode As SyntaxNode)(
                 destination As TDeclarationNode,
                 method As IMethodSymbol,
-                options As CodeGenerationOptions,
+                options As VisualBasicCodeGenerationOptions,
                 availableIndices As IList(Of Boolean),
                 cancellationToken As CancellationToken) As TDeclarationNode
             CheckDeclarationNode(Of TypeBlockSyntax, CompilationUnitSyntax, NamespaceBlockSyntax)(destination)
@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Protected Overloads Overrides Function AddNamedType(Of TDeclarationNode As SyntaxNode)(
                 destination As TDeclarationNode,
                 namedType As INamedTypeSymbol,
-                options As CodeGenerationOptions,
+                options As VisualBasicCodeGenerationOptions,
                 availableIndices As IList(Of Boolean),
                 cancellationToken As CancellationToken) As TDeclarationNode
             CheckDeclarationNode(Of TypeBlockSyntax, NamespaceBlockSyntax, CompilationUnitSyntax)(destination)
@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Protected Overrides Function AddNamespace(Of TDeclarationNode As SyntaxNode)(
                 destination As TDeclarationNode,
                 [namespace] As INamespaceSymbol,
-                options As CodeGenerationOptions,
+                options As VisualBasicCodeGenerationOptions,
                 availableIndices As IList(Of Boolean),
                 cancellationToken As CancellationToken) As TDeclarationNode
             CheckDeclarationNode(Of CompilationUnitSyntax, NamespaceBlockSyntax)(destination)
@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Overrides Function AddParameters(Of TDeclarationNode As SyntaxNode)(
                 destinationMember As TDeclarationNode,
                 parameters As IEnumerable(Of IParameterSymbol),
-                options As CodeGenerationOptions,
+                options As VisualBasicCodeGenerationOptions,
                 cancellationToken As CancellationToken) As TDeclarationNode
             Dim methodBlock = TryCast(destinationMember, MethodBlockBaseSyntax)
             Dim methodStatement = If(methodBlock IsNot Nothing,
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Overloads Shared Function AddParametersToMethod(Of TDeclarationNode As SyntaxNode)(methodStatement As MethodBaseSyntax,
                                                                 methodBlock As MethodBlockBaseSyntax,
                                                                 parameters As IEnumerable(Of IParameterSymbol),
-                                                                options As CodeGenerationOptions) As TDeclarationNode
+                                                                options As VisualBasicCodeGenerationOptions) As TDeclarationNode
             Dim newParameterList = AddParameters(methodStatement.ParameterList, parameters, options)
             Dim finalStatement = methodStatement.WithParameterList(newParameterList)
 
@@ -274,7 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Overloads Shared Function AddParametersToProperty(Of TDeclarationNode As SyntaxNode)(
                                                                 propertyBlock As PropertyBlockSyntax,
                                                                 parameters As IEnumerable(Of IParameterSymbol),
-                                                                options As CodeGenerationOptions) As TDeclarationNode
+                                                                options As VisualBasicCodeGenerationOptions) As TDeclarationNode
             Dim propertyStatement = propertyBlock.PropertyStatement
             Dim newParameterList = AddParameters(propertyStatement.ParameterList, parameters, options)
             Dim newPropertyStatement = propertyStatement.WithParameterList(newParameterList)
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return DirectCast(newPropertyBlock, TDeclarationNode)
         End Function
 
-        Private Overloads Shared Function AddParameters(parameterList As ParameterListSyntax, parameters As IEnumerable(Of IParameterSymbol), options As CodeGenerationOptions) As ParameterListSyntax
+        Private Overloads Shared Function AddParameters(parameterList As ParameterListSyntax, parameters As IEnumerable(Of IParameterSymbol), options As VisualBasicCodeGenerationOptions) As ParameterListSyntax
             Dim nodesAndTokens = If(parameterList IsNot Nothing,
                     New List(Of SyntaxNodeOrToken)(parameterList.Parameters.GetWithSeparators()),
                     New List(Of SyntaxNodeOrToken))
@@ -309,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     destination As TDeclarationNode,
                     attributes As IEnumerable(Of AttributeData),
                     target As SyntaxToken?,
-                    options As CodeGenerationOptions,
+                    options As VisualBasicCodeGenerationOptions,
                     cancellationToken As CancellationToken) As TDeclarationNode
 
             If target.HasValue AndAlso Not target.Value.IsValidAttributeTarget() Then
@@ -339,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return destination
         End Function
 
-        Public Overrides Function RemoveAttribute(Of TDeclarationNode As SyntaxNode)(destination As TDeclarationNode, attributeToRemove As AttributeData, options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
+        Public Overrides Function RemoveAttribute(Of TDeclarationNode As SyntaxNode)(destination As TDeclarationNode, attributeToRemove As AttributeData, options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
             If attributeToRemove.ApplicationSyntaxReference Is Nothing Then
                 Throw New ArgumentException(NameOf(attributeToRemove))
             End If
@@ -348,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return RemoveAttribute(destination, attributeSyntaxToRemove, options, cancellationToken)
         End Function
 
-        Public Overrides Function RemoveAttribute(Of TDeclarationNode As SyntaxNode)(destination As TDeclarationNode, attributeToRemove As SyntaxNode, options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
+        Public Overrides Function RemoveAttribute(Of TDeclarationNode As SyntaxNode)(destination As TDeclarationNode, attributeToRemove As SyntaxNode, options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
             If attributeToRemove Is Nothing Then
                 Throw New ArgumentException(NameOf(attributeToRemove))
             End If
@@ -442,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Overrides Function AddStatements(Of TDeclarationNode As SyntaxNode)(
                 destinationMember As TDeclarationNode,
                 statements As IEnumerable(Of SyntaxNode),
-                options As CodeGenerationOptions,
+                options As VisualBasicCodeGenerationOptions,
                 cancellationToken As CancellationToken) As TDeclarationNode
 
             Dim methodBlock = TryCast(destinationMember, MethodBlockBaseSyntax)
@@ -475,7 +475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Shared Function AddStatementsWorker(Of TDeclarationNode As SyntaxNode)(
                 destinationMember As TDeclarationNode,
                 statements As IEnumerable(Of SyntaxNode),
-                options As CodeGenerationOptions,
+                options As VisualBasicCodeGenerationOptions,
                 cancellationToken As CancellationToken) As TDeclarationNode
             Dim location = options.Context.BestLocation
             CheckLocation(destinationMember, location)
@@ -509,7 +509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         ' TODO Change to Not return null (https://github.com/dotnet/roslyn/issues/58243)
         Public Overrides Function CreateMethodDeclaration(method As IMethodSymbol,
                                                           destination As CodeGenerationDestination,
-                                                          options As CodeGenerationOptions,
+                                                          options As VisualBasicCodeGenerationOptions,
                                                           cancellationToken As CancellationToken) As SyntaxNode
             ' Synthesized methods for properties/events are not things we actually generate 
             ' declarations for.
@@ -530,14 +530,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function CreateEventDeclaration([event] As IEventSymbol,
                                                          destination As CodeGenerationDestination,
-                                                         options As CodeGenerationOptions,
+                                                         options As VisualBasicCodeGenerationOptions,
                                                          cancellationToken As CancellationToken) As SyntaxNode
             Return EventGenerator.GenerateEventDeclaration([event], destination, options)
         End Function
 
         Public Overrides Function CreateFieldDeclaration(field As IFieldSymbol,
                                                          destination As CodeGenerationDestination,
-                                                         options As CodeGenerationOptions,
+                                                         options As VisualBasicCodeGenerationOptions,
                                                          cancellationToken As CancellationToken) As SyntaxNode
             If destination = CodeGenerationDestination.EnumType Then
                 Return EnumMemberGenerator.GenerateEnumMemberDeclaration(field, Nothing, options)
@@ -548,21 +548,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function CreatePropertyDeclaration([property] As IPropertySymbol,
                                                             destination As CodeGenerationDestination,
-                                                            options As CodeGenerationOptions,
+                                                            options As VisualBasicCodeGenerationOptions,
                                                             cancellationToken As CancellationToken) As SyntaxNode
             Return PropertyGenerator.GeneratePropertyDeclaration([property], destination, options)
         End Function
 
         Public Overrides Function CreateNamedTypeDeclaration(namedType As INamedTypeSymbol,
                                                              destination As CodeGenerationDestination,
-                                                             options As CodeGenerationOptions,
+                                                             options As VisualBasicCodeGenerationOptions,
                                                              cancellationToken As CancellationToken) As SyntaxNode
             Return NamedTypeGenerator.GenerateNamedTypeDeclaration(Me, namedType, options, cancellationToken)
         End Function
 
         Public Overrides Function CreateNamespaceDeclaration([namespace] As INamespaceSymbol,
                                                              destination As CodeGenerationDestination,
-                                                             options As CodeGenerationOptions,
+                                                             options As VisualBasicCodeGenerationOptions,
                                                              cancellationToken As CancellationToken) As SyntaxNode
             Return NamespaceGenerator.GenerateNamespaceDeclaration(Me, [namespace], options, cancellationToken)
         End Function
@@ -613,7 +613,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declaration
         End Function
 
-        Public Overrides Function UpdateDeclarationModifiers(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newModifiers As IEnumerable(Of SyntaxToken), options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
+        Public Overrides Function UpdateDeclarationModifiers(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newModifiers As IEnumerable(Of SyntaxToken), options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
             Dim computeNewModifiersList As Func(Of SyntaxTokenList, SyntaxTokenList) = Function(modifiersList As SyntaxTokenList)
                                                                                            Return SyntaxFactory.TokenList(newModifiers)
                                                                                        End Function
@@ -621,7 +621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return UpdateDeclarationModifiers(declaration, computeNewModifiersList)
         End Function
 
-        Public Overrides Function UpdateDeclarationAccessibility(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newAccessibility As Accessibility, options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
+        Public Overrides Function UpdateDeclarationAccessibility(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newAccessibility As Accessibility, options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
             Dim computeNewModifiersList As Func(Of SyntaxTokenList, SyntaxTokenList) = Function(modifiersList As SyntaxTokenList)
                                                                                            Return UpdateDeclarationAccessibility(modifiersList, newAccessibility, options)
                                                                                        End Function
@@ -629,7 +629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return UpdateDeclarationModifiers(declaration, computeNewModifiersList)
         End Function
 
-        Private Overloads Shared Function UpdateDeclarationAccessibility(modifiersList As SyntaxTokenList, newAccessibility As Accessibility, options As CodeGenerationOptions) As SyntaxTokenList
+        Private Overloads Shared Function UpdateDeclarationAccessibility(modifiersList As SyntaxTokenList, newAccessibility As Accessibility, options As VisualBasicCodeGenerationOptions) As SyntaxTokenList
             Dim newModifierTokens As ArrayBuilder(Of SyntaxToken) = Nothing
             Using x = ArrayBuilder(Of SyntaxToken).GetInstance(newModifierTokens)
                 AddAccessibilityModifiers(newAccessibility, newModifierTokens, CodeGenerationDestination.Unspecified, options, Accessibility.NotApplicable)
@@ -676,7 +676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Public Overrides Function UpdateDeclarationType(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newType As ITypeSymbol, options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
+        Public Overrides Function UpdateDeclarationType(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newType As ITypeSymbol, options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
             Dim syntaxNode = TryCast(declaration, VisualBasicSyntaxNode)
             If syntaxNode Is Nothing Then
                 Return declaration
@@ -738,7 +738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Public Overrides Function UpdateDeclarationMembers(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newMembers As IList(Of ISymbol), options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
+        Public Overrides Function UpdateDeclarationMembers(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newMembers As IList(Of ISymbol), options As VisualBasicCodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
             Dim syntaxNode = TryCast(declaration, VisualBasicSyntaxNode)
             If syntaxNode IsNot Nothing Then
                 Select Case syntaxNode.Kind

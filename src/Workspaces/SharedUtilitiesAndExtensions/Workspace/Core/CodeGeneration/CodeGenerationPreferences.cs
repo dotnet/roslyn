@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
 #if !CODE_STYLE
+        public abstract CodeGenerationOptions GetOptions(CodeGenerationContext context);
+
         public static async Task<CodeGenerationPreferences> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             var parseOptions = document.Project.ParseOptions;

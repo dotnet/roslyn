@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     accessibility: Accessibility.Public,
                     modifiers: modifiers);
 
-                var eventGenerationOptions = options with { Context = new CodeGenerationContext(generateMethodBodies: false) };
+                var eventGenerationOptions = options.WithContext(new CodeGenerationContext(generateMethodBodies: false));
                 var publicAndNonStaticSyntax = codeGenerationService.CreateEventDeclaration(publicAndNonStaticSymbol, CodeGenerationDestination.ClassType, eventGenerationOptions, cancellationToken);
                 // Insert a new declaration and remove the original declaration
                 editor.InsertAfter(declaration, publicAndNonStaticSyntax);

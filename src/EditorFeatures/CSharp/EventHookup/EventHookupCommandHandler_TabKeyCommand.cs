@@ -240,9 +240,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             var codeGenerator = document.Document.GetRequiredLanguageService<ICodeGenerationService>();
 
-            var codeGenOptions = new CodeGenerationOptions(
-                new CodeGenerationContext(afterThisLocation: eventHookupExpression.GetLocation()),
-                preferences);
+            var codeGenOptions = preferences.GetOptions(
+                new CodeGenerationContext(afterThisLocation: eventHookupExpression.GetLocation()));
 
             var newContainer = codeGenerator.AddMethod(container, generatedMethodSymbol, codeGenOptions, cancellationToken);
 

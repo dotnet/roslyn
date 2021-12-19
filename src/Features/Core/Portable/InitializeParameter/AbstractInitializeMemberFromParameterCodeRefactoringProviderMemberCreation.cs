@@ -453,14 +453,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         {
                             return codeGenerator.AddProperty(
                                 currentTypeDecl, property,
-                                GetAddOptions<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, preferences, cancellationToken),
+                                preferences.GetOptions(GetAddContext<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, cancellationToken)),
                                 cancellationToken);
                         }
                         else if (fieldOrProperty is IFieldSymbol field)
                         {
                             return codeGenerator.AddField(
                                 currentTypeDecl, field,
-                                GetAddOptions<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, preferences, cancellationToken),
+                                preferences.GetOptions(GetAddContext<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, cancellationToken)),
                                 cancellationToken);
                         }
                         else
@@ -489,9 +489,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
-        private static CodeGenerationOptions GetAddOptions<TSymbol>(
+        private static CodeGenerationContext GetAddContext<TSymbol>(
             IParameterSymbol parameter, IBlockOperation? blockStatement,
-            SyntaxNode typeDeclaration, CodeGenerationPreferences preferences, CancellationToken cancellationToken)
+            SyntaxNode typeDeclaration, CancellationToken cancellationToken)
             where TSymbol : ISymbol
         {
             foreach (var (sibling, before) in GetSiblingParameters(parameter))
@@ -509,19 +509,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         {
                             // Found an existing field/property that corresponds to a preceding parameter.
                             // Place ourselves directly after it.
-                            return new CodeGenerationOptions(new CodeGenerationContext(afterThisLocation: symbolSyntax.GetLocation()), preferences);
+                            return new CodeGenerationContext(afterThisLocation: symbolSyntax.GetLocation());
                         }
                         else
                         {
                             // Found an existing field/property that corresponds to a following parameter.
                             // Place ourselves directly before it.
-                            return new CodeGenerationOptions(new CodeGenerationContext(beforeThisLocation: symbolSyntax.GetLocation()), preferences);
+                            return new CodeGenerationContext(beforeThisLocation: symbolSyntax.GetLocation());
                         }
                     }
                 }
             }
 
-            return new CodeGenerationOptions(CodeGenerationContext.Default, preferences);
+            return CodeGenerationContext.Default;
         }
 
         private static ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)
