@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             int originalEndColumn,
             DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
-            string title, description, category;
+            string title, description, category, helpLink;
             DiagnosticSeverity defaultSeverity;
             bool isEnabledByDefault;
             ImmutableArray<string> customTags;
@@ -306,6 +306,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 defaultSeverity = descriptor.DefaultSeverity;
                 isEnabledByDefault = descriptor.IsEnabledByDefault;
                 customTags = descriptor.CustomTags.AsImmutableOrEmpty();
+                helpLink = descriptor.HelpLinkUri;
             }
             else
             {
@@ -315,6 +316,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 defaultSeverity = severity;
                 isEnabledByDefault = true;
                 customTags = IsCompilerDiagnostic(errorId) ? CompilerDiagnosticCustomTags : CustomTags;
+                helpLink = null;
             }
 
             return new DiagnosticData(
@@ -344,7 +346,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     mappedStartColumn: mappedStartColumn,
                     mappedEndLine: mappedEndLine,
                     mappedEndColumn: mappedEndColumn),
-                language: language);
+                language: language,
+                helpLink: helpLink);
         }
 
         private static bool IsCompilerDiagnostic(string errorId)
