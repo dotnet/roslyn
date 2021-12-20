@@ -774,7 +774,7 @@
       </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
-        <target state="new">A lambda expression with attributes cannot be converted to an expression tree</target>
+        <target state="translated">Uma expressão lambda com atributos não pode ser convertida em uma árvore de expressão</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -1489,12 +1489,12 @@
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
         <source>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</source>
-        <target state="new">The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</target>
+        <target state="translated">A operação pode estourar '{0}' em tempo de execução (use a sintaxe 'não verificada' para substituir)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
-        <target state="new">The operation may overflow at runtime (use 'unchecked' syntax to override)</target>
+        <target state="translated">A operação pode estourar em tempo de execução (use a sintaxe 'não verificada' para substituir)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -1529,12 +1529,12 @@
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
-        <target state="new">Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</target>
+        <target state="translated">Convertendo grupo de métodos '{0}' em tipo não delegado '{1}'. Você pretendia invocar o método?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
-        <target state="new">Converting method group to non-delegate type</target>
+        <target state="translated">Convertendo grupo de método em tipo não delegado</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckedHasDefaultNull">
@@ -1569,7 +1569,7 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
         <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="needs-review-translation">O parâmetro {0} ocorre após {1} na lista de parâmetros, mas é usado como um argumento para as conversões do manipulador de cadeia de caracteres interpolada. Isso exigirá que o chamador reordene os parâmetros com argumentos nomeados no local de chamada. Considere colocar o parâmetro do manipulador de cadeia de caracteres interpolada após todos os argumentos envolvidos.</target>
+        <target state="new">Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
