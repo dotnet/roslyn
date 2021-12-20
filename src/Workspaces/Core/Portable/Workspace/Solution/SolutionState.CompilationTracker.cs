@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // Allow the cache service to create a strong reference to the compilation. We'll get the "furthest along" compilation we have
                     // and hold onto that.
-                    var compilationToCache = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull() ?? state.CompilationWithoutGeneratedDocuments?.GetValueOrNull();
+                    var compilationToCache = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull() ?? state.CompilationWithoutGeneratedDocuments;
                     solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, compilationToCache);
                 }
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = ReadState();
 
-                var baseCompilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                var baseCompilation = state.CompilationWithoutGeneratedDocuments;
                 if (baseCompilation != null)
                 {
                     var intermediateProjects = state is InProgressState inProgressState
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     var newState = CompilationTrackerState.Create(
-                        solutionServices, baseCompilation, state.GeneratorInfo, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
+                        baseCompilation, state.GeneratorInfo, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
 
                     return new CompilationTracker(newProject, newState, this.SkeletonReferenceCache.Clone());
                 }
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis
                 CancellationToken cancellationToken)
             {
                 var state = ReadState();
-                var compilationWithoutGeneratedDocuments = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                var compilationWithoutGeneratedDocuments = state.CompilationWithoutGeneratedDocuments;
 
                 // check whether we can bail out quickly for typing case
                 var inProgressState = state as InProgressState;
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis
                             return compilation;
                         }
 
-                        compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                        compilation = state.CompilationWithoutGeneratedDocuments;
                         if (compilation == null)
                         {
                             // We've got nothing.  Build it from scratch :(
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis
                     return new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorInfo.Documents);
                 }
 
-                compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                compilation = state.CompilationWithoutGeneratedDocuments;
 
                 if (compilation == null)
                 {
@@ -682,7 +682,7 @@ namespace Microsoft.CodeAnalysis
                         intermediateProjects = intermediateProjects.RemoveAt(0);
 
                         this.WriteState(CompilationTrackerState.Create(
-                            solutionServices, compilationWithoutGenerators, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGenerators, intermediateProjects), solutionServices);
+                            compilationWithoutGenerators, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGenerators, intermediateProjects), solutionServices);
                     }
 
                     return (compilationWithoutGenerators, compilationWithGenerators, generatorDriver);
@@ -989,13 +989,11 @@ namespace Microsoft.CodeAnalysis
                 var state = ReadState();
 
                 // get compilation in any state it happens to be in right now.
-                if (state.CompilationWithoutGeneratedDocuments != null &&
-                    state.CompilationWithoutGeneratedDocuments.TryGetValue(out var compilationOpt) &&
-                    compilationOpt.HasValue &&
+                if (state.CompilationWithoutGeneratedDocuments is { } compilationOpt &&
                     ProjectState.LanguageServices == fromProject.LanguageServices)
                 {
                     // if we have a compilation and its the correct language, use a simple compilation reference
-                    return compilationOpt.Value.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
+                    return compilationOpt.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
                 }
 
                 return null;
