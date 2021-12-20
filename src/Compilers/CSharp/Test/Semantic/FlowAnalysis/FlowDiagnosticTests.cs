@@ -1466,13 +1466,13 @@ struct Program
     Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(17, 12),
     // (17,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(17, 12),
+    //Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(17, 12),
     // (17,12): error CS0843: Auto-implemented property 'Program.y' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
     Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.y").WithLocation(17, 12),
     // (17,12): error CS0843: Auto-implemented property 'Program.y2' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.y2").WithLocation(17, 12)
+    //Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.y2").WithLocation(17, 12)
     );
         }
 
