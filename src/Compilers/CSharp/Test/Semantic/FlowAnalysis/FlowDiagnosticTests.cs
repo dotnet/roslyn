@@ -1441,7 +1441,10 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilation(text); // PROTOTYPE(semi-auto-props) TODO: ERR_UnassignedThisAutoProperty is showing only for x and y
+            var comp = CreateCompilation(text);
+            // PROTOTYPE(semi-auto-props) TODO: ERR_UnassignedThisAutoProperty is showing only for x and y.
+            // This is likely the correct behavior? See:
+            // https://sharplab.io/#v2:EYLgtghglgdgNAFxANwKYCcoDMCeAfAZwXQFcBjBAAgAEBGAdgFgAoAbxcs8qNIsoGVaHLu2ZdxNAMyVYVAAq1KrSgHNUCANyUAvsIlSZMeQCYlq9ZQC8APkoAGLbrFcnegYoAeZtZu7qNrs6c1NJ09AAUspQAJiRgYDgAlG6i+pwA9OmUAEQAwvx2ABwALJIglACCJAgA9gC0UGAADgA2qGCoRqjRlE3oNU0YCDiUAORhAHQeo5RgJERu4pmUwKiUWCQtLSMQBARQKjDdK6hYNehrZDVG/S0yBDT0x7WLXMsIABaXEFsYE9n3SjXbbcD41ADuMBkWEonzWZy2ENgKkoLVgaygDyu8U6CG6E1ewVoEzoAE5wh4JnJjIkNITKMsAHI1PGwj4QKjUOyUBSGIioCA9Gow6mUcFQLaUH7giA4B4EMHgyj5IqlenLC4qCDoaJtPZir5w9BstZoo6A7EdLrRAlBHQsFjaIA===
             comp.VerifyDiagnostics(
     // (19,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
     //         x.i = 1;
@@ -1464,15 +1467,9 @@ struct Program
     // (17,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
     Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(17, 12),
-    // (17,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
-    //     public Program(int dummy)
-    //Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(17, 12),
     // (17,12): error CS0843: Auto-implemented property 'Program.y' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.y").WithLocation(17, 12),
-    // (17,12): error CS0843: Auto-implemented property 'Program.y2' must be fully assigned before control is returned to the caller.
-    //     public Program(int dummy)
-    //Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.y2").WithLocation(17, 12)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.y").WithLocation(17, 12)
     );
         }
 
