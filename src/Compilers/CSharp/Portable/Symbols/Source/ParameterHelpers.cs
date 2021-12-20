@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasErrors = true;
             }
             else if (conversion.IsNullable && !defaultExpression.Type.IsNullableType() &&
-                !(parameterType.GetNullableUnderlyingType().IsEnumType() || parameterType.GetNullableUnderlyingType().IsIntrinsicType()))
+                !IsValidNullableTypeForNonNullDefaultParameterValue(parameterType))
             {
                 // We can do:
                 // M(int? x = default(int)) 
@@ -689,6 +689,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return hasErrors;
         }
 
+        private static bool IsValidNullableTypeForNonNullDefaultParameterValue(TypeSymbol parameterType)
+        {
+            return parameterType.GetNullableUnderlyingType().IsEnumType() || parameterType.GetNullableUnderlyingType().IsIntrinsicType();
+        }
+
         private static bool IsValidDefaultValue(BoundExpression expression)
         {
             // SPEC VIOLATION: 
@@ -708,18 +713,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
-            while (true)
+
+            switch (expression.Kind)
             {
-                switch (expression.Kind)
-                {
-                    case BoundKind.DefaultLiteral:
-                    case BoundKind.DefaultExpression:
-                        return true;
-                    case BoundKind.ObjectCreationExpression:
-                        return IsValidDefaultValue((BoundObjectCreationExpression)expression);
-                    default:
-                        return false;
-                }
+                case BoundKind.DefaultLiteral:
+                case BoundKind.DefaultExpression:
+                    return true;
+                case BoundKind.ObjectCreationExpression:
+                    return IsValidDefaultValue((BoundObjectCreationExpression)expression);
+                case BoundKind.Conversion:
+                    var conversion = (BoundConversion)expression;
+                    return conversion is { Conversion.IsObjectCreation: true, Operand: BoundObjectCreationExpression { WasTargetTyped: true } operand } &&
+                        (IsValidDefaultValue(operand) ||
+                            (operand.Type.IsNullableType() && operand.InitializerExpressionOpt == null &&
+                             (object)operand.Constructor.OriginalDefinition == operand.Type.ContainingAssembly?.GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor) &&
+                             operand.Arguments[0].Kind == BoundKind.Conversion && IsValidDefaultValue(operand.Arguments[0]) &&
+                             IsValidNullableTypeForNonNullDefaultParameterValue(operand.Type)));
+                default:
+                    return false;
             }
         }
 
