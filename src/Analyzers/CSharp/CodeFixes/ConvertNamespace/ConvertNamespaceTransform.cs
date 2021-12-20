@@ -145,16 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             return document.WithSyntaxRoot(root.ReplaceNode(fileScopedNamespace, ConvertFileScopedNamespace(fileScopedNamespace)));
         }
 
-        private static BaseNamespaceDeclarationSyntax Convert(BaseNamespaceDeclarationSyntax baseNamespace)
-        {
-            return baseNamespace switch
-            {
-                FileScopedNamespaceDeclarationSyntax fileScopedNamespace => ConvertFileScopedNamespace(fileScopedNamespace),
-                NamespaceDeclarationSyntax namespaceDeclaration => ConvertNamespaceDeclaration(namespaceDeclaration),
-                _ => throw ExceptionUtilities.UnexpectedValue(baseNamespace.Kind()),
-            };
-        }
-
         private static bool HasLeadingBlankLine(
             SyntaxToken token, out SyntaxToken withoutBlankLine)
         {
@@ -178,37 +168,35 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         private static FileScopedNamespaceDeclarationSyntax ConvertNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
         {
-            // We move leading and trailing trivia on the open brace to just be trailing trivia on the semicolon, so we preserve
-            // comments etc. logically at the top of the file.
             var semiColon = SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithoutTrivia();
 
-            if (namespaceDeclaration.Name.GetTrailingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
-            {
-                semiColon = semiColon.WithTrailingTrivia(namespaceDeclaration.Name.GetTrailingTrivia())
-                                     .WithAppendedTrailingTrivia(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
-            }
-            else
-            {
-                semiColon = semiColon.WithTrailingTrivia(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
-            }
-
-            semiColon = semiColon.WithAppendedTrailingTrivia(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
-
+            // Move trivia after the original name token to now be after the new semicolon token.
             var fileScopedNamespace = SyntaxFactory.FileScopedNamespaceDeclaration(
                 namespaceDeclaration.AttributeLists,
                 namespaceDeclaration.Modifiers,
                 namespaceDeclaration.NamespaceKeyword,
                 namespaceDeclaration.Name.WithoutTrailingTrivia(),
-                semiColon,
+                semiColon.WithTrailingTrivia(namespaceDeclaration.Name.GetTrailingTrivia()),
                 namespaceDeclaration.Externs,
                 namespaceDeclaration.Usings,
                 namespaceDeclaration.Members);
 
-            // Ensure there's a blank line between the namespace line and the first body member.
             var firstBodyToken = fileScopedNamespace.SemicolonToken.GetNextToken();
-            if (firstBodyToken.Kind() != SyntaxKind.EndOfFileToken &&
+
+            // If the open-brace token has any special trivia, then move them to before the first member in the namespace.
+            if (namespaceDeclaration.OpenBraceToken.LeadingTrivia.Any(t => t.IsSingleOrMultiLineComment() || t.IsDirective) ||
+                namespaceDeclaration.OpenBraceToken.TrailingTrivia.Any(t => t.IsSingleOrMultiLineComment() || t.IsDirective))
+            {
+                fileScopedNamespace = fileScopedNamespace.ReplaceToken(
+                    firstBodyToken,
+                    firstBodyToken.WithPrependedLeadingTrivia(namespaceDeclaration.OpenBraceToken.GetAllTrivia()));
+
+            }
+            else if (firstBodyToken.Kind() != SyntaxKind.EndOfFileToken &&
                 !HasLeadingBlankLine(firstBodyToken, out _))
             {
+                // Otherwise, ensure there's a blank line between the namespace line and the first body member.
+
                 fileScopedNamespace = fileScopedNamespace.ReplaceToken(
                     firstBodyToken,
                     firstBodyToken.WithPrependedLeadingTrivia(SyntaxFactory.CarriageReturnLineFeed));
@@ -216,12 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
             // Copy leading trivia from the close brace to the end of the file scoped namespace (which means after all of the members)
             if (namespaceDeclaration.CloseBraceToken.HasLeadingTrivia)
-            {
-                // Ensure there is one blank line before the trivia
-                fileScopedNamespace = fileScopedNamespace
-                    .WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed)
-                    .WithAppendedTrailingTrivia(namespaceDeclaration.CloseBraceToken.LeadingTrivia.WithoutLeadingBlankLines());
-            }
+                fileScopedNamespace = fileScopedNamespace.WithAppendedTrailingTrivia(namespaceDeclaration.CloseBraceToken.LeadingTrivia);
 
             return fileScopedNamespace;
         }

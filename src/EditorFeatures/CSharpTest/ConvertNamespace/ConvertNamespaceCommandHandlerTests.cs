@@ -193,7 +193,7 @@ class C
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace A.B;
+@"namespace A.B;  
 
 class C
 {

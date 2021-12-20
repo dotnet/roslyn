@@ -347,8 +347,8 @@ class C
 }
 ",
                 FixedCode = @"
-namespace $$N; // comment
-
+namespace $$N;
+// comment
 class C
 {
 }

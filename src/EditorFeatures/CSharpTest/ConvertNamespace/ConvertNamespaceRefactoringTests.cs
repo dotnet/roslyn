@@ -417,8 +417,8 @@ namespace $$N
 }
 ",
                 FixedCode = @"
-namespace $$N; // comment
-
+namespace $$N;
+// comment
 class C
 {
 }
@@ -477,7 +477,6 @@ $$namespace N
 ",
                 FixedCode = @"
 namespace N;
-
 // public class C
 // {
 // }
