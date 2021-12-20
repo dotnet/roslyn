@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// Returns true if this expression is in some <c>ref</c> keyword context.  If <see langword="true"/> then
         /// <paramref name="refParent"/> will be the node containing the <see langword="ref"/> keyword.
         /// </summary>
-        public static bool IsInRefContext(this ExpressionSyntax? expression, [NotNullWhen(true)] out SyntaxNode? refParent)
+        public static bool IsInRefContext([NotNullWhen(true)] this ExpressionSyntax? expression, [NotNullWhen(true)] out SyntaxNode? refParent)
         {
             while (expression?.Parent is ParenthesizedExpressionSyntax or PostfixUnaryExpressionSyntax(SyntaxKind.SuppressNullableWarningExpression))
                 expression = (ExpressionSyntax)expression.Parent;
