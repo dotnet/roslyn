@@ -31,15 +31,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
     internal static class ConvertNamespaceTransform
     {
-        public static Task<Document> ConvertAsync(Document document, BaseNamespaceDeclarationSyntax baseNamespace, CancellationToken cancellationToken)
-            => baseNamespace switch
+        public static async Task<Document> ConvertAsync(Document document, BaseNamespaceDeclarationSyntax baseNamespace, CancellationToken cancellationToken)
+        {
+            switch (baseNamespace)
             {
-                FileScopedNamespaceDeclarationSyntax fileScopedNamespace => ConvertFileScopedNamespaceAsync(document, fileScopedNamespace, cancellationToken),
-                NamespaceDeclarationSyntax namespaceDeclaration => ConvertNamespaceDeclarationAsync(document, namespaceDeclaration, cancellationToken),
-                _ => throw ExceptionUtilities.UnexpectedValue(baseNamespace.Kind()),
-            };
+                case FileScopedNamespaceDeclarationSyntax fileScopedNamespace:
+                    return await ConvertFileScopedNamespaceAsync(document, fileScopedNamespace, cancellationToken).ConfigureAwait(false);
 
-        private static async Task<Document> ConvertNamespaceDeclarationAsync(Document document, NamespaceDeclarationSyntax namespaceDeclaration, CancellationToken cancellationToken)
+                case NamespaceDeclarationSyntax namespaceDeclaration:
+                    var (doc, _) = await ConvertNamespaceDeclarationAsync(document, namespaceDeclaration, cancellationToken).ConfigureAwait(false);
+                    return doc;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(baseNamespace.Kind());
+            };
+        }
+
+        public static async Task<(Document document, TextSpan semicolonSpan)> ConvertNamespaceDeclarationAsync(Document document, NamespaceDeclarationSyntax namespaceDeclaration, CancellationToken cancellationToken)
         {
             // First, determine how much indentation we had inside the original block namespace. We'll attempt to remove
             // that much indentation from each applicable line after we conver the block namespace to a file scoped
@@ -48,16 +56,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
             // Next, actually replace the block namespace with the file scoped namespace.
             var annotation = new SyntaxAnnotation();
-            document = await ReplaceWithFileScopedNamespaceAsync(document, namespaceDeclaration, annotation, cancellationToken).ConfigureAwait(false);
+            var (updatedDocument, semicolonSpan) = await ReplaceWithFileScopedNamespaceAsync(document, namespaceDeclaration, annotation, cancellationToken).ConfigureAwait(false);
 
             // Now, find the file scoped namespace in the updated doc and go and dedent every line if applicable.
             if (indentation == null)
-                return document;
+                return (updatedDocument, semicolonSpan);
 
-            return await DedentNamespaceAsync(document, indentation, annotation, cancellationToken).ConfigureAwait(false);
+            return await DedentNamespaceAsync(updatedDocument, indentation, annotation, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<Document> ReplaceWithFileScopedNamespaceAsync(
+        private static async Task<(Document document, TextSpan semicolonSpan)> ReplaceWithFileScopedNamespaceAsync(
             Document document, NamespaceDeclarationSyntax namespaceDeclaration, SyntaxAnnotation annotation, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -65,7 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             var updatedRoot = root.ReplaceNode(
                 namespaceDeclaration,
                 converted.WithAdditionalAnnotations(annotation));
-            return document.WithSyntaxRoot(updatedRoot);
+            var fileScopedNamespace = (FileScopedNamespaceDeclarationSyntax)updatedRoot.GetAnnotatedNodes(annotation).Single();
+            return (document.WithSyntaxRoot(updatedRoot), fileScopedNamespace.SemicolonToken.Span);
         }
 
         private static async Task<string?> GetIndentationAsync(Document document, NamespaceDeclarationSyntax namespaceDeclaration, CancellationToken cancellationToken)
@@ -89,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             return indentation.GetIndentationString(sourceText, useTabs, tabSize);
         }
 
-        private static async Task<Document> DedentNamespaceAsync(
+        private static async Task<(Document document, TextSpan semicolonSpan)> DedentNamespaceAsync(
             Document document, string indentation, SyntaxAnnotation annotation, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -104,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 changes.AddIfNotNull(TryDedentLine(syntaxTree, text, indentation, text.Lines[line], cancellationToken));
 
             var dedentedText = text.WithChanges(changes);
-            return document.WithText(dedentedText);
+            return (document.WithText(dedentedText), fileScopedNamespace.SemicolonToken.Span);
         }
 
         private static TextChange? TryDedentLine(
@@ -136,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             return document.WithSyntaxRoot(root.ReplaceNode(fileScopedNamespace, ConvertFileScopedNamespace(fileScopedNamespace)));
         }
 
-        public static BaseNamespaceDeclarationSyntax Convert(BaseNamespaceDeclarationSyntax baseNamespace)
+        private static BaseNamespaceDeclarationSyntax Convert(BaseNamespaceDeclarationSyntax baseNamespace)
         {
             return baseNamespace switch
             {
