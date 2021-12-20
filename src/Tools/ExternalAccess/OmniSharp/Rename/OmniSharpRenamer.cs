@@ -12,13 +12,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp
 {
     internal static class OmniSharpRenamer
     {
-        public static Task<ConflictResolution> RenameSymbolAsync(
+        public static async Task<Solution> RenameSymbolAsync(
             Solution solution,
             ISymbol symbol,
             string newName,
             OmniSharpRenameOptions options,
             ImmutableHashSet<ISymbol>? nonConflictSymbols,
             CancellationToken cancellationToken)
-            => Renamer.RenameSymbolAsync(solution, symbol, newName, options.ToRenameOptions(), nonConflictSymbols, cancellationToken);
+        {
+            var resolution = await Renamer.RenameSymbolAsync(solution, symbol, newName, options.ToRenameOptions(), nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+
+            if (resolution.ErrorMessage != null)
+                throw new ArgumentException(resolution.ErrorMessage);
+
+            return resolution.NewSolution;
+        }
     }
 }
