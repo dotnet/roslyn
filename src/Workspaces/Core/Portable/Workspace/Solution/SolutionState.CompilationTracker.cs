@@ -205,8 +205,8 @@ namespace Microsoft.CodeAnalysis
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
                 var finalState = FinalState.Create(
-                    finalCompilationSource: new ConstantValueSource<Optional<Compilation>>(compilationPair.CompilationWithGeneratedDocuments),
-                    compilationWithoutGeneratedFilesSource: new ConstantValueSource<Optional<Compilation>>(compilationPair.CompilationWithoutGeneratedDocuments),
+                    finalCompilationSource: compilationPair.CompilationWithGeneratedDocuments,
+                    compilationWithoutGeneratedFilesSource: compilationPair.CompilationWithoutGeneratedDocuments,
                     compilationWithoutGeneratedFiles: compilationPair.CompilationWithoutGeneratedDocuments,
                     hasSuccessfullyLoaded: false,
                     generatorInfo,
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     compilation = compilation.AddSyntaxTrees(trees);
-                    WriteState(new AllSyntaxTreesParsedState(solutionServices, compilation, generatorInfo), solutionServices);
+                    WriteState(new AllSyntaxTreesParsedState(compilation, generatorInfo), solutionServices);
                     return compilation;
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -922,8 +922,8 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     var finalState = FinalState.Create(
-                        CompilationTrackerState.CreateValueSource(compilationWithGenerators, solution.Services),
-                        CompilationTrackerState.CreateValueSource(compilationWithoutGenerators, solution.Services),
+                        compilationWithGenerators,
+                        compilationWithoutGenerators,
                         compilationWithoutGenerators,
                         hasSuccessfullyLoaded,
                         generatorInfo,
