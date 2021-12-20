@@ -10656,24 +10656,36 @@ interface IA
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
+                // (10,19): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                //     public struct @cly
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "@cly").WithLocation(10, 19),
                 // (12,13): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         clx a = new clx();   // CS8036
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a").WithArguments("struct field initializers", "10.0").WithLocation(12, 13),
+                // (12,13): warning CS0169: The field 'cly.a' is never used
+                //         clx a = new clx();   // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
                 // (13,13): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         int i = 7;           // CS8036
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "i").WithArguments("struct field initializers", "10.0").WithLocation(13, 13),
-                // (13,13): warning CS0414: The field 'cly.i' is assigned but its value is never used
+                // (13,13): warning CS0169: The field 'cly.i' is never used
                 //         int i = 7;           // CS8036
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
                 // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
                 //         static int s = 2;    // no error
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20));
 
             comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (13,13): warning CS0414: The field 'cly.i' is assigned but its value is never used
+                // (10,19): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                //     public struct @cly
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "@cly").WithLocation(10, 19),
+                // (12,13): warning CS0169: The field 'cly.a' is never used
+                //         clx a = new clx();   // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
+                // (13,13): warning CS0169: The field 'cly.i' is never used
                 //         int i = 7;           // CS8036
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
                 // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
                 //         static int s = 2;    // no error
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20));

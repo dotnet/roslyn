@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // no need to emit the default ctor, we are not emitting those
-                if (methodSymbol.IsDefaultValueTypeConstructor(requireZeroInit: true))
+                if (methodSymbol.IsDefaultValueTypeConstructor(requireZeroInit: false))
                 {
                     return;
                 }

@@ -1192,6 +1192,11 @@
         <target state="translated">已指定 stdin 引數 '-'，但尚未從標準輸入資料流重新導向輸入。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
+        <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
+        <target state="new">A 'struct' with field initializers must include an explicitly declared constructor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
         <target state="translated">無法使用此樣式。switch 運算式的上一個 arm 已處理了此樣式，或其無法比對。</target>
