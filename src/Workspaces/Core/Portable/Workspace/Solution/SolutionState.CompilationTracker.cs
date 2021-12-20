@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // Allow the cache service to create a strong reference to the compilation. We'll get the "furthest along" compilation we have
                     // and hold onto that.
-                    var compilationToCache = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull() ?? state.CompilationWithoutGeneratedDocuments;
+                    var compilationToCache = state.FinalCompilationWithGeneratedDocuments ?? state.CompilationWithoutGeneratedDocuments;
                     solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, compilationToCache);
                 }
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     var newState = CompilationTrackerState.Create(
-                        baseCompilation, state.GeneratorInfo, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
+                        baseCompilation, state.GeneratorInfo, state.FinalCompilationWithGeneratedDocuments, intermediateProjects);
 
                     return new CompilationTracker(newProject, newState, this.SkeletonReferenceCache.Clone());
                 }
@@ -269,20 +269,18 @@ namespace Microsoft.CodeAnalysis
                 // if we already have a final compilation we are done.
                 if (compilationWithoutGeneratedDocuments != null && state is FinalState finalState)
                 {
-                    var finalCompilation = finalState.FinalCompilationWithGeneratedDocuments.GetValueOrNull(cancellationToken);
+                    var finalCompilation = finalState.FinalCompilationWithGeneratedDocuments;
+                    Contract.ThrowIfNull(finalCompilation, "We have a FinalState, so we must have a non-null final compilation");
 
-                    if (finalCompilation != null)
-                    {
-                        compilations = new CompilationPair(compilationWithoutGeneratedDocuments, finalCompilation);
+                    compilations = new CompilationPair(compilationWithoutGeneratedDocuments, finalCompilation);
 
-                        // This should hopefully be safe to return as null.  Because we already reached the 'FinalState'
-                        // before, we should have already recorded the assembly symbols for it.  So not recording them
-                        // again is likely ok (as long as compilations continue to return the same IAssemblySymbols for
-                        // the same references across source edits).
-                        metadataReferenceToProjectId = null;
-                        SolutionLogger.UseExistingFullProjectState();
-                        return;
-                    }
+                    // This should hopefully be safe to return as null.  Because we already reached the 'FinalState'
+                    // before, we should have already recorded the assembly symbols for it.  So not recording them
+                    // again is likely ok (as long as compilations continue to return the same IAssemblySymbols for
+                    // the same references across source edits).
+                    metadataReferenceToProjectId = null;
+                    SolutionLogger.UseExistingFullProjectState();
+                    return;
                 }
 
                 // 1) if we have an in-progress compilation use it.  
@@ -365,14 +363,8 @@ namespace Microsoft.CodeAnalysis
             public bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation)
             {
                 var state = ReadState();
-                if (state.FinalCompilationWithGeneratedDocuments != null && state.FinalCompilationWithGeneratedDocuments.TryGetValue(out var compilationOpt) && compilationOpt.HasValue)
-                {
-                    compilation = compilationOpt.Value;
-                    return true;
-                }
-
-                compilation = null;
-                return false;
+                compilation = state.FinalCompilationWithGeneratedDocuments;
+                return compilation != null;
             }
 
             public Task<Compilation> GetCompilationAsync(SolutionState solution, CancellationToken cancellationToken)
@@ -408,7 +400,7 @@ namespace Microsoft.CodeAnalysis
                         var state = ReadState();
 
                         // we are already in the final stage. just return it.
-                        var compilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                        var compilation = state.FinalCompilationWithGeneratedDocuments;
                         if (compilation != null)
                         {
                             return compilation;
@@ -457,7 +449,7 @@ namespace Microsoft.CodeAnalysis
                         var state = ReadState();
 
                         // Try to get the built compilation.  If it exists, then we can just return that.
-                        var finalCompilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                        var finalCompilation = state.FinalCompilationWithGeneratedDocuments;
                         if (finalCompilation != null)
                         {
                             RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
@@ -499,7 +491,7 @@ namespace Microsoft.CodeAnalysis
 
                 // if we already have a compilation, we must be already done!  This can happen if two
                 // threads were waiting to build, and we came in after the other succeeded.
-                var compilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                var compilation = state.FinalCompilationWithGeneratedDocuments;
                 if (compilation != null)
                 {
                     RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);

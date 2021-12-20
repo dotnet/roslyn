@@ -124,10 +124,8 @@ namespace Microsoft.CodeAnalysis
 
                 /// <summary>
                 /// The final compilation is potentially available, otherwise <see langword="null"/>.
-                /// The value is an <see cref="Optional{Compilation}"/> to represent the
-                /// possibility of the compilation already having been garabage collected.
                 /// </summary>
-                public virtual ValueSource<Optional<Compilation>>? FinalCompilationWithGeneratedDocuments => null;
+                public virtual Compilation? FinalCompilationWithGeneratedDocuments => null;
 
                 protected CompilationTrackerState(
                     Compilation? compilationWithoutGeneratedDocuments,
@@ -252,13 +250,14 @@ namespace Microsoft.CodeAnalysis
                 public readonly UnrootedSymbolSet UnrootedSymbolSet;
 
                 /// <summary>
-                /// The final compilation, with all references and source generators run. This is distinct from
-                /// <see cref="Compilation"/>, which in the <see cref="FinalState"/> case will be the compilation
-                /// before any source generators were ran. This ensures that a later invocation of the source generators
-                /// consumes <see cref="Compilation"/> which will avoid generators being ran a second time on a compilation that
-                /// already contains the output of other generators. If source generators are not active, this is equal to <see cref="Compilation"/>.
+                /// The final compilation, with all references and source generators run. This is distinct from <see
+                /// cref="Compilation"/>, which in the <see cref="FinalState"/> case will be the compilation before any
+                /// source generators were ran. This ensures that a later invocation of the source generators consumes
+                /// <see cref="Compilation"/> which will avoid generators being ran a second time on a compilation that
+                /// already contains the output of other generators. If source generators are not active, this is equal
+                /// to <see cref="Compilation"/>.
                 /// </summary>
-                public override ValueSource<Optional<Compilation>> FinalCompilationWithGeneratedDocuments { get; }
+                public override Compilation FinalCompilationWithGeneratedDocuments { get; }
 
                 private FinalState(
                     Compilation finalCompilationSource,
@@ -271,15 +270,14 @@ namespace Microsoft.CodeAnalysis
                            generatorInfo.WithDocumentsAreFinal(true)) // when we're in a final state, we've ran generators and should not run again
                 {
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
-                    FinalCompilationWithGeneratedDocuments = new ConstantValueSource<Optional<Compilation>>(finalCompilationSource);
+                    FinalCompilationWithGeneratedDocuments = finalCompilationSource;
                     UnrootedSymbolSet = unrootedSymbolSet;
 
                     if (this.GeneratorInfo.Documents.IsEmpty)
                     {
                         // In this case, the finalCompilationSource and compilationWithoutGeneratedFilesSource should point to the
                         // same Compilation, which should be compilationWithoutGeneratedFiles itself
-                        Debug.Assert(FinalCompilationWithGeneratedDocuments.TryGetValue(out var finalCompilationVal));
-                        Debug.Assert(object.ReferenceEquals(finalCompilationVal.Value, compilationWithoutGeneratedFiles));
+                        Debug.Assert(object.ReferenceEquals(finalCompilationSource, compilationWithoutGeneratedFiles));
                     }
                 }
 
