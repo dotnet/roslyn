@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
@@ -20,21 +18,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
     internal sealed class VSTypeScriptEditorInlineRenameService : IEditorInlineRenameService
     {
         [Obsolete]
-        private readonly Lazy<IVSTypeScriptEditorInlineRenameService> _legacyService;
+        private readonly Lazy<IVSTypeScriptEditorInlineRenameService>? _legacyService;
 
-        private readonly Lazy<VSTypeScriptEditorInlineRenameServiceImplementation> _service;
+        private readonly Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? _service;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VSTypeScriptEditorInlineRenameService(
-            [Import(AllowDefault = true)] Lazy<IVSTypeScriptEditorInlineRenameService> legacyService,
-            [Import(AllowDefault = true)] Lazy<VSTypeScriptEditorInlineRenameServiceImplementation> service)
+            [Import(AllowDefault = true)] Lazy<IVSTypeScriptEditorInlineRenameService>? legacyService,
+            [Import(AllowDefault = true)] Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? service)
         {
             _service = service;
             _legacyService = legacyService;
         }
 
-        public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<IInlineRenameInfo?> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
 #pragma warning disable CS0612 // Type or member is obsolete
             if (_legacyService != null)

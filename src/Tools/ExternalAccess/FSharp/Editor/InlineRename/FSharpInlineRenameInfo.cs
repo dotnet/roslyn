@@ -27,13 +27,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         public abstract bool ForceRenameOverloads { get; }
         public abstract string LocalizedErrorMessage { get; }
         public abstract TextSpan TriggerSpan { get; }
-        public abstract ImmutableArray<DocumentSpan> DefinitionLocations { get; }
+        public abstract ImmutableArray<FSharpDocumentSpan> DefinitionLocations { get; }
         public abstract Task<FSharpInlineRenameLocationSet> FindRenameLocationsAsync(bool renameInStrings, bool renameInComments, CancellationToken cancellationToken);
         public abstract TextSpan? GetConflictEditSpan(FSharpInlineRenameLocation location, string replacementText, CancellationToken cancellationToken);
         public abstract string GetFinalSymbolName(string replacementText);
         public abstract TextSpan GetReferenceEditSpan(FSharpInlineRenameLocation location, CancellationToken cancellationToken);
 
-        Glyph IInlineRenameInfo.Glyph => FSharpGlyphHelpers.ConvertTo(Glyph);
+        Glyph IInlineRenameInfo.Glyph
+            => FSharpGlyphHelpers.ConvertTo(Glyph);
+
+        ImmutableArray<DocumentSpan> IInlineRenameInfo.DefinitionLocations
+            => DefinitionLocations.SelectAsArray(l => new DocumentSpan(l.Document, l.SourceSpan));
 
         async Task<IInlineRenameLocationSet> IInlineRenameInfo.FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
             => await FindRenameLocationsAsync(

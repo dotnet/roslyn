@@ -26,13 +26,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public abstract bool ForceRenameOverloads { get; }
         public abstract string LocalizedErrorMessage { get; }
         public abstract TextSpan TriggerSpan { get; }
-        public abstract ImmutableArray<DocumentSpan> DefinitionLocations { get; }
+        public abstract ImmutableArray<VSTypeScriptDocumentSpan> DefinitionLocations { get; }
         public abstract Task<VSTypeScriptInlineRenameLocationSet> FindRenameLocationsAsync(bool renameInStrings, bool renameInComments, CancellationToken cancellationToken);
         public abstract TextSpan? GetConflictEditSpan(VSTypeScriptInlineRenameLocationWrapper location, string replacementText, CancellationToken cancellationToken);
         public abstract string GetFinalSymbolName(string replacementText);
         public abstract TextSpan GetReferenceEditSpan(VSTypeScriptInlineRenameLocationWrapper location, CancellationToken cancellationToken);
 
-        Glyph IInlineRenameInfo.Glyph => VSTypeScriptGlyphHelpers.ConvertTo(Glyph);
+        Glyph IInlineRenameInfo.Glyph
+            => VSTypeScriptGlyphHelpers.ConvertTo(Glyph);
+
+        ImmutableArray<DocumentSpan> IInlineRenameInfo.DefinitionLocations
+            => DefinitionLocations.SelectAsArray(l => new DocumentSpan(l.Document, l.SourceSpan));
 
         async Task<IInlineRenameLocationSet> IInlineRenameInfo.FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
             => await FindRenameLocationsAsync(

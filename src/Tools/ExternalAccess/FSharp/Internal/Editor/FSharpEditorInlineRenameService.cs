@@ -178,26 +178,27 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         }
     }
 
+#nullable enable
     [Shared]
     [ExportLanguageService(typeof(IEditorInlineRenameService), LanguageNames.FSharp)]
     internal class FSharpEditorInlineRenameService : IEditorInlineRenameService
     {
         [Obsolete]
-        private readonly IFSharpEditorInlineRenameService _legacyService;
+        private readonly IFSharpEditorInlineRenameService? _legacyService;
 
-        private readonly FSharpInlineRenameServiceImplementation _service;
+        private readonly FSharpInlineRenameServiceImplementation? _service;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FSharpEditorInlineRenameService(
-            [Import(AllowDefault = true)] IFSharpEditorInlineRenameService legacyService,
-            [Import(AllowDefault = true)] FSharpInlineRenameServiceImplementation service)
+            [Import(AllowDefault = true)] IFSharpEditorInlineRenameService? legacyService,
+            [Import(AllowDefault = true)] FSharpInlineRenameServiceImplementation? service)
         {
             _legacyService = legacyService;
             _service = service;
         }
 
-        public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<IInlineRenameInfo?> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
 #pragma warning disable CS0612 // Type or member is obsolete
             if (_legacyService != null)
