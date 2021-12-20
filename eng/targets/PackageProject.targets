@@ -11,11 +11,4 @@
   <Target Name="CoreBuild" DependsOnTargets="ResolveProjectReferences">
     <MakeDir Directories="$(IntermediateOutputPath)" ContinueOnError="True"/>
   </Target>
-
-  <PropertyGroup>
-    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-
-    <!-- Remove once https://github.com/NuGet/Home/issues/8583 is fixed -->
-    <NoWarn>$(NoWarn);NU5128</NoWarn>
-  </PropertyGroup>
 </Project>
