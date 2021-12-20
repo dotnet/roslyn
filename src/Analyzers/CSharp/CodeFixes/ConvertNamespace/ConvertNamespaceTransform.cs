@@ -138,7 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         public static BaseNamespaceDeclarationSyntax Convert(BaseNamespaceDeclarationSyntax baseNamespace)
         {
-
             return baseNamespace switch
             {
                 FileScopedNamespaceDeclarationSyntax fileScopedNamespace => ConvertFileScopedNamespace(fileScopedNamespace),
