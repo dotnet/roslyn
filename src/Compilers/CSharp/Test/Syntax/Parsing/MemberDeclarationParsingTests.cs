@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return tree;
         }
 
-        private static CSharpParseOptions RequiredMembersOptions = TestOptions.RegularPreview;
-        public static readonly IEnumerable<CSharpParseOptions[]> ParseOptionsDataWithPreview = new[] { new[] { TestOptions.Regular }, new[] { RequiredMembersOptions }, new[] { TestOptions.Script } };
-        public static readonly IEnumerable<CSharpParseOptions[]> ParseOptionsData = new[] { new[] { TestOptions.Regular }, new[] { TestOptions.Script } };
+        private static readonly CSharpParseOptions RequiredMembersOptions = TestOptions.RegularPreview;
+        public static readonly IEnumerable<object[]> ParseOptionsDataWithPreview = new[] { new[] { TestOptions.Regular }, new[] { RequiredMembersOptions }, new[] { TestOptions.Script } };
+        public static readonly IEnumerable<object[]> ParseOptionsData = new[] { new[] { TestOptions.Regular }, new[] { TestOptions.Script } };
 
         [Fact]
         [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
