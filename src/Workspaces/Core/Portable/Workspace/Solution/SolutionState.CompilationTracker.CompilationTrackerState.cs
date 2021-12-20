@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis
                 public override Compilation FinalCompilationWithGeneratedDocuments { get; }
 
                 private FinalState(
-                    Compilation finalCompilationSource,
+                    Compilation finalCompilation,
                     Compilation compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
@@ -269,15 +269,16 @@ namespace Microsoft.CodeAnalysis
                     : base(compilationWithoutGeneratedFilesSource,
                            generatorInfo.WithDocumentsAreFinal(true)) // when we're in a final state, we've ran generators and should not run again
                 {
+                    Contract.ThrowIfNull(finalCompilation);
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
-                    FinalCompilationWithGeneratedDocuments = finalCompilationSource;
+                    FinalCompilationWithGeneratedDocuments = finalCompilation;
                     UnrootedSymbolSet = unrootedSymbolSet;
 
                     if (this.GeneratorInfo.Documents.IsEmpty)
                     {
                         // In this case, the finalCompilationSource and compilationWithoutGeneratedFilesSource should point to the
                         // same Compilation, which should be compilationWithoutGeneratedFiles itself
-                        Debug.Assert(object.ReferenceEquals(finalCompilationSource, compilationWithoutGeneratedFiles));
+                        Debug.Assert(object.ReferenceEquals(finalCompilation, compilationWithoutGeneratedFiles));
                     }
                 }
 
