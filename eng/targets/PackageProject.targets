@@ -11,4 +11,9 @@
   <Target Name="CoreBuild" DependsOnTargets="ResolveProjectReferences">
     <MakeDir Directories="$(IntermediateOutputPath)" ContinueOnError="True"/>
   </Target>
+
+  <ItemGroup>
+    <!-- These projects will not create intermediate assemblies -->
+    <IntermediateAssembly Remove="@(IntermediateAssembly)"/>
+  </ItemGroup>
 </Project>
