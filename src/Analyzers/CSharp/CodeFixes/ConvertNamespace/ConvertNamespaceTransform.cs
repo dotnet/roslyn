@@ -190,21 +190,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 fileScopedNamespace = fileScopedNamespace.ReplaceToken(
                     firstBodyToken,
                     firstBodyToken.WithPrependedLeadingTrivia(namespaceDeclaration.OpenBraceToken.GetAllTrivia()));
+                firstBodyToken = fileScopedNamespace.SemicolonToken.GetNextNonZeroWidthTokenOrEndOfFile();
 
             }
-            else if (firstBodyToken.Kind() != SyntaxKind.EndOfFileToken &&
-                !HasLeadingBlankLine(firstBodyToken, out _))
-            {
-                // Otherwise, ensure there's a blank line between the namespace line and the first body member.
 
+            // Otherwise, ensure there's a blank line between the namespace line and the first body member. Don't bother
+            // with this though if we already separated things by moving a pp directive (like a #else) from the open brace
+            // to the first token.
+            if (firstBodyToken.Kind() != SyntaxKind.EndOfFileToken &&
+                !HasLeadingBlankLine(firstBodyToken, out _) &&
+                !namespaceDeclaration.OpenBraceToken.LeadingTrivia.Any(t => t.IsDirective))
+            {
                 fileScopedNamespace = fileScopedNamespace.ReplaceToken(
                     firstBodyToken,
                     firstBodyToken.WithPrependedLeadingTrivia(SyntaxFactory.CarriageReturnLineFeed));
             }
 
             // Copy leading trivia from the close brace to the end of the file scoped namespace (which means after all of the members)
-            if (namespaceDeclaration.CloseBraceToken.HasLeadingTrivia)
-                fileScopedNamespace = fileScopedNamespace.WithAppendedTrailingTrivia(namespaceDeclaration.CloseBraceToken.LeadingTrivia);
+            fileScopedNamespace = fileScopedNamespace.WithAppendedTrailingTrivia(namespaceDeclaration.CloseBraceToken.LeadingTrivia);
 
             return fileScopedNamespace;
         }

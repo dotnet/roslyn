@@ -418,6 +418,7 @@ namespace $$N
 ",
                 FixedCode = @"
 namespace $$N;
+
 // comment
 class C
 {

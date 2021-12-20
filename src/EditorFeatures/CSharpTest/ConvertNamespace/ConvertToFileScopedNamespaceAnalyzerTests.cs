@@ -348,6 +348,7 @@ class C
 ",
                 FixedCode = @"
 namespace $$N;
+
 // comment
 class C
 {
@@ -381,6 +382,290 @@ namespace $$N;
 
 class C
 {
+}
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestConvertToFileScopedWithDocComment()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+    /// <summary/>
+    class C
+    {
+    }
+}
+",
+                FixedCode = @"
+namespace $$N;
+
+/// <summary/>
+class C
+{
+}
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestConvertToFileScopedWithPPDirective1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+#if X
+    class C
+    {
+    }
+#else
+    class C
+    {
+    }
+#endif
+}
+",
+                FixedCode = @"
+namespace $$N;
+
+#if X
+class C
+{
+}
+#else
+class C
+{
+}
+#endif
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestConvertToFileScopedWithBlockComment()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+    /* x
+     * x
+     */
+    class C
+    {
+    }
+}
+",
+                FixedCode = @"
+namespace $$N;
+
+/* x
+ * x
+ */
+class C
+{
+}
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestConvertToFileScopedWithBlockComment2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+    /* x
+       x
+     */
+    class C
+    {
+    }
+}
+",
+                FixedCode = @"
+namespace $$N;
+
+/* x
+   x
+ */
+class C
+{
+}
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestConvertToFileScopedWithMultilineString()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+    class C
+    {
+        void M()
+        {
+            System.Console.WriteLine(@""
+    a
+        b
+            c
+                d
+                    e
+                        "");
+        }
+    }
+}
+",
+                FixedCode = @"
+namespace $$N;
+
+class C
+{
+    void M()
+    {
+        System.Console.WriteLine(@""
+    a
+        b
+            c
+                d
+                    e
+                        "");
+    }
+}
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestConvertToFileScopedWithMultilineString2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+    class C
+    {
+        void M()
+        {
+            System.Console.WriteLine($@""
+    a
+        b
+            c{1 + 1}
+                d
+                    e
+                        "");
+        }
+    }
+}
+",
+                FixedCode = @"
+namespace $$N;
+
+class C
+{
+    void M()
+    {
+        System.Console.WriteLine($@""
+    a
+        b
+            c{1 + 1}
+                d
+                    e
+                        "");
+    }
+}
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestConvertToFileScopedWithMultilineString3()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+    class C
+    {
+        void M()
+        {
+            System.Console.WriteLine($@""
+    a
+        b
+            c{
+                1 + 1
+             }d
+                    e
+                        "");
+        }
+    }
+}
+",
+                FixedCode = @"
+namespace $$N;
+
+class C
+{
+    void M()
+    {
+        System.Console.WriteLine($@""
+    a
+        b
+            c{
+            1 + 1
+         }d
+                    e
+                        "");
+    }
 }
 ",
                 LanguageVersion = LanguageVersion.CSharp10,
