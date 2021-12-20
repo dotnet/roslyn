@@ -1442,8 +1442,8 @@ New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</targ
       <trans-unit id="Runs_a_series_of_statements_that_refer_to_a_single_object_or_structure_With_object_End_With">
         <source>Runs a series of statements that refer to a single object or structure.
 With &lt;object&gt;...End With</source>
-        <target state="translated">執行一系列參考單一物件或結構的陳述式。
-With &lt;object&gt;...End With</target>
+        <target state="translated">執行一系列參照單一物件或結構的語句。
+物件&lt;object&gt;...結尾為</target>
         <note />
       </trans-unit>
       <trans-unit id="Produces_an_element_of_an_IEnumerable_or_IEnumerator">
@@ -1739,7 +1739,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;介面名稱&gt;</target>
+        <target state="translated">&lt;interface name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="module_name">
