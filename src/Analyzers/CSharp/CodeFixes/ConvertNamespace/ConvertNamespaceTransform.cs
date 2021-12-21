@@ -191,7 +191,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                     firstBodyToken,
                     firstBodyToken.WithPrependedLeadingTrivia(namespaceDeclaration.OpenBraceToken.GetAllTrivia()));
                 firstBodyToken = fileScopedNamespace.SemicolonToken.GetNextNonZeroWidthTokenOrEndOfFile();
-
             }
 
             // Otherwise, ensure there's a blank line between the namespace line and the first body member. Don't bother
