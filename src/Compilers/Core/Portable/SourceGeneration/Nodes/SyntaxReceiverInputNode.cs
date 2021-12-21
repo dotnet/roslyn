@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
             throw ExceptionUtilities.Unreachable;
         }
 
-        public ISyntaxInputBuilder GetBuilder(DriverStateTable table, bool trackIncrementalSteps) => new Builder(this, table, trackIncrementalSteps);
+        public ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps) => new Builder(this, table, trackIncrementalSteps);
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutput(output);
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
             private readonly GeneratorSyntaxWalker? _walker;
             private TimeSpan lastElapsedTime;
 
-            public Builder(SyntaxReceiverInputNode owner, DriverStateTable driverStateTable, bool trackIncrementalSteps)
+            public Builder(SyntaxReceiverInputNode owner, StateTableStore driverStateTable, bool trackIncrementalSteps)
             {
                 _owner = owner;
                 _nodeStateTable = driverStateTable.GetStateTableOrEmpty<ISyntaxContextReceiver?>(_owner).ToBuilder(stepName: null, trackIncrementalSteps);
@@ -76,10 +76,10 @@ namespace Microsoft.CodeAnalysis
 
             private bool TrackIncrementalSteps => _nodeStateTable.TrackIncrementalSteps;
 
-            public void SaveStateAndFree(ImmutableSegmentedDictionary<object, IStateTable>.Builder tables)
+            public void SaveStateAndFree(StateTableStore.Builder tables)
             {
                 _nodeStateTable.AddEntry(_receiver, EntryState.Modified, lastElapsedTime, TrackIncrementalSteps ? System.Collections.Immutable.ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default, EntryState.Modified);
-                tables[_owner] = _nodeStateTable.ToImmutableAndFree();
+                tables.SetTable(_owner, _nodeStateTable.ToImmutableAndFree());
             }
 
             public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)

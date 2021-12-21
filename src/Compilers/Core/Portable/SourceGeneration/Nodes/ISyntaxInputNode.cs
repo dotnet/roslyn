@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal interface ISyntaxInputNode
     {
-        ISyntaxInputBuilder GetBuilder(DriverStateTable table, bool trackIncrementalSteps);
+        ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps);
     }
 
     internal interface ISyntaxInputBuilder
@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis
 
         void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken);
 
-        void SaveStateAndFree(ImmutableSegmentedDictionary<object, IStateTable>.Builder tables);
+        void SaveStateAndFree(StateTableStore.Builder tables);
     }
 }

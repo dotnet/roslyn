@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
 
         public IIncrementalGeneratorNode<T> WithTrackingName(string name) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, _registerOutputAndNode, _comparer, name);
 
-        public ISyntaxInputBuilder GetBuilder(DriverStateTable table, bool trackIncrementalSteps) => new Builder(this, table, trackIncrementalSteps);
+        public ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps) => new Builder(this, table, trackIncrementalSteps);
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutputAndNode(this, output);
 
@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis
 
             private readonly NodeStateTable<T>.Builder _transformTable;
 
-            public Builder(SyntaxInputNode<T> owner, DriverStateTable table, bool trackIncrementalSteps)
+            //TODO: instead of taking a driver state table, we need to take the immutableSegmentedDictionary from the previous 
+            public Builder(SyntaxInputNode<T> owner, StateTableStore table, bool trackIncrementalSteps)
             {
                 _owner = owner;
                 _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner._filterKey).ToBuilder(stepName: null, trackIncrementalSteps);
@@ -61,10 +62,10 @@ namespace Microsoft.CodeAnalysis
 
             public ISyntaxInputNode SyntaxInputNode { get => _owner; }
 
-            public void SaveStateAndFree(ImmutableSegmentedDictionary<object, IStateTable>.Builder tables)
+            public void SaveStateAndFree(StateTableStore.Builder tables)
             {
-                tables[_owner._filterKey] = _filterTable.ToImmutableAndFree();
-                tables[_owner] = _transformTable.ToImmutableAndFree();
+                tables.SetTable(_owner._filterKey, _filterTable.ToImmutableAndFree());
+                tables.SetTable(_owner, _transformTable.ToImmutableAndFree());
             }
 
             public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)

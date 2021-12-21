@@ -14,27 +14,19 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class DriverStateTable
     {
-        private readonly ImmutableSegmentedDictionary<object, IStateTable> _tables;
+        private readonly StateTableStore _tables;
 
-        internal static DriverStateTable Empty { get; } = new DriverStateTable(ImmutableSegmentedDictionary<object, IStateTable>.Empty);
+        internal static DriverStateTable Empty { get; } = new DriverStateTable(StateTableStore.Empty);
 
-        private DriverStateTable(ImmutableSegmentedDictionary<object, IStateTable> tables)
+        private DriverStateTable(StateTableStore tables)
         {
             _tables = tables;
         }
 
-        public NodeStateTable<T> GetStateTableOrEmpty<T>(object input)
-        {
-            if (_tables.TryGetValue(input, out var result))
-            {
-                return (NodeStateTable<T>)result;
-            }
-            return NodeStateTable<T>.Empty;
-        }
-
         public sealed class Builder
         {
-            private readonly ImmutableSegmentedDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableSegmentedDictionary.CreateBuilder<object, IStateTable>();
+            //private readonly ImmutableSegmentedDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableSegmentedDictionary.CreateBuilder<object, IStateTable>();
+            private readonly StateTableStore.Builder _stateTableBuilder = new StateTableStore.Builder();
             private readonly DriverStateTable _previousTable;
             private readonly CancellationToken _cancellationToken;
             private readonly SyntaxStore.Builder _syntaxStore;
@@ -50,7 +42,7 @@ namespace Microsoft.CodeAnalysis
                 _previousTable = driverState.StateTable;
                 _cancellationToken = cancellationToken;
 
-                _syntaxStore = new SyntaxStore.Builder(Compilation, _tableBuilder, syntaxInputNodes, DriverState, _previousTable, _previousTable._tables, _cancellationToken);
+                _syntaxStore = new SyntaxStore.Builder(Compilation, _stateTableBuilder, syntaxInputNodes, DriverState, _previousTable, _previousTable._tables, _cancellationToken);
             }
 
             public IStateTable GetSyntaxInputTable(ISyntaxInputNode syntaxInputNode)
@@ -64,17 +56,17 @@ namespace Microsoft.CodeAnalysis
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)
             {
                 // if we've already evaluated a node during this build, we can just return the existing result
-                if (_tableBuilder.ContainsKey(source))
+                if (_stateTableBuilder.TryGetTable(source, out var table))
                 {
-                    return (NodeStateTable<T>)_tableBuilder[source];
+                    return (NodeStateTable<T>)table;
                 }
 
                 // get the previous table, if there was one for this node
-                NodeStateTable<T> previousTable = _previousTable.GetStateTableOrEmpty<T>(source);
+                NodeStateTable<T> previousTable = _previousTable._tables.GetStateTableOrEmpty<T>(source);
 
                 // request the node update its state based on the current driver table and store the new result
                 var newTable = source.UpdateStateTable(this, previousTable, _cancellationToken);
-                _tableBuilder[source] = newTable;
+                _stateTableBuilder.SetTable(source, newTable);
                 return newTable;
             }
 
@@ -85,14 +77,7 @@ namespace Microsoft.CodeAnalysis
 
             public DriverStateTable ToImmutable()
             {
-                // we can compact the tables at this point, as we'll no longer be using them to determine current state
-                var keys = _tableBuilder.Keys.ToArray();
-                foreach (var key in keys)
-                {
-                    _tableBuilder[key] = _tableBuilder[key].AsCached();
-                }
-
-                return new DriverStateTable(_tableBuilder.ToImmutable());
+                return new DriverStateTable(_stateTableBuilder.ToImmutable());
             }
         }
     }

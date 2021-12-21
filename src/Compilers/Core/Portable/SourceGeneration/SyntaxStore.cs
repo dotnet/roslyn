@@ -16,15 +16,15 @@ namespace Microsoft.CodeAnalysis
         public class Builder
         {
             private readonly ImmutableDictionary<ISyntaxInputNode, Exception>.Builder _syntaxExceptions = ImmutableDictionary.CreateBuilder<ISyntaxInputNode, Exception>();
-            private readonly ImmutableSegmentedDictionary<object, IStateTable>.Builder _tableBuilder; 
+            private readonly StateTableStore.Builder _tableBuilder;
             private readonly Compilation _compilation;
             private readonly ImmutableArray<ISyntaxInputNode> _syntaxInputNodes;
             private readonly GeneratorDriverState _driverState;
             private readonly DriverStateTable _previousTable;
-            private readonly ImmutableSegmentedDictionary<object, IStateTable> _previousTableStates;
+            private readonly StateTableStore _previousTableStates;
             private readonly CancellationToken _cancellationToken;
 
-            public Builder(Compilation compilation, ImmutableSegmentedDictionary<object, IStateTable>.Builder tableBuilder, ImmutableArray<ISyntaxInputNode> syntaxInputNodes, GeneratorDriverState driverState, DriverStateTable previousTable, ImmutableSegmentedDictionary<object, IStateTable> previousTableStates, CancellationToken cancellationToken = default)
+            public Builder(Compilation compilation, StateTableStore.Builder tableBuilder, ImmutableArray<ISyntaxInputNode> syntaxInputNodes, GeneratorDriverState driverState, DriverStateTable previousTable, StateTableStore previousTableStates, CancellationToken cancellationToken = default)
             {
                 _compilation = compilation;
                 _tableBuilder = tableBuilder;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(_syntaxInputNodes.Contains(syntaxInputNode));
 
                 // when we don't have a value for this node, we update all the syntax inputs at once
-                if (!_tableBuilder.ContainsKey(syntaxInputNode))
+                if (!_tableBuilder.Contains(syntaxInputNode))
                 {
                     // CONSIDER: when the compilation is the same as previous, the syntax trees must also be the same.
                     // if we have a previous state table for a node, we can just short circuit knowing that it is up to date
@@ -54,18 +54,18 @@ namespace Microsoft.CodeAnalysis
                         // so we'll disable the cached compilation perf optimization when incremental step tracking is enabled.
                         if (compilationIsCached && !_driverState.TrackIncrementalSteps && _previousTableStates.TryGetValue(node, out var previousStateTable))
                         {
-                            _tableBuilder.Add(node, previousStateTable);
+                            _tableBuilder.SetTable(node, previousStateTable);
                         }
                         else
                         {
-                            syntaxInputBuilders.Add(node.GetBuilder(_previousTable, _driverState.TrackIncrementalSteps));
+                            syntaxInputBuilders.Add(node.GetBuilder(_previousTableStates, _driverState.TrackIncrementalSteps));
                         }
                     }
 
                     if (syntaxInputBuilders.Count == 0)
                     {
                         // bring over the previously cached syntax tree inputs
-                        _tableBuilder[SharedInputNodes.SyntaxTrees] = _previousTableStates[SharedInputNodes.SyntaxTrees];
+                        _tableBuilder.SetTable(SharedInputNodes.SyntaxTrees, _previousTableStates.GetStateTableOrEmpty<SyntaxTree>(SharedInputNodes.SyntaxTrees));
                     }
                     else
                     {
@@ -100,19 +100,20 @@ namespace Microsoft.CodeAnalysis
                         foreach (ISyntaxInputBuilder builder in syntaxInputBuilders)
                         {
                             builder.SaveStateAndFree(_tableBuilder);
-                            Debug.Assert(_tableBuilder.ContainsKey(builder.SyntaxInputNode));
+                            Debug.Assert(_tableBuilder.Contains(builder.SyntaxInputNode));
                         }
                     }
                     syntaxInputBuilders.Free();
                 }
 
                 // if we don't have an entry for this node, it must have thrown an exception
-                if (!_tableBuilder.ContainsKey(syntaxInputNode))
+                if (!_tableBuilder.Contains(syntaxInputNode))
                 {
                     throw _syntaxExceptions[syntaxInputNode];
                 }
 
-                return _tableBuilder[syntaxInputNode];
+                _tableBuilder.TryGetTable(syntaxInputNode, out var result);
+                return result!;
             }
         }
     }

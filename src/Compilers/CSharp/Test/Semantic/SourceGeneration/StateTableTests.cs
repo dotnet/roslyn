@@ -325,9 +325,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             DriverStateTable.Builder builder2 = GetBuilder(driverStateTable, trackIncrementalGeneratorSteps: true);
             builder2.GetLatestStateTableForNode(callbackNode);
 
-            // table persisted in driverStateTable does not have any steps
-            Assert.False(driverStateTable.GetStateTableOrEmpty<int>(callbackNode).HasTrackedSteps);
-
             // table returned from the first instance was compacted by the builder
             Assert.NotNull(passedIn);
             AssertTableEntries(passedIn!, new[] { (1, EntryState.Cached, 0), (2, EntryState.Cached, 1), (3, EntryState.Cached, 2), (5, EntryState.Cached, 0), (6, EntryState.Cached, 1) });
