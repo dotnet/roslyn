@@ -952,11 +952,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     ImmutableArray<AdditionalText>.Empty,
                     ImmutableArray<GeneratorState>.Empty,
                     previous,
+                    SyntaxStore.Empty,
                     disabledOutputs: IncrementalGeneratorOutputKind.None,
                     runtime: TimeSpan.Zero,
                     trackIncrementalGeneratorSteps: trackIncrementalGeneratorSteps);
 
-            return new DriverStateTable.Builder(c, state, ImmutableArray<ISyntaxInputNode>.Empty);
+            return new DriverStateTable.Builder(c, state, new SyntaxStore.Builder(c, ImmutableArray<ISyntaxInputNode>.Empty, trackIncrementalGeneratorSteps, SyntaxStore.Empty));
         }
 
         private class CallbackNode<T> : IIncrementalGeneratorNode<T>

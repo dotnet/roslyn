@@ -38,14 +38,14 @@ namespace Microsoft.CodeAnalysis
 
             public Compilation Compilation { get; }
 
-            public Builder(Compilation compilation, GeneratorDriverState driverState, ImmutableArray<ISyntaxInputNode> syntaxInputNodes, CancellationToken cancellationToken = default)
+            public Builder(Compilation compilation, GeneratorDriverState driverState, SyntaxStore.Builder syntaxStore, CancellationToken cancellationToken = default)
             {
                 Compilation = compilation;
                 DriverState = driverState;
                 _previousTable = driverState.StateTable;
                 _cancellationToken = cancellationToken;
 
-                _syntaxStore = new SyntaxStore.Builder(Compilation, syntaxInputNodes, DriverState.TrackIncrementalSteps, _previousTable._syntaxStore, _cancellationToken);
+                _syntaxStore = syntaxStore;
             }
 
             public IStateTable GetSyntaxInputTable(ISyntaxInputNode syntaxInputNode)
