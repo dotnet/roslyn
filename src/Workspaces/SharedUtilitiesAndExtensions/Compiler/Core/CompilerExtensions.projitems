@@ -300,7 +300,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\TriviaDataWithList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingDiagnosticIds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingOptions.IndentStyle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingOptions2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\IFormattingResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormattingService.cs" />
