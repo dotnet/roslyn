@@ -109,6 +109,7 @@ modifier
   | 'public'
   | 'readonly'
   | 'ref'
+  | 'required'
   | 'sealed'
   | 'static'
   | 'unsafe'
