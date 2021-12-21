@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsAutoPropertyWithGetAccessor)
             {
-                Debug.Assert(GetMethod is object);
+                //Debug.Assert(GetMethod is object);
 
                 if (!IsStatic && SetMethod is { IsInitOnly: false })
                 {
