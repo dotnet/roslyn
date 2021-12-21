@@ -29,16 +29,14 @@ namespace Microsoft.CodeAnalysis
             private readonly Compilation _compilation;
             private readonly ImmutableArray<ISyntaxInputNode> _syntaxInputNodes;
             private readonly GeneratorDriverState _driverState;
-            private readonly DriverStateTable _previousTable;
             private readonly StateTableStore _previousTableStates;
             private readonly CancellationToken _cancellationToken;
 
-            public Builder(Compilation compilation, ImmutableArray<ISyntaxInputNode> syntaxInputNodes, GeneratorDriverState driverState, DriverStateTable previousTable, SyntaxStore previousStore, CancellationToken cancellationToken = default)
+            public Builder(Compilation compilation, ImmutableArray<ISyntaxInputNode> syntaxInputNodes, GeneratorDriverState driverState, SyntaxStore previousStore, CancellationToken cancellationToken = default)
             {
                 _compilation = compilation;
                 _syntaxInputNodes = syntaxInputNodes;
                 _driverState = driverState;
-                _previousTable = previousTable;
                 _previousTableStates = previousStore._tables;
                 _cancellationToken = cancellationToken;
             }
