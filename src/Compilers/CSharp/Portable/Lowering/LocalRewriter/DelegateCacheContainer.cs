@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 internal sealed class DelegateCacheContainer : SynthesizedContainer
 {
     private readonly Symbol _containingSymbol;
+    private readonly NamedTypeSymbol? _constructedContainer;
     private readonly Dictionary<(TypeSymbol, MethodSymbol), FieldSymbol> _delegateFields = new();
 
     /// <summary>Creates a type scoped concrete delegate cache container.</summary>
@@ -30,6 +31,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
     {
         Debug.Assert(containingMethod.IsDefinition);
         _containingSymbol = containingMethod.ContainingType;
+        _constructedContainer = Construct(ConstructedFromTypeParameters);
     }
 
     public override Symbol ContainingSymbol => _containingSymbol;
@@ -63,7 +65,9 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
 
         if (!TypeParameters.IsEmpty)
         {
-            field = field.AsMember(Construct(ConstructedFromTypeParameters));
+            Debug.Assert(_constructedContainer is { });
+
+            field = field.AsMember(_constructedContainer);
         }
 
         _delegateFields.Add((delegateType, targetMethod), field);

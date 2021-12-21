@@ -406,16 +406,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
 
+                        var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
+                                                                                        isExtensionMethod: oldNodeOpt.IsExtensionMethod, type: rewrittenType);
+
                         Debug.Assert(_factory.TopLevelMethod is { });
                         if (DelegateCacheRewriter.CanRewrite(_factory.Compilation, _factory.TopLevelMethod, _inExpressionLambda, oldNodeOpt, method))
                         {
                             var cacheRewriter = _lazyDelegateCacheRewriter ??= new DelegateCacheRewriter(_factory, _topLevelMethodOrdinal);
-                            return cacheRewriter.Rewrite(_currentLocalFunctionOrdinal, syntax, receiver, method, rewrittenType);
+                            return cacheRewriter.Rewrite(_currentLocalFunctionOrdinal, syntax, boundDelegateCreation, method, rewrittenType);
                         }
                         else
                         {
-                            return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
-                                                                       isExtensionMethod: oldNodeOpt.IsExtensionMethod, type: rewrittenType);
+                            return boundDelegateCreation;
                         }
                     }
 
