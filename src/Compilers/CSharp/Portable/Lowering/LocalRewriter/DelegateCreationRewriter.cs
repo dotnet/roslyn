@@ -33,7 +33,7 @@ internal sealed partial class DelegateCreationRewriter
         && !boundConversion.IsExtensionMethod
         && !inExpressionLambda // The tree structure / meaning for expression trees should remain untouched.
         && topLevelMethod.MethodKind != MethodKind.StaticConstructor // Avoid caching twice if people do it manually.
-        && compilation.IsStaticMethodGroupDelegateCacheEnabled
+        && compilation.LanguageVersion >= MessageID.IDS_FeatureCacheStaticMethodGroupConversion.RequiredVersion()
         ;
 
     internal BoundExpression Rewrite(BoundDelegateCreationExpression boundDelegateCreation, MethodSymbol targetMethod, TypeSymbol delegateType)

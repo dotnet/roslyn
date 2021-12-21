@@ -1742,7 +1742,7 @@ class C
     static void M2() { }
     static void M2(int i) { }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
@@ -1756,29 +1756,58 @@ class C
                     error: out error,
                     testData: testData);
                 Assert.Equal("error CS8917: The delegate type could not be inferred.", error);
+
                 testData = new CompilationTestData();
-                context.CompileAssignment(
-                    target: "o",
-                    expr: "M1",
-                    error: out error,
-                    testData: testData);
-                testData.GetMethodData("<>x.<>m0").VerifyIL(
+
+                // To remove the else block, please fix https://github.com/dotnet/roslyn/issues/58449
+                if (context.Compilation.LanguageVersion == compilation0.LanguageVersion)
+                {
+                    Assert.True(false);
+
+                    context.CompileAssignment(
+                        target: "o",
+                        expr: "M1",
+                        error: out error,
+                        testData: testData);
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size       29 (0x1d)
-  .maxstack  2
-  .locals init (object V_0) //o
-  IL_0000:  ldsfld     ""System.Action <>x.<>O.<0>__M1""
-  IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001b
-  IL_0008:  pop
-  IL_0009:  ldnull
-  IL_000a:  ldftn      ""void C.M1()""
-  IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action <>x.<>O.<0>__M1""
-  IL_001b:  stloc.0
-  IL_001c:  ret
+    // Code size       29 (0x1d)
+    .maxstack  2
+    .locals init (object V_0) //o
+    IL_0000:  ldsfld     ""System.Action <>x.<>O.<0>__M1""
+    IL_0005:  dup
+    IL_0006:  brtrue.s   IL_001b
+    IL_0008:  pop
+    IL_0009:  ldnull
+    IL_000a:  ldftn      ""void C.M1()""
+    IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+    IL_0015:  dup
+    IL_0016:  stsfld     ""System.Action <>x.<>O.<0>__M1""
+    IL_001b:  stloc.0
+    IL_001c:  ret
 }");
+                }
+                else
+                {
+                    Assert.False(false);
+
+                    context.CompileAssignment(
+                        target: "o",
+                        expr: "M1",
+                        error: out error,
+                        testData: testData);
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+      // Code size       14 (0xe)
+      .maxstack  2
+      .locals init (object V_0) //o
+      IL_0000:  ldnull
+      IL_0001:  ldftn      ""void C.M1()""
+      IL_0007:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+      IL_000c:  stloc.0
+      IL_000d:  ret
+}");
+                }
             });
         }
 
@@ -4176,13 +4205,22 @@ class C
     {
     }
 }";
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: "G(F)");
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            WithRuntimeInstance(compilation, runtime =>
+            {
+                var context = CreateMethodContext(
+                    runtime,
+                    methodName: "C.M");
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression("G(F)", out var error, testData);
+
+                // To remove the else block, please fix https://github.com/dotnet/roslyn/issues/58449
+                if (context.Compilation.LanguageVersion == compilation.LanguageVersion)
+                {
+                    Assert.True(false);
+
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
   // Code size       33 (0x21)
   .maxstack  2
   IL_0000:  ldsfld     ""D <>x.<>O.<0>__F""
@@ -4196,7 +4234,26 @@ class C
   IL_0016:  stsfld     ""D <>x.<>O.<0>__F""
   IL_001b:  call       ""void C.G(D)""
   IL_0020:  ret
-}");
+}
+");
+                }
+                else
+                {
+                    Assert.False(false);
+
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void C.F()""
+  IL_0007:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""void C.G(D)""
+  IL_0011:  ret
+}
+");
+                }
+            });
         }
 
         [Fact]
