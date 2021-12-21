@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<ISyntaxContextReceiver?> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<ISyntaxContextReceiver?> previousTable, CancellationToken cancellationToken)
         {
-            return (NodeStateTable<ISyntaxContextReceiver?>)graphState.GetSyntaxInputTable(this);
+            var compilationIsCached = graphState.GetLatestStateTableForNode(SharedInputNodes.Compilation).IsCached;
+            return (NodeStateTable<ISyntaxContextReceiver?>)graphState.SyntaxStore.GetSyntaxInputTable(this, compilationIsCached, graphState.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees));
         }
 
         public IIncrementalGeneratorNode<ISyntaxContextReceiver?> WithComparer(IEqualityComparer<ISyntaxContextReceiver?> comparer)

@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis
 
             public Compilation Compilation { get; }
 
+            internal SyntaxStore.Builder SyntaxStore => _syntaxStore;
+
             public Builder(Compilation compilation, GeneratorDriverState driverState, SyntaxStore.Builder syntaxStore, CancellationToken cancellationToken = default)
             {
                 Compilation = compilation;
@@ -44,14 +46,6 @@ namespace Microsoft.CodeAnalysis
                 _previousTable = driverState.StateTable;
                 _cancellationToken = cancellationToken;
                 _syntaxStore = syntaxStore;
-            }
-
-            public IStateTable GetSyntaxInputTable(ISyntaxInputNode syntaxInputNode)
-            {
-                var compilationIsCached = GetLatestStateTableForNode(SharedInputNodes.Compilation).IsCached;
-                NodeStateTable<SyntaxTree> syntaxTreeState = GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees);
-
-                return _syntaxStore.GetSyntaxInputTable(syntaxInputNode, compilationIsCached, syntaxTreeState);
             }
 
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)

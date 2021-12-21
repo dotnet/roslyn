@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {
-            return (NodeStateTable<T>)graphState.GetSyntaxInputTable(this);
+            var compilationIsCached = graphState.GetLatestStateTableForNode(SharedInputNodes.Compilation).IsCached;
+            return (NodeStateTable<T>)graphState.SyntaxStore.GetSyntaxInputTable(this, compilationIsCached, graphState.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees));
         }
 
         public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, _registerOutputAndNode, comparer, Name);
@@ -52,7 +53,6 @@ namespace Microsoft.CodeAnalysis
 
             private readonly NodeStateTable<T>.Builder _transformTable;
 
-            //TODO: instead of taking a driver state table, we need to take the immutableSegmentedDictionary from the previous 
             public Builder(SyntaxInputNode<T> owner, StateTableStore table, bool trackIncrementalSteps)
             {
                 _owner = owner;
