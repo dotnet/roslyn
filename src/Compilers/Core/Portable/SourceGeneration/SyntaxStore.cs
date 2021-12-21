@@ -13,10 +13,19 @@ namespace Microsoft.CodeAnalysis
 {
     internal class SyntaxStore
     {
+        private readonly StateTableStore _tables;
+
+        internal static SyntaxStore Empty = new SyntaxStore(StateTableStore.Empty);
+
+        private SyntaxStore(StateTableStore tables)
+        {
+            _tables = tables;
+        }
+
         public class Builder
         {
             private readonly ImmutableDictionary<ISyntaxInputNode, Exception>.Builder _syntaxExceptions = ImmutableDictionary.CreateBuilder<ISyntaxInputNode, Exception>();
-            private readonly StateTableStore.Builder _tableBuilder;
+            private readonly StateTableStore.Builder _tableBuilder = new StateTableStore.Builder();
             private readonly Compilation _compilation;
             private readonly ImmutableArray<ISyntaxInputNode> _syntaxInputNodes;
             private readonly GeneratorDriverState _driverState;
@@ -24,14 +33,13 @@ namespace Microsoft.CodeAnalysis
             private readonly StateTableStore _previousTableStates;
             private readonly CancellationToken _cancellationToken;
 
-            public Builder(Compilation compilation, StateTableStore.Builder tableBuilder, ImmutableArray<ISyntaxInputNode> syntaxInputNodes, GeneratorDriverState driverState, DriverStateTable previousTable, StateTableStore previousTableStates, CancellationToken cancellationToken = default)
+            public Builder(Compilation compilation, ImmutableArray<ISyntaxInputNode> syntaxInputNodes, GeneratorDriverState driverState, DriverStateTable previousTable, SyntaxStore previousStore, CancellationToken cancellationToken = default)
             {
                 _compilation = compilation;
-                _tableBuilder = tableBuilder;
                 _syntaxInputNodes = syntaxInputNodes;
                 _driverState = driverState;
                 _previousTable = previousTable;
-                _previousTableStates = previousTableStates;
+                _previousTableStates = previousStore._tables;
                 _cancellationToken = cancellationToken;
             }
 
@@ -114,6 +122,11 @@ namespace Microsoft.CodeAnalysis
 
                 _tableBuilder.TryGetTable(syntaxInputNode, out var result);
                 return result!;
+            }
+
+            public SyntaxStore ToImmutable()
+            {
+                return new SyntaxStore(_tableBuilder.ToImmutable());
             }
         }
     }

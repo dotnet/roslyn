@@ -16,11 +16,14 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly StateTableStore _tables;
 
-        internal static DriverStateTable Empty { get; } = new DriverStateTable(StateTableStore.Empty);
+        private readonly SyntaxStore _syntaxStore;
 
-        private DriverStateTable(StateTableStore tables)
+        internal static DriverStateTable Empty { get; } = new DriverStateTable(StateTableStore.Empty, SyntaxStore.Empty);
+
+        private DriverStateTable(StateTableStore tables, SyntaxStore syntaxStore)
         {
             _tables = tables;
+            _syntaxStore = syntaxStore;
         }
 
         public sealed class Builder
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis
                 _previousTable = driverState.StateTable;
                 _cancellationToken = cancellationToken;
 
-                _syntaxStore = new SyntaxStore.Builder(Compilation, _stateTableBuilder, syntaxInputNodes, DriverState, _previousTable, _previousTable._tables, _cancellationToken);
+                _syntaxStore = new SyntaxStore.Builder(Compilation, syntaxInputNodes, DriverState, _previousTable, _previousTable._syntaxStore, _cancellationToken);
             }
 
             public IStateTable GetSyntaxInputTable(ISyntaxInputNode syntaxInputNode)
@@ -77,7 +80,7 @@ namespace Microsoft.CodeAnalysis
 
             public DriverStateTable ToImmutable()
             {
-                return new DriverStateTable(_stateTableBuilder.ToImmutable());
+                return new DriverStateTable(_stateTableBuilder.ToImmutable(), _syntaxStore.ToImmutable());
             }
         }
     }
