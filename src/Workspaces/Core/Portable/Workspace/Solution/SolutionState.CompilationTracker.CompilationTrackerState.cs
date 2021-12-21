@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis
 
                     // As a sanity check, we should never see the generated trees inside of the compilation that should not
                     // have generated trees.
-                    var compilation = compilationWithoutGeneratedDocuments?.GetValueOrNull();
+                    var compilation = compilationWithoutGeneratedDocuments;
 
                     if (compilation != null)
                     {
