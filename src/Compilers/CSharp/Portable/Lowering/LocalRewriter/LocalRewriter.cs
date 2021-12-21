@@ -104,7 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Presence of sequence points in the tree affects final IL, therefore, we always generate them.
                 var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
                                                       dynamicInstrumenter != null ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton);
-
                 statement.CheckLocalsDefined();
                 var loweredStatement = localRewriter.VisitStatement(statement);
                 Debug.Assert(loweredStatement is { });
@@ -263,7 +262,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
                 }
-                return base.VisitLambda(node)!;
+
+                var visited = (BoundLambda)base.VisitLambda(node)!;
+                if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
+                {
+                    visited = visited.Update(visited.UnboundLambda, visited.Symbol, newBody, visited.Diagnostics, visited.Binder, visited.Type);
+                }
+                return visited;
             }
             finally
             {
@@ -314,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 _factory.CurrentFunction = localFunction;
+
                 if (localFunction.IsDirectlyExcludedFromCodeCoverage)
                 {
                     _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
@@ -327,7 +333,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, localFunctionOrdinal);
                 }
 
-                return base.VisitLocalFunctionStatement(node)!;
+                var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node)!;
+
+                if (!localFunction.IsIterator && RewriteNullChecking(visited.Body) is BoundBlock newBody)
+                {
+                    visited = visited.Update(localFunction, newBody, null);
+                }
+                return visited;
             }
             finally
             {

@@ -7239,6 +7239,780 @@ class C<T> where T : struct? {}
             EOF();
         }
 
+        [Fact]
+        public void TestMethodDeclarationNullValidation()
+        {
+            UsingStatement(@"void M(string name!!) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestOptParamMethodDeclarationWithNullValidation()
+        {
+            UsingStatement(@"void M(string name!! = null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestOptParamMethodDeclarationWithNullValidationNoSpaces()
+        {
+            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgList()
+        {
+            UsingStatement(@"void M(__arglist!) { }", options: TestOptions.RegularPreview,
+                    // (1,17): error CS1003: Syntax error, ',' expected
+                    // void M(__arglist!) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+
+        [Fact]
+        public void TestNullCheckedArgWithLeadingSpace()
+        {
+            UsingStatement(@"void M(string name !!=null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithLeadingNewLine()
+        {
+            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithTrailingSpace()
+        {
+            UsingStatement(@"void M(string name!!= null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithTrailingNewLine()
+        {
+            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithSpaceInbetween()
+        {
+            UsingStatement(@"void M(string name! !=null) { }", options: TestOptions.RegularPreview,
+                    // (1,21): error CS1525: Invalid expression term '!'
+                    // void M(string name! !=null) { }
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 21));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        M(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithSpaceAfterParam()
+        {
+            UsingStatement(@"void M(string name !!=null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithSpaceAfterBangs()
+        {
+            UsingStatement(@"void M(string name! ! =null) { }", options: TestOptions.RegularPreview,
+                    // (1,21): error CS1525: Invalid expression term '!'
+                    // void M(string name! ! =null) { }
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 21));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        M(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithSpaceBeforeBangs()
+        {
+            UsingStatement(@"void M(string name ! !=null) { }", options: TestOptions.RegularPreview,
+                    // (1,22): error CS1525: Invalid expression term '!'
+                    // void M(string name ! !=null) { }
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 22));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        M(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithSpaceAfterEquals()
+        {
+            UsingStatement(@"void M(string name!!= null) { }", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedMethod()
+        {
+            UsingTree(@"
+class C
+{
+    public void M(string x!!) { }
+}", options: TestOptions.RegularPreview);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.ExclamationExclamationToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedConstructor()
+        {
+            UsingTree(@"
+class C
+{
+    public C(string x!!) { }
+}", options: TestOptions.RegularPreview);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.ExclamationExclamationToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+        }
+
+
+        [Fact]
+        public void TestNullCheckedOperator()
+        {
+            UsingTree(@"
+class Box
+{
+    public static int operator+ (Box b!!, Box c) 
+    {
+        return 2;
+    }
+}", options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.ExclamationExclamationToken);
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.ReturnStatement);
+                                {
+                                    N(SyntaxKind.ReturnKeyword);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+
+        [Fact]
+        public void TestAnonymousDelegateNullChecking()
+        {
+            UsingTree(@"
+delegate void Del(int x!!);
+Del d = delegate(int k!!) { /* ... */ };", options: TestOptions.RegularPreview);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.DelegateDeclaration);
+                {
+                    N(SyntaxKind.DelegateKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Del");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                            N(SyntaxKind.ExclamationExclamationToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Del");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "d");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.AnonymousMethodExpression);
+                                    {
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Parameter);
+                                            {
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.IdentifierToken, "k");
+                                                N(SyntaxKind.ExclamationExclamationToken);
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+        }
+
         [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
         public void IncompleteGenericInBaseList1()
         {

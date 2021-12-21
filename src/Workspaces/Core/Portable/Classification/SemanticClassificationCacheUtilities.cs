@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Storage;
 
-namespace Microsoft.CodeAnalysis.SemanticClassificationCache
+namespace Microsoft.CodeAnalysis.Classification
 {
     internal static class SemanticClassificationCacheUtilities
     {
