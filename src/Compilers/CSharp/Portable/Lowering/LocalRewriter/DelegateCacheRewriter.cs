@@ -74,12 +74,12 @@ internal sealed partial class DelegateCacheRewriter
                 return container;
             }
 
-            container = new(typeCompilationState.Type, generation);
+            container = new DelegateCacheContainer(typeCompilationState.Type, generation);
             typeCompilationState.ConcreteDelegateCacheContainer = container;
         }
         else
         {
-            var containersStack = _genericCacheContainers ??= new();
+            var containersStack = _genericCacheContainers ??= new Stack<(int LocalFunctionOrdinal, DelegateCacheContainer CacheContainer)>();
 
             while (containersStack.Count > 0 && containersStack.Peek().LocalFunctionOrdinal > localFunctionOrdinal)
             {
@@ -91,7 +91,7 @@ internal sealed partial class DelegateCacheRewriter
                 return containersStack.Peek().CacheContainer;
             }
 
-            container = new(_factory.CurrentFunction, _topLevelMethodOrdinal, localFunctionOrdinal, generation);
+            container = new DelegateCacheContainer(_factory.CurrentFunction, _topLevelMethodOrdinal, localFunctionOrdinal, generation);
             containersStack.Push((localFunctionOrdinal, container));
         }
 

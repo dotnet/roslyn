@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(_factory.TopLevelMethod is { });
                         if (DelegateCacheRewriter.CanRewrite(_factory.Compilation, _factory.TopLevelMethod, _inExpressionLambda, oldNodeOpt, method))
                         {
-                            var cacheRewriter = _lazyDelegateCacheRewriter ??= new(_factory, _topLevelMethodOrdinal);
+                            var cacheRewriter = _lazyDelegateCacheRewriter ??= new DelegateCacheRewriter(_factory, _topLevelMethodOrdinal);
                             return cacheRewriter.Rewrite(_currentLocalFunctionOrdinal, syntax, receiver, method, rewrittenType);
                         }
                         else
