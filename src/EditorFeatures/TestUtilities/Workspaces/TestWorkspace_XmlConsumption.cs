@@ -14,7 +14,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.ServiceModel.Description;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -29,7 +28,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
@@ -338,8 +336,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 documents.Add(document);
             }
 
+            SingleFileTestGenerator testGenerator = null;
             foreach (var sourceGeneratedDocumentElement in projectElement.Elements(DocumentFromSourceGeneratorElementName))
             {
+                if (testGenerator is null)
+                {
+                    testGenerator = new SingleFileTestGenerator();
+                    analyzers.Add(new TestGeneratorReference(testGenerator));
+                }
+
                 var name = GetFileName(workspace, sourceGeneratedDocumentElement, ref documentId);
 
                 var markupCode = sourceGeneratedDocumentElement.NormalizedValue();
@@ -350,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var document = new TestHostDocument(exportProvider, languageServices, code, name, documentFilePath, cursorPosition, spans, isSourceGenerated: true);
                 documents.Add(document);
 
-                analyzers.Add(new TestGeneratorReference(new SingleFileTestGenerator(code, name)));
+                testGenerator.AddSource(code, name);
             }
 
             var additionalDocuments = new List<TestHostDocument>();

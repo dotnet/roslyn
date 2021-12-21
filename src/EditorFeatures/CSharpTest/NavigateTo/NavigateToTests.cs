@@ -1473,6 +1473,38 @@ testHost, composition, @"class C
                 },
                 await _aggregator.GetItemsAsync("C"));
         }
+
+        [Fact]
+        public async Task DoIncludeSymbolsFromMultipleSourceGeneratedFiles()
+        {
+            using var workspace = TestWorkspace.Create(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <DocumentFromSourceGenerator>
+            public partial class C
+            {
+            }
+        </DocumentFromSourceGenerator>
+        <DocumentFromSourceGenerator>
+            public partial class C
+            {
+            }
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+", composition: EditorTestCompositions.EditorFeatures);
+
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _aggregator = new NavigateToTestAggregator(_provider);
+
+            VerifyNavigateToResultItems(
+                new()
+                {
+                    new NavigateToItem("C", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
+                    new NavigateToItem("C", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
+                },
+                await _aggregator.GetItemsAsync("C"));
+        }
     }
 }
 #pragma warning restore CS0618 // MatchKind is obsolete
