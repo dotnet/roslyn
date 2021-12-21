@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         protected abstract bool CheckLanguageSpecificIssues(
             SemanticModel semantic, ISymbol symbol, SyntaxToken triggerToken, [NotNullWhen(true)] out string? langError);
 
-        public async Task<IInlineRenameInfo?> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var triggerToken = await GetTriggerTokenAsync(document, position, cancellationToken).ConfigureAwait(false);
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,6 +9,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 {
     internal abstract class FSharpInlineRenameServiceImplementation
     {
-        public abstract Task<FSharpInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
+        public abstract Task<FSharpInlineRenameInfo?> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
     }
 }

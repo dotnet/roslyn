@@ -72,11 +72,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return readOnlyOrCannotNavigateToSpanSessionInfo;
             }
 
-            if (renameInfo is null)
-            {
-                return new InlineRenameSessionInfo(EditorFeaturesResources.You_cannot_rename_this_element);
-            }
-
             if (!renameInfo.CanRename)
             {
                 return new InlineRenameSessionInfo(renameInfo.LocalizedErrorMessage);

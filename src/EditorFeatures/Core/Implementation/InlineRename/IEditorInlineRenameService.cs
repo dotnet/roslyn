@@ -256,6 +256,6 @@ namespace Microsoft.CodeAnalysis.Editor
     /// </summary>
     internal interface IEditorInlineRenameService : ILanguageService
     {
-        Task<IInlineRenameInfo?> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
+        Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
     }
 }
