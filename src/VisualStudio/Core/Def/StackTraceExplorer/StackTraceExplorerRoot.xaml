@@ -102,59 +102,6 @@
                         </Setter.Value>
                     </Setter>
                 </Style>
-                <!--<Style TargetType="TabItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTabItemNavigationStyleKey}}">
-                    <Setter Property="Header" Value="{Binding Header}" />
-                    <Setter Property="Content" Value="{Binding Content}" />
-                    <Setter Property="AutomationProperties.Name" Value="{Binding Title}" />
-                    <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.InnerTabInactiveBackgroundBrushKey}}" />
-                    <Setter Property="BorderBrush" Value="Transparent" />
-                    <Setter Property="BorderThickness" Value="1" />
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonControlsColors.InnerTabInactiveTextBrushKey}}" />
-                    <Setter Property="Padding" Value="6,3,6,3" />
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="TabItem">
-                                <Border x:Name="PART_Border"
-                                        Background="{TemplateBinding Background}"
-                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                        BorderThickness="{TemplateBinding BorderThickness}"
-                                        Padding="{TemplateBinding Padding}">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="16" />
-                                        </Grid.ColumnDefinitions>
-                                        <Label Content="{Binding Header}" Padding="0" Margin="0" />
-                                        <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.Close}" Grid.Column="1" Margin="4, 0, 0, 0" Width="12">
-                                            <imaging:CrispImage.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="{DynamicResource {x:Static platformimaging:ImageThemingUtilities.ImageBackgroundColorProperty}}" />
-                                                </Trigger>
-                                            </imaging:CrispImage.Triggers>
-                                        </imaging:CrispImage>
-                                    </Grid>
-                                </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsSelected" Value="True">
-                                            <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.InnerTabActiveBackgroundBrushKey}}" />
-                                            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonControlsColors.InnerTabActiveTextBrushKey}}" />
-                                            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.InnerTabActiveBorderBrushKey}}" />
-                                        </Trigger>
-                                        <MultiTrigger>
-                                            <MultiTrigger.Conditions>
-                                                <Condition Property="IsMouseOver" Value="True" />
-                                                <Condition Property="IsSelected" Value="False" />
-                                            </MultiTrigger.Conditions>
-                                            <MultiTrigger.Setters>
-                                                <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.InnerTabInactiveHoverBackgroundBrushKey}}" />
-                                                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonControlsColors.InnerTabInactiveHoverTextBrushKey}}" />
-                                            </MultiTrigger.Setters>
-                                        </MultiTrigger>
-                                    </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>-->
             </TabControl.ItemContainerStyle>
         </TabControl>
     </Grid>

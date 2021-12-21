@@ -30,6 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     internal class StackTraceExplorerToolWindow : ToolWindowPane, IOleCommandTarget
     {
         private bool _initialized;
+        private VisualStudioWorkspace? _workspace;
+
         public StackTraceExplorerRoot? Root { get; private set; }
 
         public StackTraceExplorerToolWindow() : base(null)
@@ -54,7 +56,13 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         /// </summary>
         public async Task<bool> ShouldShowOnActivatedAsync(CancellationToken cancellationToken)
         {
-            if (Root is null)
+            if (Root is null || _workspace is null)
+            {
+                return false;
+            }
+
+            var enabled = _workspace.CurrentSolution.Options.GetOption(StackTraceExplorerOptions.OpenOnFocus);
+            if (!enabled)
             {
                 return false;
             }
@@ -82,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 return;
             }
 
-            var workspace = roslynPackage.ComponentModel.GetService<VisualStudioWorkspace>();
+            _workspace = roslynPackage.ComponentModel.GetService<VisualStudioWorkspace>();
             var formatMapService = roslynPackage.ComponentModel.GetService<IClassificationFormatMapService>();
             var formatMap = formatMapService.GetClassificationFormatMap(StandardContentTypeNames.Text);
             var typeMap = roslynPackage.ComponentModel.GetService<ClassificationTypeMap>();
