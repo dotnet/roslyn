@@ -10,6 +10,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
+/// <summary>
+/// This type helps rewrite the delegate creations that target static method groups to use a cached instance of delegate.
+/// </summary>
 internal sealed partial class DelegateCacheRewriter
 {
     private readonly SyntheticBoundNodeFactory _factory;

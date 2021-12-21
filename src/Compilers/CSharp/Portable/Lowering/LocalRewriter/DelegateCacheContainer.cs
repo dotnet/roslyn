@@ -8,6 +8,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 
+/// <summary>
+/// This type is synthesized to hold the cached delegates that target static method groups.
+/// </summary>
 internal sealed class DelegateCacheContainer : SynthesizedContainer
 {
     private readonly Symbol _containingSymbol;
