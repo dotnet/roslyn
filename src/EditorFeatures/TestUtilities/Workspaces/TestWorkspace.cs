@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
         private readonly BackgroundCompiler _backgroundCompiler;
-        private readonly BackgroundParser _backgroundParser;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = new();
@@ -101,8 +100,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             _backgroundCompiler = new BackgroundCompiler(this);
-            _backgroundParser = new BackgroundParser(this);
-            _backgroundParser.Start();
 
             _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
 
@@ -122,22 +119,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public TestHostDocument DocumentWithCursor
             => Documents.Single(d => d.CursorPosition.HasValue && !d.IsLinkFile);
-
-        protected override void OnDocumentTextChanged(Document document)
-        {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.Parse(document);
-            }
-        }
-
-        protected override void OnDocumentClosing(DocumentId documentId)
-        {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.CancelParse(documentId);
-            }
-        }
 
         public new void RegisterText(SourceTextContainer text)
             => base.RegisterText(text);
@@ -166,11 +147,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             foreach (var document in ProjectionDocuments)
             {
                 document.CloseTextView();
-            }
-
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.CancelAllParses();
             }
 
             base.Dispose(finalize);

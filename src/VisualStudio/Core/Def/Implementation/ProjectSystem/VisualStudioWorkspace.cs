@@ -22,7 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices
     public abstract class VisualStudioWorkspace : Workspace
     {
         private BackgroundCompiler? _backgroundCompiler;
-        private readonly BackgroundParser _backgroundParser;
 
         static VisualStudioWorkspace()
         {
@@ -39,9 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 cacheService.CacheFlushRequested += OnCacheFlushRequested;
             }
-
-            _backgroundParser = new BackgroundParser(this);
-            _backgroundParser.Start();
         }
 
         private void OnCacheFlushRequested(object sender, EventArgs e)
@@ -64,12 +60,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             get { return _backgroundCompiler != null; }
         }
-
-        protected override void OnDocumentTextChanged(Document document)
-            => _backgroundParser.Parse(document);
-
-        protected override void OnDocumentClosing(DocumentId documentId)
-            => _backgroundParser.CancelParse(documentId);
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges => true;
 
