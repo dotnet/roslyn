@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal bool IsAutoPropertyWithGetAccessor
-            => IsAutoProperty && _getMethod is object;
+            => IsAutoProperty;
 
         protected bool IsAutoProperty
             => (_propertyFlags & Flags.IsAutoProperty) != 0;
