@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
-        private readonly BackgroundCompiler _backgroundCompiler;
+        private bool _partialSemanticsEnabled;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = new();
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 };
             }
 
-            _backgroundCompiler = new BackgroundCompiler(this);
+            _partialSemanticsEnabled = true;
 
             _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected internal override bool PartialSemanticsEnabled
         {
-            get { return _backgroundCompiler != null; }
+            get { return _partialSemanticsEnabled; }
         }
 
         public TestHostDocument DocumentWithCursor

@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// </summary>
     public abstract class VisualStudioWorkspace : Workspace
     {
-        private BackgroundCompiler? _backgroundCompiler;
+        private bool _partialSemanticsEnabled;
 
         static VisualStudioWorkspace()
         {
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         internal VisualStudioWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.Host)
         {
-            _backgroundCompiler = new BackgroundCompiler(this);
+            _partialSemanticsEnabled = true;
 
             var cacheService = Services.GetService<IWorkspaceCacheService>();
             if (cacheService != null)
@@ -42,11 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void OnCacheFlushRequested(object sender, EventArgs e)
         {
-            if (_backgroundCompiler != null)
-            {
-                _backgroundCompiler.Dispose();
-                _backgroundCompiler = null; // PartialSemanticsEnabled will now return false
-            }
+            _partialSemanticsEnabled = false;
 
             // No longer need cache notifications
             var cacheService = Services.GetService<IWorkspaceCacheService>();
@@ -58,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         protected internal override bool PartialSemanticsEnabled
         {
-            get { return _backgroundCompiler != null; }
+            get { return _partialSemanticsEnabled; }
         }
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges => true;
