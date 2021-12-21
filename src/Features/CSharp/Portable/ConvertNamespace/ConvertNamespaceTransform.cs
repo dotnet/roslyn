@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(baseNamespace.Kind());
-            };
+            }
         }
 
         public static async Task<(Document document, TextSpan semicolonSpan)> ConvertNamespaceDeclarationAsync(Document document, NamespaceDeclarationSyntax namespaceDeclaration, CancellationToken cancellationToken)
