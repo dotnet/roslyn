@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // finalizing a compilation more than once doesn't recreate things incorrectly or run the generator more than once.
             generatorRan = false;
             var compilationReference = ObjectReference.CreateFromFactory(() => project.GetCompilationAsync().Result);
-            compilationReference.AssertReleased();
+            compilationReference.AssertHeld();
             var secondCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
 
             var generatedDocumentSecondTime = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(generatorRan);
             generatorRan = false;
 
-            compilationReference.AssertReleased();
+            compilationReference.AssertHeld();
 
             var document = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
 
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
 
             var compilationReference = ObjectReference.CreateFromFactory(() => project.GetRequiredCompilationAsync(CancellationToken.None).Result);
-            compilationReference.AssertReleased();
+            compilationReference.AssertHeld();
 
             var projectWithoutAdditionalFiles = project.RemoveAdditionalDocument(project.AdditionalDocumentIds.Single());
             Assert.Empty((await projectWithoutAdditionalFiles.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
