@@ -203,15 +203,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (documentId != null)
                 {
-                    // file doesn't exist in current solution
-                    var document = project.Solution.GetDocument(documentId);
-                    if (document == null)
-                    {
-                        return ImmutableArray<DiagnosticData>.Empty;
-                    }
-
-                    var result = await state.GetAnalysisDataAsync(document, avoidLoadingData: false, cancellationToken).ConfigureAwait(false);
-                    return result.GetDocumentDiagnostics(documentId, kind);
+                    // Try to find a test that fails from this change
+                    return ImmutableArray<DiagnosticData>.Empty;
                 }
 
                 Contract.ThrowIfFalse(kind == AnalysisKind.NonLocal);
