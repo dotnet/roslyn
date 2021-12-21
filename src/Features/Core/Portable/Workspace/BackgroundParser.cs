@@ -47,18 +47,18 @@ namespace Microsoft.CodeAnalysis.Host
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
-            workspace.DocumentOpened += OnDocumentOpened;
-            workspace.DocumentClosed += OnDocumentClosed;
+            //workspace.DocumentOpened += OnDocumentOpened;
+            //workspace.DocumentClosed += OnDocumentClosed;
         }
 
         private void OnActiveDocumentChanged(object sender, DocumentId activeDocumentId)
             => Parse(_workspace.CurrentSolution.GetDocument(activeDocumentId));
 
-        private void OnDocumentOpened(object sender, DocumentEventArgs args)
-            => Parse(args.Document);
+        //private void OnDocumentOpened(object sender, DocumentEventArgs args)
+        //    => Parse(args.Document);
 
-        private void OnDocumentClosed(object sender, DocumentEventArgs args)
-            => CancelParse(args.Document.Id);
+        //private void OnDocumentClosed(object sender, DocumentEventArgs args)
+        //    => CancelParse(args.Document.Id);
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
         {
