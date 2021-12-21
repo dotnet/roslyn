@@ -35,10 +35,9 @@ namespace Microsoft.CodeAnalysis
         public sealed class Builder
         {
             private readonly ImmutableSegmentedDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableSegmentedDictionary.CreateBuilder<object, IStateTable>();
-            private readonly ImmutableArray<ISyntaxInputNode> _syntaxInputNodes;
-            private readonly ImmutableDictionary<ISyntaxInputNode, Exception>.Builder _syntaxExceptions = ImmutableDictionary.CreateBuilder<ISyntaxInputNode, Exception>();
             private readonly DriverStateTable _previousTable;
             private readonly CancellationToken _cancellationToken;
+            private readonly SyntaxStore.Builder _syntaxStore;
 
             internal GeneratorDriverState DriverState { get; }
 
@@ -49,89 +48,17 @@ namespace Microsoft.CodeAnalysis
                 Compilation = compilation;
                 DriverState = driverState;
                 _previousTable = driverState.StateTable;
-                _syntaxInputNodes = syntaxInputNodes;
                 _cancellationToken = cancellationToken;
+
+                _syntaxStore = new SyntaxStore.Builder(Compilation, _tableBuilder, syntaxInputNodes, DriverState, _previousTable, _previousTable._tables, _cancellationToken);
             }
 
             public IStateTable GetSyntaxInputTable(ISyntaxInputNode syntaxInputNode)
             {
-                Debug.Assert(_syntaxInputNodes.Contains(syntaxInputNode));
+                var compilationIsCached = GetLatestStateTableForNode(SharedInputNodes.Compilation).IsCached;
+                NodeStateTable<SyntaxTree> syntaxTreeState = GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees);
 
-                // when we don't have a value for this node, we update all the syntax inputs at once
-                if (!_tableBuilder.ContainsKey(syntaxInputNode))
-                {
-                    // CONSIDER: when the compilation is the same as previous, the syntax trees must also be the same.
-                    // if we have a previous state table for a node, we can just short circuit knowing that it is up to date
-                    // This step isn't part of the tree, so we can skip recording.
-                    var compilationIsCached = GetLatestStateTableForNode(SharedInputNodes.Compilation).IsCached;
-
-                    // get a builder for each input node
-                    var syntaxInputBuilders = ArrayBuilder<ISyntaxInputBuilder>.GetInstance(_syntaxInputNodes.Length);
-                    foreach (var node in _syntaxInputNodes)
-                    {
-                        // TODO: We don't cache the tracked incremental steps in a manner that we can easily rehydrate between runs,
-                        // so we'll disable the cached compilation perf optimization when incremental step tracking is enabled.
-                        if (compilationIsCached && !DriverState.TrackIncrementalSteps && _previousTable._tables.TryGetValue(node, out var previousStateTable))
-                        {
-                            _tableBuilder.Add(node, previousStateTable);
-                        }
-                        else
-                        {
-                            syntaxInputBuilders.Add(node.GetBuilder(_previousTable, DriverState.TrackIncrementalSteps));
-                        }
-                    }
-
-                    if (syntaxInputBuilders.Count == 0)
-                    {
-                        // bring over the previously cached syntax tree inputs
-                        _tableBuilder[SharedInputNodes.SyntaxTrees] = _previousTable._tables[SharedInputNodes.SyntaxTrees];
-                    }
-                    else
-                    {
-                        GeneratorRunStateTable.Builder temporaryRunStateBuilder = new GeneratorRunStateTable.Builder(DriverState.TrackIncrementalSteps);
-                        NodeStateTable<SyntaxTree> syntaxTreeState = GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees);
-
-                        // update each tree for the builders, sharing the semantic model
-                        foreach ((var tree, var state, var syntaxTreeIndex, var stepInfo) in syntaxTreeState)
-                        {
-                            var root = new Lazy<SyntaxNode>(() => tree.GetRoot(_cancellationToken));
-                            var model = state != EntryState.Removed ? Compilation.GetSemanticModel(tree) : null;
-                            for (int i = 0; i < syntaxInputBuilders.Count; i++)
-                            {
-                                try
-                                {
-                                    _cancellationToken.ThrowIfCancellationRequested();
-                                    syntaxInputBuilders[i].VisitTree(root, state, model, _cancellationToken);
-                                }
-                                catch (UserFunctionException ufe)
-                                {
-                                    // we're evaluating this node ahead of time, so we can't just throw the exception
-                                    // instead we'll hold onto it, and throw the exception when a downstream node actually
-                                    // attempts to read the value
-                                    _syntaxExceptions[syntaxInputBuilders[i].SyntaxInputNode] = ufe;
-                                    syntaxInputBuilders.RemoveAt(i);
-                                    i--;
-                                }
-                            }
-                        }
-
-                        // save the updated inputs
-                        foreach (ISyntaxInputBuilder builder in syntaxInputBuilders)
-                        {
-                            builder.SaveStateAndFree(_tableBuilder);
-                            Debug.Assert(_tableBuilder.ContainsKey(builder.SyntaxInputNode));
-                        }
-                    }
-                    syntaxInputBuilders.Free();
-                }
-
-                // if we don't have an entry for this node, it must have thrown an exception
-                if (!_tableBuilder.ContainsKey(syntaxInputNode))
-                {
-                    throw _syntaxExceptions[syntaxInputNode];
-                }
-
-                return _tableBuilder[syntaxInputNode];
+                return _syntaxStore.GetSyntaxInputTable(syntaxInputNode, compilationIsCached, syntaxTreeState);
             }
 
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)
