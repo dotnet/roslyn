@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private LoweredDynamicOperationFactory _dynamicFactory;
         private bool _sawLambdas;
         private int _availableLocalFunctionOrdinal;
-        private int _currentLocalFunctionOrdinal;
         private readonly int _topLevelMethodOrdinal;
         private DelegateCreationRewriter? _lazyDelegateCacheRewriter;
         private bool _inExpressionLambda;
@@ -61,7 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
             _topLevelMethodOrdinal = containingMethodOrdinal;
-            _currentLocalFunctionOrdinal = -1;
             _diagnostics = diagnostics;
 
             Debug.Assert(instrumenter != null);
@@ -276,8 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            var oldLocalFunctionOrdinal = _currentLocalFunctionOrdinal;
-            _currentLocalFunctionOrdinal = _availableLocalFunctionOrdinal++;
+            int localFunctionOrdinal = _availableLocalFunctionOrdinal++;
 
             var localFunction = node.Symbol;
             CheckRefReadOnlySymbols(localFunction);
@@ -327,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Each generic local function gets its own dynamic factory because it 
                     // needs its own container to cache dynamic call-sites. That type (the container) "inherits"
                     // local function's type parameters as well as type parameters of all containing methods.
-                    _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, _currentLocalFunctionOrdinal);
+                    _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, localFunctionOrdinal);
                 }
 
                 return base.VisitLocalFunctionStatement(node)!;
@@ -337,7 +334,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CurrentFunction = oldContainingSymbol;
                 _instrumenter = oldInstrumenter;
                 _dynamicFactory = oldDynamicFactory;
-                _currentLocalFunctionOrdinal = oldLocalFunctionOrdinal;
             }
         }
 

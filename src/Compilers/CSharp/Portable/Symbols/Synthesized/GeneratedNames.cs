@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>t__builder";
         }
 
-        internal static string DelegateCacheContainerType(int generation, string? methodName = null, int methodOrdinal = -1, int localFunctionOrdinal = -1)
+        internal static string DelegateCacheContainerType(int generation, string? methodName = null, int methodOrdinal = -1, int ownerUniqueId = -1)
         {
             const char NameKind = (char)GeneratedNameKind.DelegateCacheContainerType;
 
@@ -453,9 +453,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 builder.Append(GeneratedNameConstants.SuffixSeparator).Append(methodOrdinal);
             }
 
-            if (localFunctionOrdinal > -1)
+            if (ownerUniqueId > -1)
             {
-                builder.Append(IdSeparator).Append(localFunctionOrdinal);
+                builder.Append(IdSeparator).Append(ownerUniqueId);
             }
 
             if (generation > 0)

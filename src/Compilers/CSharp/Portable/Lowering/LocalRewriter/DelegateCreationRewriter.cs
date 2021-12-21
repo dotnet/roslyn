@@ -18,7 +18,7 @@ internal sealed partial class DelegateCreationRewriter
     private readonly SyntheticBoundNodeFactory _factory;
     private readonly int _topLevelMethodOrdinal;
 
-    private Stack<(int LocalFunctionOrdinal, DelegateCacheContainer CacheContainer)>? _genericCacheContainers;
+    private Dictionary<MethodSymbol, DelegateCacheContainer>? _genericCacheContainers;
 
     internal DelegateCreationRewriter(SyntheticBoundNodeFactory factory, int topLevelMethodOrdinal)
     {
@@ -36,14 +36,14 @@ internal sealed partial class DelegateCreationRewriter
         && compilation.IsStaticMethodGroupDelegateCacheEnabled
         ;
 
-    internal BoundExpression Rewrite(BoundDelegateCreationExpression boundDelegateCreation, int localFunctionOrdinal, MethodSymbol targetMethod, TypeSymbol delegateType)
+    internal BoundExpression Rewrite(BoundDelegateCreationExpression boundDelegateCreation, MethodSymbol targetMethod, TypeSymbol delegateType)
     {
         Debug.Assert(delegateType.IsDelegateType());
 
         var oldSyntax = _factory.Syntax;
         _factory.Syntax = boundDelegateCreation.Syntax;
 
-        var cacheContainer = GetOrAddCacheContainer(localFunctionOrdinal, delegateType, targetMethod);
+        var cacheContainer = GetOrAddCacheContainer(delegateType, targetMethod);
         var cacheField = cacheContainer.GetOrAddCacheField(_factory, delegateType, targetMethod);
 
         var boundCacheField = _factory.Field(null, cacheField);
@@ -54,7 +54,7 @@ internal sealed partial class DelegateCreationRewriter
         return rewrittenNode;
     }
 
-    private DelegateCacheContainer GetOrAddCacheContainer(int localFunctionOrdinal, TypeSymbol delegateType, MethodSymbol targetMethod)
+    private DelegateCacheContainer GetOrAddCacheContainer(TypeSymbol delegateType, MethodSymbol targetMethod)
     {
         Debug.Assert(_factory.ModuleBuilderOpt is { });
         Debug.Assert(_factory.CurrentFunction is { });
@@ -78,20 +78,48 @@ internal sealed partial class DelegateCreationRewriter
         }
         else
         {
-            var containersStack = _genericCacheContainers ??= new Stack<(int LocalFunctionOrdinal, DelegateCacheContainer CacheContainer)>();
+            // We don't need to synthesize a container for each and every function.
+            // For functions with zero arity, we can share the container with the closest generic ancestor function.
+            //
+            // For example:
+            //     void LF1<T>()
+            //     {
+            //         void LF2()
+            //         {
+            //             Func<T> d = SomeMethod<T>;
+            //             static void LF4 () { Func<T> d = SomeMethod<T>; }
+            //         }
+            //
+            //         void LF3()
+            //         {
+            //             Func<T> d = SomeMethod<T>;
+            //         }
+            //     }
+            //
+            // In the above case, only one cached delegate is necessary, and it could be assigned to the container 'owned' by LF1.
 
-            while (containersStack.Count > 0 && containersStack.Peek().LocalFunctionOrdinal > localFunctionOrdinal)
+            MethodSymbol? ownerFunction = null;
+
+            for (Symbol? enclosingSymbol = _factory.CurrentFunction; enclosingSymbol is MethodSymbol enclosingMethod; enclosingSymbol = enclosingSymbol.ContainingSymbol)
             {
-                containersStack.Pop();
+                if (enclosingMethod.Arity > 0)
+                {
+                    ownerFunction = enclosingMethod;
+                    break;
+                }
             }
 
-            if (containersStack.Count > 0 && containersStack.Peek().LocalFunctionOrdinal == localFunctionOrdinal)
+            Debug.Assert(ownerFunction is { });
+
+            var containers = _genericCacheContainers ??= new Dictionary<MethodSymbol, DelegateCacheContainer>();
+
+            if (containers.TryGetValue(ownerFunction, out container))
             {
-                return containersStack.Peek().CacheContainer;
+                return container;
             }
 
-            container = new DelegateCacheContainer(_factory.CurrentFunction, _topLevelMethodOrdinal, localFunctionOrdinal, generation);
-            containersStack.Push((localFunctionOrdinal, container));
+            container = new DelegateCacheContainer(ownerFunction, _topLevelMethodOrdinal, containers.Count, generation);
+            containers.Add(ownerFunction, container);
         }
 
         _factory.AddNestedType(container);

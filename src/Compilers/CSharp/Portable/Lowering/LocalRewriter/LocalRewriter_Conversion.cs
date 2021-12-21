@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (DelegateCreationRewriter.AllowCaching(_factory.Compilation, _factory.TopLevelMethod, _inExpressionLambda, oldNodeOpt, method))
                         {
                             var rewriter = _lazyDelegateCacheRewriter ??= new DelegateCreationRewriter(_factory, _topLevelMethodOrdinal);
-                            return rewriter.Rewrite(boundDelegateCreation, _currentLocalFunctionOrdinal, method, rewrittenType);
+                            return rewriter.Rewrite(boundDelegateCreation, method, rewrittenType);
                         }
                         else
                         {
