@@ -64,28 +64,22 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             // Begin/EndInvoke are not currently supported.
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
-  // Code size       46 (0x2e)
+  // Code size       31 (0x1f)
   .maxstack  5
-  IL_0000:  ldsfld     ""Program.D Program.<>O.<0>__M""
-  IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001b
-  IL_0008:  pop
-  IL_0009:  ldnull
-  IL_000a:  ldftn      ""void Program.M(string, string)""
-  IL_0010:  newobj     ""Program.D..ctor(object, System.IntPtr)""
-  IL_0015:  dup
-  IL_0016:  stsfld     ""Program.D Program.<>O.<0>__M""
-  IL_001b:  call       ""string Program.GetString()""
-  IL_0020:  ldstr      ""default""
-  IL_0025:  ldnull
-  IL_0026:  ldnull
-  IL_0027:  callvirt   ""System.IAsyncResult Program.D.BeginInvoke(string, string, System.AsyncCallback, object)""
-  IL_002c:  pop
-  IL_002d:  ret
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M(string, string)""
+  IL_0007:  newobj     ""Program.D..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""string Program.GetString()""
+  IL_0011:  ldstr      ""default""
+  IL_0016:  ldnull
+  IL_0017:  ldnull
+  IL_0018:  callvirt   ""System.IAsyncResult Program.D.BeginInvoke(string, string, System.AsyncCallback, object)""
+  IL_001d:  pop
+  IL_001e:  ret
 }
 ");
         }
@@ -136,28 +130,22 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             // Begin/EndInvoke are not currently supported.
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
-  // Code size       42 (0x2a)
+  // Code size       27 (0x1b)
   .maxstack  3
   .locals init (string V_0) //s
-  IL_0000:  ldsfld     ""Program.D Program.<>O.<0>__M""
-  IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001b
-  IL_0008:  pop
-  IL_0009:  ldnull
-  IL_000a:  ldftn      ""void Program.M(ref string, string)""
-  IL_0010:  newobj     ""Program.D..ctor(object, System.IntPtr)""
-  IL_0015:  dup
-  IL_0016:  stsfld     ""Program.D Program.<>O.<0>__M""
-  IL_001b:  ldsfld     ""string string.Empty""
-  IL_0020:  stloc.0
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  ldnull
-  IL_0024:  callvirt   ""void Program.D.EndInvoke(ref string, System.IAsyncResult)""
-  IL_0029:  ret
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M(ref string, string)""
+  IL_0007:  newobj     ""Program.D..ctor(object, System.IntPtr)""
+  IL_000c:  ldsfld     ""string string.Empty""
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  ldnull
+  IL_0015:  callvirt   ""void Program.D.EndInvoke(ref string, System.IAsyncResult)""
+  IL_001a:  ret
 }
 ");
         }
@@ -379,31 +367,25 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation).VerifyDiagnostics(
                 // (29,33): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 's2' will have no effect. It is applied with an invalid parameter name.
                 //     delegate void D(string s1, [CallerArgumentExpression(callback)] [Optional] [DefaultParameterValue("default")] string s2);
                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("s2").WithLocation(29, 33)
                 ).VerifyIL("Program.Main", @"
 {
-  // Code size       46 (0x2e)
+  // Code size       31 (0x1f)
   .maxstack  5
-  IL_0000:  ldsfld     ""Program.D Program.<>O.<0>__M""
-  IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001b
-  IL_0008:  pop
-  IL_0009:  ldnull
-  IL_000a:  ldftn      ""void Program.M(string, string)""
-  IL_0010:  newobj     ""Program.D..ctor(object, System.IntPtr)""
-  IL_0015:  dup
-  IL_0016:  stsfld     ""Program.D Program.<>O.<0>__M""
-  IL_001b:  call       ""string Program.GetString()""
-  IL_0020:  ldstr      ""default""
-  IL_0025:  ldnull
-  IL_0026:  ldnull
-  IL_0027:  callvirt   ""System.IAsyncResult Program.D.BeginInvoke(string, string, System.AsyncCallback, object)""
-  IL_002c:  pop
-  IL_002d:  ret
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M(string, string)""
+  IL_0007:  newobj     ""Program.D..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""string Program.GetString()""
+  IL_0011:  ldstr      ""default""
+  IL_0016:  ldnull
+  IL_0017:  ldnull
+  IL_0018:  callvirt   ""System.IAsyncResult Program.D.BeginInvoke(string, string, System.AsyncCallback, object)""
+  IL_001d:  pop
+  IL_001e:  ret
 }
 ");
         }
@@ -2454,29 +2436,23 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
-  // Code size       44 (0x2c)
+  // Code size       29 (0x1d)
   .maxstack  4
   .locals init (string V_0, //s2
                 string V_1)
-  IL_0000:  ldsfld     ""Program.D Program.<>O.<0>__M""
-  IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001b
-  IL_0008:  pop
-  IL_0009:  ldnull
-  IL_000a:  ldftn      ""void Program.M(string, ref string, out string, string)""
-  IL_0010:  newobj     ""Program.D..ctor(object, System.IntPtr)""
-  IL_0015:  dup
-  IL_0016:  stsfld     ""Program.D Program.<>O.<0>__M""
-  IL_001b:  ldstr      ""s2-arg""
-  IL_0020:  stloc.0
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  ldnull
-  IL_0026:  callvirt   ""void Program.D.EndInvoke(ref string, out string, System.IAsyncResult)""
-  IL_002b:  ret
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M(string, ref string, out string, string)""
+  IL_0007:  newobj     ""Program.D..ctor(object, System.IntPtr)""
+  IL_000c:  ldstr      ""s2-arg""
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  ldnull
+  IL_0017:  callvirt   ""void Program.D.EndInvoke(ref string, out string, System.IAsyncResult)""
+  IL_001c:  ret
 }
 ");
         }
@@ -2511,29 +2487,23 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
-  // Code size       44 (0x2c)
+  // Code size       29 (0x1d)
   .maxstack  4
   .locals init (string V_0, //s2
                 string V_1)
-  IL_0000:  ldsfld     ""Program.D Program.<>O.<0>__M""
-  IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001b
-  IL_0008:  pop
-  IL_0009:  ldnull
-  IL_000a:  ldftn      ""void Program.M(string, ref string, out string, string)""
-  IL_0010:  newobj     ""Program.D..ctor(object, System.IntPtr)""
-  IL_0015:  dup
-  IL_0016:  stsfld     ""Program.D Program.<>O.<0>__M""
-  IL_001b:  ldstr      ""s2-arg""
-  IL_0020:  stloc.0
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  ldnull
-  IL_0026:  callvirt   ""void Program.D.EndInvoke(ref string, out string, System.IAsyncResult)""
-  IL_002b:  ret
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M(string, ref string, out string, string)""
+  IL_0007:  newobj     ""Program.D..ctor(object, System.IntPtr)""
+  IL_000c:  ldstr      ""s2-arg""
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  ldnull
+  IL_0017:  callvirt   ""void Program.D.EndInvoke(ref string, out string, System.IAsyncResult)""
+  IL_001c:  ret
 }
 ");
         }
