@@ -2874,6 +2874,13 @@ class C
 
             comp = CreateCompilation(src, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll.WithWarningLevel(7));
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(2, 7)
+            );
         }
 
         [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
