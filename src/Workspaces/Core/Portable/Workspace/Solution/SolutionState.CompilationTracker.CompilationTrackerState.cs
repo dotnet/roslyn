@@ -261,12 +261,11 @@ namespace Microsoft.CodeAnalysis
 
                 private FinalState(
                     Compilation finalCompilation,
-                    Compilation compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     UnrootedSymbolSet unrootedSymbolSet)
-                    : base(compilationWithoutGeneratedFilesSource,
+                    : base(compilationWithoutGeneratedFiles,
                            generatorInfo.WithDocumentsAreFinal(true)) // when we're in a final state, we've ran generators and should not run again
                 {
                     Contract.ThrowIfNull(finalCompilation);
@@ -287,7 +286,6 @@ namespace Microsoft.CodeAnalysis
                 /// <param name="metadataReferenceToProjectId">Not held onto</param>
                 public static FinalState Create(
                     Compilation finalCompilationSource,
-                    Compilation compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
                     CompilationTrackerGeneratorInfo generatorInfo,
@@ -303,7 +301,6 @@ namespace Microsoft.CodeAnalysis
 
                     return new FinalState(
                         finalCompilationSource,
-                        compilationWithoutGeneratedFilesSource,
                         compilationWithoutGeneratedFiles,
                         hasSuccessfullyLoaded,
                         generatorInfo,

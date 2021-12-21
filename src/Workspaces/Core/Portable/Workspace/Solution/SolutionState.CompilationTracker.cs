@@ -206,7 +206,6 @@ namespace Microsoft.CodeAnalysis
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
                 var finalState = FinalState.Create(
                     finalCompilationSource: compilationPair.CompilationWithGeneratedDocuments,
-                    compilationWithoutGeneratedFilesSource: compilationPair.CompilationWithoutGeneratedDocuments,
                     compilationWithoutGeneratedFiles: compilationPair.CompilationWithoutGeneratedDocuments,
                     hasSuccessfullyLoaded: false,
                     generatorInfo,
@@ -915,7 +914,6 @@ namespace Microsoft.CodeAnalysis
 
                     var finalState = FinalState.Create(
                         compilationWithGenerators,
-                        compilationWithoutGenerators,
                         compilationWithoutGenerators,
                         hasSuccessfullyLoaded,
                         generatorInfo,
