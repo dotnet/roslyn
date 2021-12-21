@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Host
 
             _cancellationSource = new CancellationTokenSource();
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _workspace.DocumentOpened += OnDocumentOpened;
-            _workspace.DocumentClosed += OnDocumentClosed;
+            //_workspace.DocumentOpened += OnDocumentOpened;
+            //_workspace.DocumentClosed += OnDocumentClosed;
         }
 
         public void Dispose()
