@@ -66,7 +66,7 @@ internal sealed partial class DelegateCacheRewriter
 
         DelegateCacheContainer? container;
 
-        if (CanUseConcreteCacheContainer(delegateType, targetMethod))
+        if (CanUseTypeScopedConcreteCacheContainer(delegateType, targetMethod))
         {
             container = typeCompilationState.ConcreteDelegateCacheContainer;
 
@@ -101,7 +101,7 @@ internal sealed partial class DelegateCacheRewriter
         return container;
     }
 
-    private bool CanUseConcreteCacheContainer(TypeSymbol delegateType, MethodSymbol targetMethod)
+    private bool CanUseTypeScopedConcreteCacheContainer(TypeSymbol delegateType, MethodSymbol targetMethod)
     {
         // Possible places for type parameters that can act as type arguments to construct the delegateType or targetMethod:
         //   1. containing types
@@ -109,45 +109,37 @@ internal sealed partial class DelegateCacheRewriter
         //   3. local functions
         // Since our containers are created within the same enclosing types, we can ignore type parameters from them.
 
-        Debug.Assert(_factory.CurrentFunction is { });
-
-        // Obviously,
-        if (_topLevelMethod.Arity == 0 && (object)_factory.CurrentFunction == _topLevelMethod)
-        {
-            return true;
-        }
-
         var methodTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
         try
         {
-            for (Symbol? s = _factory.CurrentFunction; s is MethodSymbol m; s = s.ContainingSymbol)
+            for (Symbol? enclosingSymbol = _factory.CurrentFunction; enclosingSymbol is MethodSymbol enclosingMethod; enclosingSymbol = enclosingSymbol.ContainingSymbol)
             {
-                methodTypeParameters.AddAll(m.TypeParameters);
+                if (enclosingMethod.Arity > 0)
+                {
+                    if (targetMethod.MethodKind == MethodKind.LocalFunction)
+                    {
+                        // Local functions can reference type parameters from their enclosing methods!
+                        //
+                        // For example:
+                        //   void Test<T>()
+                        //   {
+                        //       var t = Target<int>;
+                        //       static object Target<V>() => default(T);
+                        //   }
+                        //
+                        // Therefore, unless no method type parameters for the target local function to use,
+                        // we cannot safely use a type scoped concrete cache container without some deep analysis.
+
+                        return false;
+                    }
+
+                    methodTypeParameters.AddAll(enclosingMethod.TypeParameters);
+                }
             }
 
             if (methodTypeParameters.Count == 0)
             {
                 return true;
-            }
-
-            if (targetMethod.MethodKind == MethodKind.LocalFunction)
-            {
-                // Local functions can reference type parameters from their enclosing methods!
-                //
-                // For example:
-                //   void Test<T>()
-                //   {
-                //       var t = Target<int>;
-                //       static object Target<V>() => default(T);
-                //   }
-                //
-                // Therefore, unless no method type parameters for the target local function to use,
-                // we cannot safely use a concrete cache container without some deep analysis.
-
-                // And because we've just found that
-                Debug.Assert(methodTypeParameters.Count != 0);
-
-                return false;
             }
 
             var checker = TypeParameterUsageChecker.Instance;
