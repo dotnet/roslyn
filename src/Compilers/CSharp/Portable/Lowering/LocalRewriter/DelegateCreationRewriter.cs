@@ -13,24 +13,22 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// <summary>
 /// This type helps rewrite the delegate creations that target static method groups to use a cached instance of delegate.
 /// </summary>
-internal sealed partial class DelegateCacheRewriter
+internal sealed partial class DelegateCreationRewriter
 {
     private readonly SyntheticBoundNodeFactory _factory;
-    private readonly MethodSymbol _topLevelMethod;
     private readonly int _topLevelMethodOrdinal;
 
     private Stack<(int LocalFunctionOrdinal, DelegateCacheContainer CacheContainer)>? _genericCacheContainers;
 
-    internal DelegateCacheRewriter(SyntheticBoundNodeFactory factory, int topLevelMethodOrdinal)
+    internal DelegateCreationRewriter(SyntheticBoundNodeFactory factory, int topLevelMethodOrdinal)
     {
         Debug.Assert(factory.TopLevelMethod is { });
 
         _factory = factory;
-        _topLevelMethod = factory.TopLevelMethod;
         _topLevelMethodOrdinal = topLevelMethodOrdinal;
     }
 
-    internal static bool CanRewrite(CSharpCompilation compilation, MethodSymbol topLevelMethod, bool inExpressionLambda, BoundConversion boundConversion, MethodSymbol targetMethod)
+    internal static bool AllowCaching(CSharpCompilation compilation, MethodSymbol topLevelMethod, bool inExpressionLambda, BoundConversion boundConversion, MethodSymbol targetMethod)
         => targetMethod.IsStatic
         && !boundConversion.IsExtensionMethod
         && !inExpressionLambda // The tree structure / meaning for expression trees should remain untouched.
@@ -38,12 +36,12 @@ internal sealed partial class DelegateCacheRewriter
         && compilation.IsStaticMethodGroupDelegateCacheEnabled
         ;
 
-    internal BoundExpression Rewrite(int localFunctionOrdinal, SyntaxNode syntax, BoundDelegateCreationExpression boundDelegateCreation, MethodSymbol targetMethod, TypeSymbol delegateType)
+    internal BoundExpression Rewrite(BoundDelegateCreationExpression boundDelegateCreation, int localFunctionOrdinal, MethodSymbol targetMethod, TypeSymbol delegateType)
     {
         Debug.Assert(delegateType.IsDelegateType());
 
         var oldSyntax = _factory.Syntax;
-        _factory.Syntax = syntax;
+        _factory.Syntax = boundDelegateCreation.Syntax;
 
         var cacheContainer = GetOrAddCacheContainer(localFunctionOrdinal, delegateType, targetMethod);
         var cacheField = cacheContainer.GetOrAddCacheField(_factory, delegateType, targetMethod);

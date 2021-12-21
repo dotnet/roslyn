@@ -410,10 +410,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                         isExtensionMethod: oldNodeOpt.IsExtensionMethod, type: rewrittenType);
 
                         Debug.Assert(_factory.TopLevelMethod is { });
-                        if (DelegateCacheRewriter.CanRewrite(_factory.Compilation, _factory.TopLevelMethod, _inExpressionLambda, oldNodeOpt, method))
+                        if (DelegateCreationRewriter.AllowCaching(_factory.Compilation, _factory.TopLevelMethod, _inExpressionLambda, oldNodeOpt, method))
                         {
-                            var cacheRewriter = _lazyDelegateCacheRewriter ??= new DelegateCacheRewriter(_factory, _topLevelMethodOrdinal);
-                            return cacheRewriter.Rewrite(_currentLocalFunctionOrdinal, syntax, boundDelegateCreation, method, rewrittenType);
+                            var rewriter = _lazyDelegateCacheRewriter ??= new DelegateCreationRewriter(_factory, _topLevelMethodOrdinal);
+                            return rewriter.Rewrite(boundDelegateCreation, _currentLocalFunctionOrdinal, method, rewrittenType);
                         }
                         else
                         {

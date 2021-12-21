@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
-partial class DelegateCacheRewriter
+partial class DelegateCreationRewriter
 {
     /// <summary>
     /// Checks if a type or a method is constructed with some type that involves the specified generic type parameters.

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private int _availableLocalFunctionOrdinal;
         private int _currentLocalFunctionOrdinal;
         private readonly int _topLevelMethodOrdinal;
-        private DelegateCacheRewriter? _lazyDelegateCacheRewriter;
+        private DelegateCreationRewriter? _lazyDelegateCacheRewriter;
         private bool _inExpressionLambda;
 
         private bool _sawAwait;
