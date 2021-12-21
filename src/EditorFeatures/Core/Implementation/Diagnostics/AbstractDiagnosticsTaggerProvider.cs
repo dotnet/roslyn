@@ -70,30 +70,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return;
             }
 
-            if (_diagnosticIdToTextSnapshot.TryGetValue(e.Id, out var snapshot))
+            if (_diagnosticIdToTextSnapshot.TryGetValue(e.Id, out _))
             {
                 return;
             }
 
-            var document = e.Solution.GetDocument(e.DocumentId);
+            //var document = e.Solution.GetDocument(e.DocumentId);
 
-            // Open documents *should* always have their SourceText available, but we cannot guarantee
-            // (i.e. assert) that they do.  That's because we're not on the UI thread here, so there's
-            // a small risk that between calling .IsOpen the file may then close, which then would
-            // cause TryGetText to fail.  However, that's ok.  In that case, if we do need to tag this
-            // document, we'll just use the current editor snapshot.  If that's the same, then the tags
-            // will be hte same.  If it is different, we'll eventually hear about the new diagnostics 
-            // for it and we'll reach our fixed point.
-            if (document != null && document.IsOpen())
-            {
-                // This should always be fast since the document is open.
-                var sourceText = document.State.GetTextSynchronously(cancellationToken: default);
-                snapshot = sourceText.FindCorrespondingEditorTextSnapshot();
-                if (snapshot != null)
-                {
-                    _diagnosticIdToTextSnapshot.GetValue(e.Id, _ => snapshot);
-                }
-            }
+            //// Open documents *should* always have their SourceText available, but we cannot guarantee
+            //// (i.e. assert) that they do.  That's because we're not on the UI thread here, so there's
+            //// a small risk that between calling .IsOpen the file may then close, which then would
+            //// cause TryGetText to fail.  However, that's ok.  In that case, if we do need to tag this
+            //// document, we'll just use the current editor snapshot.  If that's the same, then the tags
+            //// will be hte same.  If it is different, we'll eventually hear about the new diagnostics 
+            //// for it and we'll reach our fixed point.
+            //if (document != null && document.IsOpen())
+            //{
+            //    // This should always be fast since the document is open.
+            //    var sourceText = document.State.GetTextSynchronously(cancellationToken: default);
+            //    snapshot = sourceText.FindCorrespondingEditorTextSnapshot();
+            //    if (snapshot != null)
+            //    {
+            //        _diagnosticIdToTextSnapshot.GetValue(e.Id, _ => snapshot);
+            //    }
+            //}
         }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
