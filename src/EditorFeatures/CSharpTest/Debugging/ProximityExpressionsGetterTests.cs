@@ -110,12 +110,8 @@ namespace ConsoleApplication1
             await TestProximityExpressionGetterAsync(input, async (getter, document, position) =>
             {
                 var actualTerms = await getter.GetProximityExpressionsAsync(document, position, CancellationToken.None);
-
-                Assert.Equal(expectedTerms.Length == 0, actualTerms == null);
-                if (expectedTerms.Length > 0)
-                {
-                    AssertEx.Equal(expectedTerms, actualTerms);
-                }
+                Assert.True(actualTerms is null or { Count: > 0 });
+                AssertEx.Equal(expectedTerms, actualTerms ?? Array.Empty<string>());
             });
         }
 
