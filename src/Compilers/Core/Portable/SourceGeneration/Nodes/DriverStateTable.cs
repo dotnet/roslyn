@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis
 
         public sealed class Builder
         {
-            //private readonly ImmutableSegmentedDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableSegmentedDictionary.CreateBuilder<object, IStateTable>();
             private readonly StateTableStore.Builder _stateTableBuilder = new StateTableStore.Builder();
             private readonly DriverStateTable _previousTable;
             private readonly CancellationToken _cancellationToken;
@@ -44,7 +43,6 @@ namespace Microsoft.CodeAnalysis
                 DriverState = driverState;
                 _previousTable = driverState.StateTable;
                 _cancellationToken = cancellationToken;
-
                 _syntaxStore = syntaxStore;
             }
 
