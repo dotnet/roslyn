@@ -410,7 +410,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                         isExtensionMethod: oldNodeOpt.IsExtensionMethod, type: rewrittenType);
 
                         Debug.Assert(_factory.TopLevelMethod is { });
-                        if (DelegateCreationRewriter.AllowCaching(_factory.Compilation, _factory.TopLevelMethod, _inExpressionLambda, oldNodeOpt, method))
+
+                        if (_factory.Compilation.LanguageVersion >= MessageID.IDS_FeatureCacheStaticMethodGroupConversion.RequiredVersion()
+                            && !_inExpressionLambda // The tree structure / meaning for expression trees should remain untouched.
+                            && _factory.TopLevelMethod.MethodKind != MethodKind.StaticConstructor // Avoid caching twice if people do it manually.
+                            && DelegateCreationRewriter.CanRewrite(method, oldNodeOpt))
                         {
                             var rewriter = _lazyDelegateCacheRewriter ??= new DelegateCreationRewriter(_factory, _topLevelMethodOrdinal);
                             return rewriter.Rewrite(boundDelegateCreation, method, rewrittenType);
