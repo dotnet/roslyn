@@ -84,6 +84,19 @@ namespace ConsoleApplication1
             await continuation(proximityExpressionsGetter, document, caretPosition);
         }
 
+        private static async Task TestTryDoInMainAsync(string body, params string[] expectedTerms)
+        {
+            var input = $@"class Program
+{{
+    static void Main(string[] args)
+    {{
+{string.Join(Environment.NewLine, body.ReplaceLineEndings("\n").Split('\n').Select(line => line == "" ? line : $"        {line}"))}
+    }}
+}}";
+
+            await TestTryDoAsync(input, expectedTerms);
+        }
+
         private static async Task TestTryDoAsync(string input, params string[] expectedTerms)
         {
             await TestProximityExpressionGetterAsync(input, async (getter, document, position) =>
@@ -167,6 +180,10 @@ class Class
         int[] i = new int[] { 3 }$$;
     }
 }", "i", "this");
+
+            await TestTryDoInMainAsync(@"
+int[] i = new int[] { 3 }$$;
+", "i", "args");
         }
 
         [Fact]
@@ -181,6 +198,10 @@ class Class
         i++$$;
     }
 }", "i", "this");
+
+            await TestTryDoInMainAsync(@"int i = 3;
+i++$$;
+", "i");
         }
 
         [Fact]
@@ -195,86 +216,54 @@ class Class
         label2$$: i++;
     }
 }", "i", "this");
+
+            await TestTryDoInMainAsync(@"label: int i = 3;
+label2$$: i++;
+", "i");
         }
 
         [Fact]
         public async Task TestThrowStatement()
         {
-            await TestTryDoAsync(@"
-class Class 
-{
-    static void Method()
-    {
-        e = new Exception();
-        thr$$ow e;
-    }
-}", "e");
+            await TestTryDoInMainAsync(@"e = new Exception();
+thr$$ow e;
+", "e");
         }
 
         [Fact]
         public async Task TestDoStatement()
         {
-            await TestTryDoAsync(@"
-class Class 
-{
-    static void Method()
-    {
-        do$$ { } while (true);
-    }
-}");
+            await TestTryDoInMainAsync(@"do$$ { } while (true);
+", "args");
         }
 
         [Fact]
         public async Task TestLockStatement()
         {
-            await TestTryDoAsync(@"
-class Class 
-{
-    static void Method()
-    {
-        lock(typeof(Cl$$ass)) { };
-    }
-}");
+            await TestTryDoInMainAsync(@"lock(typeof(Cl$$ass)) { };
+", "args");
         }
 
         [Fact]
         public async Task TestWhileStatement()
         {
-            await TestTryDoAsync(@"
-class Class 
-{
-    static void Method()
-    {
-        while(DateTime.Now <$$ DateTime.Now) { };
-    }
-}", "DateTime", "DateTime.Now");
+            await TestTryDoInMainAsync(@"while(DateTime.Now <$$ DateTime.Now) { };
+", "DateTime", "DateTime.Now", "args");
         }
 
         [Fact]
         public async Task TestForStatementWithDeclarators()
         {
-            await TestTryDoAsync(@"
-class Class 
-{
-    static void Method()
-    {
-        for(int i = 0; i < 10; i$$++) { }
-    }
-}", "i");
+            await TestTryDoInMainAsync(@"for(int i = 0; i < 10; i$$++) { }
+", "i", "args");
         }
 
         [Fact]
         public async Task TestForStatementWithInitializers()
         {
-            await TestTryDoAsync(@"
-class Class 
-{
-    static void Method()
-    {
-        int i = 0;
-        for(i = 1; i < 10; i$$++) { }
-    }
-}", "i");
+            await TestTryDoInMainAsync(@"int i = 0;
+for(i = 1; i < 10; i$$++) { }
+", "i");
         }
 
         [Fact]
@@ -288,6 +277,9 @@ class Class
         using (FileStream fs = new FileStream($$)) { }
     }
 }", "this");
+
+            await TestTryDoInMainAsync(@"using (FileStream fs = new FileStream($$)) { }
+", "args");
         }
 
         [Fact]
@@ -376,6 +368,10 @@ class Class
         catch(Exception ex) { int $$ }
     }
 }", "ex", "this");
+
+            await TestTryDoInMainAsync(@"try { }
+catch(Exception ex) { int $$ }
+", "ex");
         }
 
         [Fact]
@@ -391,6 +387,10 @@ class Class
         catch(Exception ex) { $$ }
     }
 }", "ex", "this");
+
+            await TestTryDoInMainAsync(@"try { }
+catch(Exception ex) { $$ }
+", "ex");
         }
 
         [Fact]
@@ -405,6 +405,10 @@ class Class
         catch(Exception ex) { } $$ 
     }
 }", "this");
+
+            await TestTryDoInMainAsync(@"try { }
+catch(Exception ex) { } $$ 
+");
         }
 
         [Fact]
@@ -419,6 +423,9 @@ class Class
         $$Goo(new Bar(a).Baz);
     }
 }", "a", "new Bar(a).Baz", "Goo", "this");
+
+            await TestTryDoInMainAsync(@"$$Goo(new Bar(a).Baz);
+", "a", "new Bar(a).Baz", "Goo", "args");
         }
 
         [Fact]
@@ -480,457 +487,352 @@ class Program
         [Fact]
         public async Task ForLoopExpressionsInFirstStatementOfLoop1()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"for(int i = 0; i < 5; i++)
 {
-    static void Main(string[] args)
-    {
-        for(int i = 0; i < 5; i++)
-        {
-            $$var x = 8;
-        }
-    }
-}", "i", "x");
+    $$var x = 8;
+}
+", "i", "x");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ForLoopExpressionsInFirstStatementOfLoop2()
         {
-            await TestTryDoAsync(@"class Program
-{
-    static void Main(string[] args)
-    {
-        int i = 0, j = 0, k = 0, m = 0, n = 0;
+            await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0, n = 0;
 
-        for(i = 0; j < 5; k++)
-        {
-            $$m = 8;
-            n = 7;
-        }
-    }
-}", "m", "i", "j", "k");
+for(i = 0; j < 5; k++)
+{
+    $$m = 8;
+    n = 7;
+}
+", "m", "i", "j", "k");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ForLoopExpressionsInFirstStatementOfLoop3()
         {
-            await TestTryDoAsync(@"class Program
-{
-    static void Main(string[] args)
-    {
-        int i = 0, j = 0, k = 0, m = 0;
+            await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0;
 
-        for(i = 0; j < 5; k++)
-        {
-            var m = 8;
-            $$var n = 7;
-        }
-    }
-}", "m", "n");
+for(i = 0; j < 5; k++)
+{
+    var m = 8;
+    $$var n = 7;
+}
+", "m", "n");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ForLoopExpressionsInFirstStatementOfLoop4()
         {
-            await TestTryDoAsync(@"class Program
-{
-    static void Main(string[] args)
-    {
-        int i = 0, j = 0, k = 0, m = 0;
+            await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0;
 
-        for(i = 0; j < 5; k++)
-            $$m = 8;
-    }
-}", "m", "i", "j", "k");
+for(i = 0; j < 5; k++)
+    $$m = 8;
+", "m", "i", "j", "k");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ForEachLoopExpressionsInFirstStatementOfLoop1()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"foreach (var x in new int[] { 1, 2, 3 })
 {
-    static void Main(string[] args)
-    {
-        foreach (var x in new int[] { 1, 2, 3 })
-        {
-            $$var z = 0;
-        }
-    }
-}", "x", "z");
+    $$var z = 0;
+}
+", "x", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ForEachLoopExpressionsInFirstStatementOfLoop2()
         {
-            await TestTryDoAsync(@"class Program
-{
-    static void Main(string[] args)
-    {
-        foreach (var x in new int[] { 1, 2, 3 })
-            $$var z = 0;
-    }
-}", "x", "z");
+            await TestTryDoInMainAsync(@"foreach (var x in new int[] { 1, 2, 3 })
+    $$var z = 0;
+", "x", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ExpressionsAfterForLoop1()
         {
-            await TestTryDoAsync(@"class Program
-{
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0;
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0;
 
-        for (a = 5; b < 1; b++)
-        {
-            c = 8;
-            d = 9; // included
-        }
+for (a = 5; b < 1; b++)
+{
+    c = 8;
+    d = 9; // included
+}
         
-        $$var z = 0;
-    }
-}", "a", "b", "d", "z");
+$$var z = 0;
+", "a", "b", "d", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ExpressionsAfterForLoop2()
         {
-            await TestTryDoAsync(@"class Program
-{
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0;
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0;
 
-        for (a = 5; b < 1; b++)
-        {
-            c = 8;
-            int d = 9; // not included
-        }
+for (a = 5; b < 1; b++)
+{
+    c = 8;
+    int d = 9; // not included
+}
         
-        $$var z = 0;
-    }
-}", "a", "b", "z");
+$$var z = 0;
+", "a", "b", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ExpressionsAfterForEachLoop()
         {
-            await TestTryDoAsync(@"class Program
-{
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0;
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0;
 
-        foreach (var q in new int[] {1, 2, 3})
-        {
-            c = 8;
-            d = 9; // included
-        }
+foreach (var q in new int[] {1, 2, 3})
+{
+    c = 8;
+    d = 9; // included
+}
         
-        $$var z = 0;
-    }
-}", "q", "d", "z");
+$$var z = 0;
+", "q", "d", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ExpressionsAfterNestedForLoop()
         {
-            await TestTryDoAsync(@"class Program
-{
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
 
-        for (a = 5; b < 1; b++)
-        {
-            c = 8;
-            d = 9;
-            for (a = 7; b < 9; b--)
-            {
-                e = 8;
-                f = 10; // included
-            }
-        }
-        
-        $$var z = 0;
+for (a = 5; b < 1; b++)
+{
+    c = 8;
+    d = 9;
+    for (a = 7; b < 9; b--)
+    {
+        e = 8;
+        f = 10; // included
     }
-}", "a", "b", "f", "z");
+}
+        
+$$var z = 0;
+", "a", "b", "f", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ExpressionsAfterCheckedStatement()
         {
-            await TestTryDoAsync(@"class Program
-{
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
 
-        checked
-        {
-            a = 7;
-            b = 0; // included
-        }
+checked
+{
+    a = 7;
+    b = 0; // included
+}
         
-        $$var z = 0;
-    }
-}", "b", "z");
+$$var z = 0;
+", "b", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ExpressionsAfterUncheckedStatement()
         {
-            await TestTryDoAsync(@"class Program
-{
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
 
-        unchecked
-        {
-            a = 7;
-            b = 0; // included
-        }
+unchecked
+{
+    a = 7;
+    b = 0; // included
+}
         
-        $$var z = 0;
-    }
-}", "b", "z");
+$$var z = 0;
+", "b", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ExpressionsAfterIfStatement()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+
+if (a == 0)
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+    c = 8; 
+    d = 9; // included
+}
 
-        if (a == 0)
-        {
-            c = 8; 
-            d = 9; // included
-        }
-
-        $$var z = 0;
-    }
-}", "a", "d", "z");
+$$var z = 0;
+", "a", "d", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ExpressionsAfterIfStatementWithElse()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+
+if (a == 0)
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+    c = 8; 
+    d = 9; // included
+}
+else
+{
+    e = 1;
+    f = 2; // included
+}
 
-        if (a == 0)
-        {
-            c = 8; 
-            d = 9; // included
-        }
-        else
-        {
-            e = 1;
-            f = 2; // included
-        }
-
-        $$var z = 0;
-    }
-}", "a", "d", "f", "z");
+$$var z = 0;
+", "a", "d", "f", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ExpressionsAfterLockStatement()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+
+lock (new object())
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+    a = 2;
+    b = 3; // included
+}
 
-        lock (new object())
-        {
-            a = 2;
-            b = 3; // included
-        }
-
-        $$var z = 0;
-    }
-}", "b", "z");
+$$var z = 0;
+", "b", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ExpressionsAfterSwitchStatement()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+
+switch(a)
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+    case 1:
+        b = 7;
+        c = 8; // included
+        break;
+    case 2:
+        d = 9;
+        e = 10; // included
+        break;
+    default:
+        f = 1;
+        g = 2; // included
+        break;
+}
 
-        switch(a)
-        {
-            case 1:
-                b = 7;
-                c = 8; // included
-                break;
-            case 2:
-                d = 9;
-                e = 10; // included
-                break;
-            default:
-                f = 1;
-                g = 2; // included
-                break;
-        }
-
-        $$var z = 0;
-    }
-}", "a", "c", "e", "g", "z");
+$$var z = 0;
+", "a", "c", "e", "g", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ExpressionsAfterTryStatement()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+
+try
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+    a = 2;
+    b = 3; // included
+}
+catch (System.DivideByZeroException)
+{
+    c = 2;
+    d = 5; // included
+}
+catch (System.EntryPointNotFoundException)
+{
+    e = 8;
+    f = 9; // included
+}
 
-        try
-        {
-            a = 2;
-            b = 3; // included
-        }
-        catch (System.DivideByZeroException)
-        {
-            c = 2;
-            d = 5; // included
-        }
-        catch (System.EntryPointNotFoundException)
-        {
-            e = 8;
-            f = 9; // included
-        }
-
-        $$var z = 0;
-    }
-}", "b", "d", "f", "z");
+$$var z = 0;
+", "b", "d", "f", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ExpressionsAfterTryStatementWithFinally()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+
+try
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+    a = 2;
+    b = 3;
+}
+catch (System.DivideByZeroException)
+{
+    c = 2;
+    d = 5;
+}
+catch (System.EntryPointNotFoundException)
+{
+    e = 8;
+    f = 9;
+}
+finally
+{
+    g = 2; // included
+}
 
-        try
-        {
-            a = 2;
-            b = 3;
-        }
-        catch (System.DivideByZeroException)
-        {
-            c = 2;
-            d = 5;
-        }
-        catch (System.EntryPointNotFoundException)
-        {
-            e = 8;
-            f = 9;
-        }
-        finally
-        {
-            g = 2; // included
-        }
-
-        $$var z = 0;
-    }
-}", "g", "z");
+$$var z = 0;
+", "g", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ExpressionsAfterUsingStatement()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+
+using (null as System.IDisposable)
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+    a = 4;
+    b = 8; // Included
+}
 
-        using (null as System.IDisposable)
-        {
-            a = 4;
-            b = 8; // Included
-        }
-
-        $$var z = 0;
-    }
-}", "b", "z");
+$$var z = 0;
+", "b", "z");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact]
         public async Task ExpressionsAfterWhileStatement()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+
+while (a < 5)
 {
-    static void Main(string[] args)
-    {
-        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+    a++;
+    b = 8; // Included
+}
 
-        while (a < 5)
-        {
-            a++;
-            b = 8; // Included
-        }
-
-        $$var z = 0;
-    }
-}", "a", "b", "z");
+$$var z = 0;
+", "a", "b", "z");
         }
 
         [WorkItem(778215, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/778215")]
         [Fact]
         public async Task ExpressionsInParenthesizedExpressions()
         {
-            await TestTryDoAsync(@"class Program
-{
-    static void Main(string[] args)
-    {
-        int i = 0, j = 0, k = 0, m = 0;
-        int flags = 7;
+            await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0;
+int flags = 7;
 
-        if((flags & i) == k)
-        {
-            $$ m = 8;
-        }
-    }
-}", "m", "flags", "i", "k");
+if((flags & i) == k)
+{
+    $$ m = 8;
+}
+", "m", "flags", "i", "k");
         }
     }
 }
