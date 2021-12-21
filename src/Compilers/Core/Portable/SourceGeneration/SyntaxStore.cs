@@ -28,15 +28,15 @@ namespace Microsoft.CodeAnalysis
             private readonly StateTableStore.Builder _tableBuilder = new StateTableStore.Builder();
             private readonly Compilation _compilation;
             private readonly ImmutableArray<ISyntaxInputNode> _syntaxInputNodes;
-            private readonly GeneratorDriverState _driverState;
+            private readonly bool _enableTracking;
             private readonly StateTableStore _previousTableStates;
             private readonly CancellationToken _cancellationToken;
 
-            public Builder(Compilation compilation, ImmutableArray<ISyntaxInputNode> syntaxInputNodes, GeneratorDriverState driverState, SyntaxStore previousStore, CancellationToken cancellationToken = default)
+            public Builder(Compilation compilation, ImmutableArray<ISyntaxInputNode> syntaxInputNodes, bool enableTracking, SyntaxStore previousStore, CancellationToken cancellationToken = default)
             {
                 _compilation = compilation;
                 _syntaxInputNodes = syntaxInputNodes;
-                _driverState = driverState;
+                _enableTracking = enableTracking;
                 _previousTableStates = previousStore._tables;
                 _cancellationToken = cancellationToken;
             }
@@ -58,13 +58,13 @@ namespace Microsoft.CodeAnalysis
                     {
                         // TODO: We don't cache the tracked incremental steps in a manner that we can easily rehydrate between runs,
                         // so we'll disable the cached compilation perf optimization when incremental step tracking is enabled.
-                        if (compilationIsCached && !_driverState.TrackIncrementalSteps && _previousTableStates.TryGetValue(node, out var previousStateTable))
+                        if (compilationIsCached && !_enableTracking && _previousTableStates.TryGetValue(node, out var previousStateTable))
                         {
                             _tableBuilder.SetTable(node, previousStateTable);
                         }
                         else
                         {
-                            syntaxInputBuilders.Add(node.GetBuilder(_previousTableStates, _driverState.TrackIncrementalSteps));
+                            syntaxInputBuilders.Add(node.GetBuilder(_previousTableStates, _enableTracking));
                         }
                     }
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        GeneratorRunStateTable.Builder temporaryRunStateBuilder = new GeneratorRunStateTable.Builder(_driverState.TrackIncrementalSteps);
+                        GeneratorRunStateTable.Builder temporaryRunStateBuilder = new GeneratorRunStateTable.Builder(_enableTracking);
                         NodeStateTable<SyntaxTree> syntaxTreeState = syntaxTreeTable;
 
                         // update each tree for the builders, sharing the semantic model

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
                 _previousTable = driverState.StateTable;
                 _cancellationToken = cancellationToken;
 
-                _syntaxStore = new SyntaxStore.Builder(Compilation, syntaxInputNodes, DriverState, _previousTable._syntaxStore, _cancellationToken);
+                _syntaxStore = new SyntaxStore.Builder(Compilation, syntaxInputNodes, DriverState.TrackIncrementalSteps, _previousTable._syntaxStore, _cancellationToken);
             }
 
             public IStateTable GetSyntaxInputTable(ISyntaxInputNode syntaxInputNode)
