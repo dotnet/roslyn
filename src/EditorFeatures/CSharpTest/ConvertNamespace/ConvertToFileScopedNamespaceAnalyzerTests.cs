@@ -676,6 +676,46 @@ class C
             }.RunAsync();
         }
 
+        [Fact]
+        public async Task TestConvertToFileScopedSingleLineNamespace1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|] { class C { } }
+",
+                FixedCode = @"
+namespace $$N; 
+class C { } ",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestConvertToFileScopedSingleLineNamespace2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{ class C { } }
+",
+                FixedCode = @"
+namespace $$N;
+
+class C { } ",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
         #endregion
     }
 }
