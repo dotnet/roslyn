@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 compilationOptions,
                 parseOptions,
                 files,
+                sourceGeneratedFiles: Array.Empty<string>(),
                 metadataReferences,
                 extension,
                 commonReferences);
