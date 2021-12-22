@@ -1102,11 +1102,11 @@ class C
         return 0;
     }
 }";
-            var comp = CompileAndVerify(source);
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       85 (0x55)
+  // Code size       55 (0x37)
   .maxstack  3
   .locals init (System.Func<int> V_0) //f
   IL_0000:  ldc.i4.1
@@ -1115,33 +1115,21 @@ class C
   IL_0003:  ldloc.0
   IL_0004:  call       ""void System.Console.WriteLine(object)""
   IL_0009:  dup
-  IL_000a:  brtrue.s   IL_0029
-  IL_000c:  ldsfld     ""System.Func<int> C.<>O.<0>__M""
-  IL_0011:  dup
-  IL_0012:  brtrue.s   IL_002a
-  IL_0014:  pop
-  IL_0015:  ldnull
-  IL_0016:  ldftn      ""int C.M()""
-  IL_001c:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_0021:  dup
-  IL_0022:  stsfld     ""System.Func<int> C.<>O.<0>__M""
-  IL_0027:  br.s       IL_002a
-  IL_0029:  ldloc.0
-  IL_002a:  call       ""void System.Console.WriteLine(object)""
-  IL_002f:  brtrue.s   IL_0034
-  IL_0031:  ldloc.0
-  IL_0032:  br.s       IL_004f
-  IL_0034:  ldsfld     ""System.Func<int> C.<>O.<0>__M""
-  IL_0039:  dup
-  IL_003a:  brtrue.s   IL_004f
-  IL_003c:  pop
-  IL_003d:  ldnull
-  IL_003e:  ldftn      ""int C.M()""
-  IL_0044:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_0049:  dup
-  IL_004a:  stsfld     ""System.Func<int> C.<>O.<0>__M""
-  IL_004f:  call       ""void System.Console.WriteLine(object)""
-  IL_0054:  ret
+  IL_000a:  brtrue.s   IL_001a
+  IL_000c:  ldnull
+  IL_000d:  ldftn      ""int C.M()""
+  IL_0013:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_0018:  br.s       IL_001b
+  IL_001a:  ldloc.0
+  IL_001b:  call       ""void System.Console.WriteLine(object)""
+  IL_0020:  brtrue.s   IL_0025
+  IL_0022:  ldloc.0
+  IL_0023:  br.s       IL_0031
+  IL_0025:  ldnull
+  IL_0026:  ldftn      ""int C.M()""
+  IL_002c:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_0031:  call       ""void System.Console.WriteLine(object)""
+  IL_0036:  ret
 }
 ");
         }

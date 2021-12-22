@@ -4437,4 +4437,346 @@ class C
 ");
     }
 
+    [Fact]
+    public void WinMdEventAssignment()
+    {
+        var source = @"
+class C
+{
+    public event System.Action Instance;
+    public static event System.Action Static;
+}
+
+class D
+{
+    C c;
+
+    void InstanceAdd()
+    {
+        c.Instance += Action;
+    }
+
+    void InstanceRemove()
+    {
+        c.Instance -= Action;
+    }
+
+    static void StaticAdd()
+    {
+        C.Static += Action;
+    }
+
+    static void StaticRemove()
+    {
+        C.Static -= Action;
+    }
+
+    static void Action()
+    {
+    }
+}
+";
+        var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
+
+        verifier.VerifyIL("D.InstanceAdd", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  4
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C D.c""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldftn      ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken C.Instance.add""
+  IL_000e:  newobj     ""System.Func<System.Action, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
+  IL_0013:  ldloc.0
+  IL_0014:  ldftn      ""void C.Instance.remove""
+  IL_001a:  newobj     ""System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
+  IL_001f:  ldsfld     ""System.Action D.<>O.<0>__Action""
+  IL_0024:  dup
+  IL_0025:  brtrue.s   IL_003a
+  IL_0027:  pop
+  IL_0028:  ldnull
+  IL_0029:  ldftn      ""void D.Action()""
+  IL_002f:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0034:  dup
+  IL_0035:  stsfld     ""System.Action D.<>O.<0>__Action""
+  IL_003a:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler<System.Action>(System.Func<System.Action, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action)""
+  IL_003f:  ret
+}");
+
+        verifier.VerifyIL("D.InstanceRemove", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C D.c""
+  IL_0006:  ldftn      ""void C.Instance.remove""
+  IL_000c:  newobj     ""System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
+  IL_0011:  ldsfld     ""System.Action D.<>O.<0>__Action""
+  IL_0016:  dup
+  IL_0017:  brtrue.s   IL_002c
+  IL_0019:  pop
+  IL_001a:  ldnull
+  IL_001b:  ldftn      ""void D.Action()""
+  IL_0021:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0026:  dup
+  IL_0027:  stsfld     ""System.Action D.<>O.<0>__Action""
+  IL_002c:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler<System.Action>(System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action)""
+  IL_0031:  ret
+}");
+        verifier.VerifyIL("D.StaticAdd", @"
+{
+  // Code size       57 (0x39)
+  .maxstack  4
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken C.Static.add""
+  IL_0007:  newobj     ""System.Func<System.Action, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
+  IL_000c:  ldnull
+  IL_000d:  ldftn      ""void C.Static.remove""
+  IL_0013:  newobj     ""System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
+  IL_0018:  ldsfld     ""System.Action D.<>O.<0>__Action""
+  IL_001d:  dup
+  IL_001e:  brtrue.s   IL_0033
+  IL_0020:  pop
+  IL_0021:  ldnull
+  IL_0022:  ldftn      ""void D.Action()""
+  IL_0028:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_002d:  dup
+  IL_002e:  stsfld     ""System.Action D.<>O.<0>__Action""
+  IL_0033:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler<System.Action>(System.Func<System.Action, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action)""
+  IL_0038:  ret
+}");
+
+        verifier.VerifyIL("D.StaticRemove", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  3
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void C.Static.remove""
+  IL_0007:  newobj     ""System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
+  IL_000c:  ldsfld     ""System.Action D.<>O.<0>__Action""
+  IL_0011:  dup
+  IL_0012:  brtrue.s   IL_0027
+  IL_0014:  pop
+  IL_0015:  ldnull
+  IL_0016:  ldftn      ""void D.Action()""
+  IL_001c:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0021:  dup
+  IL_0022:  stsfld     ""System.Action D.<>O.<0>__Action""
+  IL_0027:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler<System.Action>(System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action)""
+  IL_002c:  ret
+}");
+    }
+
+    [Fact]
+    public void WinMdEventFieldAssignment()
+    {
+        var source = @"
+class C
+{
+    public event System.Action Instance;
+    public static event System.Action Static;
+
+    void InstanceAssign()
+    {
+        Instance = Action;
+    }
+
+    static void StaticAssign()
+    {
+        Static = Action;
+    }
+
+    static void Action()
+    {
+    }
+}
+";
+        var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
+
+        verifier.VerifyIL("C.InstanceAssign", @"
+{
+  // Code size       74 (0x4a)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      ""void C.Instance.remove""
+  IL_0007:  newobj     ""System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveAllEventHandlers(System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>)""
+  IL_0011:  ldarg.0
+  IL_0012:  ldftn      ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken C.Instance.add""
+  IL_0018:  newobj     ""System.Func<System.Action, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
+  IL_001d:  ldarg.0
+  IL_001e:  ldftn      ""void C.Instance.remove""
+  IL_0024:  newobj     ""System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
+  IL_0029:  ldsfld     ""System.Action C.<>O.<0>__Action""
+  IL_002e:  dup
+  IL_002f:  brtrue.s   IL_0044
+  IL_0031:  pop
+  IL_0032:  ldnull
+  IL_0033:  ldftn      ""void C.Action()""
+  IL_0039:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_003e:  dup
+  IL_003f:  stsfld     ""System.Action C.<>O.<0>__Action""
+  IL_0044:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler<System.Action>(System.Func<System.Action, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action)""
+  IL_0049:  ret
+}");
+
+        verifier.VerifyIL("C.StaticAssign", @"
+{
+  // Code size       74 (0x4a)
+  .maxstack  4
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void C.Static.remove""
+  IL_0007:  newobj     ""System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveAllEventHandlers(System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>)""
+  IL_0011:  ldnull
+  IL_0012:  ldftn      ""System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken C.Static.add""
+  IL_0018:  newobj     ""System.Func<System.Action, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
+  IL_001d:  ldnull
+  IL_001e:  ldftn      ""void C.Static.remove""
+  IL_0024:  newobj     ""System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>..ctor(object, System.IntPtr)""
+  IL_0029:  ldsfld     ""System.Action C.<>O.<0>__Action""
+  IL_002e:  dup
+  IL_002f:  brtrue.s   IL_0044
+  IL_0031:  pop
+  IL_0032:  ldnull
+  IL_0033:  ldftn      ""void C.Action()""
+  IL_0039:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_003e:  dup
+  IL_003f:  stsfld     ""System.Action C.<>O.<0>__Action""
+  IL_0044:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler<System.Action>(System.Func<System.Action, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action)""
+  IL_0049:  ret
+}");
+    }
+
+    [Fact]
+    public void LockDelegate()
+    {
+        var text =
+@"
+delegate void D(string p1);
+partial class Test
+{
+    public static void Main()
+    {
+        D d1;
+        lock (d1 = PM)
+        {
+            d1(""PASS"");
+        }
+    }
+    static partial void PM(string p2);
+    static partial void PM(string p2)
+    {
+        System.Console.WriteLine(p2);
+    }
+}
+";
+
+        CompileAndVerify(text, expectedOutput: PASS).VerifyIL("Test.Main", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  2
+  .locals init (D V_0, //d1
+                D V_1,
+                bool V_2)
+  IL_0000:  ldsfld     ""D Test.<>O.<0>__PM""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""void Test.PM(string)""
+  IL_0010:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""D Test.<>O.<0>__PM""
+  IL_001b:  dup
+  IL_001c:  stloc.0
+  IL_001d:  stloc.1
+  IL_001e:  ldc.i4.0
+  IL_001f:  stloc.2
+  .try
+  {
+    IL_0020:  ldloc.1
+    IL_0021:  ldloca.s   V_2
+    IL_0023:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0028:  ldloc.0
+    IL_0029:  ldstr      ""PASS""
+    IL_002e:  callvirt   ""void D.Invoke(string)""
+    IL_0033:  leave.s    IL_003f
+  }
+  finally
+  {
+    IL_0035:  ldloc.2
+    IL_0036:  brfalse.s  IL_003e
+    IL_0038:  ldloc.1
+    IL_0039:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_003e:  endfinally
+  }
+  IL_003f:  ret
+}
+");
+    }
+
+    [Fact]
+    public void NullCoalescingAssignmentValidRHS()
+    {
+        CompileAndVerify(@"
+using System;
+public class C
+{
+    public static void Main()
+    {
+        Action a = null;
+        (a ??= TestMethod)();
+        (a ??= () => {})();
+    }
+    static void TestMethod() => Console.WriteLine(""In TestMethod"");
+}
+", expectedOutput: @"
+In TestMethod
+In TestMethod
+").VerifyIL("C.Main()", @"
+{
+  // Code size       85 (0x55)
+  .maxstack  2
+  .locals init (System.Action V_0) //a
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  dup
+  IL_0004:  brtrue.s   IL_0024
+  IL_0006:  pop
+  IL_0007:  ldsfld     ""System.Action C.<>O.<0>__TestMethod""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0022
+  IL_000f:  pop
+  IL_0010:  ldnull
+  IL_0011:  ldftn      ""void C.TestMethod()""
+  IL_0017:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001c:  dup
+  IL_001d:  stsfld     ""System.Action C.<>O.<0>__TestMethod""
+  IL_0022:  dup
+  IL_0023:  stloc.0
+  IL_0024:  callvirt   ""void System.Action.Invoke()""
+  IL_0029:  ldloc.0
+  IL_002a:  dup
+  IL_002b:  brtrue.s   IL_004f
+  IL_002d:  pop
+  IL_002e:  ldsfld     ""System.Action C.<>c.<>9__0_0""
+  IL_0033:  dup
+  IL_0034:  brtrue.s   IL_004d
+  IL_0036:  pop
+  IL_0037:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_003c:  ldftn      ""void C.<>c.<Main>b__0_0()""
+  IL_0042:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0047:  dup
+  IL_0048:  stsfld     ""System.Action C.<>c.<>9__0_0""
+  IL_004d:  dup
+  IL_004e:  stloc.0
+  IL_004f:  callvirt   ""void System.Action.Invoke()""
+  IL_0054:  ret
+}");
+    }
+
 }

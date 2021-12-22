@@ -698,12 +698,12 @@ public class C
     public static void Main()
     {
         Action a = null;
-        (a ??= new Action(TestMethod))();
+        (a ??= TestMethod)();
         (a ??= () => {})();
     }
     static void TestMethod() => Console.WriteLine(""In TestMethod"");
 }
-", expectedOutput: @"
+", parseOptions: TestOptions.Regular10, expectedOutput: @"
 In TestMethod
 In TestMethod
 ").VerifyIL("C.Main()", @"
@@ -742,67 +742,6 @@ In TestMethod
   IL_0045:  ret
 }
 ");
-        }
-
-        [Fact]
-        public void ValidRHS1()
-        {
-            CompileAndVerify(@"
-using System;
-public class C
-{
-    public static void Main()
-    {
-        Action a = null;
-        (a ??= TestMethod)();
-        (a ??= () => {})();
-    }
-    static void TestMethod() => Console.WriteLine(""In TestMethod"");
-}
-", expectedOutput: @"
-In TestMethod
-In TestMethod
-").VerifyIL("C.Main()", @"
-{
-  // Code size       85 (0x55)
-  .maxstack  2
-  .locals init (System.Action V_0) //a
-  IL_0000:  ldnull
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  dup
-  IL_0004:  brtrue.s   IL_0024
-  IL_0006:  pop
-  IL_0007:  ldsfld     ""System.Action C.<>O.<0>__TestMethod""
-  IL_000c:  dup
-  IL_000d:  brtrue.s   IL_0022
-  IL_000f:  pop
-  IL_0010:  ldnull
-  IL_0011:  ldftn      ""void C.TestMethod()""
-  IL_0017:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_001c:  dup
-  IL_001d:  stsfld     ""System.Action C.<>O.<0>__TestMethod""
-  IL_0022:  dup
-  IL_0023:  stloc.0
-  IL_0024:  callvirt   ""void System.Action.Invoke()""
-  IL_0029:  ldloc.0
-  IL_002a:  dup
-  IL_002b:  brtrue.s   IL_004f
-  IL_002d:  pop
-  IL_002e:  ldsfld     ""System.Action C.<>c.<>9__0_0""
-  IL_0033:  dup
-  IL_0034:  brtrue.s   IL_004d
-  IL_0036:  pop
-  IL_0037:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_003c:  ldftn      ""void C.<>c.<Main>b__0_0()""
-  IL_0042:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0047:  dup
-  IL_0048:  stsfld     ""System.Action C.<>c.<>9__0_0""
-  IL_004d:  dup
-  IL_004e:  stloc.0
-  IL_004f:  callvirt   ""void System.Action.Invoke()""
-  IL_0054:  ret
-}");
         }
 
         [Fact]

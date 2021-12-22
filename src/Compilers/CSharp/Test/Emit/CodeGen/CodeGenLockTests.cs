@@ -543,42 +543,35 @@ partial class Test
 }
 ";
 
-            CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular10).VerifyIL("Test.Main", @"
 {
-  // Code size       51 (0x33)
+  // Code size       36 (0x24)
   .maxstack  2
   .locals init (D V_0,
                 bool V_1)
-  IL_0000:  ldsfld     ""D Test.<>O.<0>__PM""
-  IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001b
-  IL_0008:  pop
-  IL_0009:  ldnull
-  IL_000a:  ldftn      ""void Test.PM(int)""
-  IL_0010:  newobj     ""D..ctor(object, System.IntPtr)""
-  IL_0015:  dup
-  IL_0016:  stsfld     ""D Test.<>O.<0>__PM""
-  IL_001b:  stloc.0
-  IL_001c:  ldc.i4.0
-  IL_001d:  stloc.1
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Test.PM(int)""
+  IL_0007:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_000c:  stloc.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  stloc.1
   .try
   {
-    IL_001e:  ldloc.0
-    IL_001f:  ldloca.s   V_1
-    IL_0021:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-    IL_0026:  leave.s    IL_0032
+    IL_000f:  ldloc.0
+    IL_0010:  ldloca.s   V_1
+    IL_0012:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0017:  leave.s    IL_0023
   }
   finally
   {
-    IL_0028:  ldloc.1
-    IL_0029:  brfalse.s  IL_0031
-    IL_002b:  ldloc.0
-    IL_002c:  call       ""void System.Threading.Monitor.Exit(object)""
-    IL_0031:  endfinally
+    IL_0019:  ldloc.1
+    IL_001a:  brfalse.s  IL_0022
+    IL_001c:  ldloc.0
+    IL_001d:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0022:  endfinally
   }
-  IL_0032:  ret
-}
-");
+  IL_0023:  ret
+}");
         }
 
         [Fact]

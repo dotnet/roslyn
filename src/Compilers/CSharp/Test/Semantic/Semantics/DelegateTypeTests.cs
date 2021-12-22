@@ -706,15 +706,15 @@ class Program
         public static IEnumerable<object?[]> GetMethodGroupImplicitConversionData()
         {
             return GetMethodGroupData((methodGroupExpression, methodGroupOnly) =>
-                {
-                    int offset = methodGroupExpression.Length - methodGroupOnly.Length;
-                    return new[]
-                        {
+            {
+                int offset = methodGroupExpression.Length - methodGroupOnly.Length;
+                return new[]
+                    {
                             // (6,29): error CS8917: The delegate type could not be inferred.
                             //         System.Delegate d = F;
                             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(6, 29 + offset)
                         };
-                });
+            });
         }
 
         [Theory]
@@ -752,15 +752,15 @@ $@"class Program
         public static IEnumerable<object?[]> GetMethodGroupExplicitConversionData()
         {
             return GetMethodGroupData((methodGroupExpression, methodGroupOnly) =>
-                {
-                    int offset = methodGroupExpression.Length - methodGroupOnly.Length;
-                    return new[]
-                        {
+            {
+                int offset = methodGroupExpression.Length - methodGroupOnly.Length;
+                return new[]
+                    {
                             // (6,20): error CS0030: Cannot convert type 'method' to 'Delegate'
                             //         object o = (System.Delegate)F;
                             Diagnostic(ErrorCode.ERR_NoExplicitConv, $"(System.Delegate){methodGroupExpression}").WithArguments("method", "System.Delegate").WithLocation(6, 20)
                         };
-                });
+            });
         }
 
         [Theory]
@@ -6958,10 +6958,61 @@ class Program
                 //         var d3 = delegate () { };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "delegate () { }").WithArguments("inferred delegate type", "10.0").WithLocation(10, 18));
 
-            comp = CreateCompilation(new[] { source, s_utils }, options: TestOptions.DebugExe);
+            comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.Regular10, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput:
+@"System.Action
+System.Action
+System.Action");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size      100 (0x64)
+  .maxstack  2
+  .locals init (System.Action V_0, //d1
+                System.Action V_1, //d2
+                System.Action V_2) //d3
+  IL_0000:  nop
+  IL_0001:  ldnull
+  IL_0002:  ldftn      ""void Program.Main()""
+  IL_0008:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  call       ""void Program.Report(System.Delegate)""
+  IL_0014:  nop
+  IL_0015:  ldsfld     ""System.Action Program.<>c.<>9__0_0""
+  IL_001a:  dup
+  IL_001b:  brtrue.s   IL_0034
+  IL_001d:  pop
+  IL_001e:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0023:  ldftn      ""void Program.<>c.<Main>b__0_0()""
+  IL_0029:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_002e:  dup
+  IL_002f:  stsfld     ""System.Action Program.<>c.<>9__0_0""
+  IL_0034:  stloc.1
+  IL_0035:  ldloc.1
+  IL_0036:  call       ""void Program.Report(System.Delegate)""
+  IL_003b:  nop
+  IL_003c:  ldsfld     ""System.Action Program.<>c.<>9__0_1""
+  IL_0041:  dup
+  IL_0042:  brtrue.s   IL_005b
+  IL_0044:  pop
+  IL_0045:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_004a:  ldftn      ""void Program.<>c.<Main>b__0_1()""
+  IL_0050:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0055:  dup
+  IL_0056:  stsfld     ""System.Action Program.<>c.<>9__0_1""
+  IL_005b:  stloc.2
+  IL_005c:  ldloc.2
+  IL_005d:  call       ""void Program.Report(System.Delegate)""
+  IL_0062:  nop
+  IL_0063:  ret
+}");
+
+            comp = CreateCompilation(new[] { source, s_utils }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(comp, expectedOutput:
 @"System.Action
 System.Action
 System.Action");
@@ -8066,7 +8117,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput:
@@ -8076,39 +8127,21 @@ class Program
 ");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size       97 (0x61)
+  // Code size       52 (0x34)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<int> Program.<>O.<0>__F1""
-  IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001b
-  IL_0008:  pop
-  IL_0009:  ldnull
-  IL_000a:  ldftn      ""int Program.F1()""
-  IL_0010:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_0015:  dup
-  IL_0016:  stsfld     ""System.Func<int> Program.<>O.<0>__F1""
-  IL_001b:  call       ""void Program.Report(System.Delegate)""
-  IL_0020:  ldsfld     ""<anonymous delegate> Program.<>O.<1>__F2""
-  IL_0025:  dup
-  IL_0026:  brtrue.s   IL_003b
-  IL_0028:  pop
-  IL_0029:  ldnull
-  IL_002a:  ldftn      ""ref int Program.F2()""
-  IL_0030:  newobj     ""<>F{00000001}<int>..ctor(object, System.IntPtr)""
-  IL_0035:  dup
-  IL_0036:  stsfld     ""<anonymous delegate> Program.<>O.<1>__F2""
-  IL_003b:  call       ""void Program.Report(System.Delegate)""
-  IL_0040:  ldsfld     ""<anonymous delegate> Program.<>O.<2>__F3""
-  IL_0045:  dup
-  IL_0046:  brtrue.s   IL_005b
-  IL_0048:  pop
-  IL_0049:  ldnull
-  IL_004a:  ldftn      ""ref readonly int Program.F3()""
-  IL_0050:  newobj     ""<>F{00000003}<int>..ctor(object, System.IntPtr)""
-  IL_0055:  dup
-  IL_0056:  stsfld     ""<anonymous delegate> Program.<>O.<2>__F3""
-  IL_005b:  call       ""void Program.Report(System.Delegate)""
-  IL_0060:  ret
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""int Program.F1()""
+  IL_0007:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""void Program.Report(System.Delegate)""
+  IL_0011:  ldnull
+  IL_0012:  ldftn      ""ref int Program.F2()""
+  IL_0018:  newobj     ""<>F{00000001}<int>..ctor(object, System.IntPtr)""
+  IL_001d:  call       ""void Program.Report(System.Delegate)""
+  IL_0022:  ldnull
+  IL_0023:  ldftn      ""ref readonly int Program.F3()""
+  IL_0029:  newobj     ""<>F{00000003}<int>..ctor(object, System.IntPtr)""
+  IL_002e:  call       ""void Program.Report(System.Delegate)""
+  IL_0033:  ret
 }");
         }
 
@@ -8305,7 +8338,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput:
@@ -8316,49 +8349,25 @@ class Program
 ");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      129 (0x81)
+  // Code size       69 (0x45)
   .maxstack  2
-  IL_0000:  ldsfld     ""System.Action<int> Program.<>O.<0>__M1""
-  IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001b
-  IL_0008:  pop
-  IL_0009:  ldnull
-  IL_000a:  ldftn      ""void Program.M1(int)""
-  IL_0010:  newobj     ""System.Action<int>..ctor(object, System.IntPtr)""
-  IL_0015:  dup
-  IL_0016:  stsfld     ""System.Action<int> Program.<>O.<0>__M1""
-  IL_001b:  call       ""void Program.Report(System.Delegate)""
-  IL_0020:  ldsfld     ""<anonymous delegate> Program.<>O.<1>__M2""
-  IL_0025:  dup
-  IL_0026:  brtrue.s   IL_003b
-  IL_0028:  pop
-  IL_0029:  ldnull
-  IL_002a:  ldftn      ""void Program.M2(out int)""
-  IL_0030:  newobj     ""<>A{00000002}<int>..ctor(object, System.IntPtr)""
-  IL_0035:  dup
-  IL_0036:  stsfld     ""<anonymous delegate> Program.<>O.<1>__M2""
-  IL_003b:  call       ""void Program.Report(System.Delegate)""
-  IL_0040:  ldsfld     ""<anonymous delegate> Program.<>O.<2>__M3""
-  IL_0045:  dup
-  IL_0046:  brtrue.s   IL_005b
-  IL_0048:  pop
-  IL_0049:  ldnull
-  IL_004a:  ldftn      ""void Program.M3(ref int)""
-  IL_0050:  newobj     ""<>A{00000001}<int>..ctor(object, System.IntPtr)""
-  IL_0055:  dup
-  IL_0056:  stsfld     ""<anonymous delegate> Program.<>O.<2>__M3""
-  IL_005b:  call       ""void Program.Report(System.Delegate)""
-  IL_0060:  ldsfld     ""<anonymous delegate> Program.<>O.<3>__M4""
-  IL_0065:  dup
-  IL_0066:  brtrue.s   IL_007b
-  IL_0068:  pop
-  IL_0069:  ldnull
-  IL_006a:  ldftn      ""void Program.M4(in int)""
-  IL_0070:  newobj     ""<>A{00000003}<int>..ctor(object, System.IntPtr)""
-  IL_0075:  dup
-  IL_0076:  stsfld     ""<anonymous delegate> Program.<>O.<3>__M4""
-  IL_007b:  call       ""void Program.Report(System.Delegate)""
-  IL_0080:  ret
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M1(int)""
+  IL_0007:  newobj     ""System.Action<int>..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""void Program.Report(System.Delegate)""
+  IL_0011:  ldnull
+  IL_0012:  ldftn      ""void Program.M2(out int)""
+  IL_0018:  newobj     ""<>A{00000002}<int>..ctor(object, System.IntPtr)""
+  IL_001d:  call       ""void Program.Report(System.Delegate)""
+  IL_0022:  ldnull
+  IL_0023:  ldftn      ""void Program.M3(ref int)""
+  IL_0029:  newobj     ""<>A{00000001}<int>..ctor(object, System.IntPtr)""
+  IL_002e:  call       ""void Program.Report(System.Delegate)""
+  IL_0033:  ldnull
+  IL_0034:  ldftn      ""void Program.M4(in int)""
+  IL_003a:  newobj     ""<>A{00000003}<int>..ctor(object, System.IntPtr)""
+  IL_003f:  call       ""void Program.Report(System.Delegate)""
+  IL_0044:  ret
 }");
         }
 
@@ -8758,7 +8767,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, validator: validator, expectedOutput: "D");
 
             static void validator(PEAssembly assembly)
@@ -8766,7 +8775,7 @@ class Program
                 var reader = assembly.GetMetadataReader();
                 var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
 
-                string[] expectedTypes = new[] { "<Module>", "D", "Program", "<>O" };
+                string[] expectedTypes = new[] { "<Module>", "D", "Program", };
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }
@@ -8799,7 +8808,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, validator: validator, expectedOutput:
 @"<>A{00000001}`2[System.Object,System.Object]
 D2
@@ -8811,7 +8820,7 @@ D4");
                 var reader = assembly.GetMetadataReader();
                 var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
 
-                string[] expectedTypes = new[] { "<Module>", "<>A{00000001}`2", "<>A{00000009}`2", "D2", "D4", "Program", "<>O", "<>c", };
+                string[] expectedTypes = new[] { "<Module>", "<>A{00000001}`2", "<>A{00000009}`2", "D2", "D4", "Program", "<>c", };
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }
