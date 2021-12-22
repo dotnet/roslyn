@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
         private protected Flags _propertyFlags;
         private readonly RefKind _refKind;
+        private readonly bool _setHasImplementation;
 
         private SymbolCompletionState _state;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
@@ -104,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location = location;
             _containingType = containingType;
             _refKind = refKind;
+            _setHasImplementation = setHasImplementation;
             _modifiers = modifiers;
             _explicitInterfaceType = explicitInterfaceType;
 
@@ -847,6 +849,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, Location, this);
                         }
+                    }
+                    else if (!hasGetAccessor && !_setHasImplementation && IsAutoProperty)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, _setMethod!.Locations[0], _setMethod);
                     }
 
                     if (!this.IsOverride)

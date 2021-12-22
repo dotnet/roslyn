@@ -720,7 +720,23 @@ class Test
     }
 } // end of class Test
 ");
+        }
 
+        [Fact]
+        public void SetOnlyAutoProperty()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P1 { set; }
+    public int P2 { set => field = value; }
+}
+");
+            comp.VerifyDiagnostics(
+                // (4,21): error CS8051: Auto-implemented properties must have get accessors.
+                //     public int P1 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.P1.set").WithLocation(4, 21)
+            );
         }
     }
 }
