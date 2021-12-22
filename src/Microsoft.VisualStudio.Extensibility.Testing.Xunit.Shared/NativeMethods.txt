@@ -6,6 +6,7 @@ GetConsoleWindow
 GetLastActivePopup
 GetRunningObjectTable
 IsWindowVisible
+NtQueryInformationProcess
 SetForegroundWindow
 SetWindowPos
 SwitchToThisWindow

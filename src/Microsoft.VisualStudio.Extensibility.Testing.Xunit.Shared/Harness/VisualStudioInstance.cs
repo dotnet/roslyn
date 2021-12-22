@@ -5,13 +5,18 @@ namespace Xunit.Harness
 {
     using System;
     using System.Collections;
+    using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using System.Runtime.Remoting.Channels;
     using System.Runtime.Remoting.Channels.Ipc;
     using System.Runtime.Serialization.Formatters;
     using Microsoft.VisualStudio.IntegrationTestService;
+    using Windows.Win32;
+    using Windows.Win32.Foundation;
+    using Windows.Win32.System.Threading;
     using Xunit.InProcess;
     using Xunit.OutOfProcess;
     using DTE = EnvDTE.DTE;
@@ -114,16 +119,82 @@ namespace Xunit.Harness
         private static DTE? GetDebuggerHostDte()
         {
             var currentProcessId = Process.GetCurrentProcess().Id;
+            var checkedProcesses = new List<int>();
+
+            // Check ancestor processes first to avoid checking the DTE for unrelated processes when possible
+            foreach (var process in GetAncestorProcesses(Process.GetCurrentProcess()))
+            {
+                if (process.ProcessName != "devenv")
+                {
+                    continue;
+                }
+
+                if (TryGetDteForAttachedDebugger(process, currentProcessId) is { } dte)
+                {
+                    return dte;
+                }
+
+                checkedProcesses.Add(process.Id);
+            }
+
             foreach (var process in Process.GetProcessesByName("devenv"))
             {
-                var dte = IntegrationHelper.TryLocateDteForProcess(process);
-                if (dte?.Debugger?.DebuggedProcesses?.OfType<EnvDTE.Process>().Any(p => p.ProcessID == currentProcessId) ?? false)
+                if (checkedProcesses.Contains(process.Id))
+                {
+                    continue;
+                }
+
+                if (TryGetDteForAttachedDebugger(process, currentProcessId) is { } dte)
                 {
                     return dte;
                 }
             }
 
             return null;
+
+            static DTE? TryGetDteForAttachedDebugger(Process process, int currentProcessId)
+            {
+                var dte = IntegrationHelper.TryLocateDteForProcess(process);
+                if (dte?.Debugger?.DebuggedProcesses?.OfType<EnvDTE.Process>().Any(p => p.ProcessID == currentProcessId) ?? false)
+                {
+                    return dte;
+                }
+
+                return null;
+            }
+
+            static IEnumerable<Process> GetAncestorProcesses(Process process)
+            {
+                for (var current = TryGetParentProcess(process); current is not null; current = TryGetParentProcess(current))
+                {
+                    yield return current;
+                }
+
+                static unsafe Process? TryGetParentProcess(Process process)
+                {
+                    PROCESS_BASIC_INFORMATION pbi = default;
+                    var returnLength = 0U;
+                    var status = PInvoke.NtQueryInformationProcess((HANDLE)process.Handle, PROCESSINFOCLASS.ProcessBasicInformation, &pbi, (uint)Marshal.SizeOf<PROCESS_BASIC_INFORMATION>(), &returnLength);
+                    if (status != 0)
+                    {
+                        return null;
+                    }
+
+                    if (pbi.InheritedFromUniqueProcessId == IntPtr.Zero)
+                    {
+                        return null;
+                    }
+
+                    try
+                    {
+                        return Process.GetProcessById(pbi.InheritedFromUniqueProcessId.ToInt32());
+                    }
+                    catch
+                    {
+                        return null;
+                    }
+                }
+            }
         }
 
         public T ExecuteInHostProcess<T>(Type type, string methodName)
@@ -196,6 +267,17 @@ namespace Xunit.Harness
             {
                 _inProc.ExecuteCommand(WellKnownCommandNames.IntegrationTestServiceStop);
             }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct PROCESS_BASIC_INFORMATION
+        {
+            internal IntPtr Reserved1;
+            internal IntPtr PebBaseAddress;
+            internal IntPtr Reserved2First;
+            internal IntPtr Reserved2Second;
+            internal IntPtr UniqueProcessId;
+            internal IntPtr InheritedFromUniqueProcessId;
         }
     }
 }
