@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Structure CodeShapeAnalyzer
 
             Private ReadOnly _context As FormattingContext
-            Private ReadOnly _options As AnalyzerConfigOptions
+            Private ReadOnly _options As SyntaxFormattingOptions
             Private ReadOnly _list As TriviaList
 
             Private _indentation As Integer

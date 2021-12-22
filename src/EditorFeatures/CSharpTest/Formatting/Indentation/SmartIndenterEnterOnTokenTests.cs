@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1515,12 +1516,12 @@ class C
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None);
 
             Assert.True(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                     Formatter.GetDefaultFormattingRules(document),
-                    root, line.AsTextLine(), optionService, await document.GetOptionsAsync(), out _));
+                    root, line.AsTextLine(), options, out _));
 
             var actualIndentation = await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
             Assert.Equal(expectedIndentation.Value, actualIndentation);
@@ -1558,12 +1559,12 @@ class C
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None);
 
             Assert.False(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                     Formatter.GetDefaultFormattingRules(document),
-                    root, line.AsTextLine(), optionService, await document.GetOptionsAsync(), out _));
+                    root, line.AsTextLine(), options, out _));
 
             TestIndentation(workspace, indentationLine, expectedIndentation);
         }

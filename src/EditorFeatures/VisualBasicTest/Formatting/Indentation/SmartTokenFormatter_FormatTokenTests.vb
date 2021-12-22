@@ -190,8 +190,8 @@ End Class
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
                 Dim root = DirectCast(Await document.GetSyntaxRootAsync(), CompilationUnitSyntax)
-                Dim options = Await document.GetOptionsAsync()
-                Dim documentIndentStyle = options.GetOption(FormattingOptions.SmartIndent, root.Language)
+                Dim options = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
+                Dim documentIndentStyle = options.GetOption(FormattingBehaviorOptions.SmartIndent)
 
                 Dim formattingRules = New SpecialFormattingRule(documentIndentStyle).Concat(Formatter.GetDefaultFormattingRules(document))
 
@@ -201,11 +201,8 @@ End Class
                 Dim previousToken = token.GetPreviousToken(includeZeroWidth:=True)
                 Dim ignoreMissingToken = previousToken.IsMissing AndAlso line.Start.Position = position
 
-                Dim optionService = workspace.Services.GetRequiredService(Of IOptionService)()
-
                 Assert.True(VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                            formattingRules, root, line.AsTextLine, optionService, workspace.Options,
-                            Nothing, ignoreMissingToken))
+                            formattingRules, root, line.AsTextLine, options, Nothing, ignoreMissingToken))
 
                 Dim formatOptions = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
                 Dim smartFormatter = New VisualBasicSmartTokenFormatter(formatOptions, formattingRules, root)

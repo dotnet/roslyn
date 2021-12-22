@@ -358,9 +358,9 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return s_instances[(int)indentStyle];
             }
 
-            public override AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+            public override AbstractFormattingRule WithOptions(SyntaxFormattingOptions options)
             {
-                var cachedOptions = new CachedOptions(options);
+                var cachedOptions = new CachedOptions(options.Options);
 
                 if (cachedOptions == _options)
                 {
