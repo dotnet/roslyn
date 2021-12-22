@@ -6,20 +6,21 @@ namespace Xunit.Harness
     using System;
     using System.Runtime.InteropServices;
     using Microsoft.Win32.SafeHandles;
-    using IMessageFilter = Microsoft.VisualStudio.OLE.Interop.IMessageFilter;
+    using Windows.Win32;
+    using IMessageFilter = Windows.Win32.Media.Audio.IMessageFilter;
 
     internal sealed class MessageFilterSafeHandle : SafeHandleMinusOneIsInvalid
     {
-        private readonly IntPtr _oldFilter;
+        private readonly IMessageFilter _oldFilter;
 
-        private MessageFilterSafeHandle(IntPtr handle)
+        private MessageFilterSafeHandle(IMessageFilter filter, IntPtr handle)
             : base(true)
         {
             SetHandle(handle);
 
             try
             {
-                if (NativeMethods.CoRegisterMessageFilter(handle, out _oldFilter) != VSConstants.S_OK)
+                if (PInvoke.CoRegisterMessageFilter(filter, out _oldFilter) != VSConstants.S_OK)
                 {
                     throw new InvalidOperationException("Failed to register a new message filter");
                 }
@@ -35,12 +36,12 @@ namespace Xunit.Harness
             where T : IMessageFilter
         {
             var handle = Marshal.GetComInterfaceForObject<T, IMessageFilter>(messageFilter);
-            return new MessageFilterSafeHandle(handle);
+            return new MessageFilterSafeHandle(messageFilter, handle);
         }
 
         protected override bool ReleaseHandle()
         {
-            if (NativeMethods.CoRegisterMessageFilter(_oldFilter, out _) == VSConstants.S_OK)
+            if (PInvoke.CoRegisterMessageFilter(_oldFilter, out _) == VSConstants.S_OK)
             {
                 Marshal.Release(handle);
             }
