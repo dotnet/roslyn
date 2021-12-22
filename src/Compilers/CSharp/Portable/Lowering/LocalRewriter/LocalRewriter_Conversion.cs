@@ -396,6 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.MethodGroup:
                     {
+                        // we eliminate the method group conversion entirely from the bound nodes following local lowering
                         Debug.Assert(oldNodeOpt is { });
                         var mg = (BoundMethodGroup)rewrittenOperand;
                         var method = oldNodeOpt.SymbolOpt;

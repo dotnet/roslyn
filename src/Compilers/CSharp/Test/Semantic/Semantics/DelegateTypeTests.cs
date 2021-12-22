@@ -706,15 +706,15 @@ class Program
         public static IEnumerable<object?[]> GetMethodGroupImplicitConversionData()
         {
             return GetMethodGroupData((methodGroupExpression, methodGroupOnly) =>
-            {
-                int offset = methodGroupExpression.Length - methodGroupOnly.Length;
-                return new[]
-                    {
+                {
+                    int offset = methodGroupExpression.Length - methodGroupOnly.Length;
+                    return new[]
+                        {
                             // (6,29): error CS8917: The delegate type could not be inferred.
                             //         System.Delegate d = F;
                             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(6, 29 + offset)
                         };
-            });
+                });
         }
 
         [Theory]
@@ -752,15 +752,15 @@ $@"class Program
         public static IEnumerable<object?[]> GetMethodGroupExplicitConversionData()
         {
             return GetMethodGroupData((methodGroupExpression, methodGroupOnly) =>
-            {
-                int offset = methodGroupExpression.Length - methodGroupOnly.Length;
-                return new[]
-                    {
+                {
+                    int offset = methodGroupExpression.Length - methodGroupOnly.Length;
+                    return new[]
+                        {
                             // (6,20): error CS0030: Cannot convert type 'method' to 'Delegate'
                             //         object o = (System.Delegate)F;
                             Diagnostic(ErrorCode.ERR_NoExplicitConv, $"(System.Delegate){methodGroupExpression}").WithArguments("method", "System.Delegate").WithLocation(6, 20)
                         };
-            });
+                });
         }
 
         [Theory]

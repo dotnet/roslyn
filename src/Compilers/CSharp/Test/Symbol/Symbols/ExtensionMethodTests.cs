@@ -2242,8 +2242,8 @@ class C
 @"{
   // Code size       42 (0x2a)
   .maxstack  3
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
+  IL_0000:  ldarg.0   
+  IL_0001:  ldc.i4.1  
   IL_0002:  call       ""System.Collections.Generic.IEnumerable<string> System.Linq.Enumerable.Skip<string>(System.Collections.Generic.IEnumerable<string>, int)""
   IL_0007:  ldnull    
   IL_0008:  ldftn      ""bool C.Filter(string)""
@@ -2253,7 +2253,7 @@ class C
   IL_0019:  ldftn      ""string C.Combine(string, string)""
   IL_001f:  newobj     ""System.Func<string, string, string>..ctor(object, System.IntPtr)""
   IL_0024:  call       ""string System.Linq.Enumerable.Aggregate<string>(System.Collections.Generic.IEnumerable<string>, System.Func<string, string, string>)""
-  IL_0029:  ret
+  IL_0029:  ret       
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: "orange, apple");
             compilation.VerifyIL("C.F", code);

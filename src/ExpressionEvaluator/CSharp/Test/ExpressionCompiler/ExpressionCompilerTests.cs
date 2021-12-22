@@ -1769,14 +1769,14 @@ class C
                     testData: testData);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-      // Code size       14 (0xe)
-      .maxstack  2
-      .locals init (object V_0) //o
-      IL_0000:  ldnull
-      IL_0001:  ldftn      ""void C.M1()""
-      IL_0007:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-      IL_000c:  stloc.0
-      IL_000d:  ret
+  // Code size       14 (0xe)
+  .maxstack  2
+  .locals init (object V_0) //o
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void C.M1()""
+  IL_0007:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_000c:  stloc.0
+  IL_000d:  ret
 }");
             });
         }
