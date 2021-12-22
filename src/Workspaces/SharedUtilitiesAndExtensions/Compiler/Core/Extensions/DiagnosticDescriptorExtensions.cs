@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                  reportDiagnostic == ReportDiagnostic.Default))
             {
                 if (analyzerConfigOptions.Value.TreeOptions.TryGetValue(descriptor.Id, out reportDiagnostic) && reportDiagnostic != ReportDiagnostic.Default ||
-                    TryGetSeverityFromBulkConfiguration(descriptor, analyzerConfigOptions.Value, out reportDiagnostic))
+                    TryGetSeverityFromBulkConfiguration(descriptor, compilationOptions, analyzerConfigOptions.Value, out reportDiagnostic))
                 {
                     Debug.Assert(reportDiagnostic != ReportDiagnostic.Default);
                     effectiveSeverity = reportDiagnostic;
@@ -144,6 +144,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         private static bool TryGetSeverityFromBulkConfiguration(
             DiagnosticDescriptor descriptor,
+            CompilationOptions compilationOptions,
             AnalyzerConfigOptionsResult analyzerConfigOptions,
             out ReportDiagnostic severity)
         {
@@ -166,6 +167,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (analyzerConfigOptions.AnalyzerOptions.TryGetValue(categoryBasedKey, out var value) &&
                 EditorConfigSeverityStrings.TryParse(value, out severity))
             {
+                // '/warnaserror' should bump Warning bulk configuration to Error.
+                if (severity == ReportDiagnostic.Warn && compilationOptions.GeneralDiagnosticOption == ReportDiagnostic.Error)
+                    severity = ReportDiagnostic.Error;
+
                 return true;
             }
 
@@ -174,6 +179,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (analyzerConfigOptions.AnalyzerOptions.TryGetValue(DotnetAnalyzerDiagnosticSeverityKey, out value) &&
                 EditorConfigSeverityStrings.TryParse(value, out severity))
             {
+                // '/warnaserror' should bump Warning bulk configuration to Error.
+                if (severity == ReportDiagnostic.Warn && compilationOptions.GeneralDiagnosticOption == ReportDiagnostic.Error)
+                    severity = ReportDiagnostic.Error;
+
                 return true;
             }
 
