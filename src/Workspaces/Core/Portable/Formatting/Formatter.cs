@@ -252,7 +252,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             var optionService = workspace.Services.GetRequiredService<IOptionService>();
 
             options ??= workspace.Options;
-            rules ??= GetDefaultFormattingRules(workspace, node.Language);
             spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
             var shouldUseFormattingSpanCollapse = options.GetOption(FormattingBehaviorOptions.AllowDisjointSpanMerging);
             return languageFormatter.Format(node, spans, shouldUseFormattingSpanCollapse, options.AsAnalyzerConfigOptions(optionService, node.Language), rules, cancellationToken);

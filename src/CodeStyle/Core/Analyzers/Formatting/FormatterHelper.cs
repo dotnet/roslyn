@@ -125,7 +125,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             options ??= DictionaryAnalyzerConfigOptions.Empty;
-            rules ??= GetDefaultFormattingRules(syntaxFormattingService);
             spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
             return syntaxFormattingService.Format(node, spans, shouldUseFormattingSpanCollapse: false, options, rules, cancellationToken);
         }

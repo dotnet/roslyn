@@ -31,16 +31,16 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         protected abstract AbstractFormattingResult Format(SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> rules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken);
 
-        public IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, bool shouldUseFormattingSpanCollapse, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken)
+        public IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, bool shouldUseFormattingSpanCollapse, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
         {
-            CheckArguments(node, spans, options, rules);
-
             // quick exit check
             var spansToFormat = new NormalizedTextSpanCollection(spans.Where(s_notEmpty));
             if (spansToFormat.Count == 0)
             {
                 return CreateAggregatedFormattingResult(node, SpecializedCollections.EmptyList<AbstractFormattingResult>());
             }
+
+            rules ??= GetDefaultFormattingRules();
 
             // check what kind of formatting strategy to use
             if (AllowDisjointSpanMerging(spansToFormat, shouldUseFormattingSpanCollapse))
@@ -128,29 +128,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // we are formatting more than half of the collapsed span.
             return (formattingSpan.Length / Math.Max(actualFormattingSize, 1)) < 2;
-        }
-
-        private static void CheckArguments(SyntaxNode node, IEnumerable<TextSpan> spans, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> rules)
-        {
-            if (node == null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
-            if (spans == null)
-            {
-                throw new ArgumentNullException(nameof(spans));
-            }
-
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            if (rules == null)
-            {
-                throw new ArgumentNullException(nameof(rules));
-            }
         }
     }
 }
