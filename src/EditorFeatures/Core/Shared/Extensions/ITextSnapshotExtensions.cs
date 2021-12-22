@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
 
-            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var result = formatter.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(span), documentOptions, document.Project.Solution.Workspace.Services, rules, cancellationToken);
+            var options = SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var result = formatter.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(span), options, rules, cancellationToken);
             var changes = result.GetTextChanges(cancellationToken);
 
             using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))

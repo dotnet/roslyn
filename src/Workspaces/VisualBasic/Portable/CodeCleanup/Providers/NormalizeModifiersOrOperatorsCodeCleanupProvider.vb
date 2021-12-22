@@ -7,8 +7,8 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
@@ -31,14 +31,14 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As OptionSet, cancellationToken As CancellationToken) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
+        Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim newRoot = Await CleanupAsync(root, spans, options, document.Project.Solution.Workspace.Services, cancellationToken).ConfigureAwait(False)
 
             Return If(root Is newRoot, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As OptionSet, services As HostWorkspaceServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As HostWorkspaceServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
             Dim rewriter = New Rewriter(spans, cancellationToken)
             Dim newRoot = rewriter.Visit(root)
 

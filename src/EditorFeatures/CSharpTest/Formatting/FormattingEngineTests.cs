@@ -6,10 +6,12 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -423,8 +425,8 @@ class Program
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var syntaxRoot = await document.GetSyntaxRootAsync();
-
-            var node = Formatter.Format(syntaxRoot, spans, workspace);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None).ConfigureAwait(false);
+            var node = Formatter.Format(syntaxRoot, spans, workspace.Services, options, rules: null, CancellationToken.None);
             Assert.Equal(expected, node.ToFullString());
         }
 
@@ -518,8 +520,9 @@ class Program
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var syntaxRoot = await document.GetSyntaxRootAsync();
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None);
 
-            var node = Formatter.Format(syntaxRoot, spans, workspace);
+            var node = Formatter.Format(syntaxRoot, spans, workspace.Services, options, rules: null, CancellationToken.None);
             Assert.Equal(expected, node.ToFullString());
         }
 
@@ -2284,7 +2287,13 @@ namespace TestApp
             var annotatedMarkerTrivia = markerTrivia.WithAdditionalAnnotations(annotation);
             root = root.ReplaceTrivia(markerTrivia, annotatedMarkerTrivia);
 
-            var formattedRoot = Formatter.Format(root, new AdhocWorkspace());
+            using var workspace = new AdhocWorkspace();
+
+            var options = new SyntaxFormattingOptions(
+                DictionaryAnalyzerConfigOptions.Empty,
+                ShouldUseFormattingSpanCollapse: false);
+
+            var formattedRoot = Formatter.Format(root, workspace.Services, options, CancellationToken.None);
             var annotatedTrivia = formattedRoot.GetAnnotatedTrivia("marker");
 
             Assert.Single(annotatedTrivia);

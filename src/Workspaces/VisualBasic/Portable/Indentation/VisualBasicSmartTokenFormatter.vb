@@ -15,19 +15,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Friend Class VisualBasicSmartTokenFormatter
         Implements ISmartTokenFormatter
 
-        Private ReadOnly _optionSet As OptionSet
+        Private ReadOnly _options As SyntaxFormattingOptions
         Private ReadOnly _formattingRules As IEnumerable(Of AbstractFormattingRule)
 
         Private ReadOnly _root As CompilationUnitSyntax
 
-        Public Sub New(optionSet As OptionSet,
+        Public Sub New(options As SyntaxFormattingOptions,
                        formattingRules As IEnumerable(Of AbstractFormattingRule),
                        root As CompilationUnitSyntax)
-            Contract.ThrowIfNull(optionSet)
             Contract.ThrowIfNull(formattingRules)
             Contract.ThrowIfNull(root)
 
-            Me._optionSet = optionSet
+            Me._options = options
             Me._formattingRules = formattingRules
 
             Me._root = root
@@ -40,8 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Dim previousToken = token.GetPreviousToken()
 
             Dim spans = SpecializedCollections.SingletonEnumerable(TextSpan.FromBounds(previousToken.SpanStart, token.Span.End))
-            Dim formatter = services.GetRequiredLanguageService(Of ISyntaxFormattingService)(_root.Language)
-            Return Task.FromResult(formatter.GetFormattingResult(_root, spans, _optionSet, services, _formattingRules, cancellationToken).GetTextChanges(cancellationToken))
+            Return Task.FromResult(Formatter.GetFormattedTextChanges(_root, spans, services, _options, _formattingRules, cancellationToken))
         End Function
     End Class
 End Namespace

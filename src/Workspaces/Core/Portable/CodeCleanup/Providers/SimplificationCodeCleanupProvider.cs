@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     {
         public string Name => PredefinedCodeCleanupProviderNames.Simplification;
 
-        public Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, OptionSet options, CancellationToken cancellationToken)
+        public Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, CancellationToken cancellationToken)
             => Simplifier.ReduceAsync(document, spans, null, cancellationToken);
 
-        public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, OptionSet options, HostWorkspaceServices services, CancellationToken cancellationToken)
+        public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, HostWorkspaceServices services, CancellationToken cancellationToken)
         {
             // Simplifier doesn't work without semantic information
             return Task.FromResult(root);

@@ -42,15 +42,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
 
             Protected Overrides Async Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
                 Dim root = Await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-                Dim options = Await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
+                Dim options = Await SyntaxFormattingOptions.FromDocumentAsync(_document, cancellationToken).ConfigureAwait(False)
 
-                Dim newNode = Await GetNewNodeAsync(_document, _node, Options, cancellationToken).ConfigureAwait(False)
+                Dim newNode = Await GetNewNodeAsync(_document, _node, options, cancellationToken).ConfigureAwait(False)
                 Dim newRoot = root.ReplaceNode(_node, newNode)
 
                 Return _document.WithSyntaxRoot(newRoot)
             End Function
 
-            Private Async Function GetNewNodeAsync(document As Document, node As SyntaxNode, options As OptionSet, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+            Private Async Function GetNewNodeAsync(document As Document, node As SyntaxNode, options As SyntaxFormattingOptions, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
                 Dim newNode As SyntaxNode = Nothing
                 Dim trivia As SyntaxTriviaList = node.GetLeadingTrivia()
                 node = node.WithoutLeadingTrivia()

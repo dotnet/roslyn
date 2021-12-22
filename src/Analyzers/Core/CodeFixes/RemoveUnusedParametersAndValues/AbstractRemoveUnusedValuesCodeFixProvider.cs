@@ -67,6 +67,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
 
+#if CODE_STYLE
+        protected abstract ISyntaxFormattingService GetSyntaxFormattingService();
+#endif
         /// <summary>
         /// Method to update the identifier token for the local/parameter declaration or reference
         /// that was flagged as an unused value write by the analyzer.
@@ -269,15 +272,21 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
+#if CODE_STYLE
+            var provider = GetSyntaxFormattingService();
+            var options = SyntaxFormattingOptions.Create(document.Project.AnalyzerOptions.GetAnalyzerOptionSet(editor.OriginalRoot.SyntaxTree, cancellationToken));
+#else
+            var provider = document.Project.Solution.Workspace.Services;
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+#endif
             var preprocessedDocument = await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = await GetNewRootAsync(preprocessedDocument, options, diagnostics, cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(editor.OriginalRoot, newRoot);
         }
 
         private async Task<SyntaxNode> GetNewRootAsync(
             Document document,
-            OptionSet options,
+            SyntaxFormattingOptions options,
             ImmutableArray<Diagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
@@ -721,7 +730,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         private async Task<SyntaxNode> PostProcessDocumentAsync(
             Document document,
-            OptionSet options,
+            SyntaxFormattingOptions options,
             SyntaxNode currentRoot,
             string diagnosticId,
             UnusedValuePreference preference,
@@ -749,10 +758,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         }
 
         private static async Task<SyntaxNode> PostProcessDocumentCoreAsync(
-            Func<SyntaxNode, Document, OptionSet, CancellationToken, Task<SyntaxNode>> processMemberDeclarationAsync,
+            Func<SyntaxNode, Document, SyntaxFormattingOptions, CancellationToken, Task<SyntaxNode>> processMemberDeclarationAsync,
             SyntaxNode currentRoot,
             Document document,
-            OptionSet options,
+            SyntaxFormattingOptions options,
             CancellationToken cancellationToken)
         {
             // Process each member declaration which had at least one diagnostic reported in the original tree and hence
@@ -780,7 +789,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// This is needed to prevent the code fix/FixAll from generating code with
         /// multiple local variables named '_', which is a compiler error.
         /// </summary>
-        private async Task<SyntaxNode> ReplaceDiscardDeclarationsWithAssignmentsAsync(SyntaxNode memberDeclaration, Document document, OptionSet options, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> ReplaceDiscardDeclarationsWithAssignmentsAsync(SyntaxNode memberDeclaration, Document document, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IReplaceDiscardDeclarationsWithAssignmentsService>();
             if (service == null)
@@ -799,10 +808,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// local declaration statements annotated with <see cref="s_existingLocalDeclarationWithoutInitializerAnnotation"/>
         /// whose declared local is no longer used removed.
         /// </summary>
-        private static async Task<SyntaxNode> AdjustLocalDeclarationsAsync(
+        private async Task<SyntaxNode> AdjustLocalDeclarationsAsync(
             SyntaxNode memberDeclaration,
             Document document,
-            OptionSet options,
+            SyntaxFormattingOptions options,
             CancellationToken cancellationToken)
         {
             var moveDeclarationService = document.GetRequiredLanguageService<IMoveDeclarationNearReferenceService>();
@@ -826,7 +835,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var rootWithTrackedNodes = root.TrackNodes(originalDeclStatementsToMoveOrRemove);
 
             // Run formatter prior to invoking IMoveDeclarationNearReferenceService.
-            rootWithTrackedNodes = Formatter.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), document.Project.Solution.Workspace, options, cancellationToken: cancellationToken);
+#if CODE_STYLE
+            var provider = GetSyntaxFormattingService();
+            rootWithTrackedNodes = FormatterHelper.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: null, cancellationToken);
+#else
+            var provider = document.Project.Solution.Workspace.Services;
+            rootWithTrackedNodes = Formatter.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: null, cancellationToken);
+#endif
 
             document = document.WithSyntaxRoot(rootWithTrackedNodes);
             await OnDocumentUpdatedAsync().ConfigureAwait(false);

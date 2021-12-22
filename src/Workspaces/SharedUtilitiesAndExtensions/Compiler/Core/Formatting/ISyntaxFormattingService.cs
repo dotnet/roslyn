@@ -23,20 +23,29 @@ namespace Microsoft.CodeAnalysis.Formatting
 #endif
     {
         IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules();
-        IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, bool shouldUseFormattingSpanCollapse, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken);
+        IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken);
     }
+
+    internal readonly record struct SyntaxFormattingOptions(
+        AnalyzerConfigOptions Options,
+        bool ShouldUseFormattingSpanCollapse)
+    {
+        public static readonly SyntaxFormattingOptions Default = Create(DictionaryAnalyzerConfigOptions.Empty);
+
+        public static SyntaxFormattingOptions Create(AnalyzerConfigOptions options)
+            => new(options, ShouldUseFormattingSpanCollapse: false);
 
 #if !CODE_STYLE
-    internal static class ISyntaxFormattingServiceExtensions
-    {
-        internal static IFormattingResult GetFormattingResult(this ISyntaxFormattingService service, SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, HostWorkspaceServices services, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
-        {
-            var optionService = services.GetRequiredService<IOptionService>();
-            var shouldUseFormattingSpanCollapse = options.GetOption(FormattingBehaviorOptions.AllowDisjointSpanMerging);
-            var configOptions = options.AsAnalyzerConfigOptions(optionService, node.Language);
+        public static SyntaxFormattingOptions Create(OptionSet options, HostWorkspaceServices services, string language, bool? shouldUseFormattingSpanCollapse = null)
+            => new(
+                options.AsAnalyzerConfigOptions(services.GetRequiredService<IOptionService>(), language),
+                shouldUseFormattingSpanCollapse ?? options.GetOption(FormattingBehaviorOptions.AllowDisjointSpanMerging));
 
-            return service.Format(node, spans, shouldUseFormattingSpanCollapse, configOptions, rules, cancellationToken);
+        public static async Task<SyntaxFormattingOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
+        {
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return Create(documentOptions, document.Project.Solution.Workspace.Services, document.Project.Language);
         }
-    }
 #endif
+    }
 }

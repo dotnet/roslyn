@@ -11,15 +11,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup
 {
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         public abstract ImmutableArray<ICodeCleanupProvider> GetDefaultProviders();
         protected abstract ImmutableArray<TextSpan> GetSpansToAvoid(SyntaxNode root);
 
-        public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, OptionSet options, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
+        public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeCleanup_CleanupAsync, cancellationToken))
             {
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             }
         }
 
-        public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, OptionSet options, HostWorkspaceServices services, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
+        public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, HostWorkspaceServices services, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeCleanup_Cleanup, cancellationToken))
             {
@@ -456,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private async Task<Document> IterateAllCodeCleanupProvidersAsync(
             Document originalDocument,
             Document annotatedDocument,
-            OptionSet options,
+            SyntaxFormattingOptions options,
             Func<SyntaxNode, ImmutableArray<TextSpan>> spanGetter,
             ImmutableArray<ICodeCleanupProvider> codeCleaners,
             CancellationToken cancellationToken)
@@ -537,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private async Task<SyntaxNode> IterateAllCodeCleanupProvidersAsync(
             SyntaxNode originalRoot,
             SyntaxNode annotatedRoot,
-            OptionSet options,
+            SyntaxFormattingOptions options,
             Func<SyntaxNode, ImmutableArray<TextSpan>> spanGetter,
             HostWorkspaceServices services,
             ImmutableArray<ICodeCleanupProvider> codeCleaners,

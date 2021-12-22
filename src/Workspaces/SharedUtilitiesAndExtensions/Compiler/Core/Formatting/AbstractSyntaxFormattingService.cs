@@ -31,10 +31,21 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         protected abstract AbstractFormattingResult Format(SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> rules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken);
 
-        public IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, bool shouldUseFormattingSpanCollapse, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
+        public IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
         {
-            // quick exit check
-            var spansToFormat = new NormalizedTextSpanCollection(spans.Where(s_notEmpty));
+            IReadOnlyList<TextSpan> spansToFormat;
+
+            if (spans == null)
+            {
+                spansToFormat = node.FullSpan.IsEmpty ?
+                    SpecializedCollections.EmptyReadOnlyList<TextSpan>() :
+                    SpecializedCollections.SingletonReadOnlyList(node.FullSpan);
+            }
+            else
+            {
+                spansToFormat = new NormalizedTextSpanCollection(spans.Where(s_notEmpty));
+            }
+
             if (spansToFormat.Count == 0)
             {
                 return CreateAggregatedFormattingResult(node, SpecializedCollections.EmptyList<AbstractFormattingResult>());
@@ -43,16 +54,15 @@ namespace Microsoft.CodeAnalysis.Formatting
             rules ??= GetDefaultFormattingRules();
 
             // check what kind of formatting strategy to use
-            if (AllowDisjointSpanMerging(spansToFormat, shouldUseFormattingSpanCollapse))
-            {
-                return FormatMergedSpan(node, options, rules, spansToFormat, cancellationToken);
-            }
+            var result = AllowDisjointSpanMerging(spansToFormat, options.ShouldUseFormattingSpanCollapse) ? 
+                FormatMergedSpan(node, options.Options, rules, spansToFormat, cancellationToken) :
+                FormatIndividually(node, options.Options, rules, spansToFormat, cancellationToken);
 
-            return FormatIndividually(node, options, rules, spansToFormat, cancellationToken);
+            return result;
         }
 
         private IFormattingResult FormatMergedSpan(
-            SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> rules, IList<TextSpan> spansToFormat, CancellationToken cancellationToken)
+            SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> rules, IReadOnlyList<TextSpan> spansToFormat, CancellationToken cancellationToken)
         {
             var spanToFormat = TextSpan.FromBounds(spansToFormat[0].Start, spansToFormat[spansToFormat.Count - 1].End);
             var pair = node.ConvertToTokenPair(spanToFormat);
@@ -68,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         private IFormattingResult FormatIndividually(
-            SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> rules, IList<TextSpan> spansToFormat, CancellationToken cancellationToken)
+            SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> rules, IReadOnlyList<TextSpan> spansToFormat, CancellationToken cancellationToken)
         {
             List<AbstractFormattingResult>? results = null;
             foreach (var pair in node.ConvertToTokenPairs(spansToFormat))
@@ -97,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return CreateAggregatedFormattingResult(node, results);
         }
 
-        private static bool AllowDisjointSpanMerging(IList<TextSpan> list, bool shouldUseFormattingSpanCollapse)
+        private static bool AllowDisjointSpanMerging(IReadOnlyList<TextSpan> list, bool shouldUseFormattingSpanCollapse)
         {
             // If the user is specific about the formatting specific spans then honor users settings
             if (!shouldUseFormattingSpanCollapse)

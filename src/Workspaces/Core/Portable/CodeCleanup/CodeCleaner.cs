@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup
 {
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         public static async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
         {
             var cleanupService = document.GetRequiredLanguageService<ICodeCleanerService>();
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
             return await cleanupService.CleanupAsync(document, spans, options, providers, cancellationToken).ConfigureAwait(false);
         }
 
@@ -95,7 +96,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         public static Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, OptionSet options, HostWorkspaceServices services, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
         {
             var cleanupService = services.GetLanguageServices(root.Language).GetRequiredService<ICodeCleanerService>();
-            return cleanupService.CleanupAsync(root, spans, options, services, providers, cancellationToken);
+            var formattingOptions = SyntaxFormattingOptions.Create(options, services, root.Language);
+            return cleanupService.CleanupAsync(root, spans, formattingOptions, services, providers, cancellationToken);
         }
     }
 }
