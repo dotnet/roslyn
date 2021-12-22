@@ -1136,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => IsAutoPropertyWithGetAccessor
+            => IsAutoProperty
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 

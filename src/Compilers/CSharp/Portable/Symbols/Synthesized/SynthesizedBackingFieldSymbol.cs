@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
 
-            if (!allAttributeSyntaxNodes.IsEmpty && _property.IsAutoPropertyWithGetAccessor)
+            if (!allAttributeSyntaxNodes.IsEmpty && _property.BackingField is { IsCreatedForFieldKeyword: false })
             {
                 CheckForFieldTargetedAttribute(diagnostics);
             }
