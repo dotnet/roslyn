@@ -18,6 +18,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.0-previews-3-31605-261" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30" PrivateAssets="compile" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.1.619-beta" PrivateAssets="all" />
     <PackageReference Include="xunit.assert" Version="2.4.1" />
     <PackageReference Include="xunit.extensibility.core" Version="2.4.1" />
     <PackageReference Include="xunit.extensibility.execution" Version="2.4.1" />

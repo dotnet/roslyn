@@ -4,10 +4,11 @@
 namespace Xunit.Harness
 {
     using System;
-    using IMessageFilter = Microsoft.VisualStudio.OLE.Interop.IMessageFilter;
-    using INTERFACEINFO = Microsoft.VisualStudio.OLE.Interop.INTERFACEINFO;
-    using PENDINGMSG = Microsoft.VisualStudio.OLE.Interop.PENDINGMSG;
-    using SERVERCALL = Microsoft.VisualStudio.OLE.Interop.SERVERCALL;
+    using Windows.Win32.Media;
+    using IMessageFilter = Windows.Win32.Media.Audio.IMessageFilter;
+    using INTERFACEINFO = Windows.Win32.System.Com.INTERFACEINFO;
+    using PENDINGMSG = Windows.Win32.System.Com.PENDINGMSG;
+    using SERVERCALL = Windows.Win32.System.Com.SERVERCALL;
 
     internal class MessageFilter : IMessageFilter, IDisposable
     {
@@ -29,12 +30,12 @@ namespace Xunit.Harness
             _messageFilterRegistration = MessageFilterSafeHandle.Register(this);
         }
 
-        public virtual uint HandleInComingCall(uint dwCallType, IntPtr htaskCaller, uint dwTickCount, INTERFACEINFO[] lpInterfaceInfo)
+        public virtual uint HandleInComingCall(uint dwCallType, HTASK htaskCaller, uint dwTickCount, in INTERFACEINFO lpInterfaceInfo)
         {
             return (uint)SERVERCALL.SERVERCALL_ISHANDLED;
         }
 
-        public virtual uint RetryRejectedCall(IntPtr htaskCallee, uint dwTickCount, uint dwRejectType)
+        public virtual uint RetryRejectedCall(HTASK htaskCallee, uint dwTickCount, uint dwRejectType)
         {
             if ((SERVERCALL)dwRejectType != SERVERCALL.SERVERCALL_RETRYLATER
                 && (SERVERCALL)dwRejectType != SERVERCALL.SERVERCALL_REJECTED)
@@ -50,7 +51,7 @@ namespace Xunit.Harness
             return (uint)_retryDelay.TotalMilliseconds;
         }
 
-        public virtual uint MessagePending(IntPtr htaskCallee, uint dwTickCount, uint dwPendingType)
+        public virtual uint MessagePending(HTASK htaskCallee, uint dwTickCount, uint dwPendingType)
         {
             return (uint)PENDINGMSG.PENDINGMSG_WAITDEFPROCESS;
         }

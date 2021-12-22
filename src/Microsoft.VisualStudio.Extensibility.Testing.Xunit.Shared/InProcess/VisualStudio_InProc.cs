@@ -9,6 +9,9 @@ namespace Xunit.InProcess
     using System.Runtime.InteropServices;
     using System.Text;
     using Microsoft.VisualStudio.Shell.Interop;
+    using Windows.Win32;
+    using Windows.Win32.Foundation;
+    using Windows.Win32.UI.WindowsAndMessaging;
     using Xunit.Harness;
     using File = System.IO.File;
     using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
@@ -60,7 +63,8 @@ namespace Xunit.InProcess
             {
                 var dte = GetDTE();
 
-                var activeVisualStudioWindow = (IntPtr)dte.ActiveWindow.HWnd;
+                nint activeWindow = dte.ActiveWindow.HWnd;
+                var activeVisualStudioWindow = (HWND)activeWindow;
                 Debug.WriteLine($"DTE.ActiveWindow.HWnd = {activeVisualStudioWindow}");
                 if (activeVisualStudioWindow != IntPtr.Zero)
                 {
@@ -70,7 +74,8 @@ namespace Xunit.InProcess
                     }
                 }
 
-                activeVisualStudioWindow = (IntPtr)dte.MainWindow.HWnd;
+                nint mainWindow = dte.MainWindow.HWnd;
+                activeVisualStudioWindow = (HWND)mainWindow;
                 Debug.WriteLine($"DTE.MainWindow.HWnd = {activeVisualStudioWindow}");
                 if (!TrySetForegroundWindow(activeVisualStudioWindow))
                 {
@@ -175,41 +180,41 @@ namespace Xunit.InProcess
             });
         }
 
-        private static bool TrySetForegroundWindow(IntPtr window)
+        private static bool TrySetForegroundWindow(HWND window)
         {
-            var activeWindow = NativeMethods.GetLastActivePopup(window);
-            activeWindow = NativeMethods.IsWindowVisible(activeWindow) ? activeWindow : window;
-            NativeMethods.SwitchToThisWindow(activeWindow, true);
+            var activeWindow = PInvoke.GetLastActivePopup(window);
+            activeWindow = PInvoke.IsWindowVisible(activeWindow) ? activeWindow : window;
+            PInvoke.SwitchToThisWindow(activeWindow, true);
 
-            if (!NativeMethods.SetForegroundWindow(activeWindow))
+            if (!PInvoke.SetForegroundWindow(activeWindow))
             {
-                if (!NativeMethods.AllocConsole())
+                if (!PInvoke.AllocConsole())
                 {
                     Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
                 }
 
                 try
                 {
-                    var consoleWindow = NativeMethods.GetConsoleWindow();
+                    var consoleWindow = PInvoke.GetConsoleWindow();
                     if (consoleWindow == IntPtr.Zero)
                     {
                         throw new InvalidOperationException("Failed to obtain the console window.");
                     }
 
-                    if (!NativeMethods.SetWindowPos(consoleWindow, IntPtr.Zero, 0, 0, 0, 0, NativeMethods.SWP_NOZORDER))
+                    if (!PInvoke.SetWindowPos(consoleWindow, hWndInsertAfter: (HWND)0, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOZORDER))
                     {
                         Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
                     }
                 }
                 finally
                 {
-                    if (!NativeMethods.FreeConsole())
+                    if (!PInvoke.FreeConsole())
                     {
                         Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
                     }
                 }
 
-                if (!NativeMethods.SetForegroundWindow(activeWindow))
+                if (!PInvoke.SetForegroundWindow(activeWindow))
                 {
                     return false;
                 }

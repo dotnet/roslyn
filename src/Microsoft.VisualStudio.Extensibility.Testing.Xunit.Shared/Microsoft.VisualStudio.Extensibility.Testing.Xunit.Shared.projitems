@@ -24,7 +24,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Harness\MarshalledObjects.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\MessageFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\MessageFilterSafeHandle.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Harness\NativeMethods.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\RequireExtensionAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\ScreenshotService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\ServiceProvider.cs" />
@@ -63,5 +62,8 @@
   <ItemGroup>
     <Content Include="$(MSBuildThisFileDirectory)build\Microsoft.VisualStudio.Extensibility.Testing.Xunit.props" PackagePath="build" />
     <Content Include="$(MSBuildThisFileDirectory)build\Microsoft.VisualStudio.Extensibility.Testing.Xunit.targets" PackagePath="build" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)NativeMethods.txt" />
   </ItemGroup>
 </Project>

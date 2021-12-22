@@ -4,8 +4,8 @@
 namespace Xunit.Harness
 {
     using System;
-    using System.Runtime.InteropServices;
     using System.Threading;
+    using Windows.Win32;
     using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
     public static class GlobalServiceProvider
@@ -39,26 +39,18 @@ namespace Xunit.Harness
                 return null;
             }
 
-            if (NativeMethods.CoRegisterMessageFilter(IntPtr.Zero, out var oldMessageFilter) < 0)
+            if (PInvoke.CoRegisterMessageFilter(null, out var oldMessageFilter) < 0)
             {
                 return null;
             }
 
-            if (oldMessageFilter == IntPtr.Zero)
+            if (oldMessageFilter is null)
             {
                 return null;
             }
 
-            NativeMethods.CoRegisterMessageFilter(oldMessageFilter, out _);
-
-            try
-            {
-                return Marshal.GetObjectForIUnknown(oldMessageFilter);
-            }
-            finally
-            {
-                Marshal.Release(oldMessageFilter);
-            }
+            PInvoke.CoRegisterMessageFilter(oldMessageFilter, out _);
+            return oldMessageFilter;
         }
     }
 }
