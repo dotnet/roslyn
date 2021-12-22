@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isAutoProperty || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
-                _ = CreateBackingField(isCreatedForFieldKeyword: false);
+                _ = CreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty);
             }
 
             if (hasGetAccessor)
@@ -194,15 +194,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                               hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0,
                                               isCreatedForfieldKeyword: isCreatedForFieldKeyword);
                 InterlockedOperations.Initialize(ref _lazyBackingFieldSymbol, backingField);
-            }
-
-            // We want to do this check regardless whether _lazyBackingFieldSymbol is null or not.
-            // Consider `public int P { get => field; } = 0;
-            // We'll create the backing field because we saw an initialzer, but we haven't yet determined
-            // whether it's an auto property.
-            if (isCreatedForFieldKeyword) // If not created for field keyword, the flag is set in SourcePropertySymbolBase ctor.
-            {
-                _propertyFlags |= Flags.IsAutoProperty; // PROTOTYPE(semi-auto-props): Revise precisely when we need to set this.
             }
 
             return _lazyBackingFieldSymbol;
@@ -708,8 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                EnsureAccessorsBinding();
-                return (_propertyFlags & Flags.IsAutoProperty) != 0;
+                return (_propertyFlags & Flags.IsAutoProperty) != 0 || BackingField is { IsCreatedForFieldKeyword: true };
             }
         }
 
