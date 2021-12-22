@@ -1087,6 +1087,11 @@
         <target state="translated">부동 소수점 NaN에는 관계형 패턴을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredNameDisallowed">
+        <source>Types and aliases cannot not be named 'required'.</source>
+        <target state="new">Types and aliases cannot not be named 'required'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
         <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
         <target state="translated">'{0}': 대상 런타임이 재정의에서 공변(covariant) 형식을 지원하지 않습니다. 재정의된 멤버 '{1}'과(와) 일치하려면 '{2}' 형식이어야 합니다.</target>
@@ -1381,6 +1386,11 @@
         <source>record structs</source>
         <target state="translated">레코드 구조체</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRequiredMembers">
+        <source>required members</source>
+        <target state="new">required members</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>

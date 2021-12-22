@@ -1087,6 +1087,11 @@
         <target state="translated">关系模式可能不能用于浮点 NaN。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredNameDisallowed">
+        <source>Types and aliases cannot not be named 'required'.</source>
+        <target state="new">Types and aliases cannot not be named 'required'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
         <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
         <target state="translated">“{0}”: 目标运行时不支持替代中的协变类型。类型必须为“{2}”才能匹配替代成员“{1}”</target>
@@ -1381,6 +1386,11 @@
         <source>record structs</source>
         <target state="translated">记录结构</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRequiredMembers">
+        <source>required members</source>
+        <target state="new">required members</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>

@@ -449,13 +449,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) && compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
+            if (reportIfContextual(SyntaxKind.RecordKeyword, MessageID.IDS_FeatureRecords, ErrorCode.WRN_RecordNamedDisallowed)
+                || reportIfContextual(SyntaxKind.RequiredKeyword, MessageID.IDS_FeatureRequiredMembers, ErrorCode.ERR_RequiredNameDisallowed))
             {
-                diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location);
+                return;
             }
             else if (IsReservedTypeName(name))
             {
                 diagnostics.Add(ErrorCode.WRN_LowerCaseTypeName, location, name);
+            }
+
+            bool reportIfContextual(SyntaxKind contextualKind, MessageID featureId, ErrorCode error)
+            {
+                if (name == SyntaxFacts.GetText(contextualKind) && compilation.LanguageVersion >= featureId.RequiredVersion())
+                {
+                    diagnostics.Add(error, location);
+                    return true;
+                }
+
+                return false;
             }
         }
         #endregion

@@ -2029,5 +2029,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
+
+        // PROTOTYPE(req): Move above the comment and condense before merge
+
+        ERR_RequiredNameDisallowed = 9500,
     }
 }

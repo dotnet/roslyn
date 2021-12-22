@@ -1087,6 +1087,11 @@
         <target state="translated">Relationale Muster dürfen nicht für Gleitkomma-NaNs verwendet werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredNameDisallowed">
+        <source>Types and aliases cannot not be named 'required'.</source>
+        <target state="new">Types and aliases cannot not be named 'required'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
         <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
         <target state="translated">{0}: Die Zielruntime unterstützt keine covarianten Typen in Überschreibungen. Der Typ muss "{2}" sein, um dem überschriebenen Member "{1}" zu entsprechen.</target>
@@ -1381,6 +1386,11 @@
         <source>record structs</source>
         <target state="translated">Datensatzstrukturen</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRequiredMembers">
+        <source>required members</source>
+        <target state="new">required members</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>

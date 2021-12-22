@@ -1087,6 +1087,11 @@
         <target state="translated">Les modèles relationnels ne peuvent pas être utilisés pour une valeur NaN à virgule flottante.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredNameDisallowed">
+        <source>Types and aliases cannot not be named 'required'.</source>
+        <target state="new">Types and aliases cannot not be named 'required'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
         <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
         <target state="translated">'{0}' : le runtime cible ne prend pas en charge les types covariants dans les substitutions. Le type doit être '{2}' pour correspondre au membre substitué '{1}'</target>
@@ -1381,6 +1386,11 @@
         <source>record structs</source>
         <target state="translated">structs d’enregistrement</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRequiredMembers">
+        <source>required members</source>
+        <target state="new">required members</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>

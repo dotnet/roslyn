@@ -1087,6 +1087,11 @@
         <target state="translated">No se pueden usar patrones relacionales para un valor NaN de punto flotante.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredNameDisallowed">
+        <source>Types and aliases cannot not be named 'required'.</source>
+        <target state="new">Types and aliases cannot not be named 'required'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
         <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
         <target state="translated">"{0}": el entorno de ejecución de destino no admite los tipos de covariante en las invalidaciones. El tipo debe ser "{2}" para que coincida con el miembro "{1}" invalidado.</target>
@@ -1381,6 +1386,11 @@
         <source>record structs</source>
         <target state="translated">registros</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRequiredMembers">
+        <source>required members</source>
+        <target state="new">required members</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
