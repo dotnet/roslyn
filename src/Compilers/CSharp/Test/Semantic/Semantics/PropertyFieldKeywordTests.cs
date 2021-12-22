@@ -637,5 +637,99 @@ public class C
                 Assert.Equal("<P>k__BackingField", fields[0].Name);
             }
         }
+
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Cycle..")]
+        public void AssignReadOnlyOnlyPropertyOutsideConstructor()
+        {
+            var comp = CreateCompilation(@"
+class Test
+{
+    int X
+    {
+        get
+        {
+            field = 3;
+            X = 3;
+            return 0;
+        }
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (9,13): error CS0200: Property or indexer 'Test.X' cannot be assigned to -- it is read only
+                //             X = 3;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "X").WithArguments("Test.X").WithLocation(9, 13)
+            );
+        }
+
+        [Fact]
+        public void AssignReadOnlyOnlyPropertyInConstructor()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+_ = new Test();
+
+class Test
+{
+    public Test()
+    {
+        X = 3;
+        Console.WriteLine(X);
+    }
+
+    int X
+    {
+        get { return field; }
+    }
+}
+");
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "3");
+            VerifyTypeIL(comp, "Test", @"
+.class private auto ansi beforefieldinit Test
+    extends [mscorlib]System.Object
+{
+    // Fields
+    .field private initonly int32 '<X>k__BackingField'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    	01 00 00 00
+    )
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+    	instance void .ctor () cil managed 
+    {
+    	// Method begins at RVA 0x2060
+    	// Code size 25 (0x19)
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: call instance void [mscorlib]System.Object::.ctor()
+    	IL_0006: ldarg.0
+    	IL_0007: ldc.i4.3
+    	IL_0008: stfld int32 Test::'<X>k__BackingField'
+    	IL_000d: ldarg.0
+    	IL_000e: call instance int32 Test::get_X()
+    	IL_0013: call void [mscorlib]System.Console::WriteLine(int32)
+    	IL_0018: ret
+    } // end of method Test::.ctor
+    .method private hidebysig specialname 
+    	instance int32 get_X () cil managed 
+    {
+    	// Method begins at RVA 0x207a
+    	// Code size 7 (0x7)
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: ldfld int32 Test::'<X>k__BackingField'
+    	IL_0006: ret
+    } // end of method Test::get_X
+    // Properties
+    .property instance int32 X()
+    {
+    	.get instance int32 Test::get_X()
+    }
+} // end of class Test
+");
+
+        }
     }
 }
