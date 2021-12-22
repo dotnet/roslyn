@@ -44,6 +44,31 @@
             ItemsSource="{Binding Tabs, Mode=OneWay}"
             SelectedItem="{Binding SelectedTab, Mode=TwoWay}">
 
+            <!-- Container template for the tab control header to allow for horizontal scrolling of tabs -->
+            <TabControl.Template>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto"  VerticalScrollBarVisibility="Hidden" >
+                            <TabPanel x:Name="HeaderPanel"
+                              Panel.ZIndex ="1" 
+                              KeyboardNavigation.TabIndex="1"
+                              Grid.Column="0"
+                              Grid.Row="0"
+                              Margin="2,2,2,0"
+                              IsItemsHost="true"/>
+                        </ScrollViewer>
+                        <ContentPresenter x:Name="PART_SelectedContentHost"
+                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                      Margin="{TemplateBinding Padding}"
+                                      ContentSource="SelectedContent" Grid.Row="1"/>
+                    </Grid>
+                </ControlTemplate>
+            </TabControl.Template>
+
             <TabControl.ItemContainerStyle>
                 <Style TargetType="TabItem">
                     <Setter Property="Header" Value="{Binding Header}" />
@@ -61,14 +86,51 @@
                                         <RowDefinition Height="auto" />
                                         <RowDefinition Height="auto" />
                                     </Grid.RowDefinitions>
-                                    <ContentPresenter  Grid.Row="0" x:Name="contentPresenter" ContentSource="Header" Focusable="False" HorizontalAlignment="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="80" />
+                                        <ColumnDefinition Width="16" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <ContentPresenter  
+                                        Grid.Row="0" 
+                                        x:Name="contentPresenter" 
+                                        ContentSource="Header" 
+                                        Focusable="False" 
+                                        HorizontalAlignment="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" 
+                                        Margin="5 0 5 0" 
+                                        RecognizesAccessKey="True" 
+                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
+                                        VerticalAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+
+                                    <Button Grid.Row="0" Grid.Column="1" Command="{Binding CloseClick}" Margin="0" Padding="0" BorderThickness="0" Width="16" MinWidth="16" MinHeight="16" Height="16">
+                                        <Button.Template>
+                                            <ControlTemplate>
+                                                <Grid Background="{TemplateBinding Background}">
+                                                    <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.Close}" Margin="0" Width="14" Height="14" />
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Background" Value="Transparent" />
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonHoverBrushKey}}" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+
                                     <!-- the line under the text to indicate that this label is selected -->
                                     <Rectangle
                                         x:Name="_underline"
                                         Grid.Row="1"
+                                        Grid.Column="0"
+                                        Grid.ColumnSpan="2"
                                         Height="3"
                                         Visibility="Collapsed"
-                                        Width="{Binding ActualWidth, ElementName=contentPresenter}"
+                                        Width="96"
                                         HorizontalAlignment="Center"
                                         Fill="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabInactiveHoverTextBrushKey}}"/>
                                 </Grid>

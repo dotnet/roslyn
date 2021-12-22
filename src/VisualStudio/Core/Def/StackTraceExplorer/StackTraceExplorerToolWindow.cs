@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             var typeMap = roslynPackage.ComponentModel.GetService<ClassificationTypeMap>();
             var threadingContext = roslynPackage.ComponentModel.GetService<IThreadingContext>();
 
-            Root = new StackTraceExplorerRoot(new StackTraceExplorerRootViewModel(threadingContext, workspace, formatMap, typeMap))
+            Root = new StackTraceExplorerRoot(new StackTraceExplorerRootViewModel(threadingContext, _workspace, formatMap, typeMap))
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch

@@ -240,6 +240,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">异步等待任务完成。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
+        <source>Automatically open Stack Trace Explorer on focus</source>
+        <target state="new">Automatically open Stack Trace Explorer on focus</target>
+        <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
+      </trans-unit>
       <trans-unit id="Await_the_preceding_expression">
         <source>Await the preceding expression</source>
         <target state="new">Await the preceding expression</target>
