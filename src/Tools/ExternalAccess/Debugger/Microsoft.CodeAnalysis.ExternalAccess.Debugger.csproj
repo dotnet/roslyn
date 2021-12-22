@@ -20,6 +20,7 @@
       ⚠ ONLY VISUAL STUDIO DEBUGGER ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="VsDebugPresentationPackage" Key="$(VisualStudioDebuggerKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Debugger.BrokeredServices.Glass" Key="$(VisualStudioDebuggerKey)" />
   </ItemGroup>
 
   <ItemGroup>
