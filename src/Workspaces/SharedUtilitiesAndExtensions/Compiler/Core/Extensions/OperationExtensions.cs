@@ -126,6 +126,12 @@ namespace Microsoft.CodeAnalysis
                     ? ValueUsageInfo.ReadWrite
                     : ValueUsageInfo.Write;
             }
+            else if (operation.Parent is ISimpleAssignmentOperation simpleAssignmentOperation &&
+                simpleAssignmentOperation.Value == operation &&
+                simpleAssignmentOperation.IsRef)
+            {
+                return ValueUsageInfo.ReadableWritableReference;
+            }
             else if (operation.Parent is IIncrementOrDecrementOperation)
             {
                 return ValueUsageInfo.ReadWrite;
