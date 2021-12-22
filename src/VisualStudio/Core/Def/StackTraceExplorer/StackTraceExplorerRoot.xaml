@@ -17,7 +17,6 @@
              platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}">
     <UserControl.Resources>
         <ResourceDictionary>
-            <Style TargetType="Button" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogButtonStyleKey}}" />
             <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}" />
             <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" />
             <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" />
@@ -36,10 +35,34 @@
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="Padding" Value="0" />
             </Style>
+
+            <Style TargetType="Button" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogButtonStyleKey}}">
+                <Setter Property="Background" Value="Transparent" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonHoverBrushKey}}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal" Grid.Row="0" MinHeight="20" MinWidth="20" Margin="5">
+            <Button Click="Clear_Click" x:Name="Clear">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.ClearCollection}" Margin="0 0 5 0" />
+                        <TextBlock Text="Clear" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+        </StackPanel>
         <TabControl x:Name="TabControl"
+            Grid.Row="1"
             TabStripPlacement="Top"
             ItemsSource="{Binding Tabs, Mode=OneWay}"
             SelectedItem="{Binding SelectedTab, Mode=TwoWay}">
@@ -110,16 +133,6 @@
                                                 </Grid>
                                             </ControlTemplate>
                                         </Button.Template>
-                                        <Button.Style>
-                                            <Style TargetType="Button">
-                                                <Setter Property="Background" Value="Transparent" />
-                                                <Style.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonHoverBrushKey}}" />
-                                                    </Trigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Button.Style>
                                     </Button>
 
                                     <!-- the line under the text to indicate that this label is selected -->

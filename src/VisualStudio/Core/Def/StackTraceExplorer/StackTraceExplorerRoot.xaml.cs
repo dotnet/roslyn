@@ -53,5 +53,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 tab.CloseClick.Execute(null);
             }
         }
+
+        private void Clear_Click(object sender, RoutedEventArgs e)
+            => OnClear();
     }
 }
