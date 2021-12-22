@@ -11,15 +11,17 @@ namespace Xunit.Threading
     using Xunit.Harness;
     using Xunit.Sdk;
 
-    public sealed class IdeTheoryTestCase : IdeTestCaseBase
+    public sealed class IdeInstanceTestCase : IdeTestCaseBase
     {
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes", error: true)]
-        public IdeTheoryTestCase()
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        public IdeInstanceTestCase()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
         }
 
-        public IdeTheoryTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments = null)
+        public IdeInstanceTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments = null)
             : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, visualStudioInstanceKey, testMethodArguments)
         {
         }
@@ -29,12 +31,12 @@ namespace Xunit.Threading
             TestCaseRunner<IXunitTestCase> runner;
             if (!string.IsNullOrEmpty(SkipReason))
             {
-                // Use XunitTheoryTestCaseRunner so the skip gets reported without trying to open VS
-                runner = new XunitTheoryTestCaseRunner(this, DisplayName, SkipReason, constructorArguments, diagnosticMessageSink, messageBus, aggregator, cancellationTokenSource);
+                // Use XunitTestCaseRunner so the skip gets reported without trying to open VS
+                runner = new XunitTestCaseRunner(this, DisplayName, SkipReason, constructorArguments, TestMethodArguments, messageBus, aggregator, cancellationTokenSource);
             }
             else
             {
-                runner = new IdeTheoryTestCaseRunner(SharedData, VisualStudioInstanceKey, this, DisplayName, SkipReason, constructorArguments, diagnosticMessageSink, messageBus, aggregator, cancellationTokenSource);
+                runner = new IdeTestCaseRunner(SharedData, VisualStudioInstanceKey, this, DisplayName, SkipReason, constructorArguments, TestMethodArguments, messageBus, aggregator, cancellationTokenSource);
             }
 
             return runner.RunAsync();
