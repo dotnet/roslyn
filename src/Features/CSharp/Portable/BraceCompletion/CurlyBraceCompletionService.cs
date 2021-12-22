@@ -296,12 +296,9 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             var spanToFormat = TextSpan.FromBounds(Math.Max(startPoint, 0), endPoint);
             var rules = document.GetFormattingRules(spanToFormat, braceFormattingIndentationRules);
-            var result = Formatter.GetFormattingResult(
-                root, SpecializedCollections.SingletonEnumerable(spanToFormat), document.Project.Solution.Workspace, documentOptions, rules, cancellationToken);
-            if (result == null)
-            {
-                return (ImmutableArray<TextChange>.Empty, closingPoint);
-            }
+            var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+            var result = formatter.GetFormattingResult(
+                root, SpecializedCollections.SingletonEnumerable(spanToFormat), documentOptions, document.Project.Solution.Workspace.Services, rules, cancellationToken);
 
             var newRoot = result.GetFormattedRoot(cancellationToken);
             var newClosingPoint = newRoot.GetAnnotatedTokens(s_closingBraceSyntaxAnnotation).Single().SpanStart + 1;

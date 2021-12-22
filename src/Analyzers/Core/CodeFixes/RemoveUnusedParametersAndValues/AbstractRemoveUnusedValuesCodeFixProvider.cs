@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -268,14 +269,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var newRoot = await GetNewRootAsync(
-                await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false),
-                diagnostics, cancellationToken).ConfigureAwait(false);
+            var preprocessedDocument = await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var newRoot = await GetNewRootAsync(preprocessedDocument, options, diagnostics, cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(editor.OriginalRoot, newRoot);
         }
 
         private async Task<SyntaxNode> GetNewRootAsync(
             Document document,
+            OptionSet options,
             ImmutableArray<Diagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
@@ -314,7 +316,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             // Second pass to post process the document.
             var currentRoot = editor.GetChangedRoot();
-            var newRoot = await PostProcessDocumentAsync(document, currentRoot,
+            var newRoot = await PostProcessDocumentAsync(document, options, currentRoot,
                 diagnosticId, preference, cancellationToken).ConfigureAwait(false);
 
             if (currentRoot != newRoot)
@@ -719,6 +721,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         private async Task<SyntaxNode> PostProcessDocumentAsync(
             Document document,
+            OptionSet options,
             SyntaxNode currentRoot,
             string diagnosticId,
             UnusedValuePreference preference,
@@ -731,7 +734,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             if (preference == UnusedValuePreference.DiscardVariable)
             {
                 currentRoot = await PostProcessDocumentCoreAsync(
-                    ReplaceDiscardDeclarationsWithAssignmentsAsync, currentRoot, document, cancellationToken).ConfigureAwait(false);
+                    ReplaceDiscardDeclarationsWithAssignmentsAsync, currentRoot, document, options, cancellationToken).ConfigureAwait(false);
             }
 
             // If we added new variable declaration statements, move these as close as possible to their
@@ -739,16 +742,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             if (NeedsToMoveNewLocalDeclarationsNearReference(diagnosticId))
             {
                 currentRoot = await PostProcessDocumentCoreAsync(
-                    AdjustLocalDeclarationsAsync, currentRoot, document, cancellationToken).ConfigureAwait(false);
+                    AdjustLocalDeclarationsAsync, currentRoot, document, options, cancellationToken).ConfigureAwait(false);
             }
 
             return currentRoot;
         }
 
         private static async Task<SyntaxNode> PostProcessDocumentCoreAsync(
-            Func<SyntaxNode, Document, CancellationToken, Task<SyntaxNode>> processMemberDeclarationAsync,
+            Func<SyntaxNode, Document, OptionSet, CancellationToken, Task<SyntaxNode>> processMemberDeclarationAsync,
             SyntaxNode currentRoot,
             Document document,
+            OptionSet options,
             CancellationToken cancellationToken)
         {
             // Process each member declaration which had at least one diagnostic reported in the original tree and hence
@@ -760,7 +764,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             foreach (var memberDecl in newRoot.DescendantNodes().Where(n => n.HasAnnotation(s_memberAnnotation)))
             {
-                var newMemberDecl = await processMemberDeclarationAsync(memberDecl, newDocument, cancellationToken).ConfigureAwait(false);
+                var newMemberDecl = await processMemberDeclarationAsync(memberDecl, newDocument, options, cancellationToken).ConfigureAwait(false);
                 memberDeclReplacementsMap.Add(memberDecl, newMemberDecl);
             }
 
@@ -776,7 +780,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// This is needed to prevent the code fix/FixAll from generating code with
         /// multiple local variables named '_', which is a compiler error.
         /// </summary>
-        private async Task<SyntaxNode> ReplaceDiscardDeclarationsWithAssignmentsAsync(SyntaxNode memberDeclaration, Document document, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> ReplaceDiscardDeclarationsWithAssignmentsAsync(SyntaxNode memberDeclaration, Document document, OptionSet options, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IReplaceDiscardDeclarationsWithAssignmentsService>();
             if (service == null)
@@ -795,9 +799,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// local declaration statements annotated with <see cref="s_existingLocalDeclarationWithoutInitializerAnnotation"/>
         /// whose declared local is no longer used removed.
         /// </summary>
-        private async Task<SyntaxNode> AdjustLocalDeclarationsAsync(
+        private static async Task<SyntaxNode> AdjustLocalDeclarationsAsync(
             SyntaxNode memberDeclaration,
             Document document,
+            OptionSet options,
             CancellationToken cancellationToken)
         {
             var moveDeclarationService = document.GetRequiredLanguageService<IMoveDeclarationNearReferenceService>();
@@ -821,7 +826,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var rootWithTrackedNodes = root.TrackNodes(originalDeclStatementsToMoveOrRemove);
 
             // Run formatter prior to invoking IMoveDeclarationNearReferenceService.
-            rootWithTrackedNodes = Formatter.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), document.Project.Solution.Workspace, cancellationToken: cancellationToken);
+            rootWithTrackedNodes = Formatter.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), document.Project.Solution.Workspace, options, cancellationToken: cancellationToken);
 
             document = document.WithSyntaxRoot(rootWithTrackedNodes);
             await OnDocumentUpdatedAsync().ConfigureAwait(false);

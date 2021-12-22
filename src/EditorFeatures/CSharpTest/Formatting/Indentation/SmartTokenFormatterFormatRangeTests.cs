@@ -3555,7 +3555,7 @@ class Program{
             TestWorkspace workspace)
         {
             var options = workspace.Options;
-            return Tuple.Create(options, Formatter.GetDefaultFormattingRules(workspace, LanguageNames.CSharp));
+            return Tuple.Create(options, Formatter.GetDefaultFormattingRules(workspace.Services, LanguageNames.CSharp));
         }
 
         private static Task AutoFormatOnColonAsync(string codeWithMarker, string expected, SyntaxKind startTokenKind)
@@ -3610,7 +3610,7 @@ class Program{
                 return;
             }
 
-            var changes = formatter.FormatRange(workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
+            var changes = formatter.FormatRange(workspace.Services, tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
             var actual = GetFormattedText(buffer, changes);
             Assert.Equal(expected, actual);
         }

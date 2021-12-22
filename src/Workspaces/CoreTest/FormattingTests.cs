@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestCSharpDefaultRules()
         {
-            var rules = Formatter.GetDefaultFormattingRules(new AdhocWorkspace(), LanguageNames.CSharp);
+            var rules = Formatter.GetDefaultFormattingRules(new AdhocWorkspace().Services, LanguageNames.CSharp);
 
             Assert.NotNull(rules);
             Assert.NotEmpty(rules);
@@ -54,7 +54,7 @@ End Class
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestVisualBasicDefaultFormattingRules()
         {
-            var rules = Formatter.GetDefaultFormattingRules(new AdhocWorkspace(), LanguageNames.VisualBasic);
+            var rules = Formatter.GetDefaultFormattingRules(new AdhocWorkspace().Services, LanguageNames.VisualBasic);
 
             Assert.NotNull(rules);
             Assert.NotEmpty(rules);

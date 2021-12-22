@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             }
 
             var root = await syntaxTree.GetRootAsync();
-            var rules = formattingRuleProvider.CreateRule(workspace.CurrentSolution.GetDocument(syntaxTree), 0).Concat(Formatter.GetDefaultFormattingRules(workspace, root.Language));
+            var rules = formattingRuleProvider.CreateRule(workspace.CurrentSolution.GetDocument(syntaxTree), 0).Concat(Formatter.GetDefaultFormattingRules(workspace.Services, root.Language));
             AssertFormat(workspace, expected, options, rules, clonedBuffer, root, spans);
 
             // format with node and transform

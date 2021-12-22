@@ -800,10 +800,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var formattingRules = venusFormattingRules.Concat(Formatter.GetDefaultFormattingRules(document));
 
-            var workspace = document.Project.Solution.Workspace;
-            var changes = Formatter.GetFormattedTextChanges(
+            var services = document.Project.Solution.Workspace.Services;
+            var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+            var changes = formatter.GetFormattingResult(
                 root, new TextSpan[] { CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan) },
-                workspace, options, formattingRules, CancellationToken.None);
+                options, services, formattingRules, CancellationToken.None).GetTextChanges(CancellationToken.None);
 
             visibleSpans.Add(visibleSpan);
             var newChanges = FilterTextChanges(document.GetTextSynchronously(CancellationToken.None), visibleSpans, changes.ToReadOnlyCollection()).Where(t => visibleSpan.Contains(t.Span));
