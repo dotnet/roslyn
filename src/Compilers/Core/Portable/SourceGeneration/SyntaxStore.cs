@@ -70,15 +70,11 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    if (syntaxInputBuilders.Count == 0)
-                    {
-                        // bring over the previously cached syntax tree inputs
-                        // PROTOTYPE: isnt this a bug? we cant get the inputs out of the previous table. we need the driverstatebuilder itself
-                        _tableBuilder.SetTable(SharedInputNodes.SyntaxTrees, _previous._tables.GetStateTableOrEmpty<SyntaxTree>(SharedInputNodes.SyntaxTrees));
-                    }
-                    else
+                    if (syntaxInputBuilders.Count > 0)
                     {
                         GeneratorRunStateTable.Builder temporaryRunStateBuilder = new GeneratorRunStateTable.Builder(_enableTracking);
+
+                        // at this point we need to grab the syntax trees from the new compilation, and optionally diff them against the old ones
                         NodeStateTable<SyntaxTree> syntaxTreeState = syntaxTreeTable;
 
                         // update each tree for the builders, sharing the semantic model
