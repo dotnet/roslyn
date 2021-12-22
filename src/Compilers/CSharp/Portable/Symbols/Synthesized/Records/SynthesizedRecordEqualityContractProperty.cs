@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 },
                 hasInitializer: false,
                 isAutoProperty: false,
+                getHasImplementation: true,
+                setHasImplementation: false,
                 isExpressionBodied: false,
                 isInitOnly: false,
                 RefKind.None,

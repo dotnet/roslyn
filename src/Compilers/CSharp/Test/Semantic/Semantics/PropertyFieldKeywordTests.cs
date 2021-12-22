@@ -68,9 +68,6 @@ public class C
 			string 'value'
 		) cil managed 
 	{
-		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-			01 00 00 00
-		)
 		// Method begins at RVA 0x2058
 		// Code size 8 (0x8)
 		.maxstack 8
@@ -294,12 +291,6 @@ public struct S
                 // (6,51): error CS1604: Cannot assign to 'field' because it is read-only
                 //     public int P3 { get => field; readonly set => field = value; } // No ERR_AutoSetterCantBeReadOnly, but ERR_AssgReadonlyLocal
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(6, 51),
-
-                // PROTOTYPE(semi-auto-props): Should not be reported.
-                // (7,35): error CS8658: Auto-implemented 'set' accessor 'S.P4.set' cannot be marked 'readonly'.
-                //     public int P4 { get; readonly set => field = value; } // No ERR_AutoSetterCantBeReadOnly, but ERR_AssgReadonlyLocal
-                Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P4.set").WithLocation(7, 35),
-
                 // (7,42): error CS1604: Cannot assign to 'field' because it is read-only
                 //     public int P4 { get; readonly set => field = value; } // No ERR_AutoSetterCantBeReadOnly, but ERR_AssgReadonlyLocal
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(7, 42)

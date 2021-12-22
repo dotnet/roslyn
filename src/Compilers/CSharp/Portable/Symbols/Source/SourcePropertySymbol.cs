@@ -66,6 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string? aliasQualifierOpt;
             string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifier, name, diagnostics, out explicitInterfaceType, out aliasQualifierOpt);
 
+            bool getHasImplementation = accessorHasImplementation(getSyntax);
+            bool setHasImplementation = accessorHasImplementation(setSyntax);
+
             return new SourcePropertySymbol(
                 containingType,
                 syntax,
@@ -76,11 +79,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 aliasQualifierOpt,
                 modifiers,
                 isAutoProperty: isAutoProperty,
+                getHasImplementation: getHasImplementation,
+                setHasImplementation: setHasImplementation,
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
                 memberName,
                 location,
                 diagnostics);
+
+            static bool accessorHasImplementation(AccessorDeclarationSyntax? accessor)
+            {
+                if (accessor is null)
+                {
+                    return false;
+                }
+
+                return accessor.Body is not null || accessor.ExpressionBody is not null;
+            }
         }
 
         private SourcePropertySymbol(
@@ -93,6 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string? aliasQualifierOpt,
             DeclarationModifiers modifiers,
             bool isAutoProperty,
+            bool getHasImplementation,
+            bool setHasImplementation,
             bool isExpressionBodied,
             bool isInitOnly,
             string memberName,
@@ -109,6 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifiers,
                 hasInitializer: HasInitializer(syntax),
                 isAutoProperty: isAutoProperty,
+                getHasImplementation: getHasImplementation,
+                setHasImplementation: setHasImplementation,
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
                 syntax.Type.GetRefKind(),
@@ -203,8 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool hasAccessorList,
             out bool accessorsHaveImplementation,
             out bool isInitOnly,
-            out CSharpSyntaxNode? getSyntax,
-            out CSharpSyntaxNode? setSyntax)
+            out AccessorDeclarationSyntax? getSyntax,
+            out AccessorDeclarationSyntax? setSyntax)
         {
             var syntax = (BasePropertyDeclarationSyntax)syntaxNode;
             isAutoProperty = false;

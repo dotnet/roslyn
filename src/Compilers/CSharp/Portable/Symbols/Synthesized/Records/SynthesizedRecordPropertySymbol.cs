@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifiers: DeclarationModifiers.Public | (isOverride ? DeclarationModifiers.Override : DeclarationModifiers.None),
                 hasInitializer: true, // Synthesized record properties always have a synthesized initializer
                 isAutoProperty: true,
+                getHasImplementation: false,
+                setHasImplementation: false,
                 isExpressionBodied: false,
                 isInitOnly: ShouldUseInit(containingType),
                 RefKind.None,

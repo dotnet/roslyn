@@ -87,6 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifiers,
             bool hasInitializer,
             bool isAutoProperty,
+            bool getHasImplementation,
+            bool setHasImplementation,
             bool isExpressionBodied,
             bool isInitOnly,
             RefKind refKind,
@@ -173,12 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasGetAccessor)
             {
-                _getMethod = CreateGetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics); // PROTOTYPE: Getter and setters may have different values of isAutoPropertyAccessor.
-                // Consider public string P { get; set => field = value ?? ""; }
+                _getMethod = CreateGetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty && !getHasImplementation, diagnostics);
             }
             if (hasSetAccessor)
             {
-                _setMethod = CreateSetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
+                _setMethod = CreateSetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty && !setHasImplementation, diagnostics);
             }
         }
 
