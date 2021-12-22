@@ -64,4 +64,7 @@
     <Content Include="$(MSBuildThisFileDirectory)build\Microsoft.VisualStudio.Extensibility.Testing.Xunit.props" PackagePath="build" />
     <Content Include="$(MSBuildThisFileDirectory)build\Microsoft.VisualStudio.Extensibility.Testing.Xunit.targets" PackagePath="build" />
   </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)NativeMethods.txt" />
+  </ItemGroup>
 </Project>
