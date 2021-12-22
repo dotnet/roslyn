@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {
-            var compilationIsCached = graphState.GetLatestStateTableForNode(SharedInputNodes.Compilation).IsCached;
-            return (NodeStateTable<T>)graphState.SyntaxStore.GetSyntaxInputTable(this, compilationIsCached, graphState.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees));
+            return (NodeStateTable<T>)graphState.SyntaxStore.GetSyntaxInputTable(this, graphState.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees));
         }
 
         public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, _registerOutputAndNode, comparer, Name);

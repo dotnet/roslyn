@@ -14,12 +14,13 @@ namespace Microsoft.CodeAnalysis
     internal class SyntaxStore
     {
         private readonly StateTableStore _tables;
+        private readonly Compilation? _compilation;
+        internal static SyntaxStore Empty = new SyntaxStore(StateTableStore.Empty, compilation: null);
 
-        internal static SyntaxStore Empty = new SyntaxStore(StateTableStore.Empty);
-
-        private SyntaxStore(StateTableStore tables)
+        private SyntaxStore(StateTableStore tables, Compilation? compilation)
         {
             _tables = tables;
+            _compilation = compilation;
         }
 
         public class Builder
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis
             private readonly Compilation _compilation;
             private readonly ImmutableArray<ISyntaxInputNode> _syntaxInputNodes;
             private readonly bool _enableTracking;
-            private readonly StateTableStore _previousTableStates;
+            private readonly SyntaxStore _previous;
             private readonly CancellationToken _cancellationToken;
 
             public Builder(Compilation compilation, ImmutableArray<ISyntaxInputNode> syntaxInputNodes, bool enableTracking, SyntaxStore previousStore, CancellationToken cancellationToken = default)
@@ -37,11 +38,11 @@ namespace Microsoft.CodeAnalysis
                 _compilation = compilation;
                 _syntaxInputNodes = syntaxInputNodes;
                 _enableTracking = enableTracking;
-                _previousTableStates = previousStore._tables;
+                _previous = previousStore;
                 _cancellationToken = cancellationToken;
             }
 
-            public IStateTable GetSyntaxInputTable(ISyntaxInputNode syntaxInputNode, bool compilationIsCached, NodeStateTable<SyntaxTree> syntaxTreeTable)
+            public IStateTable GetSyntaxInputTable(ISyntaxInputNode syntaxInputNode, NodeStateTable<SyntaxTree> syntaxTreeTable)
             {
                 Debug.Assert(_syntaxInputNodes.Contains(syntaxInputNode));
 
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis
                     // CONSIDER: when the compilation is the same as previous, the syntax trees must also be the same.
                     // if we have a previous state table for a node, we can just short circuit knowing that it is up to date
                     // This step isn't part of the tree, so we can skip recording.
+                    var compilationIsCached = _compilation == _previous._compilation;
 
                     // get a builder for each input node
                     var syntaxInputBuilders = ArrayBuilder<ISyntaxInputBuilder>.GetInstance(_syntaxInputNodes.Length);
@@ -58,20 +60,21 @@ namespace Microsoft.CodeAnalysis
                     {
                         // TODO: We don't cache the tracked incremental steps in a manner that we can easily rehydrate between runs,
                         // so we'll disable the cached compilation perf optimization when incremental step tracking is enabled.
-                        if (compilationIsCached && !_enableTracking && _previousTableStates.TryGetValue(node, out var previousStateTable))
+                        if (compilationIsCached && !_enableTracking && _previous._tables.TryGetValue(node, out var previousStateTable))
                         {
                             _tableBuilder.SetTable(node, previousStateTable);
                         }
                         else
                         {
-                            syntaxInputBuilders.Add(node.GetBuilder(_previousTableStates, _enableTracking));
+                            syntaxInputBuilders.Add(node.GetBuilder(_previous._tables, _enableTracking));
                         }
                     }
 
                     if (syntaxInputBuilders.Count == 0)
                     {
                         // bring over the previously cached syntax tree inputs
-                        _tableBuilder.SetTable(SharedInputNodes.SyntaxTrees, _previousTableStates.GetStateTableOrEmpty<SyntaxTree>(SharedInputNodes.SyntaxTrees));
+                        // PROTOTYPE: isnt this a bug? we cant get the inputs out of the previous table. we need the driverstatebuilder itself
+                        _tableBuilder.SetTable(SharedInputNodes.SyntaxTrees, _previous._tables.GetStateTableOrEmpty<SyntaxTree>(SharedInputNodes.SyntaxTrees));
                     }
                     else
                     {
@@ -124,7 +127,7 @@ namespace Microsoft.CodeAnalysis
 
             public SyntaxStore ToImmutable()
             {
-                return new SyntaxStore(_tableBuilder.ToImmutable());
+                return new SyntaxStore(_tableBuilder.ToImmutable(), _compilation);
             }
         }
     }
