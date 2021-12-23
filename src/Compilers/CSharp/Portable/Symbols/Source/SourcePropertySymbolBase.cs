@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// so that we do not have to go back to source to compute this data.
         /// </summary>
         [Flags]
-        protected enum Flags : byte
+        private enum Flags : byte
         {
             IsExpressionBodied = 1 << 0,
             IsAutoProperty = 1 << 1,
@@ -51,9 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable disable
         private readonly TypeSymbol _explicitInterfaceType;
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
-        private protected Flags _propertyFlags;
+        private readonly Flags _propertyFlags;
         private readonly RefKind _refKind;
-        private readonly bool _setHasImplementation;
 
         private SymbolCompletionState _state;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
@@ -88,8 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifiers,
             bool hasInitializer,
             bool isAutoProperty,
-            bool getHasImplementation,
-            bool setHasImplementation,
             bool isExpressionBodied,
             bool isInitOnly,
             RefKind refKind,
@@ -105,7 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location = location;
             _containingType = containingType;
             _refKind = refKind;
-            _setHasImplementation = setHasImplementation;
             _modifiers = modifiers;
             _explicitInterfaceType = explicitInterfaceType;
 
@@ -169,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name = _lazySourceName = memberName;
             }
 
-            if (isAutoProperty || hasInitializer)
+            if ((isAutoProperty && hasGetAccessor) || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
                 _ = CreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty);
@@ -177,11 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasGetAccessor)
             {
-                _getMethod = CreateGetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty && !getHasImplementation, diagnostics);
+                _getMethod = CreateGetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
             }
             if (hasSetAccessor)
             {
-                _setMethod = CreateSetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty && !setHasImplementation, diagnostics);
+                _setMethod = CreateSetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
             }
         }
 
@@ -395,14 +391,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Ensure the binding is done so we guarantee that we have the BackingField set if necessary.
                     // If we already have a backing field. We should still do binding since we create a backing field just if
                     // we see an initializer. In this case binding is needed to know whether it's an auto property. See CreateBackingField method.
-                    if (this is SourcePropertySymbol { ContainsFieldKeyword: true } propertySymbol)
+                    if (this is SourcePropertySymbol propertySymbol)
                     {
-                        if (propertySymbol.GetMethod is SourceMemberMethodSymbol getMethod)
+                        if (propertySymbol.GetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } getMethod)
                         {
                             var binder = getMethod.TryGetBodyBinder();
                             binder?.BindMethodBody(getMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
                         }
-                        if (propertySymbol.SetMethod is SourceMemberMethodSymbol setMethod)
+                        if (propertySymbol.SetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } setMethod)
                         {
                             setMethod.TryGetBodyBinder()?.BindMethodBody(setMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
                         }
@@ -702,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (_propertyFlags & Flags.IsAutoProperty) != 0 || BackingField is { IsCreatedForFieldKeyword: true };
+                return (_propertyFlags & Flags.IsAutoProperty) != 0;
             }
         }
 
@@ -850,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, Location, this);
                         }
                     }
-                    else if (!hasGetAccessor && !_setHasImplementation && IsAutoProperty)
+                    else if (!hasGetAccessor && IsAutoProperty)
                     {
                         diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, _setMethod!.Locations[0], _setMethod);
                     }
@@ -1143,7 +1139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => IsAutoProperty
+            => IsAutoPropertyWithGetAccessor // PROTOTYPE(semi-auto-props): Adjust this and add tests.
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 

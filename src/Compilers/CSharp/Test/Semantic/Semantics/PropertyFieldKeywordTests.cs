@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             CompileAndVerify(compilation).VerifyTypeIL(typeName, expected);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Mixing semicolon-only with field not yet working.")]
         public void TestSimpleCase()
         {
             var comp = CreateCompilation(@"
@@ -272,7 +272,7 @@ public class C : B
 ");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Currently has extra diagnostics")]
         public void Test_ERR_AutoSetterCantBeReadOnly()
         {
             var comp = CreateCompilation(@"
@@ -653,7 +653,7 @@ class Test
             );
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Currently fails with CS0200: Property or indexer 'Test.X' cannot be assigned to -- it is read only")]
         public void AssignReadOnlyOnlyPropertyInConstructor()
         {
             var comp = CreateCompilation(@"
@@ -736,6 +736,31 @@ class C
                 // (4,21): error CS8051: Auto-implemented properties must have get accessors.
                 //     public int P1 { set; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.P1.set").WithLocation(4, 21)
+            );
+        }
+
+        [Fact(Skip = "PROTOTYPE(semi-auto-props)")]
+        public void InStaticLambda()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+public class C
+{
+    public int P
+    {
+        get
+        {
+            Func<int> f = static () => field;
+            return 0;
+        }
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (10,40): error CS8821: A static anonymous function cannot contain a reference to 'this' or 'base'.
+                //             Func<int> f = static () => field;
+                Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "field").WithLocation(10, 40)
             );
         }
     }

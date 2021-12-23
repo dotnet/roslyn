@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private string _lazyName;
         private readonly bool _isAutoPropertyAccessor;
         private readonly bool _isExpressionBodied;
+        private readonly bool _containsFieldKeyword;
         private readonly bool _usesInit;
 
         public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
@@ -125,6 +126,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 diagnostics);
         }
+
+        private static bool NodeContainsFieldKeyword(CSharpSyntaxNode node)
+            => node.DescendantTokens().Any(
+                t => t.IsKind(SyntaxKind.IdentifierToken) && t.ContextualKind() == SyntaxKind.FieldKeyword && t.Parent.IsKind(SyntaxKind.IdentifierName));
+
+
 #nullable disable
 
         internal sealed override bool IsExpressionBodied
@@ -152,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _property = property;
             _isAutoPropertyAccessor = false;
             _isExpressionBodied = true;
+            _containsFieldKeyword = NodeContainsFieldKeyword(syntax);
 
             // The modifiers for the accessor are the same as the modifiers for the property,
             // minus the indexer and readonly bit
@@ -197,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _property = property;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
+            _containsFieldKeyword = NodeContainsFieldKeyword(syntax);
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
             _isExpressionBodied = !hasBody && hasExpressionBody;
             _usesInit = usesInit;
@@ -435,6 +444,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Indicates whether this accessor itself has a 'readonly' modifier.
         /// </summary>
         internal bool LocalDeclaredReadOnly => (DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
+
+        /// <summary>
+        /// Indicates whether this accessor has a 'field' keyword.
+        /// </summary>
+        internal bool ContainsFieldKeyword => _containsFieldKeyword;
 
         /// <summary>
         /// Indicates whether this accessor is readonly due to reasons scoped to itself and its containing property.

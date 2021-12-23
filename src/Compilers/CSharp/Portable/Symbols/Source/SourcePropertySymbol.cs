@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourcePropertySymbol : SourcePropertySymbolBase
     {
-        private readonly bool _containsFieldKeyword;
-
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             var nameToken = syntax.Identifier;
@@ -66,9 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string? aliasQualifierOpt;
             string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifier, name, diagnostics, out explicitInterfaceType, out aliasQualifierOpt);
 
-            bool getHasImplementation = accessorHasImplementation(getSyntax);
-            bool setHasImplementation = accessorHasImplementation(setSyntax);
-
             return new SourcePropertySymbol(
                 containingType,
                 syntax,
@@ -79,23 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 aliasQualifierOpt,
                 modifiers,
                 isAutoProperty: isAutoProperty,
-                getHasImplementation: getHasImplementation,
-                setHasImplementation: setHasImplementation,
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
                 memberName,
                 location,
                 diagnostics);
-
-            static bool accessorHasImplementation(AccessorDeclarationSyntax? accessor)
-            {
-                if (accessor is null)
-                {
-                    return false;
-                }
-
-                return accessor.Body is not null || accessor.ExpressionBody is not null;
-            }
         }
 
         private SourcePropertySymbol(
@@ -108,8 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string? aliasQualifierOpt,
             DeclarationModifiers modifiers,
             bool isAutoProperty,
-            bool getHasImplementation,
-            bool setHasImplementation,
             bool isExpressionBodied,
             bool isInitOnly,
             string memberName,
@@ -126,8 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifiers,
                 hasInitializer: HasInitializer(syntax),
                 isAutoProperty: isAutoProperty,
-                getHasImplementation: getHasImplementation,
-                setHasImplementation: setHasImplementation,
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
                 syntax.Type.GetRefKind(),
@@ -136,12 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location,
                 diagnostics)
         {
-            if ((_propertyFlags & Flags.IsAutoProperty) != 0)
+            if (IsAutoProperty)
             {
-                // These features are C# 3 and C# 6 features.
-                // Accessor binding is only important for semi auto property which is C# 11 feature. It's:
-                // 1. redundant to check accessor binding in this case.
-                // 2. problematic as it will cause a cycle. Binding will create a property symbol, then we require binding again and again.
                 Binder.CheckFeatureAvailability(
                     syntax,
                     (hasGetAccessor && !hasSetAccessor) ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties : MessageID.IDS_FeatureAutoImplementedProperties,
@@ -149,47 +124,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     location);
             }
 
-            _containsFieldKeyword = containsFieldKeyword();
-
             CheckForBlockAndExpressionBody(
                 syntax.AccessorList,
                 syntax.GetExpressionBodySyntax(),
                 syntax,
                 diagnostics);
-
-            bool containsFieldKeyword()
-            {
-                if (syntax is not PropertyDeclarationSyntax property)
-                {
-                    return false;
-                }
-
-                if (property.AccessorList is not { } accessorList)
-                {
-                    return false;
-                }
-
-                foreach (var accessor in accessorList.Accessors)
-                {
-                    var body = (SyntaxNode?)accessor.Body ?? accessor.ExpressionBody;
-                    if (body is null)
-                    {
-                        continue;
-                    }
-
-                    var containsFieldKeyword = body.DescendantTokens()
-                        .Any(t => t.IsKind(SyntaxKind.IdentifierToken) && t.ContextualKind() == SyntaxKind.FieldKeyword && t.Parent.IsKind(SyntaxKind.IdentifierName));
-                    if (containsFieldKeyword)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
         }
-
-        internal bool ContainsFieldKeyword => _containsFieldKeyword;
 
         private TypeSyntax GetTypeSyntax(SyntaxNode syntax) => ((BasePropertyDeclarationSyntax)syntax).Type;
 
