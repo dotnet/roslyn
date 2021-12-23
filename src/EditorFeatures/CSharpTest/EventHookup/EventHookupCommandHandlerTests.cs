@@ -1025,6 +1025,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WorkItem(58474, "https://github.com/dotnet/roslyn/issues/58474")]
         public async Task EventHookupInTopLevelCode()
         {
             var markup = @"
