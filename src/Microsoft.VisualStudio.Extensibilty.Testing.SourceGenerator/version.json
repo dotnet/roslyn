@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/AArnott/Nerdbank.GitVersioning/master/src/NerdBank.GitVersioning/version.schema.json",
+  "inherit": true,
+  "assemblyVersion": {
+    "precision": "revision"
+  }
+}
