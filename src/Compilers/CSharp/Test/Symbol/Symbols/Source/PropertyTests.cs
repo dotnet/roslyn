@@ -288,7 +288,13 @@ struct S
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+// (4,20): error CS8051: Auto-implemented properties must have get accessors.
+//     public int Q { set; } = 0;
+Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.Q.set").WithLocation(4, 20),
+// (5,20): error CS8051: Auto-implemented properties must have get accessors.
+//     public int R { set; }
+Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.R.set").WithLocation(5, 20));
         }
 
         [Fact]
