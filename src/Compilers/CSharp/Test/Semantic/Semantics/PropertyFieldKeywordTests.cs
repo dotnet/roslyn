@@ -31,6 +31,102 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             CompileAndVerify(compilation).VerifyTypeIL(typeName, expected);
         }
 
+        [Fact]
+        public void TestSemicolonOnlyGetter()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P { get => field; }
+}"
+);
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Fields
+	.field private initonly int32 '<P>k__BackingField'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C::'<P>k__BackingField'
+		IL_0006: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2058
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+	}
+} // end of class C
+");
+        }
+
+        [Fact]
+        public void TestExpressionBodiedProperty()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P => field;
+}
+");
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [netstandard]System.Object
+{
+	// Fields
+	.field private initonly int32 '<P>k__BackingField'
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C::'<P>k__BackingField'
+		IL_0006: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2058
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+	}
+} // end of class C
+");
+        }
+
         [Fact(Skip = "PROTOTYPE(semi-auto-props): Mixing semicolon-only with field not yet working.")]
         public void TestSimpleCase()
         {
@@ -619,6 +715,23 @@ public class C
 public class C
 {
     public string P { set => field = value; }
+}
+");
+            for (int i = 0; i < 3; i++)
+            {
+                var fields = ((SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C")!).GetFieldsToEmit().ToArray();
+                Assert.Equal(1, fields.Length);
+                Assert.Equal("<P>k__BackingField", fields[0].Name);
+            }
+        }
+
+        [Fact]
+        public void TestGetFieldsToEmit_Initializer()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public string P => field;
 }
 ");
             for (int i = 0; i < 3; i++)
