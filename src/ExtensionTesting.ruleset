@@ -74,6 +74,10 @@
     <!-- IDE0003 duplicates functionality provided by SX1101 -->
     <Rule Id="IDE0003" Action="None" />
   </Rules>
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.PublicApiAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.PublicApiAnalyzers">
+    <Rule Id="RS0016" Action="None" />
+    <Rule Id="RS0037" Action="None" />
+  </Rules>
   <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers.CSharp" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers.CSharp">
     <Rule Id="VSTHRD010" Action="None" />
   </Rules>
