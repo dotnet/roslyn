@@ -18,7 +18,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="12.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.12.0" Version="12.0.30111" />
     <PackageReference Include="VSSDK.ComponentModelHost" Version="12.0.4" />
-    <PackageReference Include="VSSDK.Shell.12" Version="12.0.4" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" PrivateAssets="all" />
   </ItemGroup>

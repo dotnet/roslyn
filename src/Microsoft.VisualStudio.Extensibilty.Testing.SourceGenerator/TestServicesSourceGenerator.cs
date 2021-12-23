@@ -105,6 +105,65 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 }
 ";
 
+        private const string ErrorHandlerSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio
+{
+    using System.Runtime.InteropServices;
+
+    internal static class ErrorHandler
+    {
+        public static bool Succeeded(int hr)
+            => hr >= 0;
+
+        public static bool Failed(int hr)
+            => hr < 0;
+
+        public static int ThrowOnFailure(int hr)
+        {
+            if (Failed(hr))
+            {
+                Marshal.ThrowExceptionForHR(hr);
+            }
+
+            return hr;
+        }
+    }
+}
+";
+
+        private const string VSConstantsSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio
+{
+    using System;
+
+    internal static partial class VSConstants
+    {
+        /// <summary>
+        /// These element IDs are the only element IDs that can be used with the selection service.
+        /// </summary>
+        public enum VSSELELEMID
+        {
+            SEID_UndoManager = 0,
+            SEID_WindowFrame = 1,
+            SEID_DocumentFrame = 2,
+            SEID_StartupProject = 3,
+            SEID_PropertyBrowserSID = 4,
+            SEID_UserContext = 5,
+            SEID_ResultList = 6,
+            SEID_LastWindowFrame = 7,
+        }
+    }
+}
+";
+
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             context.RegisterPostInitializationOutput(context =>
@@ -176,8 +235,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                         && joinableTaskCollection.GetMembers("JoinTillEmptyAsync").Any(member => member is IMethodSymbol { Parameters.Length: 1 });
                     var hasJoinableTaskFactoryWithPriority = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.Threading.DispatcherExtensions") is not null;
                     var hasAsyncEnumerable = compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerable`1") is not null;
+                    var hasErrorHandler = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.ErrorHandler") is not null;
 
-                    return new ReferenceDataModel(hasSAsyncServiceProvider, hasThreadHelperJoinableTaskContext, canCancelJoinTillEmptyAsync, hasJoinableTaskFactoryWithPriority, hasAsyncEnumerable);
+                    return new ReferenceDataModel(hasSAsyncServiceProvider, hasThreadHelperJoinableTaskContext, canCancelJoinTillEmptyAsync, hasJoinableTaskFactoryWithPriority, hasAsyncEnumerable, hasErrorHandler);
                 });
 
             context.RegisterSourceOutput(
@@ -555,6 +615,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 }}
 ";
                     context.AddSource($"AbstractIdeIntegrationTest{SourceSuffix}", abstractIdeIntegrationTestSource);
+
+                    if (!referenceDataModel.HasErrorHandler)
+                    {
+                        context.AddSource($"ErrorHandler{SourceSuffix}", ErrorHandlerSource);
+                        context.AddSource($"VSConstants{SourceSuffix}", VSConstantsSource);
+                    }
                 });
 
             context.RegisterSourceOutput(
@@ -688,13 +754,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         private class ReferenceDataModel
         {
-            public ReferenceDataModel(bool hasSAsyncServiceProvider, bool hasThreadHelperJoinableTaskContext, bool canCancelJoinTillEmptyAsync, bool hasJoinableTaskFactoryWithPriority, bool hasAsyncEnumerable)
+            public ReferenceDataModel(bool hasSAsyncServiceProvider, bool hasThreadHelperJoinableTaskContext, bool canCancelJoinTillEmptyAsync, bool hasJoinableTaskFactoryWithPriority, bool hasAsyncEnumerable, bool hasErrorHandler)
             {
                 HasSAsyncServiceProvider = hasSAsyncServiceProvider;
                 HasThreadHelperJoinableTaskContext = hasThreadHelperJoinableTaskContext;
                 CanCancelJoinTillEmptyAsync = canCancelJoinTillEmptyAsync;
                 HasJoinableTaskFactoryWithPriority = hasJoinableTaskFactoryWithPriority;
                 HasAsyncEnumerable = hasAsyncEnumerable;
+                HasErrorHandler = hasErrorHandler;
             }
 
             public bool HasSAsyncServiceProvider { get; }
@@ -706,6 +773,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             public bool HasJoinableTaskFactoryWithPriority { get; }
 
             public bool HasAsyncEnumerable { get; }
+
+            public bool HasErrorHandler { get; }
         }
     }
 }
