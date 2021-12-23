@@ -168,6 +168,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((isAutoProperty && hasGetAccessor) || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
+                // PROTOTYPE(semi-auto-props): Make sure that TestSemiAutoPropertyWithInitializer (when enabled back) is affected by this.
+                // That is, if we removed "hasInitializer", the test should fail, or any other test should get affected.
                 _ = CreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty);
             }
 
@@ -389,9 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_state.NotePartComplete(CompletionPart.StartPropertyAccessorsBinding))
                 {
                     // Ensure the binding is done so we guarantee that we have the BackingField set if necessary.
-                    // If we already have a backing field. We should still do binding since we create a backing field just if
-                    // we see an initializer. In this case binding is needed to know whether it's an auto property. See CreateBackingField method.
-                    if (this is SourcePropertySymbol propertySymbol)
+                    if (_lazyBackingFieldSymbol is null && this is SourcePropertySymbol propertySymbol)
                     {
                         if (propertySymbol.GetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } getMethod)
                         {
