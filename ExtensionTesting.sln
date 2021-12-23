@@ -16,6 +16,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.15", "src\Microsoft.VisualStudio.VsixInstaller.15\Microsoft.VisualStudio.VsixInstaller.15.csproj", "{4232A7BA-A7B7-4C65-B7A1-17FB5CDED299}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests", "src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.csproj", "{346081A2-A088-4486-94B3-B586BD6FD888}"
+	ProjectSection(ProjectDependencies) = postProject
+		{25E61E07-E449-4ABB-A197-BD5C8EE3347F} = {25E61E07-E449-4ABB-A197-BD5C8EE3347F}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EF963386-CD2E-4E1F-938A-ADACA3CF0E17}"
 	ProjectSection(SolutionItems) = preProject
@@ -44,6 +47,9 @@ EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared", "src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.shproj", "{9B5759AD-4EFF-4E2D-921B-D617BB8CFA22}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests", "src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests.csproj", "{CE32D863-E8C3-461F-80C7-32D0B0853217}"
+	ProjectSection(ProjectDependencies) = postProject
+		{25E61E07-E449-4ABB-A197-BD5C8EE3347F} = {25E61E07-E449-4ABB-A197-BD5C8EE3347F}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit", "Microsoft.VisualStudio.Extensibility.Testing.Xunit", "{9ED7BE6A-BDEE-44CF-B5C8-EA5F6E212CFD}"
 EndProject
