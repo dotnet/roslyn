@@ -384,6 +384,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // PROTOTYPE(semi-auto-props): Consider renaming to EnsureBackingFieldIsSynthesized.
+        // PROTOTYPE(semi-auto-props): Consider not using CompletionPart for this purpose.
         private void EnsureAccessorsBinding()
         {
             if (!_state.HasComplete(CompletionPart.FinishPropertyAccessorsBinding))
