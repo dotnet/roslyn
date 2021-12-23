@@ -28,12 +28,21 @@ internal sealed partial class DelegateCreationRewriter
         _topLevelMethodOrdinal = topLevelMethodOrdinal;
     }
 
-    internal static bool CanRewrite(MethodSymbol targetMethod, BoundConversion boundConversion)
-        => targetMethod.IsStatic && !boundConversion.IsExtensionMethod;
-
-    internal BoundExpression Rewrite(BoundDelegateCreationExpression boundDelegateCreation, MethodSymbol targetMethod, TypeSymbol delegateType)
+    internal static bool CanRewrite(BoundDelegateCreationExpression boundDelegateCreation)
     {
-        Debug.Assert(delegateType.IsDelegateType());
+        var targetMethod = boundDelegateCreation.MethodOpt;
+
+        Debug.Assert(targetMethod is { });
+
+        return targetMethod.IsStatic && !boundDelegateCreation.IsExtensionMethod;
+    }
+
+    internal BoundExpression Rewrite(BoundDelegateCreationExpression boundDelegateCreation)
+    {
+        var targetMethod = boundDelegateCreation.MethodOpt;
+        var delegateType = boundDelegateCreation.Type;
+
+        Debug.Assert(targetMethod is { });
 
         var oldSyntax = _factory.Syntax;
         _factory.Syntax = boundDelegateCreation.Syntax;
