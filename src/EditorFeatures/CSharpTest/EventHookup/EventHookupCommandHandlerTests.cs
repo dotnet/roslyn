@@ -1024,6 +1024,30 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        public async Task EventHookupInTopLevelCode()
+        {
+            var markup = @"
+
+System.AppDomain.CurrentDomain.UnhandledException +$$
+
+";
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
+
+            var expectedCode = @"
+
+System.AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
+void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
+{
+    throw new System.NotImplementedException();
+}";
+            testState.AssertCodeIs(expectedCode);
+        }
+
         private static OptionsCollection QualifyMethodAccessWithNotification(NotificationOption2 notification)
             => new OptionsCollection(LanguageNames.CSharp) { { CodeStyleOptions2.QualifyMethodAccess, true, notification } };
     }
