@@ -89,6 +89,221 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 }
 ";
 
+        private const string SolutionExplorerInProcessSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using System.Windows;
+    using Microsoft;
+    using Microsoft.VisualStudio;
+    using Microsoft.VisualStudio.Shell;
+    using Microsoft.VisualStudio.Shell.Interop;
+    using Microsoft.VisualStudio.Threading;
+
+    [TestService]
+    internal partial class SolutionExplorerInProcess
+    {
+        public async Task<bool> IsSolutionOpenAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(solution.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out var isOpen));
+            return (bool)isOpen;
+        }
+
+        /// <summary>
+        /// Close the currently open solution without saving.
+        /// </summary>
+        public async Task CloseSolutionAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
+            if (!await IsSolutionOpenAsync(cancellationToken))
+            {
+                return;
+            }
+
+            using SemaphoreSlim semaphore = new SemaphoreSlim(1);
+            await RunWithSolutionEventsAsync(
+                async solutionEvents =>
+                {
+                    await semaphore.WaitAsync(cancellationToken);
+
+                    void HandleAfterCloseSolution(object sender, EventArgs e)
+                        => semaphore.Release();
+
+                    solutionEvents.AfterCloseSolution += HandleAfterCloseSolution;
+                    try
+                    {
+                        ErrorHandler.ThrowOnFailure(solution.CloseSolutionElement((uint)__VSSLNCLOSEOPTIONS.SLNCLOSEOPT_DeleteProject | (uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave, null, 0));
+                        await semaphore.WaitAsync(cancellationToken);
+                    }
+                    finally
+                    {
+                        solutionEvents.AfterCloseSolution -= HandleAfterCloseSolution;
+                    }
+                },
+                cancellationToken);
+        }
+
+        private sealed partial class SolutionEvents : IVsSolutionEvents
+        {
+            private readonly JoinableTaskFactory _joinableTaskFactory;
+            private readonly IVsSolution _solution;
+            private readonly uint _cookie;
+
+            public SolutionEvents(JoinableTaskFactory joinableTaskFactory, IVsSolution solution)
+            {
+                Application.Current.Dispatcher.VerifyAccess();
+
+                _joinableTaskFactory = joinableTaskFactory;
+                _solution = solution;
+                ErrorHandler.ThrowOnFailure(solution.AdviseSolutionEvents(this, out _cookie));
+            }
+
+            public event EventHandler? AfterCloseSolution;
+
+            public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnBeforeCloseSolution(object pUnkReserved)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnAfterCloseSolution(object pUnkReserved)
+            {
+                AfterCloseSolution?.Invoke(this, EventArgs.Empty);
+                return VSConstants.S_OK;
+            }
+        }
+    }
+}
+";
+
+        private const string SolutionExplorerInProcessSolutionEventsDisposeSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Shell.Interop;
+
+    internal partial class SolutionExplorerInProcess
+    {
+        private async Task RunWithSolutionEventsAsync(Func<SolutionEvents, Task> actionAsync, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
+            using var solutionEvents = new SolutionEvents(JoinableTaskFactory, solution);
+            await actionAsync(solutionEvents);
+        }
+
+        private sealed partial class SolutionEvents : IDisposable
+        {
+            public void Dispose()
+            {
+                _joinableTaskFactory.Run(async () =>
+                {
+                    await _joinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+                    ErrorHandler.ThrowOnFailure(_solution.UnadviseSolutionEvents(_cookie));
+                });
+            }
+        }
+    }
+}
+";
+
+        private const string SolutionExplorerInProcessSolutionEventsDisposeAsyncSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Shell.Interop;
+    using IAsyncDisposable = System.IAsyncDisposable;
+
+    internal partial class SolutionExplorerInProcess
+    {
+        private async Task RunWithSolutionEventsAsync(Func<SolutionEvents, Task> actionAsync, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
+            await using var solutionEvents = new SolutionEvents(JoinableTaskFactory, solution);
+            await actionAsync(solutionEvents);
+        }
+
+        private sealed partial class SolutionEvents : IAsyncDisposable
+        {
+            public async ValueTask DisposeAsync()
+            {
+                await _joinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+                ErrorHandler.ThrowOnFailure(_solution.UnadviseSolutionEvents(_cookie));
+            }
+        }
+    }
+}
+";
+
         private const string TestServiceAttributeSource = @"// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
@@ -146,6 +361,13 @@ namespace Microsoft.VisualStudio
 
     internal static partial class VSConstants
     {
+        // General HRESULTS
+
+        /// <summary>HRESULT for FALSE (not an error).</summary>
+        public const int S_FALSE = 0x00000001;
+        /// <summary>HRESULT for generic success.</summary>
+        public const int S_OK = 0x00000000;
+
         /// <summary>
         /// These element IDs are the only element IDs that can be used with the selection service.
         /// </summary>
@@ -168,6 +390,7 @@ namespace Microsoft.VisualStudio
         {
             context.RegisterPostInitializationOutput(context =>
             {
+                context.AddSource($"SolutionExplorerInProcess1{SourceSuffix}", SolutionExplorerInProcessSource);
                 context.AddSource($"ShellInProcess1{SourceSuffix}", ShellInProcessSource);
                 context.AddSource($"TestServiceAttribute{SourceSuffix}", TestServiceAttributeSource);
             });
@@ -420,6 +643,15 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 ";
                     context.AddSource($"ShellInProcess_EnumerateWindowsAsync{SourceSuffix}", shellInProcessEnumerateWindowsSource);
 
+                    if (referenceDataModel.HasAsyncEnumerable)
+                    {
+                        context.AddSource($"SolutionExplorerInProcess.SolutionEvents_IAsyncDisposable{SourceSuffix}", SolutionExplorerInProcessSolutionEventsDisposeAsyncSource);
+                    }
+                    else
+                    {
+                        context.AddSource($"SolutionExplorerInProcess.SolutionEvents_IDisposable{SourceSuffix}", SolutionExplorerInProcessSolutionEventsDisposeSource);
+                    }
+
                     string joinableTaskContextInitializer;
                     if (referenceDataModel.HasThreadHelperJoinableTaskContext)
                     {
@@ -588,7 +820,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {{
             _cleanupCancellationTokenSource.CancelAfter(CleanupHangMitigatingTimeout);
 
-            ////await TestServices.SolutionExplorer.CloseSolutionAsync(CleanupCancellationToken);
+            await TestServices.SolutionExplorer.CloseSolutionAsync(CleanupCancellationToken);
 
             if (_joinableTaskCollection is object)
             {{
