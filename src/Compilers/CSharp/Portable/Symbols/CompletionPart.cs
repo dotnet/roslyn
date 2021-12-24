@@ -97,7 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         FinishPropertyParameters = 1 << 7,
         StartPropertyType = 1 << 8,
         FinishPropertyType = 1 << 9,
-
         PropertySymbolAll = Attributes | StartPropertyEnsureSignature | FinishPropertyEnsureSignature | StartPropertyParameters | FinishPropertyParameters |
                             StartPropertyType | FinishPropertyType,
 

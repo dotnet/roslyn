@@ -216,6 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Property:
                     // PROTOTYPE(semi-auto-props): Review other event associated field callers and see if we have to do anything special for properties.
                     // Backing field for semi auto props are not included in GetMembers.
+                    // PROTOTYPE(semi-auto-props): This condition is always false after modifiying BackingField implementation. Figure out a
+                    // test that needs this.
                     if (member is SourcePropertySymbol { BackingField: SynthesizedBackingFieldSymbol { IsCreatedForFieldKeyword: true } backingField })
                     {
                         return backingField;

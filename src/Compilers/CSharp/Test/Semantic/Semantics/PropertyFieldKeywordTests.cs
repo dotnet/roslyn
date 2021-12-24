@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
         }
 
         [Fact]
-        public void TestSemicolonOnlyGetter()
+        public void TestFieldOnlyGetter()
         {
             var comp = CreateCompilation(@"
 public class C
@@ -834,7 +834,7 @@ class Test
             );
         }
 
-        [Fact(Skip = "PROTOTYPE(semi-auto-props): Currently fails with CS0200: Property or indexer 'Test.X' cannot be assigned to -- it is read only")]
+        [Fact]
         public void AssignReadOnlyOnlyPropertyInConstructor()
         {
             var comp = CreateCompilation(@"
@@ -942,6 +942,62 @@ public class C
                 // (10,40): error CS8821: A static anonymous function cannot contain a reference to 'this' or 'base'.
                 //             Func<int> f = static () => field;
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "field").WithLocation(10, 40)
+            );
+        }
+
+        [Fact]
+        public void Test_ERR_FieldAutoPropCantBeByRefLike()
+        {
+            var comp = CreateCompilationWithSpan(@"
+using System;
+
+public struct S1
+{
+    public Span<int> P { get => field; }
+}
+
+public ref struct S2
+{
+    public Span<int> P { get => field; }
+}
+");
+            comp.VerifyDiagnostics(
+            // PROTOTYPE(semi-auto-props): This should have ERR_FieldAutoPropCantBeByRefLike
+            );
+        }
+
+        [Fact]
+        public void Test_ReadOnlyPropertyInStruct()
+        {
+            var comp = CreateCompilation(@"
+public struct S
+{
+    public readonly string P { set => field = value; }
+}
+");
+            comp.VerifyDiagnostics(
+                // (4,39): error CS1604: Cannot assign to 'field' because it is read-only
+                //     public readonly string P { set => field = value; }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(4, 39)
+            );
+        }
+
+        [Fact]
+        public void Test_ERR_AutoPropertyWithSetterCantBeReadOnly()
+        {
+            var comp = CreateCompilation(@"
+public readonly struct S
+{
+    public string P { set => field = value; }
+}
+");
+            // PROTOTYPE(semi-auto-props): An equivalent scenario with explicitly declared field produces a different error:
+            // error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+            // Need to confirm why these behave differently and if that's acceptable.
+            comp.VerifyDiagnostics(
+                // (4,30): error CS1604: Cannot assign to 'field' because it is read-only
+                //     public string P { set => field = value; }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(4, 30)
             );
         }
     }

@@ -714,6 +714,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal SynthesizedBackingFieldSymbol? BackingField { get; }
 
+        /// <summary>
+        /// Backing field for a semi automatically implemented property.
+        /// </summary>
         internal SynthesizedBackingFieldSymbol? FieldKeywordBackingField
         {
             get
