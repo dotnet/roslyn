@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // This assert makes it clear what other node type we can have.
                     // In future, if this failed, we should confirm whether it's something that field keyword needs to handle.
-                    Debug.Assert(node is ParameterSyntax, $"Unexpected type '{node.GetType()}' for accessor symbol.");
+                    Debug.Assert(node is ParameterSyntax or RecordDeclarationSyntax, $"Unexpected type '{node.GetType()}' for accessor symbol.");
                     return null;
                 }
 
