@@ -1049,6 +1049,37 @@ void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEv
             testState.AssertCodeIs(expectedCode);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        public async Task EventHookupAtEndOfDocument()
+        {
+            var markup = @"
+
+System.AppDomain.CurrentDomain.UnhandledException +$$";
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("CurrentDomain_UnhandledException");
+
+            var expectedCode = @"
+
+System.AppDomain.CurrentDomain.UnhandledException +=";
+            testState.AssertCodeIs(expectedCode);
+
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
+
+            expectedCode = @"
+
+System.AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
+void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
+{
+    throw new System.NotImplementedException();
+}";
+            testState.AssertCodeIs(expectedCode);
+        }
+
         private static OptionsCollection QualifyMethodAccessWithNotification(NotificationOption2 notification)
             => new OptionsCollection(LanguageNames.CSharp) { { CodeStyleOptions2.QualifyMethodAccess, true, notification } };
     }
