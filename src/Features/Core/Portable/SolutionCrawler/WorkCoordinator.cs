@@ -474,7 +474,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private async Task EnqueueWorkItemAsync(Project project, InvocationReasons invocationReasons)
             {
-                foreach (var documentId in project.DocumentIds.Concat(project.AdditionalDocumentIds).Concat(project.AnalyzerConfigDocumentIds))
+                foreach (var documentId in project.DocumentIds)
+                    await EnqueueWorkItemAsync(project, documentId, document: null, invocationReasons).ConfigureAwait(false);
+
+                foreach (var documentId in project.AdditionalDocumentIds)
+                    await EnqueueWorkItemAsync(project, documentId, document: null, invocationReasons).ConfigureAwait(false);
+
+                foreach (var documentId in project.AnalyzerConfigDocumentIds)
                     await EnqueueWorkItemAsync(project, documentId, document: null, invocationReasons).ConfigureAwait(false);
             }
 
