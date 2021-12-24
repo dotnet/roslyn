@@ -2824,6 +2824,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel semanticModel,
             AnalyzerExecutor analyzerExecutor)
         {
+            // Skip syntax nodes when analyzing record declaration constructor to avoid duplicate syntax node callbacks.
+            // We will analyze these nodes while analyzing the record declaration type symbol.
+            if (declaredSymbol is IMethodSymbol method &&
+                method.ContainingType.IsRecord &&
+                method.MethodKind == MethodKind.Constructor)
+            {
+                return ImmutableArray<SyntaxNode>.Empty;
+            }
+
             // Eliminate descendant member declarations within declarations.
             // There will be separate symbols declared for the members.
             HashSet<SyntaxNode>? descendantDeclsToSkip = null;

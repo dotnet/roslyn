@@ -3762,5 +3762,43 @@ class C
                 Assert.Same(model, _cache[tree]);
             }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public class RecordDeclarationAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "MyDiagnostic";
+            internal const string Title = "MyDiagnostic";
+            internal const string MessageFormat = "MyDiagnostic";
+            internal const string Category = "Category";
+
+            internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzeRecordDeclaration, SyntaxKind.RecordDeclaration);
+            }
+
+            private static void AnalyzeRecordDeclaration(SyntaxNodeAnalysisContext context)
+            {
+                var recordDeclaration = (RecordDeclarationSyntax)context.Node;
+                var diagnostic = CodeAnalysis.Diagnostic.Create(Rule, recordDeclaration.GetLocation());
+                context.ReportDiagnostic(diagnostic);
+            }
+        }
+
+        [Fact, WorkItem(53136, "https://github.com/dotnet/roslyn/issues/53136")]
+        public void TestNoDuplicateCallbacksForRecordDeclaration()
+        {
+            string source = @"
+public record A(int X, int Y);";
+            var analyzers = new DiagnosticAnalyzer[] { new RecordDeclarationAnalyzer() };
+
+            CreateCompilation(new[] { source, IsExternalInitTypeDefinition })
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                     Diagnostic("MyDiagnostic", @"public record A(int X, int Y);").WithLocation(2, 1));
+        }
     }
 }
