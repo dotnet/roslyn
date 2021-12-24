@@ -162,11 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool hasAccessorList,
             out bool accessorsHaveImplementation,
             out bool isInitOnly,
-            out AccessorDeclarationSyntax? getSyntax,
-            out AccessorDeclarationSyntax? setSyntax)
+            out CSharpSyntaxNode? getSyntax,
+            out CSharpSyntaxNode? setSyntax)
         {
             var syntax = (BasePropertyDeclarationSyntax)syntaxNode;
-            isAutoProperty = false;
+            isAutoProperty = true;
             hasAccessorList = syntax.AccessorList != null;
             getSyntax = null;
             setSyntax = null;
@@ -218,16 +218,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (accessor.Body != null || accessor.ExpressionBody != null)
                     {
+                        isAutoProperty = false;
                         accessorsHaveImplementation = true;
-                    }
-                    else
-                    {
-                        isAutoProperty = true;
                     }
                 }
             }
             else
             {
+                isAutoProperty = false;
                 accessorsHaveImplementation = GetArrowExpression(syntax) is object;
             }
         }

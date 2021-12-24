@@ -536,7 +536,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.Members:
-                        // PROTOTYPE(semi-auto-props): Can we add initializers here?
                         this.GetMembersByName();
                         break;
 
@@ -4406,7 +4405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.SetMethod);
-                            FieldSymbol backingField = property.NonFieldKeywordBackingField;
+                            FieldSymbol backingField = property.BackingField;
 
                             // TODO: can we leave this out of the member list?
                             // From the 10/12/11 design notes:
@@ -4430,12 +4429,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                       backingField); // PROTOTYPE(semi-auto-props): Is field-keyword BackingField needed here?
                                     }
 
-                                    // PROTOTYPE(semi-auto-props):
-                                    // For initializers, we must add "BackingField".
-                                    // "NonFieldKeywordBackingField" makes no sense here.
-                                    // However, calling BackingField here causes a cycle.
-                                    // Either find another code path to do this, or possibly pass a lambda for backingField
-                                    // which can be called in a path that don't cause a cycle.
                                     if (property.IsStatic)
                                     {
                                         AddInitializer(ref staticInitializers, backingField, initializer);

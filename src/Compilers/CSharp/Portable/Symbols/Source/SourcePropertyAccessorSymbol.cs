@@ -127,10 +127,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
         }
 
-        private static bool NodeContainsFieldKeyword(CSharpSyntaxNode node)
-            => node.DescendantTokens().Any(
-                t => t.IsKind(SyntaxKind.IdentifierToken) && t.ContextualKind() == SyntaxKind.FieldKeyword && t.Parent.IsKind(SyntaxKind.IdentifierName));
+        private static bool NodeContainsFieldKeyword(CSharpSyntaxNode? node)
+        {
+            if (node is null)
+            {
+                return false;
+            }
 
+            return node.DescendantTokens().Any(
+                t => t.IsKind(SyntaxKind.IdentifierToken) && t.ContextualKind() == SyntaxKind.FieldKeyword && t.Parent.IsKind(SyntaxKind.IdentifierName));
+        }
 
 #nullable disable
 
@@ -205,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _property = property;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
-            _containsFieldKeyword = NodeContainsFieldKeyword(syntax);
+            _containsFieldKeyword = NodeContainsFieldKeyword(getAccessorSyntax(syntax));
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
             _isExpressionBodied = !hasBody && hasExpressionBody;
             _usesInit = usesInit;
@@ -246,6 +252,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!modifierErrors)
             {
                 this.CheckModifiers(location, hasBody || hasExpressionBody, isAutoPropertyAccessor, diagnostics);
+            }
+
+            static CSharpSyntaxNode? getAccessorSyntax(CSharpSyntaxNode node)
+            {
+                if (node is not AccessorDeclarationSyntax accessor)
+                {
+                    // If this is not an AccessorDeclarationSyntax, we don't need to know anything about existence of "field" keyword.
+
+                    // This assert makes it clear what other node type we can have.
+                    // In future, if this failed, we should confirm whether it's something that field keyword needs to handle.
+                    Debug.Assert(node is ParameterSyntax, $"Unexpected type '{node.GetType()}' for accessor symbol.");
+                    return null;
+                }
+
+                return (CSharpSyntaxNode?)accessor.Body ?? accessor.ExpressionBody;
             }
         }
 #nullable disable
@@ -446,8 +467,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool LocalDeclaredReadOnly => (DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
 
         /// <summary>
-        /// Indicates whether this accessor has a 'field' keyword.
+        /// Indicates whether this accessor has a candidate 'field' keyword.
         /// </summary>
+        /// <remarks>
+        /// This is only calculated from syntax, so we don't know if it
+        /// will bind to something or will create a backing field.
+        /// </remarks>
         internal bool ContainsFieldKeyword => _containsFieldKeyword;
 
         /// <summary>

@@ -50528,7 +50528,7 @@ public class C2 : I1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21),
                 // (9,26): error CS8051: Auto-implemented properties must have get accessors.
                 //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C2.I1.P1.set").WithLocation(9, 26)s
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C2.I1.P1.set").WithLocation(9, 26)
                 );
         }
 

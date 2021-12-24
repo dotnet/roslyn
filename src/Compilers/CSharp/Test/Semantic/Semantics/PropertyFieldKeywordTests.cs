@@ -306,7 +306,7 @@ public class C
 ");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Mixed scenarios are not yet supported.")]
         public void TestPrefixedWithAt()
         {
             var comp = CreateCompilation(@"
@@ -319,6 +319,21 @@ public class C
                 // (4,35): error CS0103: The name 'field' does not exist in the current context
                 //     public string P { get; set => @field = value; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "@field").WithArguments("field").WithLocation(4, 35));
+        }
+
+        [Fact]
+        public void TestPrefixedWithAt2()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public string P { get => @field; }
+}
+");
+            comp.VerifyDiagnostics(
+                // (4,30): error CS0103: The name 'field' does not exist in the current context
+                //     public string P { get => @field; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@field").WithArguments("field").WithLocation(4, 30));
         }
 
         [Fact]
@@ -742,7 +757,7 @@ public class C
             }
         }
 
-        [Fact(Skip = "PROTOTYPE(semi-auto-props): Cycle..")]
+        [Fact]
         public void AssignReadOnlyOnlyPropertyOutsideConstructor()
         {
             var comp = CreateCompilation(@"
@@ -760,6 +775,9 @@ class Test
 }
 ");
             comp.VerifyDiagnostics(
+                // (8,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //             field = 3;
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(8, 13),
                 // (9,13): error CS0200: Property or indexer 'Test.X' cannot be assigned to -- it is read only
                 //             X = 3;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "X").WithArguments("Test.X").WithLocation(9, 13)

@@ -393,14 +393,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_state.NotePartComplete(CompletionPart.StartPropertyAccessorsBinding))
                 {
                     // Ensure the binding is done so we guarantee that we have the BackingField set if necessary.
-                    if (_lazyBackingFieldSymbol is null && this is SourcePropertySymbol propertySymbol)
+                    if (this is SourcePropertySymbol propertySymbol)
                     {
-                        if (propertySymbol.GetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } getMethod)
+                        if (_lazyBackingFieldSymbol is null && propertySymbol.GetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } getMethod)
                         {
                             var binder = getMethod.TryGetBodyBinder();
                             binder?.BindMethodBody(getMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
                         }
-                        if (propertySymbol.SetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } setMethod)
+                        if (_lazyBackingFieldSymbol is null && propertySymbol.SetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } setMethod)
                         {
                             setMethod.TryGetBodyBinder()?.BindMethodBody(setMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
                         }
