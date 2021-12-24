@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             CompileAndVerify(compilation).VerifyTypeIL(typeName, expected);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Assigning in constructor is not yet supported.")]
         public void TestFieldOnlyGetter()
         {
             var comp = CreateCompilation(@"
@@ -824,7 +824,11 @@ class Test
     }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
+                // PROTOTYPE(semi-auto-props): From review,
+                // This error doesn't make sense to me. I understand that the spec requires this field to be read-only, but I don't think this restriction is justified.
                 // (8,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //             field = 3;
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(8, 13),
@@ -832,9 +836,10 @@ class Test
                 //             X = 3;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "X").WithArguments("Test.X").WithLocation(9, 13)
             );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Assigning in constructor is not yet supported.")]
         public void AssignReadOnlyOnlyPropertyInConstructor()
         {
             var comp = CreateCompilation(@"
@@ -856,7 +861,10 @@ class Test
     }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics();
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             CompileAndVerify(comp, expectedOutput: "3");
             VerifyTypeIL(comp, "Test", @"
 .class private auto ansi beforefieldinit Test
@@ -1036,7 +1044,7 @@ public class Point
             var data = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = data;
             comp.VerifyDiagnostics();
-            Assert.Equal(2, data.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, data.NumberOfPerformedAccessorBinding);
         }
     }
 }
