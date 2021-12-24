@@ -1000,5 +1000,43 @@ public readonly struct S
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(4, 30)
             );
         }
+
+        [Fact]
+        public void Test_NoExtraBindingOccurred()
+        {
+            var comp = CreateCompilation(@"
+public class Point
+{
+    public int X { get { return field; } set { field = value; } }
+    public int Y { get { return field; } set { field = value; } }
+}
+");
+            var data = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = data;
+            comp.VerifyDiagnostics();
+            Assert.Equal(0, data.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void Test_BindingOccurs()
+        {
+            var comp = CreateCompilation(@"
+public class Point
+{
+    public Point(int x, int y)
+    {
+        X = x;
+        Y = y;
+    }
+
+    public int X { get { return field; } set { field = value; } }
+    public int Y { get { return field; } set { field = value; } }
+}
+");
+            var data = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = data;
+            comp.VerifyDiagnostics();
+            Assert.Equal(2, data.NumberOfPerformedAccessorBinding);
+        }
     }
 }

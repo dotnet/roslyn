@@ -21,6 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract class SourcePropertySymbolBase : PropertySymbol, IAttributeTargetSymbol
     {
+        /// <summary>
+        /// This is used for testing only.
+        /// </summary>
+        internal sealed class AccessorBindingData
+        {
+            public int NumberOfPerformedAccessorBinding { get; set; }
+        }
+
+
         protected const string DefaultIndexerName = "Item";
 
         /// <summary>
@@ -405,17 +414,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyBackingFieldSymbolForFieldKeyword is null && propertySymbol.GetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } getMethod)
                 {
+                    noteAccessorBinding();
                     var binder = getMethod.TryGetBodyBinder();
                     binder?.BindMethodBody(getMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
                 }
                 if (_lazyBackingFieldSymbolForFieldKeyword is null && propertySymbol.SetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } setMethod)
                 {
+                    noteAccessorBinding();
                     setMethod.TryGetBodyBinder()?.BindMethodBody(setMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
                 }
             }
 
             // Avoids re-calculation if we already have calculated it.
             _lazyBackingFieldSymbolForFieldKeyword ??= new(null);
+
+            void noteAccessorBinding()
+            {
+                if (DeclaringCompilation.TestOnlyCompilationData is AccessorBindingData accessorBindingData)
+                {
+                    accessorBindingData.NumberOfPerformedAccessorBinding++;
+                }
+            }
         }
 
 #nullable disable

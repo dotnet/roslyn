@@ -127,6 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
         }
 
+        // PROTOTYPE(semi-auto-props): Figure out what is going to be more efficient, to go after tokens and then
+        // checking their parent, or to go after nodes (IdentifierNameSyntax) first and then checking the underlying token.
         private static bool NodeContainsFieldKeyword(CSharpSyntaxNode? node)
         {
             if (node is null)
