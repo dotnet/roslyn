@@ -161,7 +161,7 @@ record C(int x, string y)
             Assert.Equal(c, x.ContainingType);
             Assert.Equal(c, x.ContainingSymbol);
 
-            var backing = x.BackingField;
+            var backing = x.BackingField!;
             Assert.Equal(x, backing.AssociatedSymbol);
             Assert.Equal(c, backing.ContainingSymbol);
             Assert.Equal(c, backing.ContainingType);
@@ -195,7 +195,7 @@ record C(int x, string y)
             Assert.Equal(c, y.ContainingType);
             Assert.Equal(c, y.ContainingSymbol);
 
-            backing = y.BackingField;
+            backing = y.BackingField!;
             Assert.Equal(y, backing.AssociatedSymbol);
             Assert.Equal(c, backing.ContainingSymbol);
             Assert.Equal(c, backing.ContainingType);

@@ -97,12 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         FinishPropertyParameters = 1 << 7,
         StartPropertyType = 1 << 8,
         FinishPropertyType = 1 << 9,
-        // Used for semi auto implemented props where we have to first bind accessors in order to ensure backing field can be created.
-        StartPropertyAccessorsBinding = 1 << 10,
-        FinishPropertyAccessorsBinding = 1 << 11,
 
         PropertySymbolAll = Attributes | StartPropertyEnsureSignature | FinishPropertyEnsureSignature | StartPropertyParameters | FinishPropertyParameters |
-                            StartPropertyType | FinishPropertyType | StartPropertyAccessorsBinding | FinishPropertyAccessorsBinding,
+                            StartPropertyType | FinishPropertyType,
 
         // For alias symbols
         AliasTarget = 1 << 4,

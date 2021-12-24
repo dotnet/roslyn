@@ -1388,14 +1388,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
                     case SymbolKind.Property:
-                        if (m is SourcePropertySymbol propertySymbol)
+                        if (m is SourcePropertySymbol { FieldKeywordBackingField: { } backingField })
                         {
-                            FieldSymbol? backingField = propertySymbol.BackingField;
-                            if (backingField is SynthesizedBackingFieldSymbol { IsCreatedForFieldKeyword: true })
-                            {
-                                Debug.Assert(!members.Contains(backingField));
-                                yield return backingField;
-                            }
+                            Debug.Assert(backingField.IsCreatedForFieldKeyword);
+                            Debug.Assert(!members.Contains(backingField));
+                            yield return backingField;
                         }
                         break;
                 }
@@ -4405,14 +4402,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.SetMethod);
-                            FieldSymbol backingField = property.BackingField;
+                            var backingField = property.BackingField;
 
                             // TODO: can we leave this out of the member list?
                             // From the 10/12/11 design notes:
                             //   In addition, we will change autoproperties to behavior in
                             //   a similar manner and make the autoproperty fields private.
-                            if ((object)backingField != null)
+                            if (backingField is object)
                             {
+                                Debug.Assert(!backingField.IsCreatedForFieldKeyword);
                                 builder.NonTypeMembers.Add(backingField);
                                 builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: backingField.IsStatic, compilation, propertySyntax);
 

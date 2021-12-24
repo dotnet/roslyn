@@ -37,9 +37,90 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             var comp = CreateCompilation(@"
 public class C
 {
+    public C()
+    {
+        P = 5;
+    }
+
     public int P { get => field; }
-}"
-);
+
+    public static void Main()
+    {
+        System.Console.WriteLine(new C().P);
+    }
+}
+", options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "5");
+            VerifyTypeIL(comp, "C", @"
+    .class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Fields
+	.field private initonly int32 '<P>k__BackingField'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	.custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = (
+		01 00 00 00 00 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 16 (0x10)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: nop
+		IL_0007: nop
+		IL_0008: ldarg.0
+		IL_0009: ldc.i4.5
+		IL_000a: stfld int32 C::'<P>k__BackingField'
+		IL_000f: ret
+	} // end of method C::.ctor
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2061
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C::'<P>k__BackingField'
+		IL_0006: ret
+	} // end of method C::get_P
+	.method public hidebysig static 
+		void Main () cil managed 
+	{
+		// Method begins at RVA 0x2069
+		// Code size 18 (0x12)
+		.maxstack 8
+		.entrypoint
+		IL_0000: nop
+		IL_0001: newobj instance void C::.ctor()
+		IL_0006: call instance int32 C::get_P()
+		IL_000b: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0010: nop
+		IL_0011: ret
+	} // end of method C::Main
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+	}
+} // end of class C
+");
+        }
+
+        [Fact]
+        public void TestExpressionBodiedProperty()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P => field;
+}
+");
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -68,54 +149,6 @@ public class C
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call instance void [mscorlib]System.Object::.ctor()
-		IL_0006: ret
-	} // end of method C::.ctor
-	// Properties
-	.property instance int32 P()
-	{
-		.get instance int32 C::get_P()
-	}
-} // end of class C
-");
-        }
-
-        [Fact]
-        public void TestExpressionBodiedProperty()
-        {
-            var comp = CreateCompilation(@"
-public class C
-{
-    public int P => field;
-}
-");
-            VerifyTypeIL(comp, "C", @"
-.class public auto ansi beforefieldinit C
-	extends [netstandard]System.Object
-{
-	// Fields
-	.field private initonly int32 '<P>k__BackingField'
-	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-		01 00 00 00
-	)
-	// Methods
-	.method public hidebysig specialname 
-		instance int32 get_P () cil managed 
-	{
-		// Method begins at RVA 0x2050
-		// Code size 7 (0x7)
-		.maxstack 8
-		IL_0000: ldarg.0
-		IL_0001: ldfld int32 C::'<P>k__BackingField'
-		IL_0006: ret
-	} // end of method C::get_P
-	.method public hidebysig specialname rtspecialname 
-		instance void .ctor () cil managed 
-	{
-		// Method begins at RVA 0x2058
-		// Code size 7 (0x7)
-		.maxstack 8
-		IL_0000: ldarg.0
-		IL_0001: call instance void [netstandard]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method C::.ctor
 	// Properties
@@ -741,12 +774,29 @@ public class C
         }
 
         [Fact]
-        public void TestGetFieldsToEmit_Initializer()
+        public void TestGetFieldsToEmit_ExpressionBodied()
         {
             var comp = CreateCompilation(@"
 public class C
 {
     public string P => field;
+}
+");
+            for (int i = 0; i < 3; i++)
+            {
+                var fields = ((SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C")!).GetFieldsToEmit().ToArray();
+                Assert.Equal(1, fields.Length);
+                Assert.Equal("<P>k__BackingField", fields[0].Name);
+            }
+        }
+
+        [Fact]
+        public void TestGetFieldsToEmit_Initializer()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public string P { get; } = string.Empty;
 }
 ");
             for (int i = 0; i < 3; i++)

@@ -18,6 +18,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedBackingFieldSymbol : FieldSymbolWithAttributesAndModifiers
     {
+#nullable enable
+        /// <summary>
+        /// We use this to know whether we have calculated the backing field for field keyword or not.
+        /// The backing field is represented as SynthesizedBackingFieldSymbol anyway.
+        /// </summary>
+        internal sealed class ForFieldKeyword
+        {
+            public ForFieldKeyword(SynthesizedBackingFieldSymbol? backingField) => BackingField = backingField;
+
+            public SynthesizedBackingFieldSymbol? BackingField { get; }
+        }
+#nullable disable
+
         private readonly SourcePropertySymbolBase _property;
         private readonly string _name;
         internal bool HasInitializer { get; }

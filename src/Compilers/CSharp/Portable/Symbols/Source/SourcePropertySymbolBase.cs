@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -66,10 +67,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SynthesizedSealedPropertyAccessor _lazySynthesizedSealedAccessor;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
+#nullable enable
         /// <summary>
-        /// This should only be set via CreateBackingField to avoid race conditions.
+        /// A null value means we haven't yet calculated the backing field for field keyword.
+        /// A non-null value with a null <see cref="SynthesizedBackingFieldSymbol.ForFieldKeyword.BackingField" /> means we calculated the backing field, but there was none.
         /// </summary>
-        private SynthesizedBackingFieldSymbol _lazyBackingFieldSymbol;
+        /// <remarks>
+        /// This should only be set via CreateBackingFieldForFieldKeyword to avoid race conditions.
+        /// </remarks>
+        private SynthesizedBackingFieldSymbol.ForFieldKeyword? _lazyBackingFieldSymbolForFieldKeyword;
+#nullable disable
 
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
 
@@ -170,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!IsIndexer);
                 // PROTOTYPE(semi-auto-props): Make sure that TestSemiAutoPropertyWithInitializer (when enabled back) is affected by this.
                 // That is, if we removed "hasInitializer", the test should fail, or any other test should get affected.
-                _ = CreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty);
+                BackingField = CreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty);
             }
 
             if (hasGetAccessor)
@@ -183,21 +190,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal SynthesizedBackingFieldSymbol CreateBackingField(bool isCreatedForFieldKeyword)
+        private SynthesizedBackingFieldSymbol CreateBackingField(bool isCreatedForFieldKeyword)
         {
-            Debug.Assert(!IsIndexer);
-            if (_lazyBackingFieldSymbol is null)
-            {
-                var backingField = new SynthesizedBackingFieldSymbol(this,
+            return new SynthesizedBackingFieldSymbol(this,
                                               GeneratedNames.MakeBackingFieldName(_name),
                                               isReadOnly: (HasGetAccessor && !HasSetAccessor) || IsInitOnly,
                                               this.IsStatic,
                                               hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0,
                                               isCreatedForfieldKeyword: isCreatedForFieldKeyword);
-                InterlockedOperations.Initialize(ref _lazyBackingFieldSymbol, backingField);
+        }
+
+        internal SynthesizedBackingFieldSymbol CreateBackingFieldForFieldKeyword()
+        {
+            Debug.Assert(!IsIndexer);
+            if (_lazyBackingFieldSymbolForFieldKeyword is null)
+            {
+                var backingField = CreateBackingField(isCreatedForFieldKeyword: true);
+                InterlockedOperations.Initialize(ref _lazyBackingFieldSymbolForFieldKeyword, new SynthesizedBackingFieldSymbol.ForFieldKeyword(backingField));
             }
 
-            return _lazyBackingFieldSymbol;
+            Debug.Assert(_lazyBackingFieldSymbolForFieldKeyword.BackingField is not null);
+            return _lazyBackingFieldSymbolForFieldKeyword.BackingField;
         }
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
@@ -384,35 +397,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // PROTOTYPE(semi-auto-props): Consider renaming to EnsureBackingFieldIsSynthesized.
-        // PROTOTYPE(semi-auto-props): Consider not using CompletionPart for this purpose.
-        private void EnsureAccessorsBinding()
+        [MemberNotNull("_lazyBackingFieldSymbolForFieldKeyword")]
+        private void EnsureBackingFieldIsSynthesized()
         {
-            if (!_state.HasComplete(CompletionPart.FinishPropertyAccessorsBinding))
+            // Ensure the binding is done so we guarantee that we have the BackingField set if necessary.
+            if (this is SourcePropertySymbol propertySymbol)
             {
-                if (_state.NotePartComplete(CompletionPart.StartPropertyAccessorsBinding))
+                if (_lazyBackingFieldSymbolForFieldKeyword is null && propertySymbol.GetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } getMethod)
                 {
-                    // Ensure the binding is done so we guarantee that we have the BackingField set if necessary.
-                    if (this is SourcePropertySymbol propertySymbol)
-                    {
-                        if (_lazyBackingFieldSymbol is null && propertySymbol.GetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } getMethod)
-                        {
-                            var binder = getMethod.TryGetBodyBinder();
-                            binder?.BindMethodBody(getMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
-                        }
-                        if (_lazyBackingFieldSymbol is null && propertySymbol.SetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } setMethod)
-                        {
-                            setMethod.TryGetBodyBinder()?.BindMethodBody(setMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
-                        }
-                    }
-
-                    _state.NotePartComplete(CompletionPart.FinishPropertyAccessorsBinding);
+                    var binder = getMethod.TryGetBodyBinder();
+                    binder?.BindMethodBody(getMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
                 }
-                else
+                if (_lazyBackingFieldSymbolForFieldKeyword is null && propertySymbol.SetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } setMethod)
                 {
-                    _state.SpinWaitComplete(CompletionPart.FinishPropertyAccessorsBinding, default(CancellationToken));
+                    setMethod.TryGetBodyBinder()?.BindMethodBody(setMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
                 }
             }
+
+            // Avoids re-calculation if we already have calculated it.
+            _lazyBackingFieldSymbolForFieldKeyword ??= new(null);
         }
 
 #nullable disable
@@ -704,31 +707,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         /// <summary>
         /// Backing field for automatically implemented property, or
         /// for a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol BackingField
+        internal SynthesizedBackingFieldSymbol? BackingField { get; }
+
+        internal SynthesizedBackingFieldSymbol? FieldKeywordBackingField
         {
             get
             {
-                EnsureAccessorsBinding();
-                return _lazyBackingFieldSymbol;
+                EnsureBackingFieldIsSynthesized();
+                Debug.Assert(_lazyBackingFieldSymbolForFieldKeyword.BackingField is null || _lazyBackingFieldSymbolForFieldKeyword.BackingField.IsCreatedForFieldKeyword);
+                return _lazyBackingFieldSymbolForFieldKeyword.BackingField;
             }
         }
-
-        internal SynthesizedBackingFieldSymbol NonFieldKeywordBackingField
-        {
-            get
-            {
-                if (_lazyBackingFieldSymbol is { IsCreatedForFieldKeyword: false })
-                {
-                    return _lazyBackingFieldSymbol;
-                }
-
-                return null;
-            }
-        }
+#nullable disable
 
         internal override bool MustCallMethodsDirectly
         {
@@ -1572,13 +1567,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
 
-                    case CompletionPart.StartPropertyAccessorsBinding:
-                    case CompletionPart.FinishPropertyAccessorsBinding:
-                        {
-                            EnsureAccessorsBinding();
-                            Debug.Assert(_state.HasComplete(CompletionPart.FinishPropertyAccessorsBinding));
-                        }
-                        break;
                     case CompletionPart.None:
                         return;
 

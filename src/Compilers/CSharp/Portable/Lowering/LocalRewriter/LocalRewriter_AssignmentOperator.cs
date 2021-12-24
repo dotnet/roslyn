@@ -301,13 +301,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (setMethod is null)
             {
                 var autoProp = (SourcePropertySymbolBase)property.OriginalDefinition;
-                Debug.Assert(autoProp.IsAutoPropertyWithGetAccessor,
+                Debug.Assert(autoProp.IsAutoPropertyWithGetAccessor || autoProp.FieldKeywordBackingField is not null,
                     "only autoproperties can be assignable without having setters");
                 Debug.Assert(property.Equals(autoProp, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
                 var backingField = autoProp.BackingField;
                 return _factory.AssignmentExpression(
-                    _factory.Field(rewrittenReceiver, backingField),
+                    _factory.Field(rewrittenReceiver, backingField ?? autoProp.FieldKeywordBackingField),
                     rewrittenRight);
             }
 

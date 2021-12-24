@@ -1561,10 +1561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ContainingMemberOrLambda is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor // PROTOTYPE: We should traverse until we get a property accessor.
                         )
                     {
-                        if (accessor.Property.CreateBackingField(isCreatedForFieldKeyword: true) is { } backingField)
-                        {
-                            expression = BindNonMethod(node, backingField, diagnostics, LookupResultKind.Viable, indexed: false, isError: false);
-                        }
+                        expression = BindNonMethod(node, accessor.Property.CreateBackingFieldForFieldKeyword(), diagnostics, LookupResultKind.Viable, indexed: false, isError: false);
                     }
                 }
 

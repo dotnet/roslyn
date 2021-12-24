@@ -1219,7 +1219,7 @@ public class Test
                 Diagnostic(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable, "field:").WithArguments("7.2", "7.3").WithLocation(8, 6),
                 // (11,6): warning CS8361: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
                 //     [field: System.Obsolete("obsolete", error: true)]
-                Diagnostic(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable, "field:").WithArguments("7.2", "7.3").WithLocation(11, 6),
+                Diagnostic(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable, "field:").WithArguments("7.2", "7.3").WithLocation(11, 6)
                 );
         }
 
