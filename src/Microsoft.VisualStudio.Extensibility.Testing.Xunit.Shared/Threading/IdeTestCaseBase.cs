@@ -56,7 +56,14 @@ namespace Xunit.Threading
 
         protected override string GetUniqueID()
         {
-            return $"{base.GetUniqueID()}_{VisualStudioInstanceKey.Version}";
+            if (string.IsNullOrEmpty(VisualStudioInstanceKey.RootSuffix))
+            {
+                return $"{base.GetUniqueID()}_{VisualStudioInstanceKey.Version}";
+            }
+            else
+            {
+                return $"{base.GetUniqueID()}_{VisualStudioInstanceKey.RootSuffix}_{VisualStudioInstanceKey.Version}";
+            }
         }
 
         public override void Serialize(IXunitSerializationInfo data)

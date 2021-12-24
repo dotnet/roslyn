@@ -28,7 +28,10 @@ namespace Xunit.Threading
                     foreach (var supportedInstance in GetSupportedInstances(testMethod, factAttribute))
                     {
                         yield return new IdeTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, supportedInstance);
-                        yield return new IdeInstanceTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), CreateVisualStudioTestMethod(supportedInstance), supportedInstance);
+                        if (IdeInstanceTestCase.TryCreateNewInstanceForFramework(discoveryOptions, _diagnosticMessageSink, supportedInstance) is { } instanceTestCase)
+                        {
+                            yield return instanceTestCase;
+                        }
                     }
                 }
                 else
