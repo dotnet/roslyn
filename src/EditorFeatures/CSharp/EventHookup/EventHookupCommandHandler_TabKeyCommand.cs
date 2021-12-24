@@ -224,11 +224,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             var eventHookupExpression = root.GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation).Single().AsToken().GetAncestor<AssignmentExpressionSyntax>();
 
             var typeDecl = eventHookupExpression.GetAncestor<TypeDeclarationSyntax>();
-            var methodKind = typeDecl is null
-                ? MethodKind.LocalFunction
-                : MethodKind.Ordinary;
 
-            var generatedMethodSymbol = GetMethodSymbol(document, eventHandlerMethodName, eventHookupExpression, methodKind, cancellationToken);
+            var generatedMethodSymbol = GetMethodSymbol(document, eventHandlerMethodName, eventHookupExpression, cancellationToken);
 
             if (generatedMethodSymbol == null)
             {
@@ -246,7 +243,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             SemanticDocument semanticDocument,
             string eventHandlerMethodName,
             AssignmentExpressionSyntax eventHookupExpression,
-            MethodKind methodKind,
             CancellationToken cancellationToken)
         {
             var semanticModel = semanticDocument.SemanticModel;
@@ -278,7 +274,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 name: eventHandlerMethodName,
                 typeParameters: default,
                 parameters: delegateInvokeMethod.Parameters,
-                methodKind: methodKind,
                 statements: ImmutableArray.Create(
                     CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, semanticDocument, "System.NotImplementedException")));
         }
