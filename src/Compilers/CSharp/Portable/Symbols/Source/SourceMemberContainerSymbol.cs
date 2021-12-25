@@ -4410,7 +4410,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             //   a similar manner and make the autoproperty fields private.
                             if (backingField is object)
                             {
-                                builder.NonTypeMembers.Add(backingField);
+                                if (!backingField.IsCreatedForFieldKeyword)
+                                {
+                                    builder.NonTypeMembers.Add(backingField);
+                                }
+
                                 builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: backingField.IsStatic, compilation, propertySyntax);
 
                                 var initializer = propertySyntax.Initializer;

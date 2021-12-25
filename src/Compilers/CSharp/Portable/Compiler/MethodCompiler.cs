@@ -584,6 +584,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            var properties = members.OfType<SourcePropertySymbolBase>();
+            foreach (var property in properties)
+            {
+                property.MarkBackingFieldAsCalculated();
+            }
+
             Debug.Assert(containingType.IsScriptClass == (scriptCtorOrdinal >= 0));
 
             // process additional anonymous type members

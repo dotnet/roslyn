@@ -407,9 +407,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Ensures that binding is done so we guarantee that we have the <see cref="BackingField"/> or
-        /// <see cref="FieldKeywordBackingField"/> set if necessary.
+        /// If the backing field is unknown, set it to null.
         /// </summary>
+        /// <remarks>
+        /// This should be called only if we're sure the backing field can't be non-null value.
+        /// </remarks>
+        internal void MarkBackingFieldAsCalculated()
+        {
+            Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, null, _lazyBackingFieldSymbolSentinel);
+        }
+
+        /// <summary>
+        /// Ensures that <see cref="_lazyBackingFieldSymbol" /> is set if necessary.
+        /// </summary>
+        /// <remarks>
+        /// This method *may* trigger binding to figure out if we have a field keyword in an accessor.
+        /// </remarks>
         private void EnsureBackingFieldIsSynthesized()
         {
             // The backing field is already set.
@@ -763,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 EnsureBackingFieldIsSynthesized();
-                if (_lazyBackingFieldSymbol is SynthesizedBackingFieldSymbol { IsEarlyConstructed: false } backingField)
+                if (_lazyBackingFieldSymbol is SynthesizedBackingFieldSymbol { IsCreatedForFieldKeyword: true } backingField)
                 {
                     return backingField;
                 }

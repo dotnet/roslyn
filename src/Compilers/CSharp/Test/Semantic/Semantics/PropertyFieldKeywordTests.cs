@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
     // compilation options should be adjusted to disable the filtering.
     // Error cases should check GetFieldToEmit after checking diagnostics, but before checking NumberOfPerformedAccessorBinding.
 
+    // PROTOTYPE(semi-auto-props): Speculative semantic model tests.
+
     public class PropertyFieldKeywordTests : CompilingTestBase
     {
         private void VerifyTypeIL(CSharpCompilation compilation, string typeName, string expected)
@@ -451,7 +453,7 @@ public class C : B
 	}
 } // end of class C
 ");
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding); // PROTOTYPE(semi-auto-props): Is this expected?
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact(Skip = "PROTOTYPE(semi-auto-props): Currently has extra diagnostics")]
@@ -952,7 +954,6 @@ class Test
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics();
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             CompileAndVerify(comp, expectedOutput: "3");
             VerifyTypeIL(comp, "Test", @"
 .class private auto ansi beforefieldinit Test
@@ -997,6 +998,7 @@ class Test
     }
 } // end of class Test
 ");
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -1179,6 +1181,26 @@ public class C2
             var accessorsC2 = comp.GetTypeByMetadataName("C2")!.GetMembers().OfType<SourcePropertyAccessorSymbol>().ToArray();
             Assert.Equal(1, accessorsC2.Length);
             Assert.False(accessorsC2[0].ContainsFieldKeyword);
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestUnassignedNonNullable()
+        {
+            var comp = CreateCompilation(@"
+#nullable enable
+
+public class C1
+{
+    public string P1 { get => field; }
+    // public string P2 { get => field; } = string.Empty // PROTOTYPE(semi-auto-props): Uncomment when initializers are supported.
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(); // PROTOTYPE(semi-auto-props): Is this the correct behavior?
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
