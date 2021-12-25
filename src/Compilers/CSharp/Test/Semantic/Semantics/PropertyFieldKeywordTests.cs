@@ -894,7 +894,7 @@ public class C
                 Assert.Equal(1, fields.Length);
                 Assert.Equal("<P>k__BackingField", fields[0].Name);
             }
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding); // PROTOTYPE(semi-auto-props): This looks unexpected? Revisit after initializers are supported.
         }
 
         [Fact]
