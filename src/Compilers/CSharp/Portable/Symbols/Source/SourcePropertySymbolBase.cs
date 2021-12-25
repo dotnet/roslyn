@@ -84,11 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
         /// <summary>
-        /// Represents that _lazyBackingFieldSymbolForFieldKeyword value is unknown.
+        /// Represents that <see cref="_lazyBackingFieldSymbol"/> value is unknown.
         /// </summary>
-        private static readonly object _lazyBackingFieldSymbolForFieldKeywordSentinel = new object();
+        private static readonly object _lazyBackingFieldSymbolSentinel = new object();
 
-        private object _lazyBackingFieldSymbolForFieldKeyword = _lazyBackingFieldSymbolForFieldKeywordSentinel;
+        private object _lazyBackingFieldSymbol = _lazyBackingFieldSymbolSentinel;
 
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
 
@@ -189,8 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!IsIndexer);
                 // PROTOTYPE(semi-auto-props): Make sure that TestSemiAutoPropertyWithInitializer (when enabled back) is affected by this.
                 // That is, if we removed "hasInitializer", the test should fail, or any other test should get affected.
-                BackingField = CreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty);
-                _lazyBackingFieldSymbolForFieldKeyword = null;
+                CreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty, isEarlyConstructed: true);
             }
 
             if (hasGetAccessor)
@@ -203,27 +202,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private SynthesizedBackingFieldSymbol CreateBackingField(bool isCreatedForFieldKeyword)
+        private SynthesizedBackingFieldSymbol CreateBackingField(bool isCreatedForFieldKeyword, bool isEarlyConstructed)
         {
-            return new SynthesizedBackingFieldSymbol(this,
+            Debug.Assert(!IsIndexer);
+            if (_lazyBackingFieldSymbol == _lazyBackingFieldSymbolSentinel)
+            {
+                var backingField = new SynthesizedBackingFieldSymbol(this,
                                               GeneratedNames.MakeBackingFieldName(_name),
                                               isReadOnly: (HasGetAccessor && !HasSetAccessor) || IsInitOnly,
                                               this.IsStatic,
                                               hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0,
-                                              isCreatedForfieldKeyword: isCreatedForFieldKeyword);
-        }
-
-        internal SynthesizedBackingFieldSymbol CreateBackingFieldForFieldKeyword()
-        {
-            Debug.Assert(!IsIndexer);
-            if (_lazyBackingFieldSymbolForFieldKeyword == _lazyBackingFieldSymbolForFieldKeywordSentinel)
-            {
-                var backingField = CreateBackingField(isCreatedForFieldKeyword: true);
-                Interlocked.CompareExchange(ref _lazyBackingFieldSymbolForFieldKeyword, backingField, _lazyBackingFieldSymbolForFieldKeywordSentinel);
+                                              isCreatedForfieldKeyword: isCreatedForFieldKeyword,
+                                              isEarlyConstructed: isEarlyConstructed);
+                Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, backingField, _lazyBackingFieldSymbolSentinel);
             }
 
-            return (SynthesizedBackingFieldSymbol)_lazyBackingFieldSymbolForFieldKeyword;
+            return (SynthesizedBackingFieldSymbol)_lazyBackingFieldSymbol;
         }
+
+        internal SynthesizedBackingFieldSymbol CreateBackingFieldForFieldKeyword() => CreateBackingField(isCreatedForFieldKeyword: true, isEarlyConstructed: false);
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
         {
@@ -409,19 +406,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Ensures that binding is done so we guarantee that we have the <see cref="BackingField"/> or
+        /// <see cref="FieldKeywordBackingField"/> set if necessary.
+        /// </summary>
         private void EnsureBackingFieldIsSynthesized()
         {
-            // Ensure the binding is done so we guarantee that we have the BackingField set if necessary.
+            // The backing field is already set.
+            if (_lazyBackingFieldSymbol != _lazyBackingFieldSymbolSentinel)
+            {
+                return;
+            }
+
             if (this is SourcePropertySymbol propertySymbol)
             {
-                if (_lazyBackingFieldSymbolForFieldKeyword == _lazyBackingFieldSymbolForFieldKeywordSentinel &&
-                    propertySymbol.GetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } getMethod)
+                if (propertySymbol.GetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } getMethod)
                 {
                     noteAccessorBinding();
                     var binder = getMethod.TryGetBodyBinder();
                     binder?.BindMethodBody(getMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
                 }
-                if (_lazyBackingFieldSymbolForFieldKeyword == _lazyBackingFieldSymbolForFieldKeywordSentinel &&
+
+                // If we still don't have a backing field after binding the getter, try binding the setter.
+                if (_lazyBackingFieldSymbol == _lazyBackingFieldSymbolSentinel &&
                     propertySymbol.SetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } setMethod)
                 {
                     noteAccessorBinding();
@@ -429,8 +436,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // Avoids re-calculation if we already have calculated it.
-            Interlocked.CompareExchange(ref _lazyBackingFieldSymbolForFieldKeyword, null, _lazyBackingFieldSymbolForFieldKeywordSentinel);
+            // If binding both the getter and setter didn't get a backing field, set it to null so that we don't re-calculate.
+            Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, null, _lazyBackingFieldSymbolSentinel);
 
             void noteAccessorBinding()
             {
@@ -735,7 +742,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Backing field for automatically implemented property, or
         /// for a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol? BackingField { get; }
+        internal SynthesizedBackingFieldSymbol? BackingField
+        {
+            get
+            {
+                if (_lazyBackingFieldSymbol is SynthesizedBackingFieldSymbol { IsEarlyConstructed: true } backingField)
+                {
+                    return backingField;
+                }
+
+                return null;
+            }
+        }
 
         /// <summary>
         /// Backing field for a semi automatically implemented property.
@@ -745,9 +763,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 EnsureBackingFieldIsSynthesized();
-                var backingField = (SynthesizedBackingFieldSymbol)_lazyBackingFieldSymbolForFieldKeyword;
-                Debug.Assert(backingField is null || backingField.IsCreatedForFieldKeyword);
-                return backingField;
+                if (_lazyBackingFieldSymbol is SynthesizedBackingFieldSymbol { IsEarlyConstructed: false } backingField)
+                {
+                    return backingField;
+                }
+
+                return null;
             }
         }
 #nullable disable

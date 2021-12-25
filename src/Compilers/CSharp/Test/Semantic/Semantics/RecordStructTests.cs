@@ -3750,7 +3750,7 @@ record struct A(int X = A.M(out int a) + a)
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(semi-auto-props): WRN_UnreadRecordParameter is generated for no reason. Investigate why this happened.")]
+        [Fact]
         public void FieldConsideredUnassignedIfInitializationViaProperty()
         {
             var source = @"

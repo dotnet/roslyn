@@ -11,13 +11,25 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 {
-    /*TODO:
-     * Any concerns regarding field keyword as attribute target vs field keyword in property accessors? I can't think of any.
-     * Backcompat tests (field or variable in scope)
+    /* PROTOTYPE(semi-auto-props):
+     * Add tests for field attribute target, specially for setter-only
      * nameof(field) should work only when there is a symbol called "field" in scope.
      * nullability tests, ie, make sure we get null dereference warnings when needed.
-     * 
-    */
+     */
+
+    /* PROTOTYPE(semi-auto-props):
+     * Regarding AbstractFlowPass and DefiniteAssignment, it looks like the logic there requires an adjustment since the behavior of IsAutoPropertyWithGetAccessor has changed.
+     * We can no longer guarantee that accessing the property under the checked conditions is always equivalent to accessing a backing field.
+     * For example, if the corresponding accessor has a body, we don't really know what it is doing.
+     * Also, it looks like usages of AbstractFlowPass.RegularPropertyAccess helper should be reviewed and appropriate adjustments should be made according to it's behavior change.
+     */
+
+    // PROTOTYPE(semi-auto-props): All tests should verify that we do not synthesize fields unexpectedly.
+    // Success cases can do this by observing emitted metadata.
+    // Note that private symbols are filtered out by default, either type IL should be checked, or
+    // compilation options should be adjusted to disable the filtering.
+    // Error cases should check GetFieldToEmit after checking diagnostics, but before checking NumberOfPerformedAccessorBinding.
+
     public class PropertyFieldKeywordTests : CompilingTestBase
     {
         private void VerifyTypeIL(CSharpCompilation compilation, string typeName, string expected)
@@ -50,6 +62,8 @@ public class C
     }
 }
 ", options: TestOptions.DebugExe);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             CompileAndVerify(comp, expectedOutput: "5");
             VerifyTypeIL(comp, "C", @"
     .class public auto ansi beforefieldinit C
@@ -110,8 +124,11 @@ public class C
 	}
 } // end of class C
 ");
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
+        // PROTOTYPE(semi-auto-props): All success scenarios should be executed, expected runtime behavior should be observed.
+        // This is waiting until we support assigning to readonly properties in constructor.
         [Fact]
         public void TestExpressionBodiedProperty()
         {
@@ -121,6 +138,8 @@ public class C
     public int P => field;
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -158,6 +177,7 @@ public class C
 	}
 } // end of class C
 ");
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact(Skip = "PROTOTYPE(semi-auto-props): Mixing semicolon-only with field not yet working.")]
@@ -169,6 +189,8 @@ public class C
     public string P { get; set => field = value; }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -223,9 +245,10 @@ public class C
 	}
 } // end of class C
 ");
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact(Skip = "PROTOTYPE(semi-auto-props): Initializer isn't added and no code is generated for it. This is because we use NonFieldBackingField when we add initializers. A cycle needs to be fixed.")]
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Produces error CS8050: Only auto-implemented properties can have initializers.")]
         public void TestSemiAutoPropertyWithInitializer()
         {
             var comp = CreateCompilation(@"
@@ -234,6 +257,8 @@ public class C
     public string P { get => field; set => field = value; } = ""Hello"";
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -289,6 +314,7 @@ public class C
 } // end of class C
 ");
             comp.VerifyDiagnostics();
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -300,6 +326,8 @@ public class C
     public string P { get => field; }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -337,6 +365,7 @@ public class C
 	}
 } // end of class C
 ");
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact(Skip = "PROTOTYPE(semi-auto-props): Mixed scenarios are not yet supported.")]
@@ -348,10 +377,13 @@ public class C
     public string P { get; set => @field = value; }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
                 // (4,35): error CS0103: The name 'field' does not exist in the current context
                 //     public string P { get; set => @field = value; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "@field").WithArguments("field").WithLocation(4, 35));
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -363,10 +395,13 @@ public class C
     public string P { get => @field; }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
                 // (4,30): error CS0103: The name 'field' does not exist in the current context
                 //     public string P { get => @field; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "@field").WithArguments("field").WithLocation(4, 30));
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -382,6 +417,8 @@ public class C : B
     public string P { get => field; }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends B
@@ -414,6 +451,7 @@ public class C : B
 	}
 } // end of class C
 ");
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding); // PROTOTYPE(semi-auto-props): Is this expected?
         }
 
         [Fact(Skip = "PROTOTYPE(semi-auto-props): Currently has extra diagnostics")]
@@ -428,6 +466,8 @@ public struct S
     public int P4 { get; readonly set => field = value; } // No ERR_AutoSetterCantBeReadOnly, but ERR_AssgReadonlyLocal
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
                 // (4,35): error CS8658: Auto-implemented 'set' accessor 'S.P1.set' cannot be marked 'readonly'.
                 //     public int P1 { get; readonly set; } // ERR_AutoSetterCantBeReadOnly
@@ -439,6 +479,7 @@ public struct S
                 //     public int P4 { get; readonly set => field = value; } // No ERR_AutoSetterCantBeReadOnly, but ERR_AssgReadonlyLocal
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(7, 42)
             );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -455,6 +496,8 @@ public class C2
     public int P2 { get => this.field; }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
                 // (8,30): error CS0117: 'C' does not contain a definition for 'field'
                 //     public int P1 { get => C.field; }
@@ -463,6 +506,7 @@ public class C2
                 //     public int P2 { get => this.field; }
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "field").WithArguments("C2", "field").WithLocation(9, 33)
             );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -477,6 +521,8 @@ public class C
     }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
                 // (6,9): error CS0501: 'C.this[int].get' must declare a body because it is not marked abstract, extern, or partial
                 //         get; set;
@@ -485,6 +531,12 @@ public class C
                 //         get; set;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.this[int].set").WithLocation(6, 14)
             );
+
+            var property = comp.GetTypeByMetadataName("C")!.GetMembers().OfType<SourcePropertySymbolBase>().Single();
+            Assert.Null(property.BackingField);
+            Assert.Null(property.FieldKeywordBackingField);
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -500,6 +552,8 @@ public class C
     }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
                 // (6,16): error CS0103: The name 'field' does not exist in the current context
                 //         get => field;
@@ -508,6 +562,12 @@ public class C
                 //         set => _ = field;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(7, 20)
             );
+
+            var property = comp.GetTypeByMetadataName("C")!.GetMembers().OfType<SourcePropertySymbolBase>().Single();
+            Assert.Null(property.BackingField);
+            Assert.Null(property.FieldKeywordBackingField);
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -525,6 +585,8 @@ public class C
     }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -581,6 +643,7 @@ public class C
 	}
 } // end of class C
 ");
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -596,6 +659,8 @@ public class C
     }
 }
 ", options: TestOptions.ReleaseDll);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             VerifyTypeIL(comp, "C", @"
 
 .class public auto ansi beforefieldinit C
@@ -647,6 +712,7 @@ public class C
 	}
 } // end of class C
 ");
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory]
@@ -660,6 +726,8 @@ public class C
     public int P1 {{ {accessor} }}
 }}
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -669,6 +737,7 @@ public class C
             Assert.Empty(info.CandidateSymbols);
             Assert.False(info.IsEmpty);
             Assert.Equal("<P1>k__BackingField", info.Symbol!.Name);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory]
@@ -682,6 +751,8 @@ public class C
     public int P1 {{ {accessor} }}
 }}
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -696,6 +767,8 @@ public class C
                 Assert.False(info.IsEmpty);
                 Assert.Equal("<P1>k__BackingField", info.Symbol!.Name);
             }
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory]
@@ -711,6 +784,8 @@ public class C
     public int P1 {{ {accessor} }}
 }}
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -725,6 +800,7 @@ public class C
                 Assert.False(info.IsEmpty);
                 Assert.Equal("<P1>k__BackingField", info.Symbol!.Name);
             }
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory]
@@ -744,6 +820,8 @@ public class C
     public int P1 {{ {accessor} }}
 }}
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -754,6 +832,7 @@ public class C
             Assert.Empty(info.CandidateSymbols);
             Assert.False(info.IsEmpty);
             Assert.Equal("<P1>k__BackingField", info.Symbol!.Name);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -765,12 +844,15 @@ public class C
     public string P { set => field = value; }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             for (int i = 0; i < 3; i++)
             {
                 var fields = ((SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C")!).GetFieldsToEmit().ToArray();
                 Assert.Equal(1, fields.Length);
                 Assert.Equal("<P>k__BackingField", fields[0].Name);
             }
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -782,12 +864,15 @@ public class C
     public string P => field;
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             for (int i = 0; i < 3; i++)
             {
                 var fields = ((SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C")!).GetFieldsToEmit().ToArray();
                 Assert.Equal(1, fields.Length);
                 Assert.Equal("<P>k__BackingField", fields[0].Name);
             }
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -796,15 +881,18 @@ public class C
             var comp = CreateCompilation(@"
 public class C
 {
-    public string P { get; } = string.Empty;
+    public string P { get => field; } = string.Empty;
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             for (int i = 0; i < 3; i++)
             {
                 var fields = ((SourceMemberContainerTypeSymbol)comp.GetTypeByMetadataName("C")!).GetFieldsToEmit().ToArray();
                 Assert.Equal(1, fields.Length);
                 Assert.Equal("<P>k__BackingField", fields[0].Name);
             }
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -921,11 +1009,14 @@ class C
     public int P2 { set => field = value; }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
                 // (4,21): error CS8051: Auto-implemented properties must have get accessors.
                 //     public int P1 { set; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.P1.set").WithLocation(4, 21)
             );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact(Skip = "PROTOTYPE(semi-auto-props)")]
@@ -946,11 +1037,14 @@ public class C
     }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
                 // (10,40): error CS8821: A static anonymous function cannot contain a reference to 'this' or 'base'.
                 //             Func<int> f = static () => field;
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "field").WithLocation(10, 40)
             );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -969,9 +1063,12 @@ public ref struct S2
     public Span<int> P { get => field; }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
             // PROTOTYPE(semi-auto-props): This should have ERR_FieldAutoPropCantBeByRefLike
             );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -983,11 +1080,14 @@ public struct S
     public readonly string P { set => field = value; }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
                 // (4,39): error CS1604: Cannot assign to 'field' because it is read-only
                 //     public readonly string P { set => field = value; }
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(4, 39)
             );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -999,6 +1099,8 @@ public readonly struct S
     public string P { set => field = value; }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             // PROTOTYPE(semi-auto-props): An equivalent scenario with explicitly declared field produces a different error:
             // error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
             // Need to confirm why these behave differently and if that's acceptable.
@@ -1007,6 +1109,7 @@ public readonly struct S
                 //     public string P { set => field = value; }
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(4, 30)
             );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -1045,6 +1148,39 @@ public class Point
             comp.TestOnlyCompilationData = data;
             comp.VerifyDiagnostics();
             Assert.Equal(0, data.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void Test_ContainsFieldKeywordAPI()
+        {
+            var comp = CreateCompilation(@"
+public class C1
+{
+    public int this[int i]
+    {
+        get => field;
+        set => _ = field;
+    }
+}
+
+public class C2
+{
+    public int this[int i] => field;
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var accessorsC1 = comp.GetTypeByMetadataName("C1")!.GetMembers().OfType<SourcePropertyAccessorSymbol>().ToArray();
+            Assert.Equal(2, accessorsC1.Length);
+            Assert.False(accessorsC1[0].ContainsFieldKeyword);
+            Assert.False(accessorsC1[1].ContainsFieldKeyword);
+
+            var accessorsC2 = comp.GetTypeByMetadataName("C2")!.GetMembers().OfType<SourcePropertyAccessorSymbol>().ToArray();
+            Assert.Equal(1, accessorsC2.Length);
+            Assert.False(accessorsC2[0].ContainsFieldKeyword);
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
     }
 }

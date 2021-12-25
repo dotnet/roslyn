@@ -4424,6 +4424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                       this,
                                                                                       DeclarationModifiers.Private | (property.IsStatic ? DeclarationModifiers.Static : 0),
                                                                                       backingField); // PROTOTYPE(semi-auto-props): Is field-keyword BackingField needed here?
+                                                                                                     // Add test proving whether is is needed or not needed for field keyword.
                                     }
 
                                     if (property.IsStatic)

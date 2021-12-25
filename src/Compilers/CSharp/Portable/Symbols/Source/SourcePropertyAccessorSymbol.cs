@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // PROTOTYPE(semi-auto-props): Figure out what is going to be more efficient, to go after tokens and then
         // checking their parent, or to go after nodes (IdentifierNameSyntax) first and then checking the underlying token.
+        // PROTOTYPE(semi-auto-props): A field identifier following a . or a -> cannot be a keyword.
         private static bool NodeContainsFieldKeyword(CSharpSyntaxNode? node)
         {
             if (node is null)
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _property = property;
             _isAutoPropertyAccessor = false;
             _isExpressionBodied = true;
-            _containsFieldKeyword = NodeContainsFieldKeyword(syntax);
+            _containsFieldKeyword = property.IsIndexer ? false : NodeContainsFieldKeyword(syntax);
 
             // The modifiers for the accessor are the same as the modifiers for the property,
             // minus the indexer and readonly bit
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _property = property;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
-            _containsFieldKeyword = NodeContainsFieldKeyword(getAccessorSyntax(syntax));
+            _containsFieldKeyword = _containsFieldKeyword = property.IsIndexer ? false : NodeContainsFieldKeyword(getAccessorSyntax(syntax));
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
             _isExpressionBodied = !hasBody && hasExpressionBody;
             _usesInit = usesInit;
