@@ -4,11 +4,13 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.RuntimeMembers;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -464,15 +466,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 // wrapped tuple fields already have this information and override this property
-                Debug.Assert(!(this is TupleElementFieldSymbol or TupleErrorFieldSymbol));
-
-                var map = ContainingType.TupleFieldDefinitionsToIndexMap;
-                if (map is object && map.TryGetValue(this.OriginalDefinition, out int index))
+                Debug.Assert(!(this is TupleElementFieldSymbol or TupleErrorFieldSymbol or Retargeting.RetargetingFieldSymbol));
+                if (!ContainingType.IsTupleType)
                 {
-                    return index;
+                    return -1;
                 }
 
-                return -1;
+                if (!ContainingType.IsDefinition)
+                {
+                    return this.OriginalDefinition.TupleElementIndex;
+                }
+
+                var tupleElementPosition = NamedTypeSymbol.MatchesCanonicalTupleElementName(Name);
+                int arity = ContainingType.Arity;
+                if (tupleElementPosition <= 0 || tupleElementPosition > arity)
+                {
+                    // ex: no "Item2" in 'ValueTuple<T1>'
+                    return -1;
+                }
+                Debug.Assert(tupleElementPosition < NamedTypeSymbol.ValueTupleRestPosition);
+
+                WellKnownMember wellKnownMember = NamedTypeSymbol.GetTupleTypeMember(arity, tupleElementPosition);
+                MemberDescriptor descriptor = WellKnownMembers.GetDescriptor(wellKnownMember);
+                Symbol found = CSharpCompilation.GetRuntimeMember(ImmutableArray.Create<Symbol>(this), descriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance,
+                    accessWithinOpt: null); // force lookup of public members only
+
+                return found is not null
+                    ? tupleElementPosition - 1
+                    : -1;
             }
         }
 

@@ -135,20 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(_underlyingType.GetMembers(name));
         }
 
-        public override void InitializeTupleFieldDefinitionsToIndexMap()
-        {
-            Debug.Assert(this.IsTupleType);
-            Debug.Assert(this.IsDefinition); // we only store a map for definitions
-
-            var retargetedMap = new SmallDictionary<FieldSymbol, int>(ReferenceEqualityComparer.Instance);
-            foreach ((FieldSymbol field, int index) in _underlyingType.TupleFieldDefinitionsToIndexMap)
-            {
-                retargetedMap.Add(this.RetargetingTranslator.Retarget(field), index);
-            }
-
-            this.TupleData!.SetFieldDefinitionsToIndexMap(retargetedMap);
-        }
-
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
         {
             foreach (FieldSymbol f in _underlyingType.GetFieldsToEmit())
