@@ -1029,9 +1029,14 @@ namespace Microsoft.CodeAnalysis
         /// Gets the type within the compilation's assembly and all referenced assemblies (other than
         /// those that can only be referenced via an extern alias) using its canonical CLR metadata name.
         /// </summary>
-        /// <returns>Null if the type can't be found.</returns>
+        /// <returns>Null if the type can't be found, or if multiple assemblies contain a matching type.</returns>
         /// <remarks>
         /// Since VB does not have the concept of extern aliases, it considers all referenced assemblies.
+        ///
+        /// When multiple assemblies contain a matching type, this method returns null and cannot be used to get the types.
+        /// Instead, use <see cref="IAssemblySymbol.GetTypeByMetadataName"/> to get the type for each assembly.
+        /// To get the compilation assembly, use <see cref="Assembly"/>.
+        /// To get referenced assemblies, use <see cref="References"/> with <see cref="GetAssemblyOrModuleSymbol"/>.
         /// </remarks>
         public INamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
