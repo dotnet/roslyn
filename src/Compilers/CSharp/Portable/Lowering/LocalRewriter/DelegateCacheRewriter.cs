@@ -172,9 +172,7 @@ internal sealed partial class DelegateCreationRewriter
                 return true;
             }
 
-            var checker = TypeParameterUsageChecker.Instance;
-
-            if (checker.Visit(delegateType, methodTypeParameters) || checker.Visit(targetMethod, methodTypeParameters))
+            if (ContainsTypeParameters(targetMethod, methodTypeParameters) || delegateType.ContainsTypeParameters(methodTypeParameters, visitCustomModifiers: true))
             {
                 return false;
             }
@@ -185,5 +183,31 @@ internal sealed partial class DelegateCreationRewriter
         }
 
         return true;
+    }
+
+    private static bool ContainsTypeParameters(MethodSymbol method, HashSet<TypeParameterSymbol> typeParameters)
+    {
+        if (method.ContainingType.ContainsTypeParameters(typeParameters, visitCustomModifiers: true))
+        {
+            return true;
+        }
+
+        foreach (var typeArgumentWithAnnotations in method.TypeArgumentsWithAnnotations)
+        {
+            if (typeArgumentWithAnnotations.Type.ContainsTypeParameters(typeParameters))
+            {
+                return true;
+            }
+
+            foreach (var customModifier in typeArgumentWithAnnotations.CustomModifiers)
+            {
+                if (((NamedTypeSymbol)customModifier.Modifier).ContainsTypeParameters(typeParameters))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
