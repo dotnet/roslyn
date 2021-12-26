@@ -2451,27 +2451,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         switch (declaredSymbol.Kind)
                         {
-                            case SymbolKind.Method:
-                                Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor);
-                                return (node) =>
-                                       {
-                                           // Accept only nodes that either match, or above/below of a 'parameter list'/'base arguments list'.
-                                           if (node.Parent == recordDeclaration)
-                                           {
-                                               return node == recordDeclaration.ParameterList || node == recordDeclaration.BaseList;
-                                           }
-                                           else if (node.Parent is BaseListSyntax baseList)
-                                           {
-                                               return node == recordDeclaration.PrimaryConstructorBaseTypeIfClass;
-                                           }
-                                           else if (node.Parent is PrimaryConstructorBaseTypeSyntax baseType && baseType == recordDeclaration.PrimaryConstructorBaseTypeIfClass)
-                                           {
-                                               return node == baseType.ArgumentList;
-                                           }
-
-                                           return true;
-                                       };
-
                             case SymbolKind.NamedType:
                                 Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor.ContainingSymbol);
                                 // Accept nodes that do not match a 'parameter list'/'base arguments list'.
