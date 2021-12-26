@@ -764,29 +764,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             next = properties[i].TypeWithAnnotations;
                         }
-                        else if (current.IsTupleType)
-                        {
-                            var elementTypesWithAnnotations = current.TupleElementTypesWithAnnotations;
-
-                            if (elementTypesWithAnnotations.IsEmpty)
-                            {
-                                return null;
-                            }
-
-                            int i;
-                            for (i = 0; i < elementTypesWithAnnotations.Length - 1; i++)
-                            {
-                                if (visitTypeWithAnnotations(
-                                        elementTypesWithAnnotations[i],
-                                        typeWithAnnotationsPredicate, typePredicate, arg,
-                                        useDefaultType, canDigThroughNullable, visitCustomModifiers) is TypeSymbol result)
-                                {
-                                    return result;
-                                }
-                            }
-
-                            next = elementTypesWithAnnotations[i];
-                        }
                         else
                         {
                             var typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
