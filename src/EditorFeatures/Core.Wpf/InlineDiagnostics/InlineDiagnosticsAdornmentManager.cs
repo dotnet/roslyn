@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 }
 
                 // Need to get the SnapshotPoint to be able to get the IWpfTextViewLine
-                var point = tagMappingSpan.Span.Start.GetPoint(TextView.TextSnapshot, PositionAffinity.Predecessor);
+                var point = tagMappingSpan.Span.End.GetPoint(TextView.TextSnapshot, PositionAffinity.Predecessor);
                 if (point == null)
                 {
                     continue;

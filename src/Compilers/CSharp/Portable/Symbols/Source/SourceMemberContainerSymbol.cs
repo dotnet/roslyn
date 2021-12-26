@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
                 {
-                    diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location, name);
+                    diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location);
                 }
             }
             else if (IsReservedTypeName(name))
