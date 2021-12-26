@@ -745,6 +745,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var anonymousClass = (AnonymousTypeManager.AnonymousTypePublicSymbol)current;
                             var properties = anonymousClass.Properties;
 
+                            if (properties.IsEmpty)
+                            {
+                                return null;
+                            }
+
                             int i;
                             for (i = 0; i < properties.Length - 1; i++)
                             {
@@ -763,6 +768,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var elementTypesWithAnnotations = current.TupleElementTypesWithAnnotations;
 
+                            if (elementTypesWithAnnotations.IsEmpty)
+                            {
+                                return null;
+                            }
+
                             int i;
                             for (i = 0; i < elementTypesWithAnnotations.Length - 1; i++)
                             {
@@ -780,6 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else
                         {
                             var typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+
                             if (typeArguments.IsEmpty)
                             {
                                 return null;
