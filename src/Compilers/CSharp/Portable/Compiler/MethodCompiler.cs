@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (member is SourcePropertySymbolBase property)
                 {
                     // PROTOTYPE(semi-auto-props): This can be optimized by checking for field keyword syntactically first.
-                    // If we have field keyword, there is no need to call MarkBackingFieldAsCalculated.
+                    // If we don't have field keyword, we can safely ignore the filter check.
                     // This will require more tests.
                     var getMethod = property.GetMethod;
                     var setMethod = property.SetMethod;
