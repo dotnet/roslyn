@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Roslyn.Test.Utilities;
@@ -30,7 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
     // compilation options should be adjusted to disable the filtering.
     // Error cases should check GetFieldToEmit after checking diagnostics, but before checking NumberOfPerformedAccessorBinding.
 
-    // PROTOTYPE(semi-auto-props): Speculative semantic model tests.
+    // PROTOTYPE(semi-auto-props): Speculative semantic model tests. Speculating with a field keyword within an accessor of a regular property then emitting shouldn't emit the backing field.
+
+    // PROTOTYPE(semi-auto-props): Add tests for GetMembers API. It shouldn't return the backing field of field keyword, but returns it for initializers even if field keyword exists.
+    // This can be added to the existing tests.
+
+    // PROTOTYPE(semi-auto-props): Need to add tests confirming that SemanticModel doesn't bind extra accessors that we ignored
 
     public class PropertyFieldKeywordTests : CompilingTestBase
     {
@@ -534,7 +542,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.this[int].set").WithLocation(6, 14)
             );
 
-            var property = comp.GetTypeByMetadataName("C")!.GetMembers().OfType<SourcePropertySymbolBase>().Single();
+            var property = comp.GetTypeByMetadataName("C").GetMembers().OfType<SourcePropertySymbolBase>().Single();
             Assert.Null(property.BackingField);
             Assert.Null(property.FieldKeywordBackingField);
 
@@ -565,7 +573,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(7, 20)
             );
 
-            var property = comp.GetTypeByMetadataName("C")!.GetMembers().OfType<SourcePropertySymbolBase>().Single();
+            var property = comp.GetTypeByMetadataName("C").GetMembers().OfType<SourcePropertySymbolBase>().Single();
             Assert.Null(property.BackingField);
             Assert.Null(property.FieldKeywordBackingField);
 
@@ -738,7 +746,7 @@ public class C
             var info = model.GetSymbolInfo(fieldToken.Parent);
             Assert.Empty(info.CandidateSymbols);
             Assert.False(info.IsEmpty);
-            Assert.Equal("<P1>k__BackingField", info.Symbol!.Name);
+            Assert.Equal("<P1>k__BackingField", info.Symbol.Name);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
@@ -767,7 +775,7 @@ public class C
                 var info = model.GetSymbolInfo(fieldToken.Parent);
                 Assert.Empty(info.CandidateSymbols);
                 Assert.False(info.IsEmpty);
-                Assert.Equal("<P1>k__BackingField", info.Symbol!.Name);
+                Assert.Equal("<P1>k__BackingField", info.Symbol.Name);
             }
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -800,7 +808,7 @@ public class C
                 var info = model.GetSymbolInfo(fieldToken.Parent);
                 Assert.Empty(info.CandidateSymbols);
                 Assert.False(info.IsEmpty);
-                Assert.Equal("<P1>k__BackingField", info.Symbol!.Name);
+                Assert.Equal("<P1>k__BackingField", info.Symbol.Name);
             }
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -833,7 +841,7 @@ public class C
             var info = model.GetSymbolInfo(fieldToken.Parent);
             Assert.Empty(info.CandidateSymbols);
             Assert.False(info.IsEmpty);
-            Assert.Equal("<P1>k__BackingField", info.Symbol!.Name);
+            Assert.Equal("<P1>k__BackingField", info.Symbol.Name);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
@@ -894,7 +902,7 @@ public class C
                 Assert.Equal(1, fields.Length);
                 Assert.Equal("<P>k__BackingField", fields[0].Name);
             }
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding); // PROTOTYPE(semi-auto-props): This looks unexpected? Revisit after initializers are supported.
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -1173,12 +1181,12 @@ public class C2
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
 
-            var accessorsC1 = comp.GetTypeByMetadataName("C1")!.GetMembers().OfType<SourcePropertyAccessorSymbol>().ToArray();
+            var accessorsC1 = comp.GetTypeByMetadataName("C1").GetMembers().OfType<SourcePropertyAccessorSymbol>().ToArray();
             Assert.Equal(2, accessorsC1.Length);
             Assert.False(accessorsC1[0].ContainsFieldKeyword);
             Assert.False(accessorsC1[1].ContainsFieldKeyword);
 
-            var accessorsC2 = comp.GetTypeByMetadataName("C2")!.GetMembers().OfType<SourcePropertyAccessorSymbol>().ToArray();
+            var accessorsC2 = comp.GetTypeByMetadataName("C2").GetMembers().OfType<SourcePropertyAccessorSymbol>().ToArray();
             Assert.Equal(1, accessorsC2.Length);
             Assert.False(accessorsC2[0].ContainsFieldKeyword);
 
@@ -1201,6 +1209,36 @@ public class C1
             comp.TestOnlyCompilationData = accessorBindingData;
 
             comp.VerifyDiagnostics(); // PROTOTYPE(semi-auto-props): Is this the correct behavior?
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        // PROTOTYPE(semi-auto-props): Add more tests related to MethodCompiler._filterOpt
+        // - Different syntax trees of a partial file.
+        // - Getting the diagnostic for one accessor that doesn't contain field while the other accessor contains field.
+        [Fact]
+        public void CompileMethods_1()
+        {
+            var comp = CreateCompilation(@"
+public class C1
+{
+    public int P1 { get => field; }
+    public int P2 { get => field; }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            var tree = comp.SyntaxTrees[0];
+
+            // Force compiling P1 but not P2
+            _ = comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, tree, tree.GetRoot().DescendantNodes().OfType<PropertyDeclarationSyntax>().First().Span, includeEarlierStages: true);
+
+            comp.VerifyDiagnostics();
+
+            var properties = comp.GetTypeByMetadataName("C1").GetMembers().OfType<SourcePropertySymbolBase>().ToArray();
+            Assert.Equal(2, properties.Length);
+            Assert.NotNull(properties[0].FieldKeywordBackingField);
+            Assert.NotNull(properties[1].FieldKeywordBackingField);
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }

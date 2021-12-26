@@ -1903,7 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // returns false if expression is not a property access
         // or if the property has a backing field
         // and accessed in a corresponding constructor
-        private bool RegularPropertyAccess(BoundExpression expr)
+        private bool RegularPropertyAccess(BoundExpression expr) // PROTOTYPE(semi-auto-props): Usages of this should be reviewed.
         {
             if (expr.Kind != BoundKind.PropertyAccess)
             {

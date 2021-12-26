@@ -584,10 +584,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var properties = members.OfType<SourcePropertySymbolBase>();
-            foreach (var property in properties)
+            foreach (var member in members)
             {
-                property.MarkBackingFieldAsCalculated();
+                if (member is SourcePropertySymbolBase property)
+                {
+                    var getMethod = property.GetMethod;
+                    var setMethod = property.SetMethod;
+                    if ((getMethod is null || PassesFilter(_filterOpt, getMethod)) &&
+                        (setMethod is null || PassesFilter(_filterOpt, setMethod)))
+                    {
+                        property.MarkBackingFieldAsCalculated();
+                    }
+                }
             }
 
             Debug.Assert(containingType.IsScriptClass == (scriptCtorOrdinal >= 0));
