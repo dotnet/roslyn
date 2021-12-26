@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(globalOptions As IGlobalOptionService)
-            MyBase.New(globalOptions)
+            MyBase.New(globalOptions, hintTextSuffix:=":= ")
         End Sub
 
         Protected Overrides Sub AddAllParameterNameHintLocations(

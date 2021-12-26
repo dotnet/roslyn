@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -19,6 +18,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
     internal abstract class AbstractInlineParameterNameHintsService : IInlineParameterNameHintsService
     {
         private readonly IGlobalOptionService _globalOptions;
+        private readonly string _hintTextSuffix;
 
         protected enum HintKind
         {
@@ -27,9 +27,10 @@ namespace Microsoft.CodeAnalysis.InlineHints
             Other
         }
 
-        public AbstractInlineParameterNameHintsService(IGlobalOptionService globalOptions)
+        public AbstractInlineParameterNameHintsService(IGlobalOptionService globalOptions, string hintTextSuffix)
         {
             _globalOptions = globalOptions;
+            _hintTextSuffix = hintTextSuffix;
         }
 
         protected abstract void AddAllParameterNameHintLocations(
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     {
                         result.Add(new InlineHint(
                             new TextSpan(position, 0),
-                            ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
+                            ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + _hintTextSuffix)),
                             InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
                     }
                 }
