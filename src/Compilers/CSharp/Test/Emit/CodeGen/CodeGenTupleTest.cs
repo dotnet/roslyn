@@ -28615,6 +28615,19 @@ class C
                 tuple.ToTestDisplayString());
             Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
 
+            var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
+            Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item1",
+                item1.ToTestDisplayString());
+            Assert.Equal(0, item1.TupleElementIndex);
+
+            var item1Underlying = item1.TupleUnderlyingField;
+            Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item1",
+                item1Underlying.ToTestDisplayString());
+            Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
+            Assert.Equal(-1, item1Underlying.TupleElementIndex); // should be zero, tracked by https://github.com/dotnet/roslyn/issues/58499
+
+            Assert.Same(tuple, item1Underlying.ContainingType);
+
             var item8 = tuple.GetMember<TupleElementFieldSymbol>("Item8");
             Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8",
                 item8.ToTestDisplayString());
