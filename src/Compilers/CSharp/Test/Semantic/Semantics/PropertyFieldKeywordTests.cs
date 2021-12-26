@@ -728,6 +728,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
+        // PROTOTYPE(semi-auto-props): Similar test for when we have an explicit field named `field`.
         [Theory]
         [InlineData("get => field;")]
         [InlineData("get { return field; }")]
