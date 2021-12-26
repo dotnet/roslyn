@@ -35,10 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 
     // PROTOTYPE(semi-auto-props): Speculative semantic model tests. Speculating with a field keyword within an accessor of a regular property then emitting shouldn't emit the backing field.
 
-    // PROTOTYPE(semi-auto-props): Add tests for GetMembers API. It shouldn't return the backing field of field keyword, but returns it for initializers even if field keyword exists.
+    // PROTOTYPE(semi-auto-props): Add tests for GetMembers API. It shouldn't return the backing field of field keyword.
     // This can be added to the existing tests.
 
-    // PROTOTYPE(semi-auto-props): Need to add tests confirming that SemanticModel doesn't bind extra accessors that we ignored
+    // PROTOTYPE(semi-auto-props): Need to add tests confirming that SemanticModel doesn't bind extra accessors that we ignored for the purpose of syntactic check.
+
+    // PROTOTYPE(semi-auto-props): Need to add tests for when a property accessor have
+    // both expression body and block body. We should confirm that SemanticModel doesn't bind an expression body in presence of a block body.
 
     public class PropertyFieldKeywordTests : CompilingTestBase
     {
