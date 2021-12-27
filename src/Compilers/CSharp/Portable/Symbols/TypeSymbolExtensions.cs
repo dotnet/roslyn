@@ -726,6 +726,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
+                if (visitCustomModifiers && typeWithAnnotationsOpt.HasType)
+                {
+                    foreach (var customModifier in typeWithAnnotationsOpt.CustomModifiers)
+                    {
+                        var result = VisitType(
+                            typeWithAnnotationsOpt: default, type: (NamedTypeSymbol)customModifier.Modifier,
+                            typeWithAnnotationsPredicate, typePredicate, arg,
+                            canDigThroughNullable, useDefaultType, visitCustomModifiers);
+                        if (result is object)
+                        {
+                            return result;
+                        }
+                    }
+                }
+
                 TypeWithAnnotations next;
 
                 switch (current.TypeKind)
@@ -742,53 +757,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
 
-                        if (current.IsAnonymousType && current.TypeKind == TypeKind.Class)
+                        ImmutableArray<TypeWithAnnotations> typesWithAnnotations;
+
+                        if (current.IsAnonymousType)
                         {
-                            var anonymousClass = (AnonymousTypeManager.AnonymousTypePublicSymbol)current;
-                            var properties = anonymousClass.Properties;
+                            var anonymous = (AnonymousTypeManager.AnonymousTypeOrDelegatePublicSymbol)current;
+                            var fields = anonymous.TypeDescriptor.Fields;
+                            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
 
-                            if (properties.IsEmpty)
+                            foreach (var field in fields)
                             {
-                                return null;
+                                builder.Add(field.TypeWithAnnotations);
                             }
 
-                            int i;
-                            for (i = 0; i < properties.Length - 1; i++)
-                            {
-                                if (visitTypeWithAnnotations(
-                                        properties[i].TypeWithAnnotations,
-                                        typeWithAnnotationsPredicate, typePredicate, arg,
-                                        useDefaultType, canDigThroughNullable, visitCustomModifiers) is TypeSymbol result)
-                                {
-                                    return result;
-                                }
-                            }
-
-                            next = properties[i].TypeWithAnnotations;
+                            typesWithAnnotations = builder.ToImmutableAndFree();
                         }
                         else
                         {
-                            var typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-
-                            if (typeArguments.IsEmpty)
-                            {
-                                return null;
-                            }
-
-                            int i;
-                            for (i = 0; i < typeArguments.Length - 1; i++)
-                            {
-                                if (visitTypeWithAnnotations(
-                                        typeArguments[i],
-                                        typeWithAnnotationsPredicate, typePredicate, arg,
-                                        useDefaultType, canDigThroughNullable, visitCustomModifiers) is TypeSymbol result)
-                                {
-                                    return result;
-                                }
-                            }
-
-                            next = typeArguments[i];
+                            typesWithAnnotations = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
                         }
+
+                        if (typesWithAnnotations.IsEmpty)
+                        {
+                            return null;
+                        }
+
+                        int i;
+                        for (i = 0; i < typesWithAnnotations.Length - 1; i++)
+                        {
+                            // Let's try to avoid early resolution of nullable types
+                            (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(typesWithAnnotations[i], canDigThroughNullable);
+                            var result = VisitType(
+                                typeWithAnnotationsOpt: nextTypeWithAnnotations,
+                                type: nextType,
+                                typeWithAnnotationsPredicate,
+                                typePredicate,
+                                arg,
+                                canDigThroughNullable,
+                                useDefaultType,
+                                visitCustomModifiers);
+                            if (result is object)
+                            {
+                                return result;
+                            }
+                        }
+
+                        next = typesWithAnnotations[i];
 
                         break;
 
@@ -822,50 +836,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static (TypeWithAnnotations, TypeSymbol?) getNextIterationElements(TypeWithAnnotations type, bool canDigThroughNullable)
                 => canDigThroughNullable ? (default(TypeWithAnnotations), type.NullableUnderlyingTypeOrSelf) : (type, null);
-
-            static TypeSymbol? visitTypeWithAnnotations(TypeWithAnnotations typeWithAnnotations, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable, bool visitCustomModifiers)
-            {
-                // Let's try to avoid early resolution of nullable types
-                (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(typeWithAnnotations, canDigThroughNullable);
-
-                var result = VisitType(
-                    typeWithAnnotationsOpt: nextTypeWithAnnotations,
-                    type: nextType,
-                    typeWithAnnotationsPredicate,
-                    typePredicate,
-                    arg,
-                    canDigThroughNullable,
-                    useDefaultType,
-                    visitCustomModifiers);
-
-                if (result is object)
-                {
-                    return result;
-                }
-
-                if (visitCustomModifiers)
-                {
-                    foreach (var customModifier in typeWithAnnotations.CustomModifiers)
-                    {
-                        result = VisitType(
-                            typeWithAnnotationsOpt: default,
-                            type: (NamedTypeSymbol)customModifier.Modifier,
-                            typeWithAnnotationsPredicate,
-                            typePredicate,
-                            arg,
-                            canDigThroughNullable,
-                            useDefaultType,
-                            visitCustomModifiers: false);
-
-                        if (result is object)
-                        {
-                            return result;
-                        }
-                    }
-                }
-
-                return null;
-            }
 
             static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable, bool visitCustomModifiers, out TypeWithAnnotations next)
             {
