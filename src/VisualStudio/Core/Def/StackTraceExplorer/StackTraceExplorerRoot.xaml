@@ -56,7 +56,7 @@
                 <Button.Content>
                     <StackPanel Orientation="Horizontal">
                         <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.ClearCollection}" Margin="0 0 5 0" />
-                        <TextBlock Text="Clear" />
+                        <TextBlock Text="{Binding ElementName=Root, Path=Clear}" />
                     </StackPanel>
                 </Button.Content>
             </Button>

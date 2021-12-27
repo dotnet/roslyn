@@ -25,6 +25,9 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     /// </summary>
     internal partial class StackTraceExplorerRoot : UserControl
     {
+        public string CloseTab => ServicesVSResources.Close_tab;
+        public string Clear => ServicesVSResources.Clear;
+
         public readonly StackTraceExplorerRootViewModel ViewModel;
 
         public StackTraceExplorerRoot(StackTraceExplorerRootViewModel viewModel)
