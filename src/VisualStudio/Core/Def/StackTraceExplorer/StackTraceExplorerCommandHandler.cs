@@ -4,7 +4,10 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.IO.Packaging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -23,12 +26,14 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             _package = package;
             _threadingContext = package.ComponentModel.GetService<IThreadingContext>();
 
-            var serviceProvider = (IServiceProvider)package;
-            var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
+            var workspace = package.ComponentModel.GetService<VisualStudioWorkspace>();
+            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            optionService.OptionChanged += OptionService_OptionChanged;
 
-            if (vsShell is not null)
+            var enabled = workspace.CurrentSolution.Options.GetOption(StackTraceExplorerOptions.OpenOnFocus);
+            if (enabled)
             {
-                vsShell.AdviseBroadcastMessages(this, out _vsShellBroadcastCookie);
+                AdviseBroadcastMessages();
             }
         }
 
@@ -62,14 +67,55 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         public void Dispose()
         {
+            UnadviseBroadcastMessages();
+
+            var workspace = _package.ComponentModel.GetService<VisualStudioWorkspace>();
+            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            optionService.OptionChanged -= OptionService_OptionChanged;
+        }
+
+        private void AdviseBroadcastMessages()
+        {
             if (_vsShellBroadcastCookie != 0)
-{
+            {
+                return;
+            }
+
+            var serviceProvider = (IServiceProvider)_package;
+            var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
+
+            if (vsShell is not null)
+            {
+                vsShell.AdviseBroadcastMessages(this, out _vsShellBroadcastCookie);
+            }
+        }
+
+        private void UnadviseBroadcastMessages()
+        {
+            if (_vsShellBroadcastCookie != 0)
+            {
                 var serviceProvider = (IServiceProvider)_package;
                 var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
                 if (vsShell is not null)
                 {
                     vsShell.UnadviseBroadcastMessages(_vsShellBroadcastCookie);
                     _vsShellBroadcastCookie = 0;
+                }
+            }
+        }
+
+        private void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
+        {
+            if (e.Option == StackTraceExplorerOptions.OpenOnFocus && e.Value is not null)
+            {
+                var enabled = (bool)e.Value;
+                if (enabled)
+                {
+                    AdviseBroadcastMessages();
+                }
+                else
+                {
+                    UnadviseBroadcastMessages();
                 }
             }
         }

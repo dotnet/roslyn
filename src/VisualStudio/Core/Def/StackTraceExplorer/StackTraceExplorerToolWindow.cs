@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -10,7 +11,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.Imaging;
@@ -21,7 +21,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 using static Microsoft.VisualStudio.VSConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
@@ -30,8 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     internal class StackTraceExplorerToolWindow : ToolWindowPane, IOleCommandTarget
     {
         private bool _initialized;
-        private VisualStudioWorkspace? _workspace;
 
+        [MemberNotNullWhen(true, nameof(_initialized))]
         public StackTraceExplorerRoot? Root { get; private set; }
 
         public StackTraceExplorerToolWindow() : base(null)
@@ -56,13 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         /// </summary>
         public async Task<bool> ShouldShowOnActivatedAsync(CancellationToken cancellationToken)
         {
-            if (Root is null || _workspace is null)
-            {
-                return false;
-            }
-
-            var enabled = _workspace.CurrentSolution.Options.GetOption(StackTraceExplorerOptions.OpenOnFocus);
-            if (!enabled)
+            if (Root is null)
             {
                 return false;
             }
@@ -90,13 +83,13 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 return;
             }
 
-            _workspace = roslynPackage.ComponentModel.GetService<VisualStudioWorkspace>();
+            var workspace = roslynPackage.ComponentModel.GetService<VisualStudioWorkspace>();
             var formatMapService = roslynPackage.ComponentModel.GetService<IClassificationFormatMapService>();
             var formatMap = formatMapService.GetClassificationFormatMap(StandardContentTypeNames.Text);
             var typeMap = roslynPackage.ComponentModel.GetService<ClassificationTypeMap>();
             var threadingContext = roslynPackage.ComponentModel.GetService<IThreadingContext>();
 
-            Root = new StackTraceExplorerRoot(new StackTraceExplorerRootViewModel(threadingContext, _workspace, formatMap, typeMap))
+            Root = new StackTraceExplorerRoot(new StackTraceExplorerRootViewModel(threadingContext, workspace, formatMap, typeMap))
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch

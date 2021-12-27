@@ -52,11 +52,11 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Grid.Row="0" MinHeight="20" MinWidth="20" Margin="5">
-            <Button Click="Clear_Click" x:Name="Clear">
+            <Button Click="Clear_Click" x:Name="ClearButton">
                 <Button.Content>
                     <StackPanel Orientation="Horizontal">
                         <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.ClearCollection}" Margin="0 0 5 0" />
-                        <TextBlock Text="{Binding ElementName=Root, Path=Clear}" />
+                        <TextBlock Text="{Binding ElementName=Root, Path=Clear_Text}" />
                     </StackPanel>
                 </Button.Content>
             </Button>
