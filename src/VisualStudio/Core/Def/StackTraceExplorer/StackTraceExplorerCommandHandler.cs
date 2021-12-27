@@ -54,12 +54,13 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             }
 
             var window = GetOrInitializeWindow();
-            var shouldActivateTask = _threadingContext.JoinableTaskFactory.RunAsync(() => window.ShouldShowOnActivatedAsync(default));
-            shouldActivateTask.Task.ContinueWith(t =>
+            _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                var shouldActivate = t.Result;
+                var shouldActivate = await window.ShouldShowOnActivatedAsync(default).ConfigureAwait(false);
+
                 if (shouldActivate)
                 {
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
                     var windowFrame = (IVsWindowFrame)window.Frame;
                     ErrorHandler.ThrowOnFailure(windowFrame.Show());
                 }

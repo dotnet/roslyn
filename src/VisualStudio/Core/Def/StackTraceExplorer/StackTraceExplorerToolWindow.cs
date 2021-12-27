@@ -66,10 +66,15 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 return false;
             }
 
+            if (Root.ViewModel.ContainsTab(text))
+            {
+                return false;
+            }
+
             var result = await StackTraceAnalyzer.AnalyzeAsync(text, cancellationToken).ConfigureAwait(false);
             if (result.ParsedFrames.Any(static frame => frame.IsStackFrame))
             {
-                await Root.ViewModel.AddNewTabAsync(result, cancellationToken).ConfigureAwait(false);
+                await Root.ViewModel.AddNewTabAsync(result, text, cancellationToken).ConfigureAwait(false);
                 return true;
             }
 

@@ -42,6 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         public bool IsListVisible => Frames.Count > 0;
         public bool IsInstructionTextVisible => Frames.Count == 0;
 
+        private int _id;
+
         internal void OnClear()
         {
             Frames.Clear();
@@ -61,6 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             Frames.CollectionChanged += CallstackLines_CollectionChanged;
         }
 
+        public bool Matches(string text) => text.GetHashCode() == _id;
+
         public void OnPaste_CallOnUIThread(string text)
         {
             IsLoading = true;
@@ -71,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 try
                 {
                     var result = await StackTraceAnalyzer.AnalyzeAsync(text, cancellationToken).ConfigureAwait(false);
-                    await SetStackTraceResultAsync(result, cancellationToken).ConfigureAwait(false);
+                    await SetStackTraceResultAsync(result, text, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -81,8 +85,9 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             }, cancellationToken);
         }
 
-        public async System.Threading.Tasks.Task SetStackTraceResultAsync(StackTraceAnalysisResult result, System.Threading.CancellationToken cancellationToken)
+        public async System.Threading.Tasks.Task SetStackTraceResultAsync(StackTraceAnalysisResult result, string originalText, System.Threading.CancellationToken cancellationToken)
         {
+            _id = originalText.GetHashCode();
             var viewModels = result.ParsedFrames.Select(l => GetViewModel(l));
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

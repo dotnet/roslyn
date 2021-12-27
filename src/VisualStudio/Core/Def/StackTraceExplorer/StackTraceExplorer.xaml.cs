@@ -16,11 +16,11 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     /// </summary>
     internal partial class StackTraceExplorer : UserControl
     {
-        private readonly StackTraceExplorerViewModel _viewModel;
+        public readonly StackTraceExplorerViewModel ViewModel;
 
         public StackTraceExplorer(StackTraceExplorerViewModel viewModel)
         {
-            DataContext = _viewModel = viewModel;
+            DataContext = ViewModel = viewModel;
             InitializeComponent();
 
             DataObject.AddPastingHandler(this, OnPaste);
@@ -35,15 +35,12 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         public void OnPaste()
         {
             var text = Clipboard.GetText();
-            _viewModel.OnPaste_CallOnUIThread(text);
+            ViewModel.OnPaste_CallOnUIThread(text);
         }
-
-        public Task OnAnalysisResultAsync(StackTraceAnalysisResult result, CancellationToken cancellationToken)
-            => _viewModel.SetStackTraceResultAsync(result, cancellationToken);
 
         private void ListViewItem_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (_viewModel.Selection is StackFrameViewModel stackFrameViewModel)
+            if (ViewModel.Selection is StackFrameViewModel stackFrameViewModel)
             {
                 stackFrameViewModel.NavigateToSymbol();
             }
@@ -51,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         internal void OnClear()
         {
-            _viewModel.OnClear();
+            ViewModel.OnClear();
         }
     }
 }

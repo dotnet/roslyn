@@ -40,7 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             set => SetProperty(ref _selectedTab, value);
         }
 
-        public async Task AddNewTabAsync(StackTraceAnalysisResult? result, CancellationToken cancellationToken)
+        /// <summary>
+        /// Returns true if there's a tab that already matches the text
+        /// </summary>
+        public bool ContainsTab(string text)
+            => Tabs.Any(tab => tab.Content.ViewModel.Matches(text));
+
+        public async Task AddNewTabAsync(StackTraceAnalysisResult? result, string originalText, CancellationToken cancellationToken)
         {
             // Name will always have an index. Use the highest index opened + 1.
             var highestIndex = Tabs.Count == 0
@@ -55,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             newTab.OnClosed += Tab_Closed;
             if (result.HasValue)
             {
-                await newTab.Content.OnAnalysisResultAsync(result.Value, cancellationToken).ConfigureAwait(false);
+                await newTab.Content.ViewModel.SetStackTraceResultAsync(result.Value, originalText, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -72,11 +78,11 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             {
                 // Paste in the SelectedTab instead of opening a new tab
                 // for cases where there are no contents in the current tab
-                await SelectedTab.Content.OnAnalysisResultAsync(result, cancellationToken).ConfigureAwait(false);
+                await SelectedTab.Content.ViewModel.SetStackTraceResultAsync(result, text, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                await AddNewTabAsync(result, cancellationToken).ConfigureAwait(false);
+                await AddNewTabAsync(result, text, cancellationToken).ConfigureAwait(false);
             }
         }
 
