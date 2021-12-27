@@ -109,6 +109,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
     using Microsoft.VisualStudio.Threading;
+    using Task = System.Threading.Tasks.Task;
 
     [TestService]
     internal partial class SolutionExplorerInProcess
@@ -467,28 +468,31 @@ namespace Microsoft.VisualStudio
                 referenceDataModel,
                 static (context, referenceDataModel) =>
                 {
+                    string aliases;
                     string getServiceImpl;
                     if (referenceDataModel.HasSAsyncServiceProvider)
                     {
+                        aliases = @"    using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
+    using Task = System.Threading.Tasks.Task;";
                         getServiceImpl = @"            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var serviceProvider = (IAsyncServiceProvider2?)await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SAsyncServiceProvider)).WithCancellation(cancellationToken);
+            var serviceProvider = (IAsyncServiceProvider?)await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SAsyncServiceProvider)).WithCancellation(cancellationToken);
             Assumes.Present(serviceProvider);
 
-            var @interface = (TInterface?)await serviceProvider.GetServiceAsync(typeof(TService)).WithCancellation(cancellationToken);
+            var @interface = (TInterface?)await serviceProvider!.GetServiceAsync(typeof(TService)).WithCancellation(cancellationToken);
             Assumes.Present(@interface);
-            return @interface;";
+            return @interface!;";
                     }
                     else
                     {
+                        aliases = @"    using Task = System.Threading.Tasks.Task;";
                         getServiceImpl = @"            await TaskScheduler.Default;
 
             var @interface = await GetServiceCoreAsync(JoinableTaskFactory, cancellationToken).WithCancellation(cancellationToken);
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            Assumes.Present(@interface);
-            return @interface!;
+            return @interface ?? throw new InvalidOperationException();
 
             static async Task<TInterface?> GetServiceCoreAsync(JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken)
             {
@@ -516,7 +520,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
     using Microsoft.VisualStudio.Threading;
-    using Task = global::System.Threading.Tasks.Task;
+{aliases}
 
     internal abstract class InProcComponent
     {{
@@ -591,12 +595,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     }
                     else
                     {
-                        shellInProcessEnumerateWindowsImpl = @"        public async Task<ImmutableArray<IVsWindowFrame>> EnumerateWindowsAsync(__WindowFrameTypeFlags windowFrameTypeFlags, CancellationToken cancellationToken)
+                        shellInProcessEnumerateWindowsImpl = @"        public async Task<ReadOnlyCollection<IVsWindowFrame>> EnumerateWindowsAsync(__WindowFrameTypeFlags windowFrameTypeFlags, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var uiShell = await GetRequiredGlobalServiceAsync<SVsUIShell, IVsUIShell4>(cancellationToken);
             ErrorHandler.ThrowOnFailure(uiShell.GetWindowEnum((uint)windowFrameTypeFlags, out var enumWindowFrames));
-            var result = ImmutableArray.CreateBuilder<IVsWindowFrame>();
+            var result = new List<IVsWindowFrame>();
             var frameBuffer = new IVsWindowFrame[1];
             while (true)
             {
@@ -610,7 +614,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 result.AddRange(frameBuffer.Take((int)fetched));
             }
 
-            return result.ToImmutable();
+            return result.AsReadOnly();
         }";
                     }
 
@@ -623,7 +627,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {{
     using System;
     using System.Collections.Generic;
-    using System.Collections.Immutable;
+    using System.Collections.ObjectModel;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.CompilerServices;
@@ -660,15 +664,13 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     else
                     {
                         joinableTaskContextInitializer = @"            if (GlobalServiceProvider.ServiceProvider.GetService(typeof(SVsTaskSchedulerService)) is IVsTaskSchedulerService2 taskSchedulerService)
-            {{
+            {
                 JoinableTaskContext = (JoinableTaskContext)taskSchedulerService.GetAsyncTaskContext();
-            }}
+            }
             else
-            {{
-#pragma warning disable VSSDK005 // Avoid instantiating JoinableTaskContext (Will not be instantiated if provided by the host)
+            {
                 JoinableTaskContext = new JoinableTaskContext();
-#pragma warning restore VSSDK005 // Avoid instantiating JoinableTaskContext
-            }}";
+            }";
                     }
 
                     var joinTillEmpty = referenceDataModel.CanCancelJoinTillEmptyAsync

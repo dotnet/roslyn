@@ -19,6 +19,14 @@ steps:
   displayName: msbuild /t:Pack
 
 - task: DotNetCoreCLI@2
+  displayName: Source generator tests
+  inputs:
+    command: test
+    arguments: $(Build.Repository.LocalPath)/src/Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests/Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests.csproj --no-build -c $(BuildConfiguration) -f net472 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings" /bl:"$(Build.ArtifactStagingDirectory)/build_logs/test_unit_net472.binlog"
+    testRunTitle: net472-unit-$(Agent.JobName)
+  condition: eq(variables['SignTypeSelection'], '')
+
+- task: DotNetCoreCLI@2
   displayName: dotnet test -f net46
   inputs:
     command: test

@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project>
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -12,7 +13,23 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.csproj" OutputItemType="LegacyContent" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibility.Testing.Xunit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" OutputItemType="CurrentContent" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator\Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator.csproj" />
   </ItemGroup>
 
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
+
+  <Target Name="UpdateContentPaths" AfterTargets="ResolveProjectReferences">
+    <ItemGroup>
+      <Content Include="@(LegacyContent)" Link="Legacy\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="@(CurrentContent)" Link="Current\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 </Project>
