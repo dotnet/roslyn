@@ -680,6 +680,411 @@ class C
     }
 
     [Fact]
+    public void OuterNormalMiddleNormalInnerNormal()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""{$""{$""{0}""}""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterNormalMiddleNormalInnerVerbatim()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""{$""{$@""{0}""}""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterNormalMiddleNormalInnerRaw()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""{$""{$""""""{0}""""""}""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterNormalMiddleVerbatimInnerNormal()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""{@$""{$""{0}""}""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterNormalMiddleVerbatimInnerVerbatim()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""{@$""{@$""{0}""}""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterNormalMiddleVerbatimInnerRaw()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""{@$""{$""""""{0}""""""}""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterNormalMiddleRawInnerNormal()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""{$""""""{$""{0}""}""""""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterNormalMiddleRawInnerVerbatim()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""{$""""""{@$""{0}""}""""""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterNormalMiddleRawInnerRaw()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""{$""""""{$""""""{0}""""""}""""""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterVerbatimMiddleNormalInnerNormal()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $@""{$""{$""{0}""}""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterVerbatimMiddleNormalInnerVerbatim()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $@""{$""{$@""{0}""}""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterVerbatimMiddleNormalInnerRaw()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $@""{$""{$""""""{0}""""""}""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterVerbatimMiddleVerbatimInnerNormal()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $@""{@$""{$""{0}""}""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterVerbatimMiddleVerbatimInnerVerbatim()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $@""{@$""{@$""{0}""}""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterVerbatimMiddleVerbatimInnerRaw()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $@""{@$""{$""""""{0}""""""}""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterVerbatimMiddleRawInnerNormal()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $@""{$""""""{$""{0}""}""""""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterVerbatimMiddleRawInnerVerbatim()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $@""{$""""""{@$""{0}""}""""""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterVerbatimMiddleRawInnerRaw()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $@""{$""""""{$""""""{0}""""""}""""""}"";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterRawMiddleNormalInnerNormal()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""""""{$""{$""{0}""}""}"""""";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterRawMiddleNormalInnerVerbatim()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""""""{$""{$@""{0}""}""}"""""";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterRawMiddleNormalInnerRaw()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""""""{$""{$""""""{0}""""""}""}"""""";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterRawMiddleVerbatimInnerNormal()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""""""{@$""{$""{0}""}""}"""""";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterRawMiddleVerbatimInnerVerbatim()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""""""{@$""{@$""{0}""}""}"""""";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterRawMiddleVerbatimInnerRaw()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""""""{@$""{$""""""{0}""""""}""}"""""";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterRawMiddleRawInnerNormal()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""""""{$""""""{$""{0}""}""""""}"""""";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterRawMiddleRawInnerVerbatim()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""""""{$""""""{@$""{0}""}""""""}"""""";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OuterRawMiddleRawInnerRaw()
+    {
+        var text = @"
+class C
+{
+    void M()
+    {
+        var v = $""""""{$""""""{$""""""{0}""""""}""""""}"""""";
+    }
+}";
+
+        CreateCompilation(text).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void MultipleAtSigns1()
     {
         var text = @"
