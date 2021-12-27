@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return ((object)baseType != null) ? moduleBeingBuilt.Translate(baseType,
-                                                                   syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                                   syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                                    diagnostics: context.Diagnostics) : null;
         }
 
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         foreach (var implemented in method.ExplicitInterfaceImplementations)
                         {
-                            yield return new Microsoft.Cci.MethodImplementation(adapter, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
+                            yield return new Microsoft.Cci.MethodImplementation(adapter, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics));
                         }
                     }
 
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // It also affects covariant returns - C# ignores the return type in
                         // determining if one method overrides another, while the runtime considers
                         // the return type part of the signature.
-                        yield return new Microsoft.Cci.MethodImplementation(method.GetCciAdapter(), moduleBeingBuilt.TranslateOverriddenMethodReference(method.OverriddenMethod, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
+                        yield return new Microsoft.Cci.MethodImplementation(method.GetCciAdapter(), moduleBeingBuilt.TranslateOverriddenMethodReference(method.OverriddenMethod, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics));
                     }
                     else if (method.MethodKind == MethodKind.Destructor && AdaptedNamedTypeSymbol.SpecialType != SpecialType.System_Object)
                     {
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             MethodSymbol objectMethod = objectMember as MethodSymbol;
                             if ((object)objectMethod != null && objectMethod.MethodKind == MethodKind.Destructor)
                             {
-                                yield return new Microsoft.Cci.MethodImplementation(method.GetCciAdapter(), moduleBeingBuilt.TranslateOverriddenMethodReference(objectMethod, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
+                                yield return new Microsoft.Cci.MethodImplementation(method.GetCciAdapter(), moduleBeingBuilt.TranslateOverriddenMethodReference(objectMethod, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics));
                             }
                         }
                     }
@@ -376,6 +376,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (AdaptedNamedTypeSymbol.IsInterface)
             {
                 yield break;
+            }
+
+            if (AdaptedNamedTypeSymbol is SourceMemberContainerTypeSymbol container)
+            {
+                foreach ((MethodSymbol body, MethodSymbol implemented) in container.GetSynthesizedExplicitImplementations(cancellationToken: default).MethodImpls)
+                {
+                    Debug.Assert(body.ContainingType == (object)container);
+                    yield return new Microsoft.Cci.MethodImplementation(body.GetCciAdapter(), moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics));
+                }
             }
 
             var syntheticMethods = moduleBeingBuilt.GetSynthesizedMethods(AdaptedNamedTypeSymbol);
@@ -390,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         foreach (var implemented in method.ExplicitInterfaceImplementations)
                         {
-                            yield return new Microsoft.Cci.MethodImplementation(m, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
+                            yield return new Microsoft.Cci.MethodImplementation(m, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics));
                         }
 
                         Debug.Assert(!method.RequiresExplicitOverride(out _));
@@ -468,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var typeRef = moduleBeingBuilt.Translate(
                     @interface,
-                    syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                    syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                     diagnostics: context.Diagnostics,
                     fromImplements: true);
 
@@ -807,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.IsDefinitionOrDistinct());
 
             return moduleBeingBuilt.Translate(AdaptedNamedTypeSymbol.ContainingType,
-                                              syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                              syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                               diagnostics: context.Diagnostics,
                                               needDeclaration: AdaptedNamedTypeSymbol.IsDefinition);
         }
@@ -844,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                var arg = moduleBeingBuilt.Translate(arguments[i].Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+                var arg = moduleBeingBuilt.Translate(arguments[i].Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
                 var modifiers = arguments[i].CustomModifiers;
                 if (!modifiers.IsDefaultOrEmpty)
                 {
@@ -866,7 +875,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Cci.INamedTypeReference GenericTypeImpl(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.Translate(AdaptedNamedTypeSymbol.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+            return moduleBeingBuilt.Translate(AdaptedNamedTypeSymbol.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                               diagnostics: context.Diagnostics, needDeclaration: true);
         }
 

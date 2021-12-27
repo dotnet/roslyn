@@ -12,21 +12,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public Class TypeImportCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Private Property ShowImportCompletionItemsOptionValue As Boolean = True
-
-        Private Property IsExpandedCompletion As Boolean = True
-        Private Property UsePartialSemantic As Boolean = False
-
-        Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
-            Return options _
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion) _
-                .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, UsePartialSemantic)
-        End Function
-
-        Protected Overrides Function GetComposition() As TestComposition
-            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
-        End Function
+        Public Sub New()
+            ShowImportCompletionItemsOptionValue = True
+            IsExpandedCompletion = True
+        End Sub
 
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(TypeImportCompletionProvider)

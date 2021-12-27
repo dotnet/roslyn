@@ -119,8 +119,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             {
                 case BlockSyntax blockSyntax:
                     var statements = blockSyntax.Statements;
+                    if (!statements.Any())
+                    {
+                        return blockSyntax.CloseBraceToken.LeadingTrivia;
+                    }
 
                     var openBraceTrailingTrivia = blockSyntax.OpenBraceToken.TrailingTrivia;
+                    var usingHasEndOfLineTrivia = usingStatement.CloseParenToken.TrailingTrivia
+                        .Any(SyntaxKind.EndOfLineTrivia);
+                    if (!usingHasEndOfLineTrivia)
+                    {
+                        var newFirstStatement = statements.First()
+                            .WithPrependedLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+                        statements = statements.Replace(statements.First(), newFirstStatement);
+                    }
+
                     if (openBraceTrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
                     {
                         var newFirstStatement = statements.First()
@@ -150,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                     result.Add(anythingElse);
                     return default;
             }
+
             return default;
         }
 

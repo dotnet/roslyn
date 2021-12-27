@@ -11,24 +11,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string LocalRegistryPath = @"Roslyn\Internal\Diagnostics\";
 
         public static readonly Option2<bool> PreferLiveErrorsOnOpenedFiles = new(nameof(InternalDiagnosticsOptions), "Live errors will be preferred over errors from build on opened files from same analyzer", defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Live errors will be preferred over errors from build on opened files from same analyzer"));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Live errors will be preferred over errors from build on opened files from same analyzer"));
 
         public static readonly Option2<bool> PreferBuildErrorsOverLiveErrors = new(nameof(InternalDiagnosticsOptions), "Errors from build will be preferred over live errors from same analyzer", defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Errors from build will be preferred over live errors from same analyzer"));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Errors from build will be preferred over live errors from same analyzer"));
 
         public static readonly Option2<bool> PutCustomTypeInBingSearch = new(nameof(InternalDiagnosticsOptions), nameof(PutCustomTypeInBingSearch), defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "PutCustomTypeInBingSearch"));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "PutCustomTypeInBingSearch"));
 
         public static readonly Option2<bool> CrashOnAnalyzerException = new(nameof(InternalDiagnosticsOptions), nameof(CrashOnAnalyzerException), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "CrashOnAnalyzerException"));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "CrashOnAnalyzerException"));
 
         public static readonly Option2<bool> ProcessHiddenDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(ProcessHiddenDiagnostics), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Process Hidden Diagnostics"));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Process Hidden Diagnostics"));
 
-        public static readonly Option2<DiagnosticMode> NormalDiagnosticMode = new(nameof(InternalDiagnosticsOptions), nameof(NormalDiagnosticMode), defaultValue: DiagnosticMode.Push,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "NormalDiagnosticMode"));
+        public static readonly Option2<DiagnosticMode> NormalDiagnosticMode = new(nameof(InternalDiagnosticsOptions), nameof(NormalDiagnosticMode), defaultValue: DiagnosticMode.Default,
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "NormalDiagnosticMode"));
 
         public static readonly Option2<DiagnosticMode> RazorDiagnosticMode = new(nameof(InternalDiagnosticsOptions), nameof(RazorDiagnosticMode), defaultValue: DiagnosticMode.Pull,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "RazorDiagnosticMode"));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "RazorDiagnosticMode"));
+
+        public static readonly Option2<bool> EnableFileLoggingForDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(EnableFileLoggingForDiagnostics), defaultValue: false,
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "EnableFileLoggingForDiagnostics"));
     }
 }

@@ -143,6 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         PercentEqualsToken = 8283,
         /// <summary>Represents <c>??=</c> token.</summary>
         QuestionQuestionEqualsToken = 8284,
+        /// <summary>Represents <c>!!</c> token.</summary>
+        ExclamationExclamationToken = 8285,
 
         // Keywords
         /// <summary>Represents <see langword="bool"/>.</summary>
@@ -381,8 +383,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         AndKeyword = 8439,
         /// <summary>Represents <see langword="not"/>.</summary>
         NotKeyword = 8440,
-        /// <summary>Represents <see langword="data"/>.</summary>
-        DataKeyword = 8441,
+
+        // Don't use 8441. It corresponds to a deleted kind (DataKeyword) that was previously shipped.
+
         /// <summary>Represents <see langword="with"/>.</summary>
         WithKeyword = 8442,
         /// <summary>Represents <see langword="init"/>.</summary>
@@ -734,6 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NamespaceDeclaration = 8842,
         UsingDirective = 8843,
         ExternAliasDirective = 8844,
+        FileScopedNamespaceDeclaration = 8845,
 
         // attributes
         AttributeList = 8847,
@@ -827,6 +831,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         AndPattern = 9032,
         NotPattern = 9033,
 
+        // new patterns added in C# 11.0
+        SlicePattern = 9034,
+        ListPattern = 9035,
+
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
 
         DeclarationExpression = 9040,
@@ -854,5 +862,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         FunctionPointerUnmanagedCallingConventionList = 9066,
         FunctionPointerUnmanagedCallingConvention = 9067,
+
+        RecordStructDeclaration = 9068,
+
+        ExpressionColon = 9069,
+        LineDirectivePosition = 9070,
+        LineSpanDirectiveTrivia = 9071,
     }
 }

@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string WhiteSpace = "whitespace";
         public const string Text = "text";
 
+        internal const string ReassignedVariable = "reassigned variable";
         public const string StaticSymbol = "static symbol";
 
         public const string PreprocessorText = "preprocessor text";
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string InterfaceName = "interface name";
         public const string ModuleName = "module name";
         public const string StructName = "struct name";
+        public const string RecordStructName = "record struct name";
         public const string TypeParameterName = "type parameter name";
 
         public const string FieldName = "field name";

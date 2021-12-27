@@ -8,8 +8,8 @@ using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -31,20 +31,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
         protected abstract string DialogText { get; }
 
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptions;
 
-        public AbstractAddImportsPasteCommandHandler(IThreadingContext threadingContext)
-            => _threadingContext = threadingContext;
+        public AbstractAddImportsPasteCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
+        {
+            _threadingContext = threadingContext;
+            _globalOptions = globalOptions;
+        }
 
         public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
             => nextCommandHandler();
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
-            // Check that the feature is enabled before doing any work
-            var optionValue = args.SubjectBuffer.GetOptionalFeatureOnOffOption(FeatureOnOffOptions.AddImportsOnPaste);
-
-            // If the feature is explicitly disabled we can exit early
-            if (optionValue.HasValue && !optionValue.Value)
+            // If the feature is not explicitly enabled we can exit early
+            if (_globalOptions.GetOption(FeatureOnOffOptions.AddImportsOnPaste, args.SubjectBuffer.GetLanguageName()) != true)
             {
                 nextCommandHandler();
                 return;
@@ -64,6 +65,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
             // Perform the paste command before adding imports
             nextCommandHandler();
 
+            if (executionContext.OperationContext.UserCancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            try
+            {
+                ExecuteCommandWorker(args, executionContext, trackingSpan);
+            }
+            catch (OperationCanceledException)
+            {
+                // According to Editor command handler API guidelines, it's best if we return early if cancellation
+                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
+                // calling nextCommandHandler().
+            }
+        }
+
+        private void ExecuteCommandWorker(
+            PasteCommandArgs args,
+            CommandExecutionContext executionContext,
+            ITrackingSpan trackingSpan)
+        {
             if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
             {
                 return;
@@ -87,15 +110,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 
             var document = sourceTextContainer.GetOpenDocumentInCurrentContext();
             if (document is null)
-            {
-                return;
-            }
-
-            var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
-            var enabled = optionValue.HasValue && optionValue.Value
-                || experimentationService.IsExperimentEnabled(WellKnownExperimentNames.ImportsOnPasteDefaultEnabled);
-
-            if (!enabled)
             {
                 return;
             }

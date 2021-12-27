@@ -14,7 +14,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -30,6 +29,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal const string SynthesizedStringHashFunctionName = "ComputeStringHash";
         internal const string SynthesizedReadOnlySpanHashFunctionName = "ComputeReadOnlySpanHash";
         internal const string SynthesizedSpanHashFunctionName = "ComputeSpanHash";
+
+        internal const string SynthesizedThrowIfNullFunctionName = "ThrowIfNull";
+        internal const string SynthesizedThrowFunctionName = "Throw";
 
         private readonly CommonPEModuleBuilder _moduleBuilder;       //the module builder
         private readonly Cci.ITypeReference _systemObject;           //base type

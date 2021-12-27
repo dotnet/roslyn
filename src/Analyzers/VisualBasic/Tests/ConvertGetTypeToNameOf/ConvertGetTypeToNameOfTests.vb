@@ -2,36 +2,29 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
+Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
+    Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf.VisualBasicConvertTypeOfToNameOfDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf.VisualBasicConvertGetTypeToNameOfCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertGetTypeToNameOf
     Partial Public Class ConvertGetTypeToNameOfTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
-
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicConvertTypeOfToNameOfDiagnosticAnalyzer(), New VisualBasicConvertGetTypeToNameOfCodeFixProvider())
-        End Function
-
         <Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)>
         Public Async Function BasicType() As Task
             Dim text = "
 class Test
     sub Method()
-        dim typeName = [||]GetType(Test).Name
+        dim typeName = [|GetType(Test).Name|]
     end sub
 end class
 "
             Dim expected = "
 class Test
     sub Method()
-        dim typeName = [||]NameOf(Test)
+        dim typeName = NameOf(Test)
     end sub
 end class
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await VerifyVB.VerifyCodeFixAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)>
@@ -39,18 +32,18 @@ end class
             Dim text = "
 class Test
     sub Method()
-        dim typeName = [||]GetType(System.String).Name
+        dim typeName = [|GetType(System.String).Name|]
     end sub
 end class
 "
             Dim expected = "
 class Test
     sub Method()
-        dim typeName = [||]NameOf(System.String)
+        dim typeName = NameOf(System.String)
     end sub
 end class
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await VerifyVB.VerifyCodeFixAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)>
@@ -60,7 +53,7 @@ Imports System
 
 class Test
     sub Method()
-        dim typeName = [||]GetType(String).Name
+        dim typeName = [|GetType(String).Name|]
     end sub
 end class
 "
@@ -69,11 +62,11 @@ Imports System
 
 class Test
     sub Method()
-        dim typeName = [||]NameOf([String])
+        dim typeName = NameOf([String])
     end sub
 end class
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await VerifyVB.VerifyCodeFixAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)>
@@ -83,11 +76,11 @@ Imports System
 
 class Test
     sub Method()
-        dim typeName = Foo([||]GetType(String).Name)
+        dim typeName = Goo([|GetType(String).Name|])
     end sub
 
-    sub Foo(ByVal typeName As String)
-    end sub
+    function Goo(ByVal typeName As String) As Integer
+    end function
 end class
 "
             Dim expected = "
@@ -95,29 +88,53 @@ Imports System
 
 class Test
     sub Method()
-        dim typeName = Foo([||]NameOf([String]))
+        dim typeName = Goo(NameOf([String]))
     end sub
 
-    sub Foo(ByVal typeName As String)
-    end sub
+    function Goo(ByVal typeName As String) As Integer
+    end function
 end class
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await VerifyVB.VerifyCodeFixAsync(text, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
         Public Async Function NotOnVariableContainingType() As Task
-            Await TestMissingInRegularAndScriptAsync("
-import System
+            Dim text = "
+imports System
 
 class Test
     sub Method()
-        dim typeVar = [||]GetType(String)
+        dim typeVar = GetType(String)
         dim typeName = typeVar.Name 
     end sub
 end class
-")
+"
+            Await VerifyVB.VerifyCodeFixAsync(text, text)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <WorkItem(54233, "https://github.com/dotnet/roslyn/issues/54233")>
+        Public Async Function OnVoid() As Task
+            Dim text = "
+imports System
+
+class Test
+    sub Method()
+        dim typeVar = [|GetType(Void).Name|]
+    end sub
+end class
+"
+            Dim expected = "
+imports System
+
+class Test
+    sub Method()
+        dim typeVar = NameOf(Void)
+    end sub
+end class
+"
+            Await VerifyVB.VerifyCodeFixAsync(text, expected)
+        End Function
     End Class
 End Namespace

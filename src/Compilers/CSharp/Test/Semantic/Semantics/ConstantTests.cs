@@ -181,15 +181,14 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-    // (10,12): error CS0568: Structs cannot contain explicit parameterless constructors
-    //     public S2()
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S2").WithLocation(10, 12),
-    // (26,28): error CS1736: Default parameter value for 's' must be a compile-time constant
-    //     static void Goo(S2 s = new S2())
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new S2()").WithArguments("s").WithLocation(26, 28)
-);
+                // (10,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S2()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(10, 12),
+                // (26,28): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void Goo(S2 s = new S2())
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new S2()").WithArguments("s").WithLocation(26, 28));
         }
 
         [Fact]
@@ -1983,7 +1982,7 @@ class C
             // multiplying constants in checked statement that causes overflow behaves like unchecked
 
             var source = @"
-public class goo
+public class @goo
 {
     const int i = 1000000;
     const int j = 1000000;
@@ -3727,65 +3726,65 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                     // (32,27): error CS0133: The expression being assigned to 'S6' must be constant
                     //         const string S6 = $"Failed to {VS}";
                     Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""Failed to {VS}""").WithArguments("S6").WithLocation(34, 27));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                    // (12,4): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (12,4): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     // [A($"ITEM")]
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""ITEM""").WithArguments("constant interpolated strings").WithLocation(12, 4),
-                    // (15,23): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""ITEM""").WithArguments("constant interpolated strings", "10.0").WithLocation(12, 4),
+                    // (15,23): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //     const string S0 = $"Post";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Post""").WithArguments("constant interpolated strings").WithLocation(15, 23),
-                    // (25,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Post""").WithArguments("constant interpolated strings", "10.0").WithLocation(15, 23),
+                    // (25,27): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //         const string S1 = $"Testing";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Testing""").WithArguments("constant interpolated strings").WithLocation(25, 27),
-                    // (26,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Testing""").WithArguments("constant interpolated strings", "10.0").WithLocation(25, 27),
+                    // (26,27): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //         const string S2 = $"{"Level 5"} {"Number 3"}";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{""Level 5""} {""Number 3""}""").WithArguments("constant interpolated strings").WithLocation(26, 27),
-                    // (27,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""{""Level 5""} {""Number 3""}""").WithArguments("constant interpolated strings", "10.0").WithLocation(26, 27),
+                    // (27,27): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //         const string S3 = $"{$"{"Spinning Top"}"}";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{$""{""Spinning Top""}""}""").WithArguments("constant interpolated strings").WithLocation(27, 27),
-                    // (28,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""{$""{""Spinning Top""}""}""").WithArguments("constant interpolated strings", "10.0").WithLocation(27, 27),
+                    // (28,27): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //         const string S4 = $"Hybrid" + "Testing" + "123";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Hybrid""").WithArguments("constant interpolated strings").WithLocation(28, 27),
-                    // (29,50): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Hybrid""").WithArguments("constant interpolated strings", "10.0").WithLocation(28, 27),
+                    // (29,50): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //         const string S5 = "Hybrid" + "Testing" + $"321";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""321""").WithArguments("constant interpolated strings").WithLocation(29, 50),
-                    // (30,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""321""").WithArguments("constant interpolated strings", "10.0").WithLocation(29, 50),
+                    // (30,27): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //         const string F1 = $"{S1}";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{S1}""").WithArguments("constant interpolated strings").WithLocation(30, 27),
-                    // (31,32): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""{S1}""").WithArguments("constant interpolated strings", "10.0").WithLocation(30, 27),
+                    // (31,32): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //         const string F2 = F1 + $" the {S2}";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$"" the {S2}""").WithArguments("constant interpolated strings").WithLocation(31, 32),
-                    // (34,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$"" the {S2}""").WithArguments("constant interpolated strings", "10.0").WithLocation(31, 32),
+                    // (34,27): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //         const string S6 = $"Failed to {VS}";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Failed to {VS}""").WithArguments("constant interpolated strings").WithLocation(34, 27),
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Failed to {VS}""").WithArguments("constant interpolated strings", "10.0").WithLocation(34, 27),
                     // (34,27): error CS0133: The expression being assigned to 'S6' must be constant
                     //         const string S6 = $"Failed to {VS}";
                     Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""Failed to {VS}""").WithArguments("S6").WithLocation(34, 27),
-                    // (37,25): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (37,25): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //     void M2(string S1 = $"Testing", object O = null, Namae N = null)
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Testing""").WithArguments("constant interpolated strings").WithLocation(37, 25),
-                    // (40,18): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Testing""").WithArguments("constant interpolated strings", "10.0").WithLocation(37, 25),
+                    // (40,18): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //             case $"Level 5":
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Level 5""").WithArguments("constant interpolated strings").WithLocation(40, 18),
-                    // (44,30): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Level 5""").WithArguments("constant interpolated strings", "10.0").WithLocation(40, 18),
+                    // (44,30): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //         if (N is Namae { X : $"ConstantInterpolatedString"}){
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""ConstantInterpolatedString""").WithArguments("constant interpolated strings").WithLocation(44, 30),
-                    // (46,22): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""ConstantInterpolatedString""").WithArguments("constant interpolated strings", "10.0").WithLocation(44, 30),
+                    // (46,22): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //                 case $"Number 3":
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Number 3""").WithArguments("constant interpolated strings").WithLocation(46, 22),
-                    // (48,22): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Number 3""").WithArguments("constant interpolated strings", "10.0").WithLocation(46, 22),
+                    // (48,22): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //                 case $"Radio Noise":
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Radio Noise""").WithArguments("constant interpolated strings").WithLocation(48, 22),
-                    // (49,31): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Radio Noise""").WithArguments("constant interpolated strings", "10.0").WithLocation(48, 22),
+                    // (49,31): error CS8773: Feature 'constant interpolated strings' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //                     goto case $"Number 3";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Number 3""").WithArguments("constant interpolated strings").WithLocation(49, 31));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""Number 3""").WithArguments("constant interpolated strings", "10.0").WithLocation(49, 31));
         }
 
         [Fact]

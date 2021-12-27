@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.Internal.VisualStudio.PlatformUI
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 Imports Roslyn.Test.Utilities
@@ -19,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Sub SourceGeneratorsListed()
             Dim workspaceXml =
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true">
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
                     </Project>
                 </Workspace>
 
@@ -39,7 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Async Function PlaceholderItemCreateIfGeneratorProducesNoFiles() As Task
             Dim workspaceXml =
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true">
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
                     </Project>
                 </Workspace>
 
@@ -63,7 +64,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Async Function SingleSourceGeneratedFileProducesItem() As Task
             Dim workspaceXml =
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true">
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
                         <AdditionalDocument FilePath="Test.txt"></AdditionalDocument>
                     </Project>
                 </Workspace>
@@ -92,7 +93,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Async Function MultipleSourceGeneratedFilesProducesSortedItem() As Task
             Dim workspaceXml =
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true">
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
                         <AdditionalDocument FilePath="Test1.txt"></AdditionalDocument>
                         <AdditionalDocument FilePath="Test2.txt"></AdditionalDocument>
                         <AdditionalDocument FilePath="Test3.txt"></AdditionalDocument>
@@ -121,10 +122,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Async Function ChangeToNoGeneratedDocumentsUpdatesListCorrectly() As Task
+        Public Async Function ChangeToRemoveAllGeneratedDocumentsUpdatesListCorrectly() As Task
             Dim workspaceXml =
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true">
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
                         <AdditionalDocument FilePath="Test1.txt"></AdditionalDocument>
                     </Project>
                 </Workspace>
@@ -153,7 +154,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Async Function AddingAGeneratedDocumentUpdatesListCorrectly() As Task
             Dim workspaceXml =
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true">
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
                     </Project>
                 </Workspace>
 
@@ -169,6 +170,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Assert.IsType(Of NoSourceGeneratedFilesPlaceholderItem)(Assert.Single(generatorFilesItemSource.Items))
 
+                ' Add a first item and see if it updates correctly
                 workspace.OnAdditionalDocumentAdded(
                     DocumentInfo.Create(
                         DocumentId.CreateNewId(projectId),
@@ -177,6 +179,49 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Await WaitForGeneratorsAndItemSourcesAsync(workspace)
 
                 Assert.IsType(Of SourceGeneratedFileItem)(Assert.Single(generatorFilesItemSource.Items))
+
+                ' Add a second item and see if it updates correctly again
+                workspace.OnAdditionalDocumentAdded(
+                    DocumentInfo.Create(
+                        DocumentId.CreateNewId(projectId),
+                        "Test2.txt"))
+
+                Await WaitForGeneratorsAndItemSourcesAsync(workspace)
+                Assert.Equal(2, generatorFilesItemSource.Items.Cast(Of SourceGeneratedFileItem)().Count())
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Async Function GeneratedDocumentsStayingTheSameWorksCorrectly() As Task
+            Dim workspaceXml =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+                        <AdditionalDocument FilePath="Test1.txt"></AdditionalDocument>
+                    </Project>
+                </Workspace>
+
+            Using workspace = TestWorkspace.Create(workspaceXml)
+                Dim projectId = workspace.Projects.Single().Id
+                Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
+                Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
+                Dim generatorFilesItemSource = CreateSourceGeneratedFilesItemSource(workspace, generatorItem)
+
+                Assert.IsAssignableFrom(Of ISupportExpansionEvents)(generatorFilesItemSource).BeforeExpand()
+
+                Await WaitForGeneratorsAndItemSourcesAsync(workspace)
+
+                Dim itemBeforeUpdate = Assert.IsType(Of SourceGeneratedFileItem)(Assert.Single(generatorFilesItemSource.Items))
+
+                ' Change a document; this will produce updated documents but no new hint path is being introduced or removed
+                workspace.OnAdditionalDocumentTextChanged(workspace.CurrentSolution.Projects.Single().AdditionalDocumentIds.Single(),
+                    SourceText.From("Changed"),
+                    PreservationMode.PreserveValue)
+
+                Await WaitForGeneratorsAndItemSourcesAsync(workspace)
+
+                Dim itemAfterUpdate = Assert.IsType(Of SourceGeneratedFileItem)(Assert.Single(generatorFilesItemSource.Items))
+
+                Assert.Same(itemBeforeUpdate, itemAfterUpdate)
             End Using
         End Function
 

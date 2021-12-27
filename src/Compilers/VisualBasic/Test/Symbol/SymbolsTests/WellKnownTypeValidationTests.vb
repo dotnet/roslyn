@@ -486,6 +486,7 @@ End Namespace
                 If special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor Then
                     Assert.Null(symbol) ' Not available
                 Else
@@ -543,6 +544,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
+                         WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
                          WellKnownType.System_MemoryExtensions
                         ' Not available on all platforms.
                         Continue For
@@ -609,6 +611,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
+                         WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
                          WellKnownType.System_MemoryExtensions
                         ' Not available on all platforms.
                         Continue For
@@ -695,6 +698,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
+                         WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
                          WellKnownMember.System_MemoryExtensions__AsSpanString
@@ -839,6 +843,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
+                         WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
                          WellKnownMember.System_MemoryExtensions__AsSpanString

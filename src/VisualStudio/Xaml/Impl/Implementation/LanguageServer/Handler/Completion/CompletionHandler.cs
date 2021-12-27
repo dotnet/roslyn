@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -29,6 +31,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public override string Method => Methods.TextDocumentCompletionName;
         private const string CreateEventHandlerCommandTitle = "Create Event Handler";
 
+        private static readonly Command s_retriggerCompletionCommand = new Command()
+        {
+            CommandIdentifier = StringConstants.RetriggerCompletionCommand,
+            Title = "Re-trigger completions"
+        };
+
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 
@@ -42,6 +50,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public override async Task<CompletionList?> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            if (request.Context is VSInternalCompletionContext completionContext && completionContext.InvokeKind == VSInternalCompletionInvokeKind.Deletion)
+            {
+                // Don't trigger completions on backspace.
+                return null;
+            }
+
             var document = context.Document;
             if (document == null)
             {
@@ -57,19 +71,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return null;
             }
 
-            return new VSCompletionList
+            var commitCharactersCache = new Dictionary<XamlCompletionKind, ImmutableArray<VSInternalCommitCharacter>>();
+            return new VSInternalCompletionList
             {
-                Items = completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position, request.TextDocument)).ToArray(),
+                Items = completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position, request.TextDocument, commitCharactersCache)).ToArray(),
                 SuggestionMode = false,
             };
         }
 
-        private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position, TextDocumentIdentifier textDocument)
+        private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position, TextDocumentIdentifier textDocument, Dictionary<XamlCompletionKind, ImmutableArray<VSInternalCommitCharacter>> commitCharactersCach)
         {
-            var item = new VSCompletionItem
+            var item = new VSInternalCompletionItem
             {
                 Label = xamlCompletion.DisplayText,
-                CommitCharacters = xamlCompletion.CommitCharacters,
+                VsCommitCharacters = GetCommitCharacters(xamlCompletion, commitCharactersCach),
                 Detail = xamlCompletion.Detail,
                 InsertText = xamlCompletion.InsertText,
                 Preselect = xamlCompletion.Preselect.GetValueOrDefault(),
@@ -78,6 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 Kind = GetItemKind(xamlCompletion.Kind),
                 Description = xamlCompletion.Description,
                 Icon = xamlCompletion.Icon,
+                InsertTextFormat = xamlCompletion.IsSnippet ? InsertTextFormat.Snippet : InsertTextFormat.Plaintext,
                 Data = new CompletionResolveData { ProjectGuid = documentId.ProjectId.Id, DocumentGuid = documentId.Id, Position = position, DisplayText = xamlCompletion.DisplayText }
             };
 
@@ -99,8 +115,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                     Title = CreateEventHandlerCommandTitle
                 };
             }
+            else if (xamlCompletion.RetriggerCompletion)
+            {
+                // Retriger completion after commit
+                item.Command = s_retriggerCompletionCommand;
+            }
 
             return item;
+        }
+
+        private static SumType<string[], VSInternalCommitCharacter[]> GetCommitCharacters(XamlCompletionItem completionItem, Dictionary<XamlCompletionKind, ImmutableArray<VSInternalCommitCharacter>> commitCharactersCache)
+        {
+            if (!completionItem.XamlCommitCharacters.HasValue)
+            {
+                return completionItem.CommitCharacters;
+            }
+
+            if (commitCharactersCache.TryGetValue(completionItem.Kind, out var cachedCharacters))
+            {
+                // If we have already cached the commit characters, return the cached ones
+                return cachedCharacters.ToArray();
+            }
+
+            var xamlCommitCharacters = completionItem.XamlCommitCharacters.Value;
+
+            var commitCharacters = xamlCommitCharacters.Characters.Select(c => new VSInternalCommitCharacter { Character = c.ToString(), Insert = !xamlCommitCharacters.NonInsertCharacters.Contains(c) }).ToImmutableArray();
+            commitCharactersCache.Add(completionItem.Kind, commitCharacters);
+            return commitCharacters.ToArray();
         }
 
         private static CompletionItemKind GetItemKind(XamlCompletionKind kind)

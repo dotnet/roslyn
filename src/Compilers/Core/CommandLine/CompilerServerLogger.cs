@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 
 namespace Microsoft.CodeAnalysis.CommandLine
@@ -102,16 +101,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal const string LoggingPrefix = "---";
 
         private Stream? _loggingStream;
-        private readonly int _processId;
+        private readonly string _identifier;
 
         public bool IsLogging => _loggingStream is object;
 
         /// <summary>
         /// Static class initializer that initializes logging.
         /// </summary>
-        public CompilerServerLogger()
+        public CompilerServerLogger(string identifier)
         {
-            _processId = Process.GetCurrentProcess().Id;
+            _identifier = identifier;
 
             try
             {
@@ -123,7 +122,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // Otherwise, assume that the environment variable specifies the name of the log file.
                     if (Directory.Exists(loggingFileName))
                     {
-                        loggingFileName = Path.Combine(loggingFileName, $"server.{_processId}.log");
+                        var processId = Process.GetCurrentProcess().Id;
+                        loggingFileName = Path.Combine(loggingFileName, $"server.{processId}.log");
                     }
 
                     // Open allowing sharing. We allow multiple processes to log to the same file, so we use share mode to allow that.
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             if (_loggingStream is object)
             {
                 var threadId = Environment.CurrentManagedThreadId;
-                var prefix = $"PID={_processId} TID={threadId} Ticks={Environment.TickCount} ";
+                var prefix = $"ID={_identifier} TID={threadId}: ";
                 string output = prefix + message + Environment.NewLine;
                 byte[] bytes = Encoding.UTF8.GetBytes(output);
 

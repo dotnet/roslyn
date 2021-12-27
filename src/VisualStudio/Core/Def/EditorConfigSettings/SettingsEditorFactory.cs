@@ -4,7 +4,9 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -21,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 {
     [Export(typeof(SettingsEditorFactory))]
     [Guid(SettingsEditorFactoryGuidString)]
-    internal sealed class SettingsEditorFactory : IVsEditorFactory, IDisposable
+    internal sealed class SettingsEditorFactory : IVsEditorFactory, IVsEditorFactory4, IDisposable
     {
         public static readonly Guid SettingsEditorFactoryGuid = new(SettingsEditorFactoryGuidString);
         public const string SettingsEditorFactoryGuidString = "68b46364-d378-42f2-9e72-37d86c5f4468";
@@ -61,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
         }
 
         public int CreateEditorInstance(uint grfCreateDoc,
-                                        string pszMkDocument,
+                                        string filePath,
                                         string pszPhysicalView,
                                         IVsHierarchy pvHier,
                                         uint itemid,
@@ -78,6 +80,19 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             pguidCmdUI = SettingsEditorFactoryGuid;
             pgrfCDW = 0;
             pbstrEditorCaption = null;
+
+            if (!_workspace.CurrentSolution.Projects.Any(p => p.Language is LanguageNames.CSharp or LanguageNames.VisualBasic))
+            {
+                // If there are no VB or C# projects loaded in the solution (so an editorconfig file in a C++ project) then we want their
+                // editorfactory to present the file instead of use showing ours
+                return VSConstants.VS_E_UNSUPPORTEDFORMAT;
+            }
+
+            if (!_workspace.CurrentSolution.Projects.Any(p => p.AnalyzerConfigDocuments.Any(editorconfig => StringComparer.OrdinalIgnoreCase.Equals(editorconfig.FilePath, filePath))))
+            {
+                // If the user is simply opening an editorconfig file that does not apply to the current solution we just want to show the text view
+                return VSConstants.VS_E_UNSUPPORTEDFORMAT;
+            }
 
             // Validate inputs
             if ((grfCreateDoc & (VSConstants.CEF_OPENFILE | VSConstants.CEF_SILENT)) == 0)
@@ -129,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                                                    _settingsDataProviderFactory,
                                                    _controlProvider,
                                                    _tableMangerProvider,
-                                                   pszMkDocument,
+                                                   filePath,
                                                    textBuffer,
                                                    _workspace);
             ppunkDocView = Marshal.GetIUnknownForObject(newEditor);
@@ -160,5 +175,17 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 return VSConstants.E_NOTIMPL;   // you must return E_NOTIMPL for any unrecognized rguidLogicalView values
             }
         }
+
+        public object? GetDocumentData(uint grfCreate, string pszMkDocument, IVsHierarchy pHier, uint itemid)
+            => null;
+
+        public object? GetDocumentView(uint grfCreate, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, uint itemid)
+            => null;
+
+        public string? GetEditorCaption(string pszMkDocument, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, out Guid pguidCmdUI)
+            => throw new NotImplementedException();
+
+        public bool ShouldDeferUntilIntellisenseIsReady(uint grfCreate, string pszMkDocument, string pszPhysicalView)
+            => true;
     }
 }

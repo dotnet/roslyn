@@ -2567,6 +2567,31 @@ public class C : A {
         }
 
         [Fact]
+        public async Task TestFrozenPartialProjectHasDifferentSemanticVersions()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
+            project = project.AddDocument("Extra.cs", SourceText.From("class Extra { }")).Project;
+
+            var documentToFreeze = project.AddDocument("DocumentToFreeze.cs", SourceText.From(""));
+            var frozenDocument = documentToFreeze.WithFrozenPartialSemantics(CancellationToken.None);
+
+            // Because we had no compilation produced yet, we expect that only the DocumentToFreeze is in the compilation
+            Assert.NotSame(frozenDocument, documentToFreeze);
+            var tree = Assert.Single((await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
+            Assert.Equal("DocumentToFreeze.cs", tree.FilePath);
+
+            // Versions should be different
+            Assert.NotEqual(
+                await documentToFreeze.Project.GetDependentSemanticVersionAsync(),
+                await frozenDocument.Project.GetDependentSemanticVersionAsync());
+
+            Assert.NotEqual(
+                await documentToFreeze.Project.GetSemanticVersionAsync(),
+                await frozenDocument.Project.GetSemanticVersionAsync());
+        }
+
+        [Fact]
         public void TestFrozenPartialProjectAlwaysIsIncomplete()
         {
             var workspace = new AdhocWorkspace();
@@ -2588,6 +2613,26 @@ public class C : A {
 
             Assert.True(frozenSolution.GetProject(project1.Id).HasSuccessfullyLoadedAsync().Result);
             Assert.True(frozenSolution.GetProject(project2.Id).HasSuccessfullyLoadedAsync().Result);
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialSemanticsProjectDoesNotHaveAdditionalDocumentsFromInProgressChange()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemanticsAndWeakCompilations();
+            var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+            // Fetch the compilation and ensure it's held during forking, as otherwise we may have no in-progress state
+            // when we freeze.
+            var originalCompilation = await project.GetCompilationAsync();
+            project = project.AddAdditionalDocument("Test.txt", "").Project;
+            GC.KeepAlive(originalCompilation);
+
+            // Freeze semantics -- this should give us a compilation and state that don't include the additional file,
+            // since the compilation won't represent that either
+            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.Empty(frozenDocument.Project.AdditionalDocuments);
         }
 
         [Fact]
@@ -3218,6 +3263,41 @@ class C
             var newDocTree = await newDoc.GetSyntaxTreeAsync();
             var treeText = newDocTree.GetText();
             Assert.Same(newDocText, treeText);
+        }
+
+        [Fact]
+        public async Task ReplacingTextMultipleTimesDoesNotRootIntermediateCopiesIfCompilationNotAskedFor()
+        {
+            // This test replicates the pattern of some operation changing a bunch of files, but the files aren't kept open.
+            // In Visual Studio we do large refactorings by opening files with an invisible editor, making changes, and closing
+            // again. This process means we'll queue up intermediate changes to those files, but we don't want to hold onto
+            // the intermediate edits when we don't really need to since the final version will be all that matters.
+
+            using var workspace = CreateWorkspaceWithProjectAndDocuments();
+
+            var solution = workspace.CurrentSolution;
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+
+            // Fetch the compilation, so further edits are going to be incremental updates of this one
+            var originalCompilation = await solution.Projects.Single().GetCompilationAsync();
+
+            // Create a source text we'll release and ensure it disappears. We'll also make sure we don't accidentally root
+            // that solution in the middle.
+            var sourceTextToRelease = ObjectReference.CreateFromFactory(static () => SourceText.From(Guid.NewGuid().ToString()));
+            var solutionWithSourceTextToRelease = sourceTextToRelease.GetObjectReference(
+                static (sourceText, document) => document.Project.Solution.WithDocumentText(document.Id, sourceText, PreservationMode.PreserveIdentity),
+                solution.GetDocument(documentId));
+
+            // Change it again, this time by editing the text loader; this replicates us closing a file, and we don't want to pin the changes from the
+            // prior change.
+            var finalSolution = solutionWithSourceTextToRelease.GetObjectReference(
+                static (s, documentId) => s.WithDocumentTextLoader(documentId, new TestTextLoader(Guid.NewGuid().ToString()), PreservationMode.PreserveValue), documentId).GetReference();
+
+            // The text in the middle shouldn't be held at all, since we replaced it.
+            solutionWithSourceTextToRelease.ReleaseStrongReference();
+            sourceTextToRelease.AssertReleased();
+
+            GC.KeepAlive(finalSolution);
         }
     }
 }

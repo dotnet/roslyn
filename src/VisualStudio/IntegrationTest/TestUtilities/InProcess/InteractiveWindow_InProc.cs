@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +11,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -33,7 +32,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private readonly string _viewCommand;
         private readonly Guid _windowId;
-        private IInteractiveWindow _interactiveWindow;
+        private IInteractiveWindow? _interactiveWindow;
 
         protected InteractiveWindow_InProc(string viewCommand, Guid windowId)
         {
@@ -55,16 +54,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
 
         public bool IsInitializing
-            => InvokeOnUIThread(cancellationToken => _interactiveWindow.IsInitializing);
+        {
+            get
+            {
+                Contract.ThrowIfNull(_interactiveWindow);
+                return InvokeOnUIThread(cancellationToken => _interactiveWindow.IsInitializing);
+            }
+        }
 
         public string GetReplText()
-            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText());
+        {
+            Contract.ThrowIfNull(_interactiveWindow);
+            return InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText());
+        }
 
         protected override bool HasActiveTextView()
-            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView) is object;
+        {
+            Contract.ThrowIfNull(_interactiveWindow);
+            return InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView) is object;
+        }
 
         protected override IWpfTextView GetActiveTextView()
-            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView);
+        {
+            Contract.ThrowIfNull(_interactiveWindow);
+            return InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView);
+        }
 
         /// <summary>
         /// Gets the contents of the REPL window without the prompt text.
@@ -151,7 +165,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void Reset(bool waitForPrompt = true)
         {
-            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_Reset);
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var interactiveWindow = AcquireInteractiveWindow();
+                var operations = (IInteractiveWindowOperations)interactiveWindow;
+                var result = await operations.ResetAsync();
+                Contract.ThrowIfFalse(result.IsSuccessful);
+            });
 
             if (waitForPrompt)
             {
@@ -161,6 +183,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void SubmitText(string text)
         {
+            Contract.ThrowIfNull(_interactiveWindow);
+
             using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
             _interactiveWindow.SubmitAsync(new[] { text }).WithCancellation(cts.Token).Wait();
         }
@@ -188,48 +212,59 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void WaitForReplPrompt()
-            => WaitForPredicate(GetReplText, ReplPromptText, s_endsWith);
+            => WaitForPredicate(GetReplText, ReplPromptText, s_endsWith, "end with");
 
         public void WaitForReplOutput(string outputText)
-            => WaitForPredicate(GetReplText, outputText + Environment.NewLine + ReplPromptText, s_endsWith);
+            => WaitForPredicate(GetReplText, outputText + Environment.NewLine + ReplPromptText, s_endsWith, "end with");
 
         public void ClearScreen()
             => ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ClearScreen);
 
         public void InsertCode(string text)
-            => InvokeOnUIThread(cancellationToken => _interactiveWindow.InsertCode(text));
+        {
+            Contract.ThrowIfNull(_interactiveWindow);
+            InvokeOnUIThread(cancellationToken => _interactiveWindow.InsertCode(text));
+        }
 
         public void WaitForLastReplOutput(string outputText)
-            => WaitForPredicate(GetLastReplOutput, outputText, s_contains);
+            => WaitForPredicate(GetLastReplOutput, outputText, s_contains, "contain");
 
         public void WaitForLastReplOutputContains(string outputText)
-            => WaitForPredicate(GetLastReplOutput, outputText, s_contains);
+            => WaitForPredicate(GetLastReplOutput, outputText, s_contains, "contain");
 
         public void WaitForLastReplInputContains(string outputText)
-            => WaitForPredicate(GetLastReplInput, outputText, s_contains);
+            => WaitForPredicate(GetLastReplInput, outputText, s_contains, "contain");
 
-        private void WaitForPredicate(Func<string> getValue, string expectedValue, Func<string, string, bool> valueComparer)
+        private void WaitForPredicate(Func<string> getValue, string expectedValue, Func<string, string, bool> valueComparer, string verb)
         {
             var beginTime = DateTime.UtcNow;
-            while (!valueComparer(expectedValue, getValue()) && DateTime.UtcNow < beginTime + Helper.HangMitigatingTimeout)
-            {
-                Thread.Sleep(50);
-            }
 
-            var actualValue = getValue();
-            if (!valueComparer(expectedValue, getValue()))
+            while (true)
             {
-                throw new Exception(
-                    $"Unable to find expected content in REPL within {Helper.HangMitigatingTimeout.TotalMilliseconds} milliseconds and no exceptions were thrown.{Environment.NewLine}" +
-                    $"Expected:{Environment.NewLine}" +
-                    $"[[{expectedValue}]]" +
-                    $"Actual:{Environment.NewLine}" +
-                    $"[[{actualValue}]]");
+                var actualValue = getValue();
+
+                if (valueComparer(expectedValue, actualValue))
+                {
+                    return;
+                }
+
+                if (DateTime.UtcNow > beginTime + Helper.HangMitigatingTimeout)
+                {
+                    throw new Exception(
+                        $"Unable to find expected content in REPL within {Helper.HangMitigatingTimeout.TotalMilliseconds} milliseconds and no exceptions were thrown.{Environment.NewLine}" +
+                        $"Buffer content is expected to {verb}: {Environment.NewLine}" +
+                        $"[[{expectedValue}]]" +
+                        $"Actual content:{Environment.NewLine}" +
+                        $"[[{actualValue}]]");
+                }
+
+                Thread.Sleep(50);
             }
         }
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
+            Contract.ThrowIfNull(_interactiveWindow);
             return InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView.TextBuffer);
         }
     }

@@ -459,7 +459,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                   Children(1):
                       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'c1.S')
                         Children(1):
-                            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'c1')
+                            IOperation:  (OperationKind.None, Type: Program.C1, IsInvalid) (Syntax: 'c1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         /// NOTE: We do not re-use this cache for project analysis as it leads to significant memory increase in the OOP process,
         /// and CWT does not seem to drop entries until ForceGC happens.
         /// </summary>
-        private static readonly ConditionalWeakTable<Project, CompilationWithAnalyzersCacheEntry> s_compilationWithAnalyzersCache
-            = new ConditionalWeakTable<Project, CompilationWithAnalyzersCacheEntry>();
+        private static readonly ConditionalWeakTable<Project, CompilationWithAnalyzersCacheEntry> s_compilationWithAnalyzersCache = new();
 
         private readonly TextDocument? _document;
         private readonly Project _project;
@@ -43,20 +42,19 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
         public DiagnosticComputer(
-            DocumentId? documentId,
+            TextDocument? document,
             Project project,
             TextSpan? span,
             AnalysisKind? analysisKind,
             DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
-            _document = documentId != null ? project.Solution.GetRequiredTextDocument(documentId) : null;
+            _document = document;
             _project = project;
             _span = span;
             _analysisKind = analysisKind;
             _analyzerInfoCache = analyzerInfoCache;
 
-            // We only track performance from primary branch. All forked branch we don't care such as preview.
-            _performanceTracker = project.IsFromPrimaryBranch() ? project.Solution.Workspace.Services.GetService<IPerformanceTrackerService>() : null;
+            _performanceTracker = project.Solution.Workspace.Services.GetService<IPerformanceTrackerService>();
         }
 
         public async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(

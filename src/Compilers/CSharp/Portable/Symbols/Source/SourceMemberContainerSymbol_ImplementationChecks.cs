@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// some interface methods.  They don't go in the symbol table, but if we are emitting, then we should
         /// generate code for them.
         /// </summary>
-        internal ImmutableArray<SynthesizedExplicitImplementationForwardingMethod> GetSynthesizedExplicitImplementations(
+        internal SynthesizedExplicitImplementations GetSynthesizedExplicitImplementations(
             CancellationToken cancellationToken)
         {
-            if (_lazySynthesizedExplicitImplementations.IsDefault)
+            if (_lazySynthesizedExplicitImplementations is null)
             {
                 var diagnostics = BindingDiagnosticBag.GetInstance();
                 try
@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         this.CheckInterfaceVarianceSafety(diagnostics);
                     }
 
-                    if (ImmutableInterlocked.InterlockedCompareExchange(
+                    if (Interlocked.CompareExchange(
                             ref _lazySynthesizedExplicitImplementations,
                             ComputeInterfaceImplementations(diagnostics, cancellationToken),
-                            default(ImmutableArray<SynthesizedExplicitImplementationForwardingMethod>)).IsDefault)
+                            null) is null)
                     {
                         // Do not cancel from this point on.  We've assigned the member, so we must add
                         // the diagnostics.
@@ -68,6 +68,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return _lazySynthesizedExplicitImplementations;
+        }
+
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            SynthesizedExplicitImplementations synthesizedImplementations = GetSynthesizedExplicitImplementations(cancellationToken: default);
+
+            foreach (var methodImpl in synthesizedImplementations.MethodImpls)
+            {
+                yield return methodImpl;
+            }
+
+            foreach (var forwardingMethod in synthesizedImplementations.ForwardingMethods)
+            {
+                yield return (forwardingMethod.ImplementingMethod, forwardingMethod.ExplicitInterfaceImplementations.Single());
+            }
         }
 
         private void CheckAbstractClassImplementations(BindingDiagnosticBag diagnostics)
@@ -92,11 +107,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ImmutableArray<SynthesizedExplicitImplementationForwardingMethod> ComputeInterfaceImplementations(
+        private SynthesizedExplicitImplementations ComputeInterfaceImplementations(
             BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            var synthesizedImplementations = ArrayBuilder<SynthesizedExplicitImplementationForwardingMethod>.GetInstance();
+            var forwardingMethods = ArrayBuilder<SynthesizedExplicitImplementationForwardingMethod>.GetInstance();
+            var methodImpls = ArrayBuilder<(MethodSymbol Body, MethodSymbol Implemented)>.GetInstance();
 
             // NOTE: We can't iterator over this collection directly, since it is not ordered.  Instead we
             // iterate over AllInterfaces and filter out the interfaces that are not in this set.  This is
@@ -115,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 HasBaseTypeDeclaringInterfaceResult? hasBaseClassDeclaringInterface = null;
 
-                foreach (var interfaceMember in @interface.GetMembersUnordered())
+                foreach (var interfaceMember in @interface.GetMembers())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -164,9 +180,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     bool wasImplementingMemberFound = (object)implementingMember != null;
 
-                    if ((object)synthesizedImplementation != null)
+                    if (synthesizedImplementation.ForwardingMethod is SynthesizedExplicitImplementationForwardingMethod forwardingMethod)
                     {
-                        if (synthesizedImplementation.IsVararg)
+                        if (forwardingMethod.IsVararg)
                         {
                             diagnostics.Add(
                                 ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic,
@@ -174,8 +190,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else
                         {
-                            synthesizedImplementations.Add(synthesizedImplementation);
+                            forwardingMethods.Add(forwardingMethod);
                         }
+                    }
+
+                    if (synthesizedImplementation.MethodImpl is { } methodImpl)
+                    {
+                        Debug.Assert(methodImpl is { Body: not null, Implemented: not null });
+                        methodImpls.Add(methodImpl);
                     }
 
                     if (wasImplementingMemberFound && interfaceMemberKind == SymbolKind.Event)
@@ -295,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // a synthesized implementation is needed that invokes the base method.
                                 // We can do so only if there are no use-site errors.
 
-                                if ((object)synthesizedImplementation != null || TypeSymbol.Equals(implementingMember.ContainingType, this, TypeCompareKind.ConsiderEverything2))
+                                if (synthesizedImplementation.ForwardingMethod is not null || TypeSymbol.Equals(implementingMember.ContainingType, this, TypeCompareKind.ConsiderEverything2))
                                 {
                                     UseSiteInfo<AssemblySymbol> useSiteInfo = interfaceMember.GetUseSiteInfo();
                                     // Don't report a use site error with a location in another compilation.  For example,
@@ -314,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return synthesizedImplementations.ToImmutableAndFree();
+            return SynthesizedExplicitImplementations.Create(forwardingMethods.ToImmutableAndFree(), methodImpls.ToImmutableAndFree());
         }
 
         protected abstract Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base);
@@ -1169,7 +1191,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location,
                 new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
 
-        internal static void CheckValidNullableMethodOverride<TArg>(
+        /// <returns>
+        /// <see langword="true"/> if a diagnostic was added. Otherwise, <see langword="false"/>.
+        /// </returns>
+        internal static bool CheckValidNullableMethodOverride<TArg>(
             CSharpCompilation compilation,
             MethodSymbol baseMethod,
             MethodSymbol overrideMethod,
@@ -1181,13 +1206,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!PerformValidNullableOverrideCheck(compilation, baseMethod, overrideMethod))
             {
-                return;
+                return false;
             }
+
+            bool hasErrors = false;
 
             if ((baseMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn &&
                 (overrideMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) != FlowAnalysisAnnotations.DoesNotReturn)
             {
                 diagnostics.Add(ErrorCode.WRN_DoesNotReturnMismatch, overrideMethod.Locations[0], new FormattedSymbol(overrideMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                hasErrors = true;
             }
 
             var conversions = compilation.Conversions.WithNullability(true);
@@ -1206,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         baseMethod.ReturnTypeWithAnnotations.Type))
                 {
                     reportMismatchInReturnType(diagnostics, baseMethod, overrideMethod, false, extraArgument);
-                    return;
+                    return true;
                 }
 
                 // check top-level nullability including flow analysis annotations
@@ -1218,41 +1246,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         overrideMethod.ReturnTypeFlowAnalysisAnnotations))
                 {
                     reportMismatchInReturnType(diagnostics, baseMethod, overrideMethod, true, extraArgument);
-                    return;
+                    return true;
                 }
             }
 
-            if (reportMismatchInParameterType == null)
+            if (reportMismatchInParameterType != null)
             {
-                return;
+                for (int i = 0; i < baseParameters.Length; i++)
+                {
+                    var baseParameter = baseParameters[i];
+                    var baseParameterType = baseParameter.TypeWithAnnotations;
+                    int parameterIndex = i + overrideParameterOffset;
+                    var overrideParameter = overrideParameters[parameterIndex];
+                    var overrideParameterType = getNotNullIfNotNullOutputType(overrideParameter.TypeWithAnnotations, overrideParameter.NotNullIfParameterNotNull);
+                    // check nested nullability
+                    if (!isValidNullableConversion(
+                            conversions,
+                            overrideParameter.RefKind,
+                            baseParameterType.Type,
+                            overrideParameterType.Type))
+                    {
+                        reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, false, extraArgument);
+                        hasErrors = true;
+                    }
+                    // check top-level nullability including flow analysis annotations
+                    else if (!NullableWalker.AreParameterAnnotationsCompatible(
+                            overrideParameter.RefKind,
+                            baseParameterType,
+                            baseParameter.FlowAnalysisAnnotations,
+                            overrideParameterType,
+                            overrideParameter.FlowAnalysisAnnotations))
+                    {
+                        reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, true, extraArgument);
+                        hasErrors = true;
+                    }
+                }
             }
 
-            for (int i = 0; i < baseParameters.Length; i++)
-            {
-                var baseParameter = baseParameters[i];
-                var baseParameterType = baseParameter.TypeWithAnnotations;
-                var overrideParameter = overrideParameters[i + overrideParameterOffset];
-                var overrideParameterType = getNotNullIfNotNullOutputType(overrideParameter.TypeWithAnnotations, overrideParameter.NotNullIfParameterNotNull);
-                // check nested nullability
-                if (!isValidNullableConversion(
-                        conversions,
-                        overrideParameter.RefKind,
-                        baseParameterType.Type,
-                        overrideParameterType.Type))
-                {
-                    reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, false, extraArgument);
-                }
-                // check top-level nullability including flow analysis annotations
-                else if (!NullableWalker.AreParameterAnnotationsCompatible(
-                        overrideParameter.RefKind,
-                        baseParameterType,
-                        baseParameter.FlowAnalysisAnnotations,
-                        overrideParameterType,
-                        overrideParameter.FlowAnalysisAnnotations))
-                {
-                    reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, true, extraArgument);
-                }
-            }
+            return hasErrors;
 
             TypeWithAnnotations getNotNullIfNotNullOutputType(TypeWithAnnotations outputType, ImmutableHashSet<string> notNullIfParameterNotNull)
             {
@@ -1261,7 +1292,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     for (var i = 0; i < baseParameters.Length; i++)
                     {
                         var overrideParam = overrideParameters[i + overrideParameterOffset];
-                        if (notNullIfParameterNotNull.Contains(overrideParam.Name) && !baseParameters[i].TypeWithAnnotations.NullableAnnotation.IsAnnotated())
+                        var baseParam = baseParameters[i];
+                        if (notNullIfParameterNotNull.Contains(overrideParam.Name) && NullableWalker.GetParameterState(baseParam.TypeWithAnnotations, baseParam.FlowAnalysisAnnotations, baseParam.IsNullChecked).IsNotNull)
                         {
                             return outputType.AsNotAnnotated();
                         }
@@ -1540,8 +1572,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#nullable disable
-
         /// <summary>
         /// Though there is a method that C# considers to be an implementation of the interface method, that
         /// method may not be considered an implementation by the CLR.  In particular, implicit implementation
@@ -1552,23 +1582,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="implementingMemberAndDiagnostics">Returned from FindImplementationForInterfaceMemberWithDiagnostics.</param>
         /// <param name="interfaceMember">The interface method or property that is being implemented.</param>
-        /// <returns>Synthesized implementation or null if not needed.</returns>
-        private SynthesizedExplicitImplementationForwardingMethod SynthesizeInterfaceMemberImplementation(SymbolAndDiagnostics implementingMemberAndDiagnostics, Symbol interfaceMember)
+        /// <returns>
+        /// A synthesized forwarding method for the implementation, or information about MethodImpl entry that should be emitted,
+        /// or default if neither needed.
+        /// </returns>
+        private (SynthesizedExplicitImplementationForwardingMethod? ForwardingMethod, (MethodSymbol Body, MethodSymbol Implemented)? MethodImpl)
+            SynthesizeInterfaceMemberImplementation(SymbolAndDiagnostics implementingMemberAndDiagnostics, Symbol interfaceMember)
         {
-            if (interfaceMember.DeclaredAccessibility != Accessibility.Public)
-            {
-                // Non-public interface members cannot be implemented implicitly,
-                // appropriate errors are reported elsewhere. Let's not synthesize
-                // forwarding methods, or modify metadata virtualness of the
-                // implementing methods.
-                return null;
-            }
-
             foreach (Diagnostic diagnostic in implementingMemberAndDiagnostics.Diagnostics.Diagnostics)
             {
-                if (diagnostic.Severity == DiagnosticSeverity.Error)
+                if (diagnostic.Severity == DiagnosticSeverity.Error && diagnostic.Code is not (int)ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember)
                 {
-                    return null;
+                    return default;
                 }
             }
 
@@ -1577,61 +1602,70 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //don't worry about properties or events - we'll catch them through their accessors
             if ((object)implementingMember == null || implementingMember.Kind != SymbolKind.Method)
             {
-                return null;
+                return default;
             }
 
             MethodSymbol interfaceMethod = (MethodSymbol)interfaceMember;
             MethodSymbol implementingMethod = (MethodSymbol)implementingMember;
 
-            // Interface properties/events with non-public accessors cannot be implemented implicitly,
-            // appropriate errors are reported elsewhere. Let's not synthesize
-            // forwarding methods, or modify metadata virtualness of the
-            // implementing accessors, even for public ones.
-            if (interfaceMethod.AssociatedSymbol?.IsEventOrPropertyWithImplementableNonPublicAccessor() == true)
-            {
-                return null;
-            }
-
             //explicit implementations are always respected by the CLR
             if (implementingMethod.ExplicitInterfaceImplementations.Contains(interfaceMethod, ExplicitInterfaceImplementationTargetMemberEqualityComparer.Instance))
             {
-                return null;
+                return default;
             }
 
-            MethodSymbol implementingMethodOriginalDefinition = implementingMethod.OriginalDefinition;
-
-            bool needSynthesizedImplementation = true;
-
-            // If the implementing method is from a source file in the same module and the
-            // override is correct from the runtime's perspective (esp the custom modifiers
-            // match), then we can just twiddle the metadata virtual bit.  Otherwise, we need
-            // to create an explicit implementation that delegates to the real implementation.
-            if (MemberSignatureComparer.RuntimeImplicitImplementationComparer.Equals(implementingMethod, interfaceMethod) &&
-                IsOverrideOfPossibleImplementationUnderRuntimeRules(implementingMethod, @interfaceMethod.ContainingType))
+            if (!interfaceMethod.IsStatic)
             {
-                if (ReferenceEquals(this.ContainingModule, implementingMethodOriginalDefinition.ContainingModule))
+                MethodSymbol implementingMethodOriginalDefinition = implementingMethod.OriginalDefinition;
+
+                bool needSynthesizedImplementation = true;
+
+                // If the implementing method is from a source file in the same module and the
+                // override is correct from the runtime's perspective (esp the custom modifiers
+                // match), then we can just twiddle the metadata virtual bit.  Otherwise, we need
+                // to create an explicit implementation that delegates to the real implementation.
+                if (MemberSignatureComparer.RuntimeImplicitImplementationComparer.Equals(implementingMethod, interfaceMethod) &&
+                    IsOverrideOfPossibleImplementationUnderRuntimeRules(implementingMethod, @interfaceMethod.ContainingType))
                 {
-                    SourceMemberMethodSymbol sourceImplementMethodOriginalDefinition = implementingMethodOriginalDefinition as SourceMemberMethodSymbol;
-                    if ((object)sourceImplementMethodOriginalDefinition != null)
+                    if (ReferenceEquals(this.ContainingModule, implementingMethodOriginalDefinition.ContainingModule))
                     {
-                        sourceImplementMethodOriginalDefinition.EnsureMetadataVirtual();
+                        if (implementingMethodOriginalDefinition is SourceMemberMethodSymbol sourceImplementMethodOriginalDefinition)
+                        {
+                            sourceImplementMethodOriginalDefinition.EnsureMetadataVirtual();
+                            needSynthesizedImplementation = false;
+                        }
+                    }
+                    else if (implementingMethod.IsMetadataVirtual(ignoreInterfaceImplementationChanges: true))
+                    {
+                        // If the signatures match and the implementation method is definitely virtual, then we're set.
                         needSynthesizedImplementation = false;
                     }
                 }
-                else if (implementingMethod.IsMetadataVirtual(ignoreInterfaceImplementationChanges: true))
+
+                if (!needSynthesizedImplementation)
                 {
-                    // If the signatures match and the implementation method is definitely virtual, then we're set.
-                    needSynthesizedImplementation = false;
+                    return default;
+                }
+            }
+            else
+            {
+                if (implementingMethod.ContainingType != (object)this)
+                {
+                    if (implementingMethod.Equals(this.BaseTypeNoUseSiteDiagnostics?.FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfaceMethod).Symbol, TypeCompareKind.CLRSignatureCompareOptions))
+                    {
+                        return default;
+                    }
+                }
+                else if (MemberSignatureComparer.RuntimeExplicitImplementationSignatureComparer.Equals(implementingMethod, interfaceMethod))
+                {
+                    return (null, (implementingMethod, interfaceMethod));
                 }
             }
 
-            if (!needSynthesizedImplementation)
-            {
-                return null;
-            }
-
-            return new SynthesizedExplicitImplementationForwardingMethod(interfaceMethod, implementingMethod, this);
+            return (new SynthesizedExplicitImplementationForwardingMethod(interfaceMethod, implementingMethod, this), null);
         }
+
+#nullable disable
 
         /// <summary>
         /// The CLR will only look for an implementation of an interface method in a type that

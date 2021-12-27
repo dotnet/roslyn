@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -14,57 +15,36 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     {
         protected abstract partial class AbstractSymbolDescriptionBuilder
         {
-            private void FixAllAnonymousTypes(ISymbol firstSymbol)
+            private void FixAllStructuralTypes(ISymbol firstSymbol)
             {
                 // First, inline all the delegate anonymous types.  This is how VB prefers to display
                 // things.
-                InlineAllDelegateAnonymousTypes();
+                InlineAllDelegateAnonymousTypes(_semanticModel, _position, _structuralTypeDisplayService, _groupMap);
 
-                // Now, replace all normal anonymous types with 'a, 'b, etc. and create a
-                // AnonymousTypes: section to display their info.
-                FixNormalAnonymousTypes(firstSymbol);
+                // Now, replace all normal anonymous types and tuples with 'a, 'b, etc. and create a
+                // Structural Types: section to display their info.
+                FixStructuralTypes(firstSymbol);
             }
 
-            private void InlineAllDelegateAnonymousTypes()
-            {
-restart:
-                foreach (var (group, parts) in _groupMap)
-                {
-                    var updatedParts = _anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parts, _semanticModel, _position);
-                    if (parts != updatedParts)
-                    {
-                        _groupMap[group] = updatedParts;
-                        goto restart;
-                    }
-                }
-            }
+            protected abstract void InlineAllDelegateAnonymousTypes(SemanticModel semanticModel, int position, IStructuralTypeDisplayService structuralTypeDisplayService, Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> groupMap);
 
-            private void FixNormalAnonymousTypes(ISymbol firstSymbol)
+            private void FixStructuralTypes(ISymbol firstSymbol)
             {
-                var directNormalAnonymousTypeReferences =
+                var directStructuralTypes =
                     from parts in _groupMap.Values
                     from part in parts
-                    where part.Symbol.IsNormalAnonymousType()
+                    where part.Symbol.IsNormalAnonymousType() || part.Symbol.IsTupleType()
                     select (INamedTypeSymbol)part.Symbol;
 
-                var info = _anonymousTypeDisplayService.GetNormalAnonymousTypeDisplayInfo(
-                    firstSymbol, directNormalAnonymousTypeReferences, _semanticModel, _position);
+                var info = _structuralTypeDisplayService.GetTypeDisplayInfo(
+                    firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);
 
-                if (info.AnonymousTypesParts.Count > 0)
+                if (info.TypesParts.Count > 0)
                 {
-                    AddToGroup(SymbolDescriptionGroups.AnonymousTypes,
-                        info.AnonymousTypesParts);
+                    AddToGroup(SymbolDescriptionGroups.StructuralTypes, info.TypesParts);
 
-restart:
-                    foreach (var (group, parts) in _groupMap)
-                    {
-                        var updatedParts = info.ReplaceAnonymousTypes(parts);
-                        if (parts != updatedParts)
-                        {
-                            _groupMap[group] = updatedParts;
-                            goto restart;
-                        }
-                    }
+                    foreach (var (group, parts) in _groupMap.ToArray())
+                        _groupMap[group] = info.ReplaceStructuralTypes(parts, _semanticModel, _position);
                 }
             }
         }

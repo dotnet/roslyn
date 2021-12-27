@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 BlockTypes.Loop => PredefinedStructureTagTypes.Loop,
                 BlockTypes.Member => PredefinedStructureTagTypes.Member,
                 BlockTypes.Namespace => PredefinedStructureTagTypes.Namespace,
+                BlockTypes.Nonstructural => PredefinedStructureTagTypes.Nonstructural,
                 BlockTypes.PreprocessorRegion => PredefinedStructureTagTypes.PreprocessorRegion,
                 BlockTypes.Statement => PredefinedStructureTagTypes.Statement,
                 BlockTypes.Type => PredefinedStructureTagTypes.Type,

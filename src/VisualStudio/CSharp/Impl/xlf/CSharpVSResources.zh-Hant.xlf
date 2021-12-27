@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
-        <target state="new">Allow blank line after colon in constructor initializer</target>
+        <target state="translated">允許在建構函式初始設定式的冒號後面加上空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
         <source>Allow blank lines between consecutive braces</source>
-        <target state="new">Allow blank lines between consecutive braces</target>
+        <target state="translated">允許在連續的大括弧之間使用空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_embedded_statements_on_same_line">
         <source>Allow embedded statements on same line</source>
-        <target state="new">Allow embedded statements on same line</target>
+        <target state="translated">允許在同一行使用內嵌陳述式</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
@@ -29,12 +29,17 @@
       </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
         <source>Automatically complete statement on semicolon</source>
-        <target state="new">Automatically complete statement on semicolon</target>
+        <target state="translated">在遇到分號時自動完成陳述式</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
-        <target state="needs-review-translation">自動在引數清單中顯示自動完成清單 (實驗性)</target>
+        <target state="translated">自動在引數清單中顯示自動完成清單</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="translated">封鎖已設定範圍</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -54,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Completion">
         <source>Completion</source>
-        <target state="new">Completion</target>
+        <target state="translated">完成</target>
         <note />
       </trans-unit>
       <trans-unit id="Discard">
@@ -65,6 +70,11 @@
       <trans-unit id="Edit_color_scheme">
         <source>Edit color scheme</source>
         <target state="translated">編輯色彩配置</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="translated">檔案已設定範圍</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -109,8 +119,13 @@
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
         <source>Place open brace on new line for object, collection, array, and with initializers</source>
-        <target state="new">Place open brace on new line for object, collection, array, and with initializers</target>
+        <target state="translated">在物件、集合、陣列以及 with 初始設定式的新行上放上左大括弧</target>
         <note>{Locked="with"}</note>
+      </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="new">Prefer extended property pattern</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
@@ -121,6 +136,11 @@
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">參考相等檢查最好使用 'is null'</target>
         <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">建議使用 'null' 檢查而非鍵入檢查</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>

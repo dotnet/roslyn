@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 case SyntaxKind.InterpolatedStringTextToken:
                     {
-                        if (!(token.Parent is InterpolatedStringTextSyntax interpolatedStringText))
+                        if (token.Parent is not InterpolatedStringTextSyntax interpolatedStringText)
                         {
                             return false;
                         }
@@ -301,6 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
                 SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
                 SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
+                SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
                 _ => null
             };
 
@@ -309,11 +310,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             var parent = identifierSyntax.Parent;
 
             while (parent is QualifiedNameSyntax)
-            {
                 parent = parent.Parent;
-            }
 
-            return parent is NamespaceDeclarationSyntax;
+            return parent is BaseNamespaceDeclarationSyntax;
         }
 
         public static bool IsStaticallyDeclared(SyntaxToken token)
@@ -354,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
                 SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
+                SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
                 _ => null,
             };
 
@@ -370,9 +370,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         // list should be classified as punctuation; otherwise, they're operators.
                         if (token.Parent != null)
                         {
-                            if (token.Parent.Kind() == SyntaxKind.TypeParameterList ||
-                                token.Parent.Kind() == SyntaxKind.TypeArgumentList ||
-                                token.Parent.Kind() == SyntaxKind.FunctionPointerParameterList)
+                            if (token.Parent.Kind() is SyntaxKind.TypeParameterList or
+                                SyntaxKind.TypeArgumentList or
+                                SyntaxKind.FunctionPointerParameterList)
                             {
                                 return ClassificationTypeNames.Punctuation;
                             }

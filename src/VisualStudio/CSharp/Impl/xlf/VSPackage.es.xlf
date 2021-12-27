@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline hints;
+        <source>Underline reassigned variables;
+Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -80,17 +81,20 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="translated">Mostrar sugerencias insertadas;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">Subrayar variables reasignadas;
+Mostrar sugerencias insertadas;
 Mostrar diagnóstico para archivos cerrados;
-Colorear expresión regular; 
+Colorear expresión regular;
+ 
 Resaltar componentes relacionados bajo el cursor; 
 Informar sobre expresiones regulares no válidas;
 Habilitar análisis de la solución completa;
 Realizar el análisis de características del editor en proceso externo;
 Habilitar la navegación a orígenes descompilados;
-Directivas Using;
-Poner directivas del sistema primero cuando se organicen instrucciones Using;
+Directivas using;
+Poner directivas del sistema primero cuando se organicen instrucciones using;
 Separar grupos de directivas using;
 Sugerir directivas using para los tipos en los ensamblados de referencia;
 Sugerir directivas using para los tipos en los paquetes NuGet;
@@ -103,7 +107,7 @@ Mostrar separadores de líneas de procedimientos;
 Mostrar esquematización para construcciones a nivel de declaración;
 Mostrar esquematización para construcciones a nivel de código;
 Mostrar esquematización para regiones de preprocesador y comentarios;
-Contraer regiones cuando se contraiga a las definiciones;
+Contraer regiones cuando se contraigan las definiciones;
 Atenuación;
 Atenuar directivas using no usadas;
 Atenuar código inaccesible;
@@ -128,7 +132,8 @@ preferir propiedades automáticas;
 regex;
 expresión regular;
 Usar colores mejorados;
-Combinación de colores del editor;</target>
+Combinación de colores del editor;
+Margen de herencia;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -290,12 +295,13 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">Cambiar configuración de la lista de finalización;Preseleccionar el miembro usado recientemente; Listas de finalización;
+        <target state="translated">Cambiar configuración de la lista de finalización;Preseleccionar el miembro usado recientemente; Listas de finalización;
 Mostrar lista de finalización después de escribir un carácter;
 Mostrar lista de finalización después de eliminar un carácter;
 Mostrar lista de finalización en las listas de argumentos automáticamente (experimental);
 Resaltar partes coincidentes de elementos de la lista de finalización;
 Mostrar filtros de elementos de finalización;
+Completar automáticamente la instrucción al introducir punto y coma;
 Comportamiento de los fragmentos de código;
 No incluir nunca fragmentos de código;
 Incluir siempre fragmentos de código;

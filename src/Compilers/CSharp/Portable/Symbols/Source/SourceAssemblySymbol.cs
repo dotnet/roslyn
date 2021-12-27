@@ -204,19 +204,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _compilation.IsMemberMissing(member) ? null : base.GetSpecialTypeMember(member);
         }
 
-        private string GetWellKnownAttributeDataStringField(Func<CommonAssemblyWellKnownAttributeData, string> fieldGetter, string missingValue = null)
+#nullable enable
+        private string? GetWellKnownAttributeDataStringField(Func<CommonAssemblyWellKnownAttributeData, string> fieldGetter, string? missingValue = null, QuickAttributes? attributeMatchesOpt = null)
         {
-            string fieldValue = missingValue;
+            string? fieldValue = missingValue;
 
-            var data = GetSourceDecodedWellKnownAttributeData();
+            var data = attributeMatchesOpt is null
+                ? GetSourceDecodedWellKnownAttributeData()
+                : GetSourceDecodedWellKnownAttributeData(attributeMatchesOpt.Value);
+
             if (data != null)
             {
                 fieldValue = fieldGetter(data);
             }
 
-            if ((object)fieldValue == (object)missingValue)
+            if (fieldValue == (object?)missingValue)
             {
-                data = GetNetModuleDecodedWellKnownAttributeData();
+                data = (attributeMatchesOpt is null || _lazyNetModuleAttributesBag is not null)
+                    ? GetNetModuleDecodedWellKnownAttributeData()
+                    : GetLimitedNetModuleDecodedWellKnownAttributeData(attributeMatchesOpt.Value);
+
                 if (data != null)
                 {
                     fieldValue = fieldGetter(data);
@@ -225,6 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return fieldValue;
         }
+#nullable disable
 
         internal bool RuntimeCompatibilityWrapNonExceptionThrows
         {
@@ -331,7 +339,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetWellKnownAttributeDataStringField(data => data.AssemblyKeyContainerAttributeSetting, WellKnownAttributeData.StringMissingValue);
+                // We mitigate circularity problems by only actively loading attributes that pass a syntactic check
+                return GetWellKnownAttributeDataStringField(data => data.AssemblyKeyContainerAttributeSetting,
+                    WellKnownAttributeData.StringMissingValue, QuickAttributes.AssemblyKeyName);
             }
         }
 
@@ -339,7 +349,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetWellKnownAttributeDataStringField(data => data.AssemblyKeyFileAttributeSetting, WellKnownAttributeData.StringMissingValue);
+                // We mitigate circularity problems by only actively loading attributes that pass a syntactic check
+                return GetWellKnownAttributeDataStringField(data => data.AssemblyKeyFileAttributeSetting,
+                    WellKnownAttributeData.StringMissingValue, QuickAttributes.AssemblyKeyFile);
             }
         }
 
@@ -355,7 +367,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetWellKnownAttributeDataStringField(data => data.AssemblySignatureKeyAttributeSetting);
+                // We mitigate circularity problems by only actively loading attributes that pass a syntactic check
+                return GetWellKnownAttributeDataStringField(data => data.AssemblySignatureKeyAttributeSetting,
+                    missingValue: null, QuickAttributes.AssemblySignatureKey);
             }
         }
 
@@ -456,12 +470,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private StrongNameKeys ComputeStrongNameKeys()
         {
-            // TODO:
-            // In order to allow users to escape problems that we create with our provisional granting of IVT access,
-            // consider not binding the attributes if the command line options were specified, then later bind them
-            // and report warnings if both were used.
-            EnsureAttributesAreBound();
-
             // when both attributes and command-line options specified, cmd line wins.
             string keyFile = _compilation.Options.CryptoKeyFile;
 
@@ -1301,8 +1309,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(netModuleNames.Any());
             Debug.Assert(attributesFromNetModules.Length == netModuleNames.Length);
 
-            var tree = CSharpSyntaxTree.Dummy;
-
             int netModuleAttributesCount = attributesFromNetModules.Length;
             int sourceAttributesCount = this.GetSourceAttributesBag().Attributes.Length;
 
@@ -1432,22 +1438,93 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 diagnostics.Free();
-            }
 
-            Debug.Assert(lazyNetModuleAttributesBag.IsSealed);
+                Debug.Assert(lazyNetModuleAttributesBag.IsSealed);
+            }
         }
 
-        private void EnsureNetModuleAttributesAreBound()
+        private CommonAssemblyWellKnownAttributeData GetLimitedNetModuleDecodedWellKnownAttributeData(QuickAttributes attributeMatches)
         {
-            if (_lazyNetModuleAttributesBag == null)
+            Debug.Assert(attributeMatches is QuickAttributes.AssemblyKeyFile
+                or QuickAttributes.AssemblyKeyName
+                or QuickAttributes.AssemblySignatureKey);
+
+            if (_compilation.Options.OutputKind.IsNetModule())
             {
-                LoadAndValidateNetModuleAttributes(ref _lazyNetModuleAttributesBag);
+                return null;
+            }
+
+            ImmutableArray<string> netModuleNames;
+            ImmutableArray<CSharpAttributeData> attributesFromNetModules = GetNetModuleAttributes(out netModuleNames);
+
+            WellKnownAttributeData wellKnownData = null;
+
+            if (attributesFromNetModules.Any())
+            {
+                wellKnownData = limitedDecodeWellKnownAttributes(attributesFromNetModules, netModuleNames, attributeMatches);
+            }
+
+            return (CommonAssemblyWellKnownAttributeData)wellKnownData;
+
+            // Similar to ValidateAttributeUsageAndDecodeWellKnownAttributes, but doesn't load assembly-level attributes from source
+            // and only decodes 3 specific attributes.
+            WellKnownAttributeData limitedDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> attributesFromNetModules,
+                ImmutableArray<string> netModuleNames, QuickAttributes attributeMatches)
+            {
+                Debug.Assert(attributesFromNetModules.Any());
+                Debug.Assert(netModuleNames.Any());
+                Debug.Assert(attributesFromNetModules.Length == netModuleNames.Length);
+
+                int netModuleAttributesCount = attributesFromNetModules.Length;
+
+                HashSet<CSharpAttributeData> uniqueAttributes = null;
+                CommonAssemblyWellKnownAttributeData result = null;
+
+                // Attributes from the second added module should override attributes from the first added module, etc.
+                // We don't reach here when the attribute was found in source already.
+                for (int i = netModuleAttributesCount - 1; i >= 0; i--)
+                {
+                    CSharpAttributeData attribute = attributesFromNetModules[i];
+                    if (!attribute.HasErrors && ValidateAttributeUsageForNetModuleAttribute(attribute, netModuleNames[i], BindingDiagnosticBag.Discarded, ref uniqueAttributes))
+                    {
+                        limitedDecodeWellKnownAttribute(attribute, attributeMatches, ref result);
+                    }
+                }
+
+                WellKnownAttributeData.Seal(result);
+                return result;
+            }
+
+            // Similar to DecodeWellKnownAttribute but only handles 3 specific attributes and ignores diagnostics.
+            void limitedDecodeWellKnownAttribute(CSharpAttributeData attribute, QuickAttributes attributeMatches, ref CommonAssemblyWellKnownAttributeData result)
+            {
+                if (attributeMatches is QuickAttributes.AssemblySignatureKey &&
+                    attribute.IsTargetAttribute(this, AttributeDescription.AssemblySignatureKeyAttribute))
+                {
+                    result ??= new CommonAssemblyWellKnownAttributeData();
+                    result.AssemblySignatureKeyAttributeSetting = (string)attribute.CommonConstructorArguments[0].ValueInternal;
+                }
+                else if (attributeMatches is QuickAttributes.AssemblyKeyFile &&
+                    attribute.IsTargetAttribute(this, AttributeDescription.AssemblyKeyFileAttribute))
+                {
+                    result ??= new CommonAssemblyWellKnownAttributeData();
+                    result.AssemblyKeyFileAttributeSetting = (string)attribute.CommonConstructorArguments[0].ValueInternal;
+                }
+                else if (attributeMatches is QuickAttributes.AssemblyKeyName &&
+                    attribute.IsTargetAttribute(this, AttributeDescription.AssemblyKeyNameAttribute))
+                {
+                    result ??= new CommonAssemblyWellKnownAttributeData();
+                    result.AssemblyKeyContainerAttributeSetting = (string)attribute.CommonConstructorArguments[0].ValueInternal;
+                }
             }
         }
 
         private CustomAttributesBag<CSharpAttributeData> GetNetModuleAttributesBag()
         {
-            EnsureNetModuleAttributesAreBound();
+            if (_lazyNetModuleAttributesBag == null)
+            {
+                LoadAndValidateNetModuleAttributes(ref _lazyNetModuleAttributesBag);
+            }
             return _lazyNetModuleAttributesBag;
         }
 
@@ -1562,6 +1639,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
+
+#nullable enable
+        /// <remarks>
+        /// This implements the same logic as <see cref="GetSourceDecodedWellKnownAttributeData()"/>
+        /// but loading a smaller set of attributes if possible, to reduce circularity.
+        /// </remarks>
+        private CommonAssemblyWellKnownAttributeData? GetSourceDecodedWellKnownAttributeData(QuickAttributes attribute)
+        {
+            CustomAttributesBag<CSharpAttributeData>? attributesBag = _lazySourceAttributesBag;
+            if (attributesBag?.IsDecodedWellKnownAttributeDataComputed == true)
+            {
+                return (CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            }
+
+            attributesBag = null;
+            Func<AttributeSyntax, bool> attributeMatches = attribute switch
+            {
+                QuickAttributes.AssemblySignatureKey => isPossibleAssemblySignatureKeyAttribute,
+                QuickAttributes.AssemblyKeyName => isPossibleAssemblyKeyNameAttribute,
+                QuickAttributes.AssemblyKeyFile => isPossibleAssemblyKeyFileAttribute,
+                _ => throw ExceptionUtilities.UnexpectedValue(attribute)
+            };
+
+            LoadAndValidateAttributes(OneOrMany.Create(GetAttributeDeclarations()), ref attributesBag, attributeMatchesOpt: attributeMatches);
+
+            return (CommonAssemblyWellKnownAttributeData?)attributesBag?.DecodedWellKnownAttributeData;
+
+            bool isPossibleAssemblySignatureKeyAttribute(AttributeSyntax node)
+            {
+                QuickAttributeChecker checker = this.DeclaringCompilation.GetBinderFactory(node.SyntaxTree).GetBinder(node).QuickAttributeChecker;
+                return checker.IsPossibleMatch(node, QuickAttributes.AssemblySignatureKey);
+            }
+
+            bool isPossibleAssemblyKeyNameAttribute(AttributeSyntax node)
+            {
+                QuickAttributeChecker checker = this.DeclaringCompilation.GetBinderFactory(node.SyntaxTree).GetBinder(node).QuickAttributeChecker;
+                return checker.IsPossibleMatch(node, QuickAttributes.AssemblyKeyName);
+            }
+
+            bool isPossibleAssemblyKeyFileAttribute(AttributeSyntax node)
+            {
+                QuickAttributeChecker checker = this.DeclaringCompilation.GetBinderFactory(node.SyntaxTree).GetBinder(node).QuickAttributeChecker;
+                return checker.IsPossibleMatch(node, QuickAttributes.AssemblyKeyFile);
+            }
+        }
+#nullable disable
 
         /// <summary>
         /// This only forces binding of attributes that look like they may be forwarded types attributes (syntactically).
@@ -1980,7 +2103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 VersionHelper.GenerateVersionFromPatternAndCurrentTime(_compilation.Options.CurrentLocalTime, AssemblyVersionAttributeSetting),
                 this.AssemblyCultureAttributeSetting,
                 StrongNameKeys.PublicKey,
-                hasPublicKey: !StrongNameKeys.PublicKey.IsDefault);
+                hasPublicKey: !StrongNameKeys.PublicKey.IsDefault,
+                isRetargetable: (AssemblyFlags & AssemblyFlags.Retargetable) == AssemblyFlags.Retargetable);
         }
 
         //This maps from assembly name to a set of public keys. It uses concurrent dictionaries because it is built,

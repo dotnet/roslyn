@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case AccessorDeclarationSyntax accessor:
                     model = (accessor.Body != null || accessor.ExpressionBody != null) ? GetOrAddModel(node) : null;
                     break;
-                case RecordDeclarationSyntax { ParameterList: { }, PrimaryConstructorBaseType: { } } recordDeclaration when TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor:
+                case RecordDeclarationSyntax { ParameterList: { }, PrimaryConstructorBaseTypeIfClass: { } } recordDeclaration when TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor:
                     model = GetOrAddModel(recordDeclaration);
                     break;
                 default:
@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                var argumentList = recordDecl.PrimaryConstructorBaseType?.ArgumentList;
+                                var argumentList = recordDecl.PrimaryConstructorBaseTypeIfClass?.ArgumentList;
                                 outsideMemberDecl = argumentList is null || !LookupPosition.IsBetweenTokens(position, argumentList.OpenParenToken, argumentList.CloseParenToken);
                             }
                         }
@@ -877,7 +877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var recordDecl = (RecordDeclarationSyntax)memberDecl;
                             return recordDecl.ParameterList is object &&
-                                   recordDecl.PrimaryConstructorBaseType is PrimaryConstructorBaseTypeSyntax baseWithArguments &&
+                                   recordDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments &&
                                    (node == baseWithArguments || baseWithArguments.ArgumentList.FullSpan.Contains(span)) ? GetOrAddModel(memberDecl) : null;
                         }
 
@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetOrAddModel(memberDecl);
 
                     case SyntaxKind.CompilationUnit:
-                        if (SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, (CompilationUnitSyntax)memberDecl, fallbackToMainEntryPoint: false) is object)
+                        if (SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(Compilation, (CompilationUnitSyntax)memberDecl, fallbackToMainEntryPoint: false) is object)
                         {
                             return GetOrAddModel(memberDecl);
                         }
@@ -1078,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.CompilationUnit:
-                    return createMethodBodySemanticModel(node, SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, (CompilationUnitSyntax)node, fallbackToMainEntryPoint: false));
+                    return createMethodBodySemanticModel(node, SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(Compilation, (CompilationUnitSyntax)node, fallbackToMainEntryPoint: false));
 
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
@@ -1330,13 +1330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region "GetDeclaredSymbol overloads for MemberDeclarationSyntax and its subtypes"
 
-        /// <summary>
-        /// Given a namespace declaration syntax node, get the corresponding namespace symbol for the declaration
-        /// assembly.
-        /// </summary>
-        /// <param name="declarationSyntax">The syntax node that declares a namespace.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The namespace symbol that was declared by the namespace declaration.</returns>
+        /// <inheritdoc/>
         public override INamespaceSymbol GetDeclaredSymbol(NamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
@@ -1344,7 +1338,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetDeclaredNamespace(declarationSyntax).GetPublicSymbol();
         }
 
-        private NamespaceSymbol GetDeclaredNamespace(NamespaceDeclarationSyntax declarationSyntax)
+        /// <inheritdoc/>
+        public override INamespaceSymbol GetDeclaredSymbol(FileScopedNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default)
+        {
+            CheckSyntaxNode(declarationSyntax);
+
+            return GetDeclaredNamespace(declarationSyntax).GetPublicSymbol();
+        }
+
+        private NamespaceSymbol GetDeclaredNamespace(BaseNamespaceDeclarationSyntax declarationSyntax)
         {
             Debug.Assert(declarationSyntax != null);
 
@@ -1429,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NamespaceOrTypeSymbol GetDeclaredNamespaceOrType(CSharpSyntaxNode declarationSyntax)
         {
-            var namespaceDeclarationSyntax = declarationSyntax as NamespaceDeclarationSyntax;
+            var namespaceDeclarationSyntax = declarationSyntax as BaseNamespaceDeclarationSyntax;
             if (namespaceDeclarationSyntax != null)
             {
                 return GetDeclaredNamespace(namespaceDeclarationSyntax);
@@ -1493,7 +1495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(declarationSyntax);
 
-            return SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, declarationSyntax, fallbackToMainEntryPoint: false).GetPublicSymbol();
+            return SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(Compilation, declarationSyntax, fallbackToMainEntryPoint: false).GetPublicSymbol();
         }
 
         /// <summary>
@@ -1703,18 +1705,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case SyntaxKind.OperatorDeclaration:
-                    var operatorDecl = (OperatorDeclarationSyntax)declaration;
-
-                    return OperatorFacts.OperatorNameFromDeclaration(operatorDecl);
+                    {
+                        var operatorDecl = (OperatorDeclarationSyntax)declaration;
+                        return GetDeclarationName(declaration, operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
+                    }
 
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    if (((ConversionOperatorDeclarationSyntax)declaration).ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ExplicitKeyword)
                     {
-                        return WellKnownMemberNames.ExplicitConversionName;
-                    }
-                    else
-                    {
-                        return WellKnownMemberNames.ImplicitConversionName;
+                        var operatorDecl = (ConversionOperatorDeclarationSyntax)declaration;
+                        return GetDeclarationName(declaration, operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
                     }
 
                 case SyntaxKind.EventFieldDeclaration:
@@ -1932,25 +1931,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            Binder binder = _binderFactory.GetImportsBinder(declarationSyntax.Parent);
-            var imports = binder.GetImports(basesBeingResolved: null);
-            var alias = imports.UsingAliases[declarationSyntax.Alias.Name.Identifier.ValueText];
+            Binder binder = _binderFactory.GetInNamespaceBinder(declarationSyntax.Parent);
 
-            if ((object)alias.Alias == null)
+            for (; binder != null; binder = binder.Next)
             {
-                // Case: no aliases
-                return null;
+                var usingAliases = binder.UsingAliases;
+
+                if (!usingAliases.IsDefault)
+                {
+                    foreach (var alias in usingAliases)
+                    {
+                        if (alias.Alias.Locations[0].SourceSpan == declarationSyntax.Alias.Name.Span)
+                        {
+                            return alias.Alias.GetPublicSymbol();
+                        }
+                    }
+
+                    break;
+                }
             }
-            else if (alias.Alias.Locations[0].SourceSpan == declarationSyntax.Alias.Name.Span)
-            {
-                // Case: first alias (there may be others)
-                return alias.Alias.GetPublicSymbol();
-            }
-            else
-            {
-                // Case: multiple aliases, not the first (see DevDiv #9368)
-                return new AliasSymbol(binder, declarationSyntax.Name, declarationSyntax.Alias).GetPublicSymbol();
-            }
+
+            return null;
         }
 
         /// <summary>
@@ -1963,19 +1964,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(declarationSyntax);
 
-            var binder = _binderFactory.GetImportsBinder(declarationSyntax.Parent);
-            var imports = binder.GetImports(basesBeingResolved: null);
+            var binder = _binderFactory.GetInNamespaceBinder(declarationSyntax.Parent);
 
-            // TODO: If this becomes a bottleneck, put the extern aliases in a dictionary, as for using aliases.
-            foreach (var alias in imports.ExternAliases)
+            for (; binder != null; binder = binder.Next)
             {
-                if (alias.Alias.Locations[0].SourceSpan == declarationSyntax.Identifier.Span)
+                var externAliases = binder.ExternAliases;
+
+                if (!externAliases.IsDefault)
                 {
-                    return alias.Alias.GetPublicSymbol();
+                    foreach (var alias in externAliases)
+                    {
+                        if (alias.Alias.Locations[0].SourceSpan == declarationSyntax.Identifier.Span)
+                        {
+                            return alias.Alias.GetPublicSymbol();
+                        }
+                    }
+
+                    break;
                 }
             }
 
-            return new AliasSymbol(binder, declarationSyntax).GetPublicSymbol();
+            return null;
         }
 
         /// <summary>
@@ -2219,7 +2228,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException("statements not within tree");
             }
 
-            if (firstStatement.Parent == null || firstStatement.Parent != lastStatement.Parent)
+            // Global statements don't have their parent in common, but should belong to the same compilation unit
+            bool isGlobalStatement = firstStatement.Parent is GlobalStatementSyntax;
+            if (isGlobalStatement && (lastStatement.Parent is not GlobalStatementSyntax || firstStatement.Parent.Parent != lastStatement.Parent.Parent))
+            {
+                throw new ArgumentException("global statements not within the same compilation unit");
+            }
+
+            // Non-global statements, the parents should be the same
+            if (!isGlobalStatement && (firstStatement.Parent == null || firstStatement.Parent != lastStatement.Parent))
             {
                 throw new ArgumentException("statements not within the same statement list");
             }
@@ -2247,6 +2264,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override DataFlowAnalysis AnalyzeDataFlow(ConstructorInitializerSyntax constructorInitializer)
+        {
+            if (constructorInitializer == null)
+            {
+                throw new ArgumentNullException(nameof(constructorInitializer));
+            }
+
+            if (!IsInTree(constructorInitializer))
+            {
+                throw new ArgumentException("node not within tree");
+            }
+
+            var context = RegionAnalysisContext(constructorInitializer);
+            var result = new CSharpDataFlowAnalysis(context);
+            return result;
+        }
+
+        public override DataFlowAnalysis AnalyzeDataFlow(PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
+        {
+            if (primaryConstructorBaseType == null)
+            {
+                throw new ArgumentNullException(nameof(primaryConstructorBaseType));
+            }
+
+            if (!IsInTree(primaryConstructorBaseType))
+            {
+                throw new ArgumentException("node not within tree");
+            }
+
+            var context = RegionAnalysisContext(primaryConstructorBaseType);
+            var result = new CSharpDataFlowAnalysis(context);
+            return result;
+        }
+
         public override DataFlowAnalysis AnalyzeDataFlow(StatementSyntax firstStatement, StatementSyntax lastStatement)
         {
             ValidateStatementRange(firstStatement, lastStatement);
@@ -2266,7 +2317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (memberDeclaration.Parent.Kind() == SyntaxKind.CompilationUnit)
             {
                 // top-level namespace:
-                if (memberDeclaration.Kind() == SyntaxKind.NamespaceDeclaration)
+                if (memberDeclaration.Kind() is SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration)
                 {
                     return _compilation.Assembly.GlobalNamespace;
                 }
@@ -2297,7 +2348,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // a namespace or a type in an explicitly declared namespace:
-            if (memberDeclaration.Kind() == SyntaxKind.NamespaceDeclaration || SyntaxFacts.IsTypeDeclaration(memberDeclaration.Kind()))
+            if (memberDeclaration.Kind() is SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration
+                || SyntaxFacts.IsTypeDeclaration(memberDeclaration.Kind()))
             {
                 return container;
             }
@@ -2371,7 +2423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (declaredNode)
             {
-                case CompilationUnitSyntax unit when SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, unit, fallbackToMainEntryPoint: false) is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
+                case CompilationUnitSyntax unit when SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(Compilation, unit, fallbackToMainEntryPoint: false) is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
                     switch (declaredSymbol.Kind)
                     {
                         case SymbolKind.Namespace:
@@ -2395,43 +2447,73 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case RecordDeclarationSyntax recordDeclaration when TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor ctor:
-                    switch (declaredSymbol.Kind)
+                    if (recordDeclaration.IsKind(SyntaxKind.RecordDeclaration))
                     {
-                        case SymbolKind.Method:
-                            Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor);
-                            return (node) =>
-                                   {
-                                       // Accept only nodes that either match, or above/below of a 'parameter list'/'base arguments list'.
-                                       if (node.Parent == recordDeclaration)
+                        switch (declaredSymbol.Kind)
+                        {
+                            case SymbolKind.Method:
+                                Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor);
+                                return (node) =>
                                        {
-                                           return node == recordDeclaration.ParameterList || node == recordDeclaration.BaseList;
-                                       }
-                                       else if (node.Parent is BaseListSyntax baseList)
-                                       {
-                                           return node == recordDeclaration.PrimaryConstructorBaseType;
-                                       }
-                                       else if (node.Parent is PrimaryConstructorBaseTypeSyntax baseType && baseType == recordDeclaration.PrimaryConstructorBaseType)
-                                       {
-                                           return node == baseType.ArgumentList;
-                                       }
+                                           // Accept only nodes that either match, or above/below of a 'parameter list'/'base arguments list'.
+                                           if (node.Parent == recordDeclaration)
+                                           {
+                                               return node == recordDeclaration.ParameterList || node == recordDeclaration.BaseList;
+                                           }
+                                           else if (node.Parent is BaseListSyntax baseList)
+                                           {
+                                               return node == recordDeclaration.PrimaryConstructorBaseTypeIfClass;
+                                           }
+                                           else if (node.Parent is PrimaryConstructorBaseTypeSyntax baseType && baseType == recordDeclaration.PrimaryConstructorBaseTypeIfClass)
+                                           {
+                                               return node == baseType.ArgumentList;
+                                           }
 
-                                       return true;
-                                   };
+                                           return true;
+                                       };
 
-                        case SymbolKind.NamedType:
-                            Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor.ContainingSymbol);
-                            // Accept nodes that do not match a 'parameter list'/'base arguments list'.
-                            return (node) => node != recordDeclaration.ParameterList &&
-                                             !(node.Kind() == SyntaxKind.ArgumentList && node == recordDeclaration.PrimaryConstructorBaseType?.ArgumentList);
+                            case SymbolKind.NamedType:
+                                Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor.ContainingSymbol);
+                                // Accept nodes that do not match a 'parameter list'/'base arguments list'.
+                                return (node) => node != recordDeclaration.ParameterList &&
+                                                 !(node.Kind() == SyntaxKind.ArgumentList && node == recordDeclaration.PrimaryConstructorBaseTypeIfClass?.ArgumentList);
 
-                        default:
-                            ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
-                            break;
+                            default:
+                                ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (declaredSymbol.Kind)
+                        {
+                            case SymbolKind.Method:
+                                Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor);
+                                return (node) =>
+                                {
+                                    // Accept only nodes that either match, or above/below of a 'parameter list'.
+                                    if (node.Parent == recordDeclaration)
+                                    {
+                                        return node == recordDeclaration.ParameterList;
+                                    }
+
+                                    return true;
+                                };
+
+                            case SymbolKind.NamedType:
+                                Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor.ContainingSymbol);
+                                // Accept nodes that do not match a 'parameter list'.
+                                return (node) => node != recordDeclaration.ParameterList;
+
+                            default:
+                                ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
+                                break;
+                        }
                     }
                     break;
 
                 case PrimaryConstructorBaseTypeSyntax { Parent: BaseListSyntax { Parent: RecordDeclarationSyntax recordDeclaration } } baseType
-                        when recordDeclaration.PrimaryConstructorBaseType == declaredNode && TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor ctor:
+                        when recordDeclaration.PrimaryConstructorBaseTypeIfClass == declaredNode && TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor ctor:
                     if ((object)declaredSymbol.GetSymbol() == (object)ctor)
                     {
                         // Only 'base arguments list' or nodes below it

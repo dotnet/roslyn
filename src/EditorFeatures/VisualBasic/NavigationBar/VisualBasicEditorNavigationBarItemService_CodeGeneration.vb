@@ -20,24 +20,32 @@ Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
     Partial Friend Class VisualBasicEditorNavigationBarItemService
-        Private Sub GenerateCodeForItem(document As Document, generateCodeItem As AbstractGenerateCodeItem, textView As ITextView, cancellationToken As CancellationToken)
+        Private Async Function GenerateCodeForItemAsync(document As Document, generateCodeItem As AbstractGenerateCodeItem, textView As ITextView, cancellationToken As CancellationToken) As Task
             ' We'll compute everything up front before we go mutate state
-            Dim text = document.GetTextSynchronously(cancellationToken)
-            Dim newDocument = GetGeneratedDocumentAsync(document, generateCodeItem, cancellationToken).WaitAndGetResult(cancellationToken)
-            Dim generatedTree = newDocument.GetSyntaxRootSynchronously(cancellationToken)
+            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+            Dim newDocument = Await GetGeneratedDocumentAsync(document, generateCodeItem, cancellationToken).ConfigureAwait(False)
+            Dim generatedTree = Await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+
             Dim generatedNode = generatedTree.GetAnnotatedNodes(GeneratedSymbolAnnotation).Single().FirstAncestorOrSelf(Of MethodBlockBaseSyntax)
-            Dim documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
             Dim indentSize = documentOptions.GetOption(FormattingOptions.IndentationSize)
+
             Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedTree.GetText(text.Encoding), indentSize, generatedNode)
+
+            ' switch back to ui thread to actually perform the application and navigation
+            Await Me.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
 
             Using transaction = New CaretPreservingEditTransaction(VBEditorResources.Generate_Member, textView, _textUndoHistoryRegistry, _editorOperationsFactoryService)
                 newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
 
-                NavigateToVirtualTreePoint(newDocument.Project.Solution, navigationPoint, cancellationToken)
+                Dim solution = newDocument.Project.Solution
+                NavigateToPosition(
+                    solution.Workspace, solution.GetRequiredDocument(navigationPoint.Tree).Id,
+                    navigationPoint.Position, navigationPoint.VirtualSpaces, cancellationToken)
 
                 transaction.Complete()
             End Using
-        End Sub
+        End Function
 
         Public Shared Async Function GetGeneratedDocumentAsync(document As Document, generateCodeItem As RoslynNavigationBarItem, cancellationToken As CancellationToken) As Task(Of Document)
             Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
@@ -49,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 Return document
             End If
 
-            newDocument = Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, Nothing, cancellationToken).WaitAndGetResult(cancellationToken)
+            newDocument = Await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, Nothing, cancellationToken).ConfigureAwait(False)
 
             Dim formatterRules = Formatter.GetDefaultFormattingRules(newDocument)
             If ShouldApplyLineAdjustmentFormattingRule(generateCodeItem) Then
@@ -57,11 +65,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             End If
 
             Dim documentOptions = Await newDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
-            Return Formatter.FormatAsync(newDocument,
-                                         Formatter.Annotation,
-                                         options:=documentOptions,
-                                         cancellationToken:=cancellationToken,
-                                         rules:=formatterRules).WaitAndGetResult(cancellationToken)
+            Return Await Formatter.FormatAsync(
+                newDocument,
+                Formatter.Annotation,
+                options:=documentOptions,
+                cancellationToken:=cancellationToken,
+                rules:=formatterRules).ConfigureAwait(False)
         End Function
 
         Private Shared Function ShouldApplyLineAdjustmentFormattingRule(generateCodeItem As RoslynNavigationBarItem) As Boolean

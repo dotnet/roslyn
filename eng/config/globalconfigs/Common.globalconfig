@@ -5,6 +5,9 @@ dotnet_diagnostic.CA1068.severity = warning
 dotnet_diagnostic.CA1200.severity = warning
 dotnet_diagnostic.CA1821.severity = warning
 
+# CA2012: Use ValueTasks correctly
+dotnet_diagnostic.CA2012.severity = warning
+
 dotnet_diagnostic.IDE0055.severity = warning
 
 dotnet_diagnostic.RS1001.severity = none
@@ -24,6 +27,10 @@ dotnet_diagnostic.RS1014.severity = warning
 dotnet_diagnostic.RS1022.severity = none
 # RS1024: Compare symbols correctly
 dotnet_diagnostic.RS1024.severity = refactoring
+
+# RS1034: Prefer 'IsKind' for checking syntax kinds
+# Hold on https://github.com/dotnet/roslyn/pull/51823#pullrequestreview-612747491
+dotnet_diagnostic.RS1034.severity = none
 
 dotnet_diagnostic.AD0001.severity = error
 

@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
-        <target state="needs-review-translation">Eksik Import'ları ekle</target>
+        <target state="translated">Eksik Import'ları ekle</target>
         <note>{Locked="Import"}</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="Apply_Imports_directive_placement_preferences">
         <source>Apply Imports directive placement preferences</source>
-        <target state="new">Apply Imports directive placement preferences</target>
+        <target state="translated">Import yönerge yerleştirme tercihlerini uygula</target>
         <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Apply_Me_qualification_preferences">
         <source>Apply Me qualification preferences</source>
-        <target state="new">Apply Me qualification preferences</target>
+        <target state="translated">Me yeterlilik tercihlerini uygula</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Change_to_DirectCast">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Make_private_field_ReadOnly_when_possible">
         <source>Make private field ReadOnly when possible</source>
-        <target state="new">Make private field ReadOnly when possible</target>
+        <target state="translated">Mümkün olduğunda özel alanı ReadOnly yap</target>
         <note>{Locked="ReadOnly"} "ReadOnly" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Organize_Imports">
         <source>Organize Imports</source>
-        <target state="new">Organize Imports</target>
+        <target state="translated">Import'ları Düzenle</target>
         <note>{Locked="Import"}</note>
       </trans-unit>
       <trans-unit id="Remove_shared_keyword_from_module_member">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Shared_constructor">
         <source>Shared constructor</source>
-        <target state="new">Shared constructor</target>
+        <target state="translated">Paylaşılan oluşturucu</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="_0_Events">
         <source>({0} Events)</source>
-        <target state="new">({0} Events)</target>
+        <target state="translated">({0} Olay)</target>
         <note />
       </trans-unit>
       <trans-unit id="new_field">
@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="Remove_Me_qualification">
         <source>Remove 'Me' qualification</source>
-        <target state="needs-review-translation">Me' nitelemesini kaldır</target>
+        <target state="translated">Me' nitelemesini kaldır</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
@@ -330,21 +330,6 @@
       <trans-unit id="Invalid_selection">
         <source>Invalid selection</source>
         <target state="translated">Geçersiz seçim</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Selection_doesn_t_contain_any_valid_token">
-        <source>Selection doesn't contain any valid token</source>
-        <target state="translated">Seçim geçerli belirteç içermiyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction</source>
-        <target state="translated">Ayıklamayı gerçekleştirmek için geçerli seçim yok</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction</source>
-        <target state="translated">Ayıklama için ortak kök düğümü yok</target>
         <note />
       </trans-unit>
       <trans-unit id="Deprecated">
@@ -965,11 +950,6 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       <trans-unit id="Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first">
         <source>Specifies the sort order for an Order By clause in a query. The smallest element will appear first.</source>
         <target state="translated">Bir sorgu içinde Order By yan tümcesi için sıralama düzeni belirtir. En küçük öğe ilk görünür.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
-        <source>Asynchronously waits for the task to finish.</source>
-        <target state="translated">Zaman uyumsuz olarak görevin tamamlanmasını bekler.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order">
@@ -1691,11 +1671,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <source>WithEvents field</source>
         <target state="translated">WithEvents alanı</target>
         <note>{Locked="WithEvents"} "WithEvents" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="property_accessor">
-        <source>property accessor</source>
-        <target state="translated">özellik erişeni</target>
-        <note />
       </trans-unit>
       <trans-unit id="as_clause">
         <source>as clause</source>

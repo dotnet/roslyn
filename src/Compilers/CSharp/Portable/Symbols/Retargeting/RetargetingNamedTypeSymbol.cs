@@ -392,6 +392,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
         internal sealed override bool IsRecord => _underlyingType.IsRecord;
+        internal sealed override bool IsRecordStruct => _underlyingType.IsRecordStruct;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => _underlyingType.HasPossibleWellKnownCloneMethod();
+
+        internal override bool HasFieldInitializers() => _underlyingType.HasFieldInitializers();
+
+        internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            foreach ((MethodSymbol body, MethodSymbol implemented) in _underlyingType.SynthesizedInterfaceMethodImpls())
+            {
+                var newBody = this.RetargetingTranslator.Retarget(body, MemberSignatureComparer.RetargetedExplicitImplementationComparer);
+                var newImplemented = this.RetargetingTranslator.Retarget(implemented, MemberSignatureComparer.RetargetedExplicitImplementationComparer);
+
+                if (newBody is object && newImplemented is object)
+                {
+                    yield return (newBody, newImplemented);
+                }
+            }
+        }
     }
 }

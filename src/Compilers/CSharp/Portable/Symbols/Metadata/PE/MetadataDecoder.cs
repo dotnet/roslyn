@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -535,9 +536,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // We're going to use a special decoder that can generate usable symbols for type parameters without full context.
             // (We're not just using a different type - we're also changing the type context.)
-            var memberRefDecoder = new MemberRefMetadataDecoder(moduleSymbol, targetTypeSymbol);
+            var memberRefDecoder = new MemberRefMetadataDecoder(moduleSymbol, targetTypeSymbol.OriginalDefinition);
 
-            return memberRefDecoder.FindMember(targetTypeSymbol, memberRef, methodsOnly);
+            var definition = memberRefDecoder.FindMember(memberRef, methodsOnly);
+
+            if (definition is not null && !targetTypeSymbol.IsDefinition)
+            {
+                return definition.SymbolAsMember((NamedTypeSymbol)targetTypeSymbol);
+            }
+
+            return definition;
         }
 
         protected override void EnqueueTypeSymbolInterfacesAndBaseTypes(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol)

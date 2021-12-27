@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class WellKnownCommandNames
@@ -37,7 +35,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string File_OpenFile = "File.OpenFile";
         public const string File_SaveAll = "File.SaveAll";
 
-        public const string InteractiveConsole_Reset = "InteractiveConsole.Reset";
         public const string InteractiveConsole_ClearScreen = "InteractiveConsole.ClearScreen";
         public const string InteractiveConsole_ExecuteInInteractive = "InteractiveConsole.ExecuteInInteractive";
 

@@ -8,6 +8,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Analyzers.SimplifyInterpolation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SimplifyInterpolation;
 
@@ -16,14 +17,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SimplifyInterpolation), Shared]
     internal class CSharpSimplifyInterpolationCodeFixProvider : AbstractSimplifyInterpolationCodeFixProvider<
         InterpolationSyntax, ExpressionSyntax, InterpolationAlignmentClauseSyntax,
-        InterpolationFormatClauseSyntax, InterpolatedStringExpressionSyntax,
-        ConditionalExpressionSyntax, ParenthesizedExpressionSyntax>
+        InterpolationFormatClauseSyntax, InterpolatedStringExpressionSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpSimplifyInterpolationCodeFixProvider()
         {
         }
+
+        protected override AbstractSimplifyInterpolationHelpers GetHelpers() => CSharpSimplifyInterpolationHelpers.Instance;
 
         protected override InterpolationSyntax WithExpression(InterpolationSyntax interpolation, ExpressionSyntax expression)
             => interpolation.WithExpression(expression);
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
                 // escape character itself.
                 foreach (var c in formatString)
                 {
-                    if (c == '"' || c == '\\')
+                    if (c is '"' or '\\')
                     {
                         result.Append('\\');
                     }

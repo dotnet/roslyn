@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         protected ITextBuffer SubjectBuffer { get; }
         protected Workspace? CurrentWorkspace { get; private set; }
 
-        protected AbstractWorkspaceTrackingTaggerEventSource(ITextBuffer subjectBuffer, TaggerDelay delay) : base(delay)
+        protected AbstractWorkspaceTrackingTaggerEventSource(ITextBuffer subjectBuffer)
         {
             this.SubjectBuffer = subjectBuffer;
             _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());

@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
             var semanticModel = (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
             var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
+            Contract.ThrowIfNull(localFunctionSymbol, "We should have gotten a method symbol for a local function.");
             var documentImmutableSet = ImmutableHashSet.Create(document);
 
             // Finds all the call sites of the local function
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                     // We limited the search scope to the single document, 
                     // so all reference should be in the same tree.
                     var referenceNode = root.FindNode(location.Location.SourceSpan);
-                    if (!(referenceNode is IdentifierNameSyntax identifierNode))
+                    if (referenceNode is not IdentifierNameSyntax identifierNode)
                     {
                         // Unexpected scenario, skip and warn.
                         shouldWarn = true;

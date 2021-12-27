@@ -30,7 +30,7 @@ function SetupCredProvider {
   rm installcredprovider.sh
 
   if [ ! -d "$HOME/.nuget/plugins" ]; then
-    echo "CredProvider plugin was not installed correctly!"
+    Write-PipelineTelemetryError -category 'Build' 'CredProvider plugin was not installed correctly!'
     ExitWithExitCode 1  
   else 
     echo "CredProvider plugin was installed correctly!"
@@ -39,10 +39,10 @@ function SetupCredProvider {
   # Then, we set the 'VSS_NUGET_EXTERNAL_FEED_ENDPOINTS' environment variable to restore from the stable 
   # feeds successfully
 
-  local nugetConfigPath="$repo_root/NuGet.config"
+  local nugetConfigPath="{$repo_root}NuGet.config"
 
   if [ ! "$nugetConfigPath" ]; then
-    echo "NuGet.config file not found in repo's root!"
+    Write-PipelineTelemetryError -category 'Build' "NuGet.config file not found in repo's root!"
     ExitWithExitCode 1  
   fi
   
@@ -101,7 +101,7 @@ authToken=''
 repoName=''
 
 while [[ $# > 0 ]]; do
-  opt="$(echo "$1" | awk '{print tolower($0)}')"
+  opt="$(echo "$1" | tr "[:upper:]" "[:lower:]")"
   case "$opt" in
     --operation)
       operation=$2

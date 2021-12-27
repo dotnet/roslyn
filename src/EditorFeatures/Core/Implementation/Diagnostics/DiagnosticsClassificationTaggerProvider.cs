@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     [TagType(typeof(ClassificationTag))]
     internal partial class DiagnosticsClassificationTaggerProvider : AbstractDiagnosticsTaggerProvider<ClassificationTag>
     {
-        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions = new[] { EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Classification, ServiceComponentOnOffOptions.DiagnosticProvider };
+        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions = ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Classification);
 
         private readonly ClassificationTypeMap _typeMap;
         private readonly ClassificationTag _classificationTag;
@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             ClassificationTypeMap typeMap,
-            IForegroundNotificationService notificationService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, diagnosticService, globalOptions, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _classificationTag = new ClassificationTag(_typeMap.GetClassificationType(ClassificationTypeDefinitions.UnnecessaryCode));

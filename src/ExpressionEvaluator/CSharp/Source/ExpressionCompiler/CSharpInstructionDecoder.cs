@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 switch (part.Kind)
                 {
                     case SymbolDisplayPartKind.ClassName:
-                        if (GeneratedNames.GetKind(displayString) != GeneratedNameKind.LambdaDisplayClass)
+                        if (GeneratedNameParser.GetKind(displayString) != GeneratedNameKind.LambdaDisplayClass)
                         {
                             builder.Append(displayString);
                         }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     case SymbolDisplayPartKind.MethodName:
                         GeneratedNameKind kind;
                         int openBracketOffset, closeBracketOffset;
-                        if (GeneratedNames.TryParseGeneratedName(displayString, out kind, out openBracketOffset, out closeBracketOffset) &&
+                        if (GeneratedNameParser.TryParseGeneratedName(displayString, out kind, out openBracketOffset, out closeBracketOffset) &&
                             (kind == GeneratedNameKind.LambdaMethod || kind == GeneratedNameKind.LocalFunction))
                         {
                             builder.Append(displayString, openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1); // source method name

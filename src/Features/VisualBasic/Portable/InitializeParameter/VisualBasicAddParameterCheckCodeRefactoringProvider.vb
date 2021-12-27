@@ -4,6 +4,7 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
@@ -53,6 +54,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
         Protected Overrides Function EscapeResourceString(input As String) As String
             Return input.Replace("""", """""")
+        End Function
+
+        Protected Overrides Function CreateParameterCheckIfStatement(options As DocumentOptionSet, condition As ExpressionSyntax, ifTrueStatement As StatementSyntax) As StatementSyntax
+            Return SyntaxFactory.MultiLineIfBlock(
+                ifStatement:=SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), condition, SyntaxFactory.Token(SyntaxKind.ThenKeyword)),
+                statements:=New SyntaxList(Of StatementSyntax)(ifTrueStatement),
+                elseIfBlocks:=Nothing,
+                elseBlock:=Nothing)
+        End Function
+
+        Protected Overrides Function TryAddNullCheckToParameterDeclaration(document As Document, parameterSyntax As ParameterSyntax, cancellationToken As CancellationToken) As Document
+            Return Nothing
         End Function
     End Class
 End Namespace

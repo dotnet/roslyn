@@ -157,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetGuidStringDefaultImplementation(out guidString);
         }
 
+#nullable enable
         /// <summary>
         /// For delegate types, gets the delegate's invoke method.  Returns null on
         /// all other kinds of types.  Note that it is possible to have an ill-formed
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Such a type will be classified as a delegate but its DelegateInvokeMethod
         /// would be null.
         /// </summary>
-        public MethodSymbol DelegateInvokeMethod
+        public MethodSymbol? DelegateInvokeMethod
         {
             get
             {
@@ -193,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return method;
             }
         }
+#nullable disable
 
         /// <summary>
         /// Get the operators for this type by their metadata name
@@ -1009,6 +1011,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
 
+        /// <summary>
+        /// Gets a value indicating whether this type has System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute or not.
+        /// </summary>
+        internal abstract bool IsInterpolatedStringHandlerType { get; }
+
         internal static readonly Func<TypeWithAnnotations, bool> TypeWithAnnotationsIsNullFunction = type => !type.HasType;
 
         internal static readonly Func<TypeWithAnnotations, bool> TypeWithAnnotationsIsErrorType = type => type.HasType && type.Type.IsErrorType();
@@ -1535,6 +1542,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Otherwise, returns null.
         /// </summary>
         internal abstract NamedTypeSymbol NativeIntegerUnderlyingType { get; }
+
+        /// <summary>
+        /// Returns true if the type is defined in source and contains field initializers.
+        /// This method is only valid on a definition.
+        /// </summary>
+        internal virtual bool HasFieldInitializers()
+        {
+            Debug.Assert(IsDefinition);
+            return false;
+        }
 
         protected override ISymbol CreateISymbol()
         {

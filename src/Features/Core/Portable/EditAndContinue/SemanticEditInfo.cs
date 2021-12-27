@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         public SymbolKey Symbol { get; }
 
+        /// <summary>
+        /// The syntax map for nodes in the tree for this edit, which will be merged with other maps from other trees for this type.
+        /// Only available when <see cref="PartialType"/> is not null.
+        /// </summary>
         public Func<SyntaxNode, SyntaxNode?>? SyntaxMap { get; }
 
         /// <summary>
@@ -34,9 +38,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         /// <summary>
         /// Specified if the edit needs to be merged with other edits of the same <see cref="PartialType"/>.
-        /// <see langword="null"/> for edits of non-partial types or their members and of a member of a partial type that do not require merging.
         /// 
-        /// If specified, the <see cref="SyntaxMap"/> is incomplete: it only provides mapping of the changed members of a single partial type declaration.
+        /// If specified, the <see cref="SyntaxMap"/> is either null or incomplete: it only provides mapping of the changed members of a single partial type declaration.
         /// </summary>
         public SymbolKey? PartialType { get; }
 

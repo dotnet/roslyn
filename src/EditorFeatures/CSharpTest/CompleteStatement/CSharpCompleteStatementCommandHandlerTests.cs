@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Roslyn.Test.Utilities;
@@ -45,11 +46,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         #region ParameterList
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("extern void M(object o$$)", "extern void M(object o)")]
+        [InlineData("partial void M(object o$$)", "partial void M(object o)")]
         [InlineData("abstract void M(object o$$)", "abstract void M(object o)")]
         [InlineData("abstract void M($$object o)", "abstract void M(object o)")]
         [InlineData("abstract void M(object o = default(object$$))", "abstract void M(object o = default(object))")]
         [InlineData("abstract void M(object o = default($$object))", "abstract void M(object o = default(object))")]
         [InlineData("abstract void M(object o = $$default(object))", "abstract void M(object o = default(object))")]
+        [InlineData("public record C(int X, $$int Y)", "public record C(int X, int Y)")]
+        [InlineData("public record C(int X, int$$ Y)", "public record C(int X, int Y)")]
+        [InlineData("public record C(int X, int Y$$)", "public record C(int X, int Y)")]
+        [InlineData("public record class C(int X, int Y$$)", "public record class C(int X, int Y)")]
+        [InlineData("public record struct C(int X, int Y$$)", "public record struct C(int X, int Y)")]
         public void ParameterList_CouldBeHandled(string signature, string expectedSignature)
         {
             var code = $@"
@@ -64,9 +72,25 @@ public class Class1
     {expectedSignature};$$
 }}";
 
-            // These cases are not currently handled. If support is added in the future, 'expected' should be correct.
-            _ = expected;
-            VerifyNoSpecialSemicolonHandling(code);
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParameterList_InterfaceMethod()
+        {
+            var code = @"
+public interface I
+{
+    public void M(object o$$)
+}";
+
+            var expected = @"
+public interface I
+{
+    public void M(object o);$$
+}";
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -74,6 +98,7 @@ public class Class1
         [InlineData("void Me$$thod(object o)")]
         [InlineData("void Method(object o$$")]
         [InlineData("void Method($$object o")]
+        [InlineData("partial void Method($$object o) { }")]
         public void ParameterList_NotHandled(string signature)
         {
             var code = $@"
@@ -4156,7 +4181,8 @@ public class ClassC
             Verify(code, expected, ExecuteTest,
                 setOptionsOpt: workspace =>
                 {
-                    workspace.SetOptions(workspace.Options.WithChangedOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, false));
+                    var globalOptions = workspace.GetService<IGlobalOptionService>();
+                    globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon), false);
                 });
         }
         protected override TestWorkspace CreateTestWorkspace(string code)

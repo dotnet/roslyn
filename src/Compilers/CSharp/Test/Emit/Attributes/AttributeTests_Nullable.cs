@@ -2123,7 +2123,7 @@ public class Program
         }
 
         [Fact]
-        public void EmitAttribute_LambdaReturnType()
+        public void EmitAttribute_LambdaReturnType_01()
         {
             var source =
 @"delegate T D<T>();
@@ -2146,7 +2146,33 @@ class C
         }
 
         [Fact]
-        public void EmitAttribute_LambdaParameters()
+        public void EmitAttribute_LambdaReturnType_02()
+        {
+            var source =
+@"delegate T D<T>();
+class C
+{
+    static void F<T>(D<T> d)
+    {
+    }
+    static void Main()
+    {
+        F(string?[] () => null);
+    }
+}";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("C+<>c").GetMethod("<Main>b__1_0");
+                    AssertAttributes(method.GetAttributes());
+                    AssertNullableAttribute(method.GetReturnTypeAttributes());
+                });
+        }
+
+        [Fact]
+        public void EmitAttribute_LambdaParameters_01()
         {
             var source =
 @"delegate void D<T>(T t);
@@ -2160,8 +2186,44 @@ class C
         F((object? o) => { });
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            AssertNoNullableAttributes(comp);
+            CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular8,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("C+<>c").GetMethod("<G>b__1_0");
+                    AssertAttributes(method.GetAttributes(), "System.Runtime.CompilerServices.NullableContextAttribute");
+                    AssertAttributes(method.Parameters[0].GetAttributes());
+                });
+        }
+
+        [Fact]
+        public void EmitAttribute_LambdaParameters_02()
+        {
+            var source =
+@"delegate void D<T, U>(T t, U u);
+class C
+{
+    static void F<T, U>(D<T, U> d)
+    {
+    }
+    static void G()
+    {
+        F((object x, string? y) => { });
+    }
+}";
+            CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular8,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var method = module.ContainingAssembly.GetTypeByMetadataName("C+<>c").GetMethod("<G>b__1_0");
+                    AssertAttributes(method.GetReturnTypeAttributes());
+                    AssertAttributes(method.Parameters[0].GetAttributes());
+                    AssertNullableAttribute(method.Parameters[1].GetAttributes());
+                });
         }
 
         // See https://github.com/dotnet/roslyn/issues/28862.
@@ -2238,6 +2300,184 @@ class B
                     AssertNullableAttribute(method.Parameters[0].GetAttributes());
                     AssertNoNullableAttribute(method.Parameters[1].GetAttributes());
                 });
+        }
+
+        [WorkItem(36736, "https://github.com/dotnet/roslyn/issues/36736")]
+        [Fact]
+        public void EmitAttribute_Lambda_NetModule()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+#nullable enable
+        var a1 = (object x) => { };
+        a1(1);
+        var a2 = string?[] () => null!;
+        a2();
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+            // https://github.com/dotnet/roslyn/issues/36736: Not reporting missing NullableContextAttribute.
+            comp.VerifyDiagnostics(
+                // (6,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //         var a1 = (object x) => { };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object x").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(6, 19),
+                // (8,31): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //         var a2 = string?[] () => null!;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "=>").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(8, 31));
+        }
+
+        [WorkItem(36736, "https://github.com/dotnet/roslyn/issues/36736")]
+        [Fact]
+        public void EmitAttribute_LocalFunction_NetModule()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+#nullable enable
+        void L1(object? x) { }
+        L1(null);
+        string[]? L2() => null;
+        L2();
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+            // https://github.com/dotnet/roslyn/issues/36736: Not reporting missing NullableContextAttribute.
+            comp.VerifyDiagnostics(
+                // (6,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //         void L1(object? x) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object? x").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(6, 17),
+                // (8,9): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //         string[]? L2() => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string[]?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void EmitAttribute_Lambda_MissingNullableAttributeConstructor()
+        {
+            var sourceA =
+@"namespace System.Runtime.CompilerServices
+{
+    public class NullableAttribute : Attribute
+    {
+        private NullableAttribute() { }
+    }
+}";
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+#nullable enable
+        var a1 = (object x) => { };
+        a1(1);
+        var a2 = string?[] () => null!;
+        a2();
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics(
+                // (6,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //         var a1 = (object x) => { };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object x").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(6, 19),
+                // (8,31): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //         var a2 = string?[] () => null!;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=>").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(8, 31));
+        }
+
+        [Fact]
+        public void EmitAttribute_LocalFunction_MissingNullableAttributeConstructor()
+        {
+            var sourceA =
+@"namespace System.Runtime.CompilerServices
+{
+    public class NullableAttribute : Attribute
+    {
+        private NullableAttribute() { }
+    }
+}";
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+#nullable enable
+        void L1(object? x) { }
+        L1(null);
+        string[]? L2() => null;
+        L2();
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics(
+                // (6,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //         void L1(object? x) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object? x").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(6, 17),
+                // (8,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //         string[]? L2() => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "string[]?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(8, 9));
+        }
+
+        [WorkItem(36736, "https://github.com/dotnet/roslyn/issues/36736")]
+        [Fact]
+        public void EmitAttribute_Lambda_MissingNullableContextAttributeConstructor()
+        {
+            var sourceA =
+@"namespace System.Runtime.CompilerServices
+{
+    public class NullableContextAttribute : Attribute
+    {
+        private NullableContextAttribute() { }
+    }
+}";
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+#nullable enable
+        var a1 = (object x) => { };
+        a1(1);
+        var a2 = string?[] () => null!;
+        a2();
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            // https://github.com/dotnet/roslyn/issues/36736: Not reporting missing NullableContextAttribute constructor.
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem(36736, "https://github.com/dotnet/roslyn/issues/36736")]
+        [Fact]
+        public void EmitAttribute_LocalFunction_MissingNullableContextAttributeConstructor()
+        {
+            var sourceA =
+@"namespace System.Runtime.CompilerServices
+{
+    public class NullableContextAttribute : Attribute
+    {
+        private NullableContextAttribute() { }
+    }
+}";
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+#nullable enable
+        void L1(object? x) { }
+        L1(null);
+        string[]? L2() => null;
+        L2();
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            // https://github.com/dotnet/roslyn/issues/36736: Not reporting missing NullableContextAttribute constructor.
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -4321,6 +4561,9 @@ class C : I<(object X, object? Y)>
                 // (3,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     public static object? operator+(C a, C b) => null;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 19),
+                // (3,35): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
+                //     public static object? operator+(C a, C b) => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "+").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(3, 35),
                 // (3,37): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     public static object? operator+(C a, C b) => null;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C a").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 37),
@@ -4343,6 +4586,9 @@ class C : I<(object X, object? Y)>
                 // (3,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     public static object operator+(C a, object?[] b) => a;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 19),
+                // (3,34): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
+                //     public static object operator+(C a, object?[] b) => a;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "+").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(3, 34),
                 // (3,36): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     public static object operator+(C a, object?[] b) => a;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C a").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 36),
@@ -4957,6 +5203,172 @@ public class A
             AssertNullableAttributes(comp, expected);
         }
 
+        private static MetadataReference GetAnnotationUtilsLibrary()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+
+public static class Utils
+{
+    public static string GetAnnotations(this Delegate d)
+    {
+        var method = d.Method;
+        var builder = new StringBuilder();
+        var contextValue = GetContextValue(method);
+        GetTypeAndAnnotation(builder, method.ReturnType, method.ReturnParameter.GetCustomAttributes(), contextValue);
+        builder.Append("" "");
+        builder.Append(method.DeclaringType.FullName);
+        builder.Append(""."");
+        builder.Append(method.Name);
+        builder.Append(""("");
+        foreach (var parameter in method.GetParameters())
+        {
+            GetTypeAndAnnotation(builder, parameter.ParameterType, parameter.GetCustomAttributes(), contextValue);
+            builder.Append("" "");
+            builder.Append(parameter.Name);
+        }
+        builder.Append("")"");
+        return builder.ToString();
+    }
+
+    private static int GetContextValue(MemberInfo member)
+    {
+        if (GetAttribute(member.GetCustomAttributes(), ""System.Runtime.CompilerServices.NullableContextAttribute"") is { } attribute)
+        {
+            var field = attribute.GetType().GetField(""Flag"");
+            return (int)(byte)field.GetValue(attribute);
+        }
+        if (member.DeclaringType is { } declaringType)
+        {
+            return GetContextValue(declaringType);
+        }
+        return 0;
+    }
+
+    private static void GetTypeAndAnnotation(StringBuilder builder, Type type, IEnumerable<Attribute> attributes, int contextValue)
+    {
+        builder.Append(type.FullName);
+        if (type.IsValueType)
+        {
+            return;
+        }
+        int value = contextValue;
+        if (GetAttribute(attributes, ""System.Runtime.CompilerServices.NullableAttribute"") is { } attribute)
+        {
+            var field = attribute.GetType().GetField(""NullableFlags"");
+            var bytes = (byte[])field.GetValue(attribute);
+            value = bytes.SingleOrDefault();
+        }
+        switch (value)
+        {
+            case 1:
+                builder.Append(""!"");
+                break;
+            case 2:
+                builder.Append(""?"");
+                break;
+        }
+    }
+
+    private static Attribute GetAttribute(IEnumerable<Attribute> attributes, string typeName)
+    {
+        return attributes.SingleOrDefault(attr => attr.GetType().FullName == typeName);
+    }
+}";
+            var comp = CreateCompilation(source);
+            return comp.EmitToImageReference();
+        }
+
+        [Fact]
+        [WorkItem(55254, "https://github.com/dotnet/roslyn/issues/55254")]
+        public void LambdaAttributes_01()
+        {
+            var source =
+@"#nullable enable
+using System;
+var dump = static (string s, Delegate d) => d.GetAnnotations();
+Console.WriteLine(dump(""/"", (string? name) => $""Inline lambda {name}""));
+Console.WriteLine(dump(""/o"", (string? name) => { }));
+";
+            var library = GetAnnotationUtilsLibrary();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, references: new[] { library }, expectedOutput:
+@"System.String Program+<>c.<<Main>$>b__0_1(System.String? name)
+System.Void Program+<>c.<<Main>$>b__0_2(System.String? name)
+");
+        }
+
+        [Fact]
+        [WorkItem(55254, "https://github.com/dotnet/roslyn/issues/55254")]
+        public void LambdaAttributes_02()
+        {
+            var source =
+@"#nullable enable
+using System;
+var dump = static (string s, Delegate d) => d.GetAnnotations();
+Console.WriteLine(dump(""/"", (string name) => $""Inline lambda {name}""));
+Console.WriteLine(dump(""/o"", (string name) => { }));
+";
+            var library = GetAnnotationUtilsLibrary();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, references: new[] { library }, expectedOutput:
+@"System.String Program+<>c.<<Main>$>b__0_1(System.String! name)
+System.Void Program+<>c.<<Main>$>b__0_2(System.String! name)
+");
+        }
+
+        [Fact]
+        [WorkItem(55254, "https://github.com/dotnet/roslyn/issues/55254")]
+        public void LambdaAttributes_03()
+        {
+            var source =
+@"#nullable enable
+using System;
+var dump = static (string s, Delegate d) => d.GetAnnotations();
+Console.WriteLine(dump(""/"",
+#nullable disable
+    (string name) =>
+#nullable disable
+        $""Inline lambda {name}""));
+Console.WriteLine(dump(""/o"",
+#nullable disable
+    (string name) =>
+#nullable disable
+        { }));
+";
+            var library = GetAnnotationUtilsLibrary();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, references: new[] { library }, expectedOutput:
+@"System.String Program+<>c.<<Main>$>b__0_1(System.String name)
+System.Void Program+<>c.<<Main>$>b__0_2(System.String name)
+");
+        }
+
+        [Fact]
+        [WorkItem(55254, "https://github.com/dotnet/roslyn/issues/55254")]
+        public void LambdaAttributes_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Report(Delegate d) => Console.WriteLine(d.GetAnnotations());
+    static void Main()
+    {
+#nullable enable
+        Report((string? s) => { });
+        object? f(string s) => null;
+        Report(f);
+    }
+}";
+            var library = GetAnnotationUtilsLibrary();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, references: new[] { library }, expectedOutput:
+@"System.Void Program+<>c.<Main>b__1_0(System.String? s)
+System.Object? Program.<Main>g__f|1_1(System.String! s)
+");
+        }
+
         private static void AssertNoNullableAttribute(ImmutableArray<CSharpAttributeData> attributes)
         {
             AssertAttributes(attributes);
@@ -4970,7 +5382,7 @@ public class A
         private static void AssertAttributes(ImmutableArray<CSharpAttributeData> attributes, params string[] expectedNames)
         {
             var actualNames = attributes.Select(a => a.AttributeClass.ToTestDisplayString()).ToArray();
-            AssertEx.SetEqual(actualNames, expectedNames);
+            AssertEx.SetEqual(expectedNames, actualNames);
         }
 
         private static void AssertNoNullableAttributes(CSharpCompilation comp)
@@ -5008,7 +5420,7 @@ public class A
         private static void AssertAttributes(MetadataReader reader, CustomAttributeHandleCollection handles, params string[] expectedNames)
         {
             var actualNames = handles.Select(h => GetAttributeConstructorName(reader, h)).ToArray();
-            AssertEx.SetEqual(actualNames, expectedNames);
+            AssertEx.SetEqual(expectedNames, actualNames);
         }
 
         private void AssertNullableAttributes(CSharpCompilation comp, string expected)

@@ -5,10 +5,8 @@
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Notification
-Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Remote
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic
 
@@ -28,7 +26,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 GetType(VisualStudioRemoteHostClientProvider.Factory), ' Do not use ServiceHub in VS unit tests, run services locally.
                 GetType(IStreamingFindUsagesPresenter),                ' TODO: should we be using the actual implementation (https://github.com/dotnet/roslyn/issues/46380)?
                 GetType(HACK_ThemeColorFixer),
-                GetType(INotificationService),                         ' EditorNotificationServiceFactory is used 
-                GetType(VisualStudioWaitIndicator))                    ' TestWaitIndicator is used instead
+                GetType(Implementation.Notification.VSNotificationServiceFactory))
     End Class
 End Namespace

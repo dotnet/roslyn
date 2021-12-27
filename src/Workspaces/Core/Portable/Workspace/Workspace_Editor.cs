@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<SourceTextContainer, OneOrMany<DocumentId>> _bufferToAssociatedDocumentsMap = new();
 
         private readonly Dictionary<DocumentId, TextTracker> _textTrackers = new();
+        private readonly Dictionary<DocumentId, SourceTextContainer> _documentToAssociatedBufferMap = new();
+        private readonly Dictionary<DocumentId, SourceGeneratedDocumentIdentity> _openSourceGeneratedDocumentIdentities = new();
 
         /// <summary>
         /// True if this workspace supports manually opening and closing documents.
@@ -88,16 +90,21 @@ namespace Microsoft.CodeAnalysis
                 _projectToOpenDocumentsMap.MultiRemove(documentId.ProjectId, documentId);
 
                 // Stop tracking the buffer or update the documentId associated with the buffer.
-                if (_textTrackers.TryGetValue(documentId, out var tracker))
+                if (_documentToAssociatedBufferMap.TryGetValue(documentId, out var textContainer))
                 {
-                    tracker.Disconnect();
-                    _textTrackers.Remove(documentId);
+                    _documentToAssociatedBufferMap.Remove(documentId);
 
-                    var currentContextDocumentId = UpdateCurrentContextMapping_NoLock(tracker.TextContainer, documentId);
+                    if (_textTrackers.TryGetValue(documentId, out var tracker))
+                    {
+                        tracker.Disconnect();
+                        _textTrackers.Remove(documentId);
+                    }
+
+                    var currentContextDocumentId = RemoveDocumentFromCurrentContextMapping_NoLock(textContainer, documentId);
                     if (currentContextDocumentId == null)
                     {
                         // No documentIds are attached to this buffer, so stop tracking it.
-                        this.UnregisterText(tracker.TextContainer);
+                        this.UnregisterText(textContainer);
                     }
                 }
             }
@@ -279,6 +286,14 @@ namespace Microsoft.CodeAnalysis
             return _bufferToAssociatedDocumentsMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
         }
 
+        internal bool TryGetOpenSourceGeneratedDocumentIdentity(DocumentId id, out SourceGeneratedDocumentIdentity documentIdentity)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                return _openSourceGeneratedDocumentIdentities.TryGetValue(id, out documentIdentity);
+            }
+        }
+
         /// <summary>
         /// Call this method to tell the host environment to change the current active context to this document. Only supported if
         /// <see cref="CanChangeActiveContextDocument"/> returns true.
@@ -393,6 +408,42 @@ namespace Microsoft.CodeAnalysis
             this.RegisterText(textContainer);
         }
 
+        /// <summary>
+        /// Registers a SourceTextContainer to a source generated document. Unlike <see cref="OnDocumentOpened" />,
+        /// this doesn't result in the workspace being updated any time the contents of the container is changed; instead
+        /// this ensures that features going from the text container to the buffer back to a document get a usable document.
+        /// </summary>
+        // TODO: switch this protected once we have confidence in API shape
+        internal void OnSourceGeneratedDocumentOpened(
+            SourceGeneratedDocumentIdentity documentIdentity,
+            SourceTextContainer textContainer)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                var documentId = documentIdentity.DocumentId;
+                CheckDocumentIsClosed(documentId);
+                AddToOpenDocumentMap(documentId);
+
+                _documentToAssociatedBufferMap.Add(documentId, textContainer);
+                _openSourceGeneratedDocumentIdentities.Add(documentId, documentIdentity);
+
+                UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext: true);
+            }
+
+            this.RegisterText(textContainer);
+        }
+
+        internal void OnSourceGeneratedDocumentClosed(DocumentId documentId)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                CheckDocumentIsOpen(documentId);
+
+                Contract.ThrowIfFalse(_openSourceGeneratedDocumentIdentities.Remove(documentId));
+                ClearOpenDocument(documentId);
+            }
+        }
+
         private class ReuseVersionLoader : TextLoader
         {
             // Capture DocumentState instead of Document so that we don't hold onto the old solution.
@@ -436,6 +487,7 @@ namespace Microsoft.CodeAnalysis
         {
             var tracker = new TextTracker(this, documentId, textContainer, onChangedHandler);
             _textTrackers.Add(documentId, tracker);
+            _documentToAssociatedBufferMap.Add(documentId, textContainer);
             this.UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext);
             tracker.Connect();
         }
@@ -494,7 +546,7 @@ namespace Microsoft.CodeAnalysis
 
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
-                Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
+                Debug.Assert(oldDocument.Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
 
                 var oldText = oldDocument.GetTextSynchronously(CancellationToken.None);
 
@@ -606,7 +658,7 @@ namespace Microsoft.CodeAnalysis
 
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
-                Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
+                Debug.Assert(oldDocument.Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
 
                 var newSolution = withTextDocumentTextLoader(oldSolution, documentId, reloader, PreservationMode.PreserveValue);
                 newSolution = this.SetCurrentSolution(newSolution);
@@ -640,7 +692,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <returns>The DocumentId of the current context document attached to the textContainer, if any.</returns>
-        private DocumentId? UpdateCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId closedDocumentId)
+        private DocumentId? RemoveDocumentFromCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId closedDocumentId)
         {
             // Check if we are tracking this textContainer.
             if (!_bufferToAssociatedDocumentsMap.TryGetValue(textContainer, out var docIds))

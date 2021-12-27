@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -67,6 +68,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             int mappedEndLine = 0,
             int mappedEndColumn = 0)
         {
+            // If the original source location path is not available then mapped must be as well.
+            Contract.ThrowIfFalse(originalFilePath != null || mappedFilePath == null);
+
             DocumentId = documentId;
             SourceSpan = sourceSpan;
             MappedFilePath = mappedFilePath;
@@ -81,6 +85,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             OriginalEndColumn = originalEndColumn;
         }
 
+        public bool IsMapped => MappedFilePath != null;
+
         internal DiagnosticDataLocation WithCalculatedSpan(TextSpan newSourceSpan)
         {
             Contract.ThrowIfTrue(SourceSpan.HasValue);
@@ -91,6 +97,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 OriginalEndLine, OriginalEndColumn,
                 MappedFilePath, MappedStartLine, MappedStartColumn,
                 MappedEndLine, MappedEndColumn);
+        }
+
+        internal FileLinePositionSpan GetFileLinePositionSpan()
+        {
+            var filePath = GetFilePath();
+            if (filePath == null)
+            {
+                return default;
+            }
+
+            return IsMapped ?
+                new(filePath, new(MappedStartLine, MappedStartColumn), new(MappedEndLine, MappedEndColumn)) :
+                new(filePath, new(OriginalStartLine, OriginalStartColumn), new(OriginalEndLine, OriginalEndColumn));
+        }
+
+        internal string? GetFilePath()
+            => GetFilePath(OriginalFilePath, MappedFilePath);
+
+        internal static string? GetFilePath(string? original, string? mapped)
+        {
+            if (RoslynString.IsNullOrEmpty(mapped))
+            {
+                return original;
+            }
+
+            var combined = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(original), mapped);
+            try
+            {
+                return Path.GetFullPath(combined);
+            }
+            catch
+            {
+                return combined;
+            }
         }
     }
 }

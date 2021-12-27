@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             var originalBytes = original.EmitToArray(new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded));
             var originalPeReader = new PEReader(originalBytes);
-            var originalPdbReader = originalPeReader.GetEmbeddedPdbMetadataReader();
+            var originalPdbReader = originalPeReader.GetEmbeddedPdbMetadataReader()!;
             var factory = LoggerFactory.Create(configure => { });
             var logger = factory.CreateLogger("Test");
 

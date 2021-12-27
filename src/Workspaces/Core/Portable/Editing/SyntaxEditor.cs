@@ -316,7 +316,10 @@ namespace Microsoft.CodeAnalysis.Editing
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
             {
                 var current = root.GetCurrentNode(this.Node);
-                Contract.ThrowIfNull(current, $"GetCurrentNode returned null with the following node: {this.Node}");
+                if (current is null)
+                {
+                    Contract.Fail($"GetCurrentNode returned null with the following node: {this.Node}");
+                }
 
                 var newNode = _modifier(current, generator);
                 newNode = _editor.ApplyTrackingToNewNode(newNode);
@@ -342,7 +345,10 @@ namespace Microsoft.CodeAnalysis.Editing
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
             {
                 var current = root.GetCurrentNode(this.Node);
-                Contract.ThrowIfNull(current, $"GetCurrentNode returned null with the following node: {this.Node}");
+                if (current is null)
+                {
+                    Contract.Fail($"GetCurrentNode returned null with the following node: {this.Node}");
+                }
 
                 var newNodes = _modifier(current, generator).ToList();
                 for (var i = 0; i < newNodes.Count; i++)
@@ -375,7 +381,10 @@ namespace Microsoft.CodeAnalysis.Editing
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
             {
                 var current = root.GetCurrentNode(this.Node);
-                Contract.ThrowIfNull(current, $"GetCurrentNode returned null with the following node: {this.Node}");
+                if (current is null)
+                {
+                    Contract.Fail($"GetCurrentNode returned null with the following node: {this.Node}");
+                }
 
                 var newNode = _modifier(current, generator, _argument);
                 newNode = _editor.ApplyTrackingToNewNode(newNode);

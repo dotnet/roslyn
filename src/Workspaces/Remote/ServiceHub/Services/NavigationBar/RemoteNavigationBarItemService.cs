@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -30,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
-                var document = solution.GetRequiredDocument(documentId);
+                var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(document);
                 var navigationBarService = document.GetRequiredLanguageService<INavigationBarItemService>();
                 var result = await navigationBarService.GetItemsAsync(document, supportsCodeGeneration, cancellationToken).ConfigureAwait(false);
 

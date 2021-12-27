@@ -41,7 +41,6 @@ namespace Microsoft.Cci
             Func<Stream> getPeStream,
             Func<Stream> getPortablePdbStreamOpt,
             PdbWriter nativePdbWriterOpt,
-            BlobReader? pdbOptionsBlobReader,
             string pdbPathOpt,
             bool metadataOnly,
             bool isDeterministic,
@@ -74,7 +73,6 @@ namespace Microsoft.Cci
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceBuilder,
-                pdbOptionsBlobReader,
                 out mvidFixup,
                 out mvidStringFixup);
 
@@ -110,6 +108,8 @@ namespace Microsoft.Cci
                 }
 
                 nativePdbWriterOpt.WriteRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.DebugDocuments);
+
+                nativePdbWriterOpt.WriteCompilerVersion(context.Module.CommonCompilation.Language);
             }
 
             Stream peStream = getPeStream();
