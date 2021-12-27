@@ -1754,4 +1754,21 @@ System.Console.Write(
     """""");", expectedOutput: @"a
 ␠");
     }
+
+    [Fact]
+    public void TestOutVarOrderOfEvaluation()
+    {
+        CompileAndVerify(
+@"
+using System;
+
+Console.Write($""""""{M(out var x)} {x}"""""");
+
+int M(out int val)
+{
+    val = 2;
+    return 1;
+}
+", expectedOutput: @"1 2");
+    }
 }
