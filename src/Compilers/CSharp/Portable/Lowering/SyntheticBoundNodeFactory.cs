@@ -1542,5 +1542,138 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return arguments;
         }
+
+#nullable disable
+        internal BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)
+        {
+            Debug.Assert((operatorKind == BinaryOperatorKind.Equal) || (operatorKind == BinaryOperatorKind.NotEqual) ||
+                (operatorKind == BinaryOperatorKind.NullableNullEqual) || (operatorKind == BinaryOperatorKind.NullableNullNotEqual));
+
+            TypeSymbol exprType = rewrittenExpr.Type;
+
+            // Don't even call this method if the expression cannot be nullable.
+            Debug.Assert(
+                (object)exprType == null ||
+                exprType.IsNullableTypeOrTypeParameter() ||
+                !exprType.IsValueType ||
+                exprType.IsPointerOrFunctionPointer());
+
+            TypeSymbol boolType = Compilation.GetSpecialType(CodeAnalysis.SpecialType.System_Boolean);
+
+            // Fold compile-time comparisons.
+            if (rewrittenExpr.ConstantValue != null)
+            {
+                switch (operatorKind)
+                {
+                    case BinaryOperatorKind.Equal:
+                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
+                    case BinaryOperatorKind.NotEqual:
+                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
+                }
+            }
+
+            TypeSymbol objectType = SpecialType(CodeAnalysis.SpecialType.System_Object);
+
+            if ((object)exprType != null)
+            {
+                if (exprType.Kind == SymbolKind.TypeParameter)
+                {
+                    // Box type parameters.
+                    rewrittenExpr = Convert(objectType, rewrittenExpr, Conversion.Boxing);
+                }
+                else if (exprType.IsNullableType())
+                {
+                    operatorKind |= BinaryOperatorKind.NullableNull;
+                }
+            }
+            if (operatorKind == BinaryOperatorKind.NullableNullEqual || operatorKind == BinaryOperatorKind.NullableNullNotEqual)
+            {
+                return RewriteNullableNullEquality(syntax, operatorKind, rewrittenExpr, Literal(ConstantValue.Null, objectType), boolType);
+            }
+            else
+            {
+                return Binary(operatorKind, boolType, rewrittenExpr, Null(objectType));
+            }
+        }
+
+        internal BoundExpression MakeNullableHasValue(SyntaxNode syntax, BoundExpression expression)
+        {
+            // https://github.com/dotnet/roslyn/issues/58335: consider restoring the 'private' accessibility of 'static LocalRewriter.UnsafeGetNullableMethod()'
+            return BoundCall.Synthesized(syntax, expression, LocalRewriter.UnsafeGetNullableMethod(syntax, expression.Type, CodeAnalysis.SpecialMember.System_Nullable_T_get_HasValue, Compilation, Diagnostics));
+        }
+
+        internal BoundExpression RewriteNullableNullEquality(
+            SyntaxNode syntax,
+            BinaryOperatorKind kind,
+            BoundExpression loweredLeft,
+            BoundExpression loweredRight,
+            TypeSymbol returnType)
+        {
+            // This handles the case where we have a nullable user-defined struct type compared against null, eg:
+            //
+            // struct S {} ... S? s = whatever; if (s != null)
+            //
+            // If S does not define an overloaded != operator then this is lowered to s.HasValue.
+            //
+            // If the type already has a user-defined or built-in operator then comparing to null is
+            // treated as a lifted equality operator.
+
+            Debug.Assert(loweredLeft != null);
+            Debug.Assert(loweredRight != null);
+            Debug.Assert((object)returnType != null);
+            Debug.Assert(returnType.SpecialType == CodeAnalysis.SpecialType.System_Boolean);
+            Debug.Assert(loweredLeft.IsLiteralNull() != loweredRight.IsLiteralNull());
+
+            BoundExpression nullable = loweredRight.IsLiteralNull() ? loweredLeft : loweredRight;
+
+            // If the other side is known to always be null then we can simply generate true or false, as appropriate.
+
+            if (LocalRewriter.NullableNeverHasValue(nullable))
+            {
+                return Literal(kind == BinaryOperatorKind.NullableNullEqual);
+            }
+
+            BoundExpression nonNullValue = LocalRewriter.NullableAlwaysHasValue(nullable);
+            if (nonNullValue != null)
+            {
+                // We have something like "if (new int?(M()) != null)". We can optimize this to
+                // evaluate M() for its side effects and then result in true or false, as appropriate.
+
+                // TODO: If the expression has no side effects then it can be optimized away here as well.
+
+                return new BoundSequence(
+                    syntax: syntax,
+                    locals: ImmutableArray<LocalSymbol>.Empty,
+                    sideEffects: ImmutableArray.Create<BoundExpression>(nonNullValue),
+                    value: Literal(kind == BinaryOperatorKind.NullableNullNotEqual),
+                    type: returnType);
+            }
+
+            // arr?.Length == null
+            var conditionalAccess = nullable as BoundLoweredConditionalAccess;
+            if (conditionalAccess != null &&
+                (conditionalAccess.WhenNullOpt == null || conditionalAccess.WhenNullOpt.IsDefaultValue()))
+            {
+                BoundExpression whenNotNull = RewriteNullableNullEquality(
+                    syntax,
+                    kind,
+                    conditionalAccess.WhenNotNull,
+                    loweredLeft.IsLiteralNull() ? loweredLeft : loweredRight,
+                    returnType);
+
+                var whenNull = kind == BinaryOperatorKind.NullableNullEqual ? Literal(true) : null;
+
+                return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.HasValueMethodOpt, whenNotNull, whenNull, conditionalAccess.Id, whenNotNull.Type);
+            }
+
+            BoundExpression call = MakeNullableHasValue(syntax, nullable);
+            BoundExpression result = kind == BinaryOperatorKind.NullableNullNotEqual ?
+                call :
+                new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, call, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, returnType);
+
+            return result;
+        }
+        // https://github.com/dotnet/roslyn/issues/58335: Re-enable annotations
+#nullable enable
     }
 }

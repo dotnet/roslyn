@@ -2194,7 +2194,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxTrivia Trivia(SyntaxNode node);
 
-        internal abstract SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString);
+        internal abstract SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, string endOfLineString);
 
         internal abstract SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content);
 
