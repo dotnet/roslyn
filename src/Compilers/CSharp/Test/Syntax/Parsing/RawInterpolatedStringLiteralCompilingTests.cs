@@ -10,16 +10,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing;
 
 public class RawInterpolatedStringLiteralCompilingTests : CompilingTestBase
 {
-    private static string Render(string markup, string? normalize)
+    private static string Render(string markup, string? normalizedNewLine)
     {
         markup = markup.Replace('␠', ' ').Replace('␉', '\t');
 
         // If we're normalizing newlines, convert everything to \n, then convert that to the newline form asked for.
-        if (normalize != null)
+        if (normalizedNewLine != null)
         {
             markup = markup.Replace("\r\n", "\n");
             markup = markup.Replace("\r", "\n");
-            markup = markup.Replace("\n", normalize);
+            markup = markup.Replace("\n", normalizedNewLine);
         }
 
         return markup;
