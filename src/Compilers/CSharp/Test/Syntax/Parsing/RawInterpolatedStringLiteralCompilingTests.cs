@@ -1204,7 +1204,7 @@ System.Console.Write(
     {43}
     c
     """""");",
-                // (4,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
+                // (4,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   a
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(4, 1));
     }
@@ -1221,7 +1221,7 @@ System.Console.Write(
     {43}
     c
     """""");",
-                // (5,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
+                // (5,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   {42}
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(5, 1));
     }
@@ -1238,7 +1238,7 @@ System.Console.Write(
     {43}
     c
     """""");",
-                // (6,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
+                // (6,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   b
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(6, 1));
     }
@@ -1255,7 +1255,7 @@ System.Console.Write(
   {43}
     c
     """""");",
-                // (7,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
+                // (7,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   {43}
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(7, 1));
     }
@@ -1272,7 +1272,7 @@ System.Console.Write(
     {43}
   c
     """""");",
-                // (8,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
+                // (8,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   c
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(8, 1));
     }
@@ -1290,7 +1290,7 @@ System.Console.Write(
     {43}
     c
     """""");",
-                // (5,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
+                // (5,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   aa
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(5, 1));
     }
@@ -1308,7 +1308,7 @@ System.Console.Write(
     {43}
     c
     """""");",
-                // (6,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
+                // (6,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   {42}
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(6, 1));
     }
@@ -1326,7 +1326,7 @@ System.Console.Write(
     {43}
     c
     """""");",
-                // (7,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
+                // (7,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   bb
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(7, 1));
     }
@@ -1344,7 +1344,7 @@ System.Console.Write(
   {43}
     c
     """""");",
-                // (8,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
+                // (8,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   {43}
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(8, 1));
     }
@@ -1362,7 +1362,7 @@ System.Console.Write(
     c
   cc
     """""");",
-                // (9,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
+                // (9,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   cc
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(9, 1));
     }
@@ -1567,7 +1567,7 @@ System.Console.Write(
     c
     c
     """""");",
-                // (5,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
+                // (5,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
                 //  a
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, " ").WithLocation(5, 1));
     }
@@ -1640,7 +1640,7 @@ System.Console.Write(
 ␠c
     c
     """""");",
-                // (11,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
+                // (11,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
                 //  c
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, " ").WithLocation(11, 1));
     }

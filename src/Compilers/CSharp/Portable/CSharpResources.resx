@@ -6870,7 +6870,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>At least one top-level statement must be non-empty.</value>
   </data>
   <data name="ERR_LineDoesNotStartWithSameWhitespace" xml:space="preserve">
-    <value>Line does not start with the same whitespace as the last line of the raw string literal.</value>
+    <value>Line does not start with the same whitespace as the closing line of the raw string literal.</value>
   </data>
   <data name="ERR_RawStringNotInDirectives" xml:space="preserve">
     <value>Raw string literals are not allowed in preprocessor directives.</value>

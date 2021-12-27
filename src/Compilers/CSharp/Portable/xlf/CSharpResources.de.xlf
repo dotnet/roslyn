@@ -778,8 +778,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineDoesNotStartWithSameWhitespace">
-        <source>Line does not start with the same whitespace as the last line of the raw string literal.</source>
-        <target state="new">Line does not start with the same whitespace as the last line of the raw string literal.</target>
+        <source>Line does not start with the same whitespace as the closing line of the raw string literal.</source>
+        <target state="new">Line does not start with the same whitespace as the closing line of the raw string literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">

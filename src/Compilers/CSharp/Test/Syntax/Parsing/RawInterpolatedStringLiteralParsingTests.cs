@@ -491,7 +491,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (7,1): error CS9103: Line does not start with the same whitespace as the last line of the raw string literal
+            // (7,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
             //   a
             Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(7, 1));
     }
