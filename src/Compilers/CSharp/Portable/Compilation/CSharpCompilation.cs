@@ -143,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Optional data collected during testing only.
         /// Used for instance for nullable analysis (<see cref="NullableWalker.NullableAnalysisData"/>)
         /// and inferred delegate types (<see cref="InferredDelegateTypeData"/>).
+        /// and semi auto implemented properties (<see cref="SourcePropertySymbolBase.AccessorBindingData"/>
         /// </summary>
         internal object? TestOnlyCompilationData;
 

@@ -584,6 +584,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            foreach (var member in members)
+            {
+                if (member is SourcePropertySymbolBase property)
+                {
+                    // PROTOTYPE(semi-auto-props): This can be optimized by checking for field keyword syntactically first.
+                    // If we don't have field keyword, we can safely ignore the filter check.
+                    // This will require more tests.
+                    var getMethod = property.GetMethod;
+                    var setMethod = property.SetMethod;
+                    if ((getMethod is null || PassesFilter(_filterOpt, getMethod)) &&
+                        (setMethod is null || PassesFilter(_filterOpt, setMethod)))
+                    {
+                        property.MarkBackingFieldAsCalculated();
+                    }
+                }
+            }
+
             Debug.Assert(containingType.IsScriptClass == (scriptCtorOrdinal >= 0));
 
             // process additional anonymous type members
@@ -1853,7 +1870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
-                    if ((object)property != null && property.IsAutoPropertyWithGetAccessor)
+                    if ((object)property != null && property.IsAutoPropertyWithGetAccessor) // PROTOTYPE: Just IsAutoProperty, or _isAutoPropertyAccessor?
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }

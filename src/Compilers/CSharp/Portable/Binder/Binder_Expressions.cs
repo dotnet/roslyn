@@ -1557,6 +1557,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Cannot escape out of the current expression, as it's a compiler-synthesized location.
                         expression = new BoundDiscardExpression(node, LocalScopeDepth, type: null);
                     }
+                    else if (node.Identifier.ContextualKind() == SyntaxKind.FieldKeyword &&
+                        ContainingMemberOrLambda is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor // PROTOTYPE: We should traverse until we get a property accessor.
+                        )
+                    {
+                        if (accessor.Property.CreateBackingFieldForFieldKeyword() is { } backingField)
+                        {
+                            expression = BindNonMethod(node, backingField, diagnostics, LookupResultKind.Viable, indexed: false, isError: false);
+                        }
+                    }
                 }
 
                 // Otherwise, the simple-name is undefined and a compile-time error occurs.

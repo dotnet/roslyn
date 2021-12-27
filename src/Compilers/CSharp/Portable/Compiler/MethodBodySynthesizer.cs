@@ -184,6 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var field = property.BackingField;
+            Debug.Assert(!field.IsCreatedForFieldKeyword);
             var fieldAccess = new BoundFieldAccess(syntax, thisReference, field, ConstantValue.NotAvailable) { WasCompilerGenerated = true };
             BoundStatement statement;
 

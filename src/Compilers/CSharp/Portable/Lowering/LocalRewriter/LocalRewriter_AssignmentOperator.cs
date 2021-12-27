@@ -306,6 +306,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(property.Equals(autoProp, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
                 var backingField = autoProp.BackingField;
+                Debug.Assert(backingField is not null);
+
                 return _factory.AssignmentExpression(
                     _factory.Field(rewrittenReceiver, backingField),
                     rewrittenRight);

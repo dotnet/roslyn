@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private string _lazyName;
         private readonly bool _isAutoPropertyAccessor;
         private readonly bool _isExpressionBodied;
+        private readonly bool _containsFieldKeyword;
         private readonly bool _usesInit;
 
         public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
@@ -125,6 +126,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 diagnostics);
         }
+
+        // PROTOTYPE(semi-auto-props): Figure out what is going to be more efficient, to go after tokens and then
+        // checking their parent, or to go after nodes (IdentifierNameSyntax) first and then checking the underlying token.
+        // PROTOTYPE(semi-auto-props): Filter out identifiers that syntactically cannot be keywords. For example those that follow a ., a -> or a :: in names. Something else?
+        private static bool NodeContainsFieldKeyword(CSharpSyntaxNode? node)
+        {
+            if (node is null)
+            {
+                return false;
+            }
+
+            return node.DescendantTokens().Any(
+                t => t.IsKind(SyntaxKind.IdentifierToken) && t.ContextualKind() == SyntaxKind.FieldKeyword && t.Parent.IsKind(SyntaxKind.IdentifierName));
+        }
+
 #nullable disable
 
         internal sealed override bool IsExpressionBodied
@@ -152,6 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _property = property;
             _isAutoPropertyAccessor = false;
             _isExpressionBodied = true;
+            _containsFieldKeyword = property.IsIndexer ? false : NodeContainsFieldKeyword(syntax);
 
             // The modifiers for the accessor are the same as the modifiers for the property,
             // minus the indexer and readonly bit
@@ -197,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _property = property;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
+            _containsFieldKeyword = property.IsIndexer ? false : NodeContainsFieldKeyword(getAccessorSyntax(syntax));
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
             _isExpressionBodied = !hasBody && hasExpressionBody;
             _usesInit = usesInit;
@@ -237,6 +255,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!modifierErrors)
             {
                 this.CheckModifiers(location, hasBody || hasExpressionBody, isAutoPropertyAccessor, diagnostics);
+            }
+
+            static CSharpSyntaxNode? getAccessorSyntax(CSharpSyntaxNode node)
+            {
+                if (node is not AccessorDeclarationSyntax accessor)
+                {
+                    // If this is not an AccessorDeclarationSyntax, we don't need to know anything about existence of "field" keyword.
+
+                    // This assert makes it clear what other node type we can have.
+                    // In future, if this failed, we should confirm whether it's something that field keyword needs to handle.
+                    Debug.Assert(node is ParameterSyntax or RecordDeclarationSyntax, $"Unexpected type '{node.GetType()}' for accessor symbol.");
+                    return null;
+                }
+
+                return (CSharpSyntaxNode?)accessor.Body ?? accessor.ExpressionBody;
             }
         }
 #nullable disable
@@ -437,6 +470,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool LocalDeclaredReadOnly => (DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
 
         /// <summary>
+        /// Indicates whether this accessor has a candidate 'field' keyword.
+        /// </summary>
+        /// <remarks>
+        /// This is only calculated from syntax, so we don't know if it
+        /// will bind to something or will create a backing field.
+        /// </remarks>
+        internal bool ContainsFieldKeyword => _containsFieldKeyword;
+
+        /// <summary>
         /// Indicates whether this accessor is readonly due to reasons scoped to itself and its containing property.
         /// </summary>
         internal sealed override bool IsDeclaredReadOnly
@@ -598,6 +640,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _property.IsExplicitInterfaceImplementation;
             }
         }
+
+        internal SourcePropertySymbolBase Property => _property;
 
 #nullable enable
         public sealed override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
