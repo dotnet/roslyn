@@ -22,15 +22,18 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
         : base(GeneratedNames.DelegateCacheContainerType(generationOrdinal), containingMethod: null)
     {
         Debug.Assert(containingType.IsDefinition);
+
         _containingSymbol = containingType;
     }
 
     /// <summary>Creates a method scoped generic delegate cache container.</summary>
-    internal DelegateCacheContainer(MethodSymbol containingMethod, int topLevelMethodOrdinal, int ownerUniqueId, int generationOrdinal)
-        : base(GeneratedNames.DelegateCacheContainerType(generationOrdinal, containingMethod.Name, topLevelMethodOrdinal, ownerUniqueId), containingMethod)
+    internal DelegateCacheContainer(MethodSymbol ownerMethod, int topLevelMethodOrdinal, int ownerUniqueId, int generationOrdinal)
+        : base(GeneratedNames.DelegateCacheContainerType(generationOrdinal, ownerMethod.Name, topLevelMethodOrdinal, ownerUniqueId), ownerMethod)
     {
-        Debug.Assert(containingMethod.IsDefinition);
-        _containingSymbol = containingMethod.ContainingType;
+        Debug.Assert(ownerMethod.IsDefinition);
+        Debug.Assert(ownerMethod.Arity > 0);
+
+        _containingSymbol = ownerMethod.ContainingType;
         _constructedContainer = Construct(ConstructedFromTypeParameters);
     }
 
