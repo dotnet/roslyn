@@ -105,8 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
         }
 
-        // TODO2 remove this method?
-        public override SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
+        private SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             if (TryGetAttributeExpression(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, out var expression) &&
                 currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList!).Start)

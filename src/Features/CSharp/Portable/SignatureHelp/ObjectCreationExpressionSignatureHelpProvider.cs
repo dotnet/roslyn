@@ -76,15 +76,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList!);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var (items, selectedItem) = type.TypeKind == TypeKind.Delegate
-                ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, structuralTypeDisplayService, type)
-                : GetNormalTypeConstructors(objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, type, within, options, cancellationToken);
+            // TODO2 need to re-implement
+            throw null;
+            //var (items, selectedItem) = type.TypeKind == TypeKind.Delegate
+            //    ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, structuralTypeDisplayService, type)
+            //    : GetNormalTypeConstructors(objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, type, within, options, cancellationToken);
 
-            return CreateSignatureHelpItems(items, textSpan,
-                GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
+            //return CreateSignatureHelpItems(items, textSpan,
+            //    GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
         }
 
-        public override SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
+        private SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             if (TryGetObjectCreationExpression(
                     root,

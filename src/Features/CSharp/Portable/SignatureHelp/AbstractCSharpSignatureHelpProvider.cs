@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         /// If the symbol could not be bound, we could be dealing with a partial invocation, we'll try to find a possible overload.
         /// If it was bound, we'll find which parameter to highlight.
         /// </summary>
-        protected static (ISymbol symbol, int parameterIndex) GuessCurrentSymbolAndParameter(
+        protected static (ISymbol? symbol, int parameterIndex) GuessCurrentSymbolAndParameter(
             SeparatedSyntaxList<ArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodGroup, int position,
-            SemanticModel semanticModel, ISemanticFactsService semanticFactsService, CancellationToken cancellationToken)
+            SemanticModel semanticModel, ISemanticFactsService semanticFactsService)
         {
             if (arguments.Count != 0)
             {
@@ -330,12 +330,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     }
 
                     var type = parameter.Type;
-                    if (parameter.IsParams && semanticFactsService.CanConvert(semanticModel, argument.Expression, ((IArrayTypeSymbol)type).ElementType))
+                    if (parameter.IsParams && CanConvert(argument.Expression, ((IArrayTypeSymbol)type).ElementType))
                     {
                         return true;
                     }
 
-                    return semanticFactsService.CanConvert(semanticModel, argument.Expression, type);
+                    return CanConvert(argument.Expression, type);
                 }
 
                 // We don't have an API to check conversion between type symbols, so we just check ref kind
@@ -351,6 +351,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 return true;
+            }
+
+            bool CanConvert(SyntaxNode expression, ITypeSymbol destination)
+            {
+                var conversion = semanticFactsService.ClassifyConversion(semanticModel, expression, destination);
+                return conversion.Exists; // TODO2 tweak
             }
         }
 

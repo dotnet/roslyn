@@ -109,9 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var symbolInfo = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken);
             var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo.Symbol);
 
-            return CreateSignatureHelpItems(accessibleConstructors.SelectAsArray(c =>
-                Convert(c, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
-                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
+            // TODO2 need to re-implement
+            throw null;
+            //return CreateSignatureHelpItems(accessibleConstructors.SelectAsArray(c =>
+            //    Convert(c, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
+            //    textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
             // TODO2
             //var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
             //return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol)currentSymbol, parameterIndex, selectedItem, arguments, position);
