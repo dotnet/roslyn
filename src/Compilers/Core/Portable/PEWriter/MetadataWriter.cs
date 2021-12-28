@@ -1798,13 +1798,18 @@ namespace Microsoft.Cci
 
                 DefineModuleImportScope();
 
+                EmbedTypeDefinitionDocumentInformation(module);
+
                 if (module.SourceLinkStreamOpt != null)
                 {
                     EmbedSourceLink(module.SourceLinkStreamOpt);
                 }
 
-                EmbedCompilationOptions(module);
-                EmbedMetadataReferenceInformation(module);
+                if (!module.IsEncDelta)
+                {
+                    EmbedCompilationOptions(module);
+                    EmbedMetadataReferenceInformation(module);
+                }
             }
 
             int[] methodBodyOffsets;

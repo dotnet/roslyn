@@ -487,8 +487,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class FlowCaptureReferenceOperation
     {
-        public FlowCaptureReferenceOperation(int id, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue) :
-            this(new CaptureId(id), semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
+        public FlowCaptureReferenceOperation(int id, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isInitialization = false) :
+            this(new CaptureId(id), isInitialization, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
         {
         }
     }

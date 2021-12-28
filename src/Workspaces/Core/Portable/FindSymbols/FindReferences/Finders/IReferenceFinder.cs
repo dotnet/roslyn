@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     /// </summary>
     internal interface IReferenceFinder
     {
+        /// <summary>
+        /// Determines what, if any, global alias names could potentially map this symbol in this project.
+        /// Note that this result is allowed to return global aliases that don't actually map to this symbol.
+        /// For example, given symbol <c>A.X</c> and <c>global alias G = B.X</c>, <c>G</c> might be returned
+        /// in a search for <c>A.X</c> because they both end in <c>X</c>.
+        /// </summary>
+        Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
+            ISymbol symbol, Project project, CancellationToken cancellationToken);
+
         /// <summary>
         /// Called by the find references search engine when a new symbol definition is found.
         /// Implementations can then choose to request more symbols be searched for.  For example, an
@@ -40,7 +50,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            ISymbol symbol, Project project, IImmutableSet<Document>? documents,
+            ISymbol symbol, HashSet<string>? globalAliases,
+            Project project, IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         /// <summary>
@@ -51,7 +62,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Implementations of this method must be thread-safe.
         /// </summary>
         ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            ISymbol symbol, Document document, SemanticModel semanticModel,
+            ISymbol symbol, HashSet<string>? globalAliases,
+            Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
     }
 }

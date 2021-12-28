@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             out TSyntax expression)
             where TSyntax : SyntaxNode
         {
-            var token = syntaxFacts.FindTokenOnLeftOfPosition(root, position);
+            var token = root.FindTokenOnLeftOfPosition(position);
             if (triggerReason == SignatureHelpTriggerReason.TypeCharCommand)
             {
                 if (isTriggerToken(token) &&
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     syntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral(root.SyntaxTree, position, cancellationToken))
                 {
                     expression = token.Parent?.AncestorsAndSelf()
-                        .TakeWhile(n => !syntaxFacts.IsAnonymousFunction(n))
+                        .TakeWhile(n => !syntaxFacts.IsAnonymousFunctionExpression(n))
                         .OfType<TSyntax>()
                         .SkipWhile(syntax => !isArgumentListToken(syntax, token))
                         .FirstOrDefault();
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         }
 
         public static async Task<ImmutableArray<IMethodSymbol>> GetCollectionInitializerAddMethodsAsync(
-            Document document, SyntaxNode initializer, CancellationToken cancellationToken)
+            Document document, SyntaxNode initializer, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
             if (initializer == null || initializer.Parent == null)
             {
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             var addMethods = addSymbols.OfType<IMethodSymbol>()
                                        .Where(m => m.Parameters.Length >= 1)
                                        .ToImmutableArray()
-                                       .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
+                                       .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
                                        .Sort(semanticModel, position);
 
             return addMethods;

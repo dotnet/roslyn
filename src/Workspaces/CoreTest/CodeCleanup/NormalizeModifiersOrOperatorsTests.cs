@@ -684,7 +684,7 @@ End Class|]";
             var expected = @"Class A
     Sub Method( _
         ByVal _
- _
+              _
             t As String, ByRef t1 As String)
     End Sub
 End Class";
@@ -721,7 +721,7 @@ End Class|]";
             var expected = @"Class A
     Private _
         Shared _
- _
+               _
             a As Integer = 1
 End Class";
 
@@ -1077,7 +1077,7 @@ End Module";
                 out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
-            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name == PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators || p.Name == PredefinedCodeCleanupProviderNames.Format);
+            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators or PredefinedCodeCleanupProviderNames.Format);
 
             var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
 

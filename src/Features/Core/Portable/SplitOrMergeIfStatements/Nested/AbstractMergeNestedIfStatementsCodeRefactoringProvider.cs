@@ -91,9 +91,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             // Check whether the statement is a first statement inside an if or else if.
             // If it's inside a block, it has to be the first statement of the block.
 
-            // A statement should always be in a statement container, but we'll do a defensive check anyway so that
-            // we don't crash if the helper is missing some cases or there's a new language feature it didn't account for.
-            Debug.Assert(syntaxFacts.IsStatementContainer(statement.Parent));
+            // We can't assume that a statement will always be in a statement container, because an if statement
+            // in top level code will be in a GlobalStatement.
             if (syntaxFacts.IsStatementContainer(statement.Parent))
             {
                 var statements = syntaxFacts.GetStatementContainerStatements(statement.Parent);

@@ -871,16 +871,8 @@ Gen<dynamic> x = null;";
             var comp = CreateCompilationWithMscorlib45(source: source, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (21,5): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // Gen<dynamic> x = null;
-                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(21, 5),
-                // (2,7): warning CS8959: Type 'Gen<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                // [Attr(typeof(Gen<dynamic>))]            // No CS1980
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(Gen<dynamic>)").WithArguments("Gen<dynamic>").WithLocation(2, 7),
-                // (5,21): warning CS8959: Type 'Gen<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                //   public object f = typeof(Gen<dynamic>);  // No CS1980
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(Gen<dynamic>)").WithArguments("Gen<dynamic>").WithLocation(5, 21),
-                // (12,16): warning CS8959: Type 'Gen<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                //     object y = typeof(Gen<dynamic>);   // No CS1980
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(Gen<dynamic>)").WithArguments("Gen<dynamic>").WithLocation(12, 16));
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(21, 5)
+                );
         }
 
         [Fact]
@@ -914,15 +906,6 @@ Gen<dynamic> x = null;";
                 + "X x = null;";
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (2,7): warning CS8959: Type 'Gen<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                // [Attr(typeof(Gen<dynamic>))]            // No CS1980
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(Gen<dynamic>)").WithArguments("Gen<dynamic>").WithLocation(2, 7),
-                // (5,21): warning CS8959: Type 'Gen<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                //   public object f = typeof(Gen<dynamic>);  // No CS1980
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(Gen<dynamic>)").WithArguments("Gen<dynamic>").WithLocation(5, 21),
-                // (12,16): warning CS8959: Type 'Gen<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                //     object y = typeof(Gen<dynamic>);   // No CS1980
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(Gen<dynamic>)").WithArguments("Gen<dynamic>").WithLocation(12, 16),
                 // (20,1): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // X x = null;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(20, 1));
@@ -1306,24 +1289,10 @@ class C
                 + "System.Console.WriteLine(typeof(X));";
 
             CreateCompilationWithMscorlib45(source: source, parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (2,7): warning CS8959: Type 'Gen<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                // [Attr(typeof(Gen<dynamic>))]            // No CS1980
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(Gen<dynamic>)").WithArguments("Gen<dynamic>").WithLocation(2, 7),
                 // (20,26): error CS1962: The typeof operator cannot be used on the dynamic type
                 // System.Console.WriteLine(typeof(dynamic));System.Console.WriteLine(typeof(Gen<dynamic>));System.Console.WriteLine(typeof(X));
-                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(20, 26),
-                // (20,68): warning CS8959: Type 'Gen<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                // System.Console.WriteLine(typeof(dynamic));System.Console.WriteLine(typeof(Gen<dynamic>));System.Console.WriteLine(typeof(X));
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(Gen<dynamic>)").WithArguments("Gen<dynamic>").WithLocation(20, 68),
-                // (20,115): warning CS8959: Type 'Gen<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                // System.Console.WriteLine(typeof(dynamic));System.Console.WriteLine(typeof(Gen<dynamic>));System.Console.WriteLine(typeof(X));
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(X)").WithArguments("Gen<dynamic>").WithLocation(20, 115),
-                // (5,21): warning CS8959: Type 'Gen<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                //   public object f = typeof(Gen<dynamic>);  // No CS1980
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(Gen<dynamic>)").WithArguments("Gen<dynamic>").WithLocation(5, 21),
-                // (12,16): warning CS8959: Type 'Gen<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                //     object y = typeof(Gen<dynamic>);   // No CS1980
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(Gen<dynamic>)").WithArguments("Gen<dynamic>").WithLocation(12, 16));
+                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(20, 26)
+            );
         }
 
         [Theory]
@@ -1370,9 +1339,6 @@ public class Gen2<T> : X    // CS1980
                 // (21,24): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // public class Gen2<T> : X    // CS1980
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(21, 24),
-                // (2,7): warning CS8959: Type 'Gen<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                // [Attr(typeof(X))]            // No CS1980
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(X)").WithArguments("Gen<dynamic>").WithLocation(2, 7),
                 // (25,20): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //   private X Method(X param) // CS1980, CS1980
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(25, 20),
@@ -1390,13 +1356,8 @@ public class Gen2<T> : X    // CS1980
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(32, 11),
                 // (23,10): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //   public X field = null;   // CS1980
-                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(23, 10),
-                // (5,21): warning CS8959: Type 'Gen<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                //   public object f = typeof(X);  // No CS1980
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(X)").WithArguments("Gen<dynamic>").WithLocation(5, 21),
-                // (12,16): warning CS8959: Type 'Gen<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                //     object y = typeof(X);   // No CS1980
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(X)").WithArguments("Gen<dynamic>").WithLocation(12, 16));
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(23, 10)
+                );
         }
 
         private static string GetNoCS1980String(string typeName)

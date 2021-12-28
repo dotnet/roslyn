@@ -249,6 +249,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     foreach (var invocation in invocations)
                     {
                         var argumentListSyntax = _syntaxFacts.GetArgumentListOfInvocationExpression(invocation);
+                        if (argumentListSyntax == null)
+                            continue;
+
                         editor.ReplaceNode(argumentListSyntax, (currentArgumentListSyntax, _) =>
                         {
                             return GenerateNewArgumentListSyntaxForTrampoline(compilation, invocationSemanticModel,
@@ -356,7 +359,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 var methodName = _generator.IdentifierName(newMethodIdentifier);
                 var fullExpression = _syntaxFacts.GetExpressionOfInvocationExpression(invocation);
-                if (_syntaxFacts.IsAnyMemberAccessExpression(fullExpression))
+                if (_syntaxFacts.IsMemberAccessExpression(fullExpression))
                 {
                     var receiverExpression = _syntaxFacts.GetExpressionOfMemberAccessExpression(fullExpression);
                     methodName = _generator.MemberAccessExpression(receiverExpression, newMethodIdentifier);
@@ -497,6 +500,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     var argumentListSyntax = invocation is TObjectCreationExpressionSyntax
                         ? _syntaxFacts.GetArgumentListOfObjectCreationExpression(invocation)
                         : _syntaxFacts.GetArgumentListOfInvocationExpression(invocation);
+
+                    if (argumentListSyntax == null)
+                        continue;
 
                     var invocationArguments = _syntaxFacts.GetArgumentsOfArgumentList(argumentListSyntax);
                     parameterToArgumentMap.Clear();

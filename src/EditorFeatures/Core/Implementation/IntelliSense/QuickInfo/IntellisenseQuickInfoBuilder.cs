@@ -14,9 +14,10 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
-
+using Microsoft.VisualStudio.Utilities;
 using CodeAnalysisQuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
 using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
 
@@ -93,23 +94,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             // Add the remaining sections as Stacked style
             elements.AddRange(
-                quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description && s.Kind != QuickInfoSectionKinds.DocumentationComments)
+                quickInfoItem.Sections.Where(s => s.Kind is not QuickInfoSectionKinds.Description and not QuickInfoSectionKinds.DocumentationComments)
                                       .SelectMany(s => Helpers.BuildInteractiveTextElements(s.TaggedParts, context)));
 
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any() && context?.Document is Document document)
             {
-                var classifiedSpanList = new List<ClassifiedSpan>();
+                var textRuns = new List<ClassifiedTextRun>();
+                var spanSeparatorNeededBefore = false;
                 foreach (var span in quickInfoItem.RelatedSpans)
                 {
                     var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, span, cancellationToken).ConfigureAwait(false);
-                    classifiedSpanList.AddRange(classifiedSpans);
-                }
 
-                var tabSize = document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.TabSize, document.Project.Language);
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpanList.ToImmutableArray(), tabSize);
-                var textRuns = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, text.GetSubText(s.TextSpan).ToString(), ClassifiedTextRunStyle.UseClassificationFont));
+                    var tabSize = document.Project.Solution.Options.GetOption(FormattingOptions.TabSize, document.Project.Language);
+                    var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpans.ToImmutableArray(), tabSize);
+                    var textRunsOfSpan = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, text.GetSubText(s.TextSpan).ToString(), ClassifiedTextRunStyle.UseClassificationFont)).ToList();
+                    if (textRunsOfSpan.Count > 0)
+                    {
+                        if (spanSeparatorNeededBefore)
+                        {
+                            textRuns.Add(new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, "\r\n", ClassifiedTextRunStyle.UseClassificationFont));
+                        }
+
+                        textRuns.AddRange(textRunsOfSpan);
+                        spanSeparatorNeededBefore = true;
+                    }
+                }
 
                 if (textRuns.Any())
                 {
@@ -127,10 +138,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             CodeAnalysisQuickInfoItem quickInfoItem,
             Document document,
             IThreadingContext threadingContext,
+            IUIThreadOperationExecutor operationExecutor,
+            IAsynchronousOperationListener asyncListener,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             CancellationToken cancellationToken)
         {
-            var context = new IntellisenseQuickInfoBuilderContext(document, threadingContext, streamingPresenter);
+            var context = new IntellisenseQuickInfoBuilderContext(document, threadingContext, operationExecutor, asyncListener, streamingPresenter);
             var content = await BuildInteractiveContentAsync(quickInfoItem, context, cancellationToken).ConfigureAwait(false);
 
             return new IntellisenseQuickInfoItem(trackingSpan, content);

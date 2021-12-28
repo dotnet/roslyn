@@ -87,11 +87,6 @@
         <target state="translated">Converter em expressão condicional</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">Converter a tupla</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="translated">O valor da expressão nunca é usado</target>

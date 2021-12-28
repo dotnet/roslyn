@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis
     /// Synthesized local variables are either 
     /// 1) Short-lived (temporary)
     ///    The lifespan of a temporary variable shall not cross a statement boundary (a PDB sequence point).
-    ///    These variables are not tracked by EnC and don't have names.
+    ///    These variables are not tracked by EnC and don't have names. Only values less than 0 are considered
+    ///    short-lived: new short-lived kinds should have a negative value.
     ///  
     /// 2) Long-lived
     ///    All variables whose lifespan might cross a statement boundary (include a PDB sequence point)
@@ -232,12 +233,6 @@ namespace Microsoft.CodeAnalysis
         /// TODO: Avoid using lambdas and display classes for implementation of relaxation stubs and remove this kind.
         /// </summary>
         DelegateRelaxationReceiver = 0x101,
-
-        /// <summary>
-        /// The interpolated string builder, when the interpolated string is being lowered through the builder pattern
-        /// or the interpolated string expression is being converted directly to System.String.
-        /// </summary>
-        InterpolatedStringHandler = 0x102,
     }
 
     internal static class SynthesizedLocalKindExtensions

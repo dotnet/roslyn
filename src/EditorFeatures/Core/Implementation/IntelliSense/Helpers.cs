@@ -7,13 +7,17 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
@@ -93,8 +97,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                     break;
                 }
 
-                if (part.Tag == TextTags.ContainerStart
-                    || part.Tag == TextTags.ContainerEnd)
+                if (part.Tag is TextTags.ContainerStart
+                    or TextTags.ContainerEnd)
                 {
                     index++;
                     continue;
@@ -132,9 +136,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 {
                     // This is tagged text getting added to the current line we are building.
                     var style = GetClassifiedTextRunStyle(part.Style);
-                    if (part.NavigationTarget is object &&
-                        context?.ThreadingContext is ThreadingContext threadingContext &&
-                        context.StreamingPresenter is Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+                    if (part.NavigationTarget is not null &&
+                        context?.ThreadingContext is { } threadingContext &&
+                        context?.OperationExecutor is { } operationExecutor &&
+                        context?.AsynchronousOperationListener is { } asyncListener &&
+                        context?.StreamingPresenter is { } streamingPresenter)
                     {
                         var document = context.Document;
                         if (Uri.TryCreate(part.NavigationTarget, UriKind.Absolute, out var absoluteUri))
@@ -153,7 +159,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                             var workspace = document.Project.Solution.Workspace;
                             currentRuns.Add(new ClassifiedTextRun(
                                 part.Tag.ToClassificationTypeName(), part.Text,
-                                () => NavigateToQuickInfoTarget(target, workspace, documentId, threadingContext, streamingPresenter.Value), tooltip, style));
+                                () => _ = NavigateToQuickInfoTargetAsync(target, workspace, documentId, threadingContext, operationExecutor, asyncListener, streamingPresenter.Value),
+                                tooltip, style));
                         }
                     }
                     else
@@ -180,30 +187,46 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             return paragraphs;
         }
 
-        private static void NavigateToQuickInfoTarget(
+        private static async Task NavigateToQuickInfoTargetAsync(
             string navigationTarget,
             Workspace workspace,
             DocumentId documentId,
             IThreadingContext threadingContext,
+            IUIThreadOperationExecutor operationExecutor,
+            IAsynchronousOperationListener asyncListener,
             IStreamingFindUsagesPresenter streamingPresenter)
         {
-            var solution = workspace.CurrentSolution;
-            SymbolKeyResolution resolvedSymbolKey;
             try
             {
-                var project = solution.GetRequiredProject(documentId.ProjectId);
-                resolvedSymbolKey = SymbolKey.ResolveString(navigationTarget, project.GetRequiredCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), cancellationToken: CancellationToken.None);
-            }
-            catch
-            {
-                // Ignore symbol resolution failures. It likely is just a badly formed URI.
-                return;
-            }
+                using var token = asyncListener.BeginAsyncOperation(nameof(NavigateToQuickInfoTargetAsync));
+                using var context = operationExecutor.BeginExecute(EditorFeaturesResources.IntelliSense, EditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
 
-            if (resolvedSymbolKey.GetAnySymbol() is { } symbol)
+                var cancellationToken = context.UserCancellationToken;
+                var solution = workspace.CurrentSolution;
+                SymbolKeyResolution resolvedSymbolKey;
+                try
+                {
+                    var project = solution.GetRequiredProject(documentId.ProjectId);
+                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    resolvedSymbolKey = SymbolKey.ResolveString(navigationTarget, compilation, cancellationToken: cancellationToken);
+                }
+                catch
+                {
+                    // Ignore symbol resolution failures. It likely is just a badly formed URI.
+                    return;
+                }
+
+                if (resolvedSymbolKey.GetAnySymbol() is { } symbol)
+                {
+                    await GoToDefinitionHelpers.TryGoToDefinitionAsync(
+                        symbol, solution, threadingContext, streamingPresenter, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException)
             {
-                GoToDefinitionHelpers.TryGoToDefinition(symbol, solution, threadingContext, streamingPresenter, CancellationToken.None);
-                return;
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
             }
         }
 

@@ -23,7 +23,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             NamespaceBlockSyntax,
             TypeBlockSyntax,
             EnumBlockSyntax,
-            StatementSyntax)
+            StatementSyntax,
+            NameSyntax,
+            QualifiedNameSyntax,
+            IdentifierNameSyntax)
 
         Private Const ExtensionName As String = "Extension"
         Private Const ExtensionAttributeName As String = "ExtensionAttribute"
@@ -326,6 +329,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
 
         Protected Overrides Function GetUsingAliases(node As NamespaceBlockSyntax) As SyntaxList(Of ImportsStatementSyntax)
             Return Nothing
+        End Function
+
+        Protected Overrides Function GetName(node As NamespaceBlockSyntax) As NameSyntax
+            Return node.NamespaceStatement.Name
+        End Function
+
+        Protected Overrides Function GetLeft(node As QualifiedNameSyntax) As NameSyntax
+            Return node.Left
+        End Function
+
+        Protected Overrides Function GetRight(node As QualifiedNameSyntax) As NameSyntax
+            Return node.Right
+        End Function
+
+        Protected Overrides Function GetIdentifier(node As IdentifierNameSyntax) As SyntaxToken
+            Return node.Identifier
         End Function
 
         Private Shared Function IsExtensionMethod(node As MethodStatementSyntax) As Boolean

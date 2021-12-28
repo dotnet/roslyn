@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         {
             using var matches = TemporaryArray<PatternMatch>.Empty;
             matcher.AddMatches(candidate, ref matches.AsRef());
-            return matches.Count > 0 ? (PatternMatch?)matches[0] : null;
+            return matches.Count > 0 ? matches[0] : null;
         }
 
         public static bool Matches(this PatternMatcher matcher, string candidate)

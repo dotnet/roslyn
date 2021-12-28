@@ -13,6 +13,8 @@
   <ItemGroup>
     <Compile Include="..\Core.Wpf\ExternalAccess\VSTypeScript\**\*.cs" LinkBase="ExternalAccess\VSTypeScript" />
     <Compile Include="..\Core.Wpf\InlineRename\**\*.cs" Exclude="..\Core.Wpf\InlineRename\Dashboard\**\*.cs" LinkBase="InlineRename" />
+    <Compile Include="..\Core.Wpf\Classification\**\*.cs" LinkBase="Classification" />
+    <Compile Include="..\Core.Wpf\Diagnostics\**\*.cs" LinkBase="Diagnostics" />
     <Compile Include="..\Core.Wpf\NavigableSymbols\**\*.cs" LinkBase="NavigableSymbols" />
     <Compile Include="..\Core.Wpf\SignatureHelp\**\*.cs" LinkBase="SignatureHelp" />
     <Compile Include="..\Core.Wpf\Suggestions\**\*.cs" LinkBase="Suggestions" />

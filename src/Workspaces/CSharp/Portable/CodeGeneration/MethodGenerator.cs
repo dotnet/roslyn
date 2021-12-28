@@ -236,9 +236,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             else
             {
                 // If we're generating into an interface, then we don't use any modifiers.
-                if (destination != CodeGenerationDestination.CompilationUnit &&
-                    destination != CodeGenerationDestination.Namespace &&
-                    destination != CodeGenerationDestination.InterfaceType)
+                if (destination is not CodeGenerationDestination.CompilationUnit and
+                    not CodeGenerationDestination.Namespace and
+                    not CodeGenerationDestination.InterfaceType)
                 {
                     AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, options, Accessibility.Private);
 

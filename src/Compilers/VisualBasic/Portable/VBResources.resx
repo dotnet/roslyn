@@ -5644,4 +5644,10 @@
   <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title" xml:space="preserve">
     <value>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</value>
   </data>
+  <data name="ERR_BadAbstractStaticMemberAccess" xml:space="preserve">
+    <value>A shared abstract interface member cannot be accessed.</value>
+  </data>
+  <data name="ERR_UnimplementedSharedMember" xml:space="preserve">
+    <value>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</value>
+  </data>
 </root>

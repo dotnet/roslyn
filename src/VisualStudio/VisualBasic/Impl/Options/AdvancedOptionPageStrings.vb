@@ -42,8 +42,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Color_hints As String =
             ServicesVSResources.Color_hints
 
-        Public ReadOnly Property Option_Inline_Hints_experimental As String =
-            ServicesVSResources.Inline_Hints_experimental
+        Public ReadOnly Property Option_Inline_Hints As String =
+            ServicesVSResources.Inline_Hints
 
         Public ReadOnly Property Option_Display_inline_parameter_name_hints As String =
             ServicesVSResources.Display_inline_parameter_name_hints
@@ -65,6 +65,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Suppress_hints_when_parameter_names_differ_only_by_suffix As String =
             ServicesVSResources.Suppress_hints_when_parameter_names_differ_only_by_suffix
+
+        Public ReadOnly Property Option_Suppress_hints_when_argument_matches_parameter_name As String =
+            ServicesVSResources.Suppress_hints_when_argument_matches_parameter_name
+
+        Public ReadOnly Property Option_Display_diagnostics_inline_experimental As String =
+            ServicesVSResources.Display_diagnostics_inline_experimental
+
+        Public ReadOnly Property Option_at_the_end_of_the_line_of_code As String =
+            ServicesVSResources.at_the_end_of_the_line_of_code
+
+        Public ReadOnly Property Option_on_the_right_edge_of_the_editor_window As String =
+            ServicesVSResources.on_the_right_edge_of_the_editor_window
 
         Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String =
             BasicVSResources.Don_t_put_ByRef_on_custom_structure
@@ -296,7 +308,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Show_inheritance_margin As String =
             ServicesVSResources.Show_inheritance_margin
 
-        Public ReadOnly Property Inheritance_Margin_experimental As String =
-            ServicesVSResources.Inheritance_Margin_experimental
+        Public ReadOnly Property Combine_inheritance_margin_with_indicator_margin As String =
+            ServicesVSResources.Combine_inheritance_margin_with_indicator_margin
+
+        Public ReadOnly Property Inheritance_Margin As String = ServicesVSResources.Inheritance_Margin
     End Module
 End Namespace

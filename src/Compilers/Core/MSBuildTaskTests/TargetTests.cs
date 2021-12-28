@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 Assert.Equal(expectedLastBuildWithSkipAnalyzers, items.Single().EvaluatedInclude);
             }
 
-            var expectedUpToDateCheckInput = lastBuildWithSkipAnalyzersFileExists;
+            var expectedUpToDateCheckInput = lastBuildWithSkipAnalyzersFileExists && !skipAnalyzers;
             items = instance.GetItems("UpToDateCheckInput");
             expectedItemCount = expectedUpToDateCheckInput ? 1 : 0;
             Assert.Equal(expectedItemCount, items.Count);
@@ -889,6 +889,30 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var caps = instance.GetItems("ProjectCapability").Select(c => c.EvaluatedInclude);
             Assert.Contains("RoslynComponent", caps);
+        }
+
+        [Fact]
+        public void CompilerApiVersionIsSet()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            var compilerApiVersionString = instance.GetPropertyValue("CompilerApiVersion");
+            Assert.StartsWith("roslyn", compilerApiVersionString);
+
+            var compilerApiVersion = Version.Parse(compilerApiVersionString.Substring("roslyn".Length));
+
+            var expectedVersionString = GetType().Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+                .Single(a => a.Key == "CurrentCompilerApiVersion")
+                .Value ?? string.Empty;
+            var expectedVersion = Version.Parse(expectedVersionString);
+
+            Assert.Equal(expectedVersion, compilerApiVersion);
         }
 
         private static ProjectInstance CreateProjectInstance(XmlReader reader)

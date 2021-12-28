@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public static readonly PerLanguageOption2<int> ConditionalExpressionWrappingLength = new(
             nameof(UseConditionalExpressionOptions),
             nameof(ConditionalExpressionWrappingLength), defaultValue: 120,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(ConditionalExpressionWrappingLength)}"));
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(ConditionalExpressionWrappingLength)}"));
     }
 }

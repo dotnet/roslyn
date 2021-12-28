@@ -93,7 +93,7 @@ This document provides guidance for thinking about language interactions and tes
 - Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
 - `this = e;` in `struct` .ctor
 - Stackalloc (including initializers)
-- Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`)
+- Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice)
 - Switch expressions
 - With expressions (on record classes and on value types)
 - Nullability annotations (`?`, attributes) and analysis
@@ -136,6 +136,8 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
 - Edit-and-continue
 
 - Live Unit Testing (instrumentation)
+
+- Engage with VS Templates team (if applicable)
 
 # Eric's cheatsheet
 
@@ -319,6 +321,7 @@ __makeref( x )
 - Tuple
 - Default literal
 - Implicit object creation (target-typed new)
+- Function type (in type inference comparing function types of lambdas or method groups)
 
 ## Types 
 

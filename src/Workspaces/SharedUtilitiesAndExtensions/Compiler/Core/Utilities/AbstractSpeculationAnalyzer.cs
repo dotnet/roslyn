@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -502,6 +503,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             Debug.Assert(previousOriginalNode == null || previousOriginalNode.Parent == currentOriginalNode);
             Debug.Assert(previousReplacedNode == null || previousReplacedNode.Parent == currentReplacedNode);
 
+            if (!OperationsAreCompatible(currentOriginalNode, currentReplacedNode))
+                return true;
+
             if (ExpressionMightReferenceMember(currentOriginalNode))
             {
                 // If replacing the node will result in a change in overload resolution, we won't remove it.
@@ -556,6 +560,31 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             return false;
         }
+
+        private bool OperationsAreCompatible(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode)
+        {
+            var originalOperation = this._semanticModel.GetOperation(currentOriginalNode, CancellationToken);
+            var currentOperation = this.SpeculativeSemanticModel.GetOperation(currentReplacedNode, CancellationToken);
+
+            if (originalOperation is IInvocationOperation originalInvocation)
+            {
+                // Invocations must stay invocations after update.
+                if (currentOperation is not IInvocationOperation currentInvocation)
+                    return false;
+
+                // An instance call must stay an instance call (and a static call must stay a static call).
+                if (IsNullOrNone(originalInvocation.Instance) != IsNullOrNone(currentInvocation.Instance))
+                    return false;
+
+                // Add more invocation tests here.
+            }
+
+            // Add more operation tests here.
+            return true;
+        }
+
+        private static bool IsNullOrNone(IOperation? instance)
+            => instance is null || instance.Kind == OperationKind.None;
 
         /// <summary>
         /// Determine if removing the cast could cause the semantics of System.Object method call to change.
@@ -872,10 +901,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return newReceiver != null && IsReceiverUniqueInstance(newReceiver, speculativeSemanticModel);
             }
 
-            return newSymbolContainingType.SpecialType == SpecialType.System_Array ||
-                   newSymbolContainingType.SpecialType == SpecialType.System_Delegate ||
-                   newSymbolContainingType.SpecialType == SpecialType.System_Enum ||
-                   newSymbolContainingType.SpecialType == SpecialType.System_String;
+            return newSymbolContainingType.SpecialType is SpecialType.System_Array or
+                   SpecialType.System_Delegate or
+                   SpecialType.System_Enum or
+                   SpecialType.System_String;
         }
 
         private bool IsReceiverNonUniquePossibleValueTypeParam(TExpressionSyntax invocation, SemanticModel semanticModel)

@@ -2537,5 +2537,20 @@ class Class
     public readonly int P { get; }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestPropertyInRecordStruct()
+        {
+            await TestInRegularAndScript1Async(
+@"record struct S
+{
+    [|int i|];
+    public readonly int P => i;
+}",
+@"record struct S
+{
+    public readonly int P { get; }
+}");
+        }
     }
 }

@@ -30,6 +30,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </value>
         int? MultiLineCommentTrivia { get; }
 
+        int SingleLineDocCommentTrivia { get; }
+        int? MultiLineDocCommentTrivia { get; }
+        int? ShebangDirectiveTrivia { get; }
+
         #endregion
 
         #region keywords
@@ -39,6 +43,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int GlobalKeyword { get; }
         int IfKeyword { get; }
         int? GlobalStatement { get; }
+        int TrueKeyword { get; }
+        int FalseKeyword { get; }
 
         #endregion
 
@@ -82,6 +88,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int DefaultLiteralExpression { get; }
         int FalseLiteralExpression { get; }
         int NullLiteralExpression { get; }
+        int NumericLiteralExpression { get; }
         int StringLiteralExpression { get; }
         int TrueLiteralExpression { get; }
 
@@ -94,6 +101,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int BaseExpression { get; }
         int ConditionalAccessExpression { get; }
         int ConditionalExpression { get; }
+        int? ImplicitObjectCreationExpression { get; }
         int InterpolatedStringExpression { get; }
         int InvocationExpression { get; }
         int LogicalAndExpression { get; }
@@ -107,6 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int SimpleMemberAccessExpression { get; }
         int TernaryConditionalExpression { get; }
         int ThisExpression { get; }
+        int? ThrowExpression { get; }
         int TupleExpression { get; }
 
         #endregion
@@ -116,8 +125,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ExpressionStatement { get; }
         int ForEachStatement { get; }
         int LocalDeclarationStatement { get; }
+        int? LocalFunctionStatement { get; }
         int LockStatement { get; }
         int ReturnStatement { get; }
+        int ThrowStatement { get; }
         int UsingStatement { get; }
 
         #endregion
@@ -125,6 +136,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         #region members/declarations
 
         int Attribute { get; }
+        int ClassDeclaration { get; }
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }

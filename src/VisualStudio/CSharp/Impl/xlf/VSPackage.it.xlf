@@ -83,9 +83,10 @@ regular expression;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">Visualizza suggerimenti inline;
+        <target state="translated">Sottolinea variabili riassegnate;
+Visualizza suggerimenti inline;
 Mostra diagnostica per file chiusi;
-Colora espressione regolare; 
+Colora espressione regolare;
 Evidenzia i componenti correlati sotto il cursore; 
 Segnala espressioni regolari non valide;
 Abilita analisi della soluzione completa;
@@ -105,7 +106,7 @@ Mostra separatori di riga routine;
 Mostra la struttura per i costrutti a livello di dichiarazione;
 Mostra la struttura per i costrutti a livello di codice;
 Mostra la struttura per i commenti e le aree del preprocessore;
-Comprimi regions durante la compressione delle definizioni;
+Comprimi regioni durante la compressione delle definizioni;
 Dissolvenza;
 Applica dissolvenza a direttive using non usate;
 Applica dissolvenza a codice non eseguibile;
@@ -119,7 +120,7 @@ Mostra anteprima per verifica ridenominazione;
 Dividi valori letterali stringa dopo INVIO;
 Segnala segnaposto non validi in chiamate string.Format;
 Estrai metodo;
-Non inserire out o ref in struct personalizzato;
+Non inserire out o ref in struct personalizzata;
 Implementa interfaccia o classe astratta;
 Posiziona proprietà, eventi e metodi inseriti;
 con altri membri dello stesso tipo;
@@ -130,7 +131,8 @@ preferisci proprietà automatiche;
 regex;
 espressione regolare;
 Usa colori migliorati;
-Combinazione colori editor;</target>
+Combinazione colori editor;
+Margine di ereditarietà;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

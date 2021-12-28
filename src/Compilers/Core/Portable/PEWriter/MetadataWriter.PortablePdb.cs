@@ -987,5 +987,25 @@ namespace Microsoft.Cci
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationMetadataReferences),
                 value: _debugMetadataOpt.GetOrAddBlob(builder));
         }
+
+        private void EmbedTypeDefinitionDocumentInformation(CommonPEModuleBuilder module)
+        {
+            var builder = new BlobBuilder();
+
+            foreach (var (definition, documents) in module.GetTypeToDebugDocumentMap(Context))
+            {
+                foreach (var document in documents)
+                {
+                    var handle = GetOrAddDocument(document, _documentIndex);
+                    builder.WriteCompressedInteger(MetadataTokens.GetRowNumber(handle));
+                }
+                _debugMetadataOpt.AddCustomDebugInformation(
+                    parent: GetTypeDefinitionHandle(definition),
+                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.TypeDefinitionDocuments),
+                    value: _debugMetadataOpt.GetOrAddBlob(builder));
+                builder.Clear();
+            }
+        }
+
     }
 }

@@ -5053,7 +5053,7 @@ class C<T>
         {
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(@"
 using System;
-static class m
+static class @m
 {
     public static int NotAConstant()
     {
@@ -5061,7 +5061,7 @@ static class m
     }
 }
 
-public enum e1
+public enum @e1
 {
     a
 }
@@ -10100,7 +10100,7 @@ class C1
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -10325,9 +10325,7 @@ class Program
     }
 }
 ";
-            // The expected output here will change once we consume a runtime
-            // which has a fix for https://github.com/dotnet/runtime/issues/56492
-            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "CustomAttributeFormatException");
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "a");
 
             verifier.VerifyTypeIL("Holder", @"
 .class private auto ansi beforefieldinit Holder

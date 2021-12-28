@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return null;
             }
 
-            Contract.ThrowIfNull(result.Ranges);
+            Contract.ThrowIfTrue(result.Ranges.IsDefault);
 
             return new LinkedEditingRanges
             {

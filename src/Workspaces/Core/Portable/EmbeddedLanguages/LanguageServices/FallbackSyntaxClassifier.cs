@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         }
 
         public override void AddClassifications(
-            Workspace workspace, SyntaxToken token, SemanticModel semanticModel,
+            SyntaxToken token, SemanticModel semanticModel, ClassificationOptions options,
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (_info.CharLiteralTokenKind != token.RawKind &&

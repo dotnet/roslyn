@@ -23,27 +23,20 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetStateChecksums([NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
             => _lazyChecksums.TryGetValue(out stateChecksums);
 
-        public bool TryGetStateChecksums(ProjectId projectId, out (SerializableOptionSet options, SolutionStateChecksums checksums) result)
+        public bool TryGetStateChecksums(ProjectId projectId, [NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
         {
-            (SerializableOptionSet options, ValueSource<SolutionStateChecksums> checksums) value;
+            ValueSource<SolutionStateChecksums>? checksums;
             lock (_lazyProjectChecksums)
             {
-                if (!_lazyProjectChecksums.TryGetValue(projectId, out value) ||
-                    value.checksums == null)
+                if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums) ||
+                    checksums == null)
                 {
-                    result = default;
+                    stateChecksums = null;
                     return false;
                 }
             }
 
-            if (!value.checksums.TryGetValue(out var stateChecksums))
-            {
-                result = default;
-                return false;
-            }
-
-            result = (value.options, stateChecksums);
-            return true;
+            return checksums.TryGetValue(out stateChecksums);
         }
 
         public Task<SolutionStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
@@ -62,35 +55,27 @@ namespace Microsoft.CodeAnalysis
         {
             Contract.ThrowIfNull(projectId);
 
-            (SerializableOptionSet options, ValueSource<SolutionStateChecksums> checksums) value;
+            ValueSource<SolutionStateChecksums>? checksums;
             lock (_lazyProjectChecksums)
             {
-                if (!_lazyProjectChecksums.TryGetValue(projectId, out value))
+                if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
                 {
-                    value = Compute(projectId);
-                    _lazyProjectChecksums.Add(projectId, value);
+                    checksums = Compute(projectId);
+                    _lazyProjectChecksums.Add(projectId, checksums);
                 }
             }
 
-            var collection = await value.checksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var collection = await checksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return collection;
 
             // Extracted as a local function to prevent delegate allocations when not needed.
-            (SerializableOptionSet, ValueSource<SolutionStateChecksums>) Compute(ProjectId projectId)
+            ValueSource<SolutionStateChecksums> Compute(ProjectId projectId)
             {
                 var projectsToInclude = new HashSet<ProjectId>();
                 AddReferencedProjects(projectsToInclude, projectId);
 
-                // we're syncing a subset of projects, so only sync the options for the particular languages
-                // we're syncing over.
-                var languages = projectsToInclude.Select(id => ProjectStates[id].Language)
-                                                 .Where(s => RemoteSupportedLanguages.IsSupported(s))
-                                                 .ToImmutableHashSet();
-
-                var options = this.Options.WithLanguages(languages);
-
-                return (options, new AsyncLazy<SolutionStateChecksums>(
-                    c => ComputeChecksumsAsync(projectsToInclude, options, c), cacheResult: true));
+                return new AsyncLazy<SolutionStateChecksums>(
+                    c => ComputeChecksumsAsync(projectsToInclude, this.Options, c), cacheResult: true);
             }
 
             void AddReferencedProjects(HashSet<ProjectId> result, ProjectId projectId)
@@ -103,7 +88,16 @@ namespace Microsoft.CodeAnalysis
                     return;
 
                 foreach (var refProject in projectState.ProjectReferences)
-                    AddReferencedProjects(result, refProject.ProjectId);
+                {
+                    // Note: it's possible in the workspace to see project-ids that don't have a corresponding project
+                    // state.  While not desirable, we allow project's to have refs to projects that no longer exist
+                    // anymore.  This state is expected to be temporary until the project is explicitly told by the
+                    // host to remove the reference.  We do not expose this through the full Solution/Project which
+                    // filters out this case already (in Project.ProjectReferences). However, becausde we're at the
+                    // ProjectState level it cannot do that filtering unless examined through us (the SolutionState).
+                    if (this.ProjectStates.ContainsKey(refProject.ProjectId))
+                        AddReferencedProjects(result, refProject.ProjectId);
+                }
             }
         }
 

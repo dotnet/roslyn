@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -35,7 +36,16 @@ namespace Microsoft.CodeAnalysis.FindUsages
                        sourceSpans, properties, displayableProperties, displayIfNoReferences)
             {
             }
-            public sealed override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken)
+
+            [Obsolete("Override CanNavigateToAsync instead", error: false)]
+            public override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken)
+                => throw new NotImplementedException();
+
+            [Obsolete("Override TryNavigateToAsync instead", error: false)]
+            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+                => throw new NotImplementedException();
+
+            public sealed override async Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
                     return false;
@@ -43,10 +53,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                     return CanNavigateToMetadataSymbol(workspace, symbolKey);
 
-                return SourceSpans[0].CanNavigateTo(cancellationToken);
+                return await this.SourceSpans[0].CanNavigateToAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            public sealed override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+            public sealed override async Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
                     return false;
@@ -54,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                     return TryNavigateToMetadataSymbol(workspace, symbolKey);
 
-                return SourceSpans[0].TryNavigateTo(showInPreviewTab, activateTab, cancellationToken);
+                return await this.SourceSpans[0].TryNavigateToAsync(showInPreviewTab, activateTab, cancellationToken).ConfigureAwait(false);
             }
 
             public DetachedDefinitionItem Detach()

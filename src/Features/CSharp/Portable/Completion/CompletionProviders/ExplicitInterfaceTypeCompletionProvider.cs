@@ -33,7 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, insertedCharacterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
-            CompletionContext? completionContext, CSharpSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+            CompletionContext? completionContext, CSharpSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
             var targetToken = context.TargetToken;
 
@@ -129,8 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return IsClassOrStructOrInterfaceOrRecord(tokenBeforeType.GetRequiredParent());
             }
 
-            if (tokenBeforeType.Kind() == SyntaxKind.CloseBraceToken ||
-                tokenBeforeType.Kind() == SyntaxKind.SemicolonToken)
+            if (tokenBeforeType.Kind() is SyntaxKind.CloseBraceToken or
+                SyntaxKind.SemicolonToken)
             {
                 // Check that we're after a class/struct/interface member.
                 var memberDeclaration = tokenBeforeType.GetAncestor<MemberDeclarationSyntax>();

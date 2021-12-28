@@ -48,6 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         }
 
         internal static bool CanOfferUseFileScoped(OptionSet optionSet, CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax declaration, bool forAnalyzer)
+            => CanOfferUseFileScoped(optionSet, root, declaration, forAnalyzer, ((CSharpParseOptions)root.SyntaxTree.Options).LanguageVersion);
+
+        internal static bool CanOfferUseFileScoped(
+            OptionSet optionSet,
+            CompilationUnitSyntax root,
+            BaseNamespaceDeclarationSyntax declaration,
+            bool forAnalyzer,
+            LanguageVersion version)
         {
             if (declaration is not NamespaceDeclarationSyntax namespaceDeclaration)
                 return false;
@@ -55,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             if (namespaceDeclaration.OpenBraceToken.IsMissing)
                 return false;
 
-            if (((CSharpParseOptions)root.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp10)
+            if (version < LanguageVersion.CSharp10)
                 return false;
 
             var option = optionSet.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
@@ -72,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
             // even if we could offer this here, we have to make sure it would be legal.  A file scoped namespace is
             // only legal if it's the only namespace in the file and there are no top level statements.
-            var tooManyNamespaces = root.DescendantNodesAndSelf(n => n is CompilationUnitSyntax || n is BaseNamespaceDeclarationSyntax)
+            var tooManyNamespaces = root.DescendantNodesAndSelf(n => n is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax)
                                         .OfType<BaseNamespaceDeclarationSyntax>()
                                         .Take(2)
                                         .Count() != 1;

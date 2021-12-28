@@ -9,10 +9,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -21,6 +21,48 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     [UseExportProvider]
     public class LineEditTests : EditingTestBase
     {
+        #region Top-level Code
+
+        [Fact]
+        [WorkItem(1426286, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
+        public void TopLevelCode_LineChange()
+        {
+            var src1 = @"
+Console.ReadLine(1);
+";
+            var src2 = @"
+
+Console.ReadLine(1);
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new SourceLineUpdate(1, 2) });
+        }
+
+        [Fact]
+        [WorkItem(1426286, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
+        public void TopLevelCode_LocalFunction_LineChange()
+        {
+            var src1 = @"
+void F()
+{
+    Console.ReadLine(1);
+}
+";
+            var src2 = @"
+void F()
+{
+
+    Console.ReadLine(1);
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new SourceLineUpdate(3, 4) });
+        }
+
+        #endregion
+
         #region Methods
 
         [Fact]
@@ -229,6 +271,32 @@ class C
 
         [Fact]
         public void Method_LineChange3()
+        {
+            var src1 = @"
+class C
+{
+    static void Bar()
+    {
+        Console.ReadLine(2);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void Bar()
+    {
+
+        Console.ReadLine(2);
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new SourceLineUpdate(5, 6) });
+        }
+
+        [Fact]
+        public void Method_LineChange4()
         {
             var src1 = @"
 class C

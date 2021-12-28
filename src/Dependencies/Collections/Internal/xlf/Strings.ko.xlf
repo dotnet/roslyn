@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="CannotFindOldValue">
         <source>Cannot find the old value</source>
-        <target state="new">Cannot find the old value</target>
+        <target state="translated">이전 값을 찾을 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
