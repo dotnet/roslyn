@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-
         protected const string DefaultIndexerName = "Item";
 
         /// <summary>
@@ -212,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                               isReadOnly: (HasGetAccessor && !HasSetAccessor) || IsInitOnly,
                                               this.IsStatic,
                                               hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0,
-                                              isCreatedForfieldKeyword: isCreatedForFieldKeyword,
+                                              isCreatedForFieldKeyword: isCreatedForFieldKeyword,
                                               isEarlyConstructed: isEarlyConstructed);
                 Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, backingField, _lazyBackingFieldSymbolSentinel);
             }
@@ -410,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If the backing field is unknown, set it to null.
         /// </summary>
         /// <remarks>
-        /// This should be called only if we're sure the backing field can't be non-null value.
+        /// This should be called only if we're sure the backing field can't become non-null value if it's not already.
         /// </remarks>
         internal void MarkBackingFieldAsCalculated()
         {
@@ -450,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // If binding both the getter and setter didn't get a backing field, set it to null so that we don't re-calculate.
-            Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, null, _lazyBackingFieldSymbolSentinel);
+            MarkBackingFieldAsCalculated();
 
             void noteAccessorBinding()
             {
