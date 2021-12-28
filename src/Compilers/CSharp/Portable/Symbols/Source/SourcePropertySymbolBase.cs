@@ -414,7 +414,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void MarkBackingFieldAsCalculated()
         {
             Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, null, _lazyBackingFieldSymbolSentinel);
-            ((SynthesizedBackingFieldSymbol)_lazyBackingFieldSymbol)?.MarkIsBoundToFieldKeywordAsCalculated();
+            // PROTOTYPE(semi-autoprops): Is calling MarkIsBoundToFieldKeywordAsCalculated needed here?
+            ((SynthesizedBackingFieldSymbol?)_lazyBackingFieldSymbol)?.MarkIsBoundToFieldKeywordAsCalculated();
         }
 
         /// <summary>

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isReadOnly,
             bool isStatic,
             bool hasInitializer,
-            bool isCreatedForfieldKeyword,
+            bool isCreatedForFieldKeyword,
             bool isEarlyConstructed)
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _backingFieldFlags |= Flags.HasInitializer;
             }
 
-            if (isCreatedForfieldKeyword)
+            if (isCreatedForFieldKeyword)
             {
                 _backingFieldFlags |= Flags.IsCreatedForFieldKeyword;
             }
