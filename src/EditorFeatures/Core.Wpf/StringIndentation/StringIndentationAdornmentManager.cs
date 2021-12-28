@@ -109,32 +109,9 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
             {
                 // This method assumes that we've already been mapped to the view's snapshot.
                 Debug.Assert(span.Snapshot == view.TextSnapshot);
-                //Debug.Assert((structureElement.HeaderSpan == null) || (structureElement.HeaderSpan?.Snapshot == view.TextSnapshot));
-                //Debug.Assert((structureElement.GuideLineSpan == null) || (structureElement.GuideLineSpan?.Snapshot == view.TextSnapshot));
-                //Debug.Assert((structureElement.OutliningSpan == null) || (structureElement.OutliningSpan?.Snapshot == view.TextSnapshot));
-                //Debug.Assert((structureElement.GuideLineHorizontalAnchorPoint == null) || (structureElement.GuideLineHorizontalAnchorPoint?.Snapshot == view.TextSnapshot));
 
-                //var headerSpanStart = structureElement.HeaderSpan?.Start;
-                //var headerSpanEnd = structureElement.HeaderSpan?.End;
                 var guideLineSpanStart = span.Start;
                 var guideLineSpanEnd = span.End;
-                //var guideLineHorizontalAnchorPoint = structureElement.GuideLineHorizontalAnchorPoint;
-
-                // We're drawing a structure element so the expectation is that we have
-                // an object that has already had the heuristics applied to it. If any
-                // of the concrete fields are missing, this is a (possibly) collapsible
-                // block, but not a visible one.
-                //if ((guideLineSpanStart == null) ||
-                //    (guideLineSpanEnd == null) ||
-                //    (guideLineHorizontalAnchorPoint == null))
-                //{
-                //    return null;
-                //}
-
-                // NOTE: the order of calls here can matter in corner cases. Effectively, view.GetTextViewLineContainingBufferPosition()
-                // can cause the invalidation of other text view lines in the editor. For this reason, we run it first,
-                // let it have any impact on the lines collection it has, and make sure that we do any operations on each
-                // text view line immediately, before calling to get the next line.
 
                 // Horizontally position the adornment in the center of the character.
                 var bufferPosition = span.End - 1;
@@ -157,28 +134,11 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                     return null;
                 }
 
-                // If no header span was given, assume that there is a zero length
-                // header span at the start of the guideline span.
-                //if ((headerSpanStart == null) || (headerSpanEnd == null))
-                //{
-                //    headerSpanStart = guideLineSpanStart;
-                //    headerSpanEnd = guideLineSpanEnd;
-                //}
-
                 var guideLineTopLine = view.TextViewLines.GetTextViewLineContainingBufferPosition(guideLineSpanStart);
-                var yTop = (guideLineTopLine == null) ? firstLine.Top : guideLineTopLine.Top;
+                var yTop = guideLineTopLine == null ? firstLine.Top : guideLineTopLine.Bottom;
 
                 var guideLineBottomLine = view.TextViewLines.GetTextViewLineContainingBufferPosition(guideLineSpanEnd);
-                var yBottom = (guideLineBottomLine == null) ? lastLine.Bottom : guideLineBottomLine.Bottom;
-
-                // Prevent adornment from being drawn when the region is collapsed.
-                //var endHeaderLine = view.TextViewLines.GetTextViewLineContainingBufferPosition(headerSpanEnd.Value);
-                //if (endHeaderLine != null &&
-                //    (endHeaderLine.Top == yTop) &&
-                //    (endHeaderLine.Bottom == yBottom))
-                //{
-                //    return null;
-                //}
+                var yBottom = guideLineBottomLine == null ? lastLine.Bottom : guideLineBottomLine.Top;
 
                 var visibleSegments = CreateVisibleSegments(view.TextViewLines, span, x, yTop, yBottom);
 
