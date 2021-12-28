@@ -3605,6 +3605,114 @@ class D
     }
 
     [Fact]
+    public void AnonymousClass_AnonymousDelegate0()
+    {
+        var source = @"
+using System;
+class D
+{
+    public void Owner<T>()
+    {
+        static void Test<NotUsed>(T t)
+        {
+            var f = F<T>;
+            var a = new { x = f };
+
+            Invoke(a, Target);
+        }
+    }
+
+    static void F<T>(ref T t) { }
+
+    static void Invoke<T>(T t, Action<T> f) { }
+
+    static void Target<T>(T t) { }
+}
+";
+        CompileAndVerify(source).VerifyIL("D.<Owner>g__Test|0_0<T, NotUsed>", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  3
+  IL_0000:  ldsfld     ""<anonymous delegate> D.<Owner>O__0_0<T>.<0>__F""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""void D.F<T>(ref T)""
+  IL_0010:  newobj     ""<>A{00000001}<T>..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""<anonymous delegate> D.<Owner>O__0_0<T>.<0>__F""
+  IL_001b:  newobj     ""<>f__AnonymousType0<<anonymous delegate>>..ctor(<anonymous delegate>)""
+  IL_0020:  ldsfld     ""System.Action<<anonymous type: <anonymous delegate> x>> D.<Owner>O__0_0<T>.<1>__Target""
+  IL_0025:  dup
+  IL_0026:  brtrue.s   IL_003b
+  IL_0028:  pop
+  IL_0029:  ldnull
+  IL_002a:  ldftn      ""void D.Target<<anonymous type: <anonymous delegate> x>>(<anonymous type: <anonymous delegate> x>)""
+  IL_0030:  newobj     ""System.Action<<anonymous type: <anonymous delegate> x>>..ctor(object, System.IntPtr)""
+  IL_0035:  dup
+  IL_0036:  stsfld     ""System.Action<<anonymous type: <anonymous delegate> x>> D.<Owner>O__0_0<T>.<1>__Target""
+  IL_003b:  call       ""void D.Invoke<<anonymous type: <anonymous delegate> x>>(<anonymous type: <anonymous delegate> x>, System.Action<<anonymous type: <anonymous delegate> x>>)""
+  IL_0040:  ret
+}
+");
+    }
+
+    [Fact]
+    public void AnonymousClass_AnonymousDelegate1()
+    {
+        var source = @"
+using System;
+class D<T>
+{
+    public void Top<N0>()
+    {
+        static void Test<N1>(T t)
+        {
+            var f = F;
+            var a = new { x = f };
+
+            Invoke(a, Target);
+        }
+    }
+
+    static void F(ref T t) { }
+
+    static void Invoke<G>(G t, Action<G> f) { }
+
+    static void Target<G>(G t) { }
+}
+";
+        CompileAndVerify(source).VerifyIL("D<T>.<Top>g__Test|0_0<N0, N1>", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  3
+  IL_0000:  ldsfld     ""<anonymous delegate> D<T>.<>O.<0>__F""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""void D<T>.F(ref T)""
+  IL_0010:  newobj     ""<>A{00000001}<T>..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""<anonymous delegate> D<T>.<>O.<0>__F""
+  IL_001b:  newobj     ""<>f__AnonymousType0<<anonymous delegate>>..ctor(<anonymous delegate>)""
+  IL_0020:  ldsfld     ""System.Action<<anonymous type: <anonymous delegate> x>> D<T>.<>O.<1>__Target""
+  IL_0025:  dup
+  IL_0026:  brtrue.s   IL_003b
+  IL_0028:  pop
+  IL_0029:  ldnull
+  IL_002a:  ldftn      ""void D<T>.Target<<anonymous type: <anonymous delegate> x>>(<anonymous type: <anonymous delegate> x>)""
+  IL_0030:  newobj     ""System.Action<<anonymous type: <anonymous delegate> x>>..ctor(object, System.IntPtr)""
+  IL_0035:  dup
+  IL_0036:  stsfld     ""System.Action<<anonymous type: <anonymous delegate> x>> D<T>.<>O.<1>__Target""
+  IL_003b:  call       ""void D<T>.Invoke<<anonymous type: <anonymous delegate> x>>(<anonymous type: <anonymous delegate> x>, System.Action<<anonymous type: <anonymous delegate> x>>)""
+  IL_0040:  ret
+}
+");
+    }
+
+    [Fact]
     public void Pointer_TypeScoped_CouldBeModuleScoped0()
     {
         var source = @"
