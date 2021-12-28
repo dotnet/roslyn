@@ -3083,6 +3083,138 @@ static class E
     }
 
     [Fact]
+    public void ContainersCanBeShared_SkippingUnused()
+    {
+        var source = @"
+using System;
+class C
+{
+    public static void Target<T>(T t) { }
+}
+static class E
+{
+    static void Test<T>()
+    {
+        void LF2<G>()
+        {
+            void LF3()
+            {
+                Action<T> d = C.Target<T>;
+                static void LF4 () { Action<T> d = C.Target<T>; }
+
+                LF4();
+            }
+                
+            void LF5()
+            {
+                Action<T> d = C.Target<T>;
+            }
+
+            LF3(); LF5();
+        }
+        
+        LF2<int>();
+    }
+}
+";
+        static void containerValidator(ModuleSymbol module)
+        {
+            var testClass = module.GlobalNamespace.GetTypeMember("E");
+            var container = testClass.GetTypeMember("<Test>O__0_0");
+            Assert.NotNull(container); Debug.Assert(container is { });
+
+            Assert.Equal(1, container.Arity);
+
+            var members = container.GetMembers();
+            Assert.Equal(1, members.Length);
+
+            var field0 = members[0] as FieldSymbol;
+            Assert.NotNull(field0); Debug.Assert(field0 is { });
+            Assert.Equal("<0>__Target", field0.Name);
+
+            var fieldType0 = field0.Type as NamedTypeSymbol;
+            Assert.NotNull(fieldType0); Debug.Assert(fieldType0 is { });
+            Assert.True(fieldType0.IsDelegateType());
+            Assert.Equal("System", fieldType0.ContainingNamespace.Name);
+            Assert.Equal("Action", fieldType0.Name);
+            Assert.Equal(1, fieldType0.Arity);
+        }
+
+        CompileAndVerify(source, symbolValidator: containerValidator);
+    }
+
+    [Fact]
+    public void ContainersCanBeShared_LocalFunctions()
+    {
+        var source = @"
+using System;
+static class E
+{
+    static void Test<T>()
+    {
+        void Owner<G>()
+        {
+            void LF1()
+            {
+                Action d = LF2;
+                static void LF2() { }
+
+                LF2();
+            }
+                
+            void LF3()
+            {
+                Action d = LF2;
+                static void LF2() { }
+
+                LF2();
+            }
+
+            LF1(); LF3();
+        }
+        
+        Owner<int>();
+    }
+}
+";
+        static void containerValidator(ModuleSymbol module)
+        {
+            var testClass = module.GlobalNamespace.GetTypeMember("E");
+            var container = testClass.GetTypeMember("<Owner>O__0_0");
+            Assert.NotNull(container); Debug.Assert(container is { });
+
+            Assert.Equal(2, container.Arity);
+
+            var members = container.GetMembers();
+            Assert.Equal(2, members.Length);
+
+            var field0 = members[0] as FieldSymbol;
+            Assert.NotNull(field0); Debug.Assert(field0 is { });
+            Assert.Equal("<0>__LF2", field0.Name);
+
+            var fieldType0 = field0.Type as NamedTypeSymbol;
+            Assert.NotNull(fieldType0); Debug.Assert(fieldType0 is { });
+            Assert.True(fieldType0.IsDelegateType());
+            Assert.Equal("System", fieldType0.ContainingNamespace.Name);
+            Assert.Equal("Action", fieldType0.Name);
+            Assert.Equal(0, fieldType0.Arity);
+
+            var field1 = members[1] as FieldSymbol;
+            Assert.NotNull(field1); Debug.Assert(field1 is { });
+            Assert.Equal("<1>__LF2", field1.Name);
+
+            var fieldType1 = field1.Type as NamedTypeSymbol;
+            Assert.NotNull(fieldType1); Debug.Assert(fieldType1 is { });
+            Assert.True(fieldType1.IsDelegateType());
+            Assert.Equal("System", fieldType1.ContainingNamespace.Name);
+            Assert.Equal("Action", fieldType1.Name);
+            Assert.Equal(0, fieldType1.Arity);
+        }
+
+        CompileAndVerify(source, symbolValidator: containerValidator);
+    }
+
+    [Fact]
     public void EventHandlers_TypeScoped_CouldBeModuleScoped0()
     {
         var source = @"

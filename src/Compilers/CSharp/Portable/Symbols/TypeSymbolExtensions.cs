@@ -1102,9 +1102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly Func<TypeSymbol, Symbol, bool, bool> s_isTypeParameterWithSpecificContainerPredicate =
              (type, parameterContainer, unused) => type.TypeKind == TypeKind.TypeParameter && (object)type.ContainingSymbol == (object)parameterContainer;
 
-        public static bool ContainsTypeParameters(this TypeSymbol type, HashSet<TypeParameterSymbol> parameters, bool visitCustomModifiers = false)
+        public static bool ContainsTypeParameters(this TypeSymbol type, HashSet<TypeParameterSymbol> parameters)
         {
-            var result = type.VisitType(s_containsTypeParametersPredicate, parameters, visitCustomModifiers: visitCustomModifiers);
+            var result = type.VisitType(s_containsTypeParametersPredicate, parameters);
             return result is object;
         }
 

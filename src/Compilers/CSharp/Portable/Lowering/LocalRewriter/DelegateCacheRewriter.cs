@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
@@ -63,13 +64,36 @@ internal sealed partial class DelegateCreationRewriter
         Debug.Assert(_factory.ModuleBuilderOpt is { });
         Debug.Assert(_factory.CurrentFunction is { });
 
-        var typeCompilationState = _factory.CompilationState;
         var generation = _factory.ModuleBuilderOpt.CurrentGenerationOrdinal;
 
         DelegateCacheContainer? container;
 
-        if (CanUseTypeScopedConcreteCacheContainer(delegateType, targetMethod))
+        // We don't need to synthesize a container for each and every function.
+        // For functions with zero arity, we can share the container with the closest generic ancestor function.
+        //
+        // For example:
+        //   void LF1<T>()
+        //   {
+        //       void LF2<G>()
+        //       {
+        //           void LF3()
+        //           {
+        //               Func<T> d = SomeMethod<T>;
+        //               static void LF4 () { Func<T> d = SomeMethod<T>; }
+        //           }
+        //           
+        //           void LF5()
+        //           {
+        //               Func<T> d = SomeMethod<T>;
+        //           }
+        //       }
+        //   }
+        //
+        // In the above case, only one cached delegate is necessary, and it could be assigned to the container 'owned' by LF1.
+
+        if (!TryGetOwnerFunction(_factory.CurrentFunction, delegateType, targetMethod, out var ownerFunction))
         {
+            var typeCompilationState = _factory.CompilationState;
             container = typeCompilationState.ConcreteDelegateCacheContainer;
 
             if (container is { })
@@ -82,39 +106,6 @@ internal sealed partial class DelegateCreationRewriter
         }
         else
         {
-            // We don't need to synthesize a container for each and every function.
-            // For functions with zero arity, we can share the container with the closest generic ancestor function.
-            //
-            // For example:
-            //     void LF1<T>()
-            //     {
-            //         void LF2()
-            //         {
-            //             Func<T> d = SomeMethod<T>;
-            //             static void LF4 () { Func<T> d = SomeMethod<T>; }
-            //         }
-            //
-            //         void LF3()
-            //         {
-            //             Func<T> d = SomeMethod<T>;
-            //         }
-            //     }
-            //
-            // In the above case, only one cached delegate is necessary, and it could be assigned to the container 'owned' by LF1.
-
-            MethodSymbol? ownerFunction = null;
-
-            for (Symbol? enclosingSymbol = _factory.CurrentFunction; enclosingSymbol is MethodSymbol enclosingMethod; enclosingSymbol = enclosingSymbol.ContainingSymbol)
-            {
-                if (enclosingMethod.Arity > 0)
-                {
-                    ownerFunction = enclosingMethod;
-                    break;
-                }
-            }
-
-            Debug.Assert(ownerFunction is { });
-
             var containers = _genericCacheContainers ??= new Dictionary<MethodSymbol, DelegateCacheContainer>();
 
             if (containers.TryGetValue(ownerFunction, out container))
@@ -131,81 +122,89 @@ internal sealed partial class DelegateCreationRewriter
         return container;
     }
 
-    private bool CanUseTypeScopedConcreteCacheContainer(TypeSymbol delegateType, MethodSymbol targetMethod)
+    private static bool TryGetOwnerFunction(MethodSymbol currentFunction, TypeSymbol delegateType, MethodSymbol targetMethod, [NotNullWhen(true)] out MethodSymbol? ownerFunction)
     {
-        // Possible places for type parameters that can act as type arguments to construct the delegateType or targetMethod:
-        //   1. containing types
-        //   2. top level method
-        //   3. local functions
-        // Since our containers are created within the same enclosing types, we can ignore type parameters from them.
-
-        var methodTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
-        try
+        if (targetMethod.MethodKind == MethodKind.LocalFunction)
         {
-            for (Symbol? enclosingSymbol = _factory.CurrentFunction; enclosingSymbol is MethodSymbol enclosingMethod; enclosingSymbol = enclosingSymbol.ContainingSymbol)
+            // Local functions can use type parameters from their enclosing methods!
+            //
+            // For example:
+            //   void Test<T>()
+            //   {
+            //       var t = Target<int>;
+            //       static object Target<V>() => default(T);
+            //   }
+            //
+            // Therefore, without too much analysis, we select the closest generic enclosing function as the cache container owner.
+
+            for (Symbol? enclosingSymbol = currentFunction; enclosingSymbol is MethodSymbol enclosingMethod; enclosingSymbol = enclosingSymbol.ContainingSymbol)
             {
                 if (enclosingMethod.Arity > 0)
                 {
-                    if (targetMethod.MethodKind == MethodKind.LocalFunction)
-                    {
-                        // Local functions can reference type parameters from their enclosing methods!
-                        //
-                        // For example:
-                        //   void Test<T>()
-                        //   {
-                        //       var t = Target<int>;
-                        //       static object Target<V>() => default(T);
-                        //   }
-                        //
-                        // Therefore, unless no method type parameters for the target local function to use,
-                        // we cannot safely use a type scoped concrete cache container without some deep analysis.
-
-                        return false;
-                    }
-
-                    methodTypeParameters.AddAll(enclosingMethod.TypeParameters);
+                    ownerFunction = enclosingMethod;
+                    return true;
                 }
             }
 
-            if (methodTypeParameters.Count == 0)
+            ownerFunction = null;
+            return false;
+        }
+
+        var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+        try
+        {
+            FindTypeParameters(delegateType, usedTypeParameters);
+            FindTypeParameters(targetMethod, usedTypeParameters);
+
+            for (Symbol? enclosingSymbol = currentFunction; enclosingSymbol is MethodSymbol enclosingMethod; enclosingSymbol = enclosingSymbol.ContainingSymbol)
             {
-                return true;
+                if (usedTypeParametersContains(usedTypeParameters, enclosingMethod.TypeParameters))
+                {
+                    ownerFunction = enclosingMethod;
+                    return true;
+                }
             }
 
-            if (ContainsTypeParameters(targetMethod, methodTypeParameters) || delegateType.ContainsTypeParameters(methodTypeParameters, visitCustomModifiers: true))
-            {
-                return false;
-            }
+            ownerFunction = null;
+            return false;
         }
         finally
         {
-            methodTypeParameters.Free();
+            usedTypeParameters.Free();
         }
 
-        return true;
-    }
-
-    private static bool ContainsTypeParameters(MethodSymbol method, HashSet<TypeParameterSymbol> typeParameters)
-    {
-        if (method.ContainingType.ContainsTypeParameters(typeParameters, visitCustomModifiers: true))
+        static bool usedTypeParametersContains(HashSet<TypeParameterSymbol> used, ImmutableArray<TypeParameterSymbol> typeParameters)
         {
-            return true;
-        }
-
-        foreach (var typeArgumentWithAnnotations in method.TypeArgumentsWithAnnotations)
-        {
-            if (typeArgumentWithAnnotations.Type.ContainsTypeParameters(typeParameters))
+            foreach (var typeParameter in typeParameters)
             {
-                return true;
-            }
-
-            foreach (var customModifier in typeArgumentWithAnnotations.CustomModifiers)
-            {
-                if (((NamedTypeSymbol)customModifier.Modifier).ContainsTypeParameters(typeParameters))
+                if (used.Contains(typeParameter))
                 {
                     return true;
                 }
             }
+
+            return false;
+        }
+    }
+
+    private static void FindTypeParameters(TypeSymbol type, HashSet<TypeParameterSymbol> result)
+        => type.VisitType(TypeParameterSymbolCollector, result, visitCustomModifiers: true);
+
+    private static void FindTypeParameters(MethodSymbol method, HashSet<TypeParameterSymbol> result)
+    {
+        FindTypeParameters(method.ContainingType, result);
+
+        foreach (var typeArgument in method.TypeArgumentsWithAnnotations)
+        {
+            typeArgument.VisitType(type: null, typeWithAnnotationsPredicate: null, TypeParameterSymbolCollector, result, visitCustomModifiers: true);
+        }
+    }
+
+    private static bool TypeParameterSymbolCollector(TypeSymbol typeSymbol, HashSet<TypeParameterSymbol> result, bool _)
+    {
+        if (typeSymbol is TypeParameterSymbol typeParameter)
+        {
+            result.Add(typeParameter);
         }
 
         return false;
