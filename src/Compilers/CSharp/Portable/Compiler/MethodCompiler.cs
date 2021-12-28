@@ -1870,7 +1870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
-                    if ((object)property != null && property.IsAutoPropertyWithGetAccessor) // PROTOTYPE: Just IsAutoProperty, or _isAutoPropertyAccessor?
+                    if ((object)property != null && property.IsAutoProperty && property.GetMethod is not null) // PROTOTYPE: Just IsAutoProperty, or _isAutoPropertyAccessor?
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
