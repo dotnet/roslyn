@@ -183,6 +183,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns true if this property is required to be set in an object initializer on object creation.
+        /// </summary>
+        internal abstract bool IsRequired { get; }
+
+        /// <summary>
         /// True if the property itself is excluded from code coverage instrumentation.
         /// True for source properties marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         /// </summary>

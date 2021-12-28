@@ -199,6 +199,7 @@ namespace Microsoft.CodeAnalysis
 
         private static readonly byte[][] s_signatures_HasThis_Void_Only = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signatures_HasThis_Void_String_Only = { s_signature_HasThis_Void_String };
+        private static readonly byte[][] s_signatures_HasThis_Void_SzArray_String_Only = { s_signature_HasThis_Void_SzArray_String };
         private static readonly byte[][] s_signatures_HasThis_Void_Type_Only = { s_signature_HasThis_Void_Type };
         private static readonly byte[][] s_signatures_HasThis_Void_Boolean_Only = { s_signature_HasThis_Void_Boolean };
 
@@ -478,5 +479,6 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription UnmanagedCallersOnlyAttribute = new AttributeDescription("System.Runtime.InteropServices", "UnmanagedCallersOnlyAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription InterpolatedStringHandlerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterpolatedStringHandlerAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription InterpolatedStringHandlerArgumentAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterpolatedStringHandlerArgumentAttribute", s_signaturesOfInterpolatedStringArgumentAttribute);
+        internal static readonly AttributeDescription RequiredMembersAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RequiredMembersAttribute", s_signatures_HasThis_Void_SzArray_String_Only);
     }
 }

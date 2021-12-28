@@ -192,5 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return true; }
         }
+
+        internal override bool IsRequired => false;
     }
 }

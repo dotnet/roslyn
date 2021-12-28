@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -11,10 +13,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
 [CompilerTrait(CompilerFeature.RequiredMembers)]
 public class RequiredMembersTests : CSharpTestBase
 {
+    private const string RequiredMembersAttribute = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public class RequiredMembersAttribute : Attribute
+    {
+        public RequiredMembersAttribute(params string[] members)
+        {
+            this.Members = members;
+        }
+
+        public string[] Members { get; }
+    }
+}
+";
+
+    private CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null)
+        => CreateCompilation(new[] { source, RequiredMembersAttribute }, options: options, parseOptions: parseOptions);
+
+    private Action<ModuleSymbol> ValidateRequiredMembersInModule(string[] memberPaths)
+    {
+        return module =>
+        {
+            foreach (var memberPath in memberPaths)
+            {
+                var member = module.GlobalNamespace.GetMember(memberPath);
+                Assert.True(member is PropertySymbol or FieldSymbol, $"Unexpected member symbol type {member.Kind}");
+                Assert.True(member.IsRequired());
+            }
+        };
+    }
+
     [Fact]
     public void InvalidModifierLocations()
     {
-        var comp = CreateCompilation(@"
+        var comp = CreateCompilationWithRequiredMembers(@"
 required class C1
 {
     required void M(required int i)
@@ -104,7 +138,7 @@ class C2 : I2
     [Fact]
     public void InvalidModifierCombinations()
     {
-        var comp = CreateCompilation(@"
+        var comp = CreateCompilationWithRequiredMembers(@"
 unsafe struct C
 {
     required const int F1 = 1;
@@ -136,48 +170,48 @@ unsafe struct C
     [Fact]
     public void LangVersion()
     {
-        var comp = CreateCompilation(@"
+        var comp = CreateCompilationWithRequiredMembers(@"
 class C
 {
-    required int Field;
-    required int Prop { get; set; }
+    internal required int Field;
+    internal required int Prop { get; set; }
 }
 ", parseOptions: TestOptions.Regular10);
 
         comp.VerifyDiagnostics(
-                // (4,18): error CS8652: The feature 'required members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     required int Field;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("required members").WithLocation(4, 18),
-                // (4,18): warning CS0169: The field 'C.Field' is never used
-                //     required int Field;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Field").WithArguments("C.Field").WithLocation(4, 18),
-                // (5,18): error CS8652: The feature 'required members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     required int Prop { get; set; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("required members").WithLocation(5, 18)
+            // (4,27): error CS8652: The feature 'required members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     internal required int Field;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("required members").WithLocation(4, 27),
+            // (4,27): warning CS0649: Field 'C.Field' is never assigned to, and will always have its default value 0
+            //     internal required int Field;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field").WithArguments("C.Field", "0").WithLocation(4, 27),
+            // (5,27): error CS8652: The feature 'required members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     internal required int Prop { get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("required members").WithLocation(5, 27)
         );
     }
 
     [Fact]
     public void DuplicateKeyword()
     {
-        var comp = CreateCompilation(@"
+        var comp = CreateCompilationWithRequiredMembers(@"
 class C
 {
-    required required int Field;
-    required required int Prop { get; set; }
+    internal required required int Field;
+    internal required required int Prop { get; set; }
 }
 ");
 
         comp.VerifyDiagnostics(
-            // (4,14): error CS1004: Duplicate 'required' modifier
-            //     required required int Field;
-            Diagnostic(ErrorCode.ERR_DuplicateModifier, "required").WithArguments("required").WithLocation(4, 14),
-            // (4,27): warning CS0169: The field 'C.Field' is never used
-            //     required required int Field;
-            Diagnostic(ErrorCode.WRN_UnreferencedField, "Field").WithArguments("C.Field").WithLocation(4, 27),
-            // (5,14): error CS1004: Duplicate 'required' modifier
-            //     required required int Prop { get; set; }
-            Diagnostic(ErrorCode.ERR_DuplicateModifier, "required").WithArguments("required").WithLocation(5, 14)
+            // (4,23): error CS1004: Duplicate 'required' modifier
+            //     internal required required int Field;
+            Diagnostic(ErrorCode.ERR_DuplicateModifier, "required").WithArguments("required").WithLocation(4, 23),
+            // (4,36): warning CS0649: Field 'C.Field' is never assigned to, and will always have its default value 0
+            //     internal required required int Field;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field").WithArguments("C.Field", "0").WithLocation(4, 36),
+            // (5,23): error CS1004: Duplicate 'required' modifier
+            //     internal required required int Prop { get; set; }
+            Diagnostic(ErrorCode.ERR_DuplicateModifier, "required").WithArguments("required").WithLocation(5, 23)
         );
     }
 
@@ -185,7 +219,7 @@ class C
     [CombinatorialData]
     public void InvalidNames(bool use10)
     {
-        var comp = CreateCompilation(@"
+        var comp = CreateCompilationWithRequiredMembers(@"
 namespace N1
 {
     struct required {}
@@ -280,5 +314,767 @@ namespace N8
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(35, 11)
                 }
         );
+    }
+
+    [Fact]
+    public void MissingRequiredMembersAttribute()
+    {
+        var comp = CreateCompilation(@"
+class C
+{
+    public required int I { get; }
+}");
+
+        // (2,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiredMembersAttribute..ctor'
+        // class C
+        var expected = Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.RequiredMembersAttribute", ".ctor").WithLocation(2, 7);
+        comp.VerifyDiagnostics(expected);
+        comp.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void MissingRequiredMembersAttributeCtor()
+    {
+        var comp = CreateCompilation(@"
+class C
+{
+    public required int I { get; }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public class RequiredMembersAttribute : Attribute
+    {
+    }
+}
+");
+
+        // (2,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiredMembersAttribute..ctor'
+        // class C
+        var expected = Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.RequiredMembersAttribute", ".ctor").WithLocation(2, 7);
+        comp.VerifyDiagnostics(expected);
+        comp.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void RequiredMembersAttributeEmitted()
+    {
+        var comp = CreateCompilationWithRequiredMembers(@"
+class C
+{
+    public required int Prop { get; set; }
+    public required int Field;
+}
+");
+
+        var expectedRequiredMembers = new[] { "C.Prop", "C.Field" };
+
+        var verifier = CompileAndVerify(comp, sourceSymbolValidator: ValidateRequiredMembersInModule(expectedRequiredMembers));
+        verifier.VerifyDiagnostics(
+            // (5,25): warning CS0649: Field 'C.Field' is never assigned to, and will always have its default value 0
+            //     public required int Field;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field").WithArguments("C.Field", "0").WithLocation(5, 25)
+        );
+
+        verifier.VerifyTypeIL("C", @"
+.class private auto ansi beforefieldinit C
+    extends [netstandard]System.Object
+{
+    .custom instance void System.Runtime.CompilerServices.RequiredMembersAttribute::.ctor(string[]) = (
+        01 00 02 00 00 00 04 50 72 6f 70 05 46 69 65 6c
+        64 00 00
+    )
+    // Fields
+    .field private int32 '<Prop>k__BackingField'
+    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .field public int32 Field
+    // Methods
+    .method public hidebysig specialname 
+        instance int32 get_Prop () cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2050
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 C::'<Prop>k__BackingField'
+        IL_0006: ret
+    } // end of method C::get_Prop
+    .method public hidebysig specialname 
+        instance void set_Prop (
+            int32 'value'
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2058
+        // Code size 8 (0x8)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 C::'<Prop>k__BackingField'
+        IL_0007: ret
+    } // end of method C::set_Prop
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2061
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [netstandard]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C::.ctor
+    // Properties
+    .property instance int32 Prop()
+    {
+        .get instance int32 C::get_Prop()
+        .set instance void C::set_Prop(int32)
+    }
+} // end of class C
+");
+    }
+
+    [Fact]
+    public void RequiredMembersAttributeEmitted_OverrideRequiredProperty_MissingRequiredOnOverride()
+    {
+        var comp = CreateCompilationWithRequiredMembers(@"
+class Base
+{
+    public virtual required int Prop { get; set; }
+}
+class Dervied : Base
+{
+    public override int Prop { get; set; }
+}
+");
+
+        comp.VerifyDiagnostics(
+            // (8,25): error CS9501: 'Dervied.Prop': cannot remove 'required' from 'Base.Prop' when overriding
+            //     public override int Prop { get; set; }
+            Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("Dervied.Prop", "Base.Prop").WithLocation(8, 25)
+        );
+    }
+
+    [Fact]
+    public void RequiredMembersAttributeEmitted_OverrideRequiredProperty()
+    {
+        var comp = CreateCompilationWithRequiredMembers(@"
+class Base
+{
+    public virtual required int Prop { get; set; }
+}
+class Derived : Base
+{
+    public override required int Prop { get; set; }
+}
+");
+
+        var expectedRequiredMembers = new[] { "Base.Prop", "Derived.Prop" };
+
+        var verifier = CompileAndVerify(comp, sourceSymbolValidator: ValidateRequiredMembersInModule(expectedRequiredMembers));
+        verifier.VerifyDiagnostics();
+
+        verifier.VerifyTypeIL("Base", @"
+.class private auto ansi beforefieldinit Base
+    extends [netstandard]System.Object
+{
+    .custom instance void System.Runtime.CompilerServices.RequiredMembersAttribute::.ctor(string[]) = (
+        01 00 01 00 00 00 04 50 72 6f 70 00 00
+    )
+    // Fields
+    .field private int32 '<Prop>k__BackingField'
+    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance int32 get_Prop () cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2050
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::'<Prop>k__BackingField'
+        IL_0006: ret
+    } // end of method Base::get_Prop
+    .method public hidebysig specialname newslot virtual 
+        instance void set_Prop (
+            int32 'value'
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2058
+        // Code size 8 (0x8)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 Base::'<Prop>k__BackingField'
+        IL_0007: ret
+    } // end of method Base::set_Prop
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2061
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [netstandard]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method Base::.ctor
+    // Properties
+    .property instance int32 Prop()
+    {
+        .get instance int32 Base::get_Prop()
+        .set instance void Base::set_Prop(int32)
+    }
+} // end of class Base
+");
+
+        verifier.VerifyTypeIL("Derived", @"
+.class private auto ansi beforefieldinit Derived
+    extends Base
+{
+    // Fields
+    .field private int32 '<Prop>k__BackingField'
+    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Methods
+    .method public hidebysig specialname virtual 
+        instance int32 get_Prop () cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2069
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::'<Prop>k__BackingField'
+        IL_0006: ret
+    } // end of method Derived::get_Prop
+    .method public hidebysig specialname virtual 
+        instance void set_Prop (
+            int32 'value'
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2071
+        // Code size 8 (0x8)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 Derived::'<Prop>k__BackingField'
+        IL_0007: ret
+    } // end of method Derived::set_Prop
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x207a
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void Base::.ctor()
+        IL_0006: ret
+    } // end of method Derived::.ctor
+    // Properties
+    .property instance int32 Prop()
+    {
+        .get instance int32 Derived::get_Prop()
+        .set instance void Derived::set_Prop(int32)
+    }
+} // end of class Derived
+");
+    }
+
+    [Fact]
+    public void RequiredMembersAttributeEmitted_AddRequiredOnOverride()
+    {
+        var comp = CreateCompilationWithRequiredMembers(@"
+class Base
+{
+    public virtual int Prop { get; set; }
+}
+class Derived : Base
+{
+    public override required int Prop { get; set; }
+}
+class DerivedDerived : Derived
+{
+    public override required int Prop { get; set; }
+}
+");
+
+        var expectedRequiredMembers = new[] { "Derived.Prop", "DerivedDerived.Prop" };
+
+        var verifier = CompileAndVerify(comp, sourceSymbolValidator: ValidateRequiredMembersInModule(expectedRequiredMembers));
+        verifier.VerifyDiagnostics();
+
+        verifier.VerifyTypeIL("Base", @"
+.class private auto ansi beforefieldinit Base
+    extends [netstandard]System.Object
+{
+    // Fields
+    .field private int32 '<Prop>k__BackingField'
+    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance int32 get_Prop () cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2050
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::'<Prop>k__BackingField'
+        IL_0006: ret
+    } // end of method Base::get_Prop
+    .method public hidebysig specialname newslot virtual 
+        instance void set_Prop (
+            int32 'value'
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2058
+        // Code size 8 (0x8)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 Base::'<Prop>k__BackingField'
+        IL_0007: ret
+    } // end of method Base::set_Prop
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2061
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [netstandard]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method Base::.ctor
+    // Properties
+    .property instance int32 Prop()
+    {
+        .get instance int32 Base::get_Prop()
+        .set instance void Base::set_Prop(int32)
+    }
+} // end of class Base
+");
+
+        verifier.VerifyTypeIL("Derived", @"
+.class private auto ansi beforefieldinit Derived
+    extends Base
+{
+    .custom instance void System.Runtime.CompilerServices.RequiredMembersAttribute::.ctor(string[]) = (
+        01 00 01 00 00 00 04 50 72 6f 70 00 00
+    )
+    // Fields
+    .field private int32 '<Prop>k__BackingField'
+    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Methods
+    .method public hidebysig specialname virtual 
+        instance int32 get_Prop () cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2069
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Derived::'<Prop>k__BackingField'
+        IL_0006: ret
+    } // end of method Derived::get_Prop
+    .method public hidebysig specialname virtual 
+        instance void set_Prop (
+            int32 'value'
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2071
+        // Code size 8 (0x8)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 Derived::'<Prop>k__BackingField'
+        IL_0007: ret
+    } // end of method Derived::set_Prop
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x207a
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void Base::.ctor()
+        IL_0006: ret
+    } // end of method Derived::.ctor
+    // Properties
+    .property instance int32 Prop()
+    {
+        .get instance int32 Derived::get_Prop()
+        .set instance void Derived::set_Prop(int32)
+    }
+} // end of class Derived
+");
+
+        verifier.VerifyTypeIL("DerivedDerived", @"
+.class private auto ansi beforefieldinit DerivedDerived
+    extends Derived
+{
+    // Fields
+    .field private int32 '<Prop>k__BackingField'
+    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Methods
+    .method public hidebysig specialname virtual 
+        instance int32 get_Prop () cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2082
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 DerivedDerived::'<Prop>k__BackingField'
+        IL_0006: ret
+    } // end of method DerivedDerived::get_Prop
+    .method public hidebysig specialname virtual 
+        instance void set_Prop (
+            int32 'value'
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x208a
+        // Code size 8 (0x8)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 DerivedDerived::'<Prop>k__BackingField'
+        IL_0007: ret
+    } // end of method DerivedDerived::set_Prop
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2093
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void Derived::.ctor()
+        IL_0006: ret
+    } // end of method DerivedDerived::.ctor
+    // Properties
+    .property instance int32 Prop()
+    {
+        .get instance int32 DerivedDerived::get_Prop()
+        .set instance void DerivedDerived::set_Prop(int32)
+    }
+} // end of class DerivedDerived
+");
+    }
+
+    [Fact]
+    public void HidingRequiredMembers()
+    {
+        var comp = CreateCompilationWithRequiredMembers(@"
+#pragma warning disable CS0649 // Never assigned
+class Base
+{
+    public required int Field;
+    public required int Prop { get; set; }
+}
+class Derived1 : Base
+{
+    public new int Field; // 1
+    public new int Prop { get; set; } // 2
+}
+class Derived2 : Base
+{
+    public new int Prop; // 3
+    public new int Field { get; set; } // 4
+}
+");
+
+        comp.VerifyDiagnostics(
+            // (10,20): error CS9502: Required member 'Base.Field' cannot be hidden by 'Derived1.Field'.
+            //     public new int Field; // 1
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeHidden, "Field").WithArguments("Base.Field", "Derived1.Field").WithLocation(10, 20),
+            // (11,20): error CS9502: Required member 'Base.Prop' cannot be hidden by 'Derived1.Prop'.
+            //     public new int Prop { get; set; } // 2
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeHidden, "Prop").WithArguments("Base.Prop", "Derived1.Prop").WithLocation(11, 20),
+            // (15,20): error CS9502: Required member 'Base.Prop' cannot be hidden by 'Derived2.Prop'.
+            //     public new int Prop; // 3
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeHidden, "Prop").WithArguments("Base.Prop", "Derived2.Prop").WithLocation(15, 20),
+            // (16,20): error CS9502: Required member 'Base.Field' cannot be hidden by 'Derived2.Field'.
+            //     public new int Field { get; set; } // 4
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeHidden, "Field").WithArguments("Base.Field", "Derived2.Field").WithLocation(16, 20)
+        );
+    }
+
+    [Fact]
+    public void RequiredMembersMustBeAsVisibleAsContainingType()
+    {
+        var comp = CreateCompilationWithRequiredMembers(@"
+#pragma warning disable CS0649 // Never assigned
+#pragma warning disable CS0169 // Never used
+public class C1
+{
+    public required int Prop1 { get; set; }
+    internal protected required int Prop2 { get; set; }
+    internal required int Prop3 { get; set; }
+    protected required int Prop4 { get; set; }
+    private protected required int Prop5 { get; set; }
+    private required int Prop6 { get; set; }
+    public required int Field1;
+    internal protected required int Field2;
+    internal required int Field3;
+    protected required int Field4;
+    private protected required int Field5;
+    private required int Field6;
+}
+internal class C2
+{
+    public required int Prop1 { get; set; }
+    internal protected required int Prop2 { get; set; }
+    internal required int Prop3 { get; set; }
+    protected required int Prop4 { get; set; }
+    private protected required int Prop5 { get; set; }
+    private required int Prop6 { get; set; }
+    public required int Field1;
+    internal protected required int Field2;
+    internal required int Field3;
+    protected required int Field4;
+    private protected required int Field5;
+    private required int Field6;
+}
+internal class Outer
+{
+    protected internal class C3
+    {
+        public required int Prop1 { get; set; }
+        internal required int Prop2 { get; set; }
+        internal protected required int Prop3 { get; set; }
+        protected required int Prop4 { get; set; }
+        private protected required int Prop5 { get; set; }
+        private required int Prop6 { get; set; }
+        public required int Field1;
+        internal required int Field2;
+        internal protected required int Field3;
+        protected required int Field4;
+        private protected required int Field5;
+        private required int Field6;
+    }
+    protected class C4
+    {
+        public required int Prop1 { get; set; }
+        internal protected required int Prop2 { get; set; }
+        internal required int Prop3 { get; set; }
+        protected required int Prop4 { get; set; }
+        private protected required int Prop5 { get; set; }
+        private required int Prop6 { get; set; }
+        public required int Field1;
+        internal protected required int Field2;
+        internal required int Field3;
+        protected required int Field4;
+        private protected required int Field5;
+        private required int Field6;
+    }
+    private protected class C5
+    {
+        public required int Prop1 { get; set; }
+        internal protected required int Prop2 { get; set; }
+        internal required int Prop3 { get; set; }
+        protected required int Prop4 { get; set; }
+        private protected required int Prop5 { get; set; }
+        private required int Prop6 { get; set; }
+        public required int Field1;
+        internal protected required int Field2;
+        internal required int Field3;
+        protected required int Field4;
+        private protected required int Field5;
+        private required int Field6;
+    }
+    private class C6
+    {
+        public required int Prop1 { get; set; }
+        internal protected required int Prop2 { get; set; }
+        internal required int Prop3 { get; set; }
+        protected required int Prop4 { get; set; }
+        private protected required int Prop5 { get; set; }
+        private required int Prop6 { get; set; }
+        public required int Field1;
+        internal protected required int Field2;
+        internal required int Field3;
+        protected required int Field4;
+        private protected required int Field5;
+        private required int Field6;
+    }
+}
+");
+
+        comp.VerifyDiagnostics(
+            // (7,37): error CS9503: Required member 'C1.Prop2' cannot be less visible than the containing type 'C1'.
+            //     internal protected required int Prop2 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop2").WithArguments("C1.Prop2", "C1").WithLocation(7, 37),
+            // (8,27): error CS9503: Required member 'C1.Prop3' cannot be less visible than the containing type 'C1'.
+            //     internal required int Prop3 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop3").WithArguments("C1.Prop3", "C1").WithLocation(8, 27),
+            // (9,28): error CS9503: Required member 'C1.Prop4' cannot be less visible than the containing type 'C1'.
+            //     protected required int Prop4 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop4").WithArguments("C1.Prop4", "C1").WithLocation(9, 28),
+            // (10,36): error CS9503: Required member 'C1.Prop5' cannot be less visible than the containing type 'C1'.
+            //     private protected required int Prop5 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop5").WithArguments("C1.Prop5", "C1").WithLocation(10, 36),
+            // (11,26): error CS9503: Required member 'C1.Prop6' cannot be less visible than the containing type 'C1'.
+            //     private required int Prop6 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop6").WithArguments("C1.Prop6", "C1").WithLocation(11, 26),
+            // (13,37): error CS9503: Required member 'C1.Field2' cannot be less visible than the containing type 'C1'.
+            //     internal protected required int Field2;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field2").WithArguments("C1.Field2", "C1").WithLocation(13, 37),
+            // (14,27): error CS9503: Required member 'C1.Field3' cannot be less visible than the containing type 'C1'.
+            //     internal required int Field3;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field3").WithArguments("C1.Field3", "C1").WithLocation(14, 27),
+            // (15,28): error CS9503: Required member 'C1.Field4' cannot be less visible than the containing type 'C1'.
+            //     protected required int Field4;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field4").WithArguments("C1.Field4", "C1").WithLocation(15, 28),
+            // (16,36): error CS9503: Required member 'C1.Field5' cannot be less visible than the containing type 'C1'.
+            //     private protected required int Field5;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field5").WithArguments("C1.Field5", "C1").WithLocation(16, 36),
+            // (17,26): error CS9503: Required member 'C1.Field6' cannot be less visible than the containing type 'C1'.
+            //     private required int Field6;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field6").WithArguments("C1.Field6", "C1").WithLocation(17, 26),
+            // (24,28): error CS9503: Required member 'C2.Prop4' cannot be less visible than the containing type 'C2'.
+            //     protected required int Prop4 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop4").WithArguments("C2.Prop4", "C2").WithLocation(24, 28),
+            // (25,36): error CS9503: Required member 'C2.Prop5' cannot be less visible than the containing type 'C2'.
+            //     private protected required int Prop5 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop5").WithArguments("C2.Prop5", "C2").WithLocation(25, 36),
+            // (26,26): error CS9503: Required member 'C2.Prop6' cannot be less visible than the containing type 'C2'.
+            //     private required int Prop6 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop6").WithArguments("C2.Prop6", "C2").WithLocation(26, 26),
+            // (30,28): error CS9503: Required member 'C2.Field4' cannot be less visible than the containing type 'C2'.
+            //     protected required int Field4;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field4").WithArguments("C2.Field4", "C2").WithLocation(30, 28),
+            // (31,36): error CS9503: Required member 'C2.Field5' cannot be less visible than the containing type 'C2'.
+            //     private protected required int Field5;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field5").WithArguments("C2.Field5", "C2").WithLocation(31, 36),
+            // (32,26): error CS9503: Required member 'C2.Field6' cannot be less visible than the containing type 'C2'.
+            //     private required int Field6;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field6").WithArguments("C2.Field6", "C2").WithLocation(32, 26),
+            // (39,31): error CS9503: Required member 'Outer.C3.Prop2' cannot be less visible than the containing type 'Outer.C3'.
+            //         internal required int Prop2 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop2").WithArguments("Outer.C3.Prop2", "Outer.C3").WithLocation(39, 31),
+            // (41,32): error CS9503: Required member 'Outer.C3.Prop4' cannot be less visible than the containing type 'Outer.C3'.
+            //         protected required int Prop4 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop4").WithArguments("Outer.C3.Prop4", "Outer.C3").WithLocation(41, 32),
+            // (42,40): error CS9503: Required member 'Outer.C3.Prop5' cannot be less visible than the containing type 'Outer.C3'.
+            //         private protected required int Prop5 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop5").WithArguments("Outer.C3.Prop5", "Outer.C3").WithLocation(42, 40),
+            // (43,30): error CS9503: Required member 'Outer.C3.Prop6' cannot be less visible than the containing type 'Outer.C3'.
+            //         private required int Prop6 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop6").WithArguments("Outer.C3.Prop6", "Outer.C3").WithLocation(43, 30),
+            // (45,31): error CS9503: Required member 'Outer.C3.Field2' cannot be less visible than the containing type 'Outer.C3'.
+            //         internal required int Field2;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field2").WithArguments("Outer.C3.Field2", "Outer.C3").WithLocation(45, 31),
+            // (47,32): error CS9503: Required member 'Outer.C3.Field4' cannot be less visible than the containing type 'Outer.C3'.
+            //         protected required int Field4;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field4").WithArguments("Outer.C3.Field4", "Outer.C3").WithLocation(47, 32),
+            // (48,40): error CS9503: Required member 'Outer.C3.Field5' cannot be less visible than the containing type 'Outer.C3'.
+            //         private protected required int Field5;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field5").WithArguments("Outer.C3.Field5", "Outer.C3").WithLocation(48, 40),
+            // (49,30): error CS9503: Required member 'Outer.C3.Field6' cannot be less visible than the containing type 'Outer.C3'.
+            //         private required int Field6;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field6").WithArguments("Outer.C3.Field6", "Outer.C3").WithLocation(49, 30),
+            // (57,40): error CS9503: Required member 'Outer.C4.Prop5' cannot be less visible than the containing type 'Outer.C4'.
+            //         private protected required int Prop5 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop5").WithArguments("Outer.C4.Prop5", "Outer.C4").WithLocation(57, 40),
+            // (58,30): error CS9503: Required member 'Outer.C4.Prop6' cannot be less visible than the containing type 'Outer.C4'.
+            //         private required int Prop6 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop6").WithArguments("Outer.C4.Prop6", "Outer.C4").WithLocation(58, 30),
+            // (63,40): error CS9503: Required member 'Outer.C4.Field5' cannot be less visible than the containing type 'Outer.C4'.
+            //         private protected required int Field5;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field5").WithArguments("Outer.C4.Field5", "Outer.C4").WithLocation(63, 40),
+            // (64,30): error CS9503: Required member 'Outer.C4.Field6' cannot be less visible than the containing type 'Outer.C4'.
+            //         private required int Field6;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field6").WithArguments("Outer.C4.Field6", "Outer.C4").WithLocation(64, 30),
+            // (73,30): error CS9503: Required member 'Outer.C5.Prop6' cannot be less visible than the containing type 'Outer.C5'.
+            //         private required int Prop6 { get; set; }
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Prop6").WithArguments("Outer.C5.Prop6", "Outer.C5").WithLocation(73, 30),
+            // (79,30): error CS9503: Required member 'Outer.C5.Field6' cannot be less visible than the containing type 'Outer.C5'.
+            //         private required int Field6;
+            Diagnostic(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, "Field6").WithArguments("Outer.C5.Field6", "Outer.C5").WithLocation(79, 30)
+        );
+    }
+
+    [Fact]
+    public void RequiredMembersCannotBeExplicitInterfaceImplementations()
+    {
+        var comp = CreateCompilationWithRequiredMembers(@"
+interface I
+{
+    int Prop { get; set; }
+}
+class C : I
+{
+    required int I.Prop { get; set; }
+}
+");
+
+        comp.VerifyDiagnostics(
+            // (8,20): error CS0106: The modifier 'required' is not valid for this item
+            //     required int I.Prop { get; set; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "Prop").WithArguments("required").WithLocation(8, 20)
+        );
+    }
+
+    [Fact]
+    public void UsingRequiredMembersAttributeExplicitly()
+    {
+        var comp = CreateCompilationWithRequiredMembers(@"
+using System.Runtime.CompilerServices;
+[RequiredMembers(new[] { ""Prop"" })]
+class C
+{
+    public int Prop { get; set; }
+}
+");
+
+        comp.VerifyDiagnostics(
+            // (3,2): error CS9504: Do not use 'System.Runtime.CompilerSerives.RequiredMembersAttribute'. Use the 'required' keyword on required fields and properties instead.
+            // [RequiredMembers(new[] { "Prop" })]
+            Diagnostic(ErrorCode.ERR_ExplicitRequiredMembers, @"RequiredMembers(new[] { ""Prop"" })").WithLocation(3, 2)
+        );
+
+        var prop = comp.SourceModule.GlobalNamespace.GetMember<PropertySymbol>("C.Prop");
+        Assert.False(prop.IsRequired);
     }
 }

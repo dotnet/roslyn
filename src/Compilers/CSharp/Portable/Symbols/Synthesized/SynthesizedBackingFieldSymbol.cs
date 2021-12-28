@@ -151,5 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        internal override bool IsRequired => false;
     }
 }

@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!isExpressionBodied || !isAutoProperty);
             Debug.Assert(!isExpressionBodied || !hasInitializer);
+            Debug.Assert((modifiers & DeclarationModifiers.Required) == 0 || this is SourcePropertySymbol);
 
             _syntaxRef = syntax.GetReference();
             Location = location;
@@ -517,6 +518,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return (_modifiers & DeclarationModifiers.Virtual) != 0; }
         }
+
+        internal sealed override bool IsRequired => (_modifiers & DeclarationModifiers.Required) != 0;
 
         internal bool IsNew
         {

@@ -422,6 +422,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if ((modifiers & DeclarationModifiers.Required) != 0
+                && symbol.Kind is SymbolKind.Property or SymbolKind.Field
+                && symbol.DeclaredAccessibility < symbol.ContainingType.DeclaredAccessibility)
+            {
+                // Required member '{0}' cannot be less visible than the containing type '{1}'.
+                return new CSDiagnosticInfo(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, symbol, symbol.ContainingType);
+            }
+
             return null;
         }
 

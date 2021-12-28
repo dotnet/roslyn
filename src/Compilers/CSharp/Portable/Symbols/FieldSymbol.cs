@@ -325,6 +325,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return newOwner.IsDefinition ? this : new SubstitutedFieldSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
         }
 
+        /// <summary>
+        /// Returns true if this field is required to be set in an object initializer on object creation.
+        /// </summary>
+        internal abstract bool IsRequired { get; }
+
         #region Use-Site Diagnostics
 
         internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()

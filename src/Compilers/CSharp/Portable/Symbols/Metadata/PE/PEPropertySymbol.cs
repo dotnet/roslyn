@@ -462,6 +462,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override bool IsRequired
+        {
+            get
+            {
+                // PROTOTYPE(req): Implement
+                return false;
+            }
+        }
+
         public override ImmutableArray<ParameterSymbol> Parameters
         {
             get { return _parameters; }

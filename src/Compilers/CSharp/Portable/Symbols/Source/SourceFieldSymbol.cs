@@ -154,6 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.Name == WellKnownMemberNames.EnumBackingFieldName;
             }
         }
+
+        internal override bool IsRequired => (Modifiers & DeclarationModifiers.Required) != 0;
     }
 
     internal abstract class SourceFieldSymbolWithSyntaxReference : SourceFieldSymbol

@@ -1127,6 +1127,7 @@ namespace Microsoft.CodeAnalysis
                 ObsoleteAttributeData obsoleteData = TryExtractObsoleteDataFromAttribute(info, decoder);
                 switch (obsoleteData?.Message)
                 {
+                    // PROTOTYPE(req): Ignore required obsolete marker
                     case ByRefLikeMarker when ignoreByRefLikeMarker:
                         return null;
                 }

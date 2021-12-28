@@ -1619,6 +1619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckSequentialOnPartialType(diagnostics);
             CheckForProtectedInStaticClass(diagnostics);
             CheckForUnmatchedOperators(diagnostics);
+            CheckForRequiredMembers(diagnostics);
 
             var location = Locations[0];
             var compilation = DeclaringCompilation;
@@ -2349,6 +2350,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // CS0661: 'C' defines operator == or operator != but does not override Object.GetHashCode()
                     diagnostics.Add(ErrorCode.WRN_EqualityOpWithoutGetHashCode, this.Locations[0], this);
                 }
+            }
+        }
+
+        private void CheckForRequiredMembers(BindingDiagnosticBag diagnostics)
+        {
+            if (GetMembersUnordered().Any(SymbolExtensions.IsRequired))
+            {
+                // Ensure that an error is reported if the required constructor isn't present.
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_RequiredMembersAttribute__ctor, diagnostics, Locations[0]);
             }
         }
 

@@ -2033,5 +2033,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // PROTOTYPE(req): Move above the comment and condense before merge
 
         ERR_RequiredNameDisallowed = 9500,
+        ERR_OverrideMustHaveRequired = 9501,
+        ERR_RequiredMembersCannotBeHidden = 9502,
+        ERR_RequiredMembersCannotBeLessVisibleThanContainingType = 9503,
+        ERR_ExplicitRequiredMembers = 9504,
     }
 }

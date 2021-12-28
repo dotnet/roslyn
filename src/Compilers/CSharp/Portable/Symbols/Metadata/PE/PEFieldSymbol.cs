@@ -587,5 +587,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get { return null; }
         }
+
+        // PROTOTYPE(req): Implement
+        internal override bool IsRequired => false;
     }
 }
