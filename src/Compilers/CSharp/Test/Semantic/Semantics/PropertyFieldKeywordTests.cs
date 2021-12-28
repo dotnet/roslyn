@@ -261,7 +261,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact(Skip = "PROTOTYPE(semi-auto-props): Produces error CS8050: Only auto-implemented properties can have initializers.")]
+        [Fact]
         public void TestSemiAutoPropertyWithInitializer()
         {
             var comp = CreateCompilation(@"
@@ -327,7 +327,367 @@ public class C
 } // end of class C
 ");
             comp.VerifyDiagnostics();
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestFieldIsNotKeywordWithInitializer()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    private string field;
+    public string P { get => field; set => field = value; } = ""Hello"";
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (5,19): error CS8050: Only auto-implemented properties can have initializers.
+                //     public string P { get => field; set => field = value; } = "Hello";
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithArguments("C.P").WithLocation(5, 19)
+            );
+            Assert.Equal(2, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestFieldIsKeywordOnlyInSetter_WithInitializer_1()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+var c = new C();
+Console.WriteLine(c.P);
+
+c.P = 20;
+Console.WriteLine(c.P);
+
+public class C
+{
+    public int P
+    {
+        get 
+        {
+            int field = 5;
+            return field;
+        }
+        set => field = value;
+    } = 10;
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: @"5
+5
+").VerifyDiagnostics();
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [netstandard]System.Object
+{
+	// Fields
+	.field private int32 '<P>k__BackingField'
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x207c
+		// Code size 2 (0x2)
+		.maxstack 8
+		IL_0000: ldc.i4.5
+		IL_0001: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname 
+		instance void set_P (
+			int32 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x207f
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: stfld int32 C::'<P>k__BackingField'
+		IL_0007: ret
+	} // end of method C::set_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2088
+		// Code size 15 (0xf)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldc.i4.s 10
+		IL_0003: stfld int32 C::'<P>k__BackingField'
+		IL_0008: ldarg.0
+		IL_0009: call instance void [netstandard]System.Object::.ctor()
+		IL_000e: ret
+	} // end of method C::.ctor
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+		.set instance void C::set_P(int32)
+	}
+} // end of class C
+");
+            Assert.Equal(2, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestFieldIsKeywordOnlyInSetter_WithInitializer_2()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+var c = new C();
+Console.WriteLine(c.P);
+
+c.P = 20;
+Console.WriteLine(c.P);
+
+public class C
+{
+    public int P
+    {
+        set => field = value;
+        get 
+        {
+            int field = 5;
+            return field;
+        }
+    } = 10;
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: @"5
+5
+").VerifyDiagnostics();
+            VerifyTypeIL(comp, "C", @"
+    .class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Fields
+	.field private int32 '<P>k__BackingField'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname 
+		instance void set_P (
+			int32 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x207c
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: stfld int32 C::'<P>k__BackingField'
+		IL_0007: ret
+	} // end of method C::set_P
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2085
+		// Code size 2 (0x2)
+		.maxstack 8
+		IL_0000: ldc.i4.5
+		IL_0001: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2088
+		// Code size 15 (0xf)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldc.i4.s 10
+		IL_0003: stfld int32 C::'<P>k__BackingField'
+		IL_0008: ldarg.0
+		IL_0009: call instance void [mscorlib]System.Object::.ctor()
+		IL_000e: ret
+	} // end of method C::.ctor
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+		.set instance void C::set_P(int32)
+	}
+} // end of class C
+");
+            Assert.Equal(2, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestFieldIsKeywordOnlyInGetter_WithInitializer_1()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+var c = new C();
+Console.WriteLine(c.P);
+
+c.P = 20;
+Console.WriteLine(c.P);
+
+public class C
+{
+    public int P
+    {
+        get => field;
+        set
+        {
+            int field = 3;
+            field = value;
+        }
+    } = 10;
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: @"10
+10
+").VerifyDiagnostics();
+            VerifyTypeIL(comp, "C", @"
+    .class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Fields
+	.field private int32 '<P>k__BackingField'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x207c
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C::'<P>k__BackingField'
+		IL_0006: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname 
+		instance void set_P (
+			int32 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x2084
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method C::set_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2086
+		// Code size 15 (0xf)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldc.i4.s 10
+		IL_0003: stfld int32 C::'<P>k__BackingField'
+		IL_0008: ldarg.0
+		IL_0009: call instance void [mscorlib]System.Object::.ctor()
+		IL_000e: ret
+	} // end of method C::.ctor
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+		.set instance void C::set_P(int32)
+	}
+} // end of class C
+");
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestFieldIsKeywordOnlyInGetter_WithInitializer_2()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+var c = new C();
+Console.WriteLine(c.P);
+
+c.P = 20;
+Console.WriteLine(c.P);
+
+public class C
+{
+    public int P
+    {
+        set
+        {
+            int field = 3;
+            field = value;
+        }
+        get => field;
+    } = 10;
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: @"10
+10
+").VerifyDiagnostics();
+            VerifyTypeIL(comp, "C", @"
+    .class public auto ansi beforefieldinit C
+	extends [netstandard]System.Object
+{
+	// Fields
+	.field private int32 '<P>k__BackingField'
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname 
+		instance void set_P (
+			int32 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x207c
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method C::set_P
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x207e
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C::'<P>k__BackingField'
+		IL_0006: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2086
+		// Code size 15 (0xf)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldc.i4.s 10
+		IL_0003: stfld int32 C::'<P>k__BackingField'
+		IL_0008: ldarg.0
+		IL_0009: call instance void [netstandard]System.Object::.ctor()
+		IL_000e: ret
+	} // end of method C::.ctor
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+		.set instance void C::set_P(int32)
+	}
+} // end of class C
+");
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -1206,7 +1566,7 @@ public class C2
 public class C1
 {
     public string P1 { get => field; }
-    // public string P2 { get => field; } = string.Empty // PROTOTYPE(semi-auto-props): Uncomment when initializers are supported.
+    public string P2 { get => field; } = string.Empty;
 }
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
@@ -1214,7 +1574,7 @@ public class C1
 
             comp.VerifyDiagnostics(); // PROTOTYPE(semi-auto-props): Is this the correct behavior?
 
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         // PROTOTYPE(semi-auto-props): Add more tests related to MethodCompiler._filterOpt

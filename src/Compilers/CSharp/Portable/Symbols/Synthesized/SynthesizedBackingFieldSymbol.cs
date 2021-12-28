@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -30,9 +31,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourcePropertySymbolBase _property;
         private readonly string _name;
         private readonly Flags _backingFieldFlags;
+        private int _lazyIsBoundToFieldKeyword;
 
         internal bool HasInitializer => (_backingFieldFlags & Flags.HasInitializer) != 0;
-        internal bool IsCreatedForFieldKeyword => (_backingFieldFlags & Flags.IsCreatedForFieldKeyword) != 0;
+
+        /// <summary>
+        /// We set <see cref="IsCreatedForFieldKeyword" /> to true when early constructing a property with initializer.
+        /// <c>field</c> may or may not be a keyword.
+        /// </summary>
+        internal bool IsCreatedForFieldKeyword => (_backingFieldFlags & Flags.IsCreatedForFieldKeyword) != 0; // PROTOTYPE(semi-auto-props): Find better names?
+
+        /// <summary>
+        /// Determines whether <c>field</c> is actually the keyword
+        /// </summary>
+        internal ThreeState IsBoundToFieldKeyword => (ThreeState)_lazyIsBoundToFieldKeyword;
+
         internal bool IsEarlyConstructed => (_backingFieldFlags & Flags.IsEarlyConstructed) != 0;
 
         protected override DeclarationModifiers Modifiers { get; }
@@ -70,9 +83,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 _backingFieldFlags |= Flags.IsEarlyConstructed;
             }
+            else
+            {
+                _lazyIsBoundToFieldKeyword = (int)ThreeState.True;
+            }
 
             // If it's not early constructed, it must have been created for field keyword.
             Debug.Assert(IsEarlyConstructed || IsCreatedForFieldKeyword);
+        }
+
+        internal void BoundToFieldKeyword()
+        {
+            Debug.Assert(IsCreatedForFieldKeyword);
+            Debug.Assert(_lazyIsBoundToFieldKeyword is (int)ThreeState.Unknown or (int)ThreeState.True);
+            _lazyIsBoundToFieldKeyword = (int)ThreeState.True;
+        }
+
+        internal void MarkIsBoundToFieldKeywordAsCalculated()
+        {
+            Interlocked.CompareExchange(ref _lazyIsBoundToFieldKeyword, (int)ThreeState.False, (int)ThreeState.Unknown);
         }
 
         protected override IAttributeTargetSymbol AttributeOwner

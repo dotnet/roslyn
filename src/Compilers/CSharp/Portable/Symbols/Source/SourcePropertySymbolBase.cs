@@ -414,6 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void MarkBackingFieldAsCalculated()
         {
             Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, null, _lazyBackingFieldSymbolSentinel);
+            ((SynthesizedBackingFieldSymbol)_lazyBackingFieldSymbol)?.MarkIsBoundToFieldKeywordAsCalculated();
         }
 
         /// <summary>
@@ -750,6 +751,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
+
+        internal bool IsSemiAutoProperty
+        {
+            get
+            {
+                var backingField = FieldKeywordBackingField;
+                if (backingField is null)
+                {
+                    return false;
+                }
+
+                if (!backingField.IsEarlyConstructed)
+                {
+                    Debug.Assert(backingField.IsBoundToFieldKeyword == ThreeState.True);
+                    return true;
+                }
+
+                Debug.Assert((_propertyFlags & Flags.HasInitializer) != 0);
+                EnsureBoundToFieldKeywordIsCalculated();
+                return backingField.IsBoundToFieldKeyword.Value();
+            }
+        }
+
+        /// <summary>
+        /// Ensures that <see cref="_lazyBackingFieldSymbol" /> is set if necessary.
+        /// </summary>
+        /// <remarks>
+        /// This method *may* trigger binding to figure out if we have a field keyword in an accessor.
+        /// </remarks>
+        private void EnsureBoundToFieldKeywordIsCalculated()
+        {
+            var backingField = FieldKeywordBackingField;
+            Debug.Assert(backingField is not null);
+            if (backingField.IsBoundToFieldKeyword.HasValue())
+            {
+                return;
+            }
+
+            // PROTOTYPE(semi-auto-props): Refactor common code.
+            if (this is SourcePropertySymbol propertySymbol)
+            {
+                if (propertySymbol.GetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } getMethod)
+                {
+                    noteAccessorBinding();
+                    var binder = getMethod.TryGetBodyBinder();
+                    binder?.BindMethodBody(getMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
+                }
+
+                if (!backingField.IsBoundToFieldKeyword.HasValue() &&
+                    propertySymbol.SetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } setMethod)
+                {
+                    noteAccessorBinding();
+                    setMethod.TryGetBodyBinder()?.BindMethodBody(setMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
+                }
+            }
+
+            backingField.MarkIsBoundToFieldKeywordAsCalculated();
+
+            void noteAccessorBinding()
+            {
+                if (DeclaringCompilation.TestOnlyCompilationData is AccessorBindingData accessorBindingData)
+                {
+                    accessorBindingData.NoteBinding();
+                }
+            }
+        }
+
         /// <summary>
         /// Backing field for automatically implemented property, or
         /// for a property with an initializer.
@@ -824,7 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasInitializer = (_propertyFlags & Flags.HasInitializer) != 0;
             if (hasInitializer)
             {
-                CheckInitializer(IsAutoProperty, ContainingType.IsInterface, IsStatic, Location, diagnostics);
+                CheckInitializer(IsAutoProperty || IsSemiAutoProperty, ContainingType.IsInterface, IsStatic, Location, diagnostics);
             }
 
             if (IsAutoPropertyWithGetAccessor)

@@ -1563,6 +1563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (accessor.Property.CreateBackingFieldForFieldKeyword() is { } backingField)
                         {
+                            backingField.BoundToFieldKeyword();
                             expression = BindNonMethod(node, backingField, diagnostics, LookupResultKind.Viable, indexed: false, isError: false);
                         }
                     }
