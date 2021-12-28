@@ -592,6 +592,11 @@
         <target state="translated">このパラメーターに対応する位置にあるメンバー '{0}' が非表示になっています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IllegalAtSequence">
+        <source>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</source>
+        <target state="new">Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">このコンテキストでは抑制演算子が許可されていません</target>
@@ -773,8 +778,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineDoesNotStartWithSameWhitespace">
-        <source>Line does not start with the same whitespace as the last line of the raw string literal</source>
-        <target state="new">Line does not start with the same whitespace as the last line of the raw string literal</target>
+        <source>Line does not start with the same whitespace as the closing line of the raw string literal.</source>
+        <target state="new">Line does not start with the same whitespace as the closing line of the raw string literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -912,6 +917,16 @@
         <target state="translated">パラメーターなしの構造体コンストラクターは 'パブリック' でなければなりません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotEnoughCloseBracesForRawString">
+        <source>The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</source>
+        <target state="new">The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotEnoughQuotesForRawString">
+        <source>Not enough quotes for raw string literal.</source>
+        <target state="new">Not enough quotes for raw string literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</source>
         <target state="translated">'{0}' はインスタンス メソッドではありません。レシーバーを、補間された文字列ハンドラー引数にすることはできません。</target>
@@ -1038,23 +1053,23 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
-        <source>Raw string literal delimiter must be on its own line</source>
-        <target state="new">Raw string literal delimiter must be on its own line</target>
+        <source>Raw string literal delimiter must be on its own line.</source>
+        <target state="new">Raw string literal delimiter must be on its own line.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringInVerbatimInterpolatedStrings">
-        <source>Multi-line raw string literals are only allowed in verbatim interpolated strings</source>
-        <target state="new">Multi-line raw string literals are only allowed in verbatim interpolated strings</target>
+        <source>Multi-line raw string literals are only allowed in verbatim interpolated strings.</source>
+        <target state="new">Multi-line raw string literals are only allowed in verbatim interpolated strings.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringMustContainContent">
-        <source>Multi-line raw string literals must contain at least one line of content</source>
-        <target state="new">Multi-line raw string literals must contain at least one line of content</target>
+        <source>Multi-line raw string literals must contain at least one line of content.</source>
+        <target state="new">Multi-line raw string literals must contain at least one line of content.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringNotInDirectives">
-        <source>Raw string literals are not allowed in preprocessor directives</source>
-        <target state="new">Raw string literals are not allowed in preprocessor directives</target>
+        <source>Raw string literals are not allowed in preprocessor directives.</source>
+        <target state="new">Raw string literals are not allowed in preprocessor directives.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
@@ -1192,6 +1207,11 @@
         <target state="translated">stdin 引数 '-' が指定されていますが、入力が標準入力ストリームからリダイレクトされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StringMustStartWithQuoteCharacter">
+        <source>String must start with quote character: "</source>
+        <target state="new">String must start with quote character: "</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
         <target state="translated">このパターンには到達できません。これは、switch 式の以前のアームによって既に処理されたか、一致させることができません。</target>
@@ -1212,9 +1232,19 @@
         <target state="translated">switch を制御する式の周囲にはかっこが必要です。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyCloseBracesForRawString">
+        <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
+        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TooManyOpenBracesForRawString">
+        <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</source>
+        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TooManyQuotesForRawString">
-        <source>Too many closing quotes for raw string literal</source>
-        <target state="new">Too many closing quotes for raw string literal</target>
+        <source>The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</source>
+        <target state="new">The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
@@ -1273,8 +1303,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnterminatedRawString">
-        <source>Unterminated raw string literal</source>
-        <target state="new">Unterminated raw string literal</target>
+        <source>Unterminated raw string literal.</source>
+        <target state="new">Unterminated raw string literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">

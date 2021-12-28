@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -11,14 +12,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal partial class Lexer
     {
         /// <returns>The number of quotes that were consumed</returns>
-        private int ConsumeQuoteSequence()
+        private int ConsumeCharSequence(char ch)
         {
             var start = TextWindow.Position;
-            while (TextWindow.PeekChar() == '"')
+            while (TextWindow.PeekChar() == ch)
                 TextWindow.AdvanceChar();
 
             return TextWindow.Position - start;
         }
+
+        private int ConsumeQuoteSequence()
+            => ConsumeCharSequence('"');
+
+        private int ConsumeDollarSignSequence()
+            => ConsumeCharSequence('$');
+
+        private int ConsumeAtSignSequence()
+            => ConsumeCharSequence('@');
+
+        private int ConsumeOpenBraceSequence()
+            => ConsumeCharSequence('{');
+
+        private int ConsumeCloseBraceSequence()
+            => ConsumeCharSequence('}');
 
         private void ConsumeWhitespace(StringBuilder? builder)
         {
@@ -97,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // See if we reached the end of the line or file before hitting the end.
                 if (SyntaxFacts.IsNewLine(currentChar))
                 {
-                    this.AddError(TextWindow.Position, width: GetNewLineWidth(currentChar), ErrorCode.ERR_UnterminatedRawString);
+                    this.AddError(TextWindow.Position, width: TextWindow.GetNewLineWidth(), ErrorCode.ERR_UnterminatedRawString);
                     return;
                 }
                 else if (IsAtEndOfText(currentChar))
@@ -141,12 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     intern: true);
                 return;
             }
-        }
-
-        private int GetNewLineWidth(char currentChar)
-        {
-            Debug.Assert(SyntaxFacts.IsNewLine(currentChar));
-            return currentChar == '\r' && TextWindow.PeekChar(1) == '\n' ? 2 : 1;
         }
 
         private void ScanMultiLineRawStringLiteral(ref TokenInfo info, int startingQuoteCount)
@@ -220,8 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool ScanMultiLineRawStringLiteralLine(
             int startingQuoteCount, StringBuilder indentationWhitespace)
         {
-            Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
-            TextWindow.AdvanceChar(GetNewLineWidth(TextWindow.PeekChar()));
+            TextWindow.AdvancePastNewLine();
 
             indentationWhitespace.Clear();
             ConsumeWhitespace(indentationWhitespace);
@@ -286,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
 
-            var newLineWidth = GetNewLineWidth(TextWindow.PeekChar());
+            var newLineWidth = TextWindow.GetNewLineWidth();
             for (var i = 0; i < newLineWidth; i++)
             {
                 // the initial newline in `"""   \r\n` is not added to the contents.
@@ -300,25 +309,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             currentLineWhitespace.Clear();
             ConsumeWhitespace(currentLineWhitespace);
 
-            if (SyntaxFacts.IsNewLine(TextWindow.PeekChar()))
+            if (!StartsWith(currentLineWhitespace, indentationWhitespace))
             {
-                // a whitespace-only content line.  The indentation whitespace must be a prefix of the current line whitespace,
-                // or vice versa.  It is an error otherwise.
-                if (!StartsWith(indentationWhitespace, currentLineWhitespace) &&
-                    !StartsWith(currentLineWhitespace, indentationWhitespace))
-                {
-                    this.AddError(
-                        lineStartPosition,
-                        width: TextWindow.Position - lineStartPosition,
-                        ErrorCode.ERR_LineDoesNotStartWithSameWhitespace);
-                    return;
-                }
-            }
-            else
-            {
-                // a content line with non-whitespace.  The indentation whitespace must be a prefix of the current line
-                // whitespace.  It is an error otherwise.
-                if (!StartsWith(currentLineWhitespace, indentationWhitespace))
+                // We have a line where the indentation of that line isn't a prefix of indentation
+                // whitespace.
+                //
+                // If we're not on a blank line then this is bad.  That's a content line that doesn't start
+                // with the indentation whitespace.  If we are on a blank line then it's ok if the whitespace
+                // we do have is a prefix of the indentation whitespace.
+                var isBlankLine = SyntaxFacts.IsNewLine(TextWindow.PeekChar());
+                var isLegalBlankLine = isBlankLine && StartsWith(indentationWhitespace, currentLineWhitespace);
+                if (!isLegalBlankLine)
                 {
                     this.AddError(
                         lineStartPosition,
@@ -329,9 +330,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             // Skip the leading whitespace that matches the terminator line and add any whitespace past that to the
-            // string value.
+            // string value.  Note: if the current line is shorter than the indentation whitespace, this will
+            // intentionally copy nothing.
+#if NETCOREAPP
+            _builder.Append(currentLineWhitespace, startIndex: indentationWhitespace.Length, count: Math.Max(0, currentLineWhitespace.Length - indentationWhitespace.Length));
+#else
             for (var i = indentationWhitespace.Length; i < currentLineWhitespace.Length; i++)
                 _builder.Append(currentLineWhitespace[i]);
+#endif
 
             // Consume up to the next new line.
             while (true)

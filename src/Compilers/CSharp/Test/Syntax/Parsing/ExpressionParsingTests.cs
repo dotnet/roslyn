@@ -58,6 +58,146 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestInterpolatedSingleLineRawString1()
+        {
+            UsingExpression(@"$""""""{1 + 1}""""""");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedSingleLineRawStringStartToken);
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.RawInterpolationOpenToken);
+                    N(SyntaxKind.AddExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.RawInterpolationCloseToken);
+                }
+                N(SyntaxKind.InterpolatedSingleLineRawStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestInterpolatedSingleLineRawString2()
+        {
+            UsingExpression(@"$$""""""{{{1 + 1}}}""""""");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedSingleLineRawStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.RawInterpolationOpenToken);
+                    N(SyntaxKind.AddExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.RawInterpolationCloseToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedSingleLineRawStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestInterpolatedMultiLineRawString1()
+        {
+            UsingExpression(@"$""""""
+    {1 + 1}
+    """"""");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedMultiLineRawStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.RawInterpolationOpenToken);
+                    N(SyntaxKind.AddExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.RawInterpolationCloseToken);
+                }
+                N(SyntaxKind.InterpolatedMultiLineRawStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestInterpolatedMultiLineRawString2()
+        {
+            UsingExpression(@"$$""""""
+    {{{1 + 1}}}
+    """"""");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedMultiLineRawStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.RawInterpolationOpenToken);
+                    N(SyntaxKind.AddExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.RawInterpolationCloseToken);
+                }
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedMultiLineRawStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestAltInterpolatedVerbatimString_CSharp73()
         {
             var text = @"@$""hello""";

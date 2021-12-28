@@ -5,91 +5,91 @@
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing;
+
+public class RawStringLiteralCompilingTests : CompilingTestBase
 {
-    public class RawStringLiteralCompilingTests : CompilingTestBase
+    [Fact]
+    public void TestDownlevel()
     {
-        [Fact]
-        public void TestDownlevel()
-        {
-            CreateCompilation(
+        CreateCompilation(
 @"class C
 {
-    const string s = """""" """"""; 
+    const string s = """""" """""";
 }", parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (3,22): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     const string s = """ """; 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @""""""" """"""").WithArguments("raw string literals").WithLocation(3, 22));
-        }
+            // (3,22): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     const string s = """ """;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, @""""""" """"""").WithArguments("raw string literals").WithLocation(3, 22));
+    }
 
-        [Fact]
-        public void TestInFieldInitializer()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestInFieldInitializer()
+    {
+        CreateCompilation(
 @"class C
 {
-    string s = """""" """"""; 
+    string s = """""" """""";
 }").VerifyDiagnostics(
-                // (3,12): warning CS0414: The field 'C.s' is assigned but its value is never used
-                //     string s = """ """; 
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("C.s").WithLocation(3, 12));
-        }
+            // (3,12): warning CS0414: The field 'C.s' is assigned but its value is never used
+            //     string s = """ """;
+            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("C.s").WithLocation(3, 12));
+    }
 
-        [Fact]
-        public void TestInConstantFieldInitializer1()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestInConstantFieldInitializer1()
+    {
+        CreateCompilation(
 @"class C
 {
-    const string s = """""" """"""; 
+    const string s = """""" """""";
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestInConstantFieldInitializer2()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestInConstantFieldInitializer2()
+    {
+        CreateCompilation(
 @"class C
 {
-    const string s = """""" """""" + ""a""; 
+    const string s = """""" """""" + ""a"";
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestInConstantFieldInitializer3()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestInConstantFieldInitializer3()
+    {
+        CreateCompilation(
 @"class C
 {
-    const string s = ""a"" + """""" """"""; 
+    const string s = ""a"" + """""" """""";
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestInAttribute()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestInAttribute()
+    {
+        CreateCompilation(
 @"
 [System.Obsolete(""""""obsolete"""""")]
 class C
 {
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestMemberAccess()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestMemberAccess()
+    {
+        CreateCompilation(
 @"class C
 {
-    int s = """""" """""".Length; 
+    int s = """""" """""".Length;
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestInSwitch()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestInSwitch()
+    {
+        CreateCompilation(
 @"class C
 {
     void M(string s)
@@ -102,12 +102,12 @@ class C
         }
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestReachableSwitchCase1()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestReachableSwitchCase1()
+    {
+        CreateCompilation(
 @"class C
 {
     void M()
@@ -119,12 +119,12 @@ class C
         }
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestReachableSwitchCase2()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestReachableSwitchCase2()
+    {
+        CreateCompilation(
 @"class C
 {
     void M()
@@ -136,12 +136,12 @@ class C
         }
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestUnreachableSwitchCase1()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestUnreachableSwitchCase1()
+    {
+        CreateCompilation(
 @"class C
 {
     void M()
@@ -153,15 +153,15 @@ class C
         }
     }
 }").VerifyDiagnostics(
-                // (8,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17));
-        }
+            // (8,17): warning CS0162: Unreachable code detected
+            //                 break;
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17));
+    }
 
-        [Fact]
-        public void TestSingleLineRawLiteralInSingleLineInterpolatedString()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestSingleLineRawLiteralInSingleLineInterpolatedString()
+    {
+        CreateCompilation(
 @"class C
 {
     void M()
@@ -169,12 +169,12 @@ class C
         var v = $""{""""""a""""""}"";
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestSingleLineRawLiteralInMultiLineInterpolatedString1()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestSingleLineRawLiteralInMultiLineInterpolatedString1()
+    {
+        CreateCompilation(
 @"class C
 {
     void M()
@@ -182,12 +182,12 @@ class C
         var v = $@""{""""""a""""""}"";
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestSingleLineRawLiteralInMultiLineInterpolatedString2()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestSingleLineRawLiteralInMultiLineInterpolatedString2()
+    {
+        CreateCompilation(
 @"class C
 {
     void M()
@@ -197,12 +197,12 @@ class C
         }"";
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestMultiLineRawLiteralInSingleLineInterpolatedString_CSharp9()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestMultiLineRawLiteralInSingleLineInterpolatedString_CSharp9()
+    {
+        CreateCompilation(
 @"class C
 {
     void M()
@@ -212,20 +212,20 @@ class C
 """"""}"";
     }
 }", parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (5,20): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var v = $"{"""
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
+            // (5,20): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         var v = $"{"""
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
 
 """"""").WithArguments("raw string literals").WithLocation(5, 20),
-                // (7,4): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 9.0. Please use language version preview or greater.
-                // """}";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("9.0", "preview").WithLocation(7, 4));
-        }
+            // (7,4): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 9.0. Please use language version preview or greater.
+            // """}";
+            Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("9.0", "preview").WithLocation(7, 4));
+    }
 
-        [Fact]
-        public void TestMultiLineRawLiteralInSingleLineInterpolatedString_CSharp10()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestMultiLineRawLiteralInSingleLineInterpolatedString_CSharp10()
+    {
+        CreateCompilation(
 @"class C
 {
     void M()
@@ -235,12 +235,12 @@ class C
 """"""}"";
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestMultiLineRawLiteralInMultiLineInterpolatedString1()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestMultiLineRawLiteralInMultiLineInterpolatedString1()
+    {
+        CreateCompilation(
 @"class C
 {
     void M()
@@ -250,12 +250,12 @@ class C
 """"""}"";
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestMultiLineRawLiteralInMultiLineInterpolatedString2()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestMultiLineRawLiteralInMultiLineInterpolatedString2()
+    {
+        CreateCompilation(
 @"class C
 {
     void M()
@@ -267,12 +267,12 @@ class C
 }"";
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestSingleLineRawLiteralContainingClosingBraceInSingleLineInterpolatedString()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestSingleLineRawLiteralContainingClosingBraceInSingleLineInterpolatedString()
+    {
+        CreateCompilation(
 @"class C
 {
     void M()
@@ -280,12 +280,12 @@ class C
         var v = $""{""""""}""""""}"";
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestAwaitRawStringLiteral()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestAwaitRawStringLiteral()
+    {
+        CreateCompilation(
 @"
 using System.Threading.Tasks;
 
@@ -296,15 +296,15 @@ class C
         var v = await """""" """""";
     }
 }").VerifyDiagnostics(
-                // (8,17): error CS1061: 'string' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         var v = await """ """;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"await """""" """"""").WithArguments("string", "GetAwaiter").WithLocation(8, 17));
-        }
+            // (8,17): error CS1061: 'string' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            //         var v = await """ """;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"await """""" """"""").WithArguments("string", "GetAwaiter").WithLocation(8, 17));
+    }
 
-        [Fact]
-        public void TestInIsConstant()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestInIsConstant()
+    {
+        CreateCompilation(
 @"
 class C
 {
@@ -315,12 +315,12 @@ class C
         }
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestInIsTuple()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestInIsTuple()
+    {
+        CreateCompilation(
 @"
 class C
 {
@@ -331,12 +331,12 @@ class C
         }
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestInSubpattern()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestInSubpattern()
+    {
+        CreateCompilation(
 @"
 class C
 {
@@ -348,12 +348,12 @@ class C
         }
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestInConditionalExpression()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestInConditionalExpression()
+    {
+        CreateCompilation(
 @"
 class C
 {
@@ -362,12 +362,12 @@ class C
         var x = b ? """""" """""" : "" "";
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestInExpressionStatement()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestInExpressionStatement()
+    {
+        CreateCompilation(
 @"
 class C
 {
@@ -376,15 +376,15 @@ class C
         """""" """""";
     }
 }").VerifyDiagnostics(
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                //         """ """;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, @""""""" """"""").WithLocation(6, 9));
-        }
+            // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+            //         """ """;
+            Diagnostic(ErrorCode.ERR_IllegalStatement, @""""""" """"""").WithLocation(6, 9));
+    }
 
-        [Fact]
-        public void TestInAnonymousObject()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestInAnonymousObject()
+    {
+        CreateCompilation(
 @"
 class C
 {
@@ -393,12 +393,12 @@ class C
         var v = new { P = """""" """""" };
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [Fact]
-        public void TestSingleLineOutput1()
-        {
-            CompileAndVerify(
+    [Fact]
+    public void TestSingleLineOutput1()
+    {
+        CompileAndVerify(
 @"
 using System;
 
@@ -409,23 +409,34 @@ class C
         Console.WriteLine(""""""abc""def"""""");
     }
 }", expectedOutput: @"abc""def");
-        }
+    }
 
-        [Fact]
-        public void TestSingleLineOutput2()
-        {
-            CompileAndVerify(
+    [Fact]
+    public void TestSingleLineOutput2()
+    {
+        CompileAndVerify(
 @"
 using System;
 
 Console.WriteLine(""""""abc""def"""""");
 ", expectedOutput: @"abc""def");
-        }
+    }
 
-        [Fact]
-        public void TestMultiLineOutput1()
-        {
-            CompileAndVerify(
+    [Fact]
+    public void TestSingleLineOutput3()
+    {
+        CompileAndVerify(
+@"
+using System;
+
+Console.WriteLine("""""" abc""def """""");
+", expectedOutput: @" abc""def ");
+    }
+
+    [Fact]
+    public void TestMultiLineOutput1()
+    {
+        CompileAndVerify(
 @"
 using System;
 
@@ -439,12 +450,12 @@ class C
                           """""");
     }
 }".Replace("\r\n", "\n"), expectedOutput: "abc\"\ndef");
-        }
+    }
 
-        [Fact]
-        public void TestMultiLineOutput2()
-        {
-            CompileAndVerify(
+    [Fact]
+    public void TestMultiLineOutput2()
+    {
+        CompileAndVerify(
 @"
 using System;
 
@@ -459,16 +470,15 @@ class C
         """""");
     }
 }".Replace("\r\n", "\n"), expectedOutput: "    abc\"\n    def");
-        }
+    }
 
-        [Fact]
-        public void TestInParameterDefault()
-        {
-            CreateCompilation(
+    [Fact]
+    public void TestInParameterDefault()
+    {
+        CreateCompilation(
 @"class C
 {
     public void M(string s = """""" """""") { }
 }").VerifyDiagnostics();
-        }
     }
 }

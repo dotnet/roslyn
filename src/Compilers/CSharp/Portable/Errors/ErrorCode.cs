@@ -2030,6 +2030,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RawStringInVerbatimInterpolatedStrings = 9105,
         ERR_RawStringMustContainContent = 9106,
 
+        // raw interpolated string literals
+        ERR_NotEnoughQuotesForRawString = 9120,
+        ERR_NotEnoughCloseBracesForRawString = 9121,
+        ERR_TooManyOpenBracesForRawString = 9122,
+        ERR_TooManyCloseBracesForRawString = 9123,
+
+        ERR_IllegalAtSequence = 9124,
+        ERR_StringMustStartWithQuoteCharacter = 9125,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

@@ -483,8 +483,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         XmlTextLiteralToken = 8513,    // xml text node text
         XmlTextLiteralNewLineToken = 8514,
 
-        InterpolatedStringToken = 8515,                 // terminal for a whole interpolated string $" ... { expr } ..."
-                                                        // This only exists in transient form during parsing.
+        /// <summary>
+        /// Token for a whole interpolated string <c>$""" ... { expr } ..."""</c>. This only exists in transient form during parsing.
+        /// </summary>
+        InterpolatedStringToken = 8515,
         InterpolatedStringTextToken = 8517,             // literal text that is part of an interpolated string
 
         // trivia
@@ -866,9 +868,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExpressionColon = 9069,
         LineDirectivePosition = 9070,
         LineSpanDirectiveTrivia = 9071,
+
         SingleLineRawStringLiteralToken = 9072,
         MultiLineRawStringLiteralToken = 9073,
         SingleLineRawStringLiteralExpression = 9074,
         MultiLineRawStringLiteralExpression = 9075,
+
+        InterpolatedSingleLineRawStringStartToken = 9080,   // $"""
+        InterpolatedSingleLineRawStringEndToken = 9081,     // """
+        InterpolatedMultiLineRawStringStartToken = 9082,    // $"""<whitespace><newline>
+        InterpolatedMultiLineRawStringEndToken = 9083,      // <newline><whitespace>"""
+        RawInterpolationOpenToken = 9084,                   // {{{
+        RawInterpolationCloseToken = 9085,                  // }}}
     }
 }
