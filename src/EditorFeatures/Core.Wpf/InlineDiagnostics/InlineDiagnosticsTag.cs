@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -64,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// <summary>
         /// Creates a GraphicsResult object which is the error block based on the geometry and formatting set for the item.
         /// </summary>
-        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties format)
+        public override GraphicsResult GetGraphics(
+            IWpfTextView view, Geometry bounds, SnapshotSpan unused, TextFormattingRunProperties format)
         {
             var block = new TextBlock
             {

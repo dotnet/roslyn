@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -33,13 +34,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         /// <summary>
         /// Creates a very long line at the bottom of bounds.
         /// </summary>
-        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties? format)
+        public override GraphicsResult GetGraphics(
+            IWpfTextView view, Geometry bounds, SnapshotSpan span, TextFormattingRunProperties? format)
         {
             Initialize(view);
 
             var border = new Border()
             {
-                BorderBrush = _graphicsTagBrush,
+                BorderBrush = GraphicsTagBrush,
                 BorderThickness = new Thickness(0, 0, 0, bottom: 1),
                 Height = 1,
                 Width = view.ViewportWidth

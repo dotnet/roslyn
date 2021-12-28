@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.StringIndentation
 {
     internal interface IStringIndentationService : ILanguageService
     {
-        Task<ImmutableArray<TextSpan>> GetStringIndentationSpansAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default);
+        Task<ImmutableArray<TextSpan>> GetStringIndentationSpansAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
     }
 }

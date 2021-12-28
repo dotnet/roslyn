@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
                 var tag = tagMappingSpan.Tag;
                 var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.GetClassificationId(tag.ErrorType));
-                var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
+                var graphicsResult = tag.GetGraphics(TextView, geometry, span, GetFormat(classificationType));
 
                 var visualElement = graphicsResult.VisualElement;
                 // Only place the diagnostics if the diagnostic would not intersect with the editor window

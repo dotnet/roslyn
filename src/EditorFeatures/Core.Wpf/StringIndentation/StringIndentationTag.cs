@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -33,32 +34,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
         /// <summary>
         /// Creates a very long line at the bottom of bounds.
         /// </summary>
-        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties? format)
+        public override GraphicsResult? GetGraphics(
+            IWpfTextView view, Geometry bounds, SnapshotSpan span, TextFormattingRunProperties? format)
         {
             Initialize(view);
 
+            var lines = view.TextViewLines;
+            var startLine = lines.GetTextViewLineContainingBufferPosition(span.Start);
+            var endLine = lines.GetTextViewLineContainingBufferPosition(span.End);
+
             var border = new Border()
             {
-                BorderBrush = _graphicsTagBrush,
-                BorderThickness = new Thickness(0, 0, 0, bottom: 1),
-                Height = 1,
-                Width = view.ViewportWidth
+                BorderBrush = GraphicsTagBrush,
+                BorderThickness = new Thickness(left: 1, 0, 0, 0),
+                Height = endLine.Top - startLine.Bottom,
+                Width = 1,
             };
-
-            void viewportWidthChangedHandler(object s, EventArgs e)
-            {
-                border.Width = view.ViewportWidth;
-            }
-
-            view.ViewportWidthChanged += viewportWidthChangedHandler;
 
             // Subtract rect.Height to ensure that the line separator is drawn
             // at the bottom of the line, rather than immediately below.
             // This makes the line separator line up with the outlining bracket.
-            Canvas.SetTop(border, bounds.Bounds.Bottom - border.Height);
+            Canvas.SetTop(border, startLine.Bottom);
+            Canvas.SetLeft(border, bounds.Bounds.Left);
 
-            return new GraphicsResult(border,
-                () => view.ViewportWidthChanged -= viewportWidthChangedHandler);
+            return new GraphicsResult(border, dispose: null);
         }
     }
 }

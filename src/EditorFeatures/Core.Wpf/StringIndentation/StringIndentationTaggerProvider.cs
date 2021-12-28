@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
     {
         private readonly IEditorFormatMap _editorFormatMap;
 
-        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.LineSeparator);
+        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.StringIdentation);
 
-        private readonly object _lineSeperatorTagGate = new object();
+        private readonly object _lineSeperatorTagGate = new();
         private StringIndentationTag _lineSeparatorTag;
 
         [ImportingConstructor]

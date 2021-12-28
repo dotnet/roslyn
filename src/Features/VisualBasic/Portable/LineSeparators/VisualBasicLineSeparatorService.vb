@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
         Public Async Function GetLineSeparatorsAsync(
                 document As Document,
                 textSpan As TextSpan,
-                Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of TextSpan)) Implements ILineSeparatorService.GetLineSeparatorsAsync
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of TextSpan)) Implements ILineSeparatorService.GetLineSeparatorsAsync
             Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim root = Await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(False)
 

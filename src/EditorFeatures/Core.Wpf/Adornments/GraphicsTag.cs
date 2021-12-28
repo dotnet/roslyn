@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Windows.Media;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -18,15 +19,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
     internal abstract class GraphicsTag : ITag
     {
         private readonly IEditorFormatMap _editorFormatMap;
-        protected Brush _graphicsTagBrush;
-        protected Color _graphicsTagColor;
+        public Brush GraphicsTagBrush { get; private set; }
+        private Color _graphicsTagColor;
 
         protected GraphicsTag(IEditorFormatMap editorFormatMap)
             => _editorFormatMap = editorFormatMap;
 
-        protected virtual void Initialize(IWpfTextView view)
+        public void Initialize(IWpfTextView view)
         {
-            if (_graphicsTagBrush != null)
+            if (GraphicsTagBrush != null)
             {
                 return;
             }
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             var color = this.GetColor(view, _editorFormatMap) ?? lightGray;
 
             _graphicsTagColor = color;
-            _graphicsTagBrush = new SolidColorBrush(_graphicsTagColor);
+            GraphicsTagBrush = new SolidColorBrush(_graphicsTagColor);
         }
 
         protected abstract Color? GetColor(IWpfTextView view, IEditorFormatMap editorFormatMap);
@@ -46,6 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// <summary>
         /// This method allows corresponding adornment manager to ask for a graphical glyph.
         /// </summary>
-        public abstract GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties format);
+        public abstract GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, SnapshotSpan span, TextFormattingRunProperties format);
     }
 }
