@@ -382,11 +382,11 @@ public class C
 ").VerifyDiagnostics();
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
-	extends [netstandard]System.Object
+	extends [mscorlib]System.Object
 {
 	// Fields
 	.field private int32 '<P>k__BackingField'
-	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Methods
@@ -422,7 +422,7 @@ public class C
 		IL_0001: ldc.i4.s 10
 		IL_0003: stfld int32 C::'<P>k__BackingField'
 		IL_0008: ldarg.0
-		IL_0009: call instance void [netstandard]System.Object::.ctor()
+		IL_0009: call instance void [mscorlib]System.Object::.ctor()
 		IL_000e: ret
 	} // end of method C::.ctor
 	// Properties
@@ -638,11 +638,11 @@ public class C
 ").VerifyDiagnostics();
             VerifyTypeIL(comp, "C", @"
     .class public auto ansi beforefieldinit C
-	extends [netstandard]System.Object
+	extends [mscorlib]System.Object
 {
 	// Fields
 	.field private int32 '<P>k__BackingField'
-	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Methods
@@ -676,7 +676,7 @@ public class C
 		IL_0001: ldc.i4.s 10
 		IL_0003: stfld int32 C::'<P>k__BackingField'
 		IL_0008: ldarg.0
-		IL_0009: call instance void [netstandard]System.Object::.ctor()
+		IL_0009: call instance void [mscorlib]System.Object::.ctor()
 		IL_000e: ret
 	} // end of method C::.ctor
 	// Properties
