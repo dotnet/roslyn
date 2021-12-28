@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// <summary>
         /// Creates a GraphicsResult object which is the error block based on the geometry and formatting set for the item.
         /// </summary>
-        public override GraphicsResult GetGraphics(
-            IWpfTextView view, Geometry bounds, SnapshotSpan unused, TextFormattingRunProperties format)
+        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties format)
         {
             var block = new TextBlock
             {

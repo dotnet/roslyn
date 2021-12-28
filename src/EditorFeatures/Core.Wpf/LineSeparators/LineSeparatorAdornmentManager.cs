@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
                     if (geometry != null)
                     {
                         var tag = tagMappingSpan.Tag;
-                        var graphicsResult = tag.GetGraphics(TextView, geometry, span, format: null);
+                        var graphicsResult = tag.GetGraphics(TextView, geometry, format: null);
                         AdornmentLayer.AddAdornment(
                             behavior: AdornmentPositioningBehavior.TextRelative,
                             visualSpan: span,

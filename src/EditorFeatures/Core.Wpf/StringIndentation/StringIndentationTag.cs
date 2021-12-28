@@ -31,33 +31,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
             return brush?.Color;
         }
 
-        /// <summary>
-        /// Creates a very long line at the bottom of bounds.
-        /// </summary>
-        public override GraphicsResult? GetGraphics(
-            IWpfTextView view, Geometry bounds, SnapshotSpan span, TextFormattingRunProperties? format)
+        public override GraphicsResult? GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties? format)
         {
-            Initialize(view);
-
-            var lines = view.TextViewLines;
-            var startLine = lines.GetTextViewLineContainingBufferPosition(span.Start);
-            var endLine = lines.GetTextViewLineContainingBufferPosition(span.End);
-
-            var border = new Border()
-            {
-                BorderBrush = GraphicsTagBrush,
-                BorderThickness = new Thickness(left: 1, 0, 0, 0),
-                Height = endLine.Top - startLine.Bottom,
-                Width = 1,
-            };
-
-            // Subtract rect.Height to ensure that the line separator is drawn
-            // at the bottom of the line, rather than immediately below.
-            // This makes the line separator line up with the outlining bracket.
-            Canvas.SetTop(border, startLine.Bottom);
-            Canvas.SetLeft(border, bounds.Bounds.Left);
-
-            return new GraphicsResult(border, dispose: null);
+            // Drawing the string indentation line is complicated and handled entirely by the adornment manager.
+            throw new NotImplementedException();
         }
     }
 }
