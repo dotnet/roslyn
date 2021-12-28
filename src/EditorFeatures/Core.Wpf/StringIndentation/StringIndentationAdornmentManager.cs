@@ -64,8 +64,10 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                     var tag = tagMappingSpan.Tag;
                     tag.Initialize(TextView);
 
-                    foreach (var ySegment in block.YSegments)
+                    for (var i = 0; i < block.YSegments.Length; i++)
                     {
+                        var ySegment = block.YSegments[i];
+
                         var line = new Line()
                         {
                             SnapsToDevicePixels = true,
