@@ -8922,10 +8922,10 @@ class B<T>
 }";
             CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
 @"<>f__AnonymousDelegate0
-<>f__AnonymousDelegate1`1[System.Int32]
-<>f__AnonymousDelegate1`1[System.String]
-<>f__AnonymousDelegate1`1[System.String]
-<>f__AnonymousDelegate1`1[System.Int32]
+<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0
 ");
         }
 
@@ -9136,10 +9136,10 @@ unsafe class C<T>
     };
 }";
             CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
-@"(System.String, System.Int32)
-<>f__AnonymousDelegate0`3[System.String,System.Int32,System.Double]
+@" (System.String, System.Int32)
+<>f__AnonymousDelegate0`2[System.String,System.Int32]
 (System.Single, System.Int32)
-<>f__AnonymousDelegate0`3[System.Single,System.Int32,System.Double]
+<>f__AnonymousDelegate0`2[System.Single,System.Int32]
 ");
         }
 
@@ -9284,21 +9284,21 @@ struct A<T>
 }";
             CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
 @"(1, System.Int32, System.String, System.Object)
-<>f__AnonymousDelegate0`3[System.Int32,System.String,System.Object]
+<>f__AnonymousDelegate0
 (2, System.Int32)
-<>f__AnonymousDelegate1`1[System.Int32]
+<>f__AnonymousDelegate0
 (3, System.Int32, System.String)
-<>f__AnonymousDelegate2`2[System.Int32,System.String]
+<>f__AnonymousDelegate0
 (4, System.Int32, System.String, System.Object)
-<>f__AnonymousDelegate0`3[System.Int32,System.String,System.Object]
+<>f__AnonymousDelegate0
 (1, System.String, System.Object, System.Int32)
-<>f__AnonymousDelegate0`3[System.String,System.Object,System.Int32]
+<>f__AnonymousDelegate0
 (2, System.String)
-<>f__AnonymousDelegate1`1[System.String]
+<>f__AnonymousDelegate0
 (3, System.String, System.Object)
-<>f__AnonymousDelegate2`2[System.String,System.Object]
+<>f__AnonymousDelegate0
 (4, System.String, System.Object, System.Int32)
-<>f__AnonymousDelegate0`3[System.String,System.Object,System.Int32]
+<>f__AnonymousDelegate0
 ");
         }
 

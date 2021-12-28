@@ -20,15 +20,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             private readonly ImmutableArray<Symbol> _members;
 
-            internal AnonymousDelegateTemplateSymbol(AnonymousTypeManager manager, AnonymousDelegateTypeDescriptor typeDescr)
+            internal AnonymousDelegateTemplateSymbol(AnonymousTypeManager manager, AnonymousTypeDescriptor typeDescr, ImmutableArray<TypeParameterSymbol> typeParametersToSubstitute)
                 : base(manager, typeDescr.Location)
             {
                 // AnonymousTypeOrDelegateComparer requires an actual location.
                 Debug.Assert(SmallestLocation != null);
                 Debug.Assert(SmallestLocation != Location.None);
 
-                int typeParameterCount = typeDescr.TypeParameterCount;
                 TypeMap typeMap;
+                int typeParameterCount = typeParametersToSubstitute.Length;
                 if (typeParameterCount == 0)
                 {
                     TypeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         typeParameters.Add(new AnonymousTypeParameterSymbol(this, i, "T" + (i + 1)));
                     }
                     TypeParameters = typeParameters.ToImmutableAndFree();
-                    typeMap = new TypeMap(IndexedTypeParameterSymbol.TakeSymbols(typeParameterCount), TypeParameters);
+                    typeMap = new TypeMap(typeParametersToSubstitute, TypeParameters, allowAlpha: true);
                 }
 
                 var constructor = new SynthesizedDelegateConstructor(this, manager.System_Object, manager.System_IntPtr);

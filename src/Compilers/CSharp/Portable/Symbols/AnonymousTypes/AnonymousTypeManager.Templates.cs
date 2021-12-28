@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Cache of created anonymous delegate templates used as an implementation of anonymous 
         /// delegates in emit phase.
         /// </summary>
-        private ConcurrentDictionary<AnonymousDelegateTypeDescriptor, AnonymousDelegateTemplateSymbol> _lazyAnonymousDelegateTemplates;
+        private ConcurrentDictionary<AnonymousTypeDescriptor, AnonymousDelegateTemplateSymbol> _lazyAnonymousDelegateTemplates;
 
         /// <summary>
         /// Maps delegate signature shape (number of parameters and their ref-ness) to a synthesized generic delegate symbol.
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ConcurrentDictionary<AnonymousDelegateTypeDescriptor, AnonymousDelegateTemplateSymbol> AnonymousDelegateTemplates
+        private ConcurrentDictionary<AnonymousTypeDescriptor, AnonymousDelegateTemplateSymbol> AnonymousDelegateTemplates
         {
             get
             {
@@ -162,8 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     Interlocked.CompareExchange(ref _lazyAnonymousDelegateTemplates,
                                                 previousCache == null
-                                                    ? new ConcurrentDictionary<AnonymousDelegateTypeDescriptor, AnonymousDelegateTemplateSymbol>()
-                                                    : new ConcurrentDictionary<AnonymousDelegateTypeDescriptor, AnonymousDelegateTemplateSymbol>(previousCache),
+                                                    ? new ConcurrentDictionary<AnonymousTypeDescriptor, AnonymousDelegateTemplateSymbol>()
+                                                    : new ConcurrentDictionary<AnonymousTypeDescriptor, AnonymousDelegateTemplateSymbol>(previousCache),
                                                 null);
                 }
 
@@ -224,8 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeDescr = anonymous.TypeDescriptor;
             Debug.Assert(typeDescr.Location.IsInSource); // AnonymousDelegateTemplateSymbol requires a location in source for ordering.
 
-            var typeParameters = anonymous.ContainingTypeParameters;
-
             // If all parameter types and return type are valid type arguments, construct
             // the delegate type from a generic SynthesizedDelegateSymbol template.
             // Otherwise, use a non-generic AnonymousDelegateTemplateSymbol.
@@ -258,12 +256,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
+                var typeParameters = GetReferencedTypeParameters(typeDescr);
+                var key = getTemplateKey(typeDescr, typeParameters);
+
                 // Get anonymous delegate template
-                var delegateDescr = AnonymousDelegateTypeDescriptor.FromTypeDescriptor(typeParameters, typeDescr);
                 AnonymousDelegateTemplateSymbol? template;
-                if (!this.AnonymousDelegateTemplates.TryGetValue(delegateDescr, out template))
+                if (!this.AnonymousDelegateTemplates.TryGetValue(key, out template))
                 {
-                    template = this.AnonymousDelegateTemplates.GetOrAdd(delegateDescr, new AnonymousDelegateTemplateSymbol(this, delegateDescr));
+                    template = this.AnonymousDelegateTemplates.GetOrAdd(key, new AnonymousDelegateTemplateSymbol(this, typeDescr, typeParameters));
                 }
 
                 // Adjust template location if the template is owned by this manager
@@ -298,6 +298,83 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&
                     !type.IsRestrictedType();
+            }
+
+            static AnonymousTypeDescriptor getTemplateKey(AnonymousTypeDescriptor typeDescr, ImmutableArray<TypeParameterSymbol> typeParameters)
+            {
+                if (typeParameters.Length > 0)
+                {
+                    var typeMap = new TypeMap(typeParameters, IndexedTypeParameterSymbol.Take(typeParameters.Length), allowAlpha: true);
+                    typeDescr = typeDescr.SubstituteTypes(typeMap, out bool changed);
+                    Debug.Assert(changed);
+                }
+                return typeDescr;
+            }
+        }
+
+        private static ImmutableArray<TypeParameterSymbol> GetReferencedTypeParameters(AnonymousTypeDescriptor typeDescr)
+        {
+            var referenced = PooledHashSet<TypeParameterSymbol>.GetInstance();
+            foreach (var field in typeDescr.Fields)
+            {
+                field.Type.VisitType(
+                    (type, referenced, _) =>
+                    {
+                        if (type is TypeParameterSymbol typeParameter)
+                        {
+                            referenced.Add(typeParameter);
+                        }
+                        return false;
+                    },
+                    referenced);
+            }
+
+            ImmutableArray<TypeParameterSymbol> typeParameters;
+            if (referenced.Count == 0)
+            {
+                typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+            }
+            else
+            {
+                var builder = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+                builder.AddRange(referenced);
+                builder.Sort((x, y) => compareTypeParameters(x, y));
+                typeParameters = builder.ToImmutableAndFree();
+            }
+            referenced.Free();
+            return typeParameters;
+
+            static int compareTypeParameters(TypeParameterSymbol x, TypeParameterSymbol y)
+            {
+                var xContainer = x.ContainingSymbol!;
+                var yContainer = y.ContainingSymbol!;
+                if (xContainer.Equals(yContainer))
+                {
+                    return x.Ordinal - y.Ordinal;
+                }
+                else if (isContainedIn(xContainer, yContainer))
+                {
+                    return 1;
+                }
+                else
+                {
+                    Debug.Assert(isContainedIn(yContainer, xContainer));
+                    return -1;
+                }
+            }
+
+            static bool isContainedIn(Symbol x, Symbol y)
+            {
+                var container = y.ContainingSymbol;
+                while (container is { })
+                {
+                    if (x.Equals(container))
+                    {
+                        return true;
+                    }
+                    container = container.ContainingSymbol;
+                }
+                return false;
             }
         }
 
