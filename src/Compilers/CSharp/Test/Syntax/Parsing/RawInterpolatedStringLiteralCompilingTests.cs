@@ -76,6 +76,16 @@ public class RawInterpolatedStringLiteralCompilingTests : CompilingTestBase
     }
 
     [Fact]
+    public void TestAtLevel()
+    {
+        CreateCompilation(
+@"class C
+{
+    const string s = $"""""" """""";
+}", parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void TestInFieldInitializer()
     {
         CreateCompilation(
@@ -1756,7 +1766,7 @@ System.Console.Write(
     }
 
     [Fact]
-    public void TestOutVarOrderOfEvaluation()
+    public void TestOutVarOrderOfEvaluation1()
     {
         CompileAndVerify(
 @"
@@ -1770,5 +1780,25 @@ int M(out int val)
     return 1;
 }
 ", expectedOutput: @"1 2");
+    }
+
+    [Fact]
+    public void TestOutVarOrderOfEvaluation2()
+    {
+        RenderAndVerify(
+@"
+using System;
+
+Console.Write($""""""{x} {M(out var x)}"""""");
+
+int M(out int val)
+{
+    val = 2;
+    return 1;
+}
+",
+                // (4,20): error CS0841: Cannot use local variable 'x' before it is declared
+                // Console.Write($"""{x} {M(out var x)}""");
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(4, 20));
     }
 }
