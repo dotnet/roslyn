@@ -1,11 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
-using System.Composition;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -25,24 +31,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     /// but only for code cases where the user has provided an appropriate variable name in
     /// code that can be used).
     /// </summary>
-    //
-    // disabled for preview 1 due to some perf issue. 
-    // we will re-enable it once the issue is addressed.
-    // https://devdiv.visualstudio.com/DevDiv/_workitems?id=504089&_a=edit&triage=true 
-    // [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
+        private const string CS0103 = nameof(CS0103); // Name of the variable doesn't live in context
         private static readonly SyntaxAnnotation s_referenceAnnotation = new SyntaxAnnotation();
 
         public static readonly CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer Instance = new CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer();
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
+                   EnforceOnBuildValues.InlineIsTypeWithoutName,
+                   CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(
-                       nameof(FeaturesResources.Use_pattern_matching), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                       nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -59,42 +63,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var syntaxTree = semanticModel.SyntaxTree;
 
             // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
-            // in projects targetting a lesser version.
+            // in projects targeting a lesser version.
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
             {
                 return;
             }
 
-            var root = syntaxTree.GetRoot(cancellationToken);
-            var isExpression = (BinaryExpressionSyntax)context.Node;
-
-            var workspace = (context.Options as WorkspaceAnalyzerOptions)?.Services.Workspace;
-            if (workspace == null)
+            var styleOption = context.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
+            if (!styleOption.Value)
             {
+                // User has disabled this feature.
                 return;
             }
 
+            var isExpression = (BinaryExpressionSyntax)context.Node;
+
             // See if this is an 'is' expression that would be handled by the analyzer.  If so
             // we don't need to do anything.
-            if (CSharpIsAndCastCheckDiagnosticAnalyzer.Instance.TryGetPatternPieces(
+            if (CSharpIsAndCastCheckDiagnosticAnalyzer.TryGetPatternPieces(
                     isExpression, out _, out _, out _, out _))
             {
                 return;
             }
 
-            var (matches, _) = AnalyzeExpression(workspace, semanticModel, isExpression, cancellationToken);
+            var (matches, _) = AnalyzeExpression(semanticModel, isExpression, cancellationToken);
             if (matches == null || matches.Count == 0)
             {
                 return;
             }
 
             context.ReportDiagnostic(
-                Diagnostic.Create(
-                    this.Descriptor, isExpression.GetLocation()));
+                DiagnosticHelper.Create(
+                    Descriptor, isExpression.GetLocation(),
+                    styleOption.Notification.Severity,
+                    SpecializedCollections.EmptyCollection<Location>(),
+                    ImmutableDictionary<string, string>.Empty));
         }
 
         public (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(
-            Workspace workspace,
             SemanticModel semanticModel,
             BinaryExpressionSyntax isExpression,
             CancellationToken cancellationToken)
@@ -126,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             // Find a reasonable name for the local we're going to make.  It should ideally 
-            // relate to the type the user is casting to, and it should not collisde with anything
+            // relate to the type the user is casting to, and it should not collide with anything
             // in scope.
             var reservedNames = semanticModel.LookupSymbols(isExpression.SpanStart)
                                              .Concat(semanticModel.GetExistingSymbols(container, cancellationToken))
@@ -144,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             {
                 tempMatches.Add(castExpression);
                 var updatedSemanticModel = ReplaceMatches(
-                    workspace, semanticModel, isExpression, localName, tempMatches, cancellationToken);
+                    semanticModel, isExpression, localName, tempMatches, cancellationToken);
                 tempMatches.Clear();
 
                 var causesError = ReplacementCausesError(updatedSemanticModel, cancellationToken);
@@ -157,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             return (matches, localName);
         }
 
-        private bool ReplacementCausesError(
+        private static bool ReplacementCausesError(
             SemanticModel updatedSemanticModel, CancellationToken cancellationToken)
         {
             var root = updatedSemanticModel.SyntaxTree.GetRoot(cancellationToken);
@@ -165,16 +171,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var currentNode = root.GetAnnotatedNodes(s_referenceAnnotation).Single();
             var diagnostics = updatedSemanticModel.GetDiagnostics(currentNode.Span, cancellationToken);
 
-            return diagnostics.Any(d => d.Id == CS0165);
+            return diagnostics.Any(d => d.Id is CS0165 or CS0103);
         }
 
-        public SemanticModel ReplaceMatches(
-            Workspace workspace, SemanticModel semanticModel, BinaryExpressionSyntax isExpression,
+        public static SemanticModel ReplaceMatches(
+            SemanticModel semanticModel, BinaryExpressionSyntax isExpression,
             string localName, HashSet<CastExpressionSyntax> matches,
             CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var editor = new SyntaxEditor(root, workspace);
+            var editor = new SyntaxEditor(root, CSharpSyntaxGenerator.Instance);
 
             // now, replace "x is Y" with "x is Y y" and put a rename-annotation on 'y' so that
             // the user can actually name the variable whatever they want.
@@ -205,10 +211,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             var updatedCompilation = semanticModel.Compilation.ReplaceSyntaxTree(
                 semanticModel.SyntaxTree, updatedSyntaxTree);
+#pragma warning disable RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
             return updatedCompilation.GetSemanticModel(updatedSyntaxTree);
+#pragma warning restore RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
         }
 
-        private SyntaxNode GetContainer(BinaryExpressionSyntax isExpression)
+        private static SyntaxNode GetContainer(BinaryExpressionSyntax isExpression)
         {
             for (SyntaxNode current = isExpression; current != null; current = current.Parent)
             {
@@ -231,12 +239,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private void AddMatches(
             SyntaxNode node, ExpressionSyntax expr, TypeSyntax type, HashSet<CastExpressionSyntax> matches)
         {
-            // Don't bother recursing down nodes that are before the type in the is-expressoin.
+            // Don't bother recursing down nodes that are before the type in the is-expression.
             if (node.Span.End >= type.Span.End)
             {
-                if (node.IsKind(SyntaxKind.CastExpression))
+                if (node.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression))
                 {
-                    var castExpression = (CastExpressionSyntax)node;
                     if (SyntaxFactory.AreEquivalent(castExpression.Type, type) &&
                         SyntaxFactory.AreEquivalent(castExpression.Expression.WalkDownParentheses(), expr))
                     {

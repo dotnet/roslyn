@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -20,11 +23,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
         Friend Const BC30637 As String = "BC30637" ' Assembly or Module attribute statements must precede any declarations in a file.
         Friend Const BC30627 As String = "BC30627" ' 'Option' statements must precede any declarations or 'Imports' statements.
 
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New()
+        End Sub
+
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return ImmutableArray.Create(BC30465, BC30637, BC30627)
             End Get
         End Property
+
+        Public Overrides Function GetFixAllProvider() As FixAllProvider
+            ' Fix All is not supported for this code fix
+            ' https://github.com/dotnet/roslyn/issues/34471
+            Return Nothing
+        End Function
 
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim document = context.Document
@@ -76,14 +90,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
             End If
         End Function
 
-        Private Function DeclarationsExistAfterImports(node As SyntaxNode, root As CompilationUnitSyntax) As Boolean
+        Private Shared Function DeclarationsExistAfterImports(node As SyntaxNode, root As CompilationUnitSyntax) As Boolean
             Return root.Members.Any(
                 Function(m) m IsNot node AndAlso
                         Not m.IsKind(SyntaxKind.OptionStatement, SyntaxKind.AttributesStatement) AndAlso
                         node.Span.End > m.SpanStart)
         End Function
 
-        Private Function CreateActionForImports(document As Document, node As ImportsStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
+        Private Shared Function CreateActionForImports(document As Document, node As ImportsStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
             Dim destinationLine As Integer = 0
             If root.Imports.Any() Then
                 destinationLine = FindLastContiguousStatement(root.Imports, root.GetLeadingBannerAndPreprocessorDirectives())
@@ -105,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
 
         End Function
 
-        Private Function CreateActionForOptions(document As Document, node As OptionStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
+        Private Shared Function CreateActionForOptions(document As Document, node As OptionStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
             Dim destinationLine = FindLastContiguousStatement(root.Options, root.GetLeadingBannerAndPreprocessorDirectives())
 
             If DestinationPositionIsHidden(root, destinationLine, cancellationToken) Then
@@ -121,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
             }
         End Function
 
-        Private Function CreateActionForAttribute(document As Document, node As AttributesStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
+        Private Shared Function CreateActionForAttribute(document As Document, node As AttributesStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
             Dim destinationLine As Integer = 0
             If root.Attributes.Any() Then
                 destinationLine = FindLastContiguousStatement(root.Attributes, root.GetLeadingBannerAndPreprocessorDirectives())
@@ -144,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
             }
         End Function
 
-        Private Function FindLastContiguousStatement(nodes As IEnumerable(Of SyntaxNode), trivia As IEnumerable(Of SyntaxTrivia)) As Integer
+        Private Shared Function FindLastContiguousStatement(nodes As IEnumerable(Of SyntaxNode), trivia As IEnumerable(Of SyntaxTrivia)) As Integer
             If Not nodes.Any() Then
                 Dim lastBannerText = trivia.LastOrDefault(Function(t) t.IsKind(SyntaxKind.CommentTrivia))
                 If lastBannerText = Nothing Then
@@ -170,15 +184,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
             Return expectedLine
         End Function
 
-        Private Function MoveStatement(kind As String, line As Integer) As String
+        Private Shared Function MoveStatement(kind As String, line As Integer) As String
             Return String.Format(VBFeaturesResources.Move_the_0_statement_to_line_1, kind, line + 1)
         End Function
 
-        Private Function DeleteStatement(kind As String) As String
+        Private Shared Function DeleteStatement(kind As String) As String
             Return String.Format(VBFeaturesResources.Delete_the_0_statement2, kind)
         End Function
 
-        Private Function DestinationPositionIsHidden(root As CompilationUnitSyntax, destinationLine As Integer, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function DestinationPositionIsHidden(root As CompilationUnitSyntax, destinationLine As Integer, cancellationToken As CancellationToken) As Boolean
             Dim text = root.GetText()
             Dim position = text.Lines(destinationLine).Start
             Return root.SyntaxTree.IsHiddenPosition(destinationLine, cancellationToken)

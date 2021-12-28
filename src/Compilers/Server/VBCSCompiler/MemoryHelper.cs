@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CommandLine;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -29,8 +32,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public ulong AvailableVirtual;
         public ulong Reserved; //always 0
 
-        public static bool IsMemoryAvailable()
+        public static bool IsMemoryAvailable(ICompilerServerLogger logger)
         {
+            if (!PlatformInformation.IsWindows)
+            {
+                // assume we have enough memory on non-Windows machines
+                return true;
+            }
+
             MemoryHelper status = new MemoryHelper();
             GlobalMemoryStatusEx(status);
             ulong max = status.MaxVirtual;
@@ -44,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 unit = "KB";
             }
 
-            CompilerServerLogger.Log("Free memory: {1}{0} of {2}{0}.", unit, free >> shift, max >> shift);
+            logger.Log("Free memory: {1}{0} of {2}{0}.", unit, free >> shift, max >> shift);
 
             return free >= 800 << 20; // Value (500MB) is arbitrary; feel free to improve.
         }

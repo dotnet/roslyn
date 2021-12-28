@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -22,27 +26,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
     {
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
-        protected override string GetLanguage() => LanguageNames.CSharp;
+        protected internal override string GetLanguage() => LanguageNames.CSharp;
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpSyncNamespaceCodeRefactoringProvider();
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-        {
-            return TestWorkspace.IsWorkspaceElement(initialMarkup)
-                ? TestWorkspace.Create(initialMarkup)
-                : TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
-        }
-
-        protected string ProjectRootPath
+        protected static string ProjectRootPath
             => PathUtilities.IsUnixLikePlatform
             ? @"/ProjectA/"
             : @"C:\ProjectA\";
 
-        protected string ProjectFilePath
+        protected static string ProjectFilePath
             => PathUtilities.CombineAbsoluteAndRelativePaths(ProjectRootPath, "ProjectA.csproj");
 
-        protected (string folder, string filePath) CreateDocumentFilePath(string[] folder, string fileName = "DocumentA.cs")
+        protected static (string folder, string filePath) CreateDocumentFilePath(string[] folder, string fileName = "DocumentA.cs")
         {
             if (folder == null || folder.Length == 0)
             {
@@ -56,10 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
             }
         }
 
-        protected string CreateFolderPath(params string[] folders)
-        {
-            return string.Join(PathUtilities.DirectorySeparatorStr, folders);
-        }
+        protected static string CreateFolderPath(params string[] folders)
+            => string.Join(PathUtilities.DirectorySeparatorStr, folders);
 
         protected async Task TestMoveFileToMatchNamespace(string initialMarkup, List<string[]> expectedFolders = null)
         {
@@ -72,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
 
                     var oldDocument = workspace.Documents[0];
                     var oldDocumentId = oldDocument.Id;
-                    var expectedText = workspace.Documents[0].TextBuffer.CurrentSnapshot.GetText();
+                    var expectedText = workspace.Documents[0].GetTextBuffer().CurrentSnapshot.GetText();
 
                     // a new document with the same text as old document is added.
                     var allResults = await TestOperationAsync(testOptions, workspace, expectedText);
@@ -101,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                     var (actions, _) = await GetCodeActionsAsync(workspace, testOptions);
                     if (actions.Length > 0)
                     {
-                        var renameFileAction = actions.Any(action => !(action is CodeAction.SolutionChangeAction));
+                        var renameFileAction = actions.Any(action => action is not CodeAction.SolutionChangeAction);
                         Assert.False(renameFileAction, "Move File to match namespace code action was not expected, but shows up.");
                     }
                 }
@@ -115,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                 var results = new List<Tuple<Solution, Solution>>();
 
                 var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
-                var moveFileActions = actions.Where(a => !(a is CodeAction.SolutionChangeAction));
+                var moveFileActions = actions.Where(a => a is not CodeAction.SolutionChangeAction);
 
                 foreach (var action in moveFileActions)
                 {
@@ -169,7 +164,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                     var changedDocumentIds = SolutionUtilities.GetChangedDocuments(oldSolution, newSolution);
 
                     Assert.True(changedDocumentIds.Contains(originalDocumentId), "original document was not changed.");
-                    Assert.True(expectedSourceReference == null || changedDocumentIds.Contains(refDocumentId), "reference document was not changed.");
 
                     var modifiedOriginalDocument = newSolution.GetDocument(originalDocumentId);
                     var modifiedOringinalRoot = await modifiedOriginalDocument.GetSyntaxRootAsync();
@@ -191,12 +185,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                                 WarningAnnotation.GetDescription(annotation) == FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning);
                         }));
 
-
                     var actualText = (await modifiedOriginalDocument.GetTextAsync()).ToString();
                     Assert.Equal(expectedSourceOriginal, actualText);
 
-                    if (expectedSourceReference != null)
+                    if (expectedSourceReference == null)
                     {
+                        // there shouldn't be any textual change
+                        if (changedDocumentIds.Contains(refDocumentId))
+                        {
+                            var oldRefText = (await oldSolution.GetDocument(refDocumentId).GetTextAsync()).ToString();
+                            var newRefText = (await newSolution.GetDocument(refDocumentId).GetTextAsync()).ToString();
+                            Assert.Equal(oldRefText, newRefText);
+                        }
+                    }
+                    else
+                    {
+                        Assert.True(changedDocumentIds.Contains(refDocumentId));
                         var actualRefText = (await newSolution.GetDocument(refDocumentId).GetTextAsync()).ToString();
                         Assert.Equal(expectedSourceReference, actualRefText);
                     }
@@ -218,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                 var changeNamespaceAction = actions.Single(a => a is CodeAction.SolutionChangeAction);
                 var operations = await changeNamespaceAction.GetOperationsAsync(CancellationToken.None);
 
-                return ApplyOperationsAndGetSolution(workspace, operations);
+                return await ApplyOperationsAndGetSolutionAsync(workspace, operations);
             }
         }
     }

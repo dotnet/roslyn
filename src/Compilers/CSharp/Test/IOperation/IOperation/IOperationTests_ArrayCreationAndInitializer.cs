@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -7,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_ArrayCreationAndInitializer : SemanticModelTestBase
     {
         [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
         public void SimpleArrayCreation_PrimitiveType()
@@ -777,9 +781,9 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
     null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                // file.cs(6,38): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         var a = /*<bind>*/new string[b]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new string[b]").WithArguments("object", "int").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b").WithArguments("object", "int").WithLocation(6, 38)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -874,9 +878,9 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
     null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,27): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                // file.cs(6,38): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         var a = /*<bind>*/new string[M()]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new string[M()]").WithArguments("object", "int").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "M()").WithArguments("object", "int").WithLocation(6, 38)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -941,9 +945,9 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
     null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (6,27): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+                // file.cs(6,38): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         var a = /*<bind>*/new string[0.0]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new string[0.0]").WithArguments("double", "int").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "0.0").WithArguments("double", "int").WithLocation(6, 38)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

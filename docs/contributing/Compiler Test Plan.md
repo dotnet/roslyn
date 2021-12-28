@@ -5,7 +5,7 @@ This document provides guidance for thinking about language interactions and tes
 - Other external documentation
 - Backward and forward compatibility (interoperation with previous and future compilers, each in both directions)
 - Error handling/recovery (missing libraries, including missing types in mscorlib; errors in parsing, ambiguous lookup, inaccessible lookup, wrong kind of thing found, instance vs static thing found, wrong type for the context, value vs variable)
-- BCL and other customer impact
+- BCL (including mono) and other customer impact
 - Determinism
 - Loading from metadata (source vs. loaded from metadata)
 - Public interface of compiler APIs (including semantic model APIs listed below):
@@ -26,20 +26,24 @@ This document provides guidance for thinking about language interactions and tes
     - AnalyzeStatementsDataFlow 
     - AnalyzeStatementDataFlow 
     - ClassifyConversion
-    - GetOperation (IOperation)
+    - GetOperation (`IOperation`)
+    - GetCFG (`ControlFlowGraph`)
 - VB/F# interop
+- C++/CLI interop (particularly for metadata format changes, e.g. DIMs, static abstracts in interfaces, or generic attributes)
 - Performance and stress testing
+- Can build VS
+- Check that `Obsolete` is honored for members used in binding/lowering
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
-    - types
-    - methods
-    - fields
-    - properties (including get/set accessors)
-    - events (including add/remove accessors)
+- type declarations (class, record class/struct with or without positional members, struct, interface, type parameter)
+- methods
+- fields
+- properties (including get/set/init accessors)
+- events (including add/remove accessors)
 - Parameter modifiers (ref, out, in, params)
-- Attributes (including security attribute)
-- Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`)
+- Attributes (including generic attributes and security attributes)
+- Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
 - Default and constant values
 - Partial classes
 - Literals
@@ -53,13 +57,16 @@ This document provides guidance for thinking about language interactions and tes
 - Partial method
 - Named and optional parameters
 - String interpolation
-- Properties (read-write, read-only, write-only, auto-property, expression-bodied)
+- Properties (read-write, read-only, init-only, write-only, auto-property, expression-bodied)
 - Interfaces (implicit vs. explicit interface member implementation)
 - Delegates
 - Multi-declaration
 - NoPIA
 - Dynamic
 - Ref structs, Readonly structs
+- Readonly members on structs (methods, property/indexer accessors, custom event accessors)
+- SkipLocalsInit
+- Method override or explicit implementation with `where T : { class, struct, default }`
  
 # Code
 - Operators (see Eric's list below)
@@ -72,20 +79,27 @@ This document provides guidance for thinking about language interactions and tes
 - Inheritance (virtual, override, abstract, new)
 - Anonymous types
 - Tuple types and literals (elements with explicit or inferred names, long tuples), tuple equality
+- Range literals (`1..2`) and Index operator (`^1`) 
 - Deconstructions
 - Local functions
 - Unsafe code
 - LINQ
 - Constructors, properties, indexers, events, operators, and destructors.
-- Async (task-like types)
+- Async (task-like types) and async-iterator methods
 - Lvalues: the synthesized fields are mutable 
     - Ref / out parameters
-    - Compound operators (+=, /=, etc ..) 
+    - Compound operators (`+=`, `/=`, etc ..) 
     - Assignment exprs
 - Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
 - `this = e;` in `struct` .ctor
 - Stackalloc (including initializers)
-- Patterns
+- Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice)
+- Switch expressions
+- With expressions (on record classes and on value types)
+- Nullability annotations (`?`, attributes) and analysis
+- If you add a place an expression can appear in code, make sure `SpillSequenceSpiller` handles it. Test with a `switch` expression or `stackalloc` in that place.
+- If you add a new expression form that requires spilling, test it in the catch filter.
+- extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
 
 # Misc
 - reserved keywords (sometimes contextual)
@@ -94,18 +108,19 @@ This document provides guidance for thinking about language interactions and tes
 - modopt and modreq
 - ref assemblies
 - extern alias
+- UnmanagedCallersOnly
 - telemetry
 
 # Testing in interaction with other components
 Interaction with IDE, Debugger, and EnC should be worked out with relevant teams. A few highlights:
 - IDE
-    - Colorization
+    - Colorization and formatting
     - Typing experience and dealing with incomplete code
     - Intellisense (squiggles, dot completion)
-    - "go to" and renaming
+    - "go to", Find All References, and renaming
     - cref comments
     - UpgradeProject code fixer
-    - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/master/docs/contributing/IDE%20Test%20Plan.md)
+    - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/main/docs/contributing/IDE%20Test%20Plan.md)
 
 - Debugger / EE
     - Stepping, setting breakpoints
@@ -122,6 +137,8 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
 
 - Live Unit Testing (instrumentation)
 
+- Engage with VS Templates team (if applicable)
+
 # Eric's cheatsheet
 
 ## Statements 
@@ -129,7 +146,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
 { … }  
 ;   
 label : … 
-T x = whatever; 
+T x = whatever; // including `using` and `await` using variants
 M(); 
 ++x; 
 x++; 
@@ -141,7 +158,7 @@ switch(…) { … case (…) when (…): … }
 while(…) … 
 do … while(…); 
 for( … ; … ; … ) … 
-foreach(…) …
+foreach(…) … // including `await` variant
 fixed(…) … // (plain, or custom with `GetPinnableReference`)
 goto … ; 
 throw … ; 
@@ -150,7 +167,7 @@ try  { … } catch (…) when (…) { … } finally { … }
 checked { … } 
 unchecked { … } 
 lock(…) … 
-using (…) … 
+using (…) … // including `await` variant
 yield return …; 
 yield break; 
 break; 
@@ -196,13 +213,14 @@ A variable is a storage location. These are all the different ways to refer to a
 
 ## Operators 
 
-```
+``` c#
 x.y 
 f( ) 
 a[e] 
 x++ 
 x-- 
 new X() 
+new() 
 typeof(T) 
 default(T)
 default 
@@ -213,6 +231,7 @@ delegate ( ) { }
 -x 
 !x 
 ~x 
+^x
 ++x 
 --x 
 (X)x 
@@ -237,7 +256,7 @@ x | y
 x && y 
 x || y 
 x ?? y 
-x ? : y : z 
+x ? : y : z
 x = y 
 x *= y 
 x /= y 
@@ -256,11 +275,12 @@ sizeof( )
 & x 
 x->y 
 e is pattern
-await x 
+e switch { ... }
+await x
 __arglist( ) 
 __refvalue( x, X ) 
-__reftype( x ) 
-__makeref( x ) 
+__reftype( x )
+__makeref( x )
 ```
 
 ## Explicit conversions 
@@ -299,37 +319,53 @@ __makeref( x )
 - Interpolated string
 - Tuple literal
 - Tuple
+- Default literal
+- Implicit object creation (target-typed new)
+- Function type (in type inference comparing function types of lambdas or method groups)
 
 ## Types 
-  
-- Class 
+
+- Class
 - Interface 
 - Delegate 
 - Struct 
-- Enum 
+- Enum
 - Nullable 
-- Pointer 
-- Type parameter 
-  
+- Pointer
+- Type parameter
+
 ## Members
-  
-- Class 
-- Struct 
+
+- Class
+- Struct
 - Interface 
-- Enum 
-- Delegate 
+- Enum
+- Delegate
 - Namespace 
 - Property 
-- Event 
+- Event
 - Constructor 
 - Destructor 
-- Method 
+- Method
 - Interface method 
-- Field 
-- User-defined indexer 
-- User-defined operator 
-- User-defined conversion 
-  
+- Field
+- User-defined indexer
+- User-defined operator
+- User-defined conversion
+
+## Patterns
+- Discard Pattern
+- Var Pattern
+- Declaration Pattern
+- Constant Pattern
+- Recursive Pattern
+- Parenthesized Pattern
+- `and` Pattern
+- `or` Pattern
+- `not` Pattern
+- Relational Pattern
+- Type Pattern
+
 ## Metadata table numbers / token prefixes 
  
 If you look at a 32 bit integer token as a hex number, the first two digits identify the “table number” and the last six digits are an offset into that table. The table numbers are: 

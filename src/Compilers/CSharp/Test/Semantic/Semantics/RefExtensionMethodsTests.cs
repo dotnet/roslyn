@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -959,7 +963,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue(in this string p)
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -1003,7 +1007,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue(in this System.IComparable p)
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'IComparable' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'IComparable' could be found (are you missing a using directive or an assembly reference?)
@@ -1047,7 +1051,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue<T>(in this T p)
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -1091,7 +1095,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue<T>(in this T p) where T : struct
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'int' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
@@ -1135,7 +1139,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue<T>(in this T p) where T : class
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -1179,7 +1183,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue<T>(in this T p) where T : System.IComparable
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -2141,7 +2145,7 @@ public static class Ext
             Assert.True(parameter.IsNode);
 
             var model = comp.GetSemanticModel(tree);
-            var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
+            var symbol = (IParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
             Assert.Equal(RefKind.Ref, symbol.RefKind);
         }
 
@@ -2160,7 +2164,7 @@ public static class Ext
             Assert.True(parameter.IsNode);
 
             var model = comp.GetSemanticModel(tree);
-            var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
+            var symbol = (IParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
             Assert.Equal(RefKind.In, symbol.RefKind);
         }
 
@@ -2179,7 +2183,7 @@ public static class Ext
             Assert.True(parameter.IsNode);
 
             var model = comp.GetSemanticModel(tree);
-            var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
+            var symbol = (IParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
             Assert.Equal(RefKind.Ref, symbol.RefKind);
         }
 
@@ -2198,7 +2202,7 @@ public static class Ext
             Assert.True(parameter.IsNode);
 
             var model = comp.GetSemanticModel(tree);
-            var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
+            var symbol = (IParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
             Assert.Equal(RefKind.In, symbol.RefKind);
         }
 
@@ -2346,33 +2350,61 @@ public static class Program
             var code = @"
 public static class Ext
 {
-    public static void Print(in this int p)
-    {
-        System.Console.WriteLine(p);
-    }
+    public static void Print0(in this int p)
+        => System.Console.Write(p);
+    public static void Print1(this in int p)
+        => System.Console.Write(p);
+    public static void Print2(ref this int p)
+        => System.Console.Write(p);
+    public static void Print3(this ref int p)
+        => System.Console.Write(p);
 }
 public static class Program
 {
     public static void Main()
     {
         int p = 5;
-        p.Print();
+        p.Print0();
+        p.Print1();
+        p.Print2();
+        p.Print3();
     }
 }";
 
             CreateCompilationWithMscorlib40AndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
-                // (4,30): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
-                //     public static void Print(in this int p)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(4, 30),
-                // (4,30): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
-                //     public static void Print(in this int p)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("ref extension methods", "7.2").WithLocation(4, 30),
-                // (14,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
-                //         p.Print();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(14, 9)
-            );
+                // (4,31): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print0(in this int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(4, 31),
+                // (4,31): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print0(in this int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("ref extension methods", "7.2").WithLocation(4, 31),
+                // (6,31): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print1(this in int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "this").WithArguments("ref extension methods", "7.2").WithLocation(6, 31),
+                // (6,36): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print1(this in int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(6, 36),
+                // (8,31): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print2(ref this int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("ref extension methods", "7.2").WithLocation(8, 31),
+                // (10,31): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print3(this ref int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "this").WithArguments("ref extension methods", "7.2").WithLocation(10, 31),
+                // (18,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print0();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(18, 9),
+                // (19,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print1();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(19, 9),
+                // (20,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print2();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(20, 9),
+                // (21,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print3();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(21, 9)
+                );
 
-            CompileAndVerify(code, expectedOutput: "5");
+            CompileAndVerify(code, expectedOutput: "5555");
         }
 
         [Fact]

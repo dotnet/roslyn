@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Concurrent;
@@ -20,21 +24,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal ThisParameterSymbol(MethodSymbol forMethod) : this(forMethod, forMethod.ContainingType)
         {
         }
+
         internal ThisParameterSymbol(MethodSymbol forMethod, TypeSymbol containingType)
         {
             _containingMethod = forMethod;
             _containingType = containingType;
         }
 
-        public override string Name
-        {
-            get { return SymbolName; }
-        }
+        public override string Name => SymbolName;
 
-        public override TypeSymbolWithAnnotations Type
-        {
-            get { return TypeSymbolWithAnnotations.Create(_containingType, NullableAnnotation.NotAnnotated); }
-        }
+        public override bool IsDiscard => false;
+
+        public override TypeWithAnnotations TypeWithAnnotations
+            => TypeWithAnnotations.Create(_containingType, NullableAnnotation.NotAnnotated);
 
         public override RefKind RefKind
         {
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return RefKind.Out;
                 }
 
-                if (ContainingType.IsReadOnly)
+                if (_containingMethod?.IsEffectivelyReadOnly == true)
                 {
                     return RefKind.In;
                 }
@@ -114,9 +116,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return -1; }
+        }
+
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get { return FlowAnalysisAnnotations.None; }
+        }
+
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get { return ImmutableHashSet<string>.Empty; }
         }
 
         public override int Ordinal
@@ -155,5 +167,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return null; }
         }
+
+        public override bool IsNullChecked => false;
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => false;
     }
 }

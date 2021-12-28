@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -11,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents either a namespace or a type.
     /// </summary>
-    internal abstract class NamespaceOrTypeSymbol : Symbol, INamespaceOrTypeSymbol
+    internal abstract class NamespaceOrTypeSymbol : Symbol, INamespaceOrTypeSymbolInternal
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -160,14 +164,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // default implementation does a post-filter. We can override this if its a performance burden, but 
             // experience is that it won't be.
-            return GetTypeMembers(name).WhereAsArray(t => t.Arity == arity);
+            return GetTypeMembers(name).WhereAsArray((t, arity) => t.Arity == arity, arity);
         }
 
         /// <summary>
         /// Get a source type symbol for the given declaration syntax.
         /// </summary>
         /// <returns>Null if there is no matching declaration.</returns>
-        internal SourceNamedTypeSymbol GetSourceTypeMember(TypeDeclarationSyntax syntax)
+        internal SourceNamedTypeSymbol? GetSourceTypeMember(TypeDeclarationSyntax syntax)
         {
             return GetSourceTypeMember(syntax.Identifier.ValueText, syntax.Arity, syntax.Kind(), syntax);
         }
@@ -176,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Get a source type symbol for the given declaration syntax.
         /// </summary>
         /// <returns>Null if there is no matching declaration.</returns>
-        internal SourceNamedTypeSymbol GetSourceTypeMember(DelegateDeclarationSyntax syntax)
+        internal SourceNamedTypeSymbol? GetSourceTypeMember(DelegateDeclarationSyntax syntax)
         {
             return GetSourceTypeMember(syntax.Identifier.ValueText, syntax.Arity, syntax.Kind(), syntax);
         }
@@ -186,30 +190,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// to those that are declared within the given syntax.
         /// </summary>
         /// <returns>Null if there is no matching declaration.</returns>
-        internal SourceNamedTypeSymbol GetSourceTypeMember(
+        internal SourceNamedTypeSymbol? GetSourceTypeMember(
             string name,
             int arity,
             SyntaxKind kind,
             CSharpSyntaxNode syntax)
         {
-            Debug.Assert(
-                kind == SyntaxKind.ClassDeclaration ||
-                kind == SyntaxKind.StructDeclaration ||
-                kind == SyntaxKind.InterfaceDeclaration ||
-                kind == SyntaxKind.EnumDeclaration ||
-                kind == SyntaxKind.DelegateDeclaration);
-
             TypeKind typeKind = kind.ToDeclarationKind().ToTypeKind();
 
             foreach (var member in GetTypeMembers(name, arity))
             {
                 var memberT = member as SourceNamedTypeSymbol;
-                if ((object)memberT != null && memberT.TypeKind == typeKind)
+                if ((object?)memberT != null && memberT.TypeKind == typeKind)
                 {
                     if (syntax != null)
                     {
-                        foreach (var loc in memberT.Locations)
+                        // PERF: Avoid accessing Locations for performance, but assert that the alternative approach is
+                        // equivalent.
+                        Debug.Assert(memberT.MergedDeclaration.Declarations.SelectAsArray(decl => decl.NameLocation).SequenceEqual(memberT.Locations));
+                        foreach (var declaration in memberT.MergedDeclaration.Declarations)
                         {
+                            var loc = declaration.NameLocation;
                             if (loc.IsInSource && loc.SourceTree == syntax.SyntaxTree && syntax.Span.Contains(loc.SourceSpan))
                             {
                                 return memberT;
@@ -248,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)scope, ref emittedTypeName);
             }
 
-            NamedTypeSymbol namedType = null;
+            NamedTypeSymbol? namedType = null;
 
             ImmutableArray<NamedTypeSymbol> namespaceOrTypeMembers;
             bool isTopLevel = scope.IsNamespace;
@@ -268,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (emittedTypeName.InferredArity == named.Arity && named.MangleName)
                         {
-                            if ((object)namedType != null)
+                            if ((object?)namedType != null)
                             {
                                 namedType = null;
                                 break;
@@ -314,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!named.MangleName && (forcedArity == -1 || forcedArity == named.Arity))
                 {
-                    if ((object)namedType != null)
+                    if ((object?)namedType != null)
                     {
                         namedType = null;
                         break;
@@ -325,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
 Done:
-            if ((object)namedType == null)
+            if ((object?)namedType == null)
             {
                 if (isTopLevel)
                 {
@@ -351,10 +352,10 @@ Done:
         /// <remarks>
         /// "C.D" matches C.D, C{T}.D, C{S,T}.D{U}, etc.
         /// </remarks>
-        internal IEnumerable<NamespaceOrTypeSymbol> GetNamespaceOrTypeByQualifiedName(IEnumerable<string> qualifiedName)
+        internal IEnumerable<NamespaceOrTypeSymbol>? GetNamespaceOrTypeByQualifiedName(IEnumerable<string> qualifiedName)
         {
             NamespaceOrTypeSymbol namespaceOrType = this;
-            IEnumerable<NamespaceOrTypeSymbol> symbols = null;
+            IEnumerable<NamespaceOrTypeSymbol>? symbols = null;
             foreach (string name in qualifiedName)
             {
                 if (symbols != null)
@@ -372,34 +373,5 @@ Done:
 
             return symbols;
         }
-
-        #region INamespaceOrTypeSymbol Members
-
-        ImmutableArray<ISymbol> INamespaceOrTypeSymbol.GetMembers()
-        {
-            return StaticCast<ISymbol>.From(this.GetMembers());
-        }
-
-        ImmutableArray<ISymbol> INamespaceOrTypeSymbol.GetMembers(string name)
-        {
-            return StaticCast<ISymbol>.From(this.GetMembers(name));
-        }
-
-        ImmutableArray<INamedTypeSymbol> INamespaceOrTypeSymbol.GetTypeMembers()
-        {
-            return StaticCast<INamedTypeSymbol>.From(this.GetTypeMembers());
-        }
-
-        ImmutableArray<INamedTypeSymbol> INamespaceOrTypeSymbol.GetTypeMembers(string name)
-        {
-            return StaticCast<INamedTypeSymbol>.From(this.GetTypeMembers(name));
-        }
-
-        ImmutableArray<INamedTypeSymbol> INamespaceOrTypeSymbol.GetTypeMembers(string name, int arity)
-        {
-            return StaticCast<INamedTypeSymbol>.From(this.GetTypeMembers(name, arity));
-        }
-
-        #endregion
     }
 }

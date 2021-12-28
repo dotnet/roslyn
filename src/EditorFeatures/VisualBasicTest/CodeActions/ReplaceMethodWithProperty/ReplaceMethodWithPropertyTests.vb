@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -809,6 +811,137 @@ End class",
     inherits system.type
 
     public overrides ReadOnly Property {|Warning:ArrayRank|} as integer
+        Get
+        End Get
+    End Property
+End class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestAtStartOfMethod() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    [||]Function GetGoo() As Integer
+    End Function
+end class",
+"class C
+    ReadOnly Property Goo As Integer
+        Get
+        End Get
+    End Property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestBeforeStartOfMethod_OnSameLine() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+[||]    Function GetGoo() As Integer
+    End Function
+end class",
+"class C
+    ReadOnly Property Goo As Integer
+        Get
+        End Get
+    End Property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestBeforeStartOfMethod_OnPreviousLine() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    [||]
+    Function GetGoo() As Integer
+    End Function
+end class",
+"class C
+
+    ReadOnly Property Goo As Integer
+        Get
+        End Get
+    End Property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestBeforeStartOfMethod_NotMultipleLinesPrior() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    [||]
+
+    Function GetGoo() As Integer
+    End Function
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestBeforeStartOfMethod_NotBeforeAttributes() As Task
+            Await TestInRegularAndScript1Async(
+"class C
+    [||]<A>
+    Function GetGoo() As Integer
+    End Function
+end class",
+"class C
+    <A>
+    ReadOnly Property Goo As Integer
+        Get
+        End Get
+    End Property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestBeforeStartOfMethod_NotBeforeComments() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    [||] ''' <summary/>
+    Function GetGoo() As Integer
+    End Function
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestBeforeStartOfMethod_NotInComment() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    ''' [||]<summary/>
+    Function GetGoo() As Integer
+    End Function
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        <WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")>
+        Public Async Function TestSameNameMemberAsProperty() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    Public Goo as integer
+    function [||]GetGoo() as integer
+    End function
+End class",
+"class C
+    Public Goo as integer
+    ReadOnly Property Goo1 as integer
+        Get
+        End Get
+    End Property
+End class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        <WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")>
+        Public Async Function TestSameNameMemberAsPropertyDifferentCase() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    Public goo as integer
+    function [||]GetGoo() as integer
+    End function
+End class",
+"class C
+    Public goo as integer
+    ReadOnly Property Goo1 as integer
         Get
         End Get
     End Property

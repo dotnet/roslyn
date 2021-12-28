@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly int ImplementingMethod;
         internal readonly int Index;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is MethodImplKey && Equals((MethodImplKey)obj);
         }
@@ -62,6 +65,8 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             public readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypes;
 
+            public readonly IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> SynthesizedDelegates;
+
             /// <summary>
             /// A map of the assembly identities of the baseline compilation to the identities of the original metadata AssemblyRefs.
             /// Only includes identities that differ between these two.
@@ -70,13 +75,19 @@ namespace Microsoft.CodeAnalysis.Emit
 
             public readonly object MetadataDecoder;
 
-            public MetadataSymbols(IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypes, object metadataDecoder, ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap)
+            public MetadataSymbols(
+                IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypes,
+                IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> synthesizedDelegates,
+                object metadataDecoder,
+                ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap)
             {
                 Debug.Assert(anonymousTypes != null);
+                Debug.Assert(synthesizedDelegates != null);
                 Debug.Assert(metadataDecoder != null);
                 Debug.Assert(assemblyReferenceIdentityMap != null);
 
                 this.AnonymousTypes = anonymousTypes;
+                this.SynthesizedDelegates = synthesizedDelegates;
                 this.MetadataDecoder = metadataDecoder;
                 this.AssemblyReferenceIdentityMap = assemblyReferenceIdentityMap;
             }
@@ -201,21 +212,25 @@ namespace Microsoft.CodeAnalysis.Emit
                 ordinal: 0,
                 encId: default,
                 hasPortablePdb: hasPortableDebugInformation,
+                generationOrdinals: new Dictionary<Cci.IDefinition, int>(),
                 typesAdded: new Dictionary<Cci.ITypeDefinition, int>(),
                 eventsAdded: new Dictionary<Cci.IEventDefinition, int>(),
                 fieldsAdded: new Dictionary<Cci.IFieldDefinition, int>(),
                 methodsAdded: new Dictionary<Cci.IMethodDefinition, int>(),
+                firstParamRowMap: new Dictionary<MethodDefinitionHandle, int>(),
                 propertiesAdded: new Dictionary<Cci.IPropertyDefinition, int>(),
                 eventMapAdded: new Dictionary<int, int>(),
                 propertyMapAdded: new Dictionary<int, int>(),
                 methodImplsAdded: new Dictionary<MethodImplKey, int>(),
+                customAttributesAdded: new Dictionary<EntityHandle, ImmutableArray<int>>(),
                 tableEntriesAdded: s_emptyTableSizes,
                 blobStreamLengthAdded: 0,
                 stringStreamLengthAdded: 0,
                 userStringStreamLengthAdded: 0,
                 guidStreamLengthAdded: 0,
                 anonymousTypeMap: null, // Unset for initial metadata
-                synthesizedMembers: ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>>.Empty,
+                synthesizedDelegates: null, // Unset for initial metadata
+                synthesizedMembers: ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
                 methodsAddedOrChanged: new Dictionary<int, AddedOrChangedMethodInfo>(),
                 debugInformationProvider: debugInformationProvider,
                 localSignatureProvider: localSignatureProvider,
@@ -232,10 +247,10 @@ namespace Microsoft.CodeAnalysis.Emit
         public ModuleMetadata OriginalMetadata { get; }
 
         // Symbols hydrated from the original metadata. Lazy since we don't know the language at the time the baseline is constructed.
-        internal MetadataSymbols LazyMetadataSymbols;
+        internal MetadataSymbols? LazyMetadataSymbols;
 
-        internal readonly Compilation Compilation;
-        internal readonly CommonPEModuleBuilder PEModuleBuilder;
+        internal readonly Compilation? Compilation;
+        internal readonly CommonPEModuleBuilder? PEModuleBuilder;
         internal readonly Guid ModuleVersionId;
         internal readonly bool HasPortablePdb;
 
@@ -251,14 +266,21 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         internal readonly Guid EncId;
 
+        /// <summary>
+        /// The latest generation number of each symbol added via <see cref="SemanticEditKind.Replace"/> edit.
+        /// </summary>
+        internal readonly IReadOnlyDictionary<Cci.IDefinition, int> GenerationOrdinals;
+
         internal readonly IReadOnlyDictionary<Cci.ITypeDefinition, int> TypesAdded;
         internal readonly IReadOnlyDictionary<Cci.IEventDefinition, int> EventsAdded;
         internal readonly IReadOnlyDictionary<Cci.IFieldDefinition, int> FieldsAdded;
         internal readonly IReadOnlyDictionary<Cci.IMethodDefinition, int> MethodsAdded;
+        internal readonly IReadOnlyDictionary<MethodDefinitionHandle, int> FirstParamRowMap;
         internal readonly IReadOnlyDictionary<Cci.IPropertyDefinition, int> PropertiesAdded;
         internal readonly IReadOnlyDictionary<int, int> EventMapAdded;
         internal readonly IReadOnlyDictionary<int, int> PropertyMapAdded;
         internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImplsAdded;
+        internal readonly IReadOnlyDictionary<EntityHandle, ImmutableArray<int>> CustomAttributesAdded;
 
         internal readonly ImmutableArray<int> TableEntriesAdded;
 
@@ -294,33 +316,38 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<int, int> TypeToEventMap;
         internal readonly IReadOnlyDictionary<int, int> TypeToPropertyMap;
         internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImpls;
-        private readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> _anonymousTypeMap;
-        internal readonly ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> SynthesizedMembers;
+        private readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue>? _anonymousTypeMap;
+        private readonly IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>? _synthesizedDelegates;
+        internal readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> SynthesizedMembers;
 
         private EmitBaseline(
-            EmitBaseline initialBaseline,
+            EmitBaseline? initialBaseline,
             ModuleMetadata module,
-            Compilation compilation,
-            CommonPEModuleBuilder moduleBuilder,
+            Compilation? compilation,
+            CommonPEModuleBuilder? moduleBuilder,
             Guid moduleVersionId,
             int ordinal,
             Guid encId,
             bool hasPortablePdb,
+            IReadOnlyDictionary<Cci.IDefinition, int> generationOrdinals,
             IReadOnlyDictionary<Cci.ITypeDefinition, int> typesAdded,
             IReadOnlyDictionary<Cci.IEventDefinition, int> eventsAdded,
             IReadOnlyDictionary<Cci.IFieldDefinition, int> fieldsAdded,
             IReadOnlyDictionary<Cci.IMethodDefinition, int> methodsAdded,
+            IReadOnlyDictionary<MethodDefinitionHandle, int> firstParamRowMap,
             IReadOnlyDictionary<Cci.IPropertyDefinition, int> propertiesAdded,
             IReadOnlyDictionary<int, int> eventMapAdded,
             IReadOnlyDictionary<int, int> propertyMapAdded,
             IReadOnlyDictionary<MethodImplKey, int> methodImplsAdded,
+            IReadOnlyDictionary<EntityHandle, ImmutableArray<int>> customAttributesAdded,
             ImmutableArray<int> tableEntriesAdded,
             int blobStreamLengthAdded,
             int stringStreamLengthAdded,
             int userStringStreamLengthAdded,
             int guidStreamLengthAdded,
-            IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
-            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> synthesizedMembers,
+            IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue>? anonymousTypeMap,
+            IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>? synthesizedDelegates,
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> methodsAddedOrChanged,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
@@ -331,6 +358,8 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(module != null);
             Debug.Assert((ordinal == 0) == (encId == default));
             Debug.Assert((ordinal == 0) == (initialBaseline == null));
+            Debug.Assert((ordinal == 0) == (anonymousTypeMap == null));
+            Debug.Assert((ordinal == 0) == (synthesizedDelegates == null));
             Debug.Assert(encId != module.GetModuleVersionId());
             Debug.Assert(debugInformationProvider != null);
             Debug.Assert(localSignatureProvider != null);
@@ -365,20 +394,24 @@ namespace Microsoft.CodeAnalysis.Emit
             EncId = encId;
             HasPortablePdb = hasPortablePdb;
 
+            GenerationOrdinals = generationOrdinals;
             TypesAdded = typesAdded;
             EventsAdded = eventsAdded;
             FieldsAdded = fieldsAdded;
             MethodsAdded = methodsAdded;
+            FirstParamRowMap = firstParamRowMap;
             PropertiesAdded = propertiesAdded;
             EventMapAdded = eventMapAdded;
             PropertyMapAdded = propertyMapAdded;
             MethodImplsAdded = methodImplsAdded;
+            CustomAttributesAdded = customAttributesAdded;
             TableEntriesAdded = tableEntriesAdded;
             BlobStreamLengthAdded = blobStreamLengthAdded;
             StringStreamLengthAdded = stringStreamLengthAdded;
             UserStringStreamLengthAdded = userStringStreamLengthAdded;
             GuidStreamLengthAdded = guidStreamLengthAdded;
             _anonymousTypeMap = anonymousTypeMap;
+            _synthesizedDelegates = synthesizedDelegates;
             SynthesizedMembers = synthesizedMembers;
             AddedOrChangedMethods = methodsAddedOrChanged;
 
@@ -395,27 +428,34 @@ namespace Microsoft.CodeAnalysis.Emit
             CommonPEModuleBuilder moduleBuilder,
             int ordinal,
             Guid encId,
+            IReadOnlyDictionary<Cci.IDefinition, int> generationOrdinals,
             IReadOnlyDictionary<Cci.ITypeDefinition, int> typesAdded,
             IReadOnlyDictionary<Cci.IEventDefinition, int> eventsAdded,
             IReadOnlyDictionary<Cci.IFieldDefinition, int> fieldsAdded,
             IReadOnlyDictionary<Cci.IMethodDefinition, int> methodsAdded,
+            IReadOnlyDictionary<MethodDefinitionHandle, int> firstParamRowMap,
             IReadOnlyDictionary<Cci.IPropertyDefinition, int> propertiesAdded,
             IReadOnlyDictionary<int, int> eventMapAdded,
             IReadOnlyDictionary<int, int> propertyMapAdded,
             IReadOnlyDictionary<MethodImplKey, int> methodImplsAdded,
+            IReadOnlyDictionary<EntityHandle, ImmutableArray<int>> customAttributesAdded,
             ImmutableArray<int> tableEntriesAdded,
             int blobStreamLengthAdded,
             int stringStreamLengthAdded,
             int userStringStreamLengthAdded,
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
-            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> synthesizedMembers,
+            IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> synthesizedDelegates,
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> addedOrChangedMethods,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider)
         {
             Debug.Assert(_anonymousTypeMap == null || anonymousTypeMap != null);
             Debug.Assert(_anonymousTypeMap == null || anonymousTypeMap.Count >= _anonymousTypeMap.Count);
+
+            Debug.Assert(_synthesizedDelegates == null || synthesizedDelegates != null);
+            Debug.Assert(_synthesizedDelegates == null || synthesizedDelegates.Count >= _synthesizedDelegates.Count);
 
             return new EmitBaseline(
                 InitialBaseline,
@@ -426,20 +466,24 @@ namespace Microsoft.CodeAnalysis.Emit
                 ordinal,
                 encId,
                 HasPortablePdb,
+                generationOrdinals,
                 typesAdded,
                 eventsAdded,
                 fieldsAdded,
                 methodsAdded,
+                firstParamRowMap,
                 propertiesAdded,
                 eventMapAdded,
                 propertyMapAdded,
                 methodImplsAdded,
+                customAttributesAdded,
                 tableEntriesAdded,
                 blobStreamLengthAdded: blobStreamLengthAdded,
                 stringStreamLengthAdded: stringStreamLengthAdded,
                 userStringStreamLengthAdded: userStringStreamLengthAdded,
                 guidStreamLengthAdded: guidStreamLengthAdded,
                 anonymousTypeMap: anonymousTypeMap,
+                synthesizedDelegates: synthesizedDelegates,
                 synthesizedMembers: synthesizedMembers,
                 methodsAddedOrChanged: addedOrChangedMethods,
                 debugInformationProvider: debugInformationProvider,
@@ -455,11 +499,27 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 if (Ordinal > 0)
                 {
+                    Debug.Assert(_anonymousTypeMap is object);
                     return _anonymousTypeMap;
                 }
 
-                Debug.Assert(LazyMetadataSymbols != null);
+                RoslynDebug.AssertNotNull(LazyMetadataSymbols);
                 return LazyMetadataSymbols.AnonymousTypes;
+            }
+        }
+
+        internal IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> SynthesizedDelegates
+        {
+            get
+            {
+                if (Ordinal > 0)
+                {
+                    Debug.Assert(_synthesizedDelegates is not null);
+                    return _synthesizedDelegates;
+                }
+
+                RoslynDebug.AssertNotNull(LazyMetadataSymbols);
+                return LazyMetadataSymbols.SynthesizedDelegates;
             }
         }
 

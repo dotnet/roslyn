@@ -1,126 +1,129 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class GlobalKeywordRecommenderTests
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInClassDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "Global")
-        End Function
+        Public Sub NoneInClassDeclarationTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalInStatementTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalInStatementTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterReturnTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Return |</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterReturnTest()
+            VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterArgument1Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterArgument2Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar, |</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterBinaryExpressionTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar + |</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterNotTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(Not |</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterTypeOfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If TypeOf |</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterTypeOfTest()
+            VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterDoWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do While |</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterDoWhileTest()
+            VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterDoUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do Until |</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterDoUntilTest()
+            VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterLoopWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub GlobalAfterLoopWhileTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop While |</MethodBody>, "Global")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterLoopUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub GlobalAfterLoopUntilTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop Until |</MethodBody>, "Global")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If |</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterIfTest()
+            VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterElseIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>ElseIf |</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterElseIfTest()
+            VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterElseSpaceIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Else If |</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterElseSpaceIfTest()
+            VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterErrorTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Error |</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterErrorTest()
+            VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterThrowTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Throw |</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterThrowTest()
+            VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterInitializerTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = |</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterInitializerTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = |</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterArrayInitializerSquiggleTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {|</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterArrayInitializerSquiggleTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterArrayInitializerCommaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {0, |</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalAfterArrayInitializerCommaTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalNotAfterItselfTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Global.|</MethodBody>, "Global")
-        End Function
+        Public Sub GlobalNotAfterItselfTest()
+            VerifyRecommendationsMissing(<MethodBody>Global.|</MethodBody>, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalNotAfterImportsTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>Imports |</File>, "Global")
-        End Function
+        Public Sub GlobalNotAfterImportsTest()
+            VerifyRecommendationsMissing(<File>Imports |</File>, "Global")
+        End Sub
 
         <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotInDelegateCreationTest() As Task
+        Public Sub NotInDelegateCreationTest()
             Dim code =
 <File>
 Module Program
@@ -136,12 +139,11 @@ Module Program
 End Module
 </File>
 
-
-            Await VerifyRecommendationsMissingAsync(code, "Global")
-        End Function
+            VerifyRecommendationsMissing(code, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterInheritsTest() As Task
+        Public Sub GlobalAfterInheritsTest()
             Dim code =
 <File>
 Class C
@@ -149,11 +151,11 @@ Class C
 End Class
 </File>
 
-            Await VerifyRecommendationsContainAsync(code, "Global")
-        End Function
+            VerifyRecommendationsContain(code, "Global")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GlobalAfterImplementsTest() As Task
+        Public Sub GlobalAfterImplementsTest()
             Dim code =
 <File>
 Class C
@@ -161,7 +163,7 @@ Class C
 End Class
 </File>
 
-            Await VerifyRecommendationsContainAsync(code, "Global")
-        End Function
+            VerifyRecommendationsContain(code, "Global")
+        End Sub
     End Class
 End Namespace

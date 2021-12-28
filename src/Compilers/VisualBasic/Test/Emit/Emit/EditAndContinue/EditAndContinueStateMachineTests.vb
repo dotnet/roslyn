@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata.Ecma335
@@ -909,7 +911,8 @@ End Class
                 Using md1 = diff1.GetMetadata()
                     CheckEncLogDefinitions(md1.Reader,
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
             End Using
         End Sub
@@ -956,7 +959,9 @@ End Class
                 Using md1 = diff1.GetMetadata()
                     CheckEncLogDefinitions(md1.Reader,
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
             End Using
         End Sub
@@ -1036,15 +1041,18 @@ End Class
                         Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(22, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(23, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(24, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(25, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(26, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(27, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                        Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
             End Using
         End Sub
@@ -1099,9 +1107,9 @@ End Class
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
@@ -1248,9 +1256,9 @@ End Class
                         Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
@@ -1498,9 +1506,10 @@ End Class
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                        Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
@@ -1612,9 +1621,10 @@ End Class
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                        Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
@@ -1729,9 +1739,10 @@ End Class
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                        Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
@@ -1842,9 +1853,9 @@ End Class
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
@@ -1985,9 +1996,9 @@ End Class
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
@@ -2132,9 +2143,10 @@ End Class
                         Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                        Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
@@ -2294,9 +2306,10 @@ End Class
                         Row(7, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                        Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
@@ -2459,9 +2472,10 @@ End Class
                         Row(7, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                        Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
@@ -2620,9 +2634,9 @@ End Class
                         Row(6, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
@@ -2928,12 +2942,12 @@ End Class
                     Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(22, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(23, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(24, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                    Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
 
             diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
@@ -3046,9 +3060,9 @@ End Class
                     Row(21, TableIndex.Field, EditAndContinueOperation.Default),
                     Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(25, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(26, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(27, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                    Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
 
             diff2.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
@@ -3165,12 +3179,12 @@ End Class
                     Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(28, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(29, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(30, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(31, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(32, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(33, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                    Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
 
         End Sub
 
@@ -3442,12 +3456,12 @@ End Class
                     Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(22, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(23, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(24, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                    Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
 
             diff1.VerifyIL("C.VB$StateMachine_4_F.MoveNext()", "
 {
@@ -3601,9 +3615,9 @@ End Class
                     Row(15, TableIndex.Field, EditAndContinueOperation.Default),
                     Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(25, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(26, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(27, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                    Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
 
             diff2.VerifyIL("C.VB$StateMachine_4_F.MoveNext()", "
 {
@@ -3763,12 +3777,12 @@ End Class
                     Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(28, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(29, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(30, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(31, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(32, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(33, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                    Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
         End Sub
 
         <Fact>
@@ -4353,7 +4367,7 @@ End Class
                     New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
             diff1.VerifySynthesizedMembers(
-                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C: {VB$StateMachine_1_F, _Closure$__}",
                 "C._Closure$__: {$I1-0, _Lambda$__1-0}",
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $VB$ResumableLocal_y$1, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
 
@@ -4366,7 +4380,7 @@ End Class
             ' Synthesized members collection still includes y field since members are only added to it and never deleted.
             ' The corresponding CLR field is also present.
             diff2.VerifySynthesizedMembers(
-                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C: {VB$StateMachine_1_F, _Closure$__}",
                 "C._Closure$__: {$I1-0, _Lambda$__1-0}",
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_y$1}")
 
@@ -4377,7 +4391,7 @@ End Class
                     New SemanticEdit(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables:=True)))
 
             diff3.VerifySynthesizedMembers(
-                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C: {VB$StateMachine_1_F, _Closure$__}",
                 "C._Closure$__: {$I1-0, _Lambda$__1-0}",
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $VB$ResumableLocal_y$2, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_y$1}")
 
@@ -4388,7 +4402,7 @@ End Class
                     New SemanticEdit(SemanticEditKind.Update, f3, f4, GetSyntaxMapFromMarkers(source3, source4), preserveLocalVariables:=True)))
 
             diff4.VerifySynthesizedMembers(
-                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C: {VB$StateMachine_1_F, _Closure$__}",
                 "C._Closure$__: {$I1-0, _Lambda$__1-0}",
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_y$2, $VB$ResumableLocal_y$1}")
 
@@ -4399,7 +4413,7 @@ End Class
                     New SemanticEdit(SemanticEditKind.Update, f4, f5, GetSyntaxMapFromMarkers(source4, source5), preserveLocalVariables:=True)))
 
             diff5.VerifySynthesizedMembers(
-                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C: {VB$StateMachine_1_F, _Closure$__}",
                 "C._Closure$__: {$I1-0, _Lambda$__1-0}",
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $VB$ResumableLocal_y$3, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_y$2, $VB$ResumableLocal_y$1}")
         End Sub
@@ -4698,7 +4712,7 @@ Class C
     End Function
 End Class
 ")
-            Dim compilation0 = CompilationUtils.CreateEmptyCompilation({source0.Tree}, {TestReferences.NetFx.v4_0_30319_17626.mscorlib}, options:=ComSafeDebugDll)
+            Dim compilation0 = CompilationUtils.CreateEmptyCompilation({source0.Tree}, {TestMetadata.Net451.mscorlib}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor))

@@ -12,6 +12,11 @@
         <target state="translated">Quitar espacios de nombres no necesarios</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_Namespaces">
+        <source>&amp;Sort Namespaces</source>
+        <target state="translated">Orde&amp;nar espacios de nombres</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

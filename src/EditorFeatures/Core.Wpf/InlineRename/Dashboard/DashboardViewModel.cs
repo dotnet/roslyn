@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
@@ -27,7 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly bool _isRenameOverloadsEditable;
         private bool _defaultRenameInStringsFlag;
         private bool _defaultRenameInCommentsFlag;
+        private bool _defaultRenameFileFlag;
         private bool _defaultPreviewChangesFlag;
+        private bool _isReplacementTextValid;
 
         public DashboardViewModel(InlineRenameSession session)
         {
@@ -46,16 +51,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             _session.ReplacementsComputed += OnReplacementsComputed;
             _session.ReplacementTextChanged += OnReplacementTextChanged;
+
+            // Set the flag to true by default if we're showing the option.
+            _isReplacementTextValid = true;
+            ComputeDefaultRenameFileFlag();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void OnReferenceLocationsChanged(object sender, ImmutableArray<InlineRenameLocation> renameLocations)
         {
-            int totalFilesCount = renameLocations.GroupBy(s => s.Document).Count();
-            int totalSpansCount = renameLocations.Length;
+            var totalFilesCount = renameLocations.GroupBy(s => s.Document).Count();
+            var totalSpansCount = renameLocations.Length;
 
             UpdateSearchText(totalSpansCount, totalFilesCount);
+        }
+
+        private void OnIsReplacementTextValidChanged(bool isReplacementTextValid)
+        {
+            if (isReplacementTextValid == _isReplacementTextValid)
+            {
+                return;
+            }
+
+            _isReplacementTextValid = isReplacementTextValid;
+            ComputeDefaultRenameFileFlag();
+            NotifyPropertyChanged(nameof(AllowFileRename));
+        }
+
+        private void ComputeDefaultRenameFileFlag()
+        {
+            // If replacementText is invalid, we won't rename the file.
+            DefaultRenameFileFlag = _isReplacementTextValid
+                && (_session.OptionSet.GetOption(RenameOptions.RenameFile) || AllowFileRename);
         }
 
         private void OnReplacementsComputed(object sender, IInlineRenameReplacementInfo result)
@@ -63,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var session = (InlineRenameSession)sender;
             _resolvableConflictCount = 0;
             _unresolvableConflictCount = 0;
-
+            OnIsReplacementTextValidChanged(result.ReplacementTextValid);
             if (result.ReplacementTextValid)
             {
                 _errorText = null;
@@ -103,14 +131,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string name = null)
-        {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+            => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         private void AllPropertiesChanged()
-        {
-            NotifyPropertyChanged(string.Empty);
-        }
+            => NotifyPropertyChanged(string.Empty);
 
         private void UpdateSearchText(int referenceCount, int fileCount)
         {
@@ -150,6 +174,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public InlineRenameSession Session => _session;
 
         public DashboardSeverity Severity => _severity;
+
+        public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
+        public bool ShowFileRename => _session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
+        public string FileRenameString => _session.FileRenameInfo switch
+        {
+            InlineRenameFileRenameInfo.TypeDoesNotMatchFileName => EditorFeaturesResources.Rename_file_name_doesnt_match,
+            InlineRenameFileRenameInfo.TypeWithMultipleLocations => EditorFeaturesResources.Rename_file_partial_type,
+            _ => EditorFeaturesResources.Rename_symbols_file
+        };
 
         public string HeaderText
         {
@@ -271,6 +304,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
+        public bool DefaultRenameFileFlag
+        {
+            get => _defaultRenameFileFlag;
+            set
+            {
+                _defaultRenameFileFlag = value;
+                _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameFile, value);
+            }
+        }
+
         public bool DefaultPreviewChangesFlag
         {
             get
@@ -284,6 +327,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.PreviewChanges, value);
             }
         }
+
+        public string OriginalName => _session.OriginalSymbolName;
 
         public void Dispose()
         {

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Runtime.CompilerServices;
 
@@ -7,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationFieldInfo
     {
         private static readonly ConditionalWeakTable<IFieldSymbol, CodeGenerationFieldInfo> s_fieldToInfoMap =
-            new ConditionalWeakTable<IFieldSymbol, CodeGenerationFieldInfo>();
+            new();
 
         private readonly bool _isUnsafe;
         private readonly bool _isWithEvents;
@@ -40,33 +44,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         private static bool GetIsUnsafe(CodeGenerationFieldInfo info)
-        {
-            return info != null && info._isUnsafe;
-        }
+            => info != null && info._isUnsafe;
 
         public static bool GetIsUnsafe(IFieldSymbol field)
-        {
-            return GetIsUnsafe(GetInfo(field));
-        }
+            => GetIsUnsafe(GetInfo(field));
 
         private static bool GetIsWithEvents(CodeGenerationFieldInfo info)
-        {
-            return info != null && info._isWithEvents;
-        }
+            => info != null && info._isWithEvents;
 
         public static bool GetIsWithEvents(IFieldSymbol field)
-        {
-            return GetIsWithEvents(GetInfo(field));
-        }
+            => GetIsWithEvents(GetInfo(field));
 
         private static SyntaxNode GetInitializer(CodeGenerationFieldInfo info)
-        {
-            return info == null ? null : info._initializer;
-        }
+            => info?._initializer;
 
         public static SyntaxNode GetInitializer(IFieldSymbol field)
-        {
-            return GetInitializer(GetInfo(field));
-        }
+            => GetInitializer(GetInfo(field));
     }
 }

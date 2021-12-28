@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -123,6 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New()
         End Sub
 
+        <DebuggerHidden>
         Public Overridable Function Visit(node As BoundNode) As BoundNode
             If node IsNot Nothing Then
                 Return node.Accept(Me)
@@ -131,6 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
+        <DebuggerHidden>
         Public Overridable Function DefaultVisit(node As BoundNode) As BoundNode
             Return Nothing
         End Function
@@ -150,6 +154,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression, GetTooLongOrComplexExpressionErrorLocation(Node))
             End Sub
 
+            Public Sub AddAnError(diagnostics As BindingDiagnosticBag)
+                diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression, GetTooLongOrComplexExpressionErrorLocation(Node))
+            End Sub
+
             Public Shared Function GetTooLongOrComplexExpressionErrorLocation(node As BoundNode) As Location
                 Dim syntax As SyntaxNode = node.Syntax
 
@@ -164,6 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Consumers must provide implementation for <see cref="VisitExpressionWithoutStackGuard"/>.
         ''' </summary>
+        <DebuggerStepThrough>
         Protected Function VisitExpressionWithStackGuard(ByRef recursionDepth As Integer, node As BoundExpression) As BoundExpression
             Dim result As BoundExpression
             recursionDepth += 1
@@ -190,6 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
+        <DebuggerStepThrough>
         Private Function VisitExpressionWithStackGuard(node As BoundExpression) As BoundExpression
             Try
                 Return VisitExpressionWithoutStackGuard(node)

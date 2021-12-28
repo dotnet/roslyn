@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -22,7 +26,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
     {
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        public async sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var parentMethod = root.FindNode(context.Span).FirstAncestorOrSelf<TMemberDeclarationSyntax>();
@@ -174,7 +178,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_missing_param_nodes, createChangedDocument)
+                : base(FeaturesResources.Add_missing_param_nodes, createChangedDocument, nameof(FeaturesResources.Add_missing_param_nodes))
             {
             }
         }

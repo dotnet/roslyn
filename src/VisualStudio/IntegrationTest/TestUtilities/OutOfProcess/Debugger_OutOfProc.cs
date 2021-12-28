@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Xunit;
@@ -24,9 +26,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetBreakPoint(string fileName, string text, int charsOffset = 0)
         {
+            _instance.Editor.Activate();
             _instance.Editor.SelectTextInCurrentDocument(text);
-            int lineNumber = _instance.Editor.GetLine();
-            int columnIndex = _instance.Editor.GetColumn();
+            var lineNumber = _instance.Editor.GetLine();
+            var columnIndex = _instance.Editor.GetColumn();
 
             SetBreakPoint(fileName, lineNumber, columnIndex + charsOffset);
         }

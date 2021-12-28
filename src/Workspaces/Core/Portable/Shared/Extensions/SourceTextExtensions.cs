@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -140,8 +142,37 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool Match(char normalizedLeft, char right, bool caseSensitive)
+            => caseSensitive ? normalizedLeft == right : normalizedLeft == CaseInsensitiveComparison.ToLower(right);
+
+        public static bool ContentEquals(this SourceText text, int position, string value)
         {
-            return caseSensitive ? normalizedLeft == right : normalizedLeft == CaseInsensitiveComparison.ToLower(right);
+            if (position + value.Length > text.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < value.Length; i++)
+            {
+                if (text[position + i] != value[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public static int IndexOfNonWhiteSpace(this SourceText text, int start, int length)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                if (!char.IsWhiteSpace(text[start + i]))
+                {
+                    return start + i;
+                }
+            }
+
+            return -1;
         }
 
         // 32KB. comes from SourceText char buffer size and less than large object size
@@ -210,12 +241,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding encoding, CancellationToken cancellationToken)
+        public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding? encoding, CancellationToken cancellationToken)
         {
-            using (var textReader = ObjectReaderTextReader.Create(reader))
-            {
-                return textService.CreateText(textReader, encoding, cancellationToken);
-            }
+            using var textReader = ObjectReaderTextReader.Create(reader);
+
+            return textService.CreateText(textReader, encoding, cancellationToken);
         }
 
         private class ObjectReaderTextReader : TextReaderWithLength
@@ -253,8 +283,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return new ObjectReaderTextReader(builder.ToImmutable(), chunkSize, length);
             }
 
-            private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length) :
-                base(length)
+            private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length)
+                : base(length)
             {
                 _chunks = chunks;
                 _chunkSize = chunkSize;
@@ -304,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 // adjust to actual char to read
-                var totalCharsToRead = Math.Min(count, (int)(Length - _position));
+                var totalCharsToRead = Math.Min(count, Length - _position);
                 count = totalCharsToRead;
 
                 var chunkIndex = GetIndexFromPosition(_position);

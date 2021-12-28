@@ -1,0 +1,392 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../AnalyzersResources.resx">
+    <body>
+      <trans-unit id="A_source_file_contains_a_header_that_does_not_match_the_required_text">
+        <source>A source file contains a header that does not match the required text</source>
+        <target state="translated">來源檔案包含的標頭與必要文字不相符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_source_file_is_missing_a_required_header">
+        <source>A source file is missing a required header.</source>
+        <target state="translated">來源檔案缺少必要標頭。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Accessibility_modifiers_required">
+        <source>Accessibility modifiers required</source>
+        <target state="translated">協助工具修飾元為必要項</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_accessibility_modifiers">
+        <source>Add accessibility modifiers</source>
+        <target state="translated">新增協助工具修飾元</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parentheses_for_clarity">
+        <source>Add parentheses for clarity</source>
+        <target state="translated">新增括號以明確表示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_readonly_modifier">
+        <source>Add readonly modifier</source>
+        <target state="translated">新增唯讀修飾元</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_this_or_Me_qualification">
+        <source>Add 'this' or 'Me' qualification.</source>
+        <target state="translated">新增 'this' 或 'Me' 限定性條件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">
+        <source>Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</source>
+        <target state="translated">避免在 'SuppressMessageAttribute' 中使用舊版格式目標 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_legacy_format_target_in_SuppressMessageAttribute">
+        <source>Avoid legacy format target in 'SuppressMessageAttribute'</source>
+        <target state="translated">避免在 'SuppressMessageAttribute' 中使用舊版格式目標</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_multiple_blank_lines">
+        <source>Avoid multiple blank lines</source>
+        <target state="translated">避免多個空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
+        <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
+        <target state="translated">請避免在您的程式碼中指派非必要的值，因為這可能表示值會重複計算。如果值未重複計算，而且您想要保留指派，請將指派目標變更為名稱以底線開頭的區域變數，並可選擇在後面接著整數，例如 '_'、'_1'、'_2' 等。這些會視為特殊的捨棄符號名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
+        <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
+        <target state="translated">請避免在您的程式碼中使用參數。如果無法移除參數，請變更其名稱，使其以底線開頭，並可選擇在後面接著整數，例如 '_'、'_1'、'_2' 等。這些會視為特殊的捨棄符號名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
+        <source>Blank line required between block and subsequent statement</source>
+        <target state="translated">區塊與後續陳述式之間必須有空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_namespace_to_match_folder_structure">
+        <source>Change namespace to match folder structure</source>
+        <target state="translated">變更 namespace 以符合資料夾結構</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
+        <source>Changes to expression trees may result in behavior changes at runtime</source>
+        <target state="translated">變更運算式樹狀架構可能會導致執行階段的行為變更</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="translated">條件運算式可加以簡化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_conditional_expression">
+        <source>Convert to conditional expression</source>
+        <target state="translated">轉換至條件運算式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_value_is_never_used">
+        <source>Expression value is never used</source>
+        <target state="translated">永遠不會使用運算式值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collection_initialization_can_be_simplified">
+        <source>Collection initialization can be simplified</source>
+        <target state="translated">集合初始化可簡化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_string_contains_invalid_placeholder">
+        <source>Format string contains invalid placeholder</source>
+        <target state="translated">格式字串包含無效的預留位置</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="translated">'GetHashCode' 實作可簡化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interpolation_can_be_simplified">
+        <source>Interpolation can be simplified</source>
+        <target state="translated">可簡化內插補點</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_format_string">
+        <source>Invalid format string</source>
+        <target state="translated">格式字串無效</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_global_SuppressMessageAttribute">
+        <source>Invalid global 'SuppressMessageAttribute'</source>
+        <target state="translated">全域 'SuppressMessageAttribute' 無效</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_or_missing_target_for_SuppressMessageAttribute">
+        <source>Invalid or missing target for 'SuppressMessageAttribute'</source>
+        <target state="translated">'SuppressMessageAttribute' 缺少目標或其無效</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_scope_for_SuppressMessageAttribute">
+        <source>Invalid scope for 'SuppressMessageAttribute'</source>
+        <target state="translated">'SuppressMessageAttribute' 的範圍無效</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_field_readonly">
+        <source>Make field readonly</source>
+        <target state="translated">使欄位唯讀</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Member_access_should_be_qualified">
+        <source>Member access should be qualified.</source>
+        <target state="translated">必須限定成員存取。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_cases">
+        <source>Add missing cases</source>
+        <target state="translated">新增遺漏的案例</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Member_name_can_be_simplified">
+        <source>Member name can be simplified</source>
+        <target state="translated">成員名稱可簡化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifiers_are_not_ordered">
+        <source>Modifiers are not ordered</source>
+        <target state="translated">修飾元未排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
+        <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
+        <target state="translated">命名空間 "{0}" 與資料夾結構不相符，必須為 "{1}"</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Namespace_does_not_match_folder_structure">
+        <source>Namespace does not match folder structure</source>
+        <target state="translated">命名空間與資料夾結構不相符</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Naming_Styles">
+        <source>Naming Styles</source>
+        <target state="translated">命名樣式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_rule_violation_0">
+        <source>Naming rule violation: {0}</source>
+        <target state="translated">違反命名規則: {0}</target>
+        <note>{0} is the rule title, {1} is the way in which the rule was violated</note>
+      </trans-unit>
+      <trans-unit id="Null_check_can_be_simplified">
+        <source>Null check can be simplified</source>
+        <target state="translated">Null 檢查可簡化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Order_modifiers">
+        <source>Order modifiers</source>
+        <target state="translated">為修飾元排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</source>
+        <target state="translated">若參數 '{0}' 不屬於已經出貨的公用 API，將無法移除; 其初始值一律不會使用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed; its initial value is never used</source>
+        <target state="translated">參數 '{0}' 可以移除; 其初始值一律不會使用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Object_initialization_can_be_simplified">
+        <source>Object initialization can be simplified</source>
+        <target state="translated">物件初始化可以簡化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_can_be_removed">
+        <source>Parentheses can be removed</source>
+        <target state="translated">可以移除括號</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_should_be_added_for_clarity">
+        <source>Parentheses should be added for clarity</source>
+        <target state="translated">應新增括號以明確表示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Populate_switch">
+        <source>Populate switch</source>
+        <target state="translated">填入切換</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
+        <source>Prefer explicitly provided tuple element name</source>
+        <target state="translated">建議使用明確提供的元組元素名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
+        <source>Private member '{0}' can be removed as the value assigned to it is never read</source>
+        <target state="translated">因為永遠不會讀取指派給 Private 成員 '{0}' 的值，所以可移除該成員</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_is_unused">
+        <source>Private member '{0}' is unused</source>
+        <target state="translated">未使用 Private 成員 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
+        <source>Private method '{0}' can be removed as it is never invoked.</source>
+        <target state="translated">因為永遠不會叫用私用方法 ‘{0}’，所以可予以移除。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
+        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
+        <target state="translated">系統永遠不會叫用私用屬性 '{0}' 的 get 存取子，因此該屬性可以轉換成方法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Unnecessary_Cast">
+        <source>Remove Unnecessary Cast</source>
+        <target state="translated">移除不必要的 Cast</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_redundant_equality">
+        <source>Remove redundant equality</source>
+        <target state="translated">移除多餘的等號</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_parentheses">
+        <source>Remove unnecessary parentheses</source>
+        <target state="translated">移除不必要的括號</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_suppression">
+        <source>Remove unnecessary suppression</source>
+        <target state="translated">移除非必要的隱藏項目</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unread_private_members">
+        <source>Remove unread private members</source>
+        <target state="translated">刪除未讀取的私用成員</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_member">
+        <source>Remove unused member</source>
+        <target state="translated">移除未使用的成員</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter">
+        <source>Remove unused parameter</source>
+        <target state="translated">移除未使用的參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0">
+        <source>Remove unused parameter '{0}'</source>
+        <target state="translated">移除未使用的參數 ‘{0}’</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API">
+        <source>Remove unused parameter '{0}' if it is not part of a shipped public API</source>
+        <target state="translated">如果未使用的參數 ‘{0}’ 不屬於已發行的公用 API，請予以移除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_private_members">
+        <source>Remove unused private members</source>
+        <target state="translated">刪除未使用的私用成員</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_LINQ_expression">
+        <source>Simplify LINQ expression</source>
+        <target state="translated">簡化 LINQ 運算式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_collection_initialization">
+        <source>Simplify collection initialization</source>
+        <target state="translated">簡化集合初始化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="translated">簡化條件運算式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_interpolation">
+        <source>Simplify interpolation</source>
+        <target state="translated">簡化內插補點</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_object_initialization">
+        <source>Simplify object initialization</source>
+        <target state="translated">簡化物件初始化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_file_header_does_not_match_the_required_text">
+        <source>The file header does not match the required text</source>
+        <target state="translated">檔案標頭與必要文字不相符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_file_header_is_missing_or_not_located_at_the_top_of_the_file">
+        <source>The file header is missing or not located at the top of the file</source>
+        <target state="translated">缺少檔案標頭或其不在檔案的頂端</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unnecessary_assignment_of_a_value">
+        <source>Unnecessary assignment of a value</source>
+        <target state="translated">指派了不必要的值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
+        <source>Unnecessary assignment of a value to '{0}'</source>
+        <target state="translated">對 '{0}' 指派了不必要的值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="translated">使用 'System.HashCode'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_auto_property">
+        <source>Use auto property</source>
+        <target state="translated">使用 Auto 屬性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_coalesce_expression">
+        <source>Use coalesce expression</source>
+        <target state="translated">使用 coalesce 運算式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_compound_assignment">
+        <source>Use compound assignment</source>
+        <target state="translated">使用複合指派</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_decrement_operator">
+        <source>Use '--' operator</source>
+        <target state="translated">使用 '--' 運算子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_explicitly_provided_tuple_name">
+        <source>Use explicitly provided tuple name</source>
+        <target state="translated">使用明確提供的元組名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_increment_operator">
+        <source>Use '++' operator</source>
+        <target state="translated">使用 '+ +' 運算子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_inferred_member_name">
+        <source>Use inferred member name</source>
+        <target state="translated">使用推斷的成員名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_null_propagation">
+        <source>Use null propagation</source>
+        <target state="translated">使用 null 傳播</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_throw_expression">
+        <source>Use 'throw' expression</source>
+        <target state="translated">使用 'throw' 運算式</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

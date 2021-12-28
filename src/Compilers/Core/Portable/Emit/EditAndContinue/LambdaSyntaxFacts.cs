@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -14,6 +16,12 @@ namespace Microsoft.CodeAnalysis.Emit
         /// E.g. join clause declares left expression and right expression -- each of these expressions is a lambda body.
         /// JoinClause1.GetCorrespondingLambdaBody(JoinClause2.RightExpression) returns JoinClause1.RightExpression.
         /// </summary>
-        public abstract SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode previousLambdaSyntax, SyntaxNode lambdaOrLambdaBodySyntax);
+        public abstract SyntaxNode? TryGetCorrespondingLambdaBody(SyntaxNode previousLambdaSyntax, SyntaxNode lambdaOrLambdaBodySyntax);
+
+        /// <summary>
+        /// Given a node that represents a variable declaration, lambda or a closure scope return the position to be used to calculate 
+        /// the node's syntax offset with respect to its containing member.
+        /// </summary>
+        public abstract int GetDeclaratorPosition(SyntaxNode node);
     }
 }

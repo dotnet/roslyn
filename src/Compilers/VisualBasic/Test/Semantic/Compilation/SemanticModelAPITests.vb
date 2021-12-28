@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -2900,6 +2903,83 @@ End Class
 
 #Region "Msic."
 
+        <Fact>
+        Public Sub IsUnmanagedType()
+            Dim csharpComp = CreateCSharpCompilation("
+public struct S1 { }
+public struct S2 { public S1 F1; }
+public struct S3 { public object F1; }
+public struct S4<T> { public T F1; }
+public enum E1 { }
+")
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+    Sub M()
+        Dim s1 = new S1()
+        Dim s2 = new S2()
+        Dim s3 = new S3()
+        Dim s4 = new S4(Of Integer)()
+        Dim e1 = new E1()
+    End Sub
+End Class")
+            Dim comp = CreateCompilation(tree, references:={csharpComp.EmitToImageReference()})
+            comp.AssertTheseCompileDiagnostics()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim root = tree.GetRoot()
+            Dim getLocalType = Function(name As String) As ITypeSymbol
+                                   Dim decl = root.DescendantNodes().
+                                   OfType(Of ModifiedIdentifierSyntax)().
+                                   Single(Function(n) n.Identifier.ValueText = name)
+                                   Return CType(model.GetDeclaredSymbol(decl), ILocalSymbol).Type
+                               End Function
+            ' VB does not have a concept of a managed type
+            Assert.False(getLocalType("s1").IsUnmanagedType)
+            Assert.False(getLocalType("s2").IsUnmanagedType)
+            Assert.False(getLocalType("s3").IsUnmanagedType)
+            Assert.False(getLocalType("s4").IsUnmanagedType)
+            Assert.False(getLocalType("e1").IsUnmanagedType)
+        End Sub
+
+        <Fact>
+        Public Sub IsRefLikeType()
+            Dim csharpComp = CreateCSharpCompilation("
+public struct S1 { }
+public ref struct S2 { public S1 F1; }
+public enum E1 { }
+", parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp7_3))
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Structure S3 
+    Dim F1 As Object
+End Structure
+Class C
+    Sub M()
+        Dim s1 = new S1()
+        Dim s2 = new S2()
+        Dim s3 = new S3()
+        Dim e1 = new E1()
+    End Sub
+End Class")
+            Dim comp = CreateCompilation(tree, references:={csharpComp.EmitToImageReference()})
+            comp.AssertTheseDiagnostics(<errors>
+BC30668: 'S2' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
+        Dim s2 = new S2()
+                     ~~
+                                        </errors>)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim root = tree.GetRoot()
+            Dim getLocalType = Function(name As String) As ITypeSymbol
+                                   Dim decl = root.DescendantNodes().
+                                   OfType(Of ModifiedIdentifierSyntax)().
+                                   Single(Function(n) n.Identifier.ValueText = name)
+                                   Return CType(model.GetDeclaredSymbol(decl), ILocalSymbol).Type
+                               End Function
+            ' VB does not have a concept of a ref-like type
+            Assert.False(getLocalType("s1").IsRefLikeType)
+            Assert.False(getLocalType("s2").IsRefLikeType)
+            Assert.False(getLocalType("s3").IsRefLikeType)
+            Assert.False(getLocalType("e1").IsRefLikeType)
+        End Sub
+
         <Fact()>
         Public Sub IsAccessible()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -4454,7 +4534,7 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic
     End Class
 End Namespace
     ]]></file>
-</compilation>, {SystemCoreRef}, options:=TestOptions.DebugDll.WithRootNamespace("Microsoft.CodeAnalysis.VisualBasic.UnitTests"))
+</compilation>, {TestMetadata.Net40.SystemCore}, options:=TestOptions.DebugDll.WithRootNamespace("Microsoft.CodeAnalysis.VisualBasic.UnitTests"))
 
             Dim semanticModel = CompilationUtils.GetSemanticModel(compilation, "a.vb")
 
@@ -4491,6 +4571,45 @@ End Module
             For Each interp In root.DescendantNodes().OfType(Of InterpolatedStringExpressionSyntax)
                 Assert.False(model.GetConstantValue(interp).HasValue)
             Next
+        End Sub
+
+        <Fact>
+        <WorkItem(49952, "https://github.com/dotnet/roslyn/issues/49952")>
+        Public Sub Issue49952()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation name="GetSemanticInfo">
+    <file name="a.vb"><![CDATA[
+Class CTest
+    Public ReadOnly Property P As MyStructure
+
+    Class CTest2
+        Function Test() As P.F
+            Return Nothing
+        End Function
+    End Class
+End Class
+
+Structure MyStructure
+    Public F As Integer
+End Structure
+    ]]></file>
+</compilation>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim root = tree.GetCompilationUnitRoot
+            Dim node = root.DescendantNodes().OfType(Of QualifiedNameSyntax).Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+            Assert.Equal("MyStructure.F As System.Int32", symbolInfo.CandidateSymbols.Single().ToTestDisplayString())
+            Assert.Equal(CandidateReason.NotATypeOrNamespace, symbolInfo.CandidateReason)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30002: Type 'P.F' is not defined.
+        Function Test() As P.F
+                           ~~~
+</expected>)
         End Sub
 
     End Class

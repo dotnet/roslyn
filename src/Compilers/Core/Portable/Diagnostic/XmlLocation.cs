@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Text;
 using System;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A program location in an XML file.
     /// </summary>
-    internal class XmlLocation : Location, IEquatable<XmlLocation>
+    internal class XmlLocation : Location, IEquatable<XmlLocation?>
     {
         private readonly FileLinePositionSpan _positionSpan;
 
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis
             return _positionSpan;
         }
 
-        public bool Equals(XmlLocation other)
+        public bool Equals(XmlLocation? other)
         {
             if (ReferenceEquals(this, other))
             {
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis
             return other != null && other._positionSpan.Equals(_positionSpan);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return this.Equals(obj as XmlLocation);
         }

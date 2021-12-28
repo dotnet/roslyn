@@ -1,14 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
@@ -18,19 +22,20 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     /// in order to ensure that the interactive command can be exposed without the necessity
     /// to load any of the interactive dll files just to get the command's status.
     /// </summary>
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name("Interactive Command Handler")]
     internal class ExecuteInInteractiveCommandHandler
-        : VSCommanding.ICommandHandler<ExecuteInInteractiveCommandArgs>
+        : ICommandHandler<ExecuteInInteractiveCommandArgs>
     {
         private readonly IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> _executeInInteractiveHandlers;
 
         public string DisplayName => EditorFeaturesResources.Execute_In_Interactive;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ExecuteInInteractiveCommandHandler(
-            [ImportMany]IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> executeInInteractiveHandlers)
+            [ImportMany] IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> executeInInteractiveHandlers)
         {
             _executeInInteractiveHandlers = executeInInteractiveHandlers;
         }
@@ -38,20 +43,18 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private Lazy<IExecuteInInteractiveCommandHandler> GetCommandHandler(ITextBuffer textBuffer)
         {
             return _executeInInteractiveHandlers
-                .Where(handler => handler.Metadata.ContentTypes.Contains(textBuffer.ContentType.TypeName))
+                .Where(handler => handler.Metadata.ContentTypes.Any(textBuffer.ContentType.IsOfType))
                 .SingleOrDefault();
         }
 
-        bool VSCommanding.ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, CommandExecutionContext context)
-        {
-            return GetCommandHandler(args.SubjectBuffer)?.Value.ExecuteCommand(args, context) ?? false;
-        }
+        bool ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, CommandExecutionContext context)
+            => GetCommandHandler(args.SubjectBuffer)?.Value.ExecuteCommand(args, context) ?? false;
 
-        VSCommanding.CommandState VSCommanding.ICommandHandler<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args)
+        CommandState ICommandHandler<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args)
         {
             return GetCommandHandler(args.SubjectBuffer) == null
-                ? VSCommanding.CommandState.Unavailable
-                : VSCommanding.CommandState.Available;
+                ? CommandState.Unavailable
+                : CommandState.Available;
         }
     }
 }

@@ -169,7 +169,13 @@
                      ERRID.WRN_NoAnalyzerInAssembly,
                      ERRID.WRN_UnableToLoadAnalyzer,
                      ERRID.WRN_AttributeIgnoredWhenPublicSigning,
-                     ERRID.WRN_Experimental
+                     ERRID.WRN_Experimental,
+                     ERRID.WRN_AttributeNotSupportedInVB,
+                     ERRID.WRN_GeneratorFailedDuringInitialization,
+                     ERRID.WRN_GeneratorFailedDuringGeneration,
+                     ERRID.WRN_AnalyzerReferencesFramework,
+                     ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential,
+                     ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName
                     Return True
                 Case Else
                     Return False

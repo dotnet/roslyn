@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -11,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
     Public Module RecommendationTestHelpers
         Private s_parts As IEnumerable(Of AbstractKeywordRecommender)
 
-        Private Async Function GetRecommendedKeywordsAsync(source As String, position As Integer) As Tasks.Task(Of IEnumerable(Of RecommendedKeyword))
+        Private Function GetRecommendedKeywords(source As String, position As Integer, kind As SourceCodeKind) As IEnumerable(Of RecommendedKeyword)
             If s_parts Is Nothing Then
                 s_parts = GetType(AbstractKeywordRecommender).Assembly.
                     GetTypes().
@@ -21,56 +24,69 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
                     ToList()
             End If
 
-            Dim tree = DirectCast(SyntaxFactory.ParseSyntaxTree(SourceText.From(source)), VisualBasicSyntaxTree)
-            Dim comp = VisualBasicCompilation.Create("Text", syntaxTrees:={tree}, references:={TestReferences.NetFx.v4_0_30319.mscorlib})
-            Dim semanticModel = comp.GetSemanticModel(tree)
+            Using workspace = New TestWorkspace(composition:=FeaturesTestCompositions.Features)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.AddProject("test", "test", LanguageNames.VisualBasic)
+                Dim document = project.AddDocument("test.cs", source)
 
-            Dim context = Await VisualBasicSyntaxContext.CreateContextAsync_Test(semanticModel, position, CancellationToken.None)
-            Return s_parts.SelectMany(Function(part) part.RecommendKeywords_Test(context))
+                Dim parseOptions = New VisualBasicParseOptions().WithKind(kind)
+                Dim tree = DirectCast(SyntaxFactory.ParseSyntaxTree(SourceText.From(source), parseOptions), VisualBasicSyntaxTree)
+                Dim comp = VisualBasicCompilation.Create("test", syntaxTrees:={tree}, references:={TestMetadata.Net451.mscorlib})
+                Dim semanticModel = comp.GetSemanticModel(tree)
+
+                Dim context = VisualBasicSyntaxContext.CreateContext(document, semanticModel, position, CancellationToken.None)
+                Return s_parts.SelectMany(Function(part) part.RecommendKeywords_Test(context))
+            End Using
+
         End Function
 
-        Private Async Function GetRecommendedKeywordStringsAsync(source As String, position As Integer) As Tasks.Task(Of IEnumerable(Of String))
-            Dim keywords = Await GetRecommendedKeywordsAsync(source, position).ConfigureAwait(False)
+        Private Function GetRecommendedKeywordStrings(source As String, position As Integer, kind As SourceCodeKind) As IEnumerable(Of String)
+            Dim keywords = GetRecommendedKeywords(source, position, kind)
             Return keywords.Select(Function(k) k.Keyword)
         End Function
 
-        Friend Async Function VerifyRecommendationsAreExactlyAsync(testSource As XElement, ParamArray recommendations As String()) As Task
+        Friend Sub VerifyRecommendationsAreExactly(testSource As XElement, ParamArray recommendations As String())
             Dim source = ConvertTestSourceTag(testSource)
-            Dim recommendedKeywords = (Await GetRecommendedKeywordStringsAsync(source.Replace("|", ""), source.IndexOf("|"c))) _
+            Dim sourceCodeKind = GetSourceCodeKind(testSource)
+            Dim recommendedKeywords = (GetRecommendedKeywordStrings(source.Replace("|", ""), source.IndexOf("|"c), sourceCodeKind)) _
                                       .OrderBy(Function(recommendation) recommendation) _
                                       .ToArray()
 
             Assert.Equal(recommendations.OrderBy(Function(recommendation) recommendation).ToArray(), recommendedKeywords)
-        End Function
+        End Sub
 
-        Friend Async Function VerifyRecommendationDescriptionTextIsAsync(testSource As XElement, keyword As String, text As String) As Task
+        Friend Sub VerifyRecommendationDescriptionTextIs(testSource As XElement, keyword As String, text As String)
             Dim source = ConvertTestSourceTag(testSource)
-            Dim recommendedKeyword = (Await GetRecommendedKeywordsAsync(source.Replace("|", ""), source.IndexOf("|"c))).Single(Function(r) r.Keyword = keyword)
+            Dim sourceCodeKind = GetSourceCodeKind(testSource)
+            Dim recommendedKeyword = (GetRecommendedKeywords(source.Replace("|", ""), source.IndexOf("|"c), sourceCodeKind)) _
+                                     .Single(Function(r) r.Keyword = keyword)
             Dim expectedText = text.Trim()
             Assert.Equal(expectedText, recommendedKeyword.DescriptionFactory(CancellationToken.None).GetFullText())
-        End Function
+        End Sub
 
-        Friend Async Function VerifyRecommendationsWithPriority(testSource As XElement, priority As Integer, ParamArray recommendations As String()) As Task
+        Friend Sub VerifyRecommendationsWithPriority(testSource As XElement, priority As Integer, ParamArray recommendations As String())
             Assert.NotEmpty(recommendations)
 
             Dim source = ConvertTestSourceTag(testSource)
+            Dim sourceCodeKind = GetSourceCodeKind(testSource)
 
-            Await VerifyRecommendationsContainNothingTypedAsync(source, priority, recommendations).ConfigureAwait(False)
-            Await VerifyRecommendationsContainPartiallyTypedAsync(source, priority, recommendations).ConfigureAwait(False)
-        End Function
+            VerifyRecommendationsContainNothingTyped(source, sourceCodeKind, priority, recommendations)
+            VerifyRecommendationsContainPartiallyTyped(source, sourceCodeKind, priority, recommendations)
+        End Sub
 
-        Friend Async Function VerifyRecommendationsContainAsync(testSource As XElement, ParamArray recommendations As String()) As Task
+        Friend Sub VerifyRecommendationsContain(testSource As XElement, ParamArray recommendations As String())
             Assert.NotEmpty(recommendations)
 
             Dim source = ConvertTestSourceTag(testSource)
+            Dim kind = GetSourceCodeKind(testSource)
 
-            Await VerifyRecommendationsContainNothingTypedAsync(source, Nothing, recommendations)
-            Await VerifyRecommendationsContainPartiallyTypedAsync(source, Nothing, recommendations)
-        End Function
+            VerifyRecommendationsContainNothingTyped(source, kind, Nothing, recommendations)
+            VerifyRecommendationsContainPartiallyTyped(source, kind, Nothing, recommendations)
+        End Sub
 
-        Private Async Function VerifyRecommendationsContainNothingTypedAsync(source As String, priority As Integer?, ParamArray recommendations As String()) As Task
+        Private Sub VerifyRecommendationsContainNothingTyped(source As String, kind As SourceCodeKind, priority As Integer?, ParamArray recommendations As String())
             ' Test with the | removed
-            Dim recommendedKeywords = Await GetRecommendedKeywordsAsync(source.Replace("|", ""), source.IndexOf("|"c))
+            Dim recommendedKeywords = GetRecommendedKeywords(source.Replace("|", ""), source.IndexOf("|"c), kind)
 
             Dim recommendedKeywordStrings = recommendedKeywords.Select(Function(k) k.Keyword)
             For Each recommendation In recommendations
@@ -82,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             End If
 
             VerifyRecommendationsHaveDescriptionText(recommendedKeywords.Where(Function(k) recommendations.Contains(k.Keyword)))
-        End Function
+        End Sub
 
         Private Sub VerifyRecommendationsHaveDescriptionText(recommendations As IEnumerable(Of RecommendedKeyword))
             For Each keyword In recommendations
@@ -90,10 +106,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             Next
         End Sub
 
-        Private Async Function VerifyRecommendationsContainPartiallyTypedAsync(source As String, priority As Integer?, ParamArray recommendations As String()) As Task
+        Private Sub VerifyRecommendationsContainPartiallyTyped(source As String, kind As SourceCodeKind, priority As Integer?, ParamArray recommendations As String())
             ' Test with the | replaced with the first character of the keywords we expect
             For Each partiallyTypedRecommendation In recommendations.Select(Function(recommendation) recommendation(0)).Distinct()
-                Dim recommendedKeywords = (Await GetRecommendedKeywordsAsync(source.Replace("|"c, partiallyTypedRecommendation), source.IndexOf("|"c) + 1)).ToArray()
+                Dim recommendedKeywords = (GetRecommendedKeywords(source.Replace("|"c, partiallyTypedRecommendation), source.IndexOf("|"c) + 1, kind)).ToArray()
                 Dim recommendedKeywordStrings = recommendedKeywords.Select(Function(k) k.Keyword)
 
                 For Each recommendation In recommendations
@@ -106,30 +122,36 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
 
                 VerifyRecommendationsHaveDescriptionText(recommendedKeywords.Where(Function(k) recommendations.Contains(k.Keyword)))
             Next
-        End Function
+        End Sub
 
-        Friend Async Function VerifyRecommendationsMissingAsync(testSource As XElement, ParamArray recommendations As String()) As Task
+        Friend Sub VerifyRecommendationsMissing(testSource As XElement, ParamArray recommendations As String())
             Assert.NotEmpty(recommendations)
 
             Dim source = ConvertTestSourceTag(testSource)
+            Dim sourceCodeKind = GetSourceCodeKind(testSource)
 
-            Dim recommendedKeywords = (Await GetRecommendedKeywordStringsAsync(source.Replace("|", ""), source.IndexOf("|"c))) _
+            Dim recommendedKeywords = (GetRecommendedKeywordStrings(source.Replace("|", ""), source.IndexOf("|"c), sourceCodeKind)) _
                                       .OrderBy(Function(recommendation) recommendation) _
                                       .ToArray()
 
             For Each recommendation In recommendations
                 Assert.DoesNotContain(recommendation, recommendedKeywords)
             Next
-        End Function
+        End Sub
 
-        Friend Async Function VerifyNoRecommendationsAsync(testSource As XElement) As Task
+        Friend Sub VerifyNoRecommendations(testSource As XElement)
             Dim source = ConvertTestSourceTag(testSource)
+            Dim sourceCodeKind = GetSourceCodeKind(testSource)
 
-            Dim recommendedKeywords = (Await GetRecommendedKeywordStringsAsync(source.Replace("|", ""), source.IndexOf("|"c))) _
+            Dim recommendedKeywords = (GetRecommendedKeywordStrings(source.Replace("|", ""), source.IndexOf("|"c), sourceCodeKind)) _
                                       .OrderBy(Function(recommendation) recommendation) _
                                       .ToArray()
 
             Assert.Equal(0, recommendedKeywords.Length)
+        End Sub
+
+        Private Function GetSourceCodeKind(testSource As XElement) As SourceCodeKind
+            Return If(testSource.@Script = "True", SourceCodeKind.Script, SourceCodeKind.Regular)
         End Function
     End Module
 End Namespace

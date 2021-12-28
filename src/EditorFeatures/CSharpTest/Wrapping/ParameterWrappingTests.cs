@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.CSharp.Wrapping;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Wrapping;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -918,6 +923,42 @@ GetIndentionColumn(30),
         }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestRecord_Semicolon()
+        {
+            await TestInRegularAndScript1Async(
+"record R([||]int I, string S);",
+@"record R(int I,
+         string S);");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestRecord_Braces()
+        {
+            await TestInRegularAndScript1Async(
+"record R([||]int I, string S) { }",
+@"record R(int I,
+         string S) { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestRecordStruct_Semicolon()
+        {
+            await TestInRegularAndScript1Async(
+"record struct R([||]int I, string S);",
+@"record struct R(int I,
+                string S);", new TestParameters(TestOptions.RegularPreview));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestRecordStruct_Braces()
+        {
+            await TestInRegularAndScript1Async(
+"record struct R([||]int I, string S) { }",
+@"record struct R(int I,
+                string S) { }", new TestParameters(TestOptions.RegularPreview));
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -41,32 +43,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Function ConstructAnonymousDelegateSymbol(delegateDescriptor As AnonymousTypeDescriptor) As AnonymousDelegatePublicSymbol
             Return New AnonymousDelegatePublicSymbol(Me, delegateDescriptor)
-        End Function
-
-        ''' <summary>
-        ''' Compares anonymous types
-        ''' </summary>
-        Public Shared Function IsSameType(left As TypeSymbol, right As TypeSymbol, compareKind As TypeCompareKind) As Boolean
-
-            If left.TypeKind <> right.TypeKind Then
-                Return False
-            End If
-
-            Dim leftDescr = DirectCast(left, AnonymousTypeOrDelegatePublicSymbol).TypeDescriptor
-            Dim rightDescr = DirectCast(right, AnonymousTypeOrDelegatePublicSymbol).TypeDescriptor
-
-            If leftDescr.Key <> rightDescr.Key Then
-                Return False
-            End If
-
-            Dim count As Integer = leftDescr.Fields.Length
-            Debug.Assert(count = rightDescr.Fields.Length)
-            For i = 0 To count - 1
-                If Not leftDescr.Fields(i).Type.IsSameType(rightDescr.Fields(i).Type, compareKind) Then
-                    Return False
-                End If
-            Next
-            Return True
         End Function
 
     End Class

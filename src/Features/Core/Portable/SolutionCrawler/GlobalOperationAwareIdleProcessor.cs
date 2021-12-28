@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -13,15 +15,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         private readonly IGlobalOperationNotificationService _globalOperationNotificationService;
 
-        private TaskCompletionSource<object> _globalOperation;
+        private TaskCompletionSource<object?>? _globalOperation;
         private Task _globalOperationTask;
 
         public GlobalOperationAwareIdleProcessor(
             IAsynchronousOperationListener listener,
             IGlobalOperationNotificationService globalOperationNotificationService,
-            int backOffTimeSpanInMs,
-            CancellationToken shutdownToken) :
-            base(listener, backOffTimeSpanInMs, shutdownToken)
+            TimeSpan backOffTimeSpan,
+            CancellationToken shutdownToken)
+            : base(listener, backOffTimeSpan, shutdownToken)
         {
             _globalOperation = null;
             _globalOperationTask = Task.CompletedTask;
@@ -35,18 +37,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         protected abstract void PauseOnGlobalOperation();
 
-        private void OnGlobalOperationStarted(object sender, EventArgs e)
+        private void OnGlobalOperationStarted(object? sender, EventArgs e)
         {
             Contract.ThrowIfFalse(_globalOperation == null);
 
             // events are serialized. no lock is needed
-            _globalOperation = new TaskCompletionSource<object>();
+            _globalOperation = new TaskCompletionSource<object?>();
             _globalOperationTask = _globalOperation.Task;
 
             PauseOnGlobalOperation();
         }
 
-        private void OnGlobalOperationStopped(object sender, GlobalOperationEventArgs e)
+        private void OnGlobalOperationStopped(object? sender, GlobalOperationEventArgs e)
         {
             if (_globalOperation == null)
             {

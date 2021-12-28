@@ -1,24 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Concurrent;
+#nullable disable
+
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
-    using ReferenceInfoMap = ImmutableDictionary<string, ImmutableArray<string>>;
-
     /// <summary>
     /// Information about a symbol's reference that can be used for display and 
     /// navigation in an editor.
     /// </summary>
     internal sealed class SourceReferenceItem
     {
-        // We can have only a handful of different values for ValueUsageInfo flags enum, so the maximum size of this dictionary is capped.
-        // So, we store this as a static dictionary which will be held in memory for the lifetime of the process.
-        private static readonly ConcurrentDictionary<ValueUsageInfo, ReferenceInfoMap> s_valueUsageInfoToReferenceInfoMap
-            = new ConcurrentDictionary<ValueUsageInfo, ReferenceInfoMap>();
-
         /// <summary>
         /// The definition this reference corresponds to.
         /// </summary>
@@ -35,48 +30,47 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public bool IsWrittenTo { get; }
 
         /// <summary>
-        /// Additional information about the reference.
-        /// Each entry represents a key-values pair of data. For example, consider the below entry:
-        ///     { "ValueUsageInfo" } = { "Read", "Write" }
-        /// This entry indicates that the reference has additional value usage information which indicate
-        /// it is a read/write reference, such as say 'a++'.
+        /// Symbol usage info associated with the reference.
+        /// This entry indicates that the reference has additional usage information, such as
+        /// it is a read/write reference for 'a++'.
         /// </summary>
-        public ReferenceInfoMap ReferenceInfo { get; }
+        public SymbolUsageInfo SymbolUsageInfo { get; }
 
-        [Obsolete]
-        public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, bool isWrittenTo)
+        /// <summary>
+        /// Additional properties for the reference.
+        /// For example, { "ContainingTypeInfo" } = { "MyClass" }
+        /// </summary>
+        public ImmutableDictionary<string, string> AdditionalProperties { get; }
+
+        private SourceReferenceItem(
+            DefinitionItem definition,
+            DocumentSpan sourceSpan,
+            SymbolUsageInfo symbolUsageInfo,
+            ImmutableDictionary<string, string> additionalProperties,
+            bool isWrittenTo)
         {
             Definition = definition;
             SourceSpan = sourceSpan;
+            SymbolUsageInfo = symbolUsageInfo;
             IsWrittenTo = isWrittenTo;
-            ReferenceInfo = ReferenceInfoMap.Empty;
+            AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
         }
 
-        public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ReferenceInfoMap referenceInfo)
+        // Used by F#
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan)
+            : this(definition, sourceSpan, SymbolUsageInfo.None)
         {
-            Definition = definition;
-            SourceSpan = sourceSpan;
-            ReferenceInfo = referenceInfo ?? ReferenceInfoMap.Empty;
         }
 
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ValueUsageInfo valueUsageInfo)
-            : this(definition, sourceSpan, GetOrCreateReferenceInfo(valueUsageInfo))
+        // Used by TypeScript
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo)
+            : this(definition, sourceSpan, symbolUsageInfo, additionalProperties: ImmutableDictionary<string, string>.Empty)
         {
-            IsWrittenTo = valueUsageInfo.IsWrittenTo();
         }
 
-        private static ReferenceInfoMap GetOrCreateReferenceInfo(ValueUsageInfo valueUsageInfo)
-            => s_valueUsageInfoToReferenceInfoMap.GetOrAdd(valueUsageInfo, v => CreateReferenceInfo(v));
-
-        private static ReferenceInfoMap CreateReferenceInfo(ValueUsageInfo valueUsageInfo)
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties)
+            : this(definition, sourceSpan, symbolUsageInfo, additionalProperties, isWrittenTo: symbolUsageInfo.IsWrittenTo())
         {
-            var referenceInfoMap = ReferenceInfoMap.Empty;
-            if (valueUsageInfo != ValueUsageInfo.None)
-            {
-                referenceInfoMap = referenceInfoMap.Add(nameof(ValueUsageInfo), valueUsageInfo.ToLocalizableValues());
-            }
-
-            return referenceInfoMap;
         }
     }
 }

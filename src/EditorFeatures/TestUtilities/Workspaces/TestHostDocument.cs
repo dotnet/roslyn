@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -18,26 +20,51 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public class TestHostDocument
     {
-        private readonly ExportProvider _exportProvider;
-        private HostLanguageServices _languageServiceProvider;
-        private readonly Lazy<string> _initialText;
-        private IWpfTextView _textView;
+        private static readonly ImmutableArray<string> s_defaultRoles = ImmutableArray.Create<string>
+            (PredefinedTextViewRoles.Analyzable,
+            PredefinedTextViewRoles.Document,
+            PredefinedTextViewRoles.Editable,
+            PredefinedTextViewRoles.Interactive,
+            PredefinedTextViewRoles.Zoomable);
 
-        private DocumentId _id;
-        private TestHostProject _project;
-        public ITextBuffer TextBuffer;
-        public ITextSnapshot InitialTextSnapshot;
+        private readonly ExportProvider? _exportProvider;
+        private HostLanguageServices? _languageServiceProvider;
+        private readonly string _initialText;
+        private IWpfTextView? _textView;
 
-        private readonly string _name;
-        private readonly SourceCodeKind _sourceCodeKind;
-        private readonly string _filePath;
-        private readonly IReadOnlyList<string> _folders;
-        private readonly IDocumentServiceProvider _documentServiceProvider;
+        private DocumentId? _id;
+        private TestHostProject? _project;
+
+        /// <summary>
+        /// The <see cref="ITextBuffer2"/> for this document. Null if not yet created.
+        /// </summary>
+        private ITextBuffer2? _textBuffer;
+
+        /// <summary>
+        /// The <see cref="ITextSnapshot"/> when the buffer was first created, which can be used for tracking changes to the current buffer.
+        /// </summary>
+        private ITextSnapshot? _initialTextSnapshot;
+        private readonly IReadOnlyList<string>? _folders;
+        private readonly IDocumentServiceProvider? _documentServiceProvider;
+        private readonly ImmutableArray<string> _roles;
 
         public DocumentId Id
         {
             get
             {
+                // For source generated documents, the workspace generates the ID. Thus we won't
+                // know it until we have a workspace we can go and get the ID from. We of course could
+                // duplicate the algorithm but this lets us keep this code oblivious to the internals
+                // of the workspace implementation.
+                if (IsSourceGenerated && _id is null)
+                {
+                    var workspace = _languageServiceProvider!.WorkspaceServices.Workspace;
+                    var project = workspace.CurrentSolution.GetRequiredProject(_project!.Id);
+                    var sourceGeneratedDocuments = project.GetSourceGeneratedDocumentsAsync(CancellationToken.None).AsTask().Result;
+                    _id = sourceGeneratedDocuments.Single(d => d.FilePath == this.FilePath).Id;
+                }
+
+                Contract.ThrowIfNull(_id);
                 return _id;
             }
         }
@@ -46,161 +73,146 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             get
             {
+                Contract.ThrowIfNull(_project);
                 return _project;
             }
         }
 
-        public string Name
-        {
-            get
-            {
-                return _name;
-            }
-        }
-
-        public SourceCodeKind SourceCodeKind
-        {
-            get
-            {
-                return _sourceCodeKind;
-            }
-        }
-
-        public string FilePath
-        {
-            get
-            {
-                return _filePath;
-            }
-        }
-
-        public bool IsGenerated
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public string Name { get; }
+        public SourceCodeKind SourceCodeKind { get; }
+        public string? FilePath { get; }
 
         public TextLoader Loader { get; }
         public int? CursorPosition { get; }
-        public IList<TextSpan> SelectedSpans { get; }
-        public IDictionary<string, ImmutableArray<TextSpan>> AnnotatedSpans { get; }
+        public IList<TextSpan> SelectedSpans { get; } = new List<TextSpan>();
+        public IDictionary<string, ImmutableArray<TextSpan>> AnnotatedSpans { get; } = new Dictionary<string, ImmutableArray<TextSpan>>();
 
         /// <summary>
         /// If a file exists in ProjectA and is added to ProjectB as a link, then this returns
         /// false for the document in ProjectA and true for the document in ProjectB.
         /// </summary>
-        public bool IsLinkFile { get; internal set; }
+        public bool IsLinkFile { get; }
+
+        /// <summary>
+        /// Returns true if this will be a source generated file instead of a regular one.
+        /// </summary>
+        public bool IsSourceGenerated { get; }
 
         internal TestHostDocument(
             ExportProvider exportProvider,
-            HostLanguageServices languageServiceProvider,
-            ITextBuffer textBuffer,
+            HostLanguageServices? languageServiceProvider,
+            string code,
+            string name,
             string filePath,
             int? cursorPosition,
             IDictionary<string, ImmutableArray<TextSpan>> spans,
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
-            IReadOnlyList<string> folders = null,
+            IReadOnlyList<string>? folders = null,
             bool isLinkFile = false,
-            IDocumentServiceProvider documentServiceProvider = null)
+            IDocumentServiceProvider? documentServiceProvider = null,
+            ImmutableArray<string> roles = default,
+            ITextBuffer2? textBuffer = null,
+            bool isSourceGenerated = false)
         {
-            Contract.ThrowIfNull(textBuffer);
             Contract.ThrowIfNull(filePath);
 
             _exportProvider = exportProvider;
             _languageServiceProvider = languageServiceProvider;
-            this.TextBuffer = textBuffer;
-            this.InitialTextSnapshot = textBuffer.CurrentSnapshot;
-            _initialText = new Lazy<string>(() => this.InitialTextSnapshot.GetText());
-            _filePath = filePath;
+            _initialText = code;
+            Name = name;
+            FilePath = filePath;
             _folders = folders;
-            _name = filePath;
             this.CursorPosition = cursorPosition;
-            _sourceCodeKind = sourceCodeKind;
+            SourceCodeKind = sourceCodeKind;
             this.IsLinkFile = isLinkFile;
+            IsSourceGenerated = isSourceGenerated;
             _documentServiceProvider = documentServiceProvider;
+            _roles = roles.IsDefault ? s_defaultRoles : roles;
 
-            this.SelectedSpans = new List<TextSpan>();
             if (spans.ContainsKey(string.Empty))
             {
                 this.SelectedSpans = spans[string.Empty];
             }
 
-            this.AnnotatedSpans = new Dictionary<string, ImmutableArray<TextSpan>>();
             foreach (var namedSpanList in spans.Where(s => s.Key != string.Empty))
             {
                 this.AnnotatedSpans.Add(namedSpanList);
             }
 
-            Loader = new TestDocumentLoader(this);
+            Loader = new TestDocumentLoader(this, _initialText);
+
+            if (textBuffer != null)
+            {
+                _textBuffer = textBuffer;
+                _initialTextSnapshot = textBuffer.CurrentSnapshot;
+            }
         }
 
-        public TestHostDocument(
-            string text = "", string displayName = "",
+        internal TestHostDocument(
+            string text = "",
+            string displayName = "",
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
-            DocumentId id = null, string filePath = null,
-            IReadOnlyList<string> folders = null)
+            DocumentId? id = null,
+            string? filePath = null,
+            IReadOnlyList<string>? folders = null,
+            ExportProvider? exportProvider = null,
+            IDocumentServiceProvider? documentServiceProvider = null)
         {
-            _exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            _exportProvider = exportProvider;
             _id = id;
-            _initialText = new Lazy<string>(() => text);
-            _name = displayName;
-            _sourceCodeKind = sourceCodeKind;
-            Loader = new TestDocumentLoader(this);
-            _filePath = filePath;
+            _initialText = text;
+            Name = displayName;
+            SourceCodeKind = sourceCodeKind;
+            Loader = new TestDocumentLoader(this, text);
+            FilePath = filePath;
             _folders = folders;
+            _roles = s_defaultRoles;
+            _documentServiceProvider = documentServiceProvider;
         }
 
         internal void SetProject(TestHostProject project)
         {
             _project = project;
 
-            if (this.Id == null)
+            // For generated documents, we need to fetch the IDs from the workspace later
+            if (!IsSourceGenerated)
             {
-                _id = DocumentId.CreateNewId(project.Id, this.Name);
-            }
-            else
-            {
-                Contract.ThrowIfFalse(project.Id == this.Id.ProjectId);
+                if (_id == null)
+                {
+                    _id = DocumentId.CreateNewId(project.Id, this.Name);
+                }
+                else
+                {
+                    Contract.ThrowIfFalse(project.Id == this.Id.ProjectId);
+                }
             }
 
             if (_languageServiceProvider == null)
             {
                 _languageServiceProvider = project.LanguageServiceProvider;
             }
-
-            if (this.TextBuffer == null)
-            {
-                var contentTypeService = _languageServiceProvider.GetService<IContentTypeLanguageService>();
-                var contentType = contentTypeService.GetDefaultContentType();
-                this.TextBuffer = _exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(_initialText.Value, contentType);
-                this.InitialTextSnapshot = this.TextBuffer.CurrentSnapshot;
-            }
         }
 
         private class TestDocumentLoader : TextLoader
         {
             private readonly TestHostDocument _hostDocument;
+            private readonly string _text;
 
-            internal TestDocumentLoader(TestHostDocument hostDocument)
+            internal TestDocumentLoader(TestHostDocument hostDocument, string text)
             {
                 _hostDocument = hostDocument;
+                _text = text;
             }
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-            {
-                // Create a simple SourceText so that way we're not backing "closed" files by editors to best reflect
-                // what closed files look like in reality.
-                var text = SourceText.From(_hostDocument.GetTextBuffer().CurrentSnapshot.GetText());
-                return Task.FromResult(TextAndVersion.Create(text, VersionStamp.Create(), _hostDocument.FilePath));
-            }
+                => Task.FromResult(TextAndVersion.Create(SourceText.From(_text), VersionStamp.Create(), _hostDocument.FilePath));
         }
 
         public IWpfTextView GetTextView()
         {
             if (_textView == null)
             {
+                Contract.ThrowIfNull(_exportProvider, $"Can only create text view for {nameof(TestHostDocument)} created with {nameof(ExportProvider)}");
                 WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} through {nameof(TestHostDocument)}.{nameof(GetTextView)}");
 
                 var factory = _exportProvider.GetExportedValue<ITextEditorFactoryService>();
@@ -209,12 +221,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 // OutliningManager imports JoinableTaskContext in a way that's 
                 // difficult to satisfy in our unit tests. Since we don't directly
                 // depend on it, just disable it
-                var roles = factory.CreateTextViewRoleSet(PredefinedTextViewRoles.Analyzable,
-                    PredefinedTextViewRoles.Document,
-                    PredefinedTextViewRoles.Editable,
-                    PredefinedTextViewRoles.Interactive,
-                    PredefinedTextViewRoles.Zoomable);
-                _textView = factory.CreateTextView(this.TextBuffer, roles);
+                var roles = factory.CreateTextViewRoleSet(_roles);
+                _textView = factory.CreateTextView(this.GetTextBuffer(), roles);
                 if (this.CursorPosition.HasValue)
                 {
                     _textView.Caret.MoveTo(new SnapshotPoint(_textView.TextSnapshot, CursorPosition.Value));
@@ -229,21 +237,58 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return _textView;
         }
 
-        public ITextBuffer GetTextBuffer()
+        public ITextBuffer2 GetTextBuffer()
         {
-            return this.TextBuffer;
+            var workspace = (TestWorkspace?)_languageServiceProvider?.WorkspaceServices.Workspace;
+
+            if (_textBuffer == null)
+            {
+                Contract.ThrowIfNull(_languageServiceProvider, $"To get a text buffer for a {nameof(TestHostDocument)}, it must have been parented in a project.");
+                var contentType = _languageServiceProvider.GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType();
+
+                _textBuffer = workspace!.GetOrCreateBufferForPath(FilePath, contentType, _languageServiceProvider.Language, _initialText);
+                _initialTextSnapshot = _textBuffer.CurrentSnapshot;
+            }
+
+            if (workspace != null)
+            {
+                // Open (or reopen) any files that were closed in this call. We do this for all linked copies at once.
+                foreach (var linkedId in workspace.CurrentSolution.GetDocumentIdsWithFilePath(FilePath).Concat(this.Id))
+                {
+                    var testDocument = workspace.GetTestDocument(linkedId);
+
+                    if (testDocument != null)
+                    {
+                        if (!workspace.IsDocumentOpen(linkedId))
+                        {
+                            // If there is a linked file, we'll start the non-linked one as being the primary context, which some tests depend on.
+                            workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
+                        }
+                    }
+                }
+            }
+
+            return _textBuffer;
         }
 
         public SourceTextContainer GetOpenTextContainer()
-        {
-            return this.GetTextBuffer().AsTextContainer();
-        }
+            => this.GetTextBuffer().AsTextContainer();
 
         public IReadOnlyList<string> Folders
         {
             get
             {
                 return _folders ?? ImmutableArray.Create<string>();
+            }
+        }
+
+        // TODO: delete this
+        public ITextSnapshot InitialTextSnapshot
+        {
+            get
+            {
+                Contract.ThrowIfNull(_initialTextSnapshot);
+                return _initialTextSnapshot;
             }
         }
 
@@ -284,7 +329,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public DocumentInfo ToDocumentInfo()
         {
-            return DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: this.IsGenerated, _documentServiceProvider);
+            Contract.ThrowIfTrue(IsSourceGenerated, "We shouldn't be producing a DocumentInfo for a source generated document.");
+            return DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: false, designTimeOnly: false, _documentServiceProvider);
         }
     }
 }

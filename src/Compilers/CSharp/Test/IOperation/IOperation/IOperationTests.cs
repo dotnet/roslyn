@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11,8 +15,150 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.IOperation)]
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.RefLocalsReturns)]
+        [Fact]
+        public void SuppressNullableWarningOperation()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+#nullable enable
+    void M(string? x)
+    /*<bind>*/{
+        x!.ToString();
+    }/*</bind>*/
+}");
+            var expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x!.ToString();')
+    Expression:
+      IInvocationOperation (virtual System.String System.String.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x!.ToString()')
+        Instance Receiver:
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+        Arguments(0)";
+
+            var diagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, expectedOperationTree, diagnostics);
+
+            var expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x!.ToString();')
+          Expression:
+            IInvocationOperation (virtual System.String System.String.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x!.ToString()')
+              Instance Receiver:
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+              Arguments(0)
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)";
+
+            VerifyFlowGraphForTest<BlockSyntax>(comp, expectedFlowGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.RefLocalsReturns)]
+        [Fact]
+        public void SuppressNullableWarningOperation_ConstantValue()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+#nullable enable
+    void M()
+    /*<bind>*/{
+        ((string)null)!.ToString();
+    }/*</bind>*/
+}");
+            var expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '((string)nu ... ToString();')
+    Expression:
+      IInvocationOperation (virtual System.String System.String.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '((string)nu ... .ToString()')
+        Instance Receiver:
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null) (Syntax: '(string)null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        Arguments(0)";
+
+            var diagnostics = new[]
+            {
+                // (7,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         ((string)null)!.ToString();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(7, 10)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, expectedOperationTree, diagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.RefLocalsReturns)]
+        [Fact]
+        public void SuppressNullableWarningOperation_NestedFlow()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+#nullable enable
+    void M(bool b, string? x, string? y)
+    /*<bind>*/{
+        (b ? x : y)!.ToString();
+    }/*</bind>*/
+}");
+            comp.VerifyDiagnostics();
+
+            var expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value:
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String?) (Syntax: 'x')
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+              Value:
+                IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String?) (Syntax: 'y')
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '(b ? x : y)!.ToString();')
+              Expression:
+                IInvocationOperation (virtual System.String System.String.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '(b ? x : y)!.ToString()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b ? x : y')
+                  Arguments(0)
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)";
+
+            VerifyFlowGraphForTest<BlockSyntax>(comp, expectedFlowGraph);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.RefLocalsReturns)]
         [Fact]
         public void RefReassignmentExpressions()
@@ -335,7 +481,7 @@ public class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/45687")]
         public void TestClone()
         {
             var sourceCode = TestResource.AllInOneCSharpCode;
@@ -546,6 +692,33 @@ class C
                 }
 
                 operation = operation.Parent;
+            }
+        }
+
+        [Fact, WorkItem(45955, "https://github.com/dotnet/roslyn/issues/45955")]
+        public void SemanticModelFieldInitializerRace()
+        {
+            var source = $@"
+#nullable enable
+public class C
+{{
+    // Use a big initializer to increase the odds of hitting the race
+    public static object o = null;
+    public string s = {string.Join(" + ", Enumerable.Repeat("(string)o", 1000))};
+}}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var fieldInitializer = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Last().Value;
+
+            for (int i = 0; i < 5; i++)
+            {
+                // We had a race condition where the first attempt to access a field initializer could cause an assert to be hit,
+                // and potentially more work to be done than was necessary. So we kick off a parallel task to attempt to
+                // get info on a bunch of different threads at the same time and reproduce the issue.
+                var model = comp.GetSemanticModel(tree);
+                const int nTasks = 10;
+                Enumerable.Range(0, nTasks).AsParallel()
+                    .ForAll(_ => Assert.Equal("System.String System.String.op_Addition(System.String left, System.String right)", model.GetSymbolInfo(fieldInitializer).Symbol.ToTestDisplayString(includeNonNullable: false)));
             }
         }
     }

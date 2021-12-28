@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         internal RQOrdinaryMethodPropertyOrEventName(string constructType, string name)
         {
             _constructType = constructType;
-            this.Name = name;
+            Name = name;
         }
 
         public override string OrdinaryNameValue
@@ -24,38 +26,24 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         }
 
         public static RQOrdinaryMethodPropertyOrEventName CreateConstructorName()
-        {
-            return new RQOrdinaryMethodPropertyOrEventName(RQNameStrings.MethName, RQNameStrings.SpecialConstructorName);
-        }
+            => new(RQNameStrings.MethName, RQNameStrings.SpecialConstructorName);
 
         public static RQOrdinaryMethodPropertyOrEventName CreateDestructorName()
-        {
-            return new RQOrdinaryMethodPropertyOrEventName(RQNameStrings.MethName, RQNameStrings.SpecialDestructorName);
-        }
+            => new(RQNameStrings.MethName, RQNameStrings.SpecialDestructorName);
 
         public static RQOrdinaryMethodPropertyOrEventName CreateOrdinaryIndexerName()
-        {
-            return new RQOrdinaryMethodPropertyOrEventName(RQNameStrings.PropName, RQNameStrings.SpecialIndexerName);
-        }
+            => new(RQNameStrings.PropName, RQNameStrings.SpecialIndexerName);
 
         public static RQOrdinaryMethodPropertyOrEventName CreateOrdinaryMethodName(string name)
-        {
-            return new RQOrdinaryMethodPropertyOrEventName(RQNameStrings.MethName, name);
-        }
+            => new(RQNameStrings.MethName, name);
 
         public static RQOrdinaryMethodPropertyOrEventName CreateOrdinaryEventName(string name)
-        {
-            return new RQOrdinaryMethodPropertyOrEventName(RQNameStrings.EventName, name);
-        }
+            => new(RQNameStrings.EventName, name);
 
         public static RQOrdinaryMethodPropertyOrEventName CreateOrdinaryPropertyName(string name)
-        {
-            return new RQOrdinaryMethodPropertyOrEventName(RQNameStrings.PropName, name);
-        }
+            => new(RQNameStrings.PropName, name);
 
         public override SimpleGroupNode ToSimpleTree()
-        {
-            return new SimpleGroupNode(_constructType, this.Name);
-        }
+            => new(_constructType, Name);
     }
 }

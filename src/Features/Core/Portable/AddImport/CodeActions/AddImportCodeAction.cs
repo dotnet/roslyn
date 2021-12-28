@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -25,7 +29,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             public sealed override ImmutableArray<string> Tags { get; }
             internal sealed override CodeActionPriority Priority { get; }
 
-            public sealed override string EquivalenceKey => this.Title;
+            public sealed override string EquivalenceKey => Title;
 
             /// <summary>
             /// The <see cref="Document"/> we started the add-import analysis in.

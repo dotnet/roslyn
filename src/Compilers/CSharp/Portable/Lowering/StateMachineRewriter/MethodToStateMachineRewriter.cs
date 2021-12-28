@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -98,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Used to enumerate the instance fields of a struct.
         /// </summary>
-        private readonly EmptyStructTypeCache _emptyStructTypeCache = new NeverEmptyStructTypeCache();
+        private readonly EmptyStructTypeCache _emptyStructTypeCache = EmptyStructTypeCache.CreateNeverEmpty();
 
         /// <summary>
         /// The set of local variables and parameters that were hoisted and need a proxy.
@@ -118,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool useFinalizerBookkeeping)
             : base(slotAllocatorOpt, F.CompilationState, diagnostics)
         {
@@ -192,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldSyntax = F.Syntax;
             F.Syntax = syntax;
             var result = F.This();
-            Debug.Assert(frameClass == result.Type);
+            Debug.Assert(TypeSymbol.Equals(frameClass, result.Type, TypeCompareKind.ConsiderEverything2));
             F.Syntax = oldSyntax;
             return result;
         }
@@ -201,19 +205,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             stateNumber = _nextState++;
 
-            if (_dispatches == null)
-            {
-                _dispatches = new Dictionary<LabelSymbol, List<int>>();
-            }
-
             if (_useFinalizerBookkeeping && !_hasFinalizerState)
             {
                 _currentFinalizerState = _nextState++;
                 _hasFinalizerState = true;
             }
 
+            AddState(stateNumber, out resumeLabel);
+        }
+
+        protected void AddState(int stateNumber, out GeneratedLabelSymbol resumeLabel)
+        {
+            if (_dispatches == null)
+            {
+                _dispatches = new Dictionary<LabelSymbol, List<int>>();
+            }
+
             resumeLabel = F.GenerateLabel("stateMachine");
-            List<int> states = new List<int>();
+            var states = new List<int>();
             states.Add(stateNumber);
             _dispatches.Add(resumeLabel, states);
         }
@@ -221,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected BoundStatement Dispatch()
         {
             return F.Switch(F.Local(cachedState),
-                    from kv in _dispatches orderby kv.Value[0] select F.SwitchSection(kv.Value, F.Goto(kv.Key))
+                    (from kv in _dispatches orderby kv.Value[0] select F.SwitchSection(kv.Value, F.Goto(kv.Key))).ToImmutableArray()
                     );
         }
 
@@ -264,17 +273,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ref synthesized variables have proxies that are allocated in VisitAssignmentOperator.
                 if (local.RefKind != RefKind.None)
                 {
-                    Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.AwaitSpill);
+                    Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill);
                     continue;
                 }
-
-                Debug.Assert(local.SynthesizedKind.IsLongLived());
 
                 CapturedSymbolReplacement proxy;
                 bool reused = false;
                 if (!proxies.TryGetValue(local, out proxy))
                 {
-                    proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type.TypeSymbol).TypeSymbol, out reused, local), isReusable: true);
+                    proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type).Type, out reused, local), isReusable: true);
                     proxies.Add(local, proxy);
                 }
 
@@ -382,9 +389,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddVariableCleanup(ArrayBuilder<BoundAssignmentOperator> cleanup, FieldSymbol field)
         {
-            if (MightContainReferences(field.Type.TypeSymbol))
+            if (MightContainReferences(field.Type))
             {
-                cleanup.Add(F.AssignmentExpression(F.Field(F.This(), field), F.NullOrDefault(field.Type.TypeSymbol)));
+                cleanup.Add(F.AssignmentExpression(F.Field(F.This(), field), F.NullOrDefault(field.Type)));
             }
         }
 
@@ -402,16 +409,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!type.IsFromCompilation(this.CompilationState.ModuleBuilderOpt.Compilation)) return true; // perhaps from ref assembly
             foreach (var f in _emptyStructTypeCache.GetStructInstanceFields(type))
             {
-                if (MightContainReferences(f.Type.TypeSymbol)) return true;
+                if (MightContainReferences(f.Type)) return true;
             }
             return false;
         }
 
         private StateMachineFieldSymbol GetOrAllocateReusableHoistedField(TypeSymbol type, out bool reused, LocalSymbol local = null)
         {
-            // In debug builds we don't reuse any hoisted variable.
-            Debug.Assert(F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release);
-
             ArrayBuilder<StateMachineFieldSymbol> fields;
             if (_lazyAvailableReusableHoistedFields != null && _lazyAvailableReusableHoistedFields.TryGetValue(type, out fields) && fields.Count > 0)
             {
@@ -436,14 +440,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void FreeReusableHoistedField(StateMachineFieldSymbol field)
         {
             ArrayBuilder<StateMachineFieldSymbol> fields;
-            if (_lazyAvailableReusableHoistedFields == null || !_lazyAvailableReusableHoistedFields.TryGetValue(field.Type.TypeSymbol, out fields))
+            if (_lazyAvailableReusableHoistedFields == null || !_lazyAvailableReusableHoistedFields.TryGetValue(field.Type, out fields))
             {
                 if (_lazyAvailableReusableHoistedFields == null)
                 {
-                    _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
+                    _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
                 }
 
-                _lazyAvailableReusableHoistedFields.Add(field.Type.TypeSymbol, fields = new ArrayBuilder<StateMachineFieldSymbol>());
+                _lazyAvailableReusableHoistedFields.Add(field.Type, fields = new ArrayBuilder<StateMachineFieldSymbol>());
             }
 
             fields.Add(field);
@@ -451,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression HoistRefInitialization(SynthesizedLocal local, BoundAssignmentOperator node)
         {
-            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.AwaitSpill);
+            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill);
             Debug.Assert(local.SyntaxOpt != null);
             Debug.Assert(this.OriginalMethod.IsAsync);
 
@@ -461,12 +465,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool needsSacrificialEvaluation = false;
             var hoistedFields = ArrayBuilder<StateMachineFieldSymbol>.GetInstance();
 
-            AwaitExpressionSyntax awaitSyntaxOpt;
+            SyntaxNode awaitSyntaxOpt;
             int syntaxOffset;
             if (F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
             {
-                awaitSyntaxOpt = (AwaitExpressionSyntax)local.GetDeclaratorSyntax();
-                syntaxOffset = this.OriginalMethod.CalculateLocalSyntaxOffset(awaitSyntaxOpt.SpanStart, awaitSyntaxOpt.SyntaxTree);
+                awaitSyntaxOpt = local.GetDeclaratorSyntax();
+                Debug.Assert(awaitSyntaxOpt.IsKind(SyntaxKind.AwaitExpression) || awaitSyntaxOpt.IsKind(SyntaxKind.SwitchExpression));
+                syntaxOffset = OriginalMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(awaitSyntaxOpt), awaitSyntaxOpt.SyntaxTree);
             }
             else
             {
@@ -476,15 +481,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntaxOffset = -1;
             }
 
-            var replacement = HoistExpression(right, awaitSyntaxOpt, syntaxOffset, true, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
+            var replacement = HoistExpression(right, awaitSyntaxOpt, syntaxOffset, local.RefKind, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
 
             proxies.Add(local, new CapturedToExpressionSymbolReplacement(replacement, hoistedFields.ToImmutableAndFree(), isReusable: true));
 
             if (needsSacrificialEvaluation)
             {
-                var type = TypeMap.SubstituteType(local.Type.TypeSymbol).TypeSymbol;
+                var type = TypeMap.SubstituteType(local.Type).Type;
                 var sacrificialTemp = F.SynthesizedLocal(type, refKind: RefKind.Ref);
-                Debug.Assert(type == replacement.Type);
+                Debug.Assert(TypeSymbol.Equals(type, replacement.Type, TypeCompareKind.ConsiderEverything2));
                 return F.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), F.AssignmentExpression(F.Local(sacrificialTemp), replacement, isRef: true));
             }
 
@@ -501,9 +506,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression HoistExpression(
             BoundExpression expr,
-            AwaitExpressionSyntax awaitSyntaxOpt,
+            SyntaxNode awaitSyntaxOpt,
             int syntaxOffset,
-            bool isRef,
+            RefKind refKind,
             ArrayBuilder<BoundExpression> sideEffects,
             ArrayBuilder<StateMachineFieldSymbol> hoistedFields,
             ref bool needsSacrificialEvaluation)
@@ -513,11 +518,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ArrayAccess:
                     {
                         var array = (BoundArrayAccess)expr;
-                        BoundExpression expression = HoistExpression(array.Expression, awaitSyntaxOpt, syntaxOffset, false, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
+                        BoundExpression expression = HoistExpression(array.Expression, awaitSyntaxOpt, syntaxOffset, RefKind.None, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
                         var indices = ArrayBuilder<BoundExpression>.GetInstance();
                         foreach (var index in array.Indices)
                         {
-                            indices.Add(HoistExpression(index, awaitSyntaxOpt, syntaxOffset, false, sideEffects, hoistedFields, ref needsSacrificialEvaluation));
+                            indices.Add(HoistExpression(index, awaitSyntaxOpt, syntaxOffset, RefKind.None, sideEffects, hoistedFields, ref needsSacrificialEvaluation));
                         }
 
                         needsSacrificialEvaluation = true; // need to force array index out of bounds exceptions
@@ -530,18 +535,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (field.FieldSymbol.IsStatic)
                         {
                             // the address of a static field, and the value of a readonly static field, is stable
-                            if (isRef || field.FieldSymbol.IsReadOnly) return expr;
+                            if (refKind != RefKind.None || field.FieldSymbol.IsReadOnly) return expr;
                             goto default;
                         }
 
-                        if (!isRef)
+                        if (refKind == RefKind.None)
                         {
                             goto default;
                         }
 
                         var isFieldOfStruct = !field.FieldSymbol.ContainingType.IsReferenceType;
 
-                        var receiver = HoistExpression(field.ReceiverOpt, awaitSyntaxOpt, syntaxOffset, isFieldOfStruct, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
+                        var receiver = HoistExpression(field.ReceiverOpt, awaitSyntaxOpt, syntaxOffset,
+                            isFieldOfStruct ? refKind : RefKind.None, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
                         if (receiver.Kind != BoundKind.ThisReference && !isFieldOfStruct)
                         {
                             needsSacrificialEvaluation = true; // need the null check in field receiver
@@ -557,22 +563,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
-                    if (isRef)
+                    // NOTE: There are two kinds of 'In' arguments that we may see at this point:
+                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'In' modifier)
+                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'In' parameter)
+                    //
+                    //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
+                    //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
+                    if (refKind != RefKind.None && refKind != RefKind.In)
                     {
                         Debug.Assert(call.Method.RefKind != RefKind.None);
                         F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, F.Syntax.Location, call.Method);
-                        isRef = false; // Switch to ByVal to avoid asserting later in the pipeline
                     }
+                    // method call is not referentially transparent, we can only spill the result value.
+                    refKind = RefKind.None;
                     goto default;
 
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
-                    if (isRef)
+                    // NOTE: There are two kinds of 'In' arguments that we may see at this point:
+                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'In' modifier)
+                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'In' parameter)
+                    //
+                    //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
+                    //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
+                    if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
                     {
                         Debug.Assert(conditional.IsRef);
                         F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, F.Syntax.Location);
-                        isRef = false; // Switch to ByVal to avoid asserting later in the pipeline
                     }
+                    // conditional expr is not referentially transparent, we can only spill the result value.
+                    refKind = RefKind.None;
                     goto default;
 
                 default:
@@ -581,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return expr;
                     }
 
-                    if (isRef)
+                    if (refKind != RefKind.None)
                     {
                         throw ExceptionUtilities.UnexpectedValue(expr.Kind);
                     }
@@ -603,10 +623,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (slotAllocatorOpt == null ||
                             !slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
                                 awaitSyntaxOpt,
-                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics),
+                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics.DiagnosticBag),
                                 kind,
                                 id,
-                                Diagnostics,
+                                Diagnostics.DiagnosticBag,
                                 out slotIndex))
                         {
                             slotIndex = _nextFreeHoistedLocalSlot++;
@@ -653,8 +673,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool localsRewritten = false;
             foreach (var local in node.Locals)
             {
+                // BoundScope is only used for switch
                 Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection);
+                    (local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection ||
+                     local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchExpressionArm));
 
                 LocalSymbol localToUse;
                 if (TryRewriteLocal(local, out localToUse))
@@ -705,11 +727,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            return PossibleIteratorScope(node.InnerLocals, () => (BoundStatement)base.VisitSwitchStatement(node));
-        }
-
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
             throw ExceptionUtilities.Unreachable; // for statements have been lowered away by now
@@ -754,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Here we handle ref temps. Ref synthesized variables are the target of a ref assignment operator before
             // being used in any other way.
 
-            Debug.Assert(leftLocal.SynthesizedKind == SynthesizedLocalKind.AwaitSpill);
+            Debug.Assert(leftLocal.SynthesizedKind == SynthesizedLocalKind.Spill);
             Debug.Assert(node.IsRef);
 
             // We have an assignment to a variable that has not yet been assigned a proxy.
@@ -829,11 +846,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _dispatches = oldDispatches;
 
             ImmutableArray<BoundCatchBlock> catchBlocks = this.VisitList(node.CatchBlocks);
+
             BoundBlock finallyBlockOpt = node.FinallyBlockOpt == null ? null : F.Block(
                 F.HiddenSequencePoint(),
                 F.If(
-                    condition: F.IntLessThan(F.Local(cachedState), F.Literal(StateMachineStates.FirstUnusedState)),
-                    thenClause: (BoundBlock)this.Visit(node.FinallyBlockOpt)
+                    condition: ShouldEnterFinallyBlock(),
+                    thenClause: VisitFinally(node.FinallyBlockOpt)
                 ),
                 F.HiddenSequencePoint());
 
@@ -848,6 +866,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+        }
+
+        protected virtual BoundBlock VisitFinally(BoundBlock finallyBlock)
+        {
+            return (BoundBlock)this.Visit(finallyBlock);
+        }
+
+        protected virtual BoundBinaryOperator ShouldEnterFinallyBlock()
+        {
+            return F.IntLessThan(F.Local(cachedState), F.Literal(StateMachineStates.FirstUnusedState));
         }
 
         /// <summary>

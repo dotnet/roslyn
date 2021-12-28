@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal BoundExpression Receiver { get; private set; }
         internal ArrayBuilder<MethodSymbol> Methods { get; }
-        internal ArrayBuilder<TypeSymbolWithAnnotations> TypeArguments { get; }
+        internal ArrayBuilder<TypeWithAnnotations> TypeArguments { get; }
         internal bool IsExtensionMethodGroup { get; private set; }
         internal DiagnosticInfo Error { get; private set; }
         internal LookupResultKind ResultKind { get; private set; }
@@ -21,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodGroup()
         {
             this.Methods = new ArrayBuilder<MethodSymbol>();
-            this.TypeArguments = new ArrayBuilder<TypeSymbolWithAnnotations>();
+            this.TypeArguments = new ArrayBuilder<TypeWithAnnotations>();
         }
 
         internal void PopulateWithSingleMethod(
@@ -37,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void PopulateWithExtensionMethods(
             BoundExpression receiverOpt,
             ArrayBuilder<Symbol> members,
-            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
+            ImmutableArray<TypeWithAnnotations> typeArguments,
             LookupResultKind resultKind = LookupResultKind.Viable,
             DiagnosticInfo error = null)
         {
@@ -56,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void PopulateWithNonExtensionMethods(
             BoundExpression receiverOpt,
             ImmutableArray<MethodSymbol> methods,
-            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
+            ImmutableArray<TypeWithAnnotations> typeArguments,
             LookupResultKind resultKind = LookupResultKind.Viable,
             DiagnosticInfo error = null)
         {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,15 +12,15 @@ namespace Microsoft.CodeAnalysis.Syntax
     {
         internal class WithTwoChildren : SyntaxList
         {
-            private SyntaxNode _child0;
-            private SyntaxNode _child1;
+            private SyntaxNode? _child0;
+            private SyntaxNode? _child1;
 
-            internal WithTwoChildren(InternalSyntax.SyntaxList green, SyntaxNode parent, int position)
+            internal WithTwoChildren(InternalSyntax.SyntaxList green, SyntaxNode? parent, int position)
                 : base(green, parent, position)
             {
             }
 
-            internal override SyntaxNode GetNodeSlot(int index)
+            internal override SyntaxNode? GetNodeSlot(int index)
             {
                 switch (index)
                 {
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Syntax
                 }
             }
 
-            internal override SyntaxNode GetCachedSlot(int index)
+            internal override SyntaxNode? GetCachedSlot(int index)
             {
                 switch (index)
                 {

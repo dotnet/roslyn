@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -18,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            typeArguments As TypeArgumentListSyntax,
                                            receiver As BoundExpression,
                                            containerType As TypeSymbol,
-                                           diagnostics As DiagnosticBag) As BoundExpression
+                                           diagnostics As BindingDiagnosticBag) As BoundExpression
 
             Dim boundTypeArguments As BoundTypeArguments = BindTypeArguments(typeArguments, diagnostics)
             Return BindLateBoundMemberAccess(node, name, boundTypeArguments, receiver, containerType, diagnostics)
@@ -29,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            boundTypeArguments As BoundTypeArguments,
                                            receiver As BoundExpression,
                                            containerType As TypeSymbol,
-                                           diagnostics As DiagnosticBag,
+                                           diagnostics As BindingDiagnosticBag,
                                            Optional suppressLateBindingResolutionDiagnostics As Boolean = False) As BoundExpression
 
             receiver = AdjustReceiverAmbiguousTypeOrValue(receiver, diagnostics)
@@ -78,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    isDefaultMemberAccess As Boolean,
                                    arguments As ImmutableArray(Of BoundExpression),
                                    argumentNames As ImmutableArray(Of String),
-                                   diagnostics As DiagnosticBag) As BoundExpression
+                                   diagnostics As BindingDiagnosticBag) As BoundExpression
 
             Dim memberName As String = If(isDefaultMemberAccess,
                                           Nothing,
@@ -122,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            receiver As BoundExpression,
                                            arguments As ImmutableArray(Of BoundExpression),
                                            argumentNames As ImmutableArray(Of String),
-                                           diagnostics As DiagnosticBag,
+                                           diagnostics As BindingDiagnosticBag,
                                            Optional suppressLateBindingResolutionDiagnostics As Boolean = False) As BoundExpression
 
             Debug.Assert(receiver IsNot Nothing AndAlso receiver.Kind <> BoundKind.TypeOrValueExpression)
@@ -229,11 +231,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub CheckNamedArgumentsForLateboundInvocation(argumentNames As ImmutableArray(Of String),
                                                             arguments As ImmutableArray(Of BoundExpression),
-                                                            diagnostics As DiagnosticBag)
+                                                            diagnostics As BindingDiagnosticBag)
 
             Debug.Assert(Not arguments.IsDefault)
 
-            If argumentNames.IsDefault OrElse argumentNames.Count = 0 Then
+            If argumentNames.IsDefault OrElse argumentNames.Length = 0 Then
                 Return
             End If
 
@@ -242,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim seenName As Boolean = False
-            For i As Integer = 0 To argumentNames.Count - 1
+            For i As Integer = 0 To argumentNames.Length - 1
 
                 If argumentNames(i) IsNot Nothing Then
                     seenName = True

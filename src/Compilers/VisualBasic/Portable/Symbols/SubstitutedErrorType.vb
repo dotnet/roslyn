@@ -1,11 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Friend Class SubstitutedErrorType
+    Friend NotInheritable Class SubstitutedErrorType
         Inherits ErrorTypeSymbol
 
         ' The _fullInstanceType is the instance that is also contained in its
@@ -58,9 +60,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property ConstructedFromItself As Boolean
+            Get
+                Return _fullInstanceType.Arity = 0 OrElse IdentitySubstitutionOnMyTypeParameters
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ConstructedFrom As NamedTypeSymbol
             Get
-                If _fullInstanceType.Arity = 0 OrElse IdentitySubstitutionOnMyTypeParameters Then
+                If ConstructedFromItself Then
                     Return Me
                 End If
 
@@ -221,43 +229,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Overrides Function GetHashCode() As Integer
-            Dim _hash As Integer = _fullInstanceType.GetHashCode()
+            Dim hash As Integer = _fullInstanceType.GetHashCode()
 
-            _hash = Hash.Combine(ContainingType, _hash)
+            If Me._substitution.WasConstructedForModifiers() Then
+                Return hash
+            End If
 
-            For Each typeArgument In TypeArgumentsNoUseSiteDiagnostics
-                _hash = Hash.Combine(typeArgument, _hash)
-            Next
+            hash = Roslyn.Utilities.Hash.Combine(ContainingType, hash)
 
-            Return _hash
+            If Not ConstructedFromItself Then
+                For Each typeArgument In TypeArgumentsNoUseSiteDiagnostics
+                    hash = Roslyn.Utilities.Hash.Combine(typeArgument, hash)
+                Next
+            End If
+
+            Return hash
         End Function
 
-        Public Overrides Function Equals(obj As Object) As Boolean
+        Public Overrides Function Equals(obj As TypeSymbol, comparison As TypeCompareKind) As Boolean
 
             If Me Is obj Then
                 Return True
             End If
 
-            Dim other = TryCast(obj, SubstitutedErrorType)
-
-            If other Is Nothing Then
+            If obj Is Nothing Then
                 Return False
             End If
 
-            If Not _fullInstanceType.Equals(other._fullInstanceType) Then
+            If (comparison And TypeCompareKind.AllIgnoreOptionsForVB) = 0 AndAlso
+               Not Me.GetType().Equals(obj.GetType()) Then
+                Return False
+            End If
+
+            Dim otherTuple = TryCast(obj, TupleTypeSymbol)
+            If otherTuple IsNot Nothing Then
+                Return otherTuple.Equals(Me, comparison)
+            End If
+
+            If Not _fullInstanceType.Equals(obj.OriginalDefinition) Then
                 Return False
             End If
 
             Dim containingType = Me.ContainingType
 
             If containingType IsNot Nothing AndAlso
-                Not containingType.Equals(other.ContainingType) Then
+               Not containingType.Equals(obj.ContainingType, comparison) Then
                 Return False
             End If
 
-            Dim hasTypeArgumentsCustomModifiers = Me.HasTypeArgumentsCustomModifiers
-            If hasTypeArgumentsCustomModifiers <> other.HasTypeArgumentsCustomModifiers Then
-                Return False
+            Dim other = DirectCast(obj, ErrorTypeSymbol)
+
+            If Me.ConstructedFromItself AndAlso other Is other.ConstructedFrom Then
+                ' No need to compare type arguments on those containers when they didn't add type arguments.
+                Return True
             End If
 
             Dim arguments = TypeArgumentsNoUseSiteDiagnostics
@@ -265,17 +289,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim count As Integer = arguments.Length
 
             For i As Integer = 0 To count - 1 Step 1
-                If Not arguments(i).Equals(otherArguments(i)) Then
+                If Not arguments(i).Equals(otherArguments(i), comparison) Then
                     Return False
                 End If
             Next
 
-            If hasTypeArgumentsCustomModifiers Then
-                For i As Integer = 0 To count - 1 Step 1
-                    If Not GetTypeArgumentCustomModifiers(i).SequenceEqual(other.GetTypeArgumentCustomModifiers(i)) Then
-                        Return False
-                    End If
-                Next
+            If (comparison And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso
+               Not HasSameTypeArgumentCustomModifiers(Me, other) Then
+
+                Return False
             End If
 
             Return True

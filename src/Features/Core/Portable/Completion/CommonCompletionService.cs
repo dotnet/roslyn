@@ -1,16 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
     internal abstract partial class CommonCompletionService : CompletionServiceWithProviders
     {
-        protected CommonCompletionService(
-            Workspace workspace,
-            ImmutableArray<CompletionProvider>? exclusiveProviders)
-            : base(workspace, exclusiveProviders)
+        protected CommonCompletionService(Workspace workspace)
+            : base(workspace)
         {
         }
 
@@ -32,14 +36,27 @@ namespace Microsoft.CodeAnalysis.Completion
             return base.GetBetterItem(item, existingItem);
         }
 
-        protected static bool IsKeywordItem(CompletionItem item)
+        internal override Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
+            Document document,
+            int caretPosition,
+            CompletionOptions options,
+            CompletionTrigger trigger,
+            ImmutableHashSet<string>? roles,
+            CancellationToken cancellationToken)
         {
-            return item.Tags.Contains(WellKnownTags.Keyword);
+            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, trigger, roles, options, cancellationToken);
         }
 
+        protected static bool IsKeywordItem(CompletionItem item)
+            => item.Tags.Contains(WellKnownTags.Keyword);
+
         protected static bool IsSnippetItem(CompletionItem item)
+            => item.Tags.Contains(WellKnownTags.Snippet);
+
+        internal override ImmutableArray<CompletionItem> FilterItems(Document document, ImmutableArray<(CompletionItem, PatternMatch?)> itemsWithPatternMatch, string filterText)
         {
-            return item.Tags.Contains(WellKnownTags.Snippet);
+            var helper = CompletionHelper.GetHelper(document);
+            return CompletionService.FilterItems(helper, itemsWithPatternMatch, filterText);
         }
     }
 }

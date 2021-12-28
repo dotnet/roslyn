@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Composition;
@@ -15,17 +19,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
     [ExportWorkspaceServiceFactory(typeof(INotificationService), ServiceLayer.Host), Shared]
     internal class VSNotificationServiceFactory : IWorkspaceServiceFactory
     {
-        private IVsUIShell _uiShellService;
+        private readonly IVsUIShell _uiShellService;
 
-        private static object s_gate = new object();
+        private static readonly object s_gate = new();
 
         private static VSDialogService s_singleton;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VSNotificationServiceFactory(SVsServiceProvider serviceProvider)
-        {
-            _uiShellService = (IVsUIShell)serviceProvider.GetService(typeof(SVsUIShell));
-        }
+            => _uiShellService = (IVsUIShell)serviceProvider.GetService(typeof(SVsUIShell));
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
@@ -42,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
 
         private class VSDialogService : INotificationService, INotificationServiceCallback
         {
-            private IVsUIShell _uiShellService;
+            private readonly IVsUIShell _uiShellService;
 
             /// <summary>
             /// For testing purposes only.  If non-null, this callback will be invoked instead of showing a dialog.
@@ -50,9 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
             public Action<string, string, NotificationSeverity> NotificationCallback { get; set; }
 
             public VSDialogService(IVsUIShell uiShellService)
-            {
-                _uiShellService = uiShellService;
-            }
+                => _uiShellService = uiShellService;
 
             public void SendNotification(
                 string message,

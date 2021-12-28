@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
@@ -11,37 +15,38 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     {
         public static Guid GetTelemetryId(this Type type, short scope = 0)
         {
-            return new Guid(type.GetTelemetryPrefix(), scope, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-        }
-
-        public static int GetTelemetryPrefix(this Type type)
-        {
             type = GetTypeForTelemetry(type);
+            Contract.ThrowIfNull(type.FullName);
 
             // AssemblyQualifiedName will change across version numbers, FullName won't
-            return type.FullName.GetHashCode();
+
+            // Use a stable hashing algorithm (FNV) that doesn't depend on platform
+            // or .NET implementation.
+            var suffix = Roslyn.Utilities.Hash.GetFNVHashCode(type.FullName);
+
+            // Suffix is the remaining 8 bytes, and the hash code only makes up 4. Pad
+            // the remainder with an empty byte array
+            var suffixBytes = BitConverter.GetBytes(suffix).Concat(new byte[4]).ToArray();
+
+            return new Guid(0, scope, 0, suffixBytes);
         }
 
         public static Type GetTypeForTelemetry(this Type type)
-        {
-            return type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
-        }
+            => type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
 
         public static short GetScopeIdForTelemetry(this FixAllScope scope)
-        {
-            switch (scope)
+            => scope switch
             {
-                case FixAllScope.Document: return 1;
-                case FixAllScope.Project: return 2;
-                case FixAllScope.Solution: return 3;
-                default: return 4;
-            }
-        }
+                FixAllScope.Document => 1,
+                FixAllScope.Project => 2,
+                FixAllScope.Solution => 3,
+                _ => 4,
+            };
 
         public static string GetTelemetryDiagnosticID(this Diagnostic diagnostic)
         {
             // we log diagnostic id as it is if it is from us
-            if (diagnostic.Descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry))
+            if (diagnostic.Descriptor.ImmutableCustomTags().Any(t => t == WellKnownDiagnosticTags.Telemetry))
             {
                 return diagnostic.Id;
             }

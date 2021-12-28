@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 
@@ -128,6 +130,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Formats the names of all types and namespaces in a fully qualified style (including the global alias).
         /// </summary>
+        /// <remarks>
+        /// The current behavior will not output the fully qualified style as expected for member symbols (such as properties) because memberOptions is not set.
+        /// For example, MyNamespace.MyClass.MyPublicProperty will return as MyPublicProperty.
+        /// The current behavior displayed here will be maintained for backwards compatibility.
+        /// </remarks>
         public static SymbolDisplayFormat FullyQualifiedFormat { get; } =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
@@ -200,7 +207,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A verbose format for displaying symbols (useful for testing).
         /// </summary>
-        internal static readonly SymbolDisplayFormat TestFormatWithConstraints = TestFormat.WithGenericsOptions(TestFormat.GenericsOptions | SymbolDisplayGenericsOptions.IncludeTypeConstraints);
+        internal static readonly SymbolDisplayFormat TestFormatWithConstraints = TestFormat.WithGenericsOptions(TestFormat.GenericsOptions | SymbolDisplayGenericsOptions.IncludeTypeConstraints).
+                                                                                            AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier).
+                                                                                            WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
 
         /// <summary>
         /// this.QualifiedNameOnly = containingSymbol.QualifiedNameOnly + "." + this.Name
@@ -217,7 +226,7 @@ namespace Microsoft.CodeAnalysis
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes);
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes | SymbolDisplayCompilerInternalOptions.UseValueTuple);
 
         /// <summary>
         /// A succinct format for displaying symbols.
@@ -245,7 +254,7 @@ namespace Microsoft.CodeAnalysis
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames | SymbolDisplayCompilerInternalOptions.UseValueTuple);
 
         /// <summary>
         /// Used to normalize explicit interface implementation member names.
@@ -370,7 +379,7 @@ namespace Microsoft.CodeAnalysis
             SymbolDisplayKindOptions kindOptions = default(SymbolDisplayKindOptions),
             SymbolDisplayMiscellaneousOptions miscellaneousOptions = default(SymbolDisplayMiscellaneousOptions))
             : this(
-                default(SymbolDisplayCompilerInternalOptions),
+                compilerInternalOptions: default,
                 globalNamespaceStyle,
                 typeQualificationStyle,
                 genericsOptions,
@@ -402,10 +411,6 @@ namespace Microsoft.CodeAnalysis
             SymbolDisplayKindOptions kindOptions = default(SymbolDisplayKindOptions),
             SymbolDisplayMiscellaneousOptions miscellaneousOptions = default(SymbolDisplayMiscellaneousOptions))
         {
-            // If we want to display `!`, then we surely also want to display `?`
-            Debug.Assert(miscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)
-                || !compilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier));
-
             this.GlobalNamespaceStyle = globalNamespaceStyle;
             this.TypeQualificationStyle = typeQualificationStyle;
             this.GenericsOptions = genericsOptions;

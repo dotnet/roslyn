@@ -1,16 +1,17 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
-#Disable Warning RS1016 ' Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     Partial Friend Class OverloadBaseCodeFixProvider
-#Enable Warning RS1016
         Private Class AddKeywordAction
             Inherits CodeAction
 
@@ -49,6 +50,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
 
             Private Async Function GetNewNodeAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
                 Dim newNode As SyntaxNode = Nothing
+                Dim trivia As SyntaxTriviaList = node.GetLeadingTrivia()
+                node = node.WithoutLeadingTrivia()
 
                 Dim propertyStatement = TryCast(node, PropertyStatementSyntax)
                 If propertyStatement IsNot Nothing Then
@@ -61,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
                 End If
 
                 'Make sure we preserve any trivia from the original node
-                newNode = newNode.WithTriviaFrom(node)
+                newNode = newNode.WithLeadingTrivia(trivia)
 
                 'We need to perform a cleanup on the node because AddModifiers doesn't adhere to the VB modifier ordering rules
                 Dim cleanupService = document.GetLanguageService(Of ICodeCleanerService)

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
@@ -38,8 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 case SymbolKind.Method:
                     var methodSymbol = (IMethodSymbol)symbol;
-                    _kind = methodSymbol.MethodKind == MethodKind.Conversion ||
-                                      methodSymbol.MethodKind == MethodKind.UserDefinedOperator
+                    _kind = methodSymbol.MethodKind is MethodKind.Conversion or
+                                      MethodKind.UserDefinedOperator
                         ? MemberKind.Operator
                         : MemberKind.Method;
 

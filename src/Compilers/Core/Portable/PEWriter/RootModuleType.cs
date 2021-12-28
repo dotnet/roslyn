@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
@@ -14,6 +17,27 @@ namespace Microsoft.Cci
     /// </summary>
     internal class RootModuleType : INamespaceTypeDefinition
     {
+        private readonly IUnit _unit;
+        private IReadOnlyList<IMethodDefinition>? _methods;
+
+        public RootModuleType(IUnit unit)
+        {
+            _unit = unit;
+        }
+
+        public void SetStaticConstructorBody(ImmutableArray<byte> il)
+        {
+            Debug.Assert(_methods is null);
+
+            _methods = SpecializedCollections.SingletonReadOnlyList(
+                new RootModuleStaticConstructor(containingTypeDefinition: this, il));
+        }
+
+        public IEnumerable<IMethodDefinition> GetMethods(EmitContext context)
+        {
+            return _methods ??= SpecializedCollections.EmptyReadOnlyList<IMethodDefinition>();
+        }
+
         public TypeDefinitionHandle TypeDef
         {
             get { return default(TypeDefinitionHandle); }
@@ -44,7 +68,7 @@ namespace Microsoft.Cci
             get { return 0; }
         }
 
-        public ITypeReference GetBaseClass(EmitContext context)
+        public ITypeReference? GetBaseClass(EmitContext context)
         {
             return null;
         }
@@ -99,6 +123,11 @@ namespace Microsoft.Cci
             get { return false; }
         }
 
+        public bool IsDelegate
+        {
+            get { return false; }
+        }
+
         public bool IsRuntimeSpecial
         {
             get { return false; }
@@ -127,11 +156,6 @@ namespace Microsoft.Cci
         public LayoutKind Layout
         {
             get { return LayoutKind.Auto; }
-        }
-
-        public IEnumerable<IMethodDefinition> GetMethods(EmitContext context)
-        {
-            return SpecializedCollections.EmptyEnumerable<IMethodDefinition>();
         }
 
         public IEnumerable<INestedTypeDefinition> GetNestedTypes(EmitContext context)
@@ -214,7 +238,7 @@ namespace Microsoft.Cci
 
         IUnitReference INamespaceTypeReference.GetUnit(EmitContext context)
         {
-            throw ExceptionUtilities.Unreachable;
+            return _unit;
         }
 
         string INamespaceTypeReference.NamespaceName
@@ -225,7 +249,7 @@ namespace Microsoft.Cci
             }
         }
 
-        IGenericMethodParameterReference ITypeReference.AsGenericMethodParameterReference
+        IGenericMethodParameterReference? ITypeReference.AsGenericMethodParameterReference
         {
             get
             {
@@ -233,7 +257,7 @@ namespace Microsoft.Cci
             }
         }
 
-        IGenericTypeInstanceReference ITypeReference.AsGenericTypeInstanceReference
+        IGenericTypeInstanceReference? ITypeReference.AsGenericTypeInstanceReference
         {
             get
             {
@@ -241,7 +265,7 @@ namespace Microsoft.Cci
             }
         }
 
-        IGenericTypeParameterReference ITypeReference.AsGenericTypeParameterReference
+        IGenericTypeParameterReference? ITypeReference.AsGenericTypeParameterReference
         {
             get
             {
@@ -262,12 +286,12 @@ namespace Microsoft.Cci
             }
         }
 
-        INestedTypeDefinition ITypeReference.AsNestedTypeDefinition(EmitContext context)
+        INestedTypeDefinition? ITypeReference.AsNestedTypeDefinition(EmitContext context)
         {
             return null;
         }
 
-        INestedTypeReference ITypeReference.AsNestedTypeReference
+        INestedTypeReference? ITypeReference.AsNestedTypeReference
         {
             get
             {
@@ -275,7 +299,7 @@ namespace Microsoft.Cci
             }
         }
 
-        ISpecializedNestedTypeReference ITypeReference.AsSpecializedNestedTypeReference
+        ISpecializedNestedTypeReference? ITypeReference.AsSpecializedNestedTypeReference
         {
             get
             {
@@ -291,6 +315,20 @@ namespace Microsoft.Cci
         IDefinition IReference.AsDefinition(EmitContext context)
         {
             return this;
+        }
+
+        CodeAnalysis.Symbols.ISymbolInternal? Cci.IReference.GetInternalSymbol() => null;
+
+        public sealed override bool Equals(object? obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
         }
     }
 }

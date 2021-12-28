@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -43,14 +47,16 @@ namespace Roslyn.VisualStudio.IntegrationTests
             {
                 VisualStudio.SolutionExplorer.CreateSolution(_solutionName);
                 VisualStudio.SolutionExplorer.AddProject(new ProjectUtils.Project(ProjectName), _projectTemplate, LanguageName);
+                VisualStudio.SolutionExplorer.RestoreNuGetPackages(new ProjectUtils.Project(ProjectName));
 
                 // Winforms and XAML do not open text files on creation
                 // so these editor tasks will not work if that is the project template being used.
-                if (_projectTemplate != WellKnownProjectTemplates.WinFormsApplication &&
-                    _projectTemplate != WellKnownProjectTemplates.WpfApplication &&
-                    _projectTemplate != WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
+                if (_projectTemplate is not WellKnownProjectTemplates.WinFormsApplication and
+                    not WellKnownProjectTemplates.WpfApplication and
+                    not WellKnownProjectTemplates.CSharpNetCoreClassLibrary and
+                    not WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary)
                 {
-                    VisualStudio.Workspace.SetUseSuggestionMode(false);
+                    VisualStudio.Editor.SetUseSuggestionMode(false);
                     ClearEditor();
                 }
             }
@@ -61,7 +67,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void SetUpEditor(string markupCode)
         {
-            MarkupTestFile.GetPosition(markupCode, out string code, out int caretPosition);
+            MarkupTestFile.GetPosition(markupCode, out var code, out int caretPosition);
+
+            VisualStudio.Editor.DismissCompletionSessions();
+            VisualStudio.Editor.DismissLightBulbSession();
 
             var originalValue = VisualStudio.Workspace.IsPrettyListingOn(LanguageName);
 

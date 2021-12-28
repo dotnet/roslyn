@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     internal class MockNamespaceSymbol : NamespaceSymbol, IMockSymbol
     {
         private NamespaceSymbol _container;
-        private NamespaceExtent _extent;
+        private readonly NamespaceExtent _extent;
         private readonly IEnumerable<Symbol> _children;
         private readonly string _name;
 

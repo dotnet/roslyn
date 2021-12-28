@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -17,31 +22,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var node in context.InputNodes)
             {
-                var namedType = graphBuilder.GetSymbol(node) as INamedTypeSymbol;
-                if (namedType == null)
-                {
+                var symbol = graphBuilder.GetSymbol(node, cancellationToken);
+                if (symbol is not INamedTypeSymbol namedType)
                     continue;
-                }
 
                 if (namedType.TypeKind == TypeKind.Class)
                 {
-                    var derivedTypes = await DependentTypeFinder.FindImmediatelyDerivedClassesAsync(namedType, solution, cancellationToken).ConfigureAwait(false);
+                    var derivedTypes = await SymbolFinder.FindDerivedClassesArrayAsync(
+                        namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in derivedTypes)
                     {
-                        var symbolNode = await graphBuilder.AddNodeForSymbolAsync(
-                            derivedType.Symbol, relatedNode: node).ConfigureAwait(false);
-                        graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node);
+                        var symbolNode = await graphBuilder.AddNodeAsync(
+                            derivedType, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                        graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node, cancellationToken);
                     }
                 }
                 else if (namedType.TypeKind == TypeKind.Interface)
                 {
-                    var derivedTypes = await DependentTypeFinder.FindImmediatelyDerivedAndImplementingTypesAsync(
-                        namedType, solution, cancellationToken).ConfigureAwait(false);
-                    foreach (var derivedType in derivedTypes)
+                    var implementingClassesAndStructs = await SymbolFinder.FindImplementationsArrayAsync(
+                        namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var derivedInterfaces = await SymbolFinder.FindDerivedInterfacesArrayAsync(
+                        namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    foreach (var derivedType in implementingClassesAndStructs.Concat(derivedInterfaces))
                     {
-                        var symbolNode = await graphBuilder.AddNodeForSymbolAsync(
-                            derivedType.Symbol, relatedNode: node).ConfigureAwait(false);
-                        graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node);
+                        var symbolNode = await graphBuilder.AddNodeAsync(
+                            derivedType, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                        graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node, cancellationToken);
                     }
                 }
             }

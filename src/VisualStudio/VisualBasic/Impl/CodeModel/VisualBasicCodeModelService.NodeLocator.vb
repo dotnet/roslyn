@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -344,7 +346,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         End If
 
                         If part = EnvDTE.vsCMPart.vsCMPartNavigate Then
-                            Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), typeBlock.BlockStatement, typeBlock.EndBlockStatement, statementLine.LineNumber + 1)
+                            Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), typeBlock.BlockStatement, statementLine.LineNumber + 1)
                         End If
 
                     Case Else
@@ -415,7 +417,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         End If
 
                         If part = EnvDTE.vsCMPart.vsCMPartNavigate Then
-                            Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), enumBlock.EnumStatement, enumBlock.EndEnumStatement, statementLine.LineNumber + 1)
+                            Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), enumBlock.EnumStatement, statementLine.LineNumber + 1)
                         End If
 
                     Case Else
@@ -545,7 +547,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
                 Return New VirtualTreePoint(declareStatement.SyntaxTree, text, startPosition)
             End Function
-
 
             Private Function GetDeclareStatementEndPoint(text As SourceText, declareStatement As DeclareStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim endPosition As Integer
@@ -974,7 +975,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
                 Return statement _
                     .GetTrailingTrivia() _
-                    .FirstOrNullable(Function(t) t.Kind = SyntaxKind.ColonTrivia)
+                    .FirstOrNull(Function(t) t.Kind = SyntaxKind.ColonTrivia)
             End Function
 
             Private Function GetNamespaceBlockStartPoint(text As SourceText, options As OptionSet, namespaceBlock As NamespaceBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
@@ -1006,7 +1007,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                             lineNumber = text.Lines.IndexOf(colonTrivia.Value.SpanStart)
                         End If
 
-                        Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), namespaceBlock.NamespaceStatement, namespaceBlock.EndNamespaceStatement, lineNumber)
+                        Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), namespaceBlock.NamespaceStatement, lineNumber)
 
                     Case EnvDTE.vsCMPart.vsCMPartBody,
                          EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter

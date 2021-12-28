@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Utilities;
 
@@ -44,12 +46,10 @@ namespace Microsoft.CodeAnalysis
                     return 14;
                 case SymbolKind.TypeParameter:
                     return 15;
-                case SymbolKind.PointerType:
-                    return 16;
                 case SymbolKind.DynamicType:
-                    return 17;
+                    return 16;
                 case SymbolKind.Preprocessing:
-                    return 18;
+                    return 17;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

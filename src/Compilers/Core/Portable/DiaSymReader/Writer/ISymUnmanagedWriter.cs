@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 #pragma warning disable 436 // SuppressUnmanagedCodeSecurityAttribute defined in source and mscorlib 
 
@@ -123,12 +127,12 @@ namespace Microsoft.DiaSymReader
         void InitializeDeterministic([MarshalAs(UnmanagedType.IUnknown)] object emitter, [MarshalAs(UnmanagedType.IUnknown)] object stream);
 
         // ISymUnmanagedWriter7
-        unsafe void UpdateSignatureByHashingContent([In]byte* buffer, int size);
+        unsafe void UpdateSignatureByHashingContent([In] byte* buffer, int size);
 
         // ISymUnmanagedWriter8
         void UpdateSignature(Guid pdbId, uint stamp, int age);
-        unsafe void SetSourceServerData([In]byte* data, int size);
-        unsafe void SetSourceLinkData([In]byte* data, int size);
+        unsafe void SetSourceServerData([In] byte* data, int size);
+        unsafe void SetSourceLinkData([In] byte* data, int size);
     }
 
     /// <summary>

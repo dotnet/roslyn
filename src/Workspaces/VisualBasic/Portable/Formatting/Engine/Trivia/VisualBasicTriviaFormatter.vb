@@ -1,23 +1,19 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class VisualBasicTriviaFormatter
         Inherits AbstractTriviaFormatter
 
-        Private _lineContinuationTrivia As SyntaxTrivia = SyntaxFactory.LineContinuationTrivia("_")
+        Private ReadOnly _lineContinuationTrivia As SyntaxTrivia = SyntaxFactory.LineContinuationTrivia("_")
         Private _newLine As SyntaxTrivia
 
         Private _succeeded As Boolean = True
@@ -58,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Protected Overrides Function CreateEndOfLine() As SyntaxTrivia
             If _newLine = Nothing Then
-                Dim text = Me.Context.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.VisualBasic)
+                Dim text = Me.Context.Options.GetOption(FormattingOptions2.NewLine)
                 _newLine = SyntaxFactory.EndOfLine(text)
             End If
 
@@ -69,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             ' line continuation
             If trivia2.Kind = SyntaxKind.LineContinuationTrivia Then
-                Return LineColumnRule.ForceSpacesOrUseAbsoluteIndentation(spacesOrIndentation:=1)
+                Return LineColumnRule.ForceSpacesOrUseFollowIndentation(indentation:=0)
             End If
 
             If IsStartOrEndOfFile(trivia1, trivia2) Then
@@ -121,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' comment before a Case Statement case
             If trivia2.Kind = SyntaxKind.CommentTrivia AndAlso
                Token2.Kind = SyntaxKind.CaseKeyword AndAlso Token2.Parent.IsKind(SyntaxKind.CaseStatement) Then
-                Return LineColumnRule.Preserve()
+                Return LineColumnRule.Preserve
             End If
 
             ' comment case
@@ -149,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 _succeeded = False
             End If
 
-            Return LineColumnRule.Preserve()
+            Return LineColumnRule.Preserve
         End Function
 
         Protected Overrides Function ContainsImplicitLineBreak(syntaxTrivia As SyntaxTrivia) As Boolean
@@ -162,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Protected Overloads Overrides Function Format(lineColumn As LineColumn,
                                                       trivia As SyntaxTrivia,
-                                                      changes As List(Of SyntaxTrivia),
+                                                      changes As ArrayBuilder(Of SyntaxTrivia),
                                                       cancellationToken As CancellationToken) As LineColumnDelta
             If trivia.HasStructure Then
                 Return FormatStructuredTrivia(lineColumn, trivia, changes, cancellationToken)
@@ -178,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Protected Overloads Overrides Function Format(lineColumn As LineColumn,
                                                       trivia As SyntaxTrivia,
-                                                      changes As List(Of TextChange),
+                                                      changes As ArrayBuilder(Of TextChange),
                                                       cancellationToken As CancellationToken) As LineColumnDelta
             If trivia.HasStructure Then
                 Return FormatStructuredTrivia(lineColumn, trivia, changes, cancellationToken)
@@ -207,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Private Function FormatStructuredTrivia(lineColumn As LineColumn,
                                                 trivia As SyntaxTrivia,
-                                                changes As List(Of SyntaxTrivia),
+                                                changes As ArrayBuilder(Of SyntaxTrivia),
                                                 cancellationToken As CancellationToken) As LineColumnDelta
             If trivia.Kind = SyntaxKind.SkippedTokensTrivia Then
                 ' don't touch anything if it contains skipped tokens
@@ -219,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             ' TODO : make document comment to be formatted by structured trivia formatter as well.
             If trivia.Kind <> SyntaxKind.DocumentationCommentTrivia Then
-                Dim result = VisualBasicStructuredTriviaFormatEngine.FormatTrivia(trivia, Me.InitialLineColumn.Column, Me.OptionSet, Me.FormattingRules, cancellationToken)
+                Dim result = VisualBasicStructuredTriviaFormatEngine.FormatTrivia(trivia, Me.InitialLineColumn.Column, Me.Options, Me.FormattingRules, cancellationToken)
                 Dim formattedTrivia = SyntaxFactory.Trivia(DirectCast(result.GetFormattedRoot(cancellationToken), StructuredTriviaSyntax))
 
                 changes.Add(formattedTrivia)
@@ -234,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Private Function FormatStructuredTrivia(lineColumn As LineColumn,
                                                 trivia As SyntaxTrivia,
-                                                changes As List(Of TextChange),
+                                                changes As ArrayBuilder(Of TextChange),
                                                 cancellationToken As CancellationToken) As LineColumnDelta
             If trivia.Kind = SyntaxKind.SkippedTokensTrivia Then
                 ' don't touch anything if it contains skipped tokens
@@ -245,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' TODO : make document comment to be formatted by structured trivia formatter as well.
             If trivia.Kind <> SyntaxKind.DocumentationCommentTrivia Then
                 Dim result = VisualBasicStructuredTriviaFormatEngine.FormatTrivia(
-                    trivia, Me.InitialLineColumn.Column, Me.OptionSet, Me.FormattingRules, cancellationToken)
+                    trivia, Me.InitialLineColumn.Column, Me.Options, Me.FormattingRules, cancellationToken)
 
                 If result.GetTextChanges(cancellationToken).Count = 0 Then
                     Return GetLineColumnDelta(lineColumn, trivia)
@@ -276,7 +272,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' If the doc comment was parsed from a text fragment, there may not be
             ' an end-of-line at all. We need to trim the end before we check the
             ' number of line breaks in the text.
+#If NETCOREAPP Then
+            Dim textWithoutFinalNewLine = text.TrimEnd()
+#Else
             Dim textWithoutFinalNewLine = text.TrimEnd(Nothing)
+#End If
             If Not textWithoutFinalNewLine.ContainsLineBreak() Then
                 Return trivia
             End If
@@ -285,9 +285,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 forceIndentation:=True,
                 indentation:=indentation,
                 indentationDelta:=0,
-                useTab:=Me.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic),
-                tabSize:=Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic),
-                newLine:=Me.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.VisualBasic))
+                useTab:=Me.Options.GetOption(FormattingOptions2.UseTabs),
+                tabSize:=Me.Options.GetOption(FormattingOptions2.TabSize),
+                newLine:=Me.Options.GetOption(FormattingOptions2.NewLine))
 
             If text = singlelineDocComments Then
                 Return trivia
@@ -299,5 +299,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return singlelineDocCommentTrivia.ElementAt(0)
         End Function
 
+        Protected Overrides Function LineContinuationFollowedByWhitespaceComment(trivia As SyntaxTrivia, nextTrivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.LineContinuationTrivia AndAlso nextTrivia.Kind = SyntaxKind.CommentTrivia
+        End Function
+
+        Protected Overrides Function IsVisualBasicComment(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.CommentTrivia
+        End Function
     End Class
 End Namespace

@@ -6,7 +6,7 @@ This is a tool to validate the state of our solutions, project files and other b
 > BuildBoss.exe <solution / project / targets path / build log paths>
 ```
 
-This tool is run on every CI job against our important solution files: [Roslyn.sln](https://github.com/dotnet/roslyn/blob/master/Roslyn.sln), and [CrossPlatform.sln](https://github.com/dotnet/roslyn/blob/master/CrossPlatform.sln).  
+This tool is run on every CI job against our important solution files: [Roslyn.sln](https://github.com/dotnet/roslyn/blob/main/Roslyn.sln), and [CrossPlatform.sln](https://github.com/dotnet/roslyn/blob/main/CrossPlatform.sln).  
 
 Violations reported are important to fix as they represent correctness issues in our build.  Many of the properties verified represent problems that otherwise won't be verified at check in time.
 
@@ -14,7 +14,7 @@ Violations reported are important to fix as they represent correctness issues in
 
 ### Central properties
 
-These are the collection of proerties which are controlled in our central targets file.  Often these properies are unconditionally set in the targets file because there is only one valid setting for the entire repo.  
+These are the collection of properties which are controlled in our central targets file.  Often these properties are unconditionally set in the targets file because there is only one valid setting for the entire repo.  
 
 The tool will verify these are not specified in individual project files.  Allowing these properties causes confusion for developers because the value would be ignored by the build if different from the central targets file.  Hence these are not allowed.  
 
@@ -43,7 +43,7 @@ Projects which represent full deployments must have a complete set of project re
 
 ### Classifying projects
 
-Our build process depends on being able to correctly classify our projects: exe, VSIX, dll, etc ...  This can typically be inferred from proerties like OutputType.  But in other occasions it requires a more declarative entry via the `<RoslynProjectType>` property.  The tool will catch places where projects are incorrectly classified.
+Our build process depends on being able to correctly classify our projects: exe, VSIX, dll, etc ...  This can typically be inferred from properties like OutputType.  But in other occasions it requires a more declarative entry via the `<RoslynProjectType>` property.  The tool will catch places where projects are incorrectly classified.
 
 This could be done using MSBuild targets but the logic is hard to follow and complicates the build.  It's easier and more readable to have a declaritive entry in the file.
 

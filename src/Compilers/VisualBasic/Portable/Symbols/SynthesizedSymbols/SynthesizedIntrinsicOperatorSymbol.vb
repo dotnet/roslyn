@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 
@@ -62,11 +64,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If _isCheckedBuiltin = other._isCheckedBuiltin AndAlso
                _parameters.Length = other._parameters.Length AndAlso
                String.Equals(_name, other._name, StringComparison.Ordinal) AndAlso
-               m_containingType = other.m_containingType AndAlso
-               _returnType = other._returnType Then
+               TypeSymbol.Equals(m_containingType, other.m_containingType, TypeCompareKind.ConsiderEverything) AndAlso
+               TypeSymbol.Equals(_returnType, other._returnType, TypeCompareKind.ConsiderEverything) Then
 
                 For i As Integer = 0 To _parameters.Length - 1
-                    If _parameters(i).Type <> other._parameters(i).Type Then
+                    If Not TypeSymbol.Equals(_parameters(i).Type, other._parameters(i).Type, TypeCompareKind.ConsiderEverything) Then
                         Return False
                     End If
                 Next

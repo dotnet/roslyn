@@ -1,120 +1,123 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class NothingKeywordRecommenderTests
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInClassDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "Nothing")
-        End Function
+        Public Sub NoneInClassDeclarationTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordInStatementTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordInStatementTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterReturnTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Return |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterReturnTest()
+            VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterArgument1Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterArgument2Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar, |</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterBinaryExpressionTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar + |</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterNotTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(Not |</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterTypeOfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If TypeOf |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterTypeOfTest()
+            VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterDoWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do While |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterDoWhileTest()
+            VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterDoUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do Until |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterDoUntilTest()
+            VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterLoopWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub NothingKeywordAfterLoopWhileTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop While |</MethodBody>, "Nothing")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterLoopUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub NothingKeywordAfterLoopUntilTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop Until |</MethodBody>, "Nothing")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterIfTest()
+            VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterElseIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>ElseIf |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterElseIfTest()
+            VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterElseSpaceIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Else If |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterElseSpaceIfTest()
+            VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterErrorTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Error |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterErrorTest()
+            VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterThrowTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Throw |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterThrowTest()
+            VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterInitializerTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterInitializerTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = |</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterArrayInitializerSquiggleTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {|</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterArrayInitializerSquiggleTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterArrayInitializerCommaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {0, |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterArrayInitializerCommaTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "Nothing")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingKeywordAfterWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>While |</MethodBody>, "Nothing")
-        End Function
+        Public Sub NothingKeywordAfterWhileTest()
+            VerifyRecommendationsContain(<MethodBody>While |</MethodBody>, "Nothing")
+        End Sub
 
         <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotInDelegateCreationTest() As Task
+        Public Sub NotInDelegateCreationTest()
             Dim code =
 <File>
 Module Program
@@ -130,7 +133,7 @@ Module Program
 End Module
 </File>
 
-            Await VerifyRecommendationsMissingAsync(code, "Nothing")
-        End Function
+            VerifyRecommendationsMissing(code, "Nothing")
+        End Sub
     End Class
 End Namespace

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 
@@ -52,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Tags
 
         internal const string AddReference = nameof(AddReference);
         internal const string NuGet = nameof(NuGet);
+        internal const string TargetTypeMatch = nameof(TargetTypeMatch);
     }
 
     internal static class WellKnownTagArrays
@@ -128,6 +131,7 @@ namespace Microsoft.CodeAnalysis.Tags
 
         internal static readonly ImmutableArray<string> AddReference = ImmutableArray.Create(WellKnownTags.AddReference);
         internal static readonly ImmutableArray<string> NuGet = ImmutableArray.Create(WellKnownTags.NuGet);
+        internal static readonly ImmutableArray<string> TargetTypeMatch = ImmutableArray.Create(WellKnownTags.TargetTypeMatch);
 
         internal static readonly ImmutableArray<string> CSharpFile = ImmutableArray.Create(WellKnownTags.File, LanguageNames.CSharp);
         internal static readonly ImmutableArray<string> VisualBasicFile = ImmutableArray.Create(WellKnownTags.File, LanguageNames.VisualBasic);

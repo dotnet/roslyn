@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A RangeVariableSymbol represents an identifier introduced in a query expression as the
     /// identifier of a "from" clause, an "into" query continuation, a "let" clause, or a "join" clause.
     /// </summary>
-    internal class RangeVariableSymbol : Symbol, IRangeVariableSymbol
+    internal class RangeVariableSymbol : Symbol
     {
         private readonly string _name;
         private readonly ImmutableArray<Location> _locations;
@@ -138,16 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitRangeVariable(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitRangeVariable(this);
-        }
-
         internal override TResult Accept<TArg, TResult>(CSharpSymbolVisitor<TArg, TResult> visitor, TArg a)
         {
             return visitor.VisitRangeVariable(this, a);
@@ -163,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitRangeVariable(this);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
             {
@@ -173,12 +167,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var symbol = obj as RangeVariableSymbol;
             return (object)symbol != null
                 && symbol._locations[0].Equals(_locations[0])
-                && Equals(_containingSymbol, symbol.ContainingSymbol);
+                && _containingSymbol.Equals(symbol.ContainingSymbol, compareKind);
         }
 
         public override int GetHashCode()
         {
             return Hash.Combine(_locations[0].GetHashCode(), _containingSymbol.GetHashCode());
+        }
+
+        protected override ISymbol CreateISymbol()
+        {
+            return new PublicModel.RangeVariableSymbol(this);
         }
     }
 }

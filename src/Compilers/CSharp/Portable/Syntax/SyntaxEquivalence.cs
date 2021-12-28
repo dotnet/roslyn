@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
@@ -9,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     internal static class SyntaxEquivalence
     {
-        internal static bool AreEquivalent(SyntaxTree before, SyntaxTree after, Func<SyntaxKind, bool> ignoreChildNode, bool topLevel)
+        internal static bool AreEquivalent(SyntaxTree? before, SyntaxTree? after, Func<SyntaxKind, bool>? ignoreChildNode, bool topLevel)
         {
             if (before == after)
             {
@@ -24,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return AreEquivalent(before.GetRoot(), after.GetRoot(), ignoreChildNode, topLevel);
         }
 
-        public static bool AreEquivalent(SyntaxNode before, SyntaxNode after, Func<SyntaxKind, bool> ignoreChildNode, bool topLevel)
+        public static bool AreEquivalent(SyntaxNode? before, SyntaxNode? after, Func<SyntaxKind, bool>? ignoreChildNode, bool topLevel)
         {
             Debug.Assert(!topLevel || ignoreChildNode == null);
 
@@ -43,18 +46,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public static bool AreEquivalent(SyntaxToken before, SyntaxToken after)
         {
-            return before.RawKind == after.RawKind && (before.Node == null || AreTokensEquivalent(before.Node, after.Node));
+            return before.RawKind == after.RawKind && (before.Node == null || AreTokensEquivalent(before.Node, after.Node, ignoreChildNode: null));
         }
 
-        private static bool AreTokensEquivalent(GreenNode before, GreenNode after)
+        private static bool AreTokensEquivalent(GreenNode? before, GreenNode? after, Func<SyntaxKind, bool>? ignoreChildNode)
         {
+            if (before is null || after is null)
+            {
+                return (before is null && after is null);
+            }
+
             // NOTE(cyrusn): Do we want to drill into trivia?  Can documentation ever affect the
             // global meaning of symbols?  This can happen in java with things like the "@obsolete"
             // clause in doc comment.  However, i don't know if anything like that exists in C#. 
-
-            // NOTE(cyrusn): I don't believe we need to examine pp directives.  We actually want to
-            // intentionally ignore them as we're only paying attention to the trees that affect
-            // symbolic information.
 
             // NOTE(cyrusn): I don't believe we need to examine skipped text.  It isn't relevant from
             // the perspective of global symbolic information.
@@ -69,19 +73,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             switch ((SyntaxKind)before.RawKind)
             {
                 case SyntaxKind.IdentifierToken:
-                    return ((Green.SyntaxToken)before).ValueText == ((Green.SyntaxToken)after).ValueText;
+                    if (((Green.SyntaxToken)before).ValueText != ((Green.SyntaxToken)after).ValueText)
+                    {
+                        return false;
+                    }
+                    break;
 
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.StringLiteralToken:
                 case SyntaxKind.InterpolatedStringTextToken:
-                    return ((Green.SyntaxToken)before).Text == ((Green.SyntaxToken)after).Text;
+                    if (((Green.SyntaxToken)before).Text != ((Green.SyntaxToken)after).Text)
+                    {
+                        return false;
+                    }
+                    break;
             }
 
-            return true;
+            return AreNullableDirectivesEquivalent(before, after, ignoreChildNode);
         }
 
-        private static bool AreEquivalentRecursive(GreenNode before, GreenNode after, Func<SyntaxKind, bool> ignoreChildNode, bool topLevel)
+        private static bool AreEquivalentRecursive(GreenNode? before, GreenNode? after, Func<SyntaxKind, bool>? ignoreChildNode, bool topLevel)
         {
             if (before == after)
             {
@@ -101,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             if (before.IsToken)
             {
                 Debug.Assert(after.IsToken);
-                return AreTokensEquivalent(before, after);
+                return AreTokensEquivalent(before, after, ignoreChildNode);
             }
 
             if (topLevel)
@@ -112,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 {
                     case SyntaxKind.Block:
                     case SyntaxKind.ArrowExpressionClause:
-                        return true;
+                        return AreNullableDirectivesEquivalent(before, after, ignoreChildNode);
                 }
 
                 // If we're only checking top level equivalence, then we don't have to go down into
@@ -150,8 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 var e2 = after.ChildNodesAndTokens().GetEnumerator();
                 while (true)
                 {
-                    GreenNode child1 = null;
-                    GreenNode child2 = null;
+                    GreenNode? child1 = null;
+                    GreenNode? child2 = null;
 
                     // skip ignored children:
                     while (e1.MoveNext())
@@ -208,6 +220,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
 
                 return true;
+            }
+        }
+
+        private static bool AreNullableDirectivesEquivalent(GreenNode before, GreenNode after, Func<SyntaxKind, bool>? ignoreChildNode)
+        {
+            // Fast path for when the caller does not care about nullable directives. This can happen in some IDE refactorings.
+            if (ignoreChildNode is object && ignoreChildNode(SyntaxKind.NullableDirectiveTrivia))
+            {
+                return true;
+            }
+
+            using var beforeDirectivesEnumerator = ((Green.CSharpSyntaxNode)before).GetDirectives().GetEnumerator();
+            using var afterDirectivesEnumerator = ((Green.CSharpSyntaxNode)after).GetDirectives().GetEnumerator();
+            while (true)
+            {
+                Green.DirectiveTriviaSyntax? beforeAnnotation = getNextNullableDirective(beforeDirectivesEnumerator, ignoreChildNode);
+                Green.DirectiveTriviaSyntax? afterAnnotation = getNextNullableDirective(afterDirectivesEnumerator, ignoreChildNode);
+
+                if (beforeAnnotation == null || afterAnnotation == null)
+                {
+                    return beforeAnnotation == afterAnnotation;
+                }
+
+                if (!AreEquivalentRecursive(beforeAnnotation, afterAnnotation, ignoreChildNode, topLevel: false))
+                {
+                    return false;
+                }
+
+                static Green.DirectiveTriviaSyntax? getNextNullableDirective(IEnumerator<Green.DirectiveTriviaSyntax> enumerator, Func<SyntaxKind, bool>? ignoreChildNode)
+                {
+                    while (enumerator.MoveNext())
+                    {
+                        var current = enumerator.Current;
+                        if (current.Kind == SyntaxKind.NullableDirectiveTrivia)
+                        {
+                            return current;
+                        }
+                    }
+
+                    return null;
+                }
             }
         }
     }

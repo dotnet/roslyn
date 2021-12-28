@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../VisualBasicAnalyzersResources.resx">
+    <body>
+      <trans-unit id="GetType_can_be_converted_to_NameOf">
+        <source>'GetType' can be converted to 'NameOf'</source>
+        <target state="translated">"GetType" 可以转换为 "NameOf"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="If_statement_can_be_simplified">
+        <source>'If' statement can be simplified</source>
+        <target state="translated">可简化 "if" 语句</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Imports_statement_is_unnecessary">
+        <source>Imports statement is unnecessary.</source>
+        <target state="translated">Imports 语句是不需要的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Object_creation_can_be_simplified">
+        <source>Object creation can be simplified</source>
+        <target state="translated">可简化对象创建</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_ByVal">
+        <source>'ByVal' keyword is unnecessary and can be removed.</source>
+        <target state="translated">"ByVal" 关键字是不必要的，可以删除。</target>
+        <note>{locked: ByVal}This is a Visual Basic keyword and should not be localized or have its casing changed</note>
+      </trans-unit>
+      <trans-unit id="Use_IsNot_Nothing_check">
+        <source>Use 'IsNot Nothing' check</source>
+        <target state="translated">使用 "IsNot Nothing" 检查</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_IsNot_expression">
+        <source>Use 'IsNot' expression</source>
+        <target state="translated">使用 "IsNot" 表达式</target>
+        <note>{locked: IsNot}This is a Visual Basic keyword and should not be localized or have its casing changed</note>
+      </trans-unit>
+      <trans-unit id="Use_Is_Nothing_check">
+        <source>Use 'Is Nothing' check</source>
+        <target state="translated">使用 "Is Nothing" 检查</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

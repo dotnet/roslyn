@@ -1,7 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -12,10 +16,14 @@ namespace Microsoft.CodeAnalysis
     [ExportWorkspaceService(typeof(IDocumentTextDifferencingService), ServiceLayer.Default), Shared]
     internal class DefaultDocumentTextDifferencingService : IDocumentTextDifferencingService
     {
-        public Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public DefaultDocumentTextDifferencingService()
         {
-            return GetTextChangesAsync(oldDocument, newDocument, TextDifferenceTypes.Word, cancellationToken);
         }
+
+        public Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+            => GetTextChangesAsync(oldDocument, newDocument, TextDifferenceTypes.Word, cancellationToken);
 
         public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, TextDifferenceTypes preferredDifferenceType, CancellationToken cancellationToken)
         {

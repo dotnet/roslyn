@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -64,6 +68,8 @@ namespace Microsoft.CodeAnalysis
         public bool SetEarlyDecodedWellKnownAttributeData(EarlyWellKnownAttributeData data)
         {
             WellKnownAttributeData.Seal(data);
+            // Early decode must complete before full decode
+            Debug.Assert(!IsPartComplete(CustomAttributeBagCompletionPart.DecodedWellKnownAttributeData) || IsPartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData));
             var setOnOurThread = Interlocked.CompareExchange(ref _earlyDecodedWellKnownAttributeData, data, null) == null;
             NotePartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData);
             return setOnOurThread;
@@ -77,6 +83,8 @@ namespace Microsoft.CodeAnalysis
         public bool SetDecodedWellKnownAttributeData(WellKnownAttributeData data)
         {
             WellKnownAttributeData.Seal(data);
+            // Early decode must complete before full decode
+            Debug.Assert(IsPartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData));
             var setOnOurThread = Interlocked.CompareExchange(ref _decodedWellKnownAttributeData, data, null) == null;
             NotePartComplete(CustomAttributeBagCompletionPart.DecodedWellKnownAttributeData);
             return setOnOurThread;

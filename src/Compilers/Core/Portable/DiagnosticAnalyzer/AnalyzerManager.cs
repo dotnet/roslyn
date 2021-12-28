@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -47,7 +50,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private AnalyzerExecutionContext GetAnalyzerExecutionContext(DiagnosticAnalyzer analyzer) => _analyzerExecutionContextMap[analyzer];
 
-        private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/26778",
+            OftenCompletesSynchronously = true)]
+        private async ValueTask<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor)
@@ -56,7 +62,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
         }
 
-        private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/26778",
+            OftenCompletesSynchronously = true)]
+        private async ValueTask<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor,
             AnalyzerExecutionContext analyzerExecutionContext)
@@ -123,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             try
             {
-                var task = analyzerExecutionContext.GetSessionAnalysisScopeTask(analyzerExecutor);
+                var task = analyzerExecutionContext.GetSessionAnalysisScopeAsync(analyzerExecutor);
                 return await task.ConfigureAwait(false);
             }
             catch (OperationCanceledException)
@@ -146,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async ValueTask<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-            if (sessionScope.GetAnalyzerActions(analyzer).CompilationStartActions.Length > 0 && analyzerExecutor.Compilation != null)
+            if (sessionScope.GetAnalyzerActions(analyzer).CompilationStartActionsCount > 0 && analyzerExecutor.Compilation != null)
             {
                 var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
                 return compilationScope.GetAnalyzerActions(analyzer);
@@ -173,11 +182,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return null;
+            return AnalyzerActions.Empty;
 
             ImmutableArray<SymbolStartAnalyzerAction> getFilteredActionsByKind(ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions)
             {
-                ArrayBuilder<SymbolStartAnalyzerAction> filteredActionsBuilderOpt = null;
+                ArrayBuilder<SymbolStartAnalyzerAction>? filteredActionsBuilderOpt = null;
                 for (int i = 0; i < symbolStartActions.Length; i++)
                 {
                     var symbolStartAction = symbolStartActions[i];
@@ -235,7 +244,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerExecutor analyzerExecutor)
         {
             var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
-            return analyzerExecutionContext.GetOrComputeDescriptors(analyzer, analyzerExecutor);
+            return analyzerExecutionContext.GetOrComputeDiagnosticDescriptors(analyzer, analyzerExecutor);
+        }
+
+        /// <summary>
+        /// Return <see cref="DiagnosticSuppressor.SupportedSuppressions"/> of given <paramref name="suppressor"/>.
+        /// </summary>
+        public ImmutableArray<SuppressionDescriptor> GetSupportedSuppressionDescriptors(
+            DiagnosticSuppressor suppressor,
+            AnalyzerExecutor analyzerExecutor)
+        {
+            var analyzerExecutionContext = GetAnalyzerExecutionContext(suppressor);
+            return analyzerExecutionContext.GetOrComputeSuppressionDescriptors(suppressor, analyzerExecutor);
         }
 
         internal bool IsSupportedDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer, AnalyzerExecutor analyzerExecutor)
@@ -267,7 +287,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             CompilationOptions options,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
-            AnalyzerExecutor analyzerExecutor)
+            AnalyzerExecutor analyzerExecutor,
+            SeverityFilter severityFilter)
         {
             if (isCompilerAnalyzer(analyzer))
             {
@@ -277,10 +298,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
+            analyzerExecutor.TryGetCompilationAndAnalyzerOptions(out var compilation, out var analyzerOptions);
 
             foreach (var diag in supportedDiagnostics)
             {
-                if (HasNotConfigurableTag(diag.CustomTags))
+                if (diag.IsNotConfigurable())
                 {
                     if (diag.IsEnabledByDefault)
                     {
@@ -297,10 +319,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Is this diagnostic suppressed by default (as written by the rule author)
                 var isSuppressed = !diag.IsEnabledByDefault;
 
-                // If the user said something about it, that overrides the author.
-                if (diagnosticOptions.TryGetValue(diag.Id, out var severity))
+                // Global editorconfig settings overrides the analyzer author
+                // Compilation wide user settings (diagnosticOptions) from ruleset/nowarn/warnaserror overrides the analyzer author and global editorconfig settings.
+                // Note that "/warnaserror-:DiagnosticId" adds a diagnostic option with value 'ReportDiagnostic.Default',
+                // which should not alter 'isSuppressed'.
+                if ((diagnosticOptions.TryGetValue(diag.Id, out var severity) ||
+                    options.SyntaxTreeOptionsProvider is object && options.SyntaxTreeOptionsProvider.TryGetGlobalDiagnosticValue(diag.Id, analyzerExecutor.CancellationToken, out severity)) &&
+                    severity != ReportDiagnostic.Default)
                 {
                     isSuppressed = severity == ReportDiagnostic.Suppress;
+                }
+                else
+                {
+                    severity = isSuppressed ? ReportDiagnostic.Suppress : DiagnosticDescriptor.MapSeverityToReport(diag.DefaultSeverity);
+                }
+
+                // Is this diagnostic suppressed due to its severity
+                if (severityFilter.Contains(severity))
+                {
+                    isSuppressed = true;
+                }
+
+                // Editorconfig user settings override compilation wide settings.
+                if (isSuppressed &&
+                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, compilation, analyzerOptions, analyzerExecutor.CancellationToken))
+                {
+                    isSuppressed = false;
                 }
 
                 if (!isSuppressed)
@@ -309,10 +353,60 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
+            if (analyzer is DiagnosticSuppressor suppressor)
+            {
+                foreach (var suppressionDescriptor in GetSupportedSuppressionDescriptors(suppressor, analyzerExecutor))
+                {
+                    if (!suppressionDescriptor.IsDisabled(options))
+                    {
+                        return false;
+                    }
+                }
+            }
+
             return true;
+
+            static bool isEnabledWithAnalyzerConfigOptions(
+                DiagnosticDescriptor descriptor,
+                SeverityFilter severityFilter,
+                Compilation? compilation,
+                AnalyzerOptions? analyzerOptions,
+                CancellationToken cancellationToken)
+            {
+                if (compilation != null && compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
+                {
+                    foreach (var tree in compilation.SyntaxTrees)
+                    {
+                        // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
+                        if (treeOptions.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out var configuredValue) ||
+                            analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, cancellationToken, out configuredValue))
+                        {
+                            if (configuredValue != ReportDiagnostic.Suppress && !severityFilter.Contains(configuredValue))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
         }
 
-        internal static bool HasNotConfigurableTag(IEnumerable<string> customTags)
+        internal static bool HasCompilerOrNotConfigurableTag(ImmutableArray<string> customTags)
+        {
+            foreach (var customTag in customTags)
+            {
+                if (customTag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        internal static bool HasNotConfigurableTag(ImmutableArray<string> customTags)
         {
             foreach (var customTag in customTags)
             {

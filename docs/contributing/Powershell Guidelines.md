@@ -13,7 +13,7 @@ approaches.  The guidelines below are meant to push scripts to this mindset of e
 1. Use Pascal casing for functions and where possible follow the Verb-Name convention.
 1. Use Camel casing for all other identifier.
 1. Use full command names instead of aliass.  For example `Get-Content` vs. `gc`.  Aliases can be 
-overriden by the environment and hence are not considered portable. 
+overridden by the environment and hence are not considered portable. 
 
 # General Guidelines
 

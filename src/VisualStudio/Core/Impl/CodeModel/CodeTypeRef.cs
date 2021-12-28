@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 // Breaking changes from the legacy code model.
 //
@@ -45,9 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal ITypeSymbol LookupTypeSymbol()
         {
-            var typeSymbol = CodeModelService.ResolveSymbol(this.State.Workspace, _projectId, _symbolId) as ITypeSymbol;
-
-            if (typeSymbol == null)
+            if (CodeModelService.ResolveSymbol(this.State.Workspace, _projectId, _symbolId) is not ITypeSymbol typeSymbol)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -112,9 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             get
             {
-                var namedTypeSymbol = LookupTypeSymbol() as INamedTypeSymbol;
-
-                return namedTypeSymbol != null
+                return LookupTypeSymbol() is INamedTypeSymbol namedTypeSymbol
                     && namedTypeSymbol.GetAllTypeArguments().Any();
             }
         }

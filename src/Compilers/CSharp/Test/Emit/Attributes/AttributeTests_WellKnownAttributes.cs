@@ -1,11 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -18,6 +24,72 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    public static class WellKnownAttributeTestsUtil
+    {
+        public static bool? HasLocalsInit(this CompilationVerifier verifier, string qualifiedMethodName, bool realIL = false)
+        {
+            if (realIL)
+            {
+                var peReader = new PEReader(verifier.EmittedAssemblyData);
+                var metadataReader = peReader.GetMetadataReader();
+
+                int lastDotIndex = qualifiedMethodName.LastIndexOf('.');
+                var spanName = qualifiedMethodName.AsSpan();
+                var typeName = spanName.Slice(0, lastDotIndex);
+                var methodName = spanName.Slice(lastDotIndex + 1);
+
+                TypeDefinition typeDef = default;
+
+                foreach (var typeHandle in metadataReader.TypeDefinitions)
+                {
+                    var type = metadataReader.GetTypeDefinition(typeHandle);
+                    var name = metadataReader.GetString(type.Name);
+
+                    if (name.AsSpan().Equals(typeName, StringComparison.Ordinal))
+                    {
+                        typeDef = type;
+                        break;
+                    }
+                }
+
+                Assert.NotEqual(default, typeDef);
+
+                MethodDefinition methodDef = default;
+
+                foreach (var methodHandle in typeDef.GetMethods())
+                {
+                    var method = metadataReader.GetMethodDefinition(methodHandle);
+                    var name = metadataReader.GetString(method.Name);
+
+                    if (name.AsSpan().Equals(methodName, StringComparison.Ordinal))
+                    {
+                        methodDef = method;
+                        break;
+                    }
+                }
+
+                Assert.NotEqual(default, methodDef);
+
+                var block = peReader.GetMethodBody(methodDef.RelativeVirtualAddress);
+                return block.LocalVariablesInitialized;
+            }
+            else
+            {
+                var il = verifier.VisualizeIL(qualifiedMethodName, realIL);
+
+                if (il.Contains(".locals init ("))
+                {
+                    return true;
+                }
+                if (il.Contains(".locals ("))
+                {
+                    return false;
+                }
+                return null;
+            }
+        }
+    }
+
     public class AttributeTests_WellKnownAttributes : WellKnownAttributesTestBase
     {
         #region Misc
@@ -332,8 +404,8 @@ class C
                 var attrSym = type1.GetAttribute(ciptSym);
                 Assert.Equal(0, attrSym.CommonConstructorArguments.Length);
 
-                MethodSymbol method = default(MethodSymbol);
-                ParameterSymbol parm = default(ParameterSymbol);
+                MethodSymbol method = null;
+                ParameterSymbol parm = null;
                 var sourceAssembly = assembly as SourceAssemblySymbol;
                 if (sourceAssembly != null)
                 {
@@ -437,7 +509,7 @@ public class Bar
             // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (
             //         01 00 ff ff ff ff ff ff ff ff 00 00
             // )
-            Action<IModuleSymbol> verifier = (module) =>
+            Action<ModuleSymbol> verifier = (module) =>
                 {
                     var bar = (NamedTypeSymbol)((ModuleSymbol)module).GlobalNamespace.GetMember("Bar");
                     var method = (MethodSymbol)bar.GetMember("Method");
@@ -781,7 +853,7 @@ public class C
     }
 }";
 
-            Action<IModuleSymbol> verifier = (module) =>
+            Action<ModuleSymbol> verifier = (module) =>
             {
                 var c = (NamedTypeSymbol)((ModuleSymbol)module).GlobalNamespace.GetMember("C");
                 var m = (MethodSymbol)c.GetMember("M");
@@ -1774,13 +1846,13 @@ class Program
 
     static void Main()
     {
-        Goo();
+        Goo(); // 1
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'Enum'
-                //         Goo();
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'System.Enum'
+                //         Goo(); // 1
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "Goo()").WithArguments("int", "System.Enum").WithLocation(13, 9));
         }
 
@@ -2309,7 +2381,7 @@ class C
                 // get expected attr symbol
                 var type1 = m.GlobalNamespace.GetTypeMember("DllImportTest");
 
-                MethodSymbol method = default(MethodSymbol);
+                MethodSymbol method = null;
                 method = type1.GetMember<MethodSymbol>("DllImportSub");
                 var attrSym = method.GetAttributes().First();
                 Assert.Equal("DllImportAttribute", attrSym.AttributeClass.Name);
@@ -2565,8 +2637,8 @@ public class C
                 Assert.Equal(CharSet.Unicode, info.CharacterSet);
                 Assert.True(info.ExactSpelling);
                 Assert.True(info.SetLastError);
-                Assert.Equal(true, info.BestFitMapping);
-                Assert.Equal(true, info.ThrowOnUnmappableCharacter);
+                Assert.True(info.BestFitMapping);
+                Assert.True(info.ThrowOnUnmappableCharacter);
 
                 Assert.Equal(
                     MethodImportAttributes.ExactSpelling |
@@ -2601,13 +2673,13 @@ public class C
                 var info = m.GetDllImportData();
 
                 Assert.Equal("mscorlib", info.ModuleName);
-                Assert.Equal(isFromSource ? null : "M", info.EntryPointName);
+                Assert.Equal("M", info.EntryPointName);
                 Assert.Equal(CharSet.None, info.CharacterSet);
                 Assert.Equal(CallingConvention.Winapi, info.CallingConvention);
                 Assert.False(info.ExactSpelling);
                 Assert.False(info.SetLastError);
-                Assert.Equal(null, info.BestFitMapping);
-                Assert.Equal(null, info.ThrowOnUnmappableCharacter);
+                Assert.Null(info.BestFitMapping);
+                Assert.Null(info.ThrowOnUnmappableCharacter);
 
                 var n = c.GetMember<MethodSymbol>("N");
                 Assert.Null(n.GetDllImportData());
@@ -3170,7 +3242,7 @@ abstract class C
                 foreach (var ca in peReader.CustomAttributes)
                 {
                     var ctor = peReader.GetCustomAttribute(ca).Constructor;
-                    Assert.NotEqual(ctor.Kind, HandleKind.MethodDefinition);
+                    Assert.NotEqual(HandleKind.MethodDefinition, ctor.Kind);
                 }
             });
         }
@@ -3447,40 +3519,36 @@ public class C2 { }
 ";
             // Dev10 fails in Emit or emits invalid metadata
             CreateCompilation(source).VerifyDiagnostics(
-                // (25,6): error CS1513: } expected {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
-                // (29,1): error CS1022: Type or namespace definition, or end-of-file expected }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}"),
                 // (13,9): error CS0501: 'C.F2(int, string)' must declare a body because it is not marked abstract, extern, or partial
-                //     int F2(int bufSize, StringBuilder buf);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "F2").WithArguments("C.F2(int, string)"),
+                //     int F2(int bufSize, string buf);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "F2").WithArguments("C.F2(int, string)").WithLocation(13, 9),
                 // (6,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
                 //     [DllImport("D.DLL")]
-                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport"),
+                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(6, 6),
                 // (9,6): error CS0592: Attribute 'DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
                 //     [DllImport("D.DLL")]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, @"DllImport").WithArguments("DllImport", "method"),
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "DllImport").WithArguments("DllImport", "method").WithLocation(9, 6),
                 // (12,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
                 //     [DllImport("D.DLL")]
-                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport"),
+                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(12, 6),
                 // (15,6): error CS0592: Attribute 'DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
                 //     [DllImport("D.DLL")]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, @"DllImport").WithArguments("DllImport", "method"),
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "DllImport").WithArguments("DllImport", "method").WithLocation(15, 6),
                 // (18,6): error CS0592: Attribute 'DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
                 //     [DllImport("d.dll")]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, @"DllImport").WithArguments("DllImport", "method"),
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "DllImport").WithArguments("DllImport", "method").WithLocation(18, 6),
                 // (21,26): error CS0579: Duplicate 'DllImport' attribute
                 //     [DllImport("D.DLL"), DllImport("GDI.DLL")]
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, @"DllImport").WithArguments("DllImport"),
-                // (26,9): error CS0592: Attribute 'DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
-                //     [DllImport("d.dll")]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, @"DllImport").WithArguments("DllImport", "method"),
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "DllImport").WithArguments("DllImport").WithLocation(21, 26),
+                // (26,8): error CS7014: Attributes are not valid in this context.
+                //        [DllImport("d.dll")]
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, @"[DllImport(""d.dll"")]").WithLocation(26, 8),
                 // (31,2): error CS0592: Attribute 'DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
-                //     [DllImport("dd.dllL")]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, @"DllImport").WithArguments("DllImport", "method"),
+                // [DllImport("dd.dllL")]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "DllImport").WithArguments("DllImport", "method").WithLocation(31, 2),
                 // (34,2): error CS0592: Attribute 'DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
-                //     [DllImport("dd.dll")]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, @"DllImport").WithArguments("DllImport", "method"));
+                // [DllImport("dd.dll")]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "DllImport").WithArguments("DllImport", "method").WithLocation(34, 2));
         }
 
         #endregion
@@ -3517,9 +3585,9 @@ public class MainClass
 
                 var ctorA = typeA.InstanceConstructors.First();
                 Assert.Equal(expectedMethodImplAttributes, ctorA.ImplementationAttributes);
-                Assert.True(((Cci.IMethodDefinition)ctorA).IsExternal);
+                Assert.True(((Cci.IMethodDefinition)ctorA.GetCciAdapter()).IsExternal);
 
-                var methodGoo = (Cci.IMethodDefinition)typeA.GetMember("Goo");
+                var methodGoo = (Cci.IMethodDefinition)typeA.GetMember("Goo").GetCciAdapter();
                 Assert.True(methodGoo.IsExternal);
             };
 
@@ -3984,7 +4052,7 @@ public class MainClass
                 // (10,6): warning CS0684: 'IWorksheet' interface marked with 'CoClassAttribute' not marked with 'ComImportAttribute'
                 //     [CoClass(typeof(WorksheetClass))]
                 Diagnostic(ErrorCode.WRN_CoClassWithoutComImport, "CoClass(typeof(WorksheetClass))").WithArguments("IWorksheet").WithLocation(10, 6),
-                // (20,17): error CS0144: Cannot create an instance of the abstract class or interface 'Wrapper.IWorksheet'
+                // (20,17): error CS0144: Cannot create an instance of the abstract type or interface 'Wrapper.IWorksheet'
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new Wrapper.IWorksheet()").WithArguments("Wrapper.IWorksheet").WithLocation(20, 17));
         }
@@ -4021,7 +4089,7 @@ public class MainClass
 
             // Using metadata reference to test RetargetingNamedTypeSymbol CoClass type
             CreateCompilation(source2, references: new[] { compDll.ToMetadataReference() }).VerifyDiagnostics(
-                // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'Wrapper.IWorksheet'
+                // (6,17): error CS0144: Cannot create an instance of the abstract type or interface 'Wrapper.IWorksheet'
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new Wrapper.IWorksheet()").WithArguments("Wrapper.IWorksheet").WithLocation(6, 17));
 
@@ -4034,7 +4102,7 @@ public class MainClass
 
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
             CreateCompilation(source2, references: new[] { assemblyRef }).VerifyDiagnostics(
-                // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'Wrapper.IWorksheet'
+                // (6,17): error CS0144: Cannot create an instance of the abstract type or interface 'Wrapper.IWorksheet'
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new Wrapper.IWorksheet()").WithArguments("Wrapper.IWorksheet").WithLocation(6, 17));
         }
@@ -4068,7 +4136,7 @@ public class MainClass
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (22,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
+                // (22,17): error CS0144: Cannot create an instance of the abstract type or interface 'IWorksheet'
                 //         var a = new IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new IWorksheet()").WithArguments("IWorksheet").WithLocation(22, 17));
         }
@@ -4106,13 +4174,13 @@ public class MainClass
 }";
             // Using metadata reference to test RetargetingNamedTypeSymbol CoClass type
             CreateCompilation(source2, references: new[] { compDll.ToMetadataReference() }).VerifyDiagnostics(
-                // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
+                // (6,17): error CS0144: Cannot create an instance of the abstract type or interface 'IWorksheet'
                 //         var a = new IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new IWorksheet()").WithArguments("IWorksheet").WithLocation(6, 17));
 
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
             CreateCompilation(source2, references: new[] { compDll.EmitToImageReference() }).VerifyDiagnostics(
-                // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
+                // (6,17): error CS0144: Cannot create an instance of the abstract type or interface 'IWorksheet'
                 //         var a = new IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new IWorksheet()").WithArguments("IWorksheet").WithLocation(6, 17));
         }
@@ -4149,7 +4217,7 @@ public class MainClass
                 // (6,25): error CS0122: 'Wrapper.WorksheetClass' is inaccessible due to its protection level
                 // [CoClass(typeof(Wrapper.WorksheetClass))]
                 Diagnostic(ErrorCode.ERR_BadAccess, "WorksheetClass").WithArguments("Wrapper.WorksheetClass").WithLocation(6, 25),
-                // (22,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
+                // (22,17): error CS0144: Cannot create an instance of the abstract type or interface 'IWorksheet'
                 //         var a = new IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new IWorksheet()").WithArguments("IWorksheet").WithLocation(22, 17));
         }
@@ -4248,7 +4316,7 @@ public class MainClass
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
 
             compilation.VerifyDiagnostics(
-                // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
+                // (6,17): error CS0144: Cannot create an instance of the abstract type or interface 'IWorksheet'
                 //         var a = new IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new IWorksheet()").WithArguments("IWorksheet").WithLocation(6, 17));
         }
@@ -4364,7 +4432,7 @@ public class MainClass
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (16,13): error CS0144: Cannot create an instance of the abstract class or interface 'InterfaceType'
+                // (16,13): error CS0144: Cannot create an instance of the abstract type or interface 'InterfaceType'
                 // [AAttribute(new InterfaceType())]
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new InterfaceType()").WithArguments("InterfaceType").WithLocation(16, 13));
         }
@@ -4727,13 +4795,13 @@ public class BobAttribute : Attribute
 
             void verify(CSharpCompilation comp, bool isSerializablePresent)
             {
-                INamedTypeSymbol typeC = comp.GetTypeByMetadataName("C");
+                NamedTypeSymbol typeC = comp.GetTypeByMetadataName("C");
                 var expectedAttributes = isSerializablePresent ? new[] { "System.SerializableAttribute", "BobAttribute" } : new[] { "BobAttribute" };
                 AssertEx.SetEqual(expectedAttributes, typeC.GetAttributes().Select(a => a.ToString()));
 
                 Assert.True(typeC.IsSerializable);
 
-                INamedTypeSymbol typeBobAttribute = comp.GetTypeByMetadataName("BobAttribute");
+                NamedTypeSymbol typeBobAttribute = comp.GetTypeByMetadataName("BobAttribute");
                 Assert.False(typeBobAttribute.IsSerializable);
             }
         }
@@ -4803,52 +4871,52 @@ public class Unbound : Constructed<> { }
 
             var substitutedNested = comp.GetTypeByMetadataName("SubstitutedNested").BaseType();
             Assert.IsType<SubstitutedNestedTypeSymbol>(substitutedNested);
-            Assert.False(((INamedTypeSymbol)substitutedNested).IsSerializable);
+            Assert.False(((NamedTypeSymbol)substitutedNested).IsSerializable);
 
             var substitutedNestedS = comp.GetTypeByMetadataName("SubstitutedNestedS").BaseType();
             Assert.IsType<SubstitutedNestedTypeSymbol>(substitutedNestedS);
-            Assert.True(((INamedTypeSymbol)substitutedNestedS).IsSerializable);
+            Assert.True(((NamedTypeSymbol)substitutedNestedS).IsSerializable);
 
-            var valueTupleS = comp.GetTypeByMetadataName("ValueTupleS").GetMember("M").GetTypeOrReturnType().TypeSymbol;
-            Assert.IsType<TupleTypeSymbol>(valueTupleS);
-            Assert.True(((INamedTypeSymbol)valueTupleS).IsSerializable);
+            var valueTupleS = comp.GetTypeByMetadataName("ValueTupleS").GetMember("M").GetTypeOrReturnType().Type;
+            Assert.True(valueTupleS.IsTupleType);
+            Assert.True(((NamedTypeSymbol)valueTupleS).IsSerializable);
 
             var constructed = comp.GetTypeByMetadataName("Constructed").BaseType();
             Assert.IsType<ConstructedNamedTypeSymbol>(constructed);
-            Assert.False(((INamedTypeSymbol)constructed).IsSerializable);
+            Assert.False(((NamedTypeSymbol)constructed).IsSerializable);
 
             var constructedS = comp.GetTypeByMetadataName("ConstructedS").BaseType();
             Assert.IsType<ConstructedNamedTypeSymbol>(constructedS);
-            Assert.True(((INamedTypeSymbol)constructedS).IsSerializable);
+            Assert.True(((NamedTypeSymbol)constructedS).IsSerializable);
 
             var extendedError = comp2.GetTypeByMetadataName("ExtendedError").BaseType();
             Assert.IsType<ExtendedErrorTypeSymbol>(extendedError);
-            Assert.False(((INamedTypeSymbol)extendedError).IsSerializable);
+            Assert.False(((NamedTypeSymbol)extendedError).IsSerializable);
 
             var topLevel = comp2.GetTypeByMetadataName("MissingTopLevel").BaseType();
             Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(topLevel);
-            Assert.False(((INamedTypeSymbol)topLevel).IsSerializable);
+            Assert.False(((NamedTypeSymbol)topLevel).IsSerializable);
 
             var nested = comp2.GetTypeByMetadataName("MissingNested").BaseType();
             Assert.IsType<MissingMetadataTypeSymbol.Nested>(nested);
-            Assert.False(((INamedTypeSymbol)nested).IsSerializable);
+            Assert.False(((NamedTypeSymbol)nested).IsSerializable);
 
             var constructedError = comp2.GetTypeByMetadataName("MissingConstructed").BaseType();
             Assert.IsType<ConstructedErrorTypeSymbol>(constructedError);
-            Assert.False(((INamedTypeSymbol)constructedError).IsSerializable);
+            Assert.False(((NamedTypeSymbol)constructedError).IsSerializable);
 
             var nestedSubstitutedError = comp2.GetTypeByMetadataName("MissingSubstitutedNested`2").BaseType().ConstructedFrom;
             Assert.IsType<SubstitutedNestedErrorTypeSymbol>(nestedSubstitutedError);
-            Assert.False(((INamedTypeSymbol)nestedSubstitutedError).IsSerializable);
+            Assert.False(((NamedTypeSymbol)nestedSubstitutedError).IsSerializable);
 
-            var unbound = comp2.GetTypeByMetadataName("Unbound").BaseType().TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
+            var unbound = comp2.GetTypeByMetadataName("Unbound").BaseType().TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
             Assert.IsType<UnboundArgumentErrorTypeSymbol>(unbound);
-            Assert.False(((INamedTypeSymbol)unbound).IsSerializable);
+            Assert.False(((NamedTypeSymbol)unbound).IsSerializable);
 
             var script = CreateCompilation("", parseOptions: TestOptions.Script);
             var scriptClass = script.GetTypeByMetadataName("Script");
             Assert.IsType<ImplicitNamedTypeSymbol>(scriptClass);
-            Assert.False(((INamedTypeSymbol)scriptClass).IsSerializable);
+            Assert.False(((NamedTypeSymbol)scriptClass).IsSerializable);
         }
         #endregion
 
@@ -4997,8 +5065,8 @@ namespace System
                 // Verify AttributeUsage
                 var attributeUsage = attrType.GetAttributeUsageInfo();
                 Assert.Equal(AttributeTargets.Class, attributeUsage.ValidTargets);
-                Assert.Equal(true, attributeUsage.AllowMultiple);
-                Assert.Equal(true, attributeUsage.Inherited);
+                Assert.True(attributeUsage.AllowMultiple);
+                Assert.True(attributeUsage.Inherited);
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
@@ -5545,6 +5613,62 @@ class A
             CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, expectedOutput: "");
         }
 
+        [Fact]
+        public void TestDynamicSecurityMethodAttribute_LocalFunction()
+        {
+            var source = @"
+using System;
+using System.Security;
+
+namespace System.Security
+{
+  // DynamicSecurityMethodAttribute:
+  //  Indicates that calling the target method requires space for a security
+  //  object to be allocated on the callers stack. This attribute is only ever
+  //  set on certain security methods defined within mscorlib.
+  [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false )]
+  sealed internal class DynamicSecurityMethodAttribute : System.Attribute
+  {
+  }
+}
+
+class A
+{
+  public static void Main()
+  {
+    SecurityMethod();
+
+     [DynamicSecurityMethodAttribute]
+     static void SecurityMethod() { }
+  }
+}
+";
+
+            void metadataValidator(ModuleSymbol module)
+            {
+                NamedTypeSymbol typeA = module.GlobalNamespace.GetTypeMember("A");
+                MethodSymbol method = typeA.GetMember<MethodSymbol>("<Main>g__SecurityMethod|0_0");
+
+                Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(method.GetAttributes()));
+                Assert.True(method.RequiresSecurityObject);
+            };
+
+            var verifier = CompileAndVerify(
+                source,
+                symbolValidator: metadataValidator,
+                expectedOutput: "",
+                parseOptions: TestOptions.Regular9,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var compilation = verifier.Compilation;
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var localFunctionSyntax = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var localFunctionSymbol = model.GetDeclaredSymbol(localFunctionSyntax).GetSymbol<LocalFunctionSymbol>();
+            Assert.True(localFunctionSymbol.RequiresSecurityObject);
+        }
+
         #endregion
 
         #region ObsoleteAttribute
@@ -5678,7 +5802,7 @@ class SelfReferenceInBase1 : IGoo<SelfReferenceInBase> {}
         }
 
         [Fact]
-        public void TestObsoleteAttributeOnMembers()
+        public void TestObsoleteAttributeOnMembersAndAccessors()
         {
             var source = @"
 using System;
@@ -5698,6 +5822,16 @@ public class Test
         var f = t.field1;
         var p1 = t.Property1;
         var p2 = t.Property2;
+        
+        var p3 = t.Prop2;
+        t.Prop2 = p3;
+
+        var p4 = t.Prop3;
+        t.Prop3 = p4;
+
+        var p5 = t.Prop4;
+        t.Prop4 = p5;
+        
         t.event1();
         t.event1 += () => { };
 
@@ -5750,11 +5884,18 @@ public class Test
     public int Prop2
     {
         [Obsolete] get { return 10; }
+        set {}
     }
 
     public int Prop3
     {
         get { return 10; }
+        [Obsolete] set { }
+    }
+
+    public int Prop4
+    {
+        [Obsolete] get { return 10; }
         [Obsolete] set { }
     }
 
@@ -5792,79 +5933,85 @@ public static class TestExtension
     public static void ObsoleteExtensionMethod1(this Test t) { }
 }
 ";
-            CreateCompilationWithMscorlib40(source, new[] { ExtensionAssemblyRef }).VerifyDiagnostics(
-                // (65,10): error CS1667: Attribute 'Obsolete' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //         [Obsolete] get { return 10; }
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate"),
-                // (71,10): error CS1667: Attribute 'Obsolete' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //         [Obsolete] set { }
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate"),
-                // (76,10): error CS1667: Attribute 'Obsolete' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+            CreateCompilationWithMscorlib40(source, new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics(
+                // (98,10): error CS8423: Attribute 'System.ObsoleteAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //         [Obsolete] add {}
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate"),
-                // (77,10): error CS1667: Attribute 'Obsolete' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(98, 10),
+                // (99,10): error CS8423: Attribute 'System.ObsoleteAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //         [Obsolete("Don't use remove accessor")] remove {}
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate"),
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(99, 10),
                 // (8,9): warning CS0612: 'Test.ObsoleteMethod1()' is obsolete
                 //         ObsoleteMethod1();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteMethod1()").WithArguments("Test.ObsoleteMethod1()"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteMethod1()").WithArguments("Test.ObsoleteMethod1()").WithLocation(8, 9),
                 // (9,9): warning CS0618: 'Test.ObsoleteMethod2()' is obsolete: 'Do not call this method'
                 //         ObsoleteMethod2();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "ObsoleteMethod2()").WithArguments("Test.ObsoleteMethod2()", "Do not call this method"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "ObsoleteMethod2()").WithArguments("Test.ObsoleteMethod2()", "Do not call this method").WithLocation(9, 9),
                 // (10,9): error CS0619: 'Test.ObsoleteMethod3()' is obsolete: ''
                 //         ObsoleteMethod3();
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "ObsoleteMethod3()").WithArguments("Test.ObsoleteMethod3()", ""),
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "ObsoleteMethod3()").WithArguments("Test.ObsoleteMethod3()", "").WithLocation(10, 9),
                 // (11,9): warning CS0612: 'Test.ObsoleteMethod5()' is obsolete
                 //         ObsoleteMethod5();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteMethod5()").WithArguments("Test.ObsoleteMethod5()"),
-                // (14,9): warning CS0618: 'Test.ObsoleteMethod4()' is obsolete: 'Do not call this method'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteMethod5()").WithArguments("Test.ObsoleteMethod5()").WithLocation(11, 9),
+                // (15,9): warning CS0618: 'Test.ObsoleteMethod4()' is obsolete: 'Do not call this method'
                 //         t.ObsoleteMethod4();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteMethod4()").WithArguments("Test.ObsoleteMethod4()", "Do not call this method"),
-                // (15,17): warning CS0618: 'Test.field1' is obsolete: 'Do not use this field'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteMethod4()").WithArguments("Test.ObsoleteMethod4()", "Do not call this method").WithLocation(15, 9),
+                // (16,17): warning CS0618: 'Test.field1' is obsolete: 'Do not use this field'
                 //         var f = t.field1;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.field1").WithArguments("Test.field1", "Do not use this field"),
-                // (16,18): warning CS0618: 'Test.Property1' is obsolete: 'Do not use this property'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.field1").WithArguments("Test.field1", "Do not use this field").WithLocation(16, 17),
+                // (17,18): warning CS0618: 'Test.Property1' is obsolete: 'Do not use this property'
                 //         var p1 = t.Property1;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.Property1").WithArguments("Test.Property1", "Do not use this property"),
-                // (17,18): warning CS0618: 'Test.Property2' is obsolete: 'Do not use this property'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.Property1").WithArguments("Test.Property1", "Do not use this property").WithLocation(17, 18),
+                // (18,18): warning CS0618: 'Test.Property2' is obsolete: 'Do not use this property'
                 //         var p2 = t.Property2;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.Property2").WithArguments("Test.Property2", "Do not use this property"),
-                // (19,9): warning CS0618: 'Test.event1' is obsolete: 'Do not use this event'
-                //         t.event1 += () => { };
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.event1").WithArguments("Test.event1", "Do not use this event"),
-                // (21,9): warning CS0618: 'TestExtension.ObsoleteExtensionMethod1(Test)' is obsolete: 'Do not call this extension method'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.Property2").WithArguments("Test.Property2", "Do not use this property").WithLocation(18, 18),
+                // (20,18): warning CS0612: 'Test.Prop2.get' is obsolete
+                //         var p3 = t.Prop2;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "t.Prop2").WithArguments("Test.Prop2.get").WithLocation(20, 18),
+                // (24,9): warning CS0612: 'Test.Prop3.set' is obsolete
+                //         t.Prop3 = p4;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "t.Prop3").WithArguments("Test.Prop3.set").WithLocation(24, 9),
+                // (26,18): warning CS0612: 'Test.Prop4.get' is obsolete
+                //         var p5 = t.Prop4;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "t.Prop4").WithArguments("Test.Prop4.get").WithLocation(26, 18),
+                // (27,9): warning CS0612: 'Test.Prop4.set' is obsolete
+                //         t.Prop4 = p5;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "t.Prop4").WithArguments("Test.Prop4.set").WithLocation(27, 9),
+                // (32,9): warning CS0618: 'TestExtension.ObsoleteExtensionMethod1(Test)' is obsolete: 'Do not call this extension method'
                 //         t.ObsoleteExtensionMethod1();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteExtensionMethod1()").WithArguments("TestExtension.ObsoleteExtensionMethod1(Test)", "Do not call this extension method"),
-                // (23,28): warning CS0618: 'Test.ObsoleteMethod4(int)' is obsolete: 'Do not call this method'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteExtensionMethod1()").WithArguments("TestExtension.ObsoleteExtensionMethod1(Test)", "Do not call this extension method").WithLocation(32, 9),
+                // (34,28): warning CS0618: 'Test.ObsoleteMethod4(int)' is obsolete: 'Do not call this method'
                 //         Action<int> func = t.ObsoleteMethod4;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteMethod4").WithArguments("Test.ObsoleteMethod4(int)", "Do not call this method"),
-                // (25,24): warning CS0618: 'Test.ObsoleteMethod4()' is obsolete: 'Do not call this method'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteMethod4").WithArguments("Test.ObsoleteMethod4(int)", "Do not call this method").WithLocation(34, 28),
+                // (36,24): warning CS0618: 'Test.ObsoleteMethod4()' is obsolete: 'Do not call this method'
                 //         Action func1 = t.ObsoleteMethod4;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteMethod4").WithArguments("Test.ObsoleteMethod4()", "Do not call this method"),
-                // (29,30): warning CS0618: 'Test.Property1' is obsolete: 'Do not use this property'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.ObsoleteMethod4").WithArguments("Test.ObsoleteMethod4()", "Do not call this method").WithLocation(36, 24),
+                // (38,30): warning CS0618: 'Test.Property1' is obsolete: 'Do not use this property'
                 //         Test t1 = new Test { Property1 = 10, Property2 =20};
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Property1").WithArguments("Test.Property1", "Do not use this property"),
-                // (29,46): warning CS0618: 'Test.Property2' is obsolete: 'Do not use this property'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Property1").WithArguments("Test.Property1", "Do not use this property").WithLocation(38, 30),
+                // (38,46): warning CS0618: 'Test.Property2' is obsolete: 'Do not use this property'
                 //         Test t1 = new Test { Property1 = 10, Property2 =20};
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Property2").WithArguments("Test.Property2", "Do not use this property"),
-                // (28,18): warning CS0612: 'Test.this[int]' is obsolete
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Property2").WithArguments("Test.Property2", "Do not use this property").WithLocation(38, 46),
+                // (39,18): warning CS0612: 'Test.this[int]' is obsolete
                 //         var i1 = t1[10];
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "t1[10]").WithArguments("Test.this[int]"),
-                // (30,9): warning CS0612: 'GenericTest<int>.ObsoleteMethod1<U>()' is obsolete
-                //         gt.ObsoleteMethod1<U>();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "gt.ObsoleteMethod1<double>()").WithArguments("GenericTest<int>.ObsoleteMethod1<U>()"),
-                // (31,18): warning CS0618: 'GenericTest<int>.field1' is obsolete: 'Do not use this field'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "t1[10]").WithArguments("Test.this[int]").WithLocation(39, 18),
+                // (42,9): warning CS0612: 'GenericTest<int>.ObsoleteMethod1<U>()' is obsolete
+                //         gt.ObsoleteMethod1<double>();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "gt.ObsoleteMethod1<double>()").WithArguments("GenericTest<int>.ObsoleteMethod1<U>()").WithLocation(42, 9),
+                // (43,18): warning CS0618: 'GenericTest<int>.field1' is obsolete: 'Do not use this field'
                 //         var gf = gt.field1;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "gt.field1").WithArguments("GenericTest<int>.field1", "Do not use this field"),
-                // (32,19): warning CS0618: 'GenericTest<int>.Property1' is obsolete: 'Do not use this property'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "gt.field1").WithArguments("GenericTest<int>.field1", "Do not use this field").WithLocation(43, 18),
+                // (44,19): warning CS0618: 'GenericTest<int>.Property1' is obsolete: 'Do not use this property'
                 //         var gp1 = gt.Property1;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "gt.Property1").WithArguments("GenericTest<int>.Property1", "Do not use this property"),
-                // (33,9): warning CS0618: 'GenericTest<int>.event1' is obsolete: 'Do not use this event'
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "gt.Property1").WithArguments("GenericTest<int>.Property1", "Do not use this property").WithLocation(44, 19),
+                // (30,9): warning CS0618: 'Test.event1' is obsolete: 'Do not use this event'
+                //         t.event1 += () => { };
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "t.event1").WithArguments("Test.event1", "Do not use this event").WithLocation(30, 9),
+                // (45,9): warning CS0618: 'GenericTest<int>.event1' is obsolete: 'Do not use this event'
                 //         gt.event1 += (i) => { };
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "gt.event1").WithArguments("GenericTest<int>.event1", "Do not use this event"),
-                // (104,28): warning CS0067: The event 'GenericTest<T>.event1' is never used
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "gt.event1").WithArguments("GenericTest<int>.event1", "Do not use this event").WithLocation(45, 9),
+                // (121,28): warning CS0067: The event 'GenericTest<T>.event1' is never used
                 //     public event Action<T> event1;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "event1").WithArguments("GenericTest<T>.event1"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "event1").WithArguments("GenericTest<T>.event1").WithLocation(121, 28));
         }
 
         [Fact]
@@ -5968,6 +6115,10 @@ public class TestClass
     [Obsolete(""Do not use Prop1"", false)]
     public int Prop1 { get; set; }
 
+    public int Prop2 { [Obsolete(""Do not use Prop2.Get"")] get; set; }
+
+    public int Prop3 { get; [Obsolete(""Do not use Prop3.Get"", true)] set; }
+
     [Obsolete(""Do not use field1"", true)]
     public TestClass field1;
 
@@ -5993,37 +6144,47 @@ public class Test
         c = c.field1;
         c.event1();
         c.event1 += () => {};
+        c.Prop2 = 42;
+        i = c.Prop2;
+        c.Prop3 = 42;
+        i = c.Prop3;
     }
 }
 ";
             CreateCompilation(source, new[] { peReference }).VerifyDiagnostics(
-                // (4,29): warning CS0612: 'TestClass1' is obsolete
-                //     public static void goo1(TestClass1 c) {}
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "TestClass1").WithArguments("TestClass1"),
                 // (5,29): warning CS0618: 'TestClass2' is obsolete: 'TestClass2 is obsolete'
                 //     public static void goo2(TestClass2 c) {}
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "TestClass2").WithArguments("TestClass2", "TestClass2 is obsolete"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "TestClass2").WithArguments("TestClass2", "TestClass2 is obsolete").WithLocation(5, 29),
                 // (6,29): error CS0619: 'TestClass3' is obsolete: 'Do not use TestClass3'
                 //     public static void goo3(TestClass3 c) {}
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "TestClass3").WithArguments("TestClass3", "Do not use TestClass3"),
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "TestClass3").WithArguments("TestClass3", "Do not use TestClass3").WithLocation(6, 29),
                 // (7,29): warning CS0618: 'TestClass4' is obsolete: 'TestClass4 is obsolete'
                 //     public static void goo4(TestClass4 c) {}
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "TestClass4").WithArguments("TestClass4", "TestClass4 is obsolete"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "TestClass4").WithArguments("TestClass4", "TestClass4 is obsolete").WithLocation(7, 29),
+                // (4,29): warning CS0612: 'TestClass1' is obsolete
+                //     public static void goo1(TestClass1 c) {}
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "TestClass1").WithArguments("TestClass1").WithLocation(4, 29),
                 // (12,9): warning CS0618: 'TestClass.TestMethod()' is obsolete: 'Do not use TestMethod'
                 //         c.TestMethod();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c.TestMethod()").WithArguments("TestClass.TestMethod()", "Do not use TestMethod"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c.TestMethod()").WithArguments("TestClass.TestMethod()", "Do not use TestMethod").WithLocation(12, 9),
                 // (13,17): warning CS0618: 'TestClass.Prop1' is obsolete: 'Do not use Prop1'
                 //         var i = c.Prop1;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c.Prop1").WithArguments("TestClass.Prop1", "Do not use Prop1"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c.Prop1").WithArguments("TestClass.Prop1", "Do not use Prop1").WithLocation(13, 17),
                 // (14,13): error CS0619: 'TestClass.field1' is obsolete: 'Do not use field1'
                 //         c = c.field1;
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "c.field1").WithArguments("TestClass.field1", "Do not use field1"),
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "c.field1").WithArguments("TestClass.field1", "Do not use field1").WithLocation(14, 13),
                 // (15,9): error CS0619: 'TestClass.event1' is obsolete: 'Do not use event'
                 //         c.event1();
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "c.event1").WithArguments("TestClass.event1", "Do not use event"),
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "c.event1").WithArguments("TestClass.event1", "Do not use event").WithLocation(15, 9),
                 // (16,9): error CS0619: 'TestClass.event1' is obsolete: 'Do not use event'
                 //         c.event1 += () => {};
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "c.event1").WithArguments("TestClass.event1", "Do not use event"));
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "c.event1").WithArguments("TestClass.event1", "Do not use event").WithLocation(16, 9),
+                // (18,13): warning CS0618: 'TestClass.Prop2.get' is obsolete: 'Do not use Prop2.Get'
+                //         i = c.Prop2;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c.Prop2").WithArguments("TestClass.Prop2.get", "Do not use Prop2.Get").WithLocation(18, 13),
+                // (19,9): error CS0619: 'TestClass.Prop3.set' is obsolete: 'Do not use Prop3.Get'
+                //         c.Prop3 = 42;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "c.Prop3").WithArguments("TestClass.Prop3.set", "Do not use Prop3.Get").WithLocation(19, 9));
         }
 
         [Fact]
@@ -6086,20 +6247,145 @@ class D6 : D5
     [Obsolete]
     public override void goo() {}
 }
+
+class E1
+{
+    public virtual int Goo {get; set;}
+}
+class E2 : E1
+{
+    public override int Goo { [Obsolete] get; set;}
+}
+class E3 : E1
+{
+    public new int Goo { [Obsolete] get; set;}
+}
+class E4 : E1
+{
+    public override int Goo {get; set;}
+}
+class E5 : E4
+{
+    public override int Goo { [Obsolete] get; set;}
+}
+class E6 : E5
+{
+    public override int Goo {get; set;}
+}
+
+class F1
+{
+    public virtual int Goo { [Obsolete] get; set;}
+}
+class F2 : F1
+{
+    public override int Goo {get; set;}
+}
+class F3 : F1
+{
+    public new int Goo {get; set;}
+}
+class F4 : F1
+{
+    public override int Goo { [Obsolete] get; set;}
+}
+class F5 : F4
+{
+    public override int Goo {get; set;}
+}
+class F6 : F5
+{
+    public override int Goo { [Obsolete] get; set;}
+}
 ";
             CreateCompilation(source).VerifyDiagnostics(
                 // (10,26): warning CS0809: Obsolete member 'C2.goo()' overrides non-obsolete member 'C1.goo()'
                 //     public override void goo() {}
-                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "goo").WithArguments("C2.goo()", "C1.goo()"),
-                // (24,26): warning CS0809: Obsolete member 'C5.goo()' overrides non-obsolete member 'C1.goo()'
-                //     public override void goo() {}
-                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "goo").WithArguments("C5.goo()", "C1.goo()"),
-                // (38,26): warning CS0672: Member 'D2.goo()' overrides obsolete member 'D1.goo()'. Add the Obsolete attribute to 'D2.goo()'.
-                //     public override void goo() {}
-                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "goo").WithArguments("D2.goo()", "D1.goo()"),
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "goo").WithArguments("C2.goo()", "C1.goo()").WithLocation(10, 26),
+                // (90,30): warning CS0672: Member 'F2.Goo.get' overrides obsolete member 'F1.Goo.get'. Add the Obsolete attribute to 'F2.Goo.get'.
+                //     public override int Goo {get; set;}
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "get").WithArguments("F2.Goo.get", "F1.Goo.get").WithLocation(90, 30),
+                // (77,42): warning CS0809: Obsolete member 'E5.Goo.get' overrides non-obsolete member 'E1.Goo.get'
+                //     public override int Goo { [Obsolete] get; set;}
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "get").WithArguments("E5.Goo.get", "E1.Goo.get").WithLocation(77, 42),
                 // (51,26): warning CS0672: Member 'D5.goo()' overrides obsolete member 'D1.goo()'. Add the Obsolete attribute to 'D5.goo()'.
                 //     public override void goo() {}
-                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "goo").WithArguments("D5.goo()", "D1.goo()"));
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "goo").WithArguments("D5.goo()", "D1.goo()").WithLocation(51, 26),
+                // (38,26): warning CS0672: Member 'D2.goo()' overrides obsolete member 'D1.goo()'. Add the Obsolete attribute to 'D2.goo()'.
+                //     public override void goo() {}
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "goo").WithArguments("D2.goo()", "D1.goo()").WithLocation(38, 26),
+                // (24,26): warning CS0809: Obsolete member 'C5.goo()' overrides non-obsolete member 'C1.goo()'
+                //     public override void goo() {}
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "goo").WithArguments("C5.goo()", "C1.goo()").WithLocation(24, 26),
+                // (102,30): warning CS0672: Member 'F5.Goo.get' overrides obsolete member 'F1.Goo.get'. Add the Obsolete attribute to 'F5.Goo.get'.
+                //     public override int Goo {get; set;}
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "get").WithArguments("F5.Goo.get", "F1.Goo.get").WithLocation(102, 30),
+                // (65,42): warning CS0809: Obsolete member 'E2.Goo.get' overrides non-obsolete member 'E1.Goo.get'
+                //     public override int Goo { [Obsolete] get; set;}
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "get").WithArguments("E2.Goo.get", "E1.Goo.get").WithLocation(65, 42));
+        }
+
+        [Fact]
+        public void TestConsumptionOfObsoleteAttributeOnOverriddenAccessors()
+        {
+            var source = @"
+using System;
+
+class Base
+{
+    public virtual int Boo { [Obsolete] get; set;}
+    public virtual int Goo { get; set; }
+    public virtual int Hoo { [Obsolete(""Base.Hoo is Obsolete"", true)] get; set; }
+    public virtual int Joo { [Obsolete(""Base.Joo is Obsolete"", false)] get; set; }
+    [Obsolete(""Base.Koo is Obsolete"")] public virtual int Koo {  get; set; }
+}
+class Derived : Base
+{
+    public override int Boo { get; set; }
+    public override int Goo { [Obsolete] get; set; }
+    public override int Hoo { [Obsolete(""Derived.Hoo is Obsolete"", false)] get; set; }
+    public override int Joo { [Obsolete(""Derived.Joo is Obsolete"", true)] get; set; }
+    public override int Koo { [Obsolete(""Derived.Koo is Obsolete"")] get; set; }
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var derived = new Derived();
+		_ = derived.Boo;
+        _ = derived.Goo;
+        _ = derived.Hoo;
+        _ = derived.Joo;
+        _ = derived.Koo;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (14,31): warning CS0672: Member 'Derived.Boo.get' overrides obsolete member 'Base.Boo.get'. Add the Obsolete attribute to 'Derived.Boo.get'.
+                //     public override int Boo { get; set; }
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "get").WithArguments("Derived.Boo.get", "Base.Boo.get").WithLocation(14, 31),
+                // (15,42): warning CS0809: Obsolete member 'Derived.Goo.get' overrides non-obsolete member 'Base.Goo.get'
+                //     public override int Goo { [Obsolete] get; set; }
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "get").WithArguments("Derived.Goo.get", "Base.Goo.get").WithLocation(15, 42),
+                // (18,25): warning CS0672: Member 'Derived.Koo' overrides obsolete member 'Base.Koo'. Add the Obsolete attribute to 'Derived.Koo'.
+                //     public override int Koo { [Obsolete("Derived.Koo is Obsolete")] get; set; }
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "Koo").WithArguments("Derived.Koo", "Base.Koo").WithLocation(18, 25),
+                // (18,69): warning CS0809: Obsolete member 'Derived.Koo.get' overrides non-obsolete member 'Base.Koo.get'
+                //     public override int Koo { [Obsolete("Derived.Koo is Obsolete")] get; set; }
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "get").WithArguments("Derived.Koo.get", "Base.Koo.get").WithLocation(18, 69),
+                // (26,7): warning CS0612: 'Base.Boo.get' is obsolete
+                // 		_ = derived.Boo;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "derived.Boo").WithArguments("Base.Boo.get").WithLocation(26, 7),
+                // (28,13): error CS0619: 'Base.Hoo.get' is obsolete: 'Base.Hoo is Obsolete'
+                //         _ = derived.Hoo;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "derived.Hoo").WithArguments("Base.Hoo.get", "Base.Hoo is Obsolete").WithLocation(28, 13),
+                // (29,13): warning CS0618: 'Base.Joo.get' is obsolete: 'Base.Joo is Obsolete'
+                //         _ = derived.Joo;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "derived.Joo").WithArguments("Base.Joo.get", "Base.Joo is Obsolete").WithLocation(29, 13),
+                // (30,13): warning CS0618: 'Base.Koo' is obsolete: 'Base.Koo is Obsolete'
+                //         _ = derived.Koo;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "derived.Koo").WithArguments("Base.Koo", "Base.Koo is Obsolete").WithLocation(30, 13));
         }
 
         [Fact]
@@ -6294,7 +6580,11 @@ public class Test
     event Action<SomeType> someEvent;
 
     [Obsolete]
-    public static SomeType someProp { get; set; }
+    public static SomeType someProp { get => new SomeType(); set {} }
+
+    public static string someProp2 { [Obsolete] get => new SomeType().ToString(); }
+
+    public static SomeType someProp3 { [Obsolete] get => new SomeType(); }
 
     [Obsolete]
     SomeType this[int x] { get { SomeType y = new SomeType(); return y; } }
@@ -6318,9 +6608,12 @@ public class Base<T> {}
 public class Derived : Base<Base<int>> {}
 ";
             CreateCompilation(source).VerifyDiagnostics(
+                // (27,19): warning CS0612: 'SomeType' is obsolete
+                //     public static SomeType someProp3 { [Obsolete] get => new SomeType(); }
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "SomeType").WithArguments("SomeType").WithLocation(27, 19),
                 // (20,28): warning CS0067: The event 'Test.someEvent' is never used
                 //     event Action<SomeType> someEvent;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "someEvent").WithArguments("Test.someEvent"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "someEvent").WithArguments("Test.someEvent").WithLocation(20, 28));
         }
 
         [Fact]
@@ -6447,6 +6740,24 @@ public class Att : Attribute
         get { return 1; }
         set { }
     }
+    [Obsolete(""Property"", true)]
+    public int Prop2
+    {
+        get; set;
+    }
+    public int Prop3
+    {
+        get; [Obsolete(""setter"", true)]set;
+    }
+    [Obsolete(""Property"", true)]
+    public int Prop4
+    {
+        get; [Obsolete(""setter"", true)]set;
+    }
+    public int Prop5
+    {
+        [Obsolete(""setter"", true)]get; set;
+    }
     [Obsolete(""Field"", true)]
     public int Field;
 }
@@ -6454,6 +6765,10 @@ public class Att : Attribute
 [Att]
 [Att(Field = 1)]
 [Att(Prop = 1)]
+[Att(Prop2 = 1)]
+[Att(Prop3 = 1)]
+[Att(Prop4 = 1)]
+[Att(Prop5 = 1)]
 public class Test
 {
     [Att()]
@@ -6461,24 +6776,172 @@ public class Test
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (20,6): error CS0619: 'Att.Field' is obsolete: 'Field'
-                // [Att(Field = 1)]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Field = 1").WithArguments("Att.Field", "Field"),
-                // (20,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
-                // [Att(Field = 1)]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Field = 1)").WithArguments("Att.Att()", "Constructor"),
-                // (21,6): error CS0619: 'Att.Prop' is obsolete: 'Property'
-                // [Att(Prop = 1)]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop = 1").WithArguments("Att.Prop", "Property"),
-                // (21,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
-                // [Att(Prop = 1)]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Prop = 1)").WithArguments("Att.Att()", "Constructor"),
-                // (24,6): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
-                //     [Att()]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att()").WithArguments("Att.Att()", "Constructor"),
-                // (19,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                // (37,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
                 // [Att]
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att").WithArguments("Att.Att()", "Constructor"));
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att").WithArguments("Att.Att()", "Constructor").WithLocation(37, 2),
+                // (38,6): error CS0619: 'Att.Field' is obsolete: 'Field'
+                // [Att(Field = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Field = 1").WithArguments("Att.Field", "Field").WithLocation(38, 6),
+                // (38,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                // [Att(Field = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Field = 1)").WithArguments("Att.Att()", "Constructor").WithLocation(38, 2),
+                // (39,6): error CS0619: 'Att.Prop' is obsolete: 'Property'
+                // [Att(Prop = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop = 1").WithArguments("Att.Prop", "Property").WithLocation(39, 6),
+                // (39,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                // [Att(Prop = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Prop = 1)").WithArguments("Att.Att()", "Constructor").WithLocation(39, 2),
+                // (40,6): error CS0619: 'Att.Prop2' is obsolete: 'Property'
+                // [Att(Prop2 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop2 = 1").WithArguments("Att.Prop2", "Property").WithLocation(40, 6),
+                // (40,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                // [Att(Prop2 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Prop2 = 1)").WithArguments("Att.Att()", "Constructor").WithLocation(40, 2),
+                // (41,6): error CS0619: 'Att.Prop3.set' is obsolete: 'setter'
+                // [Att(Prop3 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop3 = 1").WithArguments("Att.Prop3.set", "setter").WithLocation(41, 6),
+                // (41,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                // [Att(Prop3 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Prop3 = 1)").WithArguments("Att.Att()", "Constructor").WithLocation(41, 2),
+                // (42,6): error CS0619: 'Att.Prop4' is obsolete: 'Property'
+                // [Att(Prop4 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop4 = 1").WithArguments("Att.Prop4", "Property").WithLocation(42, 6),
+                // (42,6): error CS0619: 'Att.Prop4.set' is obsolete: 'setter'
+                // [Att(Prop4 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop4 = 1").WithArguments("Att.Prop4.set", "setter").WithLocation(42, 6),
+                // (42,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                // [Att(Prop4 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Prop4 = 1)").WithArguments("Att.Att()", "Constructor").WithLocation(42, 2),
+                // (43,2): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                // [Att(Prop5 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att(Prop5 = 1)").WithArguments("Att.Att()", "Constructor").WithLocation(43, 2),
+                // (46,6): error CS0619: 'Att.Att()' is obsolete: 'Constructor'
+                //     [Att()]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Att()").WithArguments("Att.Att()", "Constructor").WithLocation(46, 6));
+        }
+
+        [Fact]
+        public void TestOverriddenObsoleteSetterOnAttributes()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+public class BaseAtt : Attribute
+{
+    public virtual int Prop
+    {
+        get { return 1; }
+        [Obsolete(""setter"", true)] set { }
+    }
+
+    public virtual int Prop1
+    {
+        get { return 1; }
+        [Obsolete(""setter"", true)] set { }
+    }
+
+    public virtual int Prop2
+    {
+        get { return 1; }
+        [Obsolete(""base setter"", true)] set { }
+    }
+
+    public virtual int Prop3
+    {
+        get { return 1; }
+        set { }
+    }
+}
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+public class DerivedAtt : BaseAtt
+{
+    public override int Prop
+    {
+        get { return 1; }
+    }
+
+    public override int Prop1
+    {
+        get { return 1; }
+        set { }
+    }
+
+    public override int Prop2
+    {
+        get { return 1; }
+        [Obsolete(""derived setter"", true)] set { }
+    }
+
+    public override int Prop3
+    {
+        get { return 1; }
+        [Obsolete(""setter"", true)] set { }
+    }
+}
+
+[DerivedAtt(Prop = 1)]
+[DerivedAtt(Prop1 = 1)]
+[DerivedAtt(Prop2 = 1)]
+[DerivedAtt(Prop3 = 1)]
+public class Test
+{
+    public static void Main() { }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (43,9): warning CS0672: Member 'DerivedAtt.Prop1.set' overrides obsolete member 'BaseAtt.Prop1.set'. Add the Obsolete attribute to 'DerivedAtt.Prop1.set'.
+                //         set { }
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "set").WithArguments("DerivedAtt.Prop1.set", "BaseAtt.Prop1.set").WithLocation(43, 9),
+                // (55,36): warning CS0809: Obsolete member 'DerivedAtt.Prop3.set' overrides non-obsolete member 'BaseAtt.Prop3.set'
+                //         [Obsolete("setter", true)] set { }
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "set").WithArguments("DerivedAtt.Prop3.set", "BaseAtt.Prop3.set").WithLocation(55, 36),
+                // (59,13): error CS0619: 'BaseAtt.Prop.set' is obsolete: 'setter'
+                // [DerivedAtt(Prop = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop = 1").WithArguments("BaseAtt.Prop.set", "setter").WithLocation(59, 13),
+                // (60,13): error CS0619: 'BaseAtt.Prop1.set' is obsolete: 'setter'
+                // [DerivedAtt(Prop1 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop1 = 1").WithArguments("BaseAtt.Prop1.set", "setter").WithLocation(60, 13),
+                // (61,13): error CS0619: 'BaseAtt.Prop2.set' is obsolete: 'base setter'
+                // [DerivedAtt(Prop2 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop2 = 1").WithArguments("BaseAtt.Prop2.set", "base setter").WithLocation(61, 13));
+        }
+
+        [Fact]
+        public void TestObsoleteAttributeOnIndexerAccessors()
+        {
+            var source = @"
+using System;
+
+class C1
+{
+    public int this[int index] { [Obsolete] get => 1; set {} }
+}
+
+class C2
+{
+    public int this[int index] { get => 1; [Obsolete] set {} }
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c1 = new C1();
+        c1[0] = c1[0];
+        var c2 = new C2();
+        c2[0] = c2[0];
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (19,17): warning CS0612: 'C1.this[int].get' is obsolete
+                //         c1[0] = c1[0];
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c1[0]").WithArguments("C1.this[int].get").WithLocation(19, 17),
+                // (21,9): warning CS0612: 'C2.this[int].set' is obsolete
+                //         c2[0] = c2[0];
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c2[0]").WithArguments("C2.this[int].set").WithLocation(21, 9));
         }
 
         [Fact]
@@ -6771,15 +7234,9 @@ class D
 }";
             var comp = CreateCompilation(new[] { Parse(source0), Parse(source1) });
             comp.VerifyDiagnostics(
-                // (9,17): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
-                //     object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter").WithLocation(9, 17),
                 // (7,33): warning CS0612: 'A' is obsolete
                 //     object P { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(7, 33),
-                // (9,82): warning CS0612: 'C' is obsolete
-                //     object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C").WithArguments("C").WithLocation(9, 82));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(7, 33));
         }
 
         [Fact]
@@ -6828,15 +7285,12 @@ class D
 }";
             var comp = CreateCompilation(new[] { Parse(source0), Parse(source1) });
             comp.VerifyDiagnostics(
-                // (21,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
-                //         [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter"),
                 // (11,24): warning CS0612: 'A' is obsolete
                 //         remove { M(new A()); }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A"),
-                // (21,73): warning CS0612: 'C' is obsolete
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(11, 24),
+                // (21,10): error CS8423: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
                 //         [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C").WithArguments("C").WithLocation(21, 73));
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter").WithLocation(21, 10));
         }
 
         [Fact]
@@ -7704,6 +8158,1272 @@ class Test
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c ?? 1").WithArguments("Convertible.implicit operator int(Convertible)", "To int"));
         }
 
+        private const string ObsoleteAttributeSource = @"
+#nullable enable
+namespace System
+{
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute() { }
+        public ObsoleteAttribute(string? message) { }
+        public ObsoleteAttribute(string? message, bool error) { }
+
+        public string? DiagnosticId { get; set; }
+        public string? UrlFormat { get; set; }
+    }
+}
+";
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_01()
+        {
+            var source = @"
+using System;
+#pragma warning disable 436
+
+class C
+{
+    [Obsolete(DiagnosticId = ""TEST1"")]
+    void M1() { }
+
+    void M2()
+    {
+        M1(); // 1
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { ObsoleteAttributeSource, source });
+            var diags = comp.GetDiagnostics();
+
+            var diag = diags.Single();
+            Assert.Equal("TEST1", diag.Id);
+            Assert.Equal(ErrorCode.WRN_DeprecatedSymbol, (ErrorCode)diag.Code);
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
+
+            diags.Verify(
+                // (12,9): warning TEST1: 'C.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()").WithArguments("C.M1()").WithLocation(12, 9));
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_02()
+        {
+            var source = @"
+using System;
+#pragma warning disable 436
+
+class C
+{
+    [Obsolete(UrlFormat = ""https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/{0}"")]
+    void M1() { }
+
+    void M2()
+    {
+        M1(); // 1
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { ObsoleteAttributeSource, source });
+            var diags = comp.GetDiagnostics();
+
+            var diag = diags.Single();
+            Assert.Equal("https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/CS0612", diag.Descriptor.HelpLinkUri);
+
+            diags.Verify(
+                // (12,9): warning CS0612: 'C.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C.M1()").WithLocation(12, 9));
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_03()
+        {
+            var source = @"
+using System;
+#pragma warning disable 436
+
+class C
+{
+    [Obsolete(UrlFormat = ""https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/{0}/{1}"")]
+    void M1() { }
+
+    void M2()
+    {
+        M1(); // 1
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { ObsoleteAttributeSource, source });
+            var diags = comp.GetDiagnostics();
+
+            var diag = diags.Single();
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
+
+            diags.Verify(
+                // (12,9): warning CS0612: 'C.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C.M1()").WithLocation(12, 9));
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_04()
+        {
+            var source = @"
+using System;
+#pragma warning disable 436
+
+class C
+{
+    [Obsolete(UrlFormat = ""https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/CS0612"")]
+    void M1() { }
+
+    void M2()
+    {
+        M1(); // 1
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { ObsoleteAttributeSource, source });
+            var diags = comp.GetDiagnostics();
+
+            var diag = diags.Single();
+            Assert.Equal("https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/CS0612", diag.Descriptor.HelpLinkUri);
+
+            diags.Verify(
+                // (12,9): warning CS0612: 'C.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C.M1()").WithLocation(12, 9));
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadAttribute_01()
+        {
+            var source = @"
+using System;
+#pragma warning disable 436
+
+namespace System
+{
+    public class ObsoleteAttribute : Attribute
+    {
+        public string DiagnosticId;
+        public string DiagnosticId { get; set; } // 1
+    }
+}
+
+class C
+{
+    [Obsolete(DiagnosticId = ""TEST1"")] // 2
+    void M1() { }
+
+    void M2()
+    {
+        M1();
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            var diags = comp.GetDiagnostics();
+
+            diags.Verify(
+                // (10,23): error CS0102: The type 'ObsoleteAttribute' already contains a definition for 'DiagnosticId'
+                //         public string DiagnosticId { get; set; } // 1
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "DiagnosticId").WithArguments("System.ObsoleteAttribute", "DiagnosticId").WithLocation(10, 23),
+                // (16,15): error CS0229: Ambiguity between 'ObsoleteAttribute.DiagnosticId' and 'ObsoleteAttribute.DiagnosticId'
+                //     [Obsolete(DiagnosticId = "TEST1")] // 2
+                Diagnostic(ErrorCode.ERR_AmbigMember, "DiagnosticId").WithArguments("System.ObsoleteAttribute.DiagnosticId", "System.ObsoleteAttribute.DiagnosticId").WithLocation(16, 15));
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_05()
+        {
+            var source = @"
+using System;
+#pragma warning disable 436
+
+class C
+{
+    [Obsolete(""don't use"", error: false, DiagnosticId = ""TEST1"", UrlFormat = ""https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/{0}"")]
+    void M1() { }
+
+    void M2()
+    {
+        M1(); // 1
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { ObsoleteAttributeSource, source });
+            var diags = comp.GetDiagnostics();
+
+            var diag = diags.Single();
+            Assert.Equal("TEST1", diag.Id);
+            Assert.Equal(ErrorCode.WRN_DeprecatedSymbolStr, (ErrorCode)diag.Code);
+            Assert.Equal("https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri);
+
+            diags.Verify(
+                // (12,9): warning TEST1: 'C.M1()' is obsolete: 'don't use'
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()").WithArguments("C.M1()", "don't use").WithLocation(12, 9));
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadAttribute_02()
+        {
+            var source = @"
+using System;
+#pragma warning disable 436
+
+class C
+{
+    [Obsolete(
+        DiagnosticId = ""A"",
+        DiagnosticId = ""B"", // 1
+        UrlFormat = ""C"",
+        UrlFormat = ""D"")] // 2
+    void M1() { }
+
+    void M2()
+    {
+        M1(); // 3
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { ObsoleteAttributeSource, source });
+            var diags = comp.GetDiagnostics();
+
+            diags.Verify(
+                // (9,9): error CS0643: 'DiagnosticId' duplicate named attribute argument
+                //         DiagnosticId = "B", // 1
+                Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, @"DiagnosticId = ""B""").WithArguments("DiagnosticId").WithLocation(9, 9),
+                // (11,9): error CS0643: 'UrlFormat' duplicate named attribute argument
+                //         UrlFormat = "D")] // 2
+                Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, @"UrlFormat = ""D""").WithArguments("UrlFormat").WithLocation(11, 9),
+                // (16,9): warning A: 'C.M1()' is obsolete
+                //         M1(); // 3
+                Diagnostic("A", "M1()").WithArguments("C.M1()").WithLocation(16, 9));
+
+            var diag = diags.Last();
+            Assert.Equal("C", diag.Descriptor.HelpLinkUri);
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_Suppression_01()
+        {
+            var source = @"
+using System;
+#pragma warning disable 436
+
+class C
+{
+    [Obsolete(""don't use"", error: false, DiagnosticId = ""TEST1"")]
+    void M1() { }
+
+    [Obsolete]
+    void M2() { }
+
+    void M3()
+    {
+        M1(); // 1
+        M2(); // 2
+
+#pragma warning disable TEST1
+        M1();
+        M2(); // 3
+#pragma warning restore TEST1
+
+#pragma warning disable 612
+        M1(); // 4
+        M2();
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { ObsoleteAttributeSource, source });
+            comp.VerifyDiagnostics(
+                // (15,9): warning TEST1: 'C.M1()' is obsolete: 'don't use'
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()").WithArguments("C.M1()", "don't use").WithLocation(15, 9),
+                // (16,9): warning CS0612: 'C.M2()' is obsolete
+                //         M2(); // 2
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M2()").WithArguments("C.M2()").WithLocation(16, 9),
+                // (20,9): warning CS0612: 'C.M2()' is obsolete
+                //         M2(); // 3
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M2()").WithArguments("C.M2()").WithLocation(20, 9),
+                // (24,9): warning TEST1: 'C.M1()' is obsolete: 'don't use'
+                //         M1(); // 4
+                Diagnostic("TEST1", "M1()").WithArguments("C.M1()", "don't use").WithLocation(24, 9));
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_FromMetadata_01()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+public class C1
+{
+    [Obsolete(""don't use"", error: false, DiagnosticId = ""TEST1"")]
+    public void M1() { }
+
+    [Obsolete]
+    public void M2() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M3()
+    {
+        M1(); // 1
+        M2(); // 2
+
+#pragma warning disable TEST1
+        M1();
+        M2(); // 3
+#pragma warning restore TEST1
+
+#pragma warning disable 612
+        M1(); // 4
+        M2();
+    }
+}";
+            var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
+            comp1.VerifyDiagnostics();
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+                comp2.VerifyDiagnostics(
+                    // (6,9): warning TEST1: 'C1.M1()' is obsolete: 'don't use'
+                    //         M1(); // 1
+                    Diagnostic("TEST1", "M1()").WithArguments("C1.M1()", "don't use").WithLocation(6, 9),
+                    // (7,9): warning CS0612: 'C1.M2()' is obsolete
+                    //         M2(); // 2
+                    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M2()").WithArguments("C1.M2()").WithLocation(7, 9),
+                    // (11,9): warning CS0612: 'C1.M2()' is obsolete
+                    //         M2(); // 3
+                    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M2()").WithArguments("C1.M2()").WithLocation(11, 9),
+                    // (15,9): warning TEST1: 'C1.M1()' is obsolete: 'don't use'
+                    //         M1(); // 4
+                    Diagnostic("TEST1", "M1()").WithArguments("C1.M1()", "don't use").WithLocation(15, 9));
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_FromMetadata_02()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+public class C1
+{
+    [Obsolete(DiagnosticId = ""TEST1"")]
+    public void M1() { }
+
+    [Obsolete(""don't use"", DiagnosticId = ""TEST2"")]
+    public void M2() { }
+
+    [Obsolete(""don't use"", error: false, DiagnosticId = ""TEST3"")]
+    public void M3() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M4()
+    {
+        M1(); // 1
+        M2(); // 2
+        M3(); // 3
+    }
+}";
+            var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
+            comp1.VerifyDiagnostics();
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+                comp2.VerifyDiagnostics(
+                    // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic("TEST1", "M1()").WithArguments("C1.M1()").WithLocation(6, 9),
+                    // (7,9): warning TEST2: 'C1.M2()' is obsolete: 'don't use'
+                    //         M2(); // 2
+                    Diagnostic("TEST2", "M2()").WithArguments("C1.M2()", "don't use").WithLocation(7, 9),
+                    // (8,9): warning TEST3: 'C1.M3()' is obsolete: 'don't use'
+                    //         M3(); // 3
+                    Diagnostic("TEST3", "M3()").WithArguments("C1.M3()", "don't use").WithLocation(8, 9));
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_FromMetadata_03()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+public class C1
+{
+    [Obsolete(DiagnosticId = ""TEST1"", UrlFormat = ""https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/{0}"")]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
+            comp1.VerifyDiagnostics();
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+                var diags = comp2.GetDiagnostics();
+
+                var diag = diags.Single();
+                Assert.Equal("https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri);
+
+                diags.Verify(
+                    // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic("TEST1", "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_FromMetadata_04()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+public class C1
+{
+    [Obsolete(DiagnosticId = null, UrlFormat = null)]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
+            comp1.VerifyDiagnostics();
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+                var diags = comp2.GetDiagnostics();
+
+                var diag = diags.Single();
+                Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
+
+                diags.Verify(
+                    // (6,9): warning CS0612: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_FromMetadata_05()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+public class C1
+{
+    [Obsolete(DiagnosticId = ""TEST1"", UrlFormat = ""https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/{0}"")]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
+            comp1.VerifyDiagnostics();
+
+            // WithGeneralDiagnosticOption
+            verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Warn),
+                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error),
+                // (6,9): error TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9).WithWarningAsError(true)
+                );
+
+            verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Hidden),
+                // (6,9): hidden TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9));
+
+            verify(TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress));
+
+
+            // WithSpecificDiagnosticOption for id TEST1
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Warn)),
+                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Error)),
+                // (6,9): error TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9).WithWarningAsError(true)
+                );
+
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Hidden)),
+                // (6,9): hidden TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("TEST1", ReportDiagnostic.Suppress)));
+
+
+            // WithSpecificDiagnosticOption for id CS0618
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS0618", ReportDiagnostic.Error)),
+                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            verify(TestOptions.DebugDll.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS0618", ReportDiagnostic.Suppress)),
+                // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()", isSuppressed: false).WithArguments("C1.M1()").WithLocation(6, 9)
+                );
+
+            void verify(CSharpCompilationOptions options, params DiagnosticDescription[] expectedDiagnostics)
+            {
+                verifyReference(comp1.ToMetadataReference(), options, expectedDiagnostics);
+                verifyReference(comp1.EmitToImageReference(), options, expectedDiagnostics);
+            }
+
+            void verifyReference(MetadataReference reference, CSharpCompilationOptions options, DiagnosticDescription[] expectedDiagnostics)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference }, options: options);
+                var diags = comp2.GetDiagnostics();
+
+                if (expectedDiagnostics.Any())
+                {
+                    var diag = diags.Single();
+                    Assert.Equal("https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri);
+                }
+
+                diags.Verify(expectedDiagnostics);
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadMetadata_01()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+namespace System
+{
+    public class ObsoleteAttribute : Attribute
+    {
+        public bool Flag { get; set; }
+        public string DiagnosticId { get; set; }
+    }
+}
+
+public class C1
+{
+    [Obsolete(Flag = false, DiagnosticId = ""TEST1"")]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+
+                comp2.VerifyDiagnostics(
+                    // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic("TEST1", "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadMetadata_02()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+namespace System
+{
+    public class ObsoleteAttribute : Attribute
+    {
+        public string DiagnosticId;
+        public string UrlFormat;
+    }
+}
+
+public class C1
+{
+    [Obsolete(DiagnosticId = ""TEST1"", UrlFormat = ""TEST2"")]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+                var diags = comp2.GetDiagnostics();
+                diags.Verify(
+                    // (6,9): warning CS0612: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+
+                var diag = diags.Single();
+                Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadMetadata_03()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+public enum E1 { A, B }
+
+namespace System
+{
+    public class ObsoleteAttribute : Attribute
+    {
+        public byte Byte { get; set; }
+        public sbyte SByte { get; set; }
+        public bool Bool { get; set; }
+        public short Short { get; set; }
+        public ushort UShort { get; set; }
+        public char Char { get; set; }
+        public int Int { get; set; }
+        public uint UInt { get; set; }
+        public float Float { get; set; }
+        public long Long { get; set; }
+        public ulong ULong { get; set; }
+        public double Double { get; set; }
+        public E1 Enum { get; set; }
+        public string DiagnosticId { get; set; }
+    }
+}
+
+public class C1
+{
+    [Obsolete(
+        Byte = 0,
+        SByte = 0,
+        Bool = false,
+        Short = 0,
+        UShort = 0,
+        Char = '\0',
+        Int = 0,
+        UInt = 0,
+        Float = 0,
+        Long = 0,
+        ULong = 0,
+        Double = 0,
+        Enum = E1.A,
+        DiagnosticId = ""TEST1"")]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+
+                comp2.VerifyDiagnostics(
+                    // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic("TEST1", "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadMetadata_04()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+public enum E1 { A, B }
+
+namespace System
+{
+    public class ObsoleteAttribute : Attribute
+    {
+        public int[] Int { get; set; }
+        public E1[] Enum { get; set; }
+        public string DiagnosticId { get; set; }
+    }
+}
+
+public class C1
+{
+    [Obsolete(
+        Int = new[] { 0, 1, 2 },
+        Enum = new[] { E1.A, E1.B },
+        DiagnosticId = ""TEST1"")]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+
+            // https://github.com/dotnet/roslyn/issues/42771
+            //verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+
+                comp2.VerifyDiagnostics(
+                    // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic("TEST1", "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadMetadata_05()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+namespace System
+{
+    public class ObsoleteAttribute : Attribute
+    {
+        public char[] DiagnosticId { get; set; }
+        public char[] UrlFormat { get; set; }
+    }
+}
+
+public class C1
+{
+    [Obsolete(DiagnosticId = new[] { 'A' }, UrlFormat = new[] { 'B' })]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+
+            // https://github.com/dotnet/roslyn/issues/42771
+            //verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+                var diags = comp2.GetDiagnostics();
+                diags.Verify(
+                    // (6,9): warning CS0612: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+
+                var diag = diags.Single();
+                Assert.Equal($"https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadMetadata_06()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+namespace System
+{
+    public class ObsoleteAttribute : Attribute
+    {
+        public char[] DiagnosticId { get; set; }
+        public char[] UrlFormat { get; set; }
+    }
+}
+
+public class C1
+{
+    [Obsolete(DiagnosticId = null, UrlFormat = null)]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+                var diags = comp2.GetDiagnostics();
+                diags.Verify(
+                    // (6,9): warning CS0612: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+
+                var diag = diags.Single();
+                Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadMetadata_07()
+        {
+            // In this program C1.M1 has an ObsoleteAttribute with multiple values provided for DiagnosticId and UrlFormat
+            var ilSource = @"
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+
+.class public auto ansi beforefieldinit C1
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void 
+          M1() cil managed
+  {
+    .custom instance void System.ObsoleteAttribute::.ctor() = ( 01 00 04 00                                         // ....
+                                                                54 0E 0C 44 69 61 67 6E 6F 73 74 69 63 49 64 01 41  // T..DiagnosticId.A
+                                                                54 0E 0C 44 69 61 67 6E 6F 73 74 69 63 49 64 01 42  // T..DiagnosticId.B
+                                                                54 0E 09 55 72 6C 46 6F 72 6D 61 74 01 43           // T..UrlFormat.C
+                                                                54 0E 09 55 72 6C 46 6F 72 6D 61 74 01 44 )         // T..UrlFormat.D
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method C1::M1
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+
+} // end of class C1
+
+.class public auto ansi beforefieldinit System.ObsoleteAttribute
+       extends [mscorlib]System.Attribute
+{
+  .field private string '<DiagnosticId>k__BackingField'
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) 
+  .field private string '<UrlFormat>k__BackingField'
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) 
+  .method public hidebysig specialname instance string 
+          get_DiagnosticId() cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      string System.ObsoleteAttribute::'<DiagnosticId>k__BackingField'
+    IL_0006:  ret
+  } // end of method ObsoleteAttribute::get_DiagnosticId
+
+  .method public hidebysig specialname instance void 
+          set_DiagnosticId(string 'value') cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.1
+    IL_0002:  stfld      string System.ObsoleteAttribute::'<DiagnosticId>k__BackingField'
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::set_DiagnosticId
+
+  .method public hidebysig specialname instance string 
+          get_UrlFormat() cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      string System.ObsoleteAttribute::'<UrlFormat>k__BackingField'
+    IL_0006:  ret
+  } // end of method ObsoleteAttribute::get_UrlFormat
+
+  .method public hidebysig specialname instance void 
+          set_UrlFormat(string 'value') cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.1
+    IL_0002:  stfld      string System.ObsoleteAttribute::'<UrlFormat>k__BackingField'
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::set_UrlFormat
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::.ctor
+
+  .property instance string DiagnosticId()
+  {
+    .get instance string System.ObsoleteAttribute::get_DiagnosticId()
+    .set instance void System.ObsoleteAttribute::set_DiagnosticId(string)
+  } // end of property ObsoleteAttribute::DiagnosticId
+  .property instance string UrlFormat()
+  {
+    .get instance string System.ObsoleteAttribute::get_UrlFormat()
+    .set instance void System.ObsoleteAttribute::set_UrlFormat(string)
+  } // end of property ObsoleteAttribute::UrlFormat
+} // end of class System.ObsoleteAttribute
+";
+
+            var csSource = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var ilComp = CompileIL(ilSource);
+            var comp = CreateCompilation(csSource, references: new[] { ilComp });
+            var diags = comp.GetDiagnostics();
+            diags.Verify(
+                // (6,9): warning A: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("A", "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+
+            var diag = diags.Single();
+            Assert.Equal("C", diag.Descriptor.HelpLinkUri);
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadMetadata_08()
+        {
+            // In this program C1.M1 has an ObsoleteAttribute with a malformed value provided for a named argument
+            var ilSource = @"
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+
+.class public auto ansi beforefieldinit C1
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void 
+          M1() cil managed
+  {
+    .custom instance void System.ObsoleteAttribute::.ctor() = ( 01 00 02 00                                         // ....
+                                                                54 0E 0C 44 69 61 67 6E 6F 73 74 69 63 49 64 01 41  // T..DiagnosticId.A
+                                                                0E 09 55 72 6C 46 6F 72 6D 61 74 01 42 )            // ..UrlFormat.B
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method C1::M1
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+
+} // end of class C1
+
+.class public auto ansi beforefieldinit System.ObsoleteAttribute
+       extends [mscorlib]System.Attribute
+{
+  .field private string '<DiagnosticId>k__BackingField'
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) 
+  .field private string '<UrlFormat>k__BackingField'
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) 
+  .method public hidebysig specialname instance string 
+          get_DiagnosticId() cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      string System.ObsoleteAttribute::'<DiagnosticId>k__BackingField'
+    IL_0006:  ret
+  } // end of method ObsoleteAttribute::get_DiagnosticId
+
+  .method public hidebysig specialname instance void 
+          set_DiagnosticId(string 'value') cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.1
+    IL_0002:  stfld      string System.ObsoleteAttribute::'<DiagnosticId>k__BackingField'
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::set_DiagnosticId
+
+  .method public hidebysig specialname instance string 
+          get_UrlFormat() cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      string System.ObsoleteAttribute::'<UrlFormat>k__BackingField'
+    IL_0006:  ret
+  } // end of method ObsoleteAttribute::get_UrlFormat
+
+  .method public hidebysig specialname instance void 
+          set_UrlFormat(string 'value') cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.1
+    IL_0002:  stfld      string System.ObsoleteAttribute::'<UrlFormat>k__BackingField'
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::set_UrlFormat
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::.ctor
+
+  .property instance string DiagnosticId()
+  {
+    .get instance string System.ObsoleteAttribute::get_DiagnosticId()
+    .set instance void System.ObsoleteAttribute::set_DiagnosticId(string)
+  } // end of property ObsoleteAttribute::DiagnosticId
+  .property instance string UrlFormat()
+  {
+    .get instance string System.ObsoleteAttribute::get_UrlFormat()
+    .set instance void System.ObsoleteAttribute::set_UrlFormat(string)
+  } // end of property ObsoleteAttribute::UrlFormat
+} // end of class System.ObsoleteAttribute
+";
+
+            var csSource = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var ilComp = CompileIL(ilSource);
+            var comp = CreateCompilation(csSource, references: new[] { ilComp });
+            var diags = comp.GetDiagnostics();
+            diags.Verify(
+                // (6,9): warning A: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("A", "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+
+            var diag = diags.Single();
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadMetadata_09()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+namespace System
+{
+    public class ObsoleteAttribute : Attribute
+    {
+        public object DiagnosticId { get; set; }
+        public object UrlFormat { get; set; }
+    }
+}
+
+public class C1
+{
+    [Obsolete(DiagnosticId = ""A"", UrlFormat = ""B"")]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+                var diags = comp2.GetDiagnostics();
+
+                diags.Verify(
+                    // (6,9): warning CS0612: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+
+                var diag = diags.Single();
+                Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
+            }
+        }
+
         [Fact]
         [WorkItem(656345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656345")]
         public void ConditionalLazyObsoleteDiagnostic()
@@ -7973,27 +9693,45 @@ class Class5
         Class2 x2 = null;
         Class3 x3 = null;
         Class4 x4 = null;
+        Class6 x6 = new Class6();
 
         object x5;
         x5=x1;
         x5 = x2;
         x5 = x3;
         x5 = x4;
+        x5 = x6.P1;
+        x6.P1 = 1;
+        x5 = x6.P2;
+        x6.P2 = 1;
+        x6.E1 += null;
+        x6.E1 -= null;
     }
 }
 
 class Class6
 {
-    int P1
+    public int P1
     {
         [Deprecated(""P1.get is deprecated."", DeprecationType.Remove, 1)]
         get
         {
             return 1;
         }
+        set {}
     }
 
-    event System.Action E1
+    public int P2
+    {
+        get
+        {
+            return 1;
+        }
+        [Deprecated(""P1.get is deprecated."", DeprecationType.Remove, 1)]
+        set {}
+    }
+
+    public event System.Action E1
     {
         [Deprecated(""E1.add is deprecated."", DeprecationType.Remove, 1)]
         add
@@ -8008,12 +9746,6 @@ class Class6
             var compilation2 = CreateEmptyCompilation(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.ReleaseDll);
 
             var expected = new[] {
-                // (25,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //         [Deprecated("P1.get is deprecated.", DeprecationType.Remove, 1)]
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(25, 10),
-                // (34,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //         [Deprecated("E1.add is deprecated.", DeprecationType.Remove, 1)]
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(34, 10),
                 // (8,9): warning CS0618: 'Class1' is obsolete: 'Class1 is deprecated.'
                 //         Class1 x1 = null;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Class1").WithArguments("Class1", "Class1 is deprecated.").WithLocation(8, 9),
@@ -8025,7 +9757,16 @@ class Class6
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Class3").WithArguments("Class3", "Class3 is deprecated.").WithLocation(10, 9),
                 // (11,9): error CS0619: 'Class4' is obsolete: 'Class4 is deprecated.'
                 //         Class4 x4 = null;
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Class4").WithArguments("Class4", "Class4 is deprecated.").WithLocation(11, 9)
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Class4").WithArguments("Class4", "Class4 is deprecated.").WithLocation(11, 9),
+                // (19,14): error CS0619: 'Class6.P1.get' is obsolete: 'P1.get is deprecated.'
+                //         x5 = x6.P1;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x6.P1").WithArguments("Class6.P1.get", "P1.get is deprecated.").WithLocation(19, 14),
+                // (22,9): error CS0619: 'Class6.P2.set' is obsolete: 'P1.get is deprecated.'
+                //         x6.P2 = 1;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x6.P2").WithArguments("Class6.P2.set", "P1.get is deprecated.").WithLocation(22, 9),
+                // (52,10): error CS8423: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //         [Deprecated("E1.add is deprecated.", DeprecationType.Remove, 1)]
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(52, 10)
                                  };
 
             compilation2.VerifyDiagnostics(expected);
@@ -8558,6 +10299,2677 @@ public class C
 
         #endregion
 
+        #region SkipLocalsInitAttribute
+
+        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src, CSharpCompilationOptions options, CSharpParseOptions parseOptions = null, Verification verify = Verification.Fails)
+        {
+            const string skipLocalsInitDef = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}";
+
+            var comp = CreateCompilation(new[] { src, skipLocalsInitDef }, options: options, parseOptions: parseOptions);
+            return CompileAndVerify(comp, verify: verify);
+        }
+
+        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src, CSharpParseOptions parseOptions = null, Verification verify = Verification.Fails)
+        {
+            return CompileAndVerifyWithSkipLocalsInit(src, TestOptions.UnsafeReleaseDll, parseOptions, verify);
+        }
+
+        [Fact]
+        public void SkipLocalsInitRequiresUnsafe()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+[module: SkipLocalsInitAttribute]
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+[SkipLocalsInitAttribute]
+public class C
+{
+    [SkipLocalsInitAttribute]
+    public void M()
+    { }
+
+    [SkipLocalsInitAttribute]
+    public int P => 0;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,10): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // [module: SkipLocalsInitAttribute]
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "SkipLocalsInitAttribute").WithLocation(4, 10),
+                // (13,2): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // [SkipLocalsInitAttribute]
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "SkipLocalsInitAttribute").WithLocation(13, 2),
+                // (16,6): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     [SkipLocalsInitAttribute]
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "SkipLocalsInitAttribute").WithLocation(16, 6),
+                // (20,6): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     [SkipLocalsInitAttribute]
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "SkipLocalsInitAttribute").WithLocation(20, 6)
+                );
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnMethod()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M_skip()
+    {
+        int x = 2;
+        x = x + x + x;
+    }
+
+    public void M_init()
+    {
+        int x = 2;
+        x = x + x + x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.True(comp.HasLocalsInit("C.M_init", realIL: true));
+            Assert.False(comp.HasLocalsInit("C.M_skip", realIL: true));
+            Assert.True(comp.HasLocalsInit("C.M_init", realIL: false));
+            Assert.False(comp.HasLocalsInit("C.M_skip", realIL: false));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnPartialMethod()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+partial class C
+{
+    partial void M()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}
+
+partial class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    partial void M();
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.M"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnExtendedPartialMethod_01()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+partial class C
+{
+    public partial int M()
+    {
+        int x = 1;
+        x = x + x + x;
+        return x;
+    }
+}
+
+partial class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public partial int M();
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularWithExtendedPartialMethods, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.M"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnExtendedPartialMethod_02()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+partial class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public partial int M()
+    {
+        int x = 1;
+        x = x + x + x;
+        return x;
+    }
+}
+
+partial class C
+{
+    public partial int M();
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularWithExtendedPartialMethods, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.M"));
+        }
+
+        [Fact]
+        public unsafe void StackallocWithSkipLocalsInit()
+        {
+            var src = @"
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public unsafe void M1()
+    {
+        int *ptr = stackalloc int[10];
+        System.Console.WriteLine(ptr[0]);
+    }
+
+    public unsafe void M2()
+    {
+        int *ptr = stackalloc int[10];
+        System.Console.WriteLine(ptr[0]);
+    }
+
+    public unsafe void M3()
+    {
+       int* p = stackalloc int[10]; // unused
+    }
+}";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(src);
+            Assert.Null(verifier.HasLocalsInit("C.M1")); // no locals
+            Assert.False(verifier.HasLocalsInit("C.M1", realIL: true));
+            Assert.Null(verifier.HasLocalsInit("C.M2")); // no locals
+            Assert.True(verifier.HasLocalsInit("C.M2", realIL: true));
+            Assert.Null(verifier.HasLocalsInit("C.M3")); // no locals
+            Assert.False(verifier.HasLocalsInit("C.M3", realIL: true));
+        }
+
+        [Fact]
+        public void WhenMethodsDifferBySkipLocalsInitAttributeTheyMustHaveDifferentRVA()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public unsafe void M_skip()
+    {
+        int *ptr = stackalloc int[10];
+        System.Console.WriteLine(ptr[0]);
+    }
+
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public unsafe void M_skip_copy()
+    {
+        int *ptr = stackalloc int[10];
+        System.Console.WriteLine(ptr[0]);
+    }
+
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public unsafe void M_skip_diff()
+    {
+        int *ptr = stackalloc int[11];
+        System.Console.WriteLine(ptr[0]);
+    }
+
+    public unsafe void M_init()
+    {
+        int *ptr = stackalloc int[10];
+        System.Console.WriteLine(ptr[0]);
+    }
+
+    public unsafe void M_init_copy()
+    {
+        int *ptr = stackalloc int[10];
+        System.Console.WriteLine(ptr[0]);
+    }
+
+    public unsafe void M_init_diff()
+    {
+        int *ptr = stackalloc int[11];
+        System.Console.WriteLine(ptr[0]);
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var metadata = ModuleMetadata.CreateFromStream(comp.EmitToStream());
+            var peReader = metadata.Module.GetMetadataReader();
+
+            TypeDefinition typeC = default;
+
+            foreach (var typeHandle in peReader.TypeDefinitions)
+            {
+                var type = peReader.GetTypeDefinition(typeHandle);
+                var name = peReader.GetString(type.Name);
+
+                if (name == "C")
+                {
+                    typeC = type;
+                    break;
+                }
+            }
+
+            Assert.NotEqual(default, typeC);
+
+            MethodDefinition methodInit = default;
+            MethodDefinition methodSkip = default;
+            MethodDefinition methodInitCopy = default;
+            MethodDefinition methodSkipCopy = default;
+            MethodDefinition methodInitDiff = default;
+            MethodDefinition methodSkipDiff = default;
+
+            foreach (var methodHandle in typeC.GetMethods())
+            {
+                var method = peReader.GetMethodDefinition(methodHandle);
+                var name = peReader.GetString(method.Name);
+
+                if (name == "M_init")
+                {
+                    methodInit = method;
+                }
+                else if (name == "M_skip")
+                {
+                    methodSkip = method;
+                }
+                else if (name == "M_init_copy")
+                {
+                    methodInitCopy = method;
+                }
+                else if (name == "M_skip_copy")
+                {
+                    methodSkipCopy = method;
+                }
+                else if (name == "M_init_diff")
+                {
+                    methodInitDiff = method;
+                }
+                else if (name == "M_skip_diff")
+                {
+                    methodSkipDiff = method;
+                }
+            }
+
+            Assert.NotEqual(default, methodInit);
+            Assert.NotEqual(default, methodSkip);
+            Assert.NotEqual(default, methodInitCopy);
+            Assert.NotEqual(default, methodSkipCopy);
+            Assert.NotEqual(default, methodInitDiff);
+            Assert.NotEqual(default, methodSkipDiff);
+
+            Assert.NotEqual(methodInit.RelativeVirtualAddress, methodSkip.RelativeVirtualAddress);
+            Assert.Equal(methodInit.RelativeVirtualAddress, methodInitCopy.RelativeVirtualAddress);
+            Assert.Equal(methodSkip.RelativeVirtualAddress, methodSkipCopy.RelativeVirtualAddress);
+            Assert.NotEqual(methodInit.RelativeVirtualAddress, methodInitDiff.RelativeVirtualAddress);
+            Assert.NotEqual(methodSkip.RelativeVirtualAddress, methodSkipDiff.RelativeVirtualAddress);
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnAssemblyDoesNotPropagateToMethod()
+        {
+            var source = @"
+[assembly: System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    public void M()
+    {
+        int x = 2;
+        x = x + x + x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source);
+
+            Assert.True(comp.HasLocalsInit("C.M"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnMethodPropagatesToLocalFunction()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        void F()
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.<M>g__F|0_0"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnMethodPropagatesToLambda()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        System.Action L = () =>
+        {
+            int x = 2;
+            x = x + x + x;
+        };
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.<>c.<M>b__0_0"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnMethodPropagatesToNestedLambdaAndLocalFunction()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        void F()
+        {
+            int y = 1;
+            y = y + y + y;
+
+            void FF()
+            {
+                int x = 2;
+                x = x + x + x;
+            }
+
+            System.Action FL = () =>
+            {
+                int x = 3;
+                x = x + x + x;
+            };
+        }
+
+        System.Action L = () =>
+        {
+            int y = 4;
+            y = y + y + y;
+
+            void LF()
+            {
+                int x = 5;
+                x = x + x + x;
+            }
+
+            System.Action LL = () =>
+            {
+                int x = 6;
+                x = x + x + x;
+            };
+        };
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.<M>g__F|0_0")); // F
+            Assert.False(comp.HasLocalsInit("C.<M>g__FF|0_2")); // FF
+            Assert.False(comp.HasLocalsInit("C.<>c.<M>b__0_3")); // FL
+            Assert.False(comp.HasLocalsInit("C.<>c.<M>b__0_1")); // L
+            Assert.False(comp.HasLocalsInit("C.<M>g__LF|0_4")); // LF
+            Assert.False(comp.HasLocalsInit("C.<>c.<M>b__0_5")); // LL
+        }
+
+        [Fact]
+        public void SkipLocalsInit_LocalFunctionAttribute_01()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+public class C
+{
+    public void M()
+    {
+        int w = 1;
+        w = w + w + w;
+
+        void localNoAttribute()
+        {
+            int x = 1;
+            x = x + x + x;
+
+            Action lambda = () =>
+            {
+                int y = 1;
+                y = y + y + y;
+
+                [SkipLocalsInitAttribute]
+                void localWithAttribute()
+                {
+                    int z = 1;
+                    z = z + z + z;
+                }
+            };
+        }
+    }
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
+            Assert.True(verifier.HasLocalsInit("C.M"));
+            Assert.True(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_0")); // localNoAttribute
+            Assert.True(verifier.HasLocalsInit("C.<>c.<M>b__0_1")); // lambda
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_2")); // localWithAttribute
+        }
+
+        [Fact]
+        public void SkipLocalsInit_LocalFunctionAttribute_02()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+public class C
+{
+    public void M()
+    {
+        int w = 1;
+        w = w + w + w;
+
+        void localNoAttribute()
+        {
+            int x = 1;
+            x = x + x + x;
+
+            [SkipLocalsInitAttribute]
+            void localWithAttribute()
+            {
+                int y = 1;
+                y = y + y + y;
+
+                Action lambda = () =>
+                {
+                    int z = 1;
+                    z = z + z + z;
+                };
+            }
+        }
+    }
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
+            Assert.True(verifier.HasLocalsInit("C.M"));
+            Assert.True(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_0")); // localNoAttribute
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_1")); // localWithAttribute
+            Assert.False(verifier.HasLocalsInit("C.<>c.<M>b__0_2")); // lambda
+        }
+
+        [Fact]
+        public void SkipLocalsInit_LocalFunctionAttribute_03()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+public class C
+{
+    public void M()
+    {
+        int w = 1;
+        w = w + w + w;
+
+        [SkipLocalsInitAttribute]
+        void localWithAttribute()
+        {
+            int x = 1;
+            x = x + x + x;
+
+            void localNoAttribute()
+            {
+                int y = 1;
+                y = y + y + y;
+
+                Action lambda = () =>
+                {
+                    int z = 1;
+                    z = z + z + z;
+                };
+            }
+        }
+    }
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
+            Assert.True(verifier.HasLocalsInit("C.M"));
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_0")); // localWithAttribute
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_1")); // localNoAttribute
+            Assert.False(verifier.HasLocalsInit("C.<>c.<M>b__0_2")); // lambda
+        }
+
+        [Fact]
+        public void SkipLocalsInit_LocalFunctionAttribute_04()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+public class C
+{
+    public void M()
+    {
+        int w = 1;
+        w = w + w + w;
+
+        Action lambda = () =>
+        {
+            int x = 1;
+            x = x + x + x;
+
+            void localNoAttribute()
+            {
+                int y = 1;
+                y = y + y + y;
+
+                [SkipLocalsInitAttribute]
+                void localWithAttribute()
+                {
+                    int z = 1;
+                    z = z + z + z;
+                }
+            }
+        };
+    }
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
+            Assert.True(verifier.HasLocalsInit("C.M"));
+            Assert.True(verifier.HasLocalsInit("C.<>c.<M>b__0_0")); // lambda
+            Assert.True(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_1")); // localNoAttribute
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_2")); // localWithAttribute
+        }
+
+        [Fact]
+        public void SkipLocalsInit_LocalFunctionAttribute_05()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+public class C
+{
+    public void M()
+    {
+        int w = 1;
+        w = w + w + w;
+
+        Action lambda = () =>
+        {
+            int x = 1;
+            x = x + x + x;
+
+            [SkipLocalsInitAttribute]
+            void localWithAttribute()
+            {
+                int y = 1;
+                y = y + y + y;
+
+                void localNoAttribute()
+                {
+                    int z = 1;
+                    z = z + z + z;
+                }
+            }
+        };
+    }
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
+            Assert.True(verifier.HasLocalsInit("C.M"));
+            Assert.True(verifier.HasLocalsInit("C.<>c.<M>b__0_0")); // lambda
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_1")); // localWithAttribute
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_2")); // localNoAttribute
+        }
+
+        [Fact]
+        public void SkipLocalsInit_LocalFunctionAttribute_06()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+public class C
+{
+    public void M()
+    {
+        int w = 1;
+        w = w + w + w;
+
+        [SkipLocalsInitAttribute]
+        void localWithAttribute()
+        {
+            int x = 1;
+            x = x + x + x;
+
+            Action lambda = () =>
+            {
+                int y = 1;
+                y = y + y + y;
+
+                void localNoAttribute()
+                {
+                    int z = 1;
+                    z = z + z + z;
+                }
+            };
+        }
+    }
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.Regular9);
+            Assert.True(verifier.HasLocalsInit("C.M"));
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localWithAttribute|0_0")); // localWithAttribute
+            Assert.False(verifier.HasLocalsInit("C.<>c.<M>b__0_1")); // lambda
+            Assert.False(verifier.HasLocalsInit("C.<M>g__localNoAttribute|0_2")); // localNoAttribute
+        }
+
+        [Fact]
+        public void SkipLocalsInit_PropertyAccessor_ContainsLocalFunction()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+public class C
+{
+    [SkipLocalsInit]
+    int PropWithAttribute
+    {
+        get
+        {
+            int w = 1;
+            w = w + w + w + w;
+
+            void local1()
+            {
+                int x = 1;
+                x = x + x + x + x;
+            }
+
+            return 0;
+        }
+    }
+
+    int PropNoAttribute
+    {
+        get
+        {
+            int w = 1;
+            w = w + w + w + w;
+
+            void local1()
+            {
+                int x = 1;
+                x = x + x + x + x;
+            }
+
+            return 0;
+        }
+    }
+}
+";
+
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source);
+            Assert.False(verifier.HasLocalsInit("C.PropWithAttribute.get"));
+            Assert.False(verifier.HasLocalsInit("C.<get_PropWithAttribute>g__local1|1_0"));
+            Assert.True(verifier.HasLocalsInit("C.PropNoAttribute.get"));
+            Assert.True(verifier.HasLocalsInit("C.<get_PropNoAttribute>g__local1|3_0"));
+        }
+
+        [Fact]
+        public void SkipLocalsInit_EventAccessor_ContainsLocalFunction()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+public class C
+{
+    [SkipLocalsInit]
+    event Action EventWithAttribute
+    {
+        add
+        {
+            int w = 1;
+            w = w + w + w + w;
+
+            void local1()
+            {
+                int x = 1;
+                x = x + x + x + x;
+            }
+        }
+        remove { }
+    }
+
+    event Action EventNoAttribute
+    {
+        add
+        {
+            int w = 1;
+            w = w + w + w + w;
+
+            void local1()
+            {
+                int x = 1;
+                x = x + x + x + x;
+            }
+        }
+        remove { }
+    }
+}
+";
+
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source);
+            Assert.False(verifier.HasLocalsInit("C.EventWithAttribute.add"));
+            Assert.False(verifier.HasLocalsInit("C.<add_EventWithAttribute>g__local1|1_0"));
+            Assert.True(verifier.HasLocalsInit("C.EventNoAttribute.add"));
+            Assert.True(verifier.HasLocalsInit("C.<add_EventNoAttribute>g__local1|4_0"));
+        }
+
+        [Fact]
+        public void SkipLocalsInit_Class_ContainsLocalFunction()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+[SkipLocalsInit]
+public class C
+{
+    void M()
+    {
+        var w = 1;
+        w = w + w + w;
+
+        void local()
+        {
+            var x = 1;
+            x = x + x + x;
+        }
+    }
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source);
+            Assert.False(verifier.HasLocalsInit("C.M"));
+            Assert.False(verifier.HasLocalsInit("C.<M>g__local|0_0"));
+        }
+
+        [Fact]
+        public void SkipLocalsInit_Module_ContainsLocalFunction()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+[module: SkipLocalsInit]
+
+public class C
+{
+    void M()
+    {
+        var w = 1;
+        w = w + w + w;
+
+        void local()
+        {
+            var x = 1;
+            x = x + x + x;
+        }
+    }
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source);
+            Assert.False(verifier.HasLocalsInit("C.M"));
+            Assert.False(verifier.HasLocalsInit("C.<M>g__local|0_0"));
+        }
+
+        [Theory]
+        [InlineData(false, false, false, true)]
+        [InlineData(false, false, true, false)]
+        [InlineData(false, true, false, false)]
+        [InlineData(false, true, true, false)]
+        [InlineData(true, false, false, false)]
+        [InlineData(true, false, true, false)]
+        [InlineData(true, true, false, false)]
+        [InlineData(true, true, true, false)]
+        public void SkipLocalsInit_Lambda_01(bool skipLocalsType, bool skipLocalsMethod, bool skipLocalsLambda, bool expectedAreLocalsZeroed)
+        {
+            var source =
+$@"using System;
+using System.Runtime.CompilerServices;
+{GetSkipLocalsInit(skipLocalsType)} class Program
+{{
+    {GetSkipLocalsInit(skipLocalsMethod)} static void Main()
+    {{
+        Action a = {GetSkipLocalsInit(skipLocalsLambda)} () => {{ int x = 1; x = x + x + x; }};
+    }}
+}}";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, parseOptions: TestOptions.RegularPreview, verify: Verification.Skipped);
+            Assert.Equal(expectedAreLocalsZeroed, verifier.HasLocalsInit("Program.<>c.<Main>b__0_0()"));
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => model.GetSymbolInfo(e).Symbol).Single().GetSymbol<LambdaSymbol>();
+            Assert.Equal(expectedAreLocalsZeroed, lambda.AreLocalsZeroed);
+        }
+
+        [Theory]
+        [InlineData(false, false, true)]
+        [InlineData(false, true, false)]
+        [InlineData(true, false, false)]
+        [InlineData(true, true, false)]
+        public void SkipLocalsInit_Lambda_02(bool skipLocalsType, bool skipLocalsLambda, bool expectedAreLocalsZeroed)
+        {
+            var source =
+$@"using System;
+using System.Runtime.CompilerServices;
+{GetSkipLocalsInit(skipLocalsType)} class Program
+{{
+    Action A = {GetSkipLocalsInit(skipLocalsLambda)} () => {{ int x = 1; x = x + x + x; }};
+}}";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, parseOptions: TestOptions.RegularPreview, verify: Verification.Skipped);
+            Assert.Equal(expectedAreLocalsZeroed, verifier.HasLocalsInit("Program.<>c.<.ctor>b__1_0()"));
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => model.GetSymbolInfo(e).Symbol).Single().GetSymbol<LambdaSymbol>();
+            Assert.Equal(expectedAreLocalsZeroed, lambda.AreLocalsZeroed);
+        }
+
+        // [SkipLocalsInit] on constructor is ignored
+        [Theory]
+        [InlineData(false, false, false, true)]
+        [InlineData(false, false, true, false)]
+        [InlineData(false, true, false, true)]
+        [InlineData(false, true, true, false)]
+        [InlineData(true, false, false, false)]
+        [InlineData(true, false, true, false)]
+        [InlineData(true, true, false, false)]
+        [InlineData(true, true, true, false)]
+        public void SkipLocalsInit_Lambda_03(bool skipLocalsType, bool skipLocalsMethod, bool skipLocalsLambda, bool expectedAreLocalsZeroed)
+        {
+            var source =
+$@"using System;
+using System.Runtime.CompilerServices;
+{GetSkipLocalsInit(skipLocalsType)} class Program
+{{
+    Action A = {GetSkipLocalsInit(skipLocalsLambda)} () => {{ int x = 1; x = x + x + x; }};
+    {GetSkipLocalsInit(skipLocalsMethod)} Program() {{ }}
+}}";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, parseOptions: TestOptions.RegularPreview, verify: Verification.Skipped);
+            Assert.Equal(expectedAreLocalsZeroed, verifier.HasLocalsInit("Program.<>c.<.ctor>b__1_0()"));
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => model.GetSymbolInfo(e).Symbol).Single().GetSymbol<LambdaSymbol>();
+            Assert.Equal(expectedAreLocalsZeroed, lambda.AreLocalsZeroed);
+        }
+
+        private static string GetSkipLocalsInit(bool skipLocalsInit) => skipLocalsInit ? "[SkipLocalsInit]" : "";
+
+        [Fact, WorkItem(49434, "https://github.com/dotnet/roslyn/issues/49434")]
+        public void SkipLocalsInit_Module_TopLevelStatements()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+[module: SkipLocalsInit]
+
+var w = 1;
+w = w + w + w;
+
+void local()
+{
+    var x = 1;
+    x = x + x + x;
+}
+";
+
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.UnsafeReleaseExe);
+            Assert.False(verifier.HasLocalsInit("<top-level-statements-entry-point>"));
+            Assert.False(verifier.HasLocalsInit("Program.<<Main>$>g__local|0_0"));
+        }
+
+        [Fact, WorkItem(49434, "https://github.com/dotnet/roslyn/issues/49434")]
+        public void SkipLocalsInit_Module_TopLevelStatements_WithoutAttribute()
+        {
+            var source = @"
+var w = 1;
+w = w + w + w;
+
+void local()
+{
+    var x = 1;
+    x = x + x + x;
+}
+";
+
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.UnsafeReleaseExe, verify: Verification.Passes);
+            Assert.True(verifier.HasLocalsInit("<top-level-statements-entry-point>"));
+            Assert.True(verifier.HasLocalsInit("Program.<<Main>$>g__local|0_0"));
+        }
+
+        [Fact]
+        public void SkipLocalsInit_BaseMethodWrapper()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [SkipLocalsInit]
+    public virtual int M1(int i)
+    {
+        int x = i;
+        x = x + x + x + x;
+        return x;
+    }
+}
+
+public class D : C
+{
+    void M(int i)
+    {
+        new Action(() => base.M1(i)).Invoke();
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.M1"));
+            Assert.Null(comp.HasLocalsInit("D.<>n__0")); // Base method wrapper for C.M1
+        }
+
+        [Fact]
+        public void SkipLocalsInit_BaseMethodWrapper_DifferentCompilation()
+        {
+            var source1 = @"
+using System.Runtime.CompilerServices;
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [SkipLocalsInit]
+    public virtual int M1(int i)
+    {
+        int x = i;
+        x = x + x + x + x;
+        return x;
+    }
+}
+";
+            var source2 = @"
+using System;
+
+public class D : C
+{
+    void M(int i)
+    {
+        new Action(() => base.M1(i)).Invoke();
+    }
+}
+";
+            var comp1 = CompileAndVerify(source1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            Assert.False(comp1.HasLocalsInit("C.M1"));
+
+            var reference = comp1.Compilation.ToMetadataReference();
+            var comp2 = CompileAndVerify(source2, references: new[] { reference }, verify: Verification.Passes);
+            Assert.Null(comp2.HasLocalsInit("D.<>n__0")); // Base method wrapper for C.M1
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnIteratorPropagatesToItsSynthesizedMethods()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public System.Collections.IEnumerable M_skip()
+    {
+        yield return 1;
+        yield return 2;
+    }
+
+    public System.Collections.IEnumerable M_init()
+    {
+        yield return 3;
+        yield return 4;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.<M_skip>d__0.System.Collections.IEnumerator.MoveNext"));
+            Assert.True(comp.HasLocalsInit("C.<M_init>d__1.System.Collections.IEnumerator.MoveNext"));
+            Assert.False(comp.HasLocalsInit("C.<M_skip>d__0.System.Collections.Generic.IEnumerable<object>.GetEnumerator"));
+            Assert.True(comp.HasLocalsInit("C.<M_init>d__1.System.Collections.Generic.IEnumerable<object>.GetEnumerator"));
+
+            // The following methods do not contain locals, so the attribute should not alter their behavior
+
+            Assert.Null(comp.HasLocalsInit("C.<M_skip>d__0.System.IDisposable.Dispose"));
+            Assert.Null(comp.HasLocalsInit("C.<M_init>d__1.System.IDisposable.Dispose"));
+            Assert.Null(comp.HasLocalsInit("C.<M_skip>d__0.System.Collections.IEnumerable.GetEnumerator"));
+            Assert.Null(comp.HasLocalsInit("C.<M_init>d__1.System.Collections.IEnumerable.GetEnumerator"));
+            Assert.Null(comp.HasLocalsInit("C.<M_skip>d__0.System.Collections.IEnumerator.get_Current"));
+            Assert.Null(comp.HasLocalsInit("C.<M_init>d__1.System.Collections.IEnumerator.get_Current"));
+            Assert.Null(comp.HasLocalsInit("C.<M_skip>d__0.System.Collections.IEnumerator.Reset"));
+            Assert.Null(comp.HasLocalsInit("C.<M_init>d__1.System.Collections.IEnumerator.Reset"));
+            Assert.Null(comp.HasLocalsInit("C.<M_skip>d__0.System.Collections.Generic.IEnumerator<object>.get_Current"));
+            Assert.Null(comp.HasLocalsInit("C.<M_init>d__1.System.Collections.Generic.IEnumerator<object>.get_Current"));
+            Assert.Null(comp.HasLocalsInit("C.<M_skip>d__0..ctor"));
+            Assert.Null(comp.HasLocalsInit("C.<M_init>d__1..ctor"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnMethodPropagatesToIteratorLocalFunction()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        System.Collections.IEnumerable F()
+        {
+            yield return 1;
+            yield return 2;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.<<M>g__F|0_0>d.System.Collections.IEnumerator.MoveNext"));
+            Assert.False(comp.HasLocalsInit("C.<<M>g__F|0_0>d.System.Collections.Generic.IEnumerable<object>.GetEnumerator"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnAsyncPropagatesToItsSynthesizedMethods()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public async Task M_skip()
+    {
+        await Task.Yield();
+    }
+
+    public async Task M_init()
+    {
+        await Task.Yield();
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.<M_skip>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext"));
+            Assert.True(comp.HasLocalsInit("C.<M_init>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext"));
+
+            // The following method does not contain locals, so the attribute should not alter its behavior
+
+            Assert.Null(comp.HasLocalsInit("C.<M_skip>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine"));
+            Assert.Null(comp.HasLocalsInit("C.<M_init>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnMethodPropagatesToAsyncLocalFunction()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        async Task F()
+        {
+            await Task.Yield();
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.<<M>g__F|0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnMethodPropagatesToAsyncLambda()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        System.Action L = async () =>
+        {
+            await Task.Yield();
+        };
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.<>c.<<M>b__0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext"));
+        }
+
+        [Fact]
+        public void AnonymousTypeTemplateSymbolDelegatesToModuleWhenAskedAboutSkipLocalsInitAttribute()
+        {
+            var source_init = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        var anon = new { Value = 1 };
+    }
+}
+";
+
+            var source_skip = @"
+[module: System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    public void M()
+    {
+        var anon = new { Value = 1 };
+    }
+}
+";
+
+            var comp_init = CompileAndVerify(source_init, options: TestOptions.UnsafeReleaseDll);
+            var comp_skip = CompileAndVerify(source_skip, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.Null(comp_init.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.GetHashCode"));
+            Assert.Null(comp_init.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>..ctor"));
+            Assert.True(comp_init.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.Equals"));
+            Assert.True(comp_init.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.ToString"));
+            Assert.Null(comp_init.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.Value.get"));
+
+            Assert.Null(comp_skip.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.GetHashCode"));
+            Assert.Null(comp_skip.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>..ctor"));
+            Assert.False(comp_skip.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.Equals"));
+            Assert.False(comp_skip.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.ToString"));
+            Assert.Null(comp_skip.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.Value.get"));
+        }
+
+        [Fact]
+        public void SynthesizedClosureEnvironmentNeverSkipsLocalsInit()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        int x = 1;
+        System.Action L = () => x = x + x + x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll);
+
+            Assert.Null(comp.HasLocalsInit("C.<>c__DisplayClass0_0..ctor"));
+        }
+
+        [Fact]
+        public void SynthesizedEmbeddedAttributeSymbolDelegatesToModuleWhenAskedAboutSkipLocalsInitAttribute()
+        {
+            var source_init = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M(in int x)
+    {
+    }
+}
+";
+
+            var source_skip = @"
+[module: System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    public void M(in int x)
+    {
+    }
+}
+";
+
+            var comp_init = CompileAndVerify(source_init, options: TestOptions.UnsafeReleaseDll);
+            var comp_skip = CompileAndVerify(source_skip, options: TestOptions.UnsafeReleaseDll);
+
+            Assert.Null(comp_init.HasLocalsInit("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor"));
+            Assert.Null(comp_init.HasLocalsInit("System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor"));
+
+            Assert.Null(comp_skip.HasLocalsInit("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor"));
+            Assert.Null(comp_skip.HasLocalsInit("System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor"));
+        }
+
+        [Fact]
+        public void SourceMemberMethodSymbolDelegatesToTypeWhenSkipLocalsInitAttributeIsNotFound()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C_init
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
+    public void M()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+public class C_skip
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
+    public void M()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.True(comp.HasLocalsInit("C_init.M"));
+            Assert.False(comp.HasLocalsInit("C_skip.M"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnPropertyPropagatesToBothAccessors()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P_skip
+    {
+        get
+        {
+            int x = 1;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+
+    public int P_init
+    {
+        get
+        {
+            int x = 3;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.P_skip.get"));
+            Assert.True(comp.HasLocalsInit("C.P_init.get"));
+            Assert.False(comp.HasLocalsInit("C.P_skip.set"));
+            Assert.True(comp.HasLocalsInit("C.P_init.set"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnAccessor()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    public int P1
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        get
+        {
+            int x = 1;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+
+    public int P2
+    {
+        get
+        {
+            int x = 3;
+            return x + x + x;
+        }
+
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        set
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+
+    public int P3
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        get
+        {
+            int x = 5;
+            return x + x + x;
+        }
+
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        set
+        {
+            int x = 6;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.P1.get"));
+            Assert.True(comp.HasLocalsInit("C.P1.set"));
+            Assert.True(comp.HasLocalsInit("C.P2.get"));
+            Assert.False(comp.HasLocalsInit("C.P2.set"));
+            Assert.False(comp.HasLocalsInit("C.P3.get"));
+            Assert.False(comp.HasLocalsInit("C.P3.set"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnIteratorGetAccessor()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    public System.Collections.IEnumerable P
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        get
+        {
+            yield return 1;
+            yield return 2;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.<get_P>d__1.System.Collections.IEnumerator.MoveNext"));
+            Assert.False(comp.HasLocalsInit("C.<get_P>d__1.System.Collections.Generic.IEnumerable<object>.GetEnumerator"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnPropertyAndAccessor()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P1
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        get
+        {
+            int x = 1;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P2
+    {
+        get
+        {
+            int x = 3;
+            return x + x + x;
+        }
+
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        set
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P3
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        get
+        {
+            int x = 5;
+            return x + x + x;
+        }
+
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        set
+        {
+            int x = 6;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.P1.get"));
+            Assert.False(comp.HasLocalsInit("C.P1.set"));
+            Assert.False(comp.HasLocalsInit("C.P2.get"));
+            Assert.False(comp.HasLocalsInit("C.P2.set"));
+            Assert.False(comp.HasLocalsInit("C.P3.get"));
+            Assert.False(comp.HasLocalsInit("C.P3.set"));
+        }
+
+        [Fact]
+        public void SourcePropertySymbolDelegatesToTypeWhenSkipLocalsInitAttributeIsNotFound()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C_init
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
+    public int P
+    {
+        get
+        {
+            int x = 1;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+public class C_skip
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
+    public int P
+    {
+        get
+        {
+            int x = 3;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.True(comp.HasLocalsInit("C_init.P.get"));
+            Assert.False(comp.HasLocalsInit("C_skip.P.get"));
+            Assert.True(comp.HasLocalsInit("C_init.P.set"));
+            Assert.False(comp.HasLocalsInit("C_skip.P.set"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnAutoProperty()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P
+    {
+        get; set;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll);
+
+            // No locals are expected. We are just making sure it still works.
+
+            Assert.Null(comp.HasLocalsInit("C.P.get"));
+            Assert.Null(comp.HasLocalsInit("C.P.set"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnExpressionBodiedProperty()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    int p;
+    int p2;
+    int p3;
+
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P
+    {
+        get => p;
+        set => p = value;
+    }
+
+    public int P2
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        get => p2;
+
+        [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+        set => p2 = value;
+    }
+
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public int P3 => p3;
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll);
+
+            // No locals are expected. We are just making sure it still works.
+
+            Assert.Null(comp.HasLocalsInit("C.P.get"));
+            Assert.Null(comp.HasLocalsInit("C.P.set"));
+            Assert.Null(comp.HasLocalsInit("C.P2.get"));
+            Assert.Null(comp.HasLocalsInit("C.P2.set"));
+            Assert.Null(comp.HasLocalsInit("C.P3.get"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnClassPropagatesToItsMembers()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+class C_skip
+{
+    int P
+    {
+        get
+        {
+            int x = 1;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+
+    void M()
+    {
+        int x = 3;
+        x = x + x + x;
+    }
+
+    class C2
+    {
+        void M2()
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+
+    event System.EventHandler E
+    {
+        add
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+        remove
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+}
+
+class C_init
+{
+    int P
+    {
+        get
+        {
+            int x = 1;
+            return x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+
+    void M()
+    {
+        int x = 3;
+        x = x + x + x;
+    }
+
+    class C2
+    {
+        void M2()
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+
+    event System.EventHandler E
+    {
+        add
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+        remove
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.True(comp.HasLocalsInit("C_init.P.get"));
+            Assert.False(comp.HasLocalsInit("C_skip.P.get"));
+            Assert.True(comp.HasLocalsInit("C_init.P.set"));
+            Assert.False(comp.HasLocalsInit("C_skip.P.set"));
+            Assert.True(comp.HasLocalsInit("C_init.M"));
+            Assert.False(comp.HasLocalsInit("C_skip.M"));
+            Assert.True(comp.HasLocalsInit("C_init.C2.M2"));
+            Assert.False(comp.HasLocalsInit("C_skip.C2.M2"));
+            Assert.True(comp.HasLocalsInit("C_init.E.add"));
+            Assert.True(comp.HasLocalsInit("C_init.E.remove"));
+            Assert.False(comp.HasLocalsInit("C_skip.E.add"));
+            Assert.False(comp.HasLocalsInit("C_skip.E.remove"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnClassKeepsPropagatingToNestedClasses()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+class C
+{
+    class C2
+    {
+        void M2()
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+
+        class C3
+        {
+            void M3()
+            {
+                int x = 3;
+                x = x + x + x;
+            }
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.C2.M2"));
+            Assert.False(comp.HasLocalsInit("C.C2.C3.M3"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnNestedClassPropagatesToItsMembers()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    class C2
+    {
+        int P2
+        {
+            get
+            {
+                int x = 1;
+                return x + x + x;
+            }
+
+            set
+            {
+                int x = 2;
+                x = x + x + x;
+            }
+        }
+
+        void M2()
+        {
+            int x = 3;
+            x = x + x + x;
+        }
+
+        class C3
+        {
+            void M3()
+            {
+                int x = 4;
+                x = x + x + x;
+            }
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.C2.P2.get"));
+            Assert.False(comp.HasLocalsInit("C.C2.P2.set"));
+            Assert.False(comp.HasLocalsInit("C.C2.M2"));
+            Assert.False(comp.HasLocalsInit("C.C2.C3.M3"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnPartialClassPropagatesToItsMembers()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+partial class C
+{
+    int P
+    {
+        get
+        {
+            int x = 1;
+            return x = x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+
+    void M()
+    {
+        int x = 3;
+        x = x + x + x;
+    }
+
+    class C2
+    {
+        void M2()
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+partial class C
+{
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.P.get"));
+            Assert.False(comp.HasLocalsInit("C.P.set"));
+            Assert.False(comp.HasLocalsInit("C.M"));
+            Assert.False(comp.HasLocalsInit("C.C2.M2"));
+        }
+
+        [Fact]
+        public void SourceNamedTypeSymbolDelegatesToContainingTypeWhenSkipLocalsInitAttributeIsNotFound()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+class C_init
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
+    class C
+    {
+        void M()
+        {
+            int x = 1;
+            x = x + x + x;
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+public class C_skip
+{
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
+    class C
+    {
+        void M()
+        {
+            int x = 1;
+            x = x + x + x;
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.True(comp.HasLocalsInit("C_init.C.M"));
+            Assert.False(comp.HasLocalsInit("C_skip.C.M"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnModule()
+        {
+            var source = @"
+[module: System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.M"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnExeModule()
+        {
+            var source = @"
+[module: System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+class C
+{
+    public static void Main()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.Main"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnNetmodule()
+        {
+            var source = @"
+[module: System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.DebugModule.WithAllowUnsafe(true), verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.M"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnModuleAsReferenceDoesNotAlterBehavior()
+        {
+            var metadata_source = @"
+[module: System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+";
+
+            var source = @"
+class C
+{
+    void M()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}
+";
+
+            var metadata_comp = CreateCompilation(metadata_source, options: TestOptions.DebugModule.WithAllowUnsafe(true));
+            var comp = CompileAndVerify(source, references: new[] { metadata_comp.EmitToImageReference() });
+
+            Assert.True(comp.HasLocalsInit("C.M"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitInterfaces()
+        {
+            var src = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+partial interface I
+{
+    int P
+    {
+        get
+        {
+            int x = 1;
+            return x = x + x + x;
+        }
+
+        set
+        {
+            int x = 2;
+            x = x + x + x;
+        }
+    }
+
+    void M()
+    {
+        int x = 3;
+        x = x + x + x;
+    }
+
+    class C2
+    {
+        void M2()
+        {
+            int x = 4;
+            x = x + x + x;
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+partial interface I
+{
+}
+";
+            var verifier = CompileAndVerify(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            verifier.VerifyIL("I.M", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.3
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}");
+            Assert.False(verifier.HasLocalsInit("I.M"));
+            Assert.False(verifier.HasLocalsInit("I.C2.M2"));
+            Assert.False(verifier.HasLocalsInit("I.P.get"));
+            Assert.False(verifier.HasLocalsInit("I.P.set"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitOnEventAccessors()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInit]
+    event System.EventHandler E
+    {
+        add
+        {
+            int x = 1;
+            x += x + 1;
+        }
+        remove
+        {
+            int x = 1;
+            x += x + 1;
+        }
+    }
+
+    event System.EventHandler E2
+    {
+        [System.Runtime.CompilerServices.SkipLocalsInit]
+        add
+        {
+            int x = 1;
+            x += x + 1;
+        }
+        remove
+        {
+            int x = 1;
+            x += x + 1;
+        }
+    }
+
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
+            const string il = @"
+{
+  // Code size       10 (0xa)
+  .maxstack  3
+  .locals (int V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  ldc.i4.1
+  IL_0006:  add
+  IL_0007:  add
+  IL_0008:  stloc.0
+  IL_0009:  ret
+}";
+            verifier.VerifyIL("C.E.add", il);
+            verifier.VerifyIL("C.E.remove", il);
+            verifier.VerifyIL("C.E2.add", il);
+            verifier.VerifyIL("C.E2.remove", il.Replace(".locals", ".locals init"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAbstract()
+        {
+            const string skipLocalsInitDef1 = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(System.AttributeTargets.All, Inherited = true)]
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}";
+            var src = @"
+[System.Runtime.CompilerServices.SkipLocalsInit]
+abstract class A
+{
+    public int M1()
+    {
+        int x = 1;
+        return x = x + x + x;
+    }
+}
+
+class B : A
+{
+    public int M2()
+    {
+        int x = 1;
+        return x = x + x + x;
+    }
+}";
+            var comp = CreateCompilation(new[] { src, skipLocalsInitDef1 }, options: TestOptions.UnsafeDebugDll);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            Assert.False(verifier.HasLocalsInit("A.M1"));
+            // SkipLocalsInit is not treated as inherited, regardless of AttributeUsage inheritance
+            Assert.True(verifier.HasLocalsInit("B.M2"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitFinalizers()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.SkipLocalsInit]
+class C
+{
+    ~C()
+    {
+        int x = 1;
+        System.Console.WriteLine(x = x + x + x);
+    }
+}";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(src);
+            Assert.False(verifier.HasLocalsInit("C.Finalize"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitInitializer()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.SkipLocalsInit]
+class C
+{
+    static int M(out int x)
+    {
+        x = 1;
+        return x;
+    }
+
+    int _f =  M(out var x) + x + x + x;
+}";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(src);
+            Assert.False(verifier.HasLocalsInit("C..ctor"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitImplicitConstructor()
+        {
+            var src = @"
+using System.Runtime.CompilerServices;
+
+[SkipLocalsInit]
+class ClassWithAttributeWithLocal
+{
+    int i = M(out string s);
+
+    static int M(out string s) { s = """"; return 42; }
+}
+
+class ClassNoAttributeWithLocal
+{
+    int i = M(out string s);
+
+    static int M(out string s) { s = """"; return 42; }
+}
+
+[SkipLocalsInit]
+class ClassWithAttributeNoLocal
+{
+    int i = 123;
+}
+
+class ClassNoAttributeNoLocal
+{
+    int i = 123;
+}
+";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(src);
+            Assert.False(verifier.HasLocalsInit("ClassWithAttributeWithLocal..ctor"));
+            Assert.True(verifier.HasLocalsInit("ClassNoAttributeWithLocal..ctor"));
+            Assert.Null(verifier.HasLocalsInit("ClassWithAttributeNoLocal..ctor"));
+            Assert.Null(verifier.HasLocalsInit("ClassNoAttributeNoLocal..ctor"));
+        }
+
+        [Theory]
+        [InlineData("", "", true)]
+        [InlineData("", "[SkipLocalsInit]", true)]
+        [InlineData("[SkipLocalsInit]", "", false)]
+        [InlineData("[SkipLocalsInit]", "[SkipLocalsInit]", false)]
+        [InlineData("[module: SkipLocalsInit]", "", false)]
+        [InlineData("[module: SkipLocalsInit]", "[SkipLocalsInit]", false)]
+        public void SkipLocalsInitLambdaFieldInitializer(string outerAttribute, string ctorAttribute, bool hasLocalsInit)
+        {
+            var src = $@"
+using System.Runtime.CompilerServices;
+using System;
+
+{outerAttribute}
+class C
+{{
+    {ctorAttribute}
+    C() {{ }}
+
+    Action action = () =>
+    {{
+        int w = 1;
+        w = w + w + w;
+
+        void local()
+        {{
+            int x = 1;
+            x = x + x + x;
+        }}
+    }};
+}}
+
+namespace System.Runtime.CompilerServices
+{{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {{
+    }}
+}}
+";
+            var verifier = CompileAndVerify(src, options: TestOptions.UnsafeReleaseDll, verify: Verification.Skipped);
+            Assert.Equal(hasLocalsInit, verifier.HasLocalsInit("C.<>c.<.ctor>b__0_0")); // action
+            Assert.Equal(hasLocalsInit, verifier.HasLocalsInit("C.<.ctor>g__local|0_1")); // local
+        }
+
+        [Theory]
+        [InlineData("", "", "", true)]
+        [InlineData("", "[SkipLocalsInit]", "", true)]
+        [InlineData("", "", "[SkipLocalsInit]", true)]
+        [InlineData("[SkipLocalsInit]", "", "", false)]
+        [InlineData("[SkipLocalsInit]", "", "[SkipLocalsInit]", false)]
+        [InlineData("[module: SkipLocalsInit]", "", "", false)]
+        [InlineData("[module: SkipLocalsInit]", "", "[SkipLocalsInit]", false)]
+        public void SkipLocalsInitLambdaPropertyInitializer(string outerAttribute, string ctorAttribute, string propAttribute, bool hasLocalsInit)
+        {
+            var src = $@"
+using System.Runtime.CompilerServices;
+using System;
+
+{outerAttribute}
+class C
+{{
+    {ctorAttribute}
+    C() {{ }}
+
+    {propAttribute}
+    Action Prop {{ get; }} = () =>
+    {{
+        int w = 1;
+        w = w + w + w;
+
+        void local()
+        {{
+            int x = 1;
+            x = x + x + x;
+        }}
+    }};
+}}
+
+namespace System.Runtime.CompilerServices
+{{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {{
+    }}
+}}
+";
+            var verifier = CompileAndVerify(src, options: TestOptions.UnsafeReleaseDll, verify: Verification.Skipped);
+            Assert.Equal(hasLocalsInit, verifier.HasLocalsInit("C.<>c.<.ctor>b__0_0")); // lambda
+            Assert.Equal(hasLocalsInit, verifier.HasLocalsInit("C.<.ctor>g__local|0_1")); // local
+        }
+
+        [Fact]
+        public void SkipLocalsInitMultipleAttributes()
+        {
+            var src = @"
+class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInit]
+    [System.Diagnostics.ConditionalAttribute(""RELEASE"")]
+    void M()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}";
+            const string skipLocalsInitDef = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}";
+
+            var comp = CreateCompilation(new[] { src, skipLocalsInitDef }, options: TestOptions.UnsafeReleaseDll);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
+            Assert.False(verifier.HasLocalsInit("C.M"));
+        }
+
+        #endregion
+
         [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
         public void TestAttributePropagationForAsyncAndIterators_01()
         {
@@ -8620,22 +13032,22 @@ class MyAttribute : System.Attribute
 
                 Assert.Equal("", CheckAttributePropagation(((NamedTypeSymbol)program.GetMember<MethodSymbol>("test1").
                                                                              GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value).
+                                                                             ConstructorArguments.Single().ValueInternal).
                                                                              GetMember<MethodSymbol>("MoveNext")));
 
                 Assert.Equal(0, ((NamedTypeSymbol)program.GetMember<MethodSymbol>("test2").
                                                                              GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value).
+                                                                             ConstructorArguments.Single().ValueInternal).
                                                                              GetMember<MethodSymbol>("MoveNext").GetAttributes().Length);
 
                 Assert.Equal("", CheckAttributePropagation(((NamedTypeSymbol)program.GetMember<MethodSymbol>("Test3").
                                                                              GetAttribute("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value).
+                                                                             ConstructorArguments.Single().ValueInternal).
                                                                              GetMember<MethodSymbol>("MoveNext")));
 
                 Assert.Equal(0, ((NamedTypeSymbol)program.GetMember<MethodSymbol>("Test4").
                                                                              GetAttribute("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value).
+                                                                             ConstructorArguments.Single().ValueInternal).
                                                                              GetMember<MethodSymbol>("MoveNext").GetAttributes().Length);
             };
 
@@ -8743,22 +13155,22 @@ class MyAttribute : System.Attribute
                 Assert.Equal("DebuggerHiddenAttribute is missing\nDebuggerStepperBoundaryAttribute is missing\n",
                                                    CheckAttributePropagation(((NamedTypeSymbol)program1.GetMember<MethodSymbol>("test1").
                                                                              GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value)));
+                                                                             ConstructorArguments.Single().ValueInternal)));
 
                 Assert.Equal("DebuggerNonUserCodeAttribute is missing\nDebuggerHiddenAttribute is missing\nDebuggerStepperBoundaryAttribute is missing\nDebuggerStepThroughAttribute is missing\n",
                                                    CheckAttributePropagation(((NamedTypeSymbol)program2.GetMember<MethodSymbol>("test2").
                                                                              GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value)));
+                                                                             ConstructorArguments.Single().ValueInternal)));
 
                 Assert.Equal("DebuggerHiddenAttribute is missing\nDebuggerStepperBoundaryAttribute is missing\n",
                                                    CheckAttributePropagation(((NamedTypeSymbol)program1.GetMember<MethodSymbol>("Test3").
                                                                              GetAttribute("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value)));
+                                                                             ConstructorArguments.Single().ValueInternal)));
 
                 Assert.Equal("DebuggerNonUserCodeAttribute is missing\nDebuggerHiddenAttribute is missing\nDebuggerStepperBoundaryAttribute is missing\nDebuggerStepThroughAttribute is missing\n",
                                                    CheckAttributePropagation(((NamedTypeSymbol)program2.GetMember<MethodSymbol>("Test4").
                                                                              GetAttribute("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").
-                                                                             ConstructorArguments.Single().Value)));
+                                                                             ConstructorArguments.Single().ValueInternal)));
             };
 
             CompileAndVerify(source, symbolValidator: attributeValidator);
@@ -8969,6 +13381,320 @@ class Test
             CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics(
                 // error CS0616: 'IsReadOnlyAttribute' is not an attribute class
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
+        }
+
+        /// <summary>
+        /// Verify that a synthesized (and emitted) parameterless constructor can be referenced
+        /// in metadata for an "attribute type", even if the attribute type is a struct. Compare
+        /// with previous test where no parameterless constructor is emitted for the struct type.
+        /// </summary>
+        [Theory]
+        [InlineData(
+@"#pragma warning disable 414
+namespace System.Runtime.CompilerServices
+{
+    public struct IsReadOnlyAttribute
+    {
+        private int F = 1; // requires synthesized parameterless .ctor
+    }
+}")]
+        [InlineData(
+@"namespace System.Runtime.CompilerServices
+{
+    public struct IsReadOnlyAttribute
+    {
+        // explicit parameterless .ctor
+        public IsReadOnlyAttribute() { }
+    }
+}")]
+        public void WellKnownTypeAsStruct_ParameterlessConstructor_IsReadOnlyAttribute(string sourceAttribute)
+        {
+            var sourceA =
+@"public class A
+{
+    public static void M(in int i)
+    {
+        System.Console.WriteLine(i);
+    }
+}";
+            var sourceB =
+@"class B
+{
+    static void Main()
+    {
+        int i = 42;
+        A.M(in i);
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceAttribute, sourceA }, parseOptions: TestOptions.RegularPreview);
+            var refA = comp.EmitToImageReference();
+            CompileAndVerify(sourceB, references: new[] { refA }, expectedOutput: "42");
+        }
+
+        [Fact]
+        public void TestObsoleteOnPropertyAccessorUsedInNameofAndXmlDocComment()
+        {
+            var code = @"
+using System;
+/// <summary>
+/// <see cref=""Prop""/>
+/// </summary>
+class C
+{
+    const string str = nameof(Prop);
+    
+    public int Prop { [Obsolete] get; [Obsolete] set; }
+}
+";
+
+            CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TestObsoleteOnPropertyAndAccessors()
+        {
+            var code = @"
+using System;
+class C
+{
+    public void M() => Prop = Prop;
+
+    [Obsolete]
+    public int Prop { [Obsolete] get; [Obsolete] set; }
+}
+";
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (5,24): warning CS0612: 'C.Prop' is obsolete
+                //     public void M() => Prop = Prop;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Prop").WithArguments("C.Prop").WithLocation(5, 24),
+                // (5,24): warning CS0612: 'C.Prop.set' is obsolete
+                //     public void M() => Prop = Prop;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Prop").WithArguments("C.Prop.set").WithLocation(5, 24),
+                // (5,31): warning CS0612: 'C.Prop' is obsolete
+                //     public void M() => Prop = Prop;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Prop").WithArguments("C.Prop").WithLocation(5, 31),
+                // (5,31): warning CS0612: 'C.Prop.get' is obsolete
+                //     public void M() => Prop = Prop;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Prop").WithArguments("C.Prop.get").WithLocation(5, 31));
+        }
+
+        [Fact]
+        public void TestObsoleteOnPropertyAccessorCSharp7()
+        {
+            var code = @"
+using System;
+class C
+{
+    public int Prop { [Obsolete] get; set; }
+}
+";
+
+            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (4,24): error CS8652: The feature 'obsolete on property accessor' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     public int Prop { [Obsolete] get; set; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "Obsolete").WithArguments("obsolete on property accessor", "8.0").WithLocation(5, 24));
+        }
+
+        [Fact]
+        public void TestDeprecatedOnPropertyAccessorCSharp7()
+        {
+            var code = @"
+using Windows.Foundation.Metadata;
+class C
+{
+    public int Prop { [Deprecated(""don't use this"", DeprecationType.Remove, 50331648u)] get; set; }
+}
+";
+
+            CreateEmptyCompilation(code, references: WinRtRefs, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (5,24): error CS8652: The feature 'obsolete on property accessor' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     public int Prop { [Deprecated("don't use this", DeprecationType.Remove, 50331648u)] get; set; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"Deprecated(""don't use this"", DeprecationType.Remove, 50331648u)").WithArguments("obsolete on property accessor", "8.0").WithLocation(5, 24));
+        }
+
+        [Fact]
+        public void TestObsoleteOnEventAccessorCSharp7()
+        {
+            var code = @"
+using System;
+class C
+{
+        public event System.Action E
+    {
+        [Obsolete]
+        add
+        {
+        }
+        remove
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (7,10): error CS8423: Attribute 'System.ObsoleteAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //         [Obsolete]
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(7, 10));
+        }
+
+        [Fact]
+        public void TestDeprecatedOnEventAccessorCSharp7()
+        {
+            var code = @"
+using Windows.Foundation.Metadata;
+class C
+{
+    public event System.Action E
+    {
+        [Deprecated(""don't use this"", DeprecationType.Remove, 50331648u)]
+        add
+        {
+        }
+        remove
+        {
+        }
+    }
+}
+";
+
+            CreateEmptyCompilation(code, references: WinRtRefs, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (7,10): error CS8423: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //         [Deprecated("don't use this", DeprecationType.Remove, 50331648u)]
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(7, 10));
+        }
+
+        [Fact, WorkItem(53418, "https://github.com/dotnet/roslyn/issues/53418")]
+        public void TestObsoleteIndexerSlice()
+        {
+            var code = @"
+using System;
+
+public class C
+{
+    [Obsolete(""error"", error: true)]
+    public int Slice(int i, int j) => 0;
+
+    [Obsolete(""error"", error: true)]
+    public int this[int i] => 0;
+
+    [Obsolete(""error"", error: true)]
+    public int Count => 0;
+
+    public void M()
+    {
+        _ = this[^1];
+        _ = this[..];
+    }
+}
+";
+
+            CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (17,13): error CS0619: 'C.this[int]' is obsolete: 'error'
+                //         _ = this[^1];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.this[int]", "error").WithLocation(17, 13),
+                // (17,13): error CS0619: 'C.Count' is obsolete: 'error'
+                //         _ = this[^1];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.Count", "error").WithLocation(17, 13),
+                // (18,13): error CS0619: 'C.Slice(int, int)' is obsolete: 'error'
+                //         _ = this[..];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Slice(int, int)", "error").WithLocation(18, 13),
+                // (18,13): error CS0619: 'C.Count' is obsolete: 'error'
+                //         _ = this[..];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Count", "error").WithLocation(18, 13)
+                );
+        }
+
+        [Fact, WorkItem(53418, "https://github.com/dotnet/roslyn/issues/53418")]
+        public void TestObsoleteIndexerSlice_ObsoleteCountAccessor()
+        {
+            var code = @"
+using System;
+
+public class C
+{
+    [Obsolete(""error"", error: true)]
+    public int Slice(int i, int j) => 0;
+
+    public int this[int i]
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public int Count
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public void M()
+    {
+        _ = this[^1]; // 1, 2
+        _ = this[..]; // 3, 4
+    }
+}
+";
+
+            CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (23,13): error CS0619: 'C.Count.get' is obsolete: 'error'
+                //         _ = this[^1]; // 1, 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.Count.get", "error").WithLocation(23, 13),
+                // (23,13): error CS0619: 'C.this[int].get' is obsolete: 'error'
+                //         _ = this[^1]; // 1, 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.this[int].get", "error").WithLocation(23, 13),
+                // (24,13): error CS0619: 'C.Count.get' is obsolete: 'error'
+                //         _ = this[..]; // 3, 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Count.get", "error").WithLocation(24, 13),
+                // (24,13): error CS0619: 'C.Slice(int, int)' is obsolete: 'error'
+                //         _ = this[..]; // 3, 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Slice(int, int)", "error").WithLocation(24, 13)
+                );
+        }
+
+        [Fact, WorkItem(53418, "https://github.com/dotnet/roslyn/issues/53418")]
+        public void TestObsoleteIndexerSlice_ObsoleteIndexAndRangeAccessors()
+        {
+            var code = @"
+using System;
+
+public class C
+{
+    public int this[Range r]
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public int this[Index i]
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public int Count
+    {
+        [Obsolete(""unused"", error: true)]
+        get => 0;
+    }
+
+    public void M()
+    {
+        _ = this[^1];
+        _ = this[..];
+    }
+}
+";
+
+            CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (26,13): error CS0619: 'C.this[Index].get' is obsolete: 'error'
+                //         _ = this[^1];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.this[System.Index].get", "error").WithLocation(26, 13),
+                // (27,13): error CS0619: 'C.this[Range].get' is obsolete: 'error'
+                //         _ = this[..];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.this[System.Range].get", "error").WithLocation(27, 13)
+                );
         }
     }
 }

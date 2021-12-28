@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <VBRuntime>None</VBRuntime>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -13,27 +12,11 @@
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Compile Update="VBScriptingResources.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>VBScriptingResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="VBScriptingResources.resx">
-      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.Scripting</CustomToolNamespace>
-      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
-      <LastGenOutput>VBScriptingResources.Designer.vb</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="VBScriptingResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.VisualBasic.Scripting"/>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="vbi" />
-    <!-- TODO: remove, see https://github.com/dotnet/roslyn/issues/5661 -->
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
-    <!-- /TODO -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.TestUtilities" />

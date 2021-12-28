@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -11,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -21,15 +25,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     [ExportSignatureHelpProvider("ConstructorInitializerSignatureHelpProvider", LanguageNames.CSharp), Shared]
     internal partial class ConstructorInitializerSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
-        public override bool IsTriggerCharacter(char ch)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public ConstructorInitializerSignatureHelpProvider()
         {
-            return ch == '(' || ch == ',';
         }
 
+        public override bool IsTriggerCharacter(char ch)
+            => ch is '(' or ',';
+
         public override bool IsRetriggerCharacter(char ch)
-        {
-            return ch == ')';
-        }
+            => ch == ')';
 
         private bool TryGetConstructorInitializer(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out ConstructorInitializerSyntax expression)
         {
@@ -42,9 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         private bool IsTriggerToken(SyntaxToken token)
-        {
-            return SignatureHelpUtilities.IsTriggerParenOrComma<ConstructorInitializerSyntax>(token, IsTriggerCharacter);
-        }
+            => SignatureHelpUtilities.IsTriggerParenOrComma<ConstructorInitializerSyntax>(token, IsTriggerCharacter);
 
         private static bool IsArgumentListToken(ConstructorInitializerSyntax expression, SyntaxToken token)
         {
@@ -53,22 +57,22 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 token != expression.ArgumentList.CloseParenToken;
         }
 
-        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!TryGetConstructorInitializer(root, position, document.GetLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var constructorInitializer))
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (!TryGetConstructorInitializer(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var constructorInitializer))
             {
                 return null;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var within = semanticModel.GetEnclosingNamedType(position, cancellationToken);
             if (within == null)
             {
                 return null;
             }
 
-            if (within.TypeKind != TypeKind.Struct && within.TypeKind != TypeKind.Class)
+            if (within.TypeKind is not TypeKind.Struct and not TypeKind.Class)
             {
                 return null;
             }
@@ -83,12 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             // get the candidate methods
-            var currentConstructor = semanticModel.GetDeclaredSymbol(constructorInitializer.Parent);
-            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
+            var currentConstructor = semanticModel.GetDeclaredSymbol(constructorInitializer.Parent!, cancellationToken);
+
             var accessibleConstructors = type.InstanceConstructors
-                .WhereAsArray(c => c.IsAccessibleWithin(within) && !c.Equals(currentConstructor))
-                .WhereAsArray(c => c.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
-                .Sort(symbolDisplayService, semanticModel, constructorInitializer.SpanStart);
+                                             .WhereAsArray(c => c.IsAccessibleWithin(within) && !c.Equals(currentConstructor))
+                                             .WhereAsArray(c => c.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
+                                             .Sort(semanticModel, constructorInitializer.SpanStart);
             accessibleConstructors = RemoveUnacceptable(accessibleConstructors, constructorInitializer, within, semanticModel, cancellationToken);
 
             if (!accessibleConstructors.Any())
@@ -96,33 +100,21 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            // try to bind to the actual constructor
-            var currentSymbol = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken).Symbol;
-
-            var semanticFactsService = document.GetLanguageService<ISemanticFactsService>();
-            var arguments = constructorInitializer.ArgumentList.Arguments;
-            var parameterIndex = -1;
-            if (currentSymbol is null)
-            {
-                (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, accessibleConstructors, position,
-                    semanticModel, semanticFactsService, cancellationToken);
-            }
-            else
-            {
-                // The compiler told us the correct overload, but we need to find out the parameter to highlight given cursor position
-                _ = FindParameterIndexIfCompatibleMethod(arguments, (IMethodSymbol)currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
-            }
-
             // present items and select
-            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
-            var items = accessibleConstructors.SelectAsArray(c =>
-                Convert(c, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken));
-
-            var selectedItem = TryGetSelectedIndex(accessibleConstructors, currentSymbol);
-
+            var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
+            var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
-            return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol)currentSymbol, parameterIndex, selectedItem, arguments, position);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            var symbolInfo = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken);
+            var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo.Symbol);
+
+            return CreateSignatureHelpItems(accessibleConstructors.SelectAsArray(c =>
+                Convert(c, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
+            // TODO2
+            //var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
+            //return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol)currentSymbol, parameterIndex, selectedItem, arguments, position);
         }
 
         private static ImmutableArray<IMethodSymbol> RemoveUnacceptable(IEnumerable<IMethodSymbol> methodGroup, ConstructorInitializerSyntax constructorInitializer,
@@ -131,25 +123,23 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return methodGroup.Where(m => !IsUnacceptable(constructorInitializer.ArgumentList.Arguments, m)).ToImmutableArray();
         }
 
-        private SignatureHelpItem Convert(
+        private static SignatureHelpItem Convert(
             IMethodSymbol constructor,
             SyntaxToken openToken,
             SemanticModel semanticModel,
-            ISymbolDisplayService symbolDisplayService,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
-            CancellationToken cancellationToken)
+            IStructuralTypeDisplayService structuralTypeDisplayService,
+            IDocumentationCommentFormattingService documentationCommentFormattingService)
         {
             var position = openToken.SpanStart;
             var item = CreateItem(
                 constructor, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 constructor.IsParams(),
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
-                GetPostambleParts(constructor),
-                constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
+                GetPostambleParts(),
+                constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
             return item;
         }
 
@@ -166,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private static IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method)
+        private static IList<SymbolDisplayPart> GetPostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.CloseParenToken));

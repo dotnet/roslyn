@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../ScriptingResources.resx">
     <body>
+      <trans-unit id="CannotSetLanguageSpecificOption">
+        <source>Cannot set {0} specific option {1} because the options were already configured for a different language.</source>
+        <target state="translated">Impossible de définir l'option spécifique {0} {1}, car les options ont déjà été configurées pour un autre langage.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="StackOverflowWhileEvaluating">
         <source>!&lt;Stack overflow while evaluating object&gt;</source>
         <target state="translated">!&lt;Dépassement de capacité de la pile durant l'évaluation de l'objet&gt;</target>

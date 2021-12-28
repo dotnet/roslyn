@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 
@@ -10,15 +12,17 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{Path,nq}")]
     public struct CommandLineSourceFile
     {
-        private readonly string _path;
-        private readonly bool _isScript;
+        public CommandLineSourceFile(string path, bool isScript) :
+            this(path, isScript, false)
+        { }
 
-        public CommandLineSourceFile(string path, bool isScript)
+        public CommandLineSourceFile(string path, bool isScript, bool isInputRedirected)
         {
             Debug.Assert(!string.IsNullOrEmpty(path));
 
-            _path = path;
-            _isScript = isScript;
+            Path = path;
+            IsScript = isScript;
+            IsInputRedirected = isInputRedirected;
         }
 
         /// <summary>
@@ -27,17 +31,16 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Although this path is absolute it may not be normalized. That is, it may contain ".." and "." in the middle. 
         /// </remarks>
-        public string Path
-        {
-            get { return _path; }
-        }
+        public string Path { get; }
+
+        /// <summary>
+        /// True if the input has been redirected from the standard input stream.
+        /// </summary>
+        public bool IsInputRedirected { get; }
 
         /// <summary>
         /// True if the file should be treated as a script file.
         /// </summary>
-        public bool IsScript
-        {
-            get { return _isScript; }
-        }
+        public bool IsScript { get; }
     }
 }

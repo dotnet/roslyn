@@ -1,12 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
@@ -35,29 +41,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             var p = noMsCorLibRef.GlobalNamespace.GetTypeMembers("I1").Single().
                 GetMembers("M1").OfType<MethodSymbol>().Single().
-                Parameters[0].Type;
+                Parameters[0].TypeWithAnnotations;
 
-            Assert.Equal(TypeKind.Error, p.TypeKind);
+            Assert.Equal(TypeKind.Error, p.Type.TypeKind);
             Assert.Equal(SpecialType.System_Int32, p.SpecialType);
         }
 
         [Fact]
         public void PresentCorLib()
         {
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { NetCoreApp.SystemRuntime });
 
             MetadataOrSourceAssemblySymbol msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
+
+            var knownMissingTypes = new HashSet<int>()
+            {
+            };
 
             for (int i = 1; i <= (int)SpecialType.Count; i++)
             {
                 var t = msCorLibRef.GetSpecialType((SpecialType)i);
                 Assert.Equal((SpecialType)i, t.SpecialType);
                 Assert.Same(msCorLibRef, t.ContainingAssembly);
+                if (knownMissingTypes.Contains(i))
+                {
+                    // not present on dotnet core 3.1
+                    Assert.Equal(TypeKind.Error, t.TypeKind);
+                }
+                else
+                {
+                    Assert.NotEqual(TypeKind.Error, t.TypeKind);
+                }
             }
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] { MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319_17626.mscorlib.AsImmutableOrNull()) });
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] { MetadataReference.CreateFromImage(Net50.Resources.SystemRuntime) });
 
             msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
             Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
@@ -89,8 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
                 }
             }
 
-            Assert.Equal(count, (int)SpecialType.Count);
-            Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
+            Assert.Equal(count + knownMissingTypes.Count, (int)SpecialType.Count);
+            Assert.Equal(knownMissingTypes.Any(), msCorLibRef.KeepLookingForDeclaredSpecialTypes);
         }
 
         [Fact]
@@ -201,9 +220,9 @@ namespace System
 
             // Error elsewhere.
             CreateCompilation(source2).VerifyDiagnostics(
-                // (4,20): error CS0644: 'System.ArrayContract' cannot derive from special class 'System.Array'
+                // (4,36): error CS0644: 'System.ArrayContract' cannot derive from special class 'System.Array'
                 //     internal class ArrayContract : Array
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "ArrayContract").WithArguments("System.ArrayContract", "System.Array"));
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Array").WithArguments("System.ArrayContract", "System.Array"));
         }
     }
 }

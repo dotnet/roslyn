@@ -1,14 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
@@ -16,12 +20,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
     [UseExportProvider]
     public abstract class AbstractKeywordHighlighterTests
     {
-        internal abstract IHighlighter CreateHighlighter();
+        private static readonly TestComposition s_baseComposition = EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(IHighlighter));
+        private TestComposition _lazyComposition;
+
+        protected TestComposition Composition
+            => _lazyComposition ??= s_baseComposition.AddParts(GetHighlighterType());
+
+        internal abstract Type GetHighlighterType();
+
         protected abstract IEnumerable<ParseOptions> GetOptions();
         protected abstract TestWorkspace CreateWorkspaceFromFile(string code, ParseOptions options);
 
-        protected async Task TestAsync(
-            string code)
+        protected async Task TestAsync(string code)
         {
             foreach (var option in GetOptions())
             {
@@ -29,41 +39,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
             }
         }
 
-        private async Task TestAsync(
-            string markup,
-            ParseOptions options,
-            bool optionIsEnabled = true)
+        private async Task TestAsync(string markup, ParseOptions options)
         {
-            using (var workspace = CreateWorkspaceFromFile(markup, options))
+            using var workspace = CreateWorkspaceFromFile(markup, options);
+            var testDocument = workspace.Documents.Single();
+            var expectedHighlightSpans = testDocument.SelectedSpans.ToList();
+            expectedHighlightSpans.Sort();
+
+            var cursorSpan = testDocument.AnnotatedSpans["Cursor"].Single();
+            var textSnapshot = testDocument.GetTextBuffer().CurrentSnapshot;
+            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+
+            var service = Assert.IsType<HighlightingService>(workspace.ExportProvider.GetExportedValue<IHighlightingService>());
+
+            var root = await document.GetSyntaxRootAsync();
+
+            // Check that every point within the span (inclusive) produces the expected set of
+            // results.
+            for (var i = 0; i <= cursorSpan.Length; i++)
             {
-                var testDocument = workspace.Documents.Single();
-                var expectedHighlightSpans = testDocument.SelectedSpans ?? new List<TextSpan>();
-                expectedHighlightSpans = Sort(expectedHighlightSpans);
-                var cursorSpan = testDocument.AnnotatedSpans["Cursor"].Single();
-                var textSnapshot = testDocument.TextBuffer.CurrentSnapshot;
-                var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+                var position = cursorSpan.Start + i;
+                var highlightSpans = new List<TextSpan>();
+                service.AddHighlights(root, position, highlightSpans, CancellationToken.None);
 
-                // If the position being tested is immediately following the keyword, 
-                // we should get the token before this position to find the appropriate 
-                // ancestor node.
-                var highlighter = CreateHighlighter();
-
-                var root = await document.GetSyntaxRootAsync();
-
-                for (int i = 0; i <= cursorSpan.Length; i++)
-                {
-                    var position = cursorSpan.Start + i;
-                    var highlightSpans = highlighter.GetHighlights(root, position, CancellationToken.None).ToList();
-                    highlightSpans = Sort(highlightSpans);
-
-                    CheckSpans(root.SyntaxTree, expectedHighlightSpans, highlightSpans);
-                }
+                CheckSpans(root.SyntaxTree, expectedHighlightSpans, highlightSpans);
             }
         }
 
         private static void CheckSpans(SyntaxTree tree, IList<TextSpan> expectedHighlightSpans, List<TextSpan> highlightSpans)
         {
-            for (int j = 0; j < Math.Max(highlightSpans.Count, expectedHighlightSpans.Count); j++)
+            for (var j = 0; j < Math.Max(highlightSpans.Count, expectedHighlightSpans.Count); j++)
             {
                 if (j >= expectedHighlightSpans.Count)
                 {
@@ -84,11 +89,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 if (actual != expected)
                     Assert.Equal(tree.GetLineSpan(expected).Span, tree.GetLineSpan(actual).Span);
             }
-        }
-
-        private List<TextSpan> Sort(IEnumerable<TextSpan> spans)
-        {
-            return spans.OrderBy((s1, s2) => s1.Start - s2.Start).ToList();
         }
     }
 }

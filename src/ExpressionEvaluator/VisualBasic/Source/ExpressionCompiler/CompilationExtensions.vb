@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
@@ -29,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim metadataDecoder = New MetadataDecoder(DirectCast(method.ContainingModule, PEModuleSymbol))
             Dim containingType = method.ContainingType
             Dim sourceMethodName As String = Nothing
-            If GeneratedNames.TryParseStateMachineTypeName(containingType.Name, sourceMethodName) Then
+            If GeneratedNameParser.TryParseStateMachineTypeName(containingType.Name, sourceMethodName) Then
                 For Each member In containingType.ContainingType.GetMembers(sourceMethodName)
                     Dim candidateMethod = TryCast(member, PEMethodSymbol)
                     If candidateMethod IsNot Nothing Then

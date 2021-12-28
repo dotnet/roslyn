@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -9,10 +11,10 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class SolutionPreviewItem
     {
-        public readonly ProjectId ProjectId;
-        public readonly DocumentId DocumentId;
-        public readonly Func<CancellationToken, Task<object>> LazyPreview;
-        public readonly string Text;
+        public readonly ProjectId? ProjectId;
+        public readonly DocumentId? DocumentId;
+        public readonly Func<CancellationToken, Task<object?>> LazyPreview;
+        public readonly string? Text;
 
         /// <summary>
         /// Construct an instance of <see cref="SolutionPreviewItem"/>
@@ -23,15 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <remarks>Use lazy instantiation to ensure that any <see cref="ITextView"/> that may be present inside a given preview are only instantiated at the point
         /// when the VS lightbulb requests that preview. Otherwise, we could end up instantiating a bunch of <see cref="ITextView"/>s most of which will never get
         /// passed to the VS lightbulb. Such zombie <see cref="ITextView"/>s will never get closed and we will end up leaking memory.</remarks>
-        public SolutionPreviewItem(ProjectId projectId, DocumentId documentId, Func<CancellationToken, Task<object>> lazyPreview)
+        public SolutionPreviewItem(ProjectId? projectId, DocumentId? documentId, Func<CancellationToken, Task<object?>> lazyPreview)
         {
             ProjectId = projectId;
             DocumentId = documentId;
             LazyPreview = lazyPreview;
         }
 
-        public SolutionPreviewItem(ProjectId projectId, DocumentId documentId, string text)
-            : this(projectId, documentId, c => Task.FromResult<object>(text))
+        public SolutionPreviewItem(ProjectId? projectId, DocumentId? documentId, string text)
+            : this(projectId, documentId, c => Task.FromResult<object?>(text))
         {
             Text = text;
         }

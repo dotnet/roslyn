@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Runtime.InteropServices;
@@ -14,5 +18,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.I
         void EndBatch();
 
         void AddFileEx([MarshalAs(UnmanagedType.LPWStr)] string filePath, [MarshalAs(UnmanagedType.LPWStr)] string linkMetadata);
+
+        /// <summary>
+        /// Allows the project system to pass along property values not covered by the
+        /// compiler's command line arguments.
+        /// See <see cref="LanguageServices.ProjectSystem.IWorkspaceProjectContext.SetProperty(string, string)"/>
+        /// for the corresponding method for CPS-based projects.
+        /// </summary>
+        void SetProperty([MarshalAs(UnmanagedType.LPWStr)] string property, [MarshalAs(UnmanagedType.LPWStr)] string value);
     }
 }

@@ -5,12 +5,22 @@
     <DisplayName>Roslyn Expression Evaluators</DisplayName>
     <Description xml:space="preserve">Roslyn Expression Evaluators</Description>
     <PackageId>Microsoft.CodeAnalysis.ExpressionEvaluator</PackageId>
+    <License>EULA.rtf</License>
+    <AllowClientRole>true</AllowClientRole>
   </Metadata>
   <Installation Experimental="true">
-    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,]" />
-    <InstallationTarget Version="[15.0,]" Id="Microsoft.VisualStudio.VSWinDesktopExpress" />
-    <InstallationTarget Version="[15.0,]" Id="Microsoft.VisualStudio.VWDExpress" />
-    <InstallationTarget Version="[15.0,]" Id="Microsoft.VisualStudio.VSWinExpress" />
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[17.0,]">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.VSWinDesktopExpress" Version="[17.0,]">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.VWDExpress" Version="[17.0,]">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.VSWinExpress" Version="[17.0,]">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
   </Installation>
   <Dependencies>
     <Dependency Version="[|VisualStudioSetup;GetVsixVersion|,]" DisplayName="Roslyn Language Services" Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
@@ -24,6 +34,6 @@
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
   </Assets>
   <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,17.0)" DisplayName="Visual Studio core editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />
   </Prerequisites>
 </PackageManifest>

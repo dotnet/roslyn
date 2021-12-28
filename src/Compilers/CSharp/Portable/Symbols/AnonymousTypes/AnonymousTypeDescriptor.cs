@@ -1,10 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Describes anonymous type in terms of fields
     /// </summary>
-    internal struct AnonymousTypeDescriptor : IEquatable<AnonymousTypeDescriptor>
+    internal readonly struct AnonymousTypeDescriptor : IEquatable<AnonymousTypeDescriptor>
     {
         /// <summary> Anonymous type location </summary>
         public readonly Location Location;
@@ -75,24 +75,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Compare field types
-            ImmutableArray<AnonymousTypeField> myFields = this.Fields;
-            int count = myFields.Length;
-            ImmutableArray<AnonymousTypeField> otherFields = other.Fields;
-            for (int i = 0; i < count; i++)
-            {
-                if (!myFields[i].Type.TypeSymbol.Equals(otherFields[i].Type.TypeSymbol, comparison))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return Fields.SequenceEqual(
+                other.Fields,
+                comparison,
+                static (x, y, comparison) => x.TypeWithAnnotations.Equals(y.TypeWithAnnotations, comparison) && x.RefKind == y.RefKind);
         }
 
         /// <summary>
         /// Compares two anonymous type descriptors, takes into account fields names and types, not locations.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is AnonymousTypeDescriptor && this.Equals((AnonymousTypeDescriptor)obj, TypeCompareKind.ConsiderEverything);
         }
@@ -106,19 +98,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Creates a new anonymous type descriptor based on 'this' one, 
         /// but having field types passed as an argument.
         /// </summary>
-        internal AnonymousTypeDescriptor WithNewFieldsTypes(ImmutableArray<TypeSymbolWithAnnotations> newFieldTypes)
+        internal AnonymousTypeDescriptor WithNewFieldsTypes(ImmutableArray<TypeWithAnnotations> newFieldTypes)
         {
             Debug.Assert(!newFieldTypes.IsDefault);
             Debug.Assert(newFieldTypes.Length == this.Fields.Length);
 
-            AnonymousTypeField[] newFields = new AnonymousTypeField[this.Fields.Length];
-            for (int i = 0; i < newFields.Length; i++)
-            {
-                var field = this.Fields[i];
-                newFields[i] = new AnonymousTypeField(field.Name, field.Location, newFieldTypes[i]);
-            }
+            var newFields = Fields.ZipAsArray(newFieldTypes, static (field, type) => new AnonymousTypeField(field.Name, field.Location, type, field.RefKind));
+            return new AnonymousTypeDescriptor(newFields, this.Location);
+        }
 
-            return new AnonymousTypeDescriptor(newFields.AsImmutable(), this.Location);
+        internal AnonymousTypeDescriptor SubstituteTypes(AbstractTypeMap map, out bool changed)
+        {
+            var oldFieldTypes = Fields.SelectAsArray(f => f.TypeWithAnnotations);
+            var newFieldTypes = map.SubstituteTypes(oldFieldTypes);
+            changed = (oldFieldTypes != newFieldTypes);
+            return changed ? WithNewFieldsTypes(newFieldTypes) : this;
         }
     }
 }

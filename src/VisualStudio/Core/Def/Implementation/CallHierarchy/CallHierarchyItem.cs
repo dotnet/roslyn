@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -16,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         private readonly string _containingNamespaceName;
         private readonly string _containingTypeName;
         private readonly SymbolKey _symbolId;
-        private IEnumerable<CallHierarchyDetail> _callsites;
+        private readonly IEnumerable<CallHierarchyDetail> _callsites;
         private readonly IEnumerable<AbstractCallFinder> _finders;
         private readonly Func<ImageSource> _glyphCreator;
         private readonly string _name;
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         }
 
         public static readonly SymbolDisplayFormat MemberNameFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
@@ -54,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         public static readonly SymbolDisplayFormat ContainingTypeFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         public static readonly SymbolDisplayFormat ContainingNamespaceFormat =
-           new SymbolDisplayFormat(
+           new(
                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
         private readonly Workspace _workspace;

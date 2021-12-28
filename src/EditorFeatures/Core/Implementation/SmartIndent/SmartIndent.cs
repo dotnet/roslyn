@@ -1,14 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
@@ -17,45 +19,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
         private readonly ITextView _textView;
 
         public SmartIndent(ITextView textView)
-        {
-            _textView = textView ?? throw new ArgumentNullException(nameof(textView));
-        }
+            => _textView = textView ?? throw new ArgumentNullException(nameof(textView));
 
         public int? GetDesiredIndentation(ITextSnapshotLine line)
-        {
-            return GetDesiredIndentation(line, CancellationToken.None);
-        }
+            => GetDesiredIndentation(line, CancellationToken.None);
 
         public void Dispose()
         {
         }
 
-        private int? GetDesiredIndentation(ITextSnapshotLine lineToBeIndented, CancellationToken cancellationToken)
+        private int? GetDesiredIndentation(ITextSnapshotLine line, CancellationToken cancellationToken)
         {
-            if (lineToBeIndented == null)
-            {
-                throw new ArgumentNullException(@"line");
-            }
+            if (line == null)
+                throw new ArgumentNullException(nameof(line));
 
             using (Logger.LogBlock(FunctionId.SmartIndentation_Start, cancellationToken))
             {
-                var document = lineToBeIndented.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                var syncService = document?.GetLanguageService<ISynchronousIndentationService>();
+                var document = line.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document == null)
+                    return null;
 
-                if (syncService != null)
-                {
-                    var result = syncService.GetDesiredIndentation(document, lineToBeIndented.LineNumber, cancellationToken);
-                    return result?.GetIndentation(_textView, lineToBeIndented);
-                }
+                var newService = document.GetLanguageService<IIndentationService>();
+                if (newService == null)
+                    return null;
 
-                var asyncService = document?.GetLanguageService<IIndentationService>();
-                if (asyncService != null)
-                {
-                    var result = asyncService.GetDesiredIndentation(document, lineToBeIndented.LineNumber, cancellationToken).WaitAndGetResult(cancellationToken);
-                    return result?.GetIndentation(_textView, lineToBeIndented);
-                }
-
-                return null;
+                var result = newService.GetIndentation(document, line.LineNumber, cancellationToken);
+                return result.GetIndentation(_textView, line);
             }
         }
     }

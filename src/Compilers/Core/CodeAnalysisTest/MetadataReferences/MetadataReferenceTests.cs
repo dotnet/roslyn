@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -9,11 +13,13 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -52,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void CreateFromImage()
         {
-            var r = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib);
+            var r = MetadataReference.CreateFromImage(ResourcesNet451.mscorlib);
 
             Assert.Null(r.FilePath);
             Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
@@ -64,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void CreateFromStream_FileStream()
         {
-            var file = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.mscorlib);
+            var file = Temp.CreateFile().WriteAllBytes(ResourcesNet451.mscorlib);
             var stream = File.OpenRead(file.Path);
 
             var r = MetadataReference.CreateFromStream(stream);
@@ -97,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void CreateFromFile_Assembly()
         {
-            var file = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.mscorlib);
+            var file = Temp.CreateFile().WriteAllBytes(ResourcesNet451.mscorlib);
 
             var r = MetadataReference.CreateFromFile(file.Path);
             Assert.Equal(file.Path, r.FilePath);
@@ -193,7 +199,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(doc, r.DocumentationProvider);
             Assert.Same(doc, r.DocumentationProvider);
             Assert.NotNull(r.GetMetadataNoCopy());
-            Assert.Equal(false, r.Properties.EmbedInteropTypes);
+            Assert.False(r.Properties.EmbedInteropTypes);
             Assert.Equal(MetadataImageKind.Module, r.Properties.Kind);
             Assert.True(r.Properties.Aliases.IsEmpty);
             Assert.Equal(@"c:\temp", r.FilePath);
@@ -232,7 +238,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(doc, r.DocumentationProvider);
             Assert.Same(doc, r.DocumentationProvider);
             Assert.NotNull(r.GetMetadataNoCopy());
-            Assert.Equal(true, r.Properties.EmbedInteropTypes);
+            Assert.True(r.Properties.EmbedInteropTypes);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
             AssertEx.Equal(new[] { "a" }, r.Properties.Aliases);
             Assert.Equal(@"c:\temp", r.FilePath);
@@ -252,7 +258,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var r4 = r.WithEmbedInteropTypes(false);
             Assert.Same(r.DocumentationProvider, r4.DocumentationProvider);
             Assert.Same(r.GetMetadataNoCopy(), r4.GetMetadataNoCopy());
-            Assert.Equal(false, r4.Properties.EmbedInteropTypes);
+            Assert.False(r4.Properties.EmbedInteropTypes);
             Assert.Equal(r.Properties.Kind, r4.Properties.Kind);
             AssertEx.Equal(r.Properties.Aliases, r4.Properties.Aliases);
             Assert.Equal(r.FilePath, r4.FilePath);
@@ -461,8 +467,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var f1 = MscorlibRef;
             var f2 = SystemCoreRef;
 
-            var i1 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).GetReference(display: "i1");
-            var i2 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).GetReference(display: "i2");
+            var i1 = AssemblyMetadata.CreateFromImage(ResourcesNet451.mscorlib).GetReference(display: "i1");
+            var i2 = AssemblyMetadata.CreateFromImage(ResourcesNet451.mscorlib).GetReference(display: "i2");
 
             var m1a = new MyReference(@"c:\a\goo.dll", display: "m1a");
             Assert.Equal("m1a", m1a.Display);
@@ -515,10 +521,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void DocCommentProvider()
         {
             var docProvider = new TestDocumentationProvider();
-            var corlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).
+            var corlib = AssemblyMetadata.CreateFromImage(ResourcesNet451.mscorlib).
                 GetReference(display: "corlib", documentation: docProvider);
 
-            var comp = CS.CSharpCompilation.Create("goo",
+            var comp = (Compilation)CS.CSharpCompilation.Create("goo",
                 syntaxTrees: new[] { CS.SyntaxFactory.ParseSyntaxTree("class C : System.Collections.ArrayList { }") },
                 references: new[] { corlib });
 

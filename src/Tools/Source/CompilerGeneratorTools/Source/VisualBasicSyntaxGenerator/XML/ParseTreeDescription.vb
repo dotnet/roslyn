@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------------------------------------
 ' Defines the in-memory format of the parse tree description. Many of the structures also 
@@ -141,7 +143,6 @@ Public Class ParseTree
         ReportError(referencingElement, "{0} is not a valid field type. You should add a node-kind entry in the syntax.xml.", enumString)
         Return Nothing
     End Function
-
 
     Public Function ParseOneNodeKind(typeString As String, referencingNode As XNode) As ParseNodeKind
         If (NodeKinds.ContainsKey(typeString)) Then
@@ -481,7 +482,6 @@ Public Class ParseNodeField
         End Get
     End Property
 
-
 End Class
 
 ' Defines a child node with a node structure. A child can be a single child
@@ -494,6 +494,8 @@ Public Class ParseNodeChild
     Public ReadOnly ContainingStructure As ParseNodeStructure
 
     Public ReadOnly IsOptional As Boolean
+
+    Public ReadOnly MinCount As Integer
 
     Public ReadOnly IsList As Boolean
 
@@ -532,6 +534,7 @@ Public Class ParseNodeChild
         IsList = If(CType(el.Attribute("list"), Boolean?), False)
         IsSeparated = el.@<separator-kind> <> ""
         IsOptional = If(CType(el.Attribute("optional"), Boolean?), False)
+        MinCount = If(CType(el.Attribute("min-count"), Integer?), 0)
         Description = el.<description>.Value
         NotInFactory = If(CType(el.Attribute("not-in-factory"), Boolean?), False)
         GenerateWith = If(CType(el.Attribute("generate-with"), Boolean?), False)
@@ -602,7 +605,6 @@ Public Class ParseNodeChild
         End Get
     End Property
 
-
     ' Gets the child type. Could return a NodeKind, List(NodeKind) containing the allowable node kinds of the child.
     Public ReadOnly Property ChildKind() As Object
         Get
@@ -614,6 +616,12 @@ Public Class ParseNodeChild
             Return _childKind
         End Get
     End Property
+
+    Public Function WithChildKind(childKind As Object) As ParseNodeChild
+        Dim copy = New ParseNodeChild(Me.Element, Me.ContainingStructure)
+        copy._childKind = childKind
+        Return copy
+    End Function
 
     Public ReadOnly Property DefaultChildKind() As ParseNodeKind
         Get
@@ -680,7 +688,6 @@ Public Class ParseEnumerator
             Return Convert.ToInt64(ValueString, 16)
         End Get
     End Property
-
 
 End Class
 

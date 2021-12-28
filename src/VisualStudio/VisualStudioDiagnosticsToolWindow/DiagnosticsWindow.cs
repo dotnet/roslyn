@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Runtime.InteropServices;
@@ -7,7 +11,6 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Hosting.Diagnostics.PerfMargin;
-using Roslyn.Hosting.Diagnostics.RemoteHost;
 using Roslyn.VisualStudio.DiagnosticsWindow.Telemetry;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow
@@ -18,24 +21,18 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
         /// <summary>
         /// Standard constructor for the tool window.
         /// </summary>
-        public DiagnosticsWindow(object context) :
-            base(null)
+        public DiagnosticsWindow(object _)
+            : base(null)
         {
             // Set the window title reading it from the resources.
-            this.Caption = Resources.ToolWindowTitle;
+            Caption = Resources.ToolWindowTitle;
             // Set the image that will appear on the tab of the window frame
             // when docked with an other window
             // The resource ID correspond to the one defined in the resx file
             // while the Index is the offset in the bitmap strip. Each image in
             // the strip being 16x16.
-            this.BitmapResourceID = 301;
-            this.BitmapIndex = 1;
-
-#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-            var componentModel = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
-#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
-
-            var workspace = componentModel.GetService<VisualStudioWorkspace>();
+            BitmapResourceID = 301;
+            BitmapIndex = 1;
 
             // This is the user control hosted by the tool window; Note that, even if this class implements IDisposable,
             // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on 
@@ -44,12 +41,6 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             {
                 Header = "Perf",
                 Content = new PerfMarginPanel()
-            };
-
-            var remoteHostPanel = new TabItem()
-            {
-                Header = "Remote",
-                Content = new RemoteHostPanel(workspace)
             };
 
             var telemetryPanel = new TabItem()
@@ -64,7 +55,6 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             };
 
             tabControl.Items.Add(perfMarginPanel);
-            tabControl.Items.Add(remoteHostPanel);
             tabControl.Items.Add(telemetryPanel);
 
             base.Content = tabControl;

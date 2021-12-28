@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -8,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IConditionalOperation : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
@@ -66,6 +70,98 @@ IConditionalOperation (IsRef) (OperationKind.Conditional, Type: System.Int32) (S
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ConditionalExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void TargetTypedConditionalExpression_ImplicitCast()
+        {
+            var source = @"
+using System;
+bool b = true;
+/*<bind>*/Action<string> a = b ? arg => {} : arg => {};/*</bind>*/";
+
+            var expectedOperationTree = @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Action<stri ...  arg => {};')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Action<stri ... : arg => {}')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action<System.String> a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a = b ? arg ... : arg => {}')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= b ? arg = ... : arg => {}')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action<System.String>, IsImplicit) (Syntax: 'b ? arg =>  ... : arg => {}')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  IConditionalOperation (OperationKind.Conditional, Type: System.Action<System.String>) (Syntax: 'b ? arg =>  ... : arg => {}')
+                    Condition: 
+                      ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'b')
+                    WhenTrue: 
+                      IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.String>, IsImplicit) (Syntax: 'arg => {}')
+                        Target: 
+                          IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'arg => {}')
+                            IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+                              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{}')
+                                ReturnedValue: 
+                                  null
+                    WhenFalse: 
+                      IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.String>, IsImplicit) (Syntax: 'arg => {}')
+                        Target: 
+                          IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'arg => {}')
+                            IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+                              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{}')
+                                ReturnedValue: 
+                                  null
+    Initializer: 
+      null
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void TargetTypedConditionalExpression_ExplicitCast()
+        {
+            var source = @"
+using System;
+bool b = true;
+/*<bind>*/var a = (Action<string>)(b ? arg => {} : arg => {});/*</bind>*/";
+
+            var expectedOperationTree = @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var a = (Ac ... arg => {});')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var a = (Ac ...  arg => {})')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action<System.String> a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a = (Action ...  arg => {})')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (Action<s ...  arg => {})')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action<System.String>) (Syntax: '(Action<str ...  arg => {})')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  IConditionalOperation (OperationKind.Conditional, Type: System.Action<System.String>) (Syntax: 'b ? arg =>  ... : arg => {}')
+                    Condition: 
+                      ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'b')
+                    WhenTrue: 
+                      IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.String>, IsImplicit) (Syntax: 'arg => {}')
+                        Target: 
+                          IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'arg => {}')
+                            IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+                              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{}')
+                                ReturnedValue: 
+                                  null
+                    WhenFalse: 
+                      IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.String>, IsImplicit) (Syntax: 'arg => {}')
+                        Target: 
+                          IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'arg => {}')
+                            IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+                              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{}')
+                                ReturnedValue: 
+                                  null
+    Initializer: 
+      null
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]

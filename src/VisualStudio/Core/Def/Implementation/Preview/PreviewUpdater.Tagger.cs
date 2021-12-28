@@ -1,16 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
@@ -18,32 +15,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
     {
         internal class PreviewTagger : ITagger<HighlightTag>
         {
-            private ITextBuffer _textBuffer;
-            private ITextView _textView;
+            private readonly ITextBuffer _textBuffer;
+            private Span _span;
 
-            public PreviewTagger(ITextView textView, ITextBuffer textBuffer)
+            public PreviewTagger(ITextBuffer textBuffer)
             {
-                _textView = textView;
                 _textBuffer = textBuffer;
             }
 
-            public void OnTextBufferChanged()
+            public Span Span
             {
-                if (PreviewUpdater.SpanToShow != default)
+                get
                 {
-                    if (TagsChanged != null)
-                    {
-                        var span = _textBuffer.CurrentSnapshot.GetFullSpan();
-                        TagsChanged(this, new SnapshotSpanEventArgs(span));
-                    }
+                    return _span;
+                }
+
+                set
+                {
+                    _span = value;
+
+                    TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_textBuffer.CurrentSnapshot.GetFullSpan()));
                 }
             }
 
-            public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+            public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
             public IEnumerable<ITagSpan<HighlightTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
-                var lines = _textBuffer.CurrentSnapshot.Lines.Where(line => line.Extent.OverlapsWith(PreviewUpdater.SpanToShow));
+                var lines = _textBuffer.CurrentSnapshot.Lines.Where(line => line.Extent.OverlapsWith(_span));
 
                 foreach (var line in lines)
                 {

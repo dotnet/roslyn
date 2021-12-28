@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -17,6 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _arity As UShort
         Private ReadOnly _modifiers As DeclarationModifiers
 
+        Public ReadOnly QuickAttributes As QuickAttributes
+
         Friend Enum TypeDeclarationFlags As Byte
             None = 0
             HasAnyAttributes = 1 << 1
@@ -33,7 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        syntaxReference As SyntaxReference,
                        nameLocation As Location,
                        memberNames As ImmutableHashSet(Of String),
-                       children As ImmutableArray(Of SingleTypeDeclaration))
+                       children As ImmutableArray(Of SingleTypeDeclaration),
+                       quickAttributes As QuickAttributes)
             MyBase.New(name, syntaxReference, nameLocation)
 
             Debug.Assert(kind <> DeclarationKind.Namespace)
@@ -44,6 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._modifiers = modifiers
             Me.MemberNames = memberNames
             Me._children = children
+            Me.QuickAttributes = quickAttributes
         End Sub
 
         Public Overrides ReadOnly Property Kind As DeclarationKind

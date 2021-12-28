@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1180,6 +1184,79 @@ class Program
   IL_0028:  cgt
   IL_002a:  ret
 }");
+        }
+
+        [Fact, WorkItem(31587, "https://github.com/dotnet/roslyn/issues/31587")]
+        public void NullableDecimalToEnumConversion()
+        {
+            var source = @"
+enum E { }
+class C
+{
+    static E F(decimal? d) => (E)d;
+}
+";
+            CompileAndVerify(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(31587, "https://github.com/dotnet/roslyn/issues/31587")]
+        public void NullableMethodGroupConversion()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void M(decimal? d)
+    {
+        Func<string> f = d.ToString;
+    }
+}
+";
+            CompileAndVerify(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(54113, "https://github.com/dotnet/roslyn/issues/54113")]
+        public void DisallowedModreqOnConversion()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname static 
+        int32 modreq([mscorlib]System.Runtime.CompilerServices.OutAttribute) op_Implicit (
+            class C i
+        ) cil managed 
+    {
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+            var comp = CreateCompilationWithIL(@"
+class Test
+{
+    void M(C x)
+    {
+        _ = (int)x;
+    }
+}
+", il);
+
+            comp.VerifyDiagnostics(
+                    // (6,13): error CS0570: 'C.implicit operator int(C)' is not supported by the language
+                    //         _ = (int)x;
+                    Diagnostic(ErrorCode.ERR_BindToBogus, "(int)x").WithArguments("C.implicit operator int(C)").WithLocation(6, 13)
+            );
         }
     }
 }

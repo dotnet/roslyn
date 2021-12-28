@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1220,12 +1222,12 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
               Children(3):
                   IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Math.Max')
                     Children(1):
-                        IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Math')
+                        IOperation:  (OperationKind.None, Type: System.Math) (Syntax: 'System.Math')
                   IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'System.Thre ... ecrement(x)')
                     Children(2):
                         IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'System.Thre ... d.Decrement')
                           Children(1):
-                              IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Thre ... Interlocked')
+                              IOperation:  (OperationKind.None, Type: System.Threading.Interlocked) (Syntax: 'System.Thre ... Interlocked')
                         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.SByte) (Syntax: 'x')
                   IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + 1')
                     Left: 

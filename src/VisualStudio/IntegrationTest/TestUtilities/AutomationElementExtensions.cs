@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
 using UIAutomationClient;
@@ -252,15 +255,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public static IUIAutomationElement FindDescendantByPath(this IUIAutomationElement element, string path)
         {
-            string[] pathParts = path.Split(".".ToCharArray());
+            var pathParts = path.Split(".".ToCharArray());
 
             // traverse the path
-            IUIAutomationElement item = element;
-            IUIAutomationElement next = null;
-
-            foreach (string pathPart in pathParts)
+            var item = element;
+            foreach (var pathPart in pathParts)
             {
-                next = item.FindFirst(TreeScope.TreeScope_Descendants, Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.LocalizedControlTypeProperty.Id, pathPart));
+                var next = item.FindFirst(TreeScope.TreeScope_Descendants, Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.LocalizedControlTypeProperty.Id, pathPart));
 
                 if (next == null)
                 {
@@ -273,15 +274,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return item;
         }
 
+        [DoesNotReturn]
         private static void ThrowUnableToFindChildException(string path, IUIAutomationElement item)
         {
             // if not found, build a list of available children for debugging purposes
-            var validChildren = new List<string>();
+            var validChildren = new List<string?>();
 
             try
             {
                 var children = item.GetCachedChildren();
-                for (int i = 0; i < children.Length; i++)
+                for (var i = 0; i < children.Length; i++)
                 {
                     validChildren.Add(SimpleControlTypeName(children.GetElement(i)));
                 }
@@ -296,7 +298,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 string.Join(", ", validChildren)));
         }
 
-        private static string SimpleControlTypeName(IUIAutomationElement element)
+        private static string? SimpleControlTypeName(IUIAutomationElement element)
         {
             var type = ControlType.LookupById((int)element.GetCurrentPropertyValue(AutomationElementIdentifiers.ControlTypeProperty.Id));
             return type?.LocalizedControlType;

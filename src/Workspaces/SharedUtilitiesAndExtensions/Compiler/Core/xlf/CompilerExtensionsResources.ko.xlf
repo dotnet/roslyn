@@ -1,0 +1,247 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../CompilerExtensionsResources.resx">
+    <body>
+      <trans-unit id="Absolute_path_expected">
+        <source>Absolute path expected.</source>
+        <target state="translated">절대 경로가 필요합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Abstract_Method">
+        <source>Abstract Method</source>
+        <target state="translated">추상 메서드</target>
+        <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
+      </trans-unit>
+      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
+        <source>An element with the same key but a different value already exists.</source>
+        <target state="translated">키가 같지만 값이 다른 요소가 이미 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Begins_with_I">
+        <source>Begins with I</source>
+        <target state="translated">I로 시작</target>
+        <note>{locked:I}</note>
+      </trans-unit>
+      <trans-unit id="Class">
+        <source>Class</source>
+        <target state="new">Class</target>
+        <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Delegate">
+        <source>Delegate</source>
+        <target state="new">Delegate</target>
+        <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Enum">
+        <source>Enum</source>
+        <target state="new">Enum</target>
+        <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Event">
+        <source>Event</source>
+        <target state="new">Event</target>
+        <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Cast_is_redundant">
+        <source>Cast is redundant.</source>
+        <target state="translated">캐스팅이 중복됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_level_preferences">
+        <source>Expression-level preferences</source>
+        <target state="translated">식 수준 기본 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field_preferences">
+        <source>Field preferences</source>
+        <target state="translated">필드 기본 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface">
+        <source>Interface</source>
+        <target state="new">Interface</target>
+        <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Language_keywords_vs_BCL_types_preferences">
+        <source>Language keywords vs BCL types preferences</source>
+        <target state="translated">언어 키워드 및 BCL 형식 기본 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method">
+        <source>Method</source>
+        <target state="translated">메서드</target>
+        <note>{locked:method} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Missing_prefix_colon_0">
+        <source>Missing prefix: '{0}'</source>
+        <target state="translated">누락된 접두사: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Missing_suffix_colon_0">
+        <source>Missing suffix: '{0}'</source>
+        <target state="translated">누락된 접미사: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifier_preferences">
+        <source>Modifier preferences</source>
+        <target state="translated">한정자 기본 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_rules">
+        <source>Naming rules</source>
+        <target state="translated">명명 규칙</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_styles">
+        <source>Naming styles</source>
+        <target state="translated">명명 스타일</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">새 줄 기본 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_Field_Members">
+        <source>Non-Field Members</source>
+        <target state="translated">필드가 아닌 멤버</target>
+        <note>{locked:field}</note>
+      </trans-unit>
+      <trans-unit id="Organize_usings">
+        <source>Organize usings</source>
+        <target state="translated">Using 구성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_preferences">
+        <source>Parameter preferences</source>
+        <target state="translated">매개 변수 기본 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_preferences">
+        <source>Parentheses preferences</source>
+        <target state="translated">괄호 기본 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pascal_Case">
+        <source>Pascal Case</source>
+        <target state="translated">파스칼식 대/소문자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
+        <source>Prefix '{0}' does not match expected prefix '{1}'</source>
+        <target state="translated">접두사 '{0}'이(가) 필요한 접두사 '{1}'과(와) 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefix_0_is_not_expected">
+        <source>Prefix '{0}' is not expected</source>
+        <target state="translated">접두사 '{0}'은(는) 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_Method">
+        <source>Private Method</source>
+        <target state="translated">프라이빗 메서드</target>
+        <note>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
+      </trans-unit>
+      <trans-unit id="Private_or_Internal_Field">
+        <source>Private or Internal Field</source>
+        <target state="translated">프라이빗 또는 내부 필드</target>
+        <note>{locked: private}{locked: internal}{locked:field}</note>
+      </trans-unit>
+      <trans-unit id="Private_or_Internal_Static_Field">
+        <source>Private or Internal Static Field</source>
+        <target state="translated">프라이빗 또는 내부 정적 필드</target>
+        <note>{locked: private}{locked: internal}{locked:static}{locked:field}</note>
+      </trans-unit>
+      <trans-unit id="Property">
+        <source>Property</source>
+        <target state="new">Property</target>
+        <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Public_or_Protected_Field">
+        <source>Public or Protected Field</source>
+        <target state="translated">공용 또는 보호된 필드</target>
+        <note>{locked: public}{locked: protected}{locked:field}</note>
+      </trans-unit>
+      <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
+        <source>Segment size must be power of 2 greater than 1</source>
+        <target state="translated">세그먼트 크기는 1보다 큰 2의 거듭제곱이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specified_sequence_has_duplicate_items">
+        <source>Specified sequence has duplicate items</source>
+        <target state="translated">지정된 시퀀스에 중복 항목이 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Static_Field">
+        <source>Static Field</source>
+        <target state="translated">정적 필드</target>
+        <note>{locked:static}{locked:field} (unless the capitalization should be handled differently)</note>
+      </trans-unit>
+      <trans-unit id="Static_Method">
+        <source>Static Method</source>
+        <target state="translated">정적 메서드</target>
+        <note>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
+      </trans-unit>
+      <trans-unit id="Struct">
+        <source>Struct</source>
+        <target state="new">Struct</target>
+        <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Suppression_preferences">
+        <source>Suppression preferences</source>
+        <target state="translated">비표시 오류(Suppression) 기본 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_specifications">
+        <source>Symbol specifications</source>
+        <target state="translated">기호 사양</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_first_word_0_must_begin_with_a_lower_case_character">
+        <source>The first word, '{0}', must begin with a lower case character</source>
+        <target state="translated">첫 번째 단어 '{0}'은(는) 소문자로 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_first_word_0_must_begin_with_an_upper_case_character">
+        <source>The first word, '{0}', must begin with an upper case character</source>
+        <target state="translated">첫 번째 단어 '{0}'은(는) 대문자로 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0">
+        <source>These non-leading words must begin with a lowercase letter: {0}</source>
+        <target state="translated">이러한 맨 앞에 있지 않는 단어는 소문자로 시작해야 합니다. {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0">
+        <source>These non-leading words must begin with an upper case letter: {0}</source>
+        <target state="translated">이러한 맨 앞에 있지 않는 단어는 대문자로 시작해야 합니다. {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="These_words_cannot_contain_lower_case_characters_colon_0">
+        <source>These words cannot contain lower case characters: {0}</source>
+        <target state="translated">이러한 단어에는 소문자를 사용할 수 없습니다. {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="These_words_cannot_contain_upper_case_characters_colon_0">
+        <source>These words cannot contain upper case characters: {0}</source>
+        <target state="translated">이러한 단어에는 대문자를 사용할 수 없습니다. {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="These_words_must_begin_with_upper_case_characters_colon_0">
+        <source>These words must begin with upper case characters: {0}</source>
+        <target state="translated">이러한 단어는 대문자로 시작해야 합니다. {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Types">
+        <source>Types</source>
+        <target state="translated">형식</target>
+        <note>{locked:types} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="this_dot_and_Me_dot_preferences">
+        <source>this. and Me. preferences</source>
+        <target state="translated">this. 및 Me. 기본 설정</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

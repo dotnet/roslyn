@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -10,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 
 #Region "GetStartPoint() Tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint_PropertyGet()
             Dim code =
 <Code>
@@ -47,7 +49,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=9, absoluteOffset:=57, lineLength:=11)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint_PropertySet()
             Dim code =
 <Code>
@@ -84,7 +86,7 @@ End Class
                      TextPoint(line:=5, lineOffset:=9, absoluteOffset:=85, lineLength:=28)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint_EventAddHandler()
             Dim code =
 <Code>
@@ -125,7 +127,7 @@ End Class
                      TextPoint(line:=5, lineOffset:=7, absoluteOffset:=81, lineLength:=45)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint_EventRemoveHandler()
             Dim code =
 <Code>
@@ -166,7 +168,7 @@ End Class
                      TextPoint(line:=7, lineOffset:=7, absoluteOffset:=148, lineLength:=48)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint_EventRaiseEvent()
             Dim code =
 <Code>
@@ -211,7 +213,7 @@ End Class
 
 #Region "GetEndPoint() Tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint_PropertyGet()
             Dim code =
 <Code>
@@ -248,7 +250,7 @@ End Class
                      TextPoint(line:=4, lineOffset:=16, absoluteOffset:=76, lineLength:=15)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint_PropertySet()
             Dim code =
 <Code>
@@ -285,7 +287,7 @@ End Class
                      TextPoint(line:=6, lineOffset:=16, absoluteOffset:=121, lineLength:=15)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint_EventAddHandler()
             Dim code =
 <Code>
@@ -326,7 +328,7 @@ End Class
                      TextPoint(line:=6, lineOffset:=21, absoluteOffset:=141, lineLength:=20)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint_EventRemoveHandler()
             Dim code =
 <Code>
@@ -367,7 +369,7 @@ End Class
                      TextPoint(line:=8, lineOffset:=24, absoluteOffset:=214, lineLength:=23)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint_EventRaiseEvent()
             Dim code =
 <Code>
@@ -412,7 +414,7 @@ End Class
 
 #Region "Access tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAccess1()
             Dim code =
     <Code>
@@ -431,7 +433,7 @@ End Class
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAccess2()
             Dim code =
     <Code>
@@ -454,7 +456,7 @@ End Class
 
 #Region "FunctionKind tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFunctionKind_Get()
             Dim code =
 <Code>
@@ -471,7 +473,7 @@ End Class
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionPropertyGet)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFunctionKind_Set()
             Dim code =
 <Code>
@@ -488,7 +490,7 @@ End Class
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionPropertySet)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFunctionKind_AddHandler()
             Dim code =
 <Code>
@@ -509,13 +511,13 @@ Public Class C1
 
    End Event
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionAddHandler)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFunctionKind_RemoveHandler()
             Dim code =
 <Code>
@@ -536,13 +538,13 @@ Public Class C1
 
    End Event
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionRemoveHandler)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFunctionKind_RaiseEvent()
             Dim code =
 <Code>
@@ -563,7 +565,7 @@ Public Class C1
 
    End Event
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionRaiseEvent)
@@ -578,5 +580,4 @@ End Clas
         End Property
     End Class
 End Namespace
-
 

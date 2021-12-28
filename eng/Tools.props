@@ -1,26 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project>
 
-  <PropertyGroup>
-    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
-  </PropertyGroup>
-
-  <!-- 
-    Packages used during CI build infrastructure.
-    Do not list packages that are used during developer inner-loop build (building Roslyn.sln or Compilers.sln).
-  -->
-
   <ItemGroup>
-    <PackageReference Include="RoslynDependencies.OptimizationData" Version="$(RoslynDependenciesOptimizationDataVersion)" ExcludeAssets="all" />
-    <PackageReference Include="RoslynTools.OptProf" Version="$(RoslynToolsOptProfVersion)" ExcludeAssets="all" />
-    <PackageReference Include="Roslyn.OptProf.RunSettings.Generator" Version="$(RoslynOptProfRunSettingsGeneratorVersion)" ExcludeAssets="all" />
+    <!--
+      This package would normally be restored by the Arcade SDK, but it is not included during restore operations
+      if the -package flag is not also provided during the build. Roslyn separates the restore operation from the
+      build and packaging operations in our build.
+      See https://github.com/dotnet/arcade/issues/7205
+    -->
+    <PackageReference Include="Microsoft.DotNet.Build.Tasks.Feed" Version="$(MicrosoftDotNetBuildTasksFeedVersion)" />
+    <PackageReference Include="Microsoft.DotNet.NuGetRepack.Tasks" Version="$(MicrosoftDotNetBuildTasksFeedVersion)" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <RestoreSources>
-      $(RestoreSources);
-      https://dotnet.myget.org/F/roslyn/api/v3/index.json;
-    </RestoreSources>
-  </PropertyGroup>
 </Project>

@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
@@ -512,6 +517,160 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
     void M(System.IDisposable disposable)
     {
         new Action(() => var x = disposable[||]);
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
+        public async Task ExpandsToIncludeSurroundedVariableDeclarations()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        var buffer = reader.GetBuffer();
+        buffer.Clone();
+        var a = 1;
+    }
+}",
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            var buffer = reader.GetBuffer();
+            buffer.Clone();
+        }
+        var a = 1;
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
+        public async Task ExpandsToIncludeSurroundedOutVariableDeclarations()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        var buffer = reader.GetBuffer();
+        if (!int.TryParse(buffer[0].ToString(), out var number))
+        {
+            return;
+        }
+        var a = number;
+        var b = a;
+        var c = 1;
+    }
+}",
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            var buffer = reader.GetBuffer();
+            if (!int.TryParse(buffer[0].ToString(), out var number))
+            {
+                return;
+            }
+            var a = number;
+            var b = a;
+        }
+        var c = 1;
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
+        public async Task ExpandsToIncludeSurroundedPatternVariableDeclarations()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        var buffer = reader.GetBuffer();
+        if (!(buffer[0] is int number))
+        {
+            return;
+        }
+        var a = number;
+        var b = a;
+        var c = 1;
+    }
+}",
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            var buffer = reader.GetBuffer();
+            if (!(buffer[0] is int number))
+            {
+                return;
+            }
+            var a = number;
+            var b = a;
+        }
+        var c = 1;
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")]
+        public async Task ExpandsToIncludeSurroundedMultiVariableDeclarations()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        var reader = new MemoryStream()[||];
+        var buffer = reader.GetBuffer();
+        int a = buffer[0], b = a;
+        var c = b;
+        var d = 1;
+    }
+}",
+@"using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var reader = new MemoryStream())
+        {
+            var buffer = reader.GetBuffer();
+            int a = buffer[0], b = a;
+            var c = b;
+        }
+        var d = 1;
     }
 }");
         }

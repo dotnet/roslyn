@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -27,48 +29,57 @@ namespace Microsoft.CodeAnalysis.InvertLogical
         /// <summary>
         /// See comment in <see cref="InvertLogicalAsync"/> to understand the need for this annotation.
         /// </summary>
-        private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
+        private static readonly SyntaxAnnotation s_annotation = new();
 
-        protected abstract TSyntaxKind GetKind(int rawKind);
-        protected abstract TSyntaxKind InvertedKind(TSyntaxKind binaryExprKind);
         protected abstract string GetOperatorText(TSyntaxKind binaryExprKind);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
+            var (document, span, cancellationToken) = context;
 
-            var position = span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
+            var expression = (SyntaxNode?)await context.TryGetRelevantNodeAsync<TBinaryExpressionSyntax>().ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
 
-            if (span.Length > 0 && span != token.Span)
+            if (expression == null ||
+                (!syntaxFacts.IsLogicalAndExpression(expression) &&
+                !syntaxFacts.IsLogicalOrExpression(expression)))
             {
                 return;
             }
 
-            if (span.Length == 0 && !token.Span.IntersectsWith(position))
+            if (span.IsEmpty)
             {
-                return;
+                // Walk up to the topmost binary of the same type.  When converting || to && (or vice versa)
+                // we want to grab the entire set.  i.e.  `!a && !b && !c` should become `!(a || b || c)` not
+                // `!(a || b) && !c`
+                while (expression.Parent?.RawKind == expression.RawKind)
+                {
+                    expression = expression.Parent;
+                }
+            }
+            else
+            {
+                // When selection is non-empty -> allow only top-level full selections.
+                // Currently the refactoring can't handle invert of arbitrary nodes but only whole subtrees
+                // and allowing it just for selection of those nodes that - by chance - form a full subtree
+                // would produce only confusion.
+                if (CodeRefactoringHelpers.IsNodeUnderselected(expression, span) ||
+                    syntaxFacts.IsLogicalAndExpression(expression.Parent) || syntaxFacts.IsLogicalOrExpression(expression.Parent))
+                {
+                    return;
+                }
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            var parent = token.Parent;
-            if (!syntaxFacts.IsLogicalAndExpression(parent) &&
-                !syntaxFacts.IsLogicalOrExpression(parent))
-            {
-                return;
-            }
-
-            context.RegisterRefactoring(new MyCodeAction(
-                GetTitle(GetKind(parent.RawKind)),
-                c => InvertLogicalAsync(document, position, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    GetTitle(syntaxKinds, expression.RawKind),
+                    c => InvertLogicalAsync(document, expression, c)),
+                expression.Span);
         }
 
-        private async Task<Document> InvertLogicalAsync(
-            Document document1, int position, CancellationToken cancellationToken)
+        private static async Task<Document> InvertLogicalAsync(
+            Document document1, SyntaxNode binaryExpression, CancellationToken cancellationToken)
         {
             // We invert in two steps.  To invert `a op b` we are effectively generating two negations:
             // `!(!(a op b)`.  The inner `!` will distribute on the inside to make `!a op' !b` leaving
@@ -79,42 +90,33 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             // and undo the work we just did).  Because our negation helper needs semantics, we generate
             // a new document at each step so that we'll be able to properly analyze things as we go
             // along.
-            var document2 = await InvertInnerExpressionAsync(document1, position, cancellationToken).ConfigureAwait(false);
+            var document2 = await InvertInnerExpressionAsync(document1, binaryExpression, cancellationToken).ConfigureAwait(false);
             var document3 = await InvertOuterExpressionAsync(document2, cancellationToken).ConfigureAwait(false);
             return document3;
         }
 
-        private async Task<Document> InvertInnerExpressionAsync(
-            Document document, int position, CancellationToken cancellationToken)
+        private static async Task<Document> InvertInnerExpressionAsync(
+            Document document, SyntaxNode binaryExpression, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            // Walk up to the topmost binary of the same type.  When converting || to && (or vice versa)
-            // we want to grab the entire set.  i.e.  `!a && !b && !c` should become `!(a || b || c)` not
-            // `!(a || b) && !c`
-            var binaryExpression = root.FindToken(position).Parent;
-            while (binaryExpression.Parent?.RawKind == binaryExpression.RawKind)
-            {
-                binaryExpression = binaryExpression.Parent;
-            }
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var generator = SyntaxGenerator.GetGenerator(document);
-            var newBinary = generator.Negate(binaryExpression, semanticModel, cancellationToken);
+            var newBinary = generator.Negate(generator.SyntaxGeneratorInternal, binaryExpression, semanticModel, cancellationToken);
 
             return document.WithSyntaxRoot(root.ReplaceNode(
                 binaryExpression,
                 newBinary.WithAdditionalAnnotations(s_annotation)));
         }
 
-        private async Task<Document> InvertOuterExpressionAsync(
+        private static async Task<Document> InvertOuterExpressionAsync(
             Document document, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var expression = root.GetAnnotatedNodes(s_annotation).Single();
+            var expression = root.GetAnnotatedNodes(s_annotation).Single()!;
 
             // Walk up parens and !'s.  That way we don't end up with something like !!.
             // It also ensures that this refactoring reverses itself when invoked twice.
@@ -130,17 +132,23 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             // just negate the work we're actually doing right now.
             return document.WithSyntaxRoot(root.ReplaceNode(
                 expression,
-                generator.Negate(expression, semanticModel, negateBinary: false, cancellationToken)));
+                generator.Negate(generator.SyntaxGeneratorInternal, expression, semanticModel, negateBinary: false, cancellationToken)));
         }
 
-        private string GetTitle(TSyntaxKind binaryExprKind)
+        private string GetTitle(ISyntaxKindsService syntaxKinds, int binaryExprKind)
             => string.Format(FeaturesResources.Replace_0_with_1,
-                    GetOperatorText(binaryExprKind), GetOperatorText(InvertedKind(binaryExprKind)));
+                    GetOperatorText(syntaxKinds.Convert<TSyntaxKind>(binaryExprKind)),
+                    GetOperatorText(syntaxKinds.Convert<TSyntaxKind>(InvertedKind(syntaxKinds, binaryExprKind))));
+
+        private static int InvertedKind(ISyntaxKindsService syntaxKinds, int binaryExprKind)
+            => binaryExprKind == syntaxKinds.LogicalAndExpression
+                ? syntaxKinds.LogicalOrExpression
+                : syntaxKinds.LogicalAndExpression;
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

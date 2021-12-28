@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 _child1 = child1;
             }
 
-            internal WithTwoChildren(DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations, GreenNode child0, GreenNode child1)
+            internal WithTwoChildren(DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations, GreenNode child0, GreenNode child1)
                 : base(diagnostics, annotations)
             {
                 this.SlotCount = 2;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 writer.WriteValue(_child1);
             }
 
-            internal override GreenNode GetSlot(int index)
+            internal override GreenNode? GetSlot(int index)
             {
                 switch (index)
                 {
@@ -73,17 +75,17 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 array[offset + 1].Value = _child1;
             }
 
-            internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
+            internal override SyntaxNode CreateRed(SyntaxNode? parent, int position)
             {
                 return new Syntax.SyntaxList.WithTwoChildren(this, parent, position);
             }
 
-            internal override GreenNode SetDiagnostics(DiagnosticInfo[] errors)
+            internal override GreenNode SetDiagnostics(DiagnosticInfo[]? errors)
             {
                 return new WithTwoChildren(errors, this.GetAnnotations(), _child0, _child1);
             }
 
-            internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+            internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
             {
                 return new WithTwoChildren(GetDiagnostics(), annotations, _child0, _child1);
             }

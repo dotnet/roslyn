@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -580,10 +582,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC33038: Type 'Module1.B1' must define operator '-' to be used in a 'For' statement.
+BC33038: Type 'Module1.B1' must define operator '+' to be used in a 'For' statement.
         For i = New B1(0) To New B1(3) Step New B1(2)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33038: Type 'Module1.B1' must define operator '+' to be used in a 'For' statement.
+BC33038: Type 'Module1.B1' must define operator '-' to be used in a 'For' statement.
         For i = New B1(0) To New B1(3) Step New B1(2)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC33038: Type 'Module1.B1' must define operator '<=' to be used in a 'For' statement.
@@ -915,10 +917,10 @@ End Module
 BC30311: Value of type 'Module1.B1' cannot be converted to 'Boolean'.
         For i = New B1(0) To New B1(3) Step New B1(2)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33038: Type 'Module1.B1' must define operator '-' to be used in a 'For' statement.
+BC33038: Type 'Module1.B1' must define operator '+' to be used in a 'For' statement.
         For i = New B1(0) To New B1(3) Step New B1(2)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33038: Type 'Module1.B1' must define operator '+' to be used in a 'For' statement.
+BC33038: Type 'Module1.B1' must define operator '-' to be used in a 'For' statement.
         For i = New B1(0) To New B1(3) Step New B1(2)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></expected>)
@@ -982,10 +984,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC33039: Return and parameter types of 'Public Shared Operator -(x As Module1.B1, y As Integer) As Module1.B1' must be 'Module1.B1' to be used in a 'For' statement.
+BC33039: Return and parameter types of 'Public Shared Operator +(x As Module1.B1, y As Module1.B1) As Integer' must be 'Module1.B1' to be used in a 'For' statement.
         For i = New B1(0) To New B1(3) Step New B1(2)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33039: Return and parameter types of 'Public Shared Operator +(x As Module1.B1, y As Module1.B1) As Integer' must be 'Module1.B1' to be used in a 'For' statement.
+BC33039: Return and parameter types of 'Public Shared Operator -(x As Module1.B1, y As Integer) As Module1.B1' must be 'Module1.B1' to be used in a 'For' statement.
         For i = New B1(0) To New B1(3) Step New B1(2)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC33040: Parameter types of 'Public Shared Operator <=(x As Integer, y As Module1.B1) As Boolean' must be 'Module1.B1' to be used in a 'For' statement.
@@ -1056,10 +1058,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC33039: Return and parameter types of 'Public Shared Operator -(x As Module1.B1, y As Module1.B2) As Module1.B1' must be 'Module1.B1' to be used in a 'For' statement.
+BC33039: Return and parameter types of 'Public Shared Operator +(x As Module1.B1, y As Module1.B1) As Module1.B2' must be 'Module1.B1' to be used in a 'For' statement.
         For i = New B1?() To New B1?() Step New B1?()
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33039: Return and parameter types of 'Public Shared Operator +(x As Module1.B1, y As Module1.B1) As Module1.B2' must be 'Module1.B1' to be used in a 'For' statement.
+BC33039: Return and parameter types of 'Public Shared Operator -(x As Module1.B1, y As Module1.B2) As Module1.B1' must be 'Module1.B1' to be used in a 'For' statement.
         For i = New B1?() To New B1?() Step New B1?()
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC33040: Parameter types of 'Public Shared Operator <=(x As Module1.B2?, y As Module1.B1) As Boolean' must be 'Module1.B1?' to be used in a 'For' statement.

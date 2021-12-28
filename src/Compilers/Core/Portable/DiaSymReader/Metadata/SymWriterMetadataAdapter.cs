@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Runtime.InteropServices;
@@ -10,7 +14,7 @@ namespace Microsoft.DiaSymReader
     /// <summary>
     /// Minimal implementation of IMetadataImport that implements APIs used by SymReader and SymWriter.
     /// </summary>
-    internal unsafe sealed class SymWriterMetadataAdapter : MetadataAdapterBase
+    internal sealed unsafe class SymWriterMetadataAdapter : MetadataAdapterBase
     {
         private readonly ISymWriterMetadataProvider _metadataProvider;
 
@@ -30,11 +34,11 @@ namespace Microsoft.DiaSymReader
 
         public override int GetTypeDefProps(
             int typeDef,
-            [Out]char* qualifiedName,
+            [Out] char* qualifiedName,
             int qualifiedNameBufferLength,
-            [Out]int* qualifiedNameLength,
-            [Out]TypeAttributes* attributes,
-            [Out]int* baseType)
+            [Out] int* qualifiedNameLength,
+            [Out] TypeAttributes* attributes,
+            [Out] int* baseType)
         {
             Debug.Assert(baseType == null);
 
@@ -63,10 +67,10 @@ namespace Microsoft.DiaSymReader
 
         public override int GetTypeRefProps(
             int typeRef,
-            [Out]int* resolutionScope, // ModuleRef or AssemblyRef
-            [Out]char* qualifiedName,
+            [Out] int* resolutionScope, // ModuleRef or AssemblyRef
+            [Out] char* qualifiedName,
             int qualifiedNameBufferLength,
-            [Out]int* qualifiedNameLength)
+            [Out] int* qualifiedNameLength)
             => throw new NotImplementedException();
 
         public override int GetNestedClassProps(int nestedClass, out int enclosingClass)

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 syntax,
                 local,
                 new ObjectIdExpressions(compilation),
-                local.Type.TypeSymbol);
+                local.Type);
         }
 
         private sealed class ObjectIdExpressions : PseudoVariableExpressions
@@ -55,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var method = GetIntrinsicMethod(_compilation, ExpressionCompilerConstants.GetVariableValueMethodName);
                 var local = variable.LocalSymbol;
                 var expr = InvokeGetMethod(method, variable.Syntax, local.Name);
-                return ConvertToLocalType(_compilation, expr, local.Type.TypeSymbol, diagnostics);
+                return ConvertToLocalType(_compilation, expr, local.Type, diagnostics);
             }
 
             internal override BoundExpression GetAddress(BoundPseudoVariable variable)
@@ -73,9 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     method.Name,
                     m => method.TypeParameters.SelectAsArray(t => (TypeParameterSymbol)new SimpleTypeParameterSymbol(m, t.Ordinal, t.Name)),
                     m => m.TypeParameters[0], // return type is <>T&
-                    m => method.Parameters.SelectAsArray(p => (ParameterSymbol)SynthesizedParameterSymbol.Create(m, p.Type, p.Ordinal, p.RefKind, p.Name, p.RefCustomModifiers)));
+                    m => method.Parameters.SelectAsArray(p => (ParameterSymbol)SynthesizedParameterSymbol.Create(m, p.TypeWithAnnotations, p.Ordinal, p.RefKind, p.Name, p.RefCustomModifiers)));
                 var local = variable.LocalSymbol;
-                return InvokeGetMethod(method.Construct(local.Type.TypeSymbol), variable.Syntax, local.Name);
+                return InvokeGetMethod(method.Construct(local.Type), variable.Syntax, local.Name);
             }
 
             private static BoundExpression InvokeGetMethod(MethodSymbol method, SyntaxNode syntax, string name)
@@ -83,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var argument = new BoundLiteral(
                     syntax,
                     Microsoft.CodeAnalysis.ConstantValue.Create(name),
-                    method.Parameters[0].Type.TypeSymbol);
+                    method.Parameters[0].Type);
                 return BoundCall.Synthesized(
                     syntax,
                     receiverOpt: null,

@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -15,51 +19,68 @@ using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal struct RunRequest
+    internal readonly struct RunRequest
     {
+        public Guid RequestId { get; }
         public string Language { get; }
-        public string CurrentDirectory { get; }
-        public string TempDirectory { get; }
-        public string LibDirectory { get; }
+        public string? WorkingDirectory { get; }
+        public string? TempDirectory { get; }
+        public string? LibDirectory { get; }
         public string[] Arguments { get; }
 
-        public RunRequest(string language, string currentDirectory, string tempDirectory, string libDirectory, string[] arguments)
+        public RunRequest(Guid requestId, string language, string? workingDirectory, string? tempDirectory, string? libDirectory, string[] arguments)
         {
+            RequestId = requestId;
             Language = language;
-            CurrentDirectory = currentDirectory;
+            WorkingDirectory = workingDirectory;
             TempDirectory = tempDirectory;
             LibDirectory = libDirectory;
             Arguments = arguments;
         }
     }
 
-    internal abstract class CompilerServerHost : ICompilerServerHost
+    internal sealed class CompilerServerHost : ICompilerServerHost
     {
-        public abstract IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; }
+        public IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; } = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
 
-        public abstract Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; }
+        public static Func<string, MetadataReferenceProperties, PortableExecutableReference> SharedAssemblyReferenceProvider { get; } = (path, properties) => new CachingMetadataReference(path, properties);
+
+        /// <summary>
+        /// The caching metadata provider used by the C# and VB compilers
+        /// </summary>
+        private Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; } = SharedAssemblyReferenceProvider;
 
         /// <summary>
         /// Directory that contains the compiler executables and the response files. 
         /// </summary>
-        public string ClientDirectory { get; }
+        private string ClientDirectory { get; }
 
         /// <summary>
         /// Directory that contains mscorlib.  Can be null when the host is executing in a CoreCLR context.
         /// </summary>
-        public string SdkDirectory { get; }
+        private string SdkDirectory { get; }
 
-        protected CompilerServerHost(string clientDirectory, string sdkDirectory)
+        public ICompilerServerLogger Logger { get; }
+
+        /// <summary>
+        /// A cache that can store generator drivers in order to enable incrementalism across builds for the lifetime of the server.
+        /// </summary>
+        private readonly GeneratorDriverCache _driverCache = new GeneratorDriverCache();
+
+        internal CompilerServerHost(string clientDirectory, string sdkDirectory, ICompilerServerLogger logger)
         {
             ClientDirectory = clientDirectory;
             SdkDirectory = sdkDirectory;
+            Logger = logger;
         }
 
-        public abstract bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers);
-
-        public bool TryCreateCompiler(RunRequest request, out CommonCompiler compiler)
+        private bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers, [NotNullWhen(false)] out List<string>? errorMessages)
         {
-            var buildPaths = new BuildPaths(ClientDirectory, request.CurrentDirectory, SdkDirectory, request.TempDirectory);
+            return AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, AnalyzerAssemblyLoader, Logger, out errorMessages);
+        }
+
+        public bool TryCreateCompiler(in RunRequest request, BuildPaths buildPaths, [NotNullWhen(true)] out CommonCompiler? compiler)
+        {
             switch (request.Language)
             {
                 case LanguageNames.CSharp:
@@ -68,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         args: request.Arguments,
                         buildPaths: buildPaths,
                         libDirectory: request.LibDirectory,
-                        analyzerLoader: AnalyzerAssemblyLoader);
+                        analyzerLoader: AnalyzerAssemblyLoader,
+                        _driverCache);
                     return true;
                 case LanguageNames.VisualBasic:
                     compiler = new VisualBasicCompilerServer(
@@ -76,7 +98,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         args: request.Arguments,
                         buildPaths: buildPaths,
                         libDirectory: request.LibDirectory,
-                        analyzerLoader: AnalyzerAssemblyLoader);
+                        analyzerLoader: AnalyzerAssemblyLoader,
+                        _driverCache);
                     return true;
                 default:
                     compiler = null;
@@ -84,42 +107,64 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        public BuildResponse RunCompilation(RunRequest request, CancellationToken cancellationToken)
+        public BuildResponse RunCompilation(in RunRequest request, CancellationToken cancellationToken)
         {
-            Log($"CurrentDirectory = '{request.CurrentDirectory}'");
-            Log($"LIB = '{request.LibDirectory}'");
-            for (int i = 0; i < request.Arguments.Length; ++i)
+            Logger.Log($@"
+Run Compilation for {request.RequestId}
+  Language = {request.Language}
+  CurrentDirectory = '{request.WorkingDirectory}
+  LIB = '{request.LibDirectory}'");
+
+            // Compiler server must be provided with a valid current directory in order to correctly 
+            // resolve files in the compilation
+            if (string.IsNullOrEmpty(request.WorkingDirectory))
             {
-                Log($"Argument[{i}] = '{request.Arguments[i]}'");
+                var message = "Missing working directory";
+                Logger.Log($"Rejected: {request.RequestId}: {message}");
+                return new RejectedBuildResponse(message);
             }
 
             // Compiler server must be provided with a valid temporary directory in order to correctly
             // isolate signing between compilations.
             if (string.IsNullOrEmpty(request.TempDirectory))
             {
-                Log($"Rejecting build due to missing temp directory");
-                return new RejectedBuildResponse();
+                var message = "Missing temp directory";
+                Logger.Log($"Rejected: {request.RequestId}: {message}");
+                return new RejectedBuildResponse(message);
             }
 
-            CommonCompiler compiler;
-            if (!TryCreateCompiler(request, out compiler))
+            var buildPaths = new BuildPaths(ClientDirectory, request.WorkingDirectory, SdkDirectory, request.TempDirectory);
+            if (!TryCreateCompiler(request, buildPaths, out CommonCompiler? compiler))
             {
-                // We can't do anything with a request we don't know about. 
-                Log($"Got request with id '{request.Language}'");
-                return new RejectedBuildResponse();
+                var message = $"Cannot create compiler for language id {request.Language}";
+                Logger.Log($"Rejected: {request.RequestId}: {message}");
+                return new RejectedBuildResponse(message);
             }
 
             bool utf8output = compiler.Arguments.Utf8Output;
-            if (!CheckAnalyzers(request.CurrentDirectory, compiler.Arguments.AnalyzerReferences))
+            if (!CheckAnalyzers(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences, out List<string>? errorMessages))
             {
-                return new AnalyzerInconsistencyBuildResponse();
+                Logger.Log($"Rejected: {request.RequestId}: for analyzer load issues {string.Join(";", errorMessages)}");
+                return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(errorMessages));
             }
 
-            Log($"****Running {request.Language} compiler...");
-            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            int returnCode = compiler.Run(output, cancellationToken);
-            Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
-            return new CompletedBuildResponse(returnCode, utf8output, output.ToString());
+            Logger.Log($"Begin {request.RequestId} {request.Language} compiler run");
+            try
+            {
+                TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
+                int returnCode = compiler.Run(output, cancellationToken);
+                var outputString = output.ToString();
+                Logger.Log(@$"End {request.RequestId} {request.Language} compiler run
+Return code: {returnCode}
+Output:
+{outputString}");
+                return new CompletedBuildResponse(returnCode, utf8output, outputString);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogException(ex, $"Running compilation for {request.RequestId}");
+                throw;
+            }
         }
     }
 }

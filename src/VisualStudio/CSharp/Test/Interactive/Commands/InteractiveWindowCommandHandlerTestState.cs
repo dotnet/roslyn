@@ -1,16 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
@@ -22,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
     {
         public InteractiveWindowTestHost TestHost { get; }
 
-        private InteractiveCommandHandler _commandHandler;
+        private readonly InteractiveCommandHandler _commandHandler;
 
         public ITextView WindowTextView => TestHost.Window.TextView;
 
@@ -32,24 +38,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 
         public TestInteractiveEvaluator Evaluator => TestHost.Evaluator;
 
-        private VSCommanding.ICommandHandler<ExecuteInInteractiveCommandArgs> ExecuteInInteractiveCommandHandler => _commandHandler;
+        private ICommandHandler<ExecuteInInteractiveCommandArgs> ExecuteInInteractiveCommandHandler => _commandHandler;
 
-        private VSCommanding.ICommandHandler<CopyToInteractiveCommandArgs> CopyToInteractiveCommandHandler => _commandHandler;
+        private ICommandHandler<CopyToInteractiveCommandArgs> CopyToInteractiveCommandHandler => _commandHandler;
 
-        public InteractiveWindowCommandHandlerTestState(ExportProvider exportProvider, XElement workspaceElement)
-            : base(workspaceElement, exportProvider, workspaceKind: null)
+        public InteractiveWindowCommandHandlerTestState(XElement workspaceElement)
+            : base(workspaceElement, EditorTestCompositions.InteractiveWindow, workspaceKind: null)
         {
-            TestHost = new InteractiveWindowTestHost(exportProvider);
+            TestHost = new InteractiveWindowTestHost(GetExportedValue<IInteractiveWindowFactoryService>());
 
             _commandHandler = new TestInteractiveCommandHandler(
                 TestHost.Window,
+                GetExportedValue<ISendToInteractiveSubmissionProvider>(),
                 GetExportedValue<IContentTypeRegistryService>(),
                 GetExportedValue<IEditorOptionsFactoryService>(),
-                GetExportedValue<IEditorOperationsFactoryService>(),
-                TestWaitIndicator.Default);
+                GetExportedValue<IEditorOperationsFactoryService>());
         }
 
-        public static InteractiveWindowCommandHandlerTestState CreateTestState(ExportProvider exportProvider, string markup)
+        public static InteractiveWindowCommandHandlerTestState CreateTestState(string markup)
         {
             var workspaceXml = XElement.Parse($@"
                     <Workspace>
@@ -59,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
                     </Workspace>
                 ");
 
-            return new InteractiveWindowCommandHandlerTestState(exportProvider, workspaceXml);
+            return new InteractiveWindowCommandHandlerTestState(workspaceXml);
         }
 
         public void SendCopyToInteractive()
@@ -74,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             ExecuteInInteractiveCommandHandler.ExecuteCommand(executeInInteractiveArgs, TestCommandExecutionContext.Create());
         }
 
-        public VSCommanding.CommandState GetStateForExecuteInInteractive()
+        public CommandState GetStateForExecuteInInteractive()
         {
             var executeInInteractiveArgs = new ExecuteInInteractiveCommandArgs(TextView, SubjectBuffer);
             return ExecuteInInteractiveCommandHandler.GetCommandState(executeInInteractiveArgs);

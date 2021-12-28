@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Diagnostics
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -155,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                            container)
 
             Dim result = LookupResult.GetInstance()
-            binder.LookupMember(result, container, name, 0, LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods, useSiteDiagnostics:=Nothing)
+            binder.LookupMember(result, container, name, 0, LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             If result.IsGoodOrAmbiguous Then
                 Dim lookupSymbols As ArrayBuilder(Of Symbol) = result.Symbols
                 If result.Kind = LookupResultKind.Ambiguous AndAlso result.HasDiagnostic AndAlso TypeOf result.Diagnostic Is AmbiguousSymbolDiagnostic Then

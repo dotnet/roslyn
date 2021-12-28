@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed partial class VisualStudioMetadataReferenceManager
     {
-        private class RecoverableMetadataValueSource : ValueSource<AssemblyMetadata>
+        private sealed class RecoverableMetadataValueSource : ValueSource<Optional<AssemblyMetadata>>
         {
             private readonly WeakReference<AssemblyMetadata> _weakValue;
             private readonly List<ITemporaryStreamStorage> _storages;
@@ -31,11 +32,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             public IEnumerable<ITemporaryStreamStorage> GetStorages()
+                => _storages;
+
+            public override bool TryGetValue(out Optional<AssemblyMetadata> value)
             {
-                return _storages;
+                if (_weakValue.TryGetTarget(out var target))
+                {
+                    value = target;
+                    return true;
+                }
+
+                value = default;
+                return false;
             }
 
-            public override AssemblyMetadata GetValue(CancellationToken cancellationToken)
+            public override Task<Optional<AssemblyMetadata>> GetValueAsync(CancellationToken cancellationToken)
+                => Task.FromResult(GetValue(cancellationToken));
+
+            public override Optional<AssemblyMetadata> GetValue(CancellationToken cancellationToken)
             {
                 if (_weakValue.TryGetTarget(out var value))
                 {
@@ -73,22 +87,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // memory management.
                 _lifetimeMap.Add(metadata, stream);
                 return metadata;
-            }
-
-            public override bool TryGetValue(out AssemblyMetadata value)
-            {
-                if (_weakValue.TryGetTarget(out value))
-                {
-                    return true;
-                }
-
-                value = default;
-                return false;
-            }
-
-            public override Task<AssemblyMetadata> GetValueAsync(CancellationToken cancellationToken)
-            {
-                return Task.FromResult(this.GetValue(cancellationToken));
             }
         }
     }

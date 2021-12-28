@@ -1,15 +1,69 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal interface IRemoteNavigateToSearchService
     {
-        Task<IList<SerializableNavigateToSearchResult>> SearchDocumentAsync(DocumentId documentId, string searchPattern, string[] kinds, CancellationToken cancellationToken);
-        Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(ProjectId projectId, DocumentId[] priorityDocumentIds, string searchPattern, string[] kinds, CancellationToken cancellationToken);
+        ValueTask SearchDocumentAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+        ValueTask SearchProjectAsync(PinnedSolutionInfo solutionInfo, ProjectId projectId, ImmutableArray<DocumentId> priorityDocumentIds, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+
+        ValueTask SearchGeneratedDocumentsAsync(PinnedSolutionInfo solutionInfo, ProjectId projectId, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+        ValueTask SearchCachedDocumentsAsync(ImmutableArray<DocumentKey> documentKeys, ImmutableArray<DocumentKey> priorityDocumentKeys, StorageDatabase database, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+
+        ValueTask HydrateAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken);
+
+        public interface ICallback
+        {
+            ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result);
+        }
+    }
+
+    [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteNavigateToSearchService)), Shared]
+    internal sealed class NavigateToSearchServiceServerCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteNavigateToSearchService.ICallback
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public NavigateToSearchServiceServerCallbackDispatcher()
+        {
+        }
+
+        private new NavigateToSearchServiceCallback GetCallback(RemoteServiceCallbackId callbackId)
+            => (NavigateToSearchServiceCallback)base.GetCallback(callbackId);
+
+        public ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result)
+            => GetCallback(callbackId).OnResultFoundAsync(result);
+    }
+
+    internal sealed class NavigateToSearchServiceCallback
+    {
+        private readonly Func<RoslynNavigateToItem, Task> _onResultFound;
+
+        public NavigateToSearchServiceCallback(Func<RoslynNavigateToItem, Task> onResultFound)
+        {
+            _onResultFound = onResultFound;
+        }
+
+        public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result)
+        {
+            try
+            {
+                await _onResultFound(result).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
+            {
+            }
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -179,6 +181,60 @@ End Class
                         Handle(2, TableIndex.TypeSpec),
                         Handle(3, TableIndex.AssemblyRef),
                         Handle(4, TableIndex.AssemblyRef))
+                End Using
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub ModifyMethod_RenameParameter()
+            Dim source0 =
+"
+Class C
+    Shared Function F(i As Integer) As Integer
+        Return i
+    End Function
+End Class
+"
+            Dim source1 =
+"
+Class C
+    Shared Function F(x As Integer) As Integer
+        Return x
+    End Function
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib40({source0}, options:=TestOptions.DebugDll, references:={ValueTupleRef, SystemRuntimeFacadeRef})
+            Dim compilation1 = compilation0.WithSource(source1)
+
+            Dim bytes0 = compilation0.EmitToArray()
+            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
+                Dim reader0 = md0.MetadataReader
+                Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+
+                CheckNames(reader0, reader0.GetParameterDefNames(), "i")
+
+                Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+                Dim diff1 = compilation1.EmitDifference(generation0, ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+
+                ' Verify delta metadata contains expected rows.
+                Using md1 = diff1.GetMetadata()
+                    Dim reader1 = md1.Reader
+                    Dim readers = {reader0, reader1}
+                    EncValidation.VerifyModuleMvid(1, reader0, reader1)
+                    CheckNames(readers, reader1.GetTypeDefNames())
+                    CheckNames(readers, reader1.GetMethodDefNames(), "F")
+                    CheckNames(readers, reader1.GetParameterDefNames(), "x")
+
+                    CheckEncLogDefinitions(reader1,
+                        Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.Param, EditAndContinueOperation.Default))
+
+                    CheckEncMapDefinitions(reader1,
+                        Handle(2, TableIndex.MethodDef),
+                        Handle(1, TableIndex.Param),
+                        Handle(2, TableIndex.StandAloneSig))
                 End Using
             End Using
         End Sub
@@ -625,7 +681,7 @@ End Class
   IL_0001:  ldc.i4.3
   IL_0002:  newarr     ""Integer""
   IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_000d:  call       ""Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0012:  stloc.0
   IL_0013:  ldloc.0
@@ -967,7 +1023,7 @@ End Class
             Dim members = compilation1.GetMember(Of NamedTypeSymbol)("A.B").GetMembers("M")
             Assert.Equal(members.Length, 2)
             For Each member In members
-                Dim other = DirectCast(matcher.MapDefinition(DirectCast(member, Cci.IMethodDefinition)), MethodSymbol)
+                Dim other = DirectCast(matcher.MapDefinition(DirectCast(member.GetCciAdapter(), Cci.IMethodDefinition)).GetInternalSymbol(), MethodSymbol)
                 Assert.NotNull(other)
             Next
         End Sub
@@ -991,7 +1047,7 @@ End Class
 
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.M")
-            Dim other = DirectCast(matcher.MapDefinition(DirectCast(member, Cci.IMethodDefinition)), MethodSymbol)
+            Dim other = DirectCast(matcher.MapDefinition(DirectCast(member.GetCciAdapter(), Cci.IMethodDefinition)).GetInternalSymbol(), MethodSymbol)
             Assert.NotNull(other)
         End Sub
 
@@ -1025,9 +1081,99 @@ End Class
             Assert.Equal(nModifiers, DirectCast(member1.ReturnType, ArrayTypeSymbol).CustomModifiers.Length)
 
             Dim matcher = CreateMatcher(compilation1, compilation0)
-            Dim other = DirectCast(matcher.MapDefinition(DirectCast(member1, Cci.IMethodDefinition)), MethodSymbol)
+            Dim other = DirectCast(matcher.MapDefinition(DirectCast(member1.GetCciAdapter(), Cci.IMethodDefinition)).GetInternalSymbol(), MethodSymbol)
             Assert.NotNull(other)
             Assert.Equal(nModifiers, DirectCast(other.ReturnType, ArrayTypeSymbol).CustomModifiers.Length)
+        End Sub
+
+        <Fact>
+        <WorkItem(54939, "https://github.com/dotnet/roslyn/issues/54939")>
+        Sub AddNamespace()
+            Dim source0 = "
+Class C
+    Shared Sub Main()
+    End Sub
+End Class"
+            Dim source1 = "
+Namespace N1.N2
+    Class D
+        Public Shared Sub F()
+        End Sub
+    End Class
+End Namespace
+
+Class C
+    Shared Sub Main()
+        N1.N2.D.F()
+    End Sub
+End Class
+"
+            Dim source2 = "
+Namespace N1.N2
+    Class D
+        Public Shared Sub F()
+        End Sub
+    End Class
+
+    Namespace M1.M2
+        Class E
+            Public Shared Sub G()
+            End Sub
+        End Class
+    End Namespace
+End Namespace
+
+Class C
+    Shared Sub Main() 
+        N1.N2.M1.M2.E.G()
+    End Sub
+End Class
+"
+            Dim compilation0 = CreateCompilation(source0, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
+            Dim compilation2 = compilation1.WithSource(source2)
+
+            Dim main0 = compilation0.GetMember(Of MethodSymbol)("C.Main")
+            Dim main1 = compilation1.GetMember(Of MethodSymbol)("C.Main")
+            Dim main2 = compilation2.GetMember(Of MethodSymbol)("C.Main")
+            Dim d1 = compilation1.GetMember(Of NamedTypeSymbol)("N1.N2.D")
+            Dim e2 = compilation2.GetMember(Of NamedTypeSymbol)("N1.N2.M1.M2.E")
+
+            Using md0 = ModuleMetadata.CreateFromImage(compilation0.EmitToArray())
+
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+
+                Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(
+                        SemanticEdit.Create(SemanticEditKind.Update, main0, main1),
+                        SemanticEdit.Create(SemanticEditKind.Insert, Nothing, d1)))
+
+                diff1.VerifyIL("C.Main", "
+    {
+  // Code size        8 (0x8)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  call       ""Sub N1.N2.D.F()""
+  IL_0006:  nop
+  IL_0007:  ret
+}")
+                Dim diff2 = compilation2.EmitDifference(
+                    diff1.NextGeneration,
+                    ImmutableArray.Create(
+                        SemanticEdit.Create(SemanticEditKind.Update, main1, main2),
+                        SemanticEdit.Create(SemanticEditKind.Insert, Nothing, e2)))
+
+                diff2.VerifyIL("C.Main", "
+{
+  // Code size        8 (0x8)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  call       ""Sub N1.N2.M1.M2.E.G()""
+  IL_0006:  nop
+  IL_0007:  ret
+}")
+            End Using
         End Sub
 
         <WorkItem(844472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844472")>
@@ -5297,7 +5443,70 @@ End Class")
 ")
         End Sub
 
+        <Fact>
+        Public Sub AddImports_AmbiguousCode()
 
+            Dim source0 = MarkedSource("
+Imports System.Threading
+
+Class C
+    Shared Sub E()
+        Dim t = New Timer(Sub(s) System.Console.WriteLine(s))
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System.Threading
+Imports System.Timers
+
+Class C
+    Shared Sub E()
+        Dim t = New Timer(Sub(s) System.Console.WriteLine(s))
+    End Sub
+
+    Shared Sub G()
+        System.Console.WriteLine(new TimersDescriptionAttribute(""""))
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilation(source0.Tree, targetFramework:=TargetFramework.NetStandard20, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim e0 = compilation0.GetMember(Of MethodSymbol)("C.E")
+            Dim e1 = compilation1.GetMember(Of MethodSymbol)("C.E")
+            Dim g1 = compilation1.GetMember(Of MethodSymbol)("C.G")
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            ' Pretend there was an update to C.E to ensure we haven't invalidated the test
+
+            Dim diffError = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, e0, e1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diffError.EmitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_AmbiguousInImports2, "Timer").WithArguments("Timer", "System.Threading, System.Timers").WithLocation(7, 21))
+
+            Dim diff = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, g1)))
+
+            diff.EmitResult.Diagnostics.Verify()
+
+            diff.VerifyIL("C.G", "
+{
+    // Code size       18 (0x12)
+    .maxstack  1
+    IL_0000:  nop
+    IL_0001:  ldstr      """"
+    IL_0006:  newobj     ""Sub System.Timers.TimersDescriptionAttribute..ctor(String)""
+    IL_000b:  call       ""Sub System.Console.WriteLine(Object)""
+    IL_0010:  nop
+    IL_0011:  ret
+}")
+        End Sub
 
     End Class
 End Namespace

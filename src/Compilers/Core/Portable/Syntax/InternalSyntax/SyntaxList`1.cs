@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -9,14 +11,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
     internal partial struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>>
         where TNode : GreenNode
     {
-        private readonly GreenNode _node;
+        private readonly GreenNode? _node;
 
-        internal SyntaxList(GreenNode node)
+        internal SyntaxList(GreenNode? node)
         {
             _node = node;
         }
 
-        internal GreenNode Node => _node;
+        internal GreenNode? Node => _node;
 
         public int Count
         {
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        public TNode this[int index]
+        public TNode? this[int index]
         {
             get
             {
@@ -39,11 +41,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                     Debug.Assert(index >= 0);
                     Debug.Assert(index <= _node.SlotCount);
 
-                    return (TNode)_node.GetSlot(index);
+                    return (TNode?)_node.GetSlot(index);
                 }
                 else if (index == 0)
                 {
-                    return (TNode)_node;
+                    return (TNode?)_node;
                 }
                 else
                 {
@@ -52,8 +54,16 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        internal GreenNode ItemUntyped(int index)
+        internal TNode GetRequiredItem(int index)
         {
+            var node = this[index];
+            RoslynDebug.Assert(node is object);
+            return node;
+        }
+
+        internal GreenNode? ItemUntyped(int index)
+        {
+            RoslynDebug.Assert(_node is object);
             var node = this._node;
             if (node.IsList)
             {
@@ -89,23 +99,24 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 var arr = new TNode[this.Count];
                 for (int i = 0; i < this.Count; i++)
                 {
-                    arr[i] = this[i];
+                    arr[i] = GetRequiredItem(i);
                 }
                 return arr;
             }
         }
 
-        public TNode Last
+        public TNode? Last
         {
             get
             {
+                RoslynDebug.Assert(_node is object);
                 var node = this._node;
                 if (node.IsList)
                 {
-                    return (TNode)node.GetSlot(node.SlotCount - 1);
+                    return (TNode?)node.GetSlot(node.SlotCount - 1);
                 }
 
-                return (TNode)node;
+                return (TNode?)node;
             }
         }
 
@@ -118,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             for (int i = 0; i < count; i++)
             {
-                array[arrayOffset + i].Value = this[i + offset];
+                array[arrayOffset + i].Value = GetRequiredItem(i + offset);
             }
         }
 
@@ -137,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return _node == other._node;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return (obj is SyntaxList<TNode>) && Equals((SyntaxList<TNode>)obj);
         }

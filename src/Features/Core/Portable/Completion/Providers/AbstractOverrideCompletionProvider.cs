@@ -1,7 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,14 +17,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractOverrideCompletionProvider : AbstractMemberInsertingCompletionProvider
     {
-        private readonly SyntaxAnnotation _annotation = new SyntaxAnnotation();
-
         public AbstractOverrideCompletionProvider()
         {
         }
 
         public abstract SyntaxToken FindStartingToken(SyntaxTree tree, int position, CancellationToken cancellationToken);
-        public abstract ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol returnType);
+        public abstract ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol? returnType);
         public abstract bool TryDetermineModifiers(SyntaxToken startToken, SourceText text, int startLine, out Accessibility seenAccessibility, out DeclarationModifiers modifiers);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var state = await ItemGetter.CreateAsync(this, context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
             var items = await state.GetItemsAsync().ConfigureAwait(false);
 
-            if (items?.Any() == true)
+            if (!items.IsDefaultOrEmpty)
             {
                 context.IsExclusive = true;
                 context.AddItems(items);
@@ -39,11 +39,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected override Task<ISymbol> GenerateMemberAsync(ISymbol newOverriddenMember, INamedTypeSymbol newContainingType, Document newDocument, CompletionItem completionItem, CancellationToken cancellationToken)
         {
+            // Special case: if you are overriding object.ToString(), we will make the return value as non-nullable. The return was made nullable because
+            // are implementations out there that will return null, but that's not something we really want new implementations doing. We may need to consider
+            // expanding this behavior to other methods in the future; if that is the case then we would want there to be an attribute on the return type
+            // rather than updating this list, but for now there is no such attribute until we find more cases for it. See
+            // https://github.com/dotnet/roslyn/issues/30317 for some additional conversation about this design decision.
+            //
+            // We don't check if methodSymbol.ContainingType is object, in case you're overriding something that is itself an override
+            if (newOverriddenMember is IMethodSymbol methodSymbol &&
+                methodSymbol.Name == "ToString" &&
+                methodSymbol.Parameters.Length == 0)
+            {
+                newOverriddenMember = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, returnType: methodSymbol.ReturnType.WithNullableAnnotation(NullableAnnotation.NotAnnotated));
+            }
+
             // Figure out what to insert, and do it. Throw if we've somehow managed to get this far and can't.
             var syntaxFactory = newDocument.GetLanguageService<SyntaxGenerator>();
 
             var itemModifiers = MemberInsertionCompletionItem.GetModifiers(completionItem);
-            var modifiers = itemModifiers.WithIsUnsafe(itemModifiers.IsUnsafe | newOverriddenMember.IsUnsafe());
+            var modifiers = itemModifiers.WithIsUnsafe(itemModifiers.IsUnsafe | newOverriddenMember.RequiresUnsafeModifier());
 
             return syntaxFactory.OverrideAsync(
                 newOverriddenMember, newContainingType, newDocument, modifiers, cancellationToken);
@@ -53,27 +67,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SyntaxToken startToken,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
-            out ITypeSymbol returnType,
+            out ITypeSymbol? returnType,
             out SyntaxToken nextToken);
 
-        protected bool IsOnStartLine(int position, SourceText text, int startLine)
-        {
-            return text.Lines.IndexOf(position) == startLine;
-        }
+        protected static bool IsOnStartLine(int position, SourceText text, int startLine)
+            => text.Lines.IndexOf(position) == startLine;
 
-        protected ITypeSymbol GetReturnType(ISymbol symbol)
-        {
-            switch (symbol.Kind)
+        protected static ITypeSymbol GetReturnType(ISymbol symbol)
+            => symbol.Kind switch
             {
-                case SymbolKind.Event:
-                    return ((IEventSymbol)symbol).Type;
-                case SymbolKind.Method:
-                    return ((IMethodSymbol)symbol).ReturnType;
-                case SymbolKind.Property:
-                    return ((IPropertySymbol)symbol).Type;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
-            }
-        }
+                SymbolKind.Event => ((IEventSymbol)symbol).Type,
+                SymbolKind.Method => ((IMethodSymbol)symbol).ReturnType,
+                SymbolKind.Property => ((IPropertySymbol)symbol).Type,
+                _ => throw ExceptionUtilities.UnexpectedValue(symbol.Kind),
+            };
     }
 }

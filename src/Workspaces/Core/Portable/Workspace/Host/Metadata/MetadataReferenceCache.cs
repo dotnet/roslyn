@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -18,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly Func<string, MetadataReferenceProperties, MetadataReference> _createReference;
 
         public MetadataReferenceCache(Func<string, MetadataReferenceProperties, MetadataReference> createReference)
-        {
-            _createReference = createReference ?? throw new ArgumentNullException(nameof(createReference));
-        }
+            => _createReference = createReference ?? throw new ArgumentNullException(nameof(createReference));
 
         public MetadataReference GetReference(string path, MetadataReferenceProperties properties)
         {
@@ -39,16 +41,14 @@ namespace Microsoft.CodeAnalysis.Host
         {
             private readonly MetadataReferenceCache _cache;
 
-            private readonly NonReentrantLock _gate = new NonReentrantLock();
+            private readonly NonReentrantLock _gate = new();
 
             // metadata references are held weakly, so even though this is a cache that enables reuse, it does not control lifetime.
             private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>> _references
-                = new Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>>();
+                = new();
 
             public ReferenceSet(MetadataReferenceCache cache)
-            {
-                _cache = cache;
-            }
+                => _cache = cache;
 
             public MetadataReference GetAddOrUpdate(string path, MetadataReferenceProperties properties)
             {

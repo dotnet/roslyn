@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -2207,6 +2209,84 @@ IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: Function C.op_UnaryNe
 ]]>.Value
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
+        Public Sub LogicalNotFlow_01()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Function M(f as Boolean) As Boolean 'BIND:"Function M"
+        Return Not f
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [M As System.Boolean]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Return) Block[B2]
+            IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.Unary, Type: System.Boolean) (Syntax: 'Not f')
+              Operand: 
+                IParameterReferenceOperation: f (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'f')
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
+        Public Sub LogicalNotFlow_02()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Function M(f as Boolean) As Boolean 'BIND:"Function M"
+        Return Not Not f
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [M As System.Boolean]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Return) Block[B2]
+            IParameterReferenceOperation: f (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'f')
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
     End Class
 End Namespace

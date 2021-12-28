@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -55,14 +59,48 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _sourceTypeParameter.HasReferenceTypeConstraint; }
         }
 
+        public override bool IsReferenceTypeFromConstraintTypes
+        {
+            get
+            {
+                return _sourceTypeParameter.IsReferenceTypeFromConstraintTypes || CalculateIsReferenceTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics);
+            }
+        }
+
         internal override bool? ReferenceTypeConstraintIsNullable
         {
             get { return _sourceTypeParameter.ReferenceTypeConstraintIsNullable; }
         }
 
+        public override bool HasNotNullConstraint
+        {
+            get { return _sourceTypeParameter.HasNotNullConstraint; }
+        }
+
+        internal override bool? IsNotNullable
+        {
+            get
+            {
+                if (_sourceTypeParameter.ConstraintTypesNoUseSiteDiagnostics.IsEmpty)
+                {
+                    return _sourceTypeParameter.IsNotNullable;
+                }
+
+                return CalculateIsNotNullable();
+            }
+        }
+
         public override bool HasValueTypeConstraint
         {
             get { return _sourceTypeParameter.HasValueTypeConstraint; }
+        }
+
+        public override bool IsValueTypeFromConstraintTypes
+        {
+            get
+            {
+                return _sourceTypeParameter.IsValueTypeFromConstraintTypes || CalculateIsValueTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics);
+            }
         }
 
         public override bool HasUnmanagedTypeConstraint
@@ -95,14 +133,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return true; }
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool early)
+        internal override void EnsureAllConstraintsAreResolved()
         {
-            _sourceTypeParameter.EnsureAllConstraintsAreResolved(early);
+            _sourceTypeParameter.EnsureAllConstraintsAreResolved();
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
-            var constraintTypes = _sourceTypeParameter.GetConstraintTypes(inProgress, early);
+            var constraintTypes = _sourceTypeParameter.GetConstraintTypes(inProgress);
 
             if (constraintTypes.IsEmpty)
             {

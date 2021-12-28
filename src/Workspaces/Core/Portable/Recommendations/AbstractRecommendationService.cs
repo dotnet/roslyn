@@ -1,11 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -13,89 +16,31 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Recommendations
 {
-    internal abstract class AbstractRecommendationService : IRecommendationService
+    internal abstract class AbstractRecommendationService<TSyntaxContext> : IRecommendationService
+        where TSyntaxContext : SyntaxContext
     {
-        protected abstract Task<Tuple<ImmutableArray<ISymbol>, SyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken);
+        protected abstract TSyntaxContext CreateContext(
+            Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
-        public async Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken)
+        protected abstract AbstractRecommendationServiceRunner<TSyntaxContext> CreateRunner(
+            TSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken);
+
+        public RecommendedSymbols GetRecommendedSymbolsAtPosition(Document document, SemanticModel semanticModel, int position, RecommendationServiceOptions options, CancellationToken cancellationToken)
         {
-            var result = await GetRecommendedSymbolsAtPositionWorkerAsync(workspace, semanticModel, position, options, cancellationToken).ConfigureAwait(false);
+            var context = CreateContext(document, semanticModel, position, cancellationToken);
+            var result = CreateRunner(context, options.FilterOutOfScopeLocals, cancellationToken).GetRecommendedSymbols();
 
-            var symbols = result.Item1;
-            var context = new ShouldIncludeSymbolContext(result.Item2, cancellationToken);
+            var namedSymbols = result.NamedSymbols;
+            var unnamedSymbols = result.UnnamedSymbols;
 
-            symbols = symbols.WhereAsArray(context.ShouldIncludeSymbol);
-            return symbols;
-        }
+            namedSymbols = namedSymbols.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
+            unnamedSymbols = unnamedSymbols.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
 
-        protected static ImmutableArray<ISymbol> GetRecommendedNamespaceNameSymbols(
-            SemanticModel semanticModel, SyntaxNode declarationSyntax, CancellationToken cancellationToken)
-        {
-            if (declarationSyntax == null)
-            {
-                throw new ArgumentNullException(nameof(declarationSyntax));
-            }
+            var shouldIncludeSymbolContext = new ShouldIncludeSymbolContext(context, cancellationToken);
+            namedSymbols = namedSymbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
+            unnamedSymbols = unnamedSymbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
 
-            var containingNamespaceSymbol = semanticModel.Compilation.GetCompilationNamespace(
-                semanticModel.GetEnclosingNamespace(declarationSyntax.SpanStart, cancellationToken));
-
-            var symbols = semanticModel.LookupNamespacesAndTypes(declarationSyntax.SpanStart, containingNamespaceSymbol)
-                                       .WhereAsArray(recommendationSymbol => IsNonIntersectingNamespace(recommendationSymbol, declarationSyntax));
-
-            return symbols;
-        }
-
-        protected static bool IsNonIntersectingNamespace(
-            ISymbol recommendationSymbol, SyntaxNode declarationSyntax)
-        {
-            //
-            // Apart from filtering out non-namespace symbols, this also filters out the symbol
-            // currently being declared. For example...
-            //
-            //     namespace X$$
-            //
-            // ...X won't show in the completion list (unless it is also declared elsewhere).
-            //
-            // In addition, in VB, it will filter out Bar from the sample below...
-            //
-            //     Namespace Goo.$$
-            //         Namespace Bar
-            //         End Namespace
-            //     End Namespace
-            //
-            // ...unless, again, it's also declared elsewhere.
-            //
-            return recommendationSymbol.IsNamespace() &&
-                   recommendationSymbol.Locations.Any(
-                       candidateLocation => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
-                                              declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)));
-        }
-
-        /// <summary>
-        /// If container is a tuple type, any of its tuple element which has a friendly name will cause
-        /// the suppression of the corresponding default name (ItemN).
-        /// In that case, Rest is also removed.
-        /// </summary>
-        protected static ImmutableArray<ISymbol> SuppressDefaultTupleElements(
-            INamespaceOrTypeSymbol container, ImmutableArray<ISymbol> symbols)
-        {
-            var namedType = container as INamedTypeSymbol;
-            if (namedType?.IsTupleType != true)
-            {
-                // container is not a tuple
-                return symbols;
-            }
-
-            //return tuple elements followed by other members that are not fields
-            return ImmutableArray<ISymbol>.CastUp(namedType.TupleElements).
-                Concat(symbols.WhereAsArray(s => s.Kind != SymbolKind.Field));
-        }
-
-        private static bool IsFriendlyName(int i, string elementName)
-        {
-            return elementName != null && string.Compare(elementName, "Item" + (i + 1), StringComparison.OrdinalIgnoreCase) != 0;
+            return new RecommendedSymbols(namedSymbols, unnamedSymbols);
         }
 
         private sealed class ShouldIncludeSymbolContext

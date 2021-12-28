@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System;
@@ -52,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override TypeSymbol Type
         {
-            get { return this.Local.Type.TypeSymbol; }
+            get { return this.Local.Type; }
         }
 
         internal override DisplayClassInstance ToOtherMethod(MethodSymbol method, TypeMap typeMap)
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override BoundExpression ToBoundExpression(SyntaxNode syntax)
         {
-            return new BoundLocal(syntax, this.Local, constantValueOpt: null, type: this.Local.Type.TypeSymbol) { WasCompilerGenerated = true };
+            return new BoundLocal(syntax, this.Local, constantValueOpt: null, type: this.Local.Type) { WasCompilerGenerated = true };
         }
 
         protected override string GetInstanceName() => Local.Name;
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(parameter.Name.EndsWith("this", StringComparison.Ordinal) ||
                 parameter.Name.Length == 0 || // unnamed
                 parameter.Name.Equals("value", StringComparison.Ordinal) || // display class instance passed to local function as parameter
-                GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier);
+                GeneratedNameParser.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier);
             this.Parameter = parameter;
         }
 
@@ -90,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override TypeSymbol Type
         {
-            get { return this.Parameter.Type.TypeSymbol; }
+            get { return this.Parameter.Type; }
         }
 
         internal override DisplayClassInstance ToOtherMethod(MethodSymbol method, TypeMap typeMap)

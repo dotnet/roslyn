@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -38,25 +40,25 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         public SignatureHelpItem(
             bool isVariadic,
-            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+            Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
             IEnumerable<TaggedText> prefixParts,
             IEnumerable<TaggedText> separatorParts,
             IEnumerable<TaggedText> suffixParts,
             IEnumerable<SignatureHelpParameter> parameters,
-            IEnumerable<TaggedText> descriptionParts)
+            IEnumerable<TaggedText>? descriptionParts)
         {
             if (isVariadic && !parameters.Any())
             {
                 throw new ArgumentException(FeaturesResources.Variadic_SignatureHelpItem_must_have_at_least_one_parameter);
             }
 
-            this.IsVariadic = isVariadic;
-            this.DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
-            this.PrefixDisplayParts = prefixParts.ToImmutableArrayOrEmpty();
-            this.SeparatorDisplayParts = separatorParts.ToImmutableArrayOrEmpty();
-            this.SuffixDisplayParts = suffixParts.ToImmutableArrayOrEmpty();
-            this.Parameters = parameters.ToImmutableArrayOrEmpty();
-            this.DescriptionParts = descriptionParts.ToImmutableArrayOrEmpty();
+            IsVariadic = isVariadic;
+            DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
+            PrefixDisplayParts = prefixParts.ToImmutableArrayOrEmpty();
+            SeparatorDisplayParts = separatorParts.ToImmutableArrayOrEmpty();
+            SuffixDisplayParts = suffixParts.ToImmutableArrayOrEmpty();
+            Parameters = parameters.ToImmutableArrayOrEmpty();
+            DescriptionParts = descriptionParts.ToImmutableArrayOrEmpty();
         }
 
         // Constructor kept for back compat

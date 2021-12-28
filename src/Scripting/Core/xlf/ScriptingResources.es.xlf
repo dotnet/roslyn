@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../ScriptingResources.resx">
     <body>
+      <trans-unit id="CannotSetLanguageSpecificOption">
+        <source>Cannot set {0} specific option {1} because the options were already configured for a different language.</source>
+        <target state="translated">No se puede establecer la opción específica {0} {1} porque las opciones ya estaban configuradas para otro lenguaje.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="StackOverflowWhileEvaluating">
         <source>!&lt;Stack overflow while evaluating object&gt;</source>
         <target state="translated">!&lt;Desbordamiento de pila al evaluar objeto&gt;</target>
@@ -9,7 +14,7 @@
       </trans-unit>
       <trans-unit id="CantAssignTo">
         <source>Can't assign '{0}' to '{1}'.</source>
-        <target state="translated">No se puede asignar "{0}" a "{1}".</target>
+        <target state="translated">No se puede asignar '{0}' a '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExpectedAnAssemblyReference">
@@ -29,7 +34,7 @@
       </trans-unit>
       <trans-unit id="GlobalsNotAssignable">
         <source>The globals of type '{0}' is not assignable to '{1}'</source>
-        <target state="translated">Las variables globales de tipo "{0}" no se pueden asignar a "{1}"</target>
+        <target state="translated">Las variables globales de tipo '{0}' no se pueden asignar a '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="StartingStateIncompatible">

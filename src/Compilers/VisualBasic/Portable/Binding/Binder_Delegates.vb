@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -20,13 +22,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly DelegateConversions As ConversionKind
             Public ReadOnly Target As MethodSymbol
             Public ReadOnly MethodConversions As MethodConversionKind
-            Public ReadOnly Diagnostics As ImmutableArray(Of Diagnostic)
+            Public ReadOnly Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
 
             Public Sub New(
                 DelegateConversions As ConversionKind,
                 Target As MethodSymbol,
                 MethodConversions As MethodConversionKind,
-                Diagnostics As ImmutableArray(Of Diagnostic)
+                Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
             )
                 Me.DelegateConversions = DelegateConversions
                 Me.Target = Target
@@ -40,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="node">The AddressOf expression node.</param>
         ''' <param name="diagnostics">The diagnostics.</param><returns></returns>
-        Private Function BindAddressOfExpression(node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindAddressOfExpression(node As VisualBasicSyntaxNode, diagnostics As BindingDiagnosticBag) As BoundExpression
 
             Dim addressOfSyntax = DirectCast(node, UnaryExpressionSyntax)
             Dim boundOperand = BindExpression(addressOfSyntax.Operand, isInvocationOrAddressOf:=True, diagnostics:=diagnostics, isOperandOfConditionalBranch:=False, eventContext:=False)
@@ -66,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 hasErrors = True
             End If
 
-            Return New BoundAddressOfOperator(node, Me, group, hasErrors)
+            Return New BoundAddressOfOperator(node, Me, diagnostics.AccumulatesDependencies, group, hasErrors)
         End Function
 
         ''' <summary>
@@ -82,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             delegateType As TypeSymbol,
             argumentListOpt As ArgumentListSyntax,
             node As VisualBasicSyntaxNode,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
 
             Dim boundFirstArgument As BoundExpression = Nothing
@@ -159,10 +161,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Dim ignoredDiagnostics = DiagnosticBag.GetInstance
             Dim boundArguments(argumentCount - 1) As BoundExpression
             If boundFirstArgument IsNot Nothing Then
-                boundFirstArgument = MakeRValue(boundFirstArgument, ignoredDiagnostics)
+                boundFirstArgument = MakeRValueAndIgnoreDiagnostics(boundFirstArgument)
                 boundArguments(0) = boundFirstArgument
             End If
 
@@ -178,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If expressionSyntax IsNot Nothing Then
-                    boundArguments(argumentIndex) = BindValue(expressionSyntax, ignoredDiagnostics)
+                    boundArguments(argumentIndex) = BindValue(expressionSyntax, BindingDiagnosticBag.Discarded)
                 Else
                     boundArguments(argumentIndex) = New BoundBadExpression(argumentSyntax,
                                                                            LookupResultKind.Empty,
@@ -188,8 +189,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                            hasErrors:=True)
                 End If
             Next
-
-            ignoredDiagnostics.Free()
 
             ' the default error message in delegate creations if the passed arguments are empty or not a addressOf
             ' should be ERRID.ERR_NoDirectDelegateConstruction1
@@ -220,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As DelegateResolutionResult
             Debug.Assert(targetType IsNot Nothing)
 
-            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, addressOfExpression.WithDependencies)
             Dim result As OverloadResolution.OverloadResolutionResult = Nothing
             Dim fromMethod As MethodSymbol = Nothing
 
@@ -245,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If delegateInvoke IsNot Nothing Then
 
-                    If ReportDelegateInvokeUseSiteError(diagnostics, syntaxTree, targetType, delegateInvoke) Then
+                    If ReportDelegateInvokeUseSite(diagnostics, syntaxTree, targetType, delegateInvoke) Then
                         methodConversions = methodConversions Or MethodConversionKind.Error_Unspecified
                     Else
 
@@ -320,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     methodConversions = methodConversions Or MethodConversionKind.Error_Unspecified
                 End If
 
-                addressOfExpression.Binder.ReportDiagnosticsIfObsolete(diagnostics, fromMethod, addressOfExpression.MethodGroup.Syntax)
+                addressOfExpression.Binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, fromMethod, addressOfExpression.MethodGroup.Syntax)
             End If
 
             Dim delegateConversions As ConversionKind = Conversions.DetermineDelegateRelaxationLevel(methodConversions)
@@ -336,8 +335,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New DelegateResolutionResult(delegateConversions, fromMethod, methodConversions, diagnostics.ToReadOnlyAndFree())
         End Function
 
-        Friend Shared Function ReportDelegateInvokeUseSiteError(
-            diagBag As DiagnosticBag,
+        Friend Shared Function ReportDelegateInvokeUseSite(
+            diagBag As BindingDiagnosticBag,
             syntax As SyntaxNode,
             delegateType As TypeSymbol,
             invoke As MethodSymbol
@@ -345,19 +344,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(delegateType IsNot Nothing)
             Debug.Assert(invoke IsNot Nothing)
 
-            Dim useSiteErrorInfo As DiagnosticInfo = invoke.GetUseSiteErrorInfo()
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = invoke.GetUseSiteInfo()
 
-            If useSiteErrorInfo IsNot Nothing Then
-                If useSiteErrorInfo.Code = ERRID.ERR_UnsupportedMethod1 Then
-                    ReportDiagnostic(diagBag, syntax, ERRID.ERR_UnsupportedMethod1, delegateType)
-                Else
-                    ReportDiagnostic(diagBag, syntax, useSiteErrorInfo)
-                End If
-
-                Return True
+            If useSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedMethod1 Then
+                useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, delegateType))
             End If
 
-            Return False
+            Return diagBag.Add(useSiteInfo, syntax)
         End Function
 
         ''' <summary>
@@ -373,10 +366,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             addressOfExpression As BoundAddressOfOperator,
             toMethod As MethodSymbol,
             ignoreMethodReturnType As Boolean,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As KeyValuePair(Of MethodSymbol, MethodConversionKind)
 
-            Dim argumentDiagnostics = DiagnosticBag.GetInstance
+            Dim argumentDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
             Dim couldTryZeroArgumentRelaxation As Boolean = True
 
             Dim matchingMethod As KeyValuePair(Of MethodSymbol, MethodConversionKind) = ResolveMethodForDelegateInvokeFullOrRelaxed(
@@ -390,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' If there have been parameters and if there was no ambiguous match before, try zero argument relaxation.
             If matchingMethod.Key Is Nothing AndAlso couldTryZeroArgumentRelaxation Then
 
-                Dim zeroArgumentDiagnostics = DiagnosticBag.GetInstance
+                Dim zeroArgumentDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
                 Dim argumentMatchingMethod = matchingMethod
 
                 matchingMethod = ResolveMethodForDelegateInvokeFullOrRelaxed(
@@ -437,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             addressOfExpression As BoundAddressOfOperator,
             toMethod As MethodSymbol,
             ignoreMethodReturnType As Boolean,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             useZeroArgumentRelaxation As Boolean,
             ByRef couldTryZeroArgumentRelaxation As Boolean
         ) As KeyValuePair(Of MethodSymbol, MethodConversionKind)
@@ -501,7 +494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(resolutionBinder.OptionStrict = VisualBasic.OptionStrict.Off)
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo = addressOfExpression.Binder.GetNewCompoundUseSiteInfo(diagnostics)
             Dim resolutionResult = OverloadResolution.MethodInvocationOverloadResolution(
                 addressOfExpression.MethodGroup,
                 boundArguments,
@@ -512,13 +505,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 delegateReturnTypeReferenceBoundNode:=delegateReturnTypeReferenceBoundNode,
                 lateBindingIsAllowed:=False,
                 callerInfoOpt:=Nothing,
-                useSiteDiagnostics:=useSiteDiagnostics)
+                useSiteInfo:=useSiteInfo)
 
-            If diagnostics.Add(addressOfExpression.MethodGroup, useSiteDiagnostics) Then
+            If diagnostics.Add(addressOfExpression.MethodGroup, useSiteInfo) Then
                 couldTryZeroArgumentRelaxation = False
                 If addressOfExpression.MethodGroup.ResultKind <> LookupResultKind.Inaccessible Then
                     ' Suppress additional diagnostics
-                    diagnostics = New DiagnosticBag()
+                    diagnostics = BindingDiagnosticBag.Discarded
                 End If
             End If
 
@@ -546,7 +539,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     delegateReturnTypeReferenceBoundNode:=delegateReturnTypeReferenceBoundNode,
                     lateBindingIsAllowed:=False,
                     callerInfoOpt:=Nothing,
-                    useSiteDiagnostics:=useSiteDiagnostics)
+                    useSiteInfo:=useSiteInfo)
             End If
 
             Dim bestCandidates = ArrayBuilder(Of OverloadResolution.CandidateAnalysisResult).GetInstance()
@@ -585,7 +578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If addressOfExpression.MethodGroup.ResultKind = LookupResultKind.Inaccessible Then
                     ReportDiagnostic(diagnostics, addressOfOperandSyntax,
                                      addressOfExpression.Binder.GetInaccessibleErrorInfo(
-                                         bestSymbols(0), useSiteDiagnostics:=Nothing))
+                                         bestSymbols(0)))
                 Else
                     Debug.Assert(addressOfExpression.MethodGroup.ResultKind = LookupResultKind.Good)
                 End If
@@ -628,7 +621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             toMethod As MethodSymbol,
             ignoreMethodReturnType As Boolean,
             useZeroArgumentRelaxation As Boolean,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As KeyValuePair(Of MethodSymbol, MethodConversionKind)
 
             Dim methodConversions As MethodConversionKind = MethodConversionKind.Identity
@@ -641,17 +634,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' determine conversions based on return type
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo = addressOfExpression.Binder.GetNewCompoundUseSiteInfo(diagnostics)
             Dim targetMethodSymbol = DirectCast(analysisResult.Candidate.UnderlyingSymbol, MethodSymbol)
 
             If Not ignoreMethodReturnType Then
                 methodConversions = methodConversions Or
                                     Conversions.ClassifyMethodConversionBasedOnReturn(targetMethodSymbol.ReturnType, targetMethodSymbol.ReturnsByRef,
-                                                                                      toMethod.ReturnType, toMethod.ReturnsByRef, useSiteDiagnostics)
+                                                                                      toMethod.ReturnType, toMethod.ReturnsByRef, useSiteInfo)
 
-                If diagnostics.Add(addressOfOperandSyntax, useSiteDiagnostics) Then
+                If diagnostics.Add(addressOfOperandSyntax, useSiteInfo) Then
                     ' Suppress additional diagnostics 
-                    diagnostics = New DiagnosticBag()
+                    diagnostics = BindingDiagnosticBag.Discarded
                 End If
             End If
 
@@ -676,11 +669,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Else
                 ' determine conversions based on arguments
-                methodConversions = methodConversions Or GetDelegateMethodConversionBasedOnArguments(analysisResult, toMethod, useSiteDiagnostics)
+                methodConversions = methodConversions Or GetDelegateMethodConversionBasedOnArguments(analysisResult, toMethod, useSiteInfo)
 
-                If diagnostics.Add(addressOfOperandSyntax, useSiteDiagnostics) Then
+                If diagnostics.Add(addressOfOperandSyntax, useSiteInfo) Then
                     ' Suppress additional diagnostics 
-                    diagnostics = New DiagnosticBag()
+                    diagnostics = BindingDiagnosticBag.Discarded
                 End If
             End If
 
@@ -719,7 +712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If addressOfExpression.MethodGroup.ResultKind = LookupResultKind.Inaccessible Then
                 ReportDiagnostic(diagnostics, addressOfOperandSyntax,
                                  addressOfExpression.Binder.GetInaccessibleErrorInfo(
-                                    analysisResult.Candidate.UnderlyingSymbol, useSiteDiagnostics:=Nothing))
+                                    analysisResult.Candidate.UnderlyingSymbol))
             Else
                 Debug.Assert(addressOfExpression.MethodGroup.ResultKind = LookupResultKind.Good)
             End If
@@ -731,7 +724,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             syntax As SyntaxNode,
             delegateType As NamedTypeSymbol,
             targetMethodSymbol As MethodSymbol,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             ' Option Strict On does not allow narrowing in implicit type conversion between method '{0}' and delegate "{1}".
             If targetMethodSymbol.ReducedFrom Is Nothing Then
@@ -755,7 +748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             syntax As SyntaxNode,
             delegateType As NamedTypeSymbol,
             targetMethodSymbol As MethodSymbol,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             ' Option Strict On does not allow narrowing in implicit type conversion between method '{0}' and delegate "{1}".
             If targetMethodSymbol.ReducedFrom Is Nothing Then
@@ -783,7 +776,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function GetDelegateMethodConversionBasedOnArguments(
             bestResult As OverloadResolution.CandidateAnalysisResult,
             delegateInvoke As MethodSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As MethodConversionKind
             Dim methodConversions As MethodConversionKind = MethodConversionKind.Identity
 
@@ -847,7 +840,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim conv = Conversions.ClassifyConversion(bestCandidate.Parameters(lastCommonIndex).Type,
                                                           delegateInvoke.Parameters(lastCommonIndex).Type,
-                                                          useSiteDiagnostics)
+                                                          useSiteInfo)
 
                 methodConversions = methodConversions Or
                                     Conversions.ClassifyMethodConversionBasedOnArgumentConversion(conv.Key,
@@ -931,7 +924,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             container As Symbol,
             token As SyntaxToken,
             flag As SourceParameterFlags,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As SourceParameterFlags
             ' 9.2.5.4: ParamArray parameters may not be specified in delegate or event declarations.
             If (flag And SourceParameterFlags.ParamArray) = SourceParameterFlags.ParamArray Then
@@ -974,7 +967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             addressOfExpression As BoundAddressOfOperator,
             ByRef delegateResolutionResult As DelegateResolutionResult,
             targetType As TypeSymbol,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             isForHandles As Boolean,
             warnIfResultOfAsyncMethodIsDroppedDueToRelaxation As Boolean
         ) As BoundExpression
@@ -997,7 +990,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim resolvedTypeOrValueReceiver As BoundExpression = Nothing
             If receiver IsNot Nothing AndAlso
                 Not addressOfExpression.HasErrors AndAlso
-                Not delegateResolutionResult.Diagnostics.HasAnyErrors Then
+                Not delegateResolutionResult.Diagnostics.Diagnostics.HasAnyErrors Then
 
                 receiver = AdjustReceiverTypeOrValue(receiver, receiver.Syntax, targetMethod.IsShared, diagnostics, resolvedTypeOrValueReceiver)
             End If
@@ -1086,7 +1079,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             delegateRelaxation As ConversionKind,
             isZeroArgumentKnownToBeUsed As Boolean,
             warnIfResultOfAsyncMethodIsDroppedDueToRelaxation As Boolean,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <Out()> ByRef relaxationReceiverPlaceholder As BoundRValuePlaceholder
         ) As BoundLambda
 
@@ -1156,7 +1149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             delegateRelaxation As ConversionKind,
             isZeroArgumentKnownToBeUsed As Boolean,
             warnIfResultOfAsyncMethodIsDroppedDueToRelaxation As Boolean,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundLambda
             Debug.Assert(delegateInvoke.MethodKind = MethodKind.DelegateInvoke)
             Debug.Assert(methodGroup.Methods.Length = 1)
@@ -1294,7 +1287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundLambda = New BoundLambda(syntaxNode,
                                           lambdaSymbol,
                                           lambdaBody,
-                                          ImmutableArray(Of Diagnostic).Empty,
+                                          ImmutableBindingDiagnostic(Of AssemblySymbol).Empty,
                                           Nothing,
                                           delegateRelaxation,
                                           MethodConversionKind.Identity)

@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
+using Roslyn.Utilities;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -43,30 +47,57 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.OpenSolution(path, saveExistingSolutionIfExists);
 
         public void AddProject(ProjectUtils.Project projectName, string projectTemplate, string languageName)
-            => _inProc.AddProject(projectName.Name, projectTemplate, languageName);
+        {
+            _inProc.AddProject(projectName.Name, projectTemplate, languageName);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
+        public void AddCustomProject(ProjectUtils.Project projectName, string projectFileExtension, string projectFileContent)
+        {
+            _inProc.AddCustomProject(projectName.Name, projectFileExtension, projectFileContent);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
 
         public void AddProjectReference(ProjectUtils.Project fromProjectName, ProjectUtils.ProjectReference toProjectName)
         {
             _inProc.AddProjectReference(fromProjectName.Name, toProjectName.Name);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
         public void RemoveProjectReference(ProjectUtils.Project projectName, ProjectUtils.ProjectReference projectReferenceName)
         {
             _inProc.RemoveProjectReference(projectName.Name, projectReferenceName.Name);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
         public void AddMetadataReference(ProjectUtils.AssemblyReference fullyQualifiedAssemblyName, ProjectUtils.Project projectName)
         {
             _inProc.AddMetadataReference(fullyQualifiedAssemblyName.Name, projectName.Name);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
         public void RemoveMetadataReference(ProjectUtils.AssemblyReference assemblyName, ProjectUtils.Project projectName)
         {
             _inProc.RemoveMetadataReference(assemblyName.Name, projectName.Name);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
+        public void AddAnalyzerReference(string filePath, ProjectUtils.Project projectName)
+        {
+            _inProc.AddAnalyzerReference(filePath, projectName.Name);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
+        public void RemoveAnalyzerReference(string filePath, ProjectUtils.Project projectName)
+        {
+            _inProc.RemoveAnalyzerReference(filePath, projectName.Name);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
+        public void SetLanguageVersion(ProjectUtils.Project projectName, string languageVersion)
+        {
+            _inProc.SetLanguageVersion(projectName.Name, languageVersion);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
         /// <summary>
@@ -86,7 +117,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void CleanUpOpenSolution()
             => _inProc.CleanUpOpenSolution();
 
-        public void AddFile(ProjectUtils.Project project, string fileName, string contents = null, bool open = false)
+        public void AddFile(ProjectUtils.Project project, string fileName, string? contents = null, bool open = false)
             => _inProc.AddFile(project.Name, fileName, contents, open);
 
         public void SetFileContents(ProjectUtils.Project project, string fileName, string contents)
@@ -95,8 +126,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetFileContents(ProjectUtils.Project project, string fileName)
             => _inProc.GetFileContents(project.Name, fileName);
 
-        public void BuildSolution(bool waitForBuildToFinish)
-            => _inProc.BuildSolution(waitForBuildToFinish);
+        public void BuildSolution()
+            => _inProc.BuildSolution();
 
         public void OpenFileWithDesigner(ProjectUtils.Project project, string fileName)
             => _inProc.OpenFileWithDesigner(project.Name, fileName);
@@ -105,7 +136,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
             _inProc.OpenFile(project.Name, fileName);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
         public void UpdateFile(string projectName, string fileName, string contents, bool open = false)
@@ -115,20 +146,33 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
             _inProc.RenameFile(project.Name, oldFileName, newFileName);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        public void CloseFile(ProjectUtils.Project project, string fileName, bool saveFile)
-            => _inProc.CloseFile(project.Name, fileName, saveFile);
+        public void RenameFileViaDTE(ProjectUtils.Project project, string oldFileName, string newFileName)
+        {
+            // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
+            _inProc.RenameFileViaDTE(project.Name, oldFileName, newFileName);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
+        public void CloseDesignerFile(ProjectUtils.Project project, string fileName, bool saveFile)
+            => _inProc.CloseDesignerFile(project.Name, fileName, saveFile);
+
+        public void CloseCodeFile(ProjectUtils.Project project, string fileName, bool saveFile)
+            => _inProc.CloseCodeFile(project.Name, fileName, saveFile);
 
         public void SaveFile(ProjectUtils.Project project, string fileName)
             => _inProc.SaveFile(project.Name, fileName);
 
         public void ReloadProject(ProjectUtils.Project project)
-            => _inProc.ReloadProject(project.RelativePath);
+        {
+            Contract.ThrowIfNull(project.RelativePath);
+            _inProc.ReloadProject(project.RelativePath);
+        }
 
-        public void RestoreNuGetPackages()
-            => _inProc.RestoreNuGetPackages();
+        public void RestoreNuGetPackages(ProjectUtils.Project project)
+            => _inProc.RestoreNuGetPackages(project.Name);
 
         public void SaveAll()
             => _inProc.SaveAll();

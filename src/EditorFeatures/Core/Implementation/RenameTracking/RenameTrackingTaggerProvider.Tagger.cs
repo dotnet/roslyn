@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -17,31 +21,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         private class Tagger : ITagger<RenameTrackingTag>, ITagger<IErrorTag>, IDisposable
         {
             private readonly StateMachine _stateMachine;
-            private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-            private readonly IWaitIndicator _waitIndicator;
-            private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged = delegate { };
 
-            public Tagger(
-                StateMachine stateMachine,
-                ITextUndoHistoryRegistry undoHistoryRegistry,
-                IWaitIndicator waitIndicator,
-                IEnumerable<IRefactorNotifyService> refactorNotifyServices)
+            public Tagger(StateMachine stateMachine)
             {
                 _stateMachine = stateMachine;
                 _stateMachine.Connect();
                 _stateMachine.TrackingSessionUpdated += StateMachine_TrackingSessionUpdated;
                 _stateMachine.TrackingSessionCleared += StateMachine_TrackingSessionCleared;
-                _undoHistoryRegistry = undoHistoryRegistry;
-                _waitIndicator = waitIndicator;
-                _refactorNotifyServices = refactorNotifyServices;
             }
 
             private void StateMachine_TrackingSessionCleared(ITrackingSpan trackingSpanToClear)
-            {
-                TagsChanged(this, new SnapshotSpanEventArgs(trackingSpanToClear.GetSpan(_stateMachine.Buffer.CurrentSnapshot)));
-            }
+                => TagsChanged(this, new SnapshotSpanEventArgs(trackingSpanToClear.GetSpan(_stateMachine.Buffer.CurrentSnapshot)));
 
             private void StateMachine_TrackingSessionUpdated()
             {
@@ -52,18 +44,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             }
 
             public IEnumerable<ITagSpan<RenameTrackingTag>> GetTags(NormalizedSnapshotSpanCollection spans)
-            {
-                return GetTags(spans, RenameTrackingTag.Instance);
-            }
+                => GetTags(spans, RenameTrackingTag.Instance);
 
             IEnumerable<ITagSpan<IErrorTag>> ITagger<IErrorTag>.GetTags(NormalizedSnapshotSpanCollection spans)
-            {
-                return GetTags(spans, new ErrorTag(PredefinedErrorTypeNames.Suggestion));
-            }
+                => GetTags(spans, new ErrorTag(PredefinedErrorTypeNames.Suggestion));
 
             private IEnumerable<ITagSpan<T>> GetTags<T>(NormalizedSnapshotSpanCollection spans, T tag) where T : ITag
             {
-                if (!_stateMachine.Buffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.RenameTracking))
+                if (!_stateMachine.GlobalOptions.GetOption(InternalFeatureOnOffOptions.RenameTracking))
                 {
                     // Changes aren't being triggered by the buffer, but there may still be taggers
                     // out there which we should prevent from doing work.

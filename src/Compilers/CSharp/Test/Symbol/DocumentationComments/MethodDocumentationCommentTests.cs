@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -199,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     internal static CSharpErrors.ClassMethods F = null;
 }");
             var type = compilation.Assembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            type = (NamedTypeSymbol)type.GetMember<FieldSymbol>("F").Type.TypeSymbol;
+            type = (NamedTypeSymbol)type.GetMember<FieldSymbol>("F").Type;
             var members = type.GetMembers();
             Assert.InRange(members.Length, 1, int.MaxValue);
             foreach (var member in members)

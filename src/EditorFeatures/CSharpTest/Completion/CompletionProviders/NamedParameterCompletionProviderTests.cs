@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,14 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 {
     public class NamedParameterCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public NamedParameterCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new NamedParameterCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(NamedParameterCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SendEnterThroughToEditorTest()
@@ -170,6 +168,27 @@ partial class PartialClass
 {
     static partial void Goo(int declaring);
     static partial void Goo(int implementing)
+    {
+    }
+    static void Caller()
+    {
+        Goo($$
+    }
+}
+";
+
+            await VerifyItemExistsAsync(markup, "declaring", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "implementing", displayTextSuffix: ":");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExtendedPartialMethods()
+        {
+            var markup = @"
+partial class PartialClass
+{
+    public static partial void Goo(int declaring);
+    public static partial void Goo(int implementing)
     {
     }
     static void Caller()
@@ -480,7 +499,7 @@ class Program
     }
 }
 ";
-            await VerifyProviderCommitAsync(markup, "args:", expected, ':', "args");
+            await VerifyProviderCommitAsync(markup, "args:", expected, ':');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -491,7 +510,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Main(ar$$)
+        Main(arg$$)
     }
 }
 ";
@@ -505,7 +524,7 @@ class Program
     }
 }
 ";
-            await VerifyProviderCommitAsync(markup, "args:", expected, ':', "arg");
+            await VerifyProviderCommitAsync(markup, "args:", expected, ':');
         }
     }
 }

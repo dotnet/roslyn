@@ -1,7 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using Microsoft.CodeAnalysis.BuildTasks;
+using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -292,6 +296,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.DebugType = "full";
             vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems();
             Assert.Equal(@"/optionstrict:custom /debug:full /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("a;b.vb");
+            vbc.DebugType = "full";
+            vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems("a;b.vb");
+            Assert.Equal(@"/optionstrict:custom /debug:full /out:""a;b.exe"" /embed:""a;b.vb"" ""a;b.vb""", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("a, b.vb");
+            vbc.DebugType = "full";
+            vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems("a, b.vb");
+            Assert.Equal(@"/optionstrict:custom /debug:full /out:""a, b.exe"" /embed:""a, b.vb"" ""a, b.vb""", vbc.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -408,6 +424,61 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var vbc = new Vbc();
             vbc.DisableSdkPath = true;
             Assert.Equal(@"/optionstrict:custom /nosdkpath", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void EditorConfig()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig");
+            Assert.Equal(@"/optionstrict:custom /out:test.exe /analyzerconfig:.editorconfig test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb", "subdir\\test.vb");
+            vbc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig", "subdir\\.editorconfig");
+            Assert.Equal(@$"/optionstrict:custom /out:test.exe /analyzerconfig:.editorconfig /analyzerconfig:subdir\.editorconfig test.vb subdir{Path.DirectorySeparatorChar}test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems("..\\.editorconfig", "sub dir\\.editorconfig");
+            Assert.Equal(@"/optionstrict:custom /out:test.exe /analyzerconfig:..\.editorconfig /analyzerconfig:""sub dir\.editorconfig"" test.vb", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void SkipAnalyzersFlag()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.SkipAnalyzers = true;
+            Assert.Equal("/optionstrict:custom /out:test.exe /skipanalyzers+ test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.SkipAnalyzers = false;
+            Assert.Equal("/optionstrict:custom /out:test.exe /skipanalyzers- test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(52467, "https://github.com/dotnet/roslyn/issues/52467")]
+        public void UnexpectedExceptionLogsMessage()
+        {
+            var engine = new MockEngine();
+            var vbc = new Vbc()
+            {
+                BuildEngine = engine,
+            };
+
+            vbc.ExecuteTool(@"q:\path\vbc.exe", "", "", new TestableCompilerServerLogger()
+            {
+                LogFunc = delegate { throw new Exception(""); }
+            });
+            Assert.False(string.IsNullOrEmpty(engine.Log));
         }
     }
 }

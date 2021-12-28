@@ -1,13 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -252,10 +255,8 @@ class c { }";
             Verify(text, expected, '/');
         }
 
-        internal override IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory)
-        {
-            return new XmlTagCompletionCommandHandler(undoHistory);
-        }
+        internal override IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(TestWorkspace workspace)
+            => workspace.ExportProvider.GetCommandHandler<XmlTagCompletionCommandHandler>(nameof(XmlTagCompletionCommandHandler), ContentTypeNames.CSharpContentType);
 
         protected override TestWorkspace CreateTestWorkspace(string initialMarkup)
             => TestWorkspace.CreateCSharp(initialMarkup);

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.ObjectModel;
@@ -53,6 +57,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 else if (lmrType.IsCharacter())
                 {
+                    // check if HostObjectValue is null, since any of these types might actually be a synthetic value as well.
+                    if (value.HostObjectValue == null)
+                    {
+                        return _hostValueNotFoundString;
+                    }
+
                     return IncludeObjectId(
                         value,
                         FormatLiteral((char)value.HostObjectValue, options | ObjectDisplayOptions.IncludeCodePoints),
@@ -100,6 +110,44 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     ? _nullString
                     : GetValueString(nullableValue, inspectionContext, ObjectDisplayOptions.None, GetValueFlags.IncludeTypeName);
             }
+            else if (lmrType.IsIntPtr())
+            {
+                // check if HostObjectValue is null, since any of these types might actually be a synthetic value as well.
+                if (value.HostObjectValue == null)
+                {
+                    return _hostValueNotFoundString;
+                }
+
+                if (IntPtr.Size == 8)
+                {
+                    var intPtr = ((IntPtr)value.HostObjectValue).ToInt64();
+                    return FormatPrimitiveObject(intPtr, ObjectDisplayOptions.UseHexadecimalNumbers);
+                }
+                else
+                {
+                    var intPtr = ((IntPtr)value.HostObjectValue).ToInt32();
+                    return FormatPrimitiveObject(intPtr, ObjectDisplayOptions.UseHexadecimalNumbers);
+                }
+            }
+            else if (lmrType.IsUIntPtr())
+            {
+                // check if HostObjectValue is null, since any of these types might actually be a synthetic value as well.
+                if (value.HostObjectValue == null)
+                {
+                    return _hostValueNotFoundString;
+                }
+
+                if (UIntPtr.Size == 8)
+                {
+                    var uIntPtr = ((UIntPtr)value.HostObjectValue).ToUInt64();
+                    return FormatPrimitiveObject(uIntPtr, ObjectDisplayOptions.UseHexadecimalNumbers);
+                }
+                else
+                {
+                    var uIntPtr = ((UIntPtr)value.HostObjectValue).ToUInt32();
+                    return FormatPrimitiveObject(uIntPtr, ObjectDisplayOptions.UseHexadecimalNumbers);
+                }
+            }
             else
             {
                 int cardinality;
@@ -135,6 +183,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 options |= ObjectDisplayOptions.UseHexadecimalNumbers;
             }
+            // check if HostObjectValue is null, since any of these types might actually be a synthetic value as well.
+            if (value.HostObjectValue == null)
+            {
+                return _hostValueNotFoundString;
+            }
+
             var charTemp = FormatLiteral((char)value.HostObjectValue, options);
             Debug.Assert(charTemp != null);
             return charTemp;
@@ -147,7 +201,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private string GetUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
-            RawStringDataItem dataItem = value.GetDataItem<RawStringDataItem>();
+            var dataItem = value.GetDataItem<RawStringDataItem>();
             if (dataItem != null)
             {
                 return dataItem.RawString;
@@ -215,11 +269,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(value != null);
 
             object underlyingValue = value.HostObjectValue;
-            Debug.Assert(underlyingValue != null);
+            // check if HostObjectValue is null, since any of these types might actually be a synthetic value as well.
+            if (underlyingValue == null)
+            {
+                return _hostValueNotFoundString;
+            }
 
             string displayString;
 
-            ArrayBuilder<EnumField> fields = ArrayBuilder<EnumField>.GetInstance();
+            var fields = ArrayBuilder<EnumField>.GetInstance();
             FillEnumFields(fields, lmrType);
             // We will normalize/extend all enum values to ulong to ensure that we are always comparing the full underlying value.
             ulong valueForComparison = ConvertEnumUnderlyingTypeToUInt64(underlyingValue, Type.GetTypeCode(lmrType));
@@ -259,7 +317,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             foreach (var field in fields)
             {
                 var fieldValue = field.Value;
-                if (fieldValue == 0) continue; // Otherwise, we'd tack the zero flag onto everything.
+                if (fieldValue == 0)
+                    continue; // Otherwise, we'd tack the zero flag onto everything.
 
                 if ((remaining & fieldValue) == fieldValue)
                 {
@@ -267,7 +326,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                     usedFields.Add(field);
 
-                    if (remaining == 0) break;
+                    if (remaining == 0)
+                        break;
                 }
             }
 
@@ -379,18 +439,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private string FormatPrimitive(DkmClrValue value, ObjectDisplayOptions options, DkmInspectionContext inspectionContext)
         {
             Debug.Assert(value != null);
+            // check if HostObjectValue is null, since any of these types might actually be a synthetic value as well.
+            if (value.HostObjectValue == null)
+            {
+                return _hostValueNotFoundString;
+            }
 
+            // DateTime is primitive in VB but not in C#.
             object obj;
             if (value.Type.GetLmrType().IsDateTime())
             {
-                DkmClrValue dateDataValue = value.GetPropertyValue("Ticks", inspectionContext);
-                Debug.Assert(dateDataValue.HostObjectValue != null);
-
+                var dateDataValue = value.GetPropertyValue("Ticks", inspectionContext);
                 obj = new DateTime((long)dateDataValue.HostObjectValue);
             }
             else
             {
-                Debug.Assert(value.HostObjectValue != null);
                 obj = value.HostObjectValue;
             }
 

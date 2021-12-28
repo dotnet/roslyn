@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Xml.Serialization;
@@ -7,7 +11,6 @@ namespace CSharpSyntaxGenerator
 {
     public class AbstractNode : TreeType
     {
-        [XmlElement(ElementName = "Field", Type = typeof(Field))]
-        public List<Field> Fields;
+        public readonly List<Field> Fields = new List<Field>();
     }
 }

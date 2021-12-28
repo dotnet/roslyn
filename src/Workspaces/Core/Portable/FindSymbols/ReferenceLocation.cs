@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// Information about a reference to a symbol.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public struct ReferenceLocation : IComparable<ReferenceLocation>, IEquatable<ReferenceLocation>
+    public readonly struct ReferenceLocation : IComparable<ReferenceLocation>, IEquatable<ReferenceLocation>
     {
         /// <summary>
         /// The document that the reference was found in.
@@ -40,31 +44,57 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Indicates if this is a location where the reference is written to.
         /// </summary>
-        internal bool IsWrittenTo => ValueUsageInfo.IsWrittenTo();
+        internal bool IsWrittenTo => SymbolUsageInfo.IsWrittenTo();
 
         /// <summary>
-        /// Value usage info for this reference.
+        /// Symbol usage info for this reference.
         /// </summary>
-        internal ValueUsageInfo ValueUsageInfo { get; }
+        internal SymbolUsageInfo SymbolUsageInfo { get; }
 
         /// <summary>
-        /// Indicates if this location is a duplicate of some another ReferenceLocation.
-        /// In this case, it's acceptable for a presenter to not show this location and
-        /// intead prefer the latter.
+        /// Additional properties for this reference
         /// </summary>
-        internal bool IsDuplicateReferenceLocation;
+        internal ImmutableDictionary<string, string> AdditionalProperties { get; }
+
+        /// <summary>
+        /// If this reference location is within a string literal, then this property
+        /// indicates the location of the containing string literal token.
+        /// Otherwise, <see cref="Location.None"/>.
+        /// </summary>
+        internal Location ContainingStringLocation { get; }
 
         public CandidateReason CandidateReason { get; }
 
-        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, ValueUsageInfo valueUsageInfo, CandidateReason candidateReason)
+        private ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties, CandidateReason candidateReason, Location containingStringLocation)
             : this()
         {
             this.Document = document;
             this.Alias = alias;
             this.Location = location;
             this.IsImplicit = isImplicit;
-            this.ValueUsageInfo = valueUsageInfo;
+            this.SymbolUsageInfo = symbolUsageInfo;
+            this.AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
             this.CandidateReason = candidateReason;
+            this.ContainingStringLocation = containingStringLocation;
+        }
+
+        /// <summary>
+        /// Creates a reference location with the given properties.
+        /// </summary>
+        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties, CandidateReason candidateReason)
+            : this(document, alias, location, isImplicit, symbolUsageInfo, additionalProperties, candidateReason, containingStringLocation: Location.None)
+        {
+        }
+
+        /// <summary>
+        /// Creates a reference location within a string literal.
+        /// For example, location inside the target string of a global SuppressMessageAttribute.
+        /// </summary>
+        internal ReferenceLocation(Document document, Location location, Location containingStringLocation)
+            : this(document, alias: null, location, isImplicit: false,
+                   SymbolUsageInfo.None, additionalProperties: ImmutableDictionary<string, string>.Empty,
+                   CandidateReason.None, containingStringLocation)
+        {
         }
 
         /// <summary>
@@ -76,14 +106,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool IsCandidateLocation => this.CandidateReason != CandidateReason.None;
 
         public static bool operator ==(ReferenceLocation left, ReferenceLocation right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(ReferenceLocation left, ReferenceLocation right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         public override bool Equals(object obj)
         {
@@ -127,8 +153,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private string GetDebuggerDisplay()
-        {
-            return string.Format("{0}: {1}", this.Document.Name, this.Location);
-        }
+            => string.Format("{0}: {1}", this.Document.Name, this.Location);
     }
 }

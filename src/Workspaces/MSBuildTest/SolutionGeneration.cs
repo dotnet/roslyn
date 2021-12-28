@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -304,7 +308,7 @@ EndGlobal
                 return document.ToString();
             }
 
-            private void AddItemGroup<T>(
+            private static void AddItemGroup<T>(
                 XElement addBefore,
                 Func<T, string> itemTypeSelector,
                 IEnumerable<T> items,
@@ -324,12 +328,12 @@ EndGlobal
                 }
             }
 
-            private XElement CreateXElement(string name)
+            private static XElement CreateXElement(string name)
             {
                 return new XElement(XName.Get(name, NS));
             }
 
-            private void AddXElement(XElement element, string elementName, string elementValue)
+            private static void AddXElement(XElement element, string elementName, string elementValue)
             {
                 element.Add(new XElement(XName.Get(elementName, NS), elementValue));
             }

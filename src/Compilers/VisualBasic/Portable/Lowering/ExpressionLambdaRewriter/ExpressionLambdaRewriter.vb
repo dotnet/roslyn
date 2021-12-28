@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -38,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _recursionDepth As Integer
 
         Private Sub New(currentMethod As MethodSymbol, compilationState As TypeCompilationState, typeMap As TypeSubstitution, binder As Binder,
-                        node As SyntaxNode, recursionDepth As Integer, diagnostics As DiagnosticBag)
+                        node As SyntaxNode, recursionDepth As Integer, diagnostics As BindingDiagnosticBag)
             _binder = binder
             _typeMap = typeMap
             _factory = New SyntheticBoundNodeFactory(Nothing, currentMethod, node, compilationState, diagnostics)
@@ -99,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              delegateType As NamedTypeSymbol,
                                              compilationState As TypeCompilationState,
                                              typeMap As TypeSubstitution,
-                                             diagnostics As DiagnosticBag,
+                                             diagnostics As BindingDiagnosticBag,
                                              rewrittenNodes As HashSet(Of BoundNode),
                                              recursionDepth As Integer) As BoundExpression
 
@@ -119,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return expressionTree
         End Function
 
-        Private ReadOnly Property Diagnostics As DiagnosticBag
+        Private ReadOnly Property Diagnostics As BindingDiagnosticBag
             Get
                 Return _factory.Diagnostics
             End Get
@@ -469,9 +471,12 @@ lSelect:
 
             Dim methodInfo As BoundExpression = Me._factory.MethodInfo(If(method.CallsiteReducedFromMethod, method))
 
-            Dim useSiteError As DiagnosticInfo = Nothing
-            Dim createDelegate = Binder.GetWellKnownTypeMember(Me._factory.Compilation, WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, useSiteError)
-            If createDelegate IsNot Nothing And useSiteError Is Nothing Then
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim createDelegate = Binder.GetWellKnownTypeMember(Me._factory.Compilation, WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, useSiteInfo)
+            If createDelegate IsNot Nothing And useSiteInfo.DiagnosticInfo Is Nothing Then
+
+                Diagnostics.AddDependencies(useSiteInfo)
+
                 ' beginning in 4.5, we do it this way
                 result = Me._factory.Call(methodInfo,
                                           DirectCast(createDelegate, MethodSymbol),
@@ -818,14 +823,14 @@ lSelect:
             Dim group As BoundMethodGroup = Nothing
             Dim result = LookupResult.GetInstance()
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo = _binder.GetNewCompoundUseSiteInfo(Me.Diagnostics)
             _binder.LookupMember(result,
                                  Me._expressionType,
                                  methodName,
                                  arity:=0,
                                  options:=LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods,
-                                 useSiteDiagnostics:=useSiteDiagnostics)
-            Me.Diagnostics.Add(Me._factory.Syntax, useSiteDiagnostics)
+                                 useSiteInfo:=useSiteInfo)
+            Me.Diagnostics.Add(Me._factory.Syntax, useSiteInfo)
 
             If result.IsGood Then
                 Debug.Assert(result.Symbols.Count > 0)

@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -14,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editing
         private readonly SyntaxGenerator _generator;
         private readonly List<Change> _changes;
         private bool _allowEditsOnLazilyCreatedTrackedNewNodes;
-        private HashSet<SyntaxNode> _lazyTrackedNewNodesOpt;
+        private HashSet<SyntaxNode>? _lazyTrackedNewNodesOpt;
 
         /// <summary>
         /// Creates a new <see cref="SyntaxEditor"/> instance.
@@ -38,14 +42,15 @@ namespace Microsoft.CodeAnalysis.Editing
             _changes = new List<Change>();
         }
 
-        private SyntaxNode ApplyTrackingToNewNode(SyntaxNode node)
+        [return: NotNullIfNotNull("node")]
+        private SyntaxNode? ApplyTrackingToNewNode(SyntaxNode? node)
         {
             if (node == null)
             {
                 return null;
             }
 
-            _lazyTrackedNewNodesOpt = _lazyTrackedNewNodesOpt ?? new HashSet<SyntaxNode>();
+            _lazyTrackedNewNodesOpt ??= new HashSet<SyntaxNode>();
             foreach (var descendant in node.DescendantNodesAndSelf())
             {
                 _lazyTrackedNewNodesOpt.Add(descendant);
@@ -58,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             foreach (var node in nodes)
             {
-                yield return ApplyTrackingToNewNode(node);
+                var result = ApplyTrackingToNewNode(node);
+                yield return result;
             }
         }
 
@@ -103,9 +109,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         /// <param name="node">The node to remove that currently exists as part of the tree.</param>
         public void RemoveNode(SyntaxNode node)
-        {
-            RemoveNode(node, SyntaxGenerator.DefaultRemoveOptions);
-        }
+            => RemoveNode(node, SyntaxGenerator.DefaultRemoveOptions);
 
         /// <summary>
         /// Remove the node from the tree.
@@ -134,6 +138,18 @@ namespace Microsoft.CodeAnalysis.Editing
 
             _allowEditsOnLazilyCreatedTrackedNewNodes = true;
             _changes.Add(new ReplaceChange(node, computeReplacement, this));
+        }
+
+        internal void ReplaceNode(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> computeReplacement)
+        {
+            CheckNodeInOriginalTreeOrTracked(node);
+            if (computeReplacement == null)
+            {
+                throw new ArgumentNullException(nameof(computeReplacement));
+            }
+
+            _allowEditsOnLazilyCreatedTrackedNewNodes = true;
+            _changes.Add(new ReplaceWithCollectionChange(node, computeReplacement, this));
         }
 
         internal void ReplaceNode<TArgument>(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> computeReplacement, TArgument argument)
@@ -251,9 +267,7 @@ namespace Microsoft.CodeAnalysis.Editing
             internal readonly SyntaxNode Node;
 
             public Change(SyntaxNode node)
-            {
-                this.Node = node;
-            }
+                => this.Node = node;
 
             public abstract SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator);
         }
@@ -266,9 +280,7 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
-            {
-                return root;
-            }
+                => root;
         }
 
         private class RemoveChange : Change
@@ -282,19 +294,47 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
-            {
-                return generator.RemoveNode(root, root.GetCurrentNode(this.Node), _options);
-            }
+                => generator.RemoveNode(root, root.GetCurrentNode(this.Node), _options);
         }
 
         private class ReplaceChange : Change
         {
-            private readonly Func<SyntaxNode, SyntaxGenerator, SyntaxNode> _modifier;
+            private readonly Func<SyntaxNode, SyntaxGenerator, SyntaxNode?> _modifier;
             private readonly SyntaxEditor _editor;
 
             public ReplaceChange(
                 SyntaxNode node,
-                Func<SyntaxNode, SyntaxGenerator, SyntaxNode> modifier,
+                Func<SyntaxNode, SyntaxGenerator, SyntaxNode?> modifier,
+                SyntaxEditor editor)
+                : base(node)
+            {
+                Contract.ThrowIfNull(node, "Passed in node is null.");
+                _modifier = modifier;
+                _editor = editor;
+            }
+
+            public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
+            {
+                var current = root.GetCurrentNode(this.Node);
+                if (current is null)
+                {
+                    Contract.Fail($"GetCurrentNode returned null with the following node: {this.Node}");
+                }
+
+                var newNode = _modifier(current, generator);
+                newNode = _editor.ApplyTrackingToNewNode(newNode);
+                return generator.ReplaceNode(root, current, newNode);
+            }
+        }
+
+        private class ReplaceWithCollectionChange : Change
+        {
+            private readonly Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> _modifier;
+            private readonly SyntaxEditor _editor;
+
+            public ReplaceWithCollectionChange(
+                SyntaxNode node,
+                Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> modifier,
                 SyntaxEditor editor)
                 : base(node)
             {
@@ -305,9 +345,18 @@ namespace Microsoft.CodeAnalysis.Editing
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
             {
                 var current = root.GetCurrentNode(this.Node);
-                var newNode = _modifier(current, generator);
-                newNode = _editor.ApplyTrackingToNewNode(newNode);
-                return generator.ReplaceNode(root, current, newNode);
+                if (current is null)
+                {
+                    Contract.Fail($"GetCurrentNode returned null with the following node: {this.Node}");
+                }
+
+                var newNodes = _modifier(current, generator).ToList();
+                for (var i = 0; i < newNodes.Count; i++)
+                {
+                    newNodes[i] = _editor.ApplyTrackingToNewNode(newNodes[i]);
+                }
+
+                return SyntaxGenerator.ReplaceNode(root, current, newNodes);
             }
         }
 
@@ -332,6 +381,11 @@ namespace Microsoft.CodeAnalysis.Editing
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
             {
                 var current = root.GetCurrentNode(this.Node);
+                if (current is null)
+                {
+                    Contract.Fail($"GetCurrentNode returned null with the following node: {this.Node}");
+                }
+
                 var newNode = _modifier(current, generator, _argument);
                 newNode = _editor.ApplyTrackingToNewNode(newNode);
                 return generator.ReplaceNode(root, current, newNode);

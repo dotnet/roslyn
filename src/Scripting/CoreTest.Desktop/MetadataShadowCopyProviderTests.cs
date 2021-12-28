@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -12,6 +16,8 @@ using Roslyn.Utilities;
 using System.Runtime.InteropServices;
 using System.Globalization;
 
+using static Roslyn.Utilities.PlatformInformation;
+
 namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 {
     // TODO: clean up and move to portable tests
@@ -20,7 +26,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
     {
         private readonly MetadataShadowCopyProvider _provider;
 
-        private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories = ImmutableArray.Create(
+        private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories = IsRunningOnMono
+            ? ImmutableArray<string>.Empty
+            : ImmutableArray.Create(
                 FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.Windows)),
                 FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)),
                 FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)),
@@ -58,14 +66,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
             Assert.Throws<ArgumentException>(() => _provider.SuppressShadowCopy(@"\bar.dll"));
             Assert.Throws<ArgumentException>(() => _provider.SuppressShadowCopy(@"../bar.dll"));
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadataShadowCopy(@"c:\goo.dll", (MetadataImageKind)Byte.MaxValue));
+            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadataShadowCopy(IsRunningOnMono ? "/goo.dll" : @"c:\goo.dll", (MetadataImageKind)Byte.MaxValue));
             Assert.Throws<ArgumentNullException>(() => _provider.GetMetadataShadowCopy(null, MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy("c:goo.dll", MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy("bar.dll", MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy(@"\bar.dll", MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy(@"../bar.dll", MetadataImageKind.Assembly));
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadata(@"c:\goo.dll", (MetadataImageKind)Byte.MaxValue));
+            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadata(IsRunningOnMono ? "/goo.dll" : @"c:\goo.dll", (MetadataImageKind)Byte.MaxValue));
             Assert.Throws<ArgumentNullException>(() => _provider.GetMetadata(null, MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadata("c:goo.dll", MetadataImageKind.Assembly));
         }
@@ -100,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
             Assert.Null(sc1);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Fusion)]
         public void SuppressCopy_Framework()
         {
             // framework assemblies not copied:
@@ -147,8 +155,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
             {
                 Assert.True(_provider.IsShadowCopy(sc));
 
-                // files should be locked:
-                Assert.Throws<IOException>(() => File.Delete(sc));
+                if (!IsRunningOnMono)
+                {
+                    // files should be locked:
+                    Assert.Throws<IOException>(() => File.Delete(sc));
+                }
             }
 
             // should get the same metadata:
@@ -223,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
             // Greek culture
             provider = CreateProvider(elGR);
             sc = provider.GetMetadataShadowCopy(dll.Path, MetadataImageKind.Assembly);
-            Assert.Equal(Path.Combine(Path.GetDirectoryName(sc.PrimaryModule.FullPath), @"el-GR\a.xml"), sc.DocumentationFile.FullPath);
+            Assert.Equal(Path.Combine(Path.GetDirectoryName(sc.PrimaryModule.FullPath), @"el-GR", "a.xml"), sc.DocumentationFile.FullPath);
             Assert.Equal("Greek", File.ReadAllText(sc.DocumentationFile.FullPath));
 
             // Arabic culture (culture specific docs not found, use invariant)

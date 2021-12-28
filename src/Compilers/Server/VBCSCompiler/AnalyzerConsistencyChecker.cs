@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,43 +10,59 @@ using System.Linq;
 using System.Reflection;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal static class AnalyzerConsistencyChecker
     {
-        private static readonly ImmutableArray<string> s_defaultIgnorableReferenceNames = ImmutableArray.Create("mscorlib", "System", "Microsoft.CodeAnalysis");
+        public static bool Check(
+            string baseDirectory,
+            IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
+            IAnalyzerAssemblyLoader loader,
+            ICompilerServerLogger? logger = null) => Check(baseDirectory, analyzerReferences, loader, logger, out var _);
 
-        public static bool Check(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string> ignorableReferenceNames = null)
+        public static bool Check(
+            string baseDirectory,
+            IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
+            IAnalyzerAssemblyLoader loader,
+            ICompilerServerLogger? logger,
+            [NotNullWhen(false)]
+            out List<string>? errorMessages)
         {
-            if (ignorableReferenceNames == null)
-            {
-                ignorableReferenceNames = s_defaultIgnorableReferenceNames;
-            }
-
             try
             {
-                CompilerServerLogger.Log("Begin Analyzer Consistency Check");
-                return CheckCore(baseDirectory, analyzerReferences, loader, ignorableReferenceNames);
+                logger?.Log("Begin Analyzer Consistency Check");
+                return CheckCore(baseDirectory, analyzerReferences, loader, logger, out errorMessages);
             }
             catch (Exception e)
             {
-                CompilerServerLogger.LogException(e, "Analyzer Consistency Check");
+                logger?.LogException(e, "Analyzer Consistency Check");
+                errorMessages = new List<string>();
+                errorMessages.Add(e.Message);
                 return false;
             }
             finally
             {
-                CompilerServerLogger.Log("End Analyzer Consistency Check");
+                logger?.Log("End Analyzer Consistency Check");
             }
         }
 
-        private static bool CheckCore(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string> ignorableReferenceNames)
+        private static bool CheckCore(
+            string baseDirectory,
+            IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
+            IAnalyzerAssemblyLoader loader,
+            ICompilerServerLogger? logger,
+            [NotNullWhen(false)]
+            out List<string>? errorMessages)
         {
+            errorMessages = null;
             var resolvedPaths = new List<string>();
 
             foreach (var analyzerReference in analyzerReferences)
             {
-                string resolvedPath = FileUtilities.ResolveRelativePath(analyzerReference.FilePath, basePath: null, baseDirectory: baseDirectory, searchPaths: SpecializedCollections.EmptyEnumerable<string>(), fileExists: File.Exists);
+                string? resolvedPath = FileUtilities.ResolveRelativePath(analyzerReference.FilePath, basePath: null, baseDirectory: baseDirectory, searchPaths: SpecializedCollections.EmptyEnumerable<string>(), fileExists: File.Exists);
                 if (resolvedPath != null)
                 {
                     resolvedPath = FileUtilities.TryNormalizeAbsolutePath(resolvedPath);
@@ -55,21 +73,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
 
                 // Don't worry about paths we can't resolve. The compiler will report an error for that later.
-            }
-
-            // First, check that the set of references is complete, modulo items in the safe list.
-            foreach (var resolvedPath in resolvedPaths)
-            {
-                var missingDependencies = AssemblyUtilities.IdentifyMissingDependencies(resolvedPath, resolvedPaths);
-
-                foreach (var missingDependency in missingDependencies)
-                {
-                    if (!ignorableReferenceNames.Any(name => missingDependency.Name.StartsWith(name)))
-                    {
-                        CompilerServerLogger.Log($"Analyzer assembly {resolvedPath} depends on '{missingDependency}' but it was not found.");
-                        return false;
-                    }
-                }
             }
 
             // Register analyzers and their dependencies upfront, 
@@ -96,12 +99,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 if (resolvedPathMvid != loadedAssemblyMvid)
                 {
-                    CompilerServerLogger.Log($"Analyzer assembly {resolvedPath} has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.FullName}' has MVID '{loadedAssemblyMvid}'.");
-                    return false;
+                    var message = $"analyzer assembly '{resolvedPath}' has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.FullName}' has MVID '{loadedAssemblyMvid}'";
+                    errorMessages ??= new List<string>();
+                    errorMessages.Add(message);
                 }
             }
 
-            return true;
+            return errorMessages == null;
         }
     }
 }

@@ -1,11 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToMethod;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLocalFunctionToMethod
@@ -499,18 +504,21 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestCaretPositon()
         {
             await TestAsync("C [||]LocalFunction(C c)");
             await TestAsync("C Local[||]Function(C c)");
             await TestAsync("C [|LocalFunction|](C c)");
             await TestAsync("C LocalFunction[||](C c)");
-            await TestMissingAsync("C Local[|Function|](C c)");
-            await TestMissingAsync("[||]C LocalFunction(C c)");
+            await TestAsync("C Local[|Function|](C c)");
+            await TestAsync("[||]C LocalFunction(C c)");
+            await TestAsync("C[||] LocalFunction(C c)");
+            await TestAsync("C LocalFunction([||]C c)");
+            await TestAsync("C LocalFunction(C [||]c)");
             await TestMissingAsync("[|C|] LocalFunction(C c)");
-            await TestMissingAsync("C[||] LocalFunction(C c)");
-            await TestMissingAsync("C LocalFunction([||]C c)");
-            await TestMissingAsync("C LocalFunction(C [||]c)");
+            await TestMissingAsync("C[| |]LocalFunction(C c)");
+            await TestMissingAsync("C LocalFunction([|C c|])");
 
             async Task TestAsync(string signature)
             {
@@ -552,6 +560,364 @@ $@"class C
     }}
 }}");
             }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMethodBlockSelection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|C LocalFunction(C c)
+        {
+            return null;
+        }|]
+    }
+}",
+@"class C
+{
+    void M()
+    {
+    }
+
+    private static C LocalFunction(C c)
+    {
+        return null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMethodBlockSelection2()
+        {
+
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        C LocalFunction(C c)[|
+        {
+            return null;
+        }|]
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMethodBlockSelection3()
+        {
+            await TestInRegularAndScriptAsync(
+
+@"class C
+{
+    void M()
+    {
+[|
+        C LocalFunction(C c)
+        {
+            return null;
+        }
+        |]
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        
+    }
+
+    private static C LocalFunction(C c)
+    {
+        return null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMethodBlockSelection4()
+        {
+
+            await this.TestMissingAsync(
+    @"class C
+{
+    void M()
+    {
+
+        object a = null[|;
+        C LocalFunction(C c)
+        {      
+            return null;
+        
+        }|]
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMethodBlockSelection5()
+        {
+
+            await this.TestMissingAsync(
+    @"class C
+{
+    void M()
+    {
+
+        [|
+        C LocalFunction(C c)
+        {      
+            return null;
+        
+        }
+        object|] a = null
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMethodBlockSelection6()
+        {
+
+            await this.TestMissingAsync(
+    @"class C
+{
+    void M()
+    {
+        C LocalFunction(C c)
+        {
+            object b = null;
+            [|
+            object a = null;
+            return null;
+            |]
+        
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMethodBlockSelection7()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        C LocalFunction(C c)
+        {
+            [|return null;|]
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMethodBlockSelection8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|C LocalFunction(C c)|]
+        {
+            return null;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+    }
+
+    private static C LocalFunction(C c)
+    {
+        return null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMethodBlockSelection9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        C LocalFunction(C c)
+        {
+            return null;
+        }[||]
+    }
+}",
+@"class C
+{
+    void M()
+    {
+    }
+
+    private static C LocalFunction(C c)
+    {
+        return null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMethodBlockSelection10()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [||]C LocalFunction(C c)
+        {
+            return null;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+    }
+
+    private static C LocalFunction(C c)
+    {
+        return null;
+    }
+}");
+        }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMethodBlockSelection11()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        object a = null;[||]
+        C LocalFunction(C c)
+        {
+            return null;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
+        public async Task TestUnsafeLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe void UnsafeFunction()
+    {
+        byte b = 1;
+        [|unsafe byte* GetPtr(byte* bytePt)
+        {
+            return bytePt;
+        }|]
+        var aReference = GetPtr(&b);
+    }
+}",
+@"class C
+{
+    public unsafe void UnsafeFunction()
+    {
+        byte b = 1;
+        var aReference = GetPtr(&b);
+    }
+
+    private static unsafe byte* GetPtr(byte* bytePt)
+    {
+        return bytePt;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
+        public async Task TestUnsafeLocalFunctionInUnsafeMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe void UnsafeFunction()
+    {
+        byte b = 1;
+        [|byte* GetPtr(byte* bytePt)
+        {
+            return bytePt;
+        }|]
+        var aReference = GetPtr(&b);
+    }
+}",
+@"class C
+{
+    public unsafe void UnsafeFunction()
+    {
+        byte b = 1;
+        var aReference = GetPtr(&b);
+    }
+
+    private static unsafe byte* GetPtr(byte* bytePt)
+    {
+        return bytePt;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
+        [WorkItem(32976, "https://github.com/dotnet/roslyn/issues/32976")]
+        public async Task TestLocalFunctionInUnsafeMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe void UnsafeFunction()
+    {
+        byte b = 1;
+        [|byte GetPtr(byte bytePt)
+        {
+            return bytePt;
+        }|]
+        var aReference = GetPtr(b);
+    }
+}",
+@"class C
+{
+    public unsafe void UnsafeFunction()
+    {
+        byte b = 1;
+        var aReference = GetPtr(b);
+    }
+
+    private static byte GetPtr(byte bytePt)
+    {
+        return bytePt;
+    }
+}");
         }
     }
 }

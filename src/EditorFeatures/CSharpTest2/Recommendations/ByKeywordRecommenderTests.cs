@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -9,10 +13,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class ByKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtRoot_Interactive()
+        public async Task TestNotAtRoot()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"$$");
+            await VerifyAbsenceAsync(
+@"$$", options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -24,19 +28,19 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
+        public async Task TestNotAfterGlobalStatement()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(
 @"System.Console.WriteLine();
-$$");
+$$", options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        public async Task TestNotAfterGlobalVariableDeclaration()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(
 @"int i = 0;
-$$");
+$$", options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -47,34 +51,45 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        public async Task TestNotInGlobalUsingAlias()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"$$"));
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGroupExpr()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotInEmptyStatement(bool topLevelStatement)
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestAfterGroupExpr(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = from x in y
-          group a $$"));
+          group a $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGroup()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotAfterGroup(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"var q = from x in y
-          group $$"));
+          group $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterBy()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotAfterBy(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"var q = from x in y
-          group a by $$"));
+          group a by $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
     }
 }

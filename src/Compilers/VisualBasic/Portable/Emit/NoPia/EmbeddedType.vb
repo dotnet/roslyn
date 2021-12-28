@@ -1,8 +1,18 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+
+#If Not DEBUG Then
+Imports NamedTypeSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol
+Imports FieldSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.FieldSymbol
+Imports MethodSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol
+Imports EventSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.EventSymbol
+Imports PropertySymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.PropertySymbol
+#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
@@ -11,16 +21,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Private _embeddedAllMembersOfImplementedInterface As Boolean
 
-        Public Sub New(typeManager As EmbeddedTypesManager, underlyingNamedType As NamedTypeSymbol)
+        Public Sub New(typeManager As EmbeddedTypesManager, underlyingNamedType As NamedTypeSymbolAdapter)
             MyBase.New(typeManager, underlyingNamedType)
 
-            Debug.Assert(underlyingNamedType.IsDefinition)
-            Debug.Assert(underlyingNamedType.IsTopLevelType())
-            Debug.Assert(Not underlyingNamedType.IsGenericType)
+            Debug.Assert(underlyingNamedType.AdaptedNamedTypeSymbol.IsDefinition)
+            Debug.Assert(underlyingNamedType.AdaptedNamedTypeSymbol.IsTopLevelType())
+            Debug.Assert(Not underlyingNamedType.AdaptedNamedTypeSymbol.IsGenericType)
         End Sub
 
         Public Sub EmbedAllMembersOfImplementedInterface(syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
-            Debug.Assert(UnderlyingNamedType.IsInterfaceType())
+            Debug.Assert(UnderlyingNamedType.AdaptedNamedTypeSymbol.IsInterfaceType())
 
             If _embeddedAllMembersOfImplementedInterface Then
                 Return
@@ -29,9 +39,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             _embeddedAllMembersOfImplementedInterface = True
 
             ' Embed all members
-            For Each m In UnderlyingNamedType.GetMethodsToEmit()
+            For Each m In UnderlyingNamedType.AdaptedNamedTypeSymbol.GetMethodsToEmit()
                 If m IsNot Nothing Then
-                    TypeManager.EmbedMethod(Me, m, syntaxNodeOpt, diagnostics)
+                    TypeManager.EmbedMethod(Me, m.GetCciAdapter(), syntaxNodeOpt, diagnostics)
                 End If
             Next
 
@@ -39,41 +49,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             ' because accessors embed them automatically.
 
             ' Do the same for implemented interfaces.
-            For Each [interface] In UnderlyingNamedType.GetInterfacesToEmit()
+            For Each [interface] In UnderlyingNamedType.AdaptedNamedTypeSymbol.GetInterfacesToEmit()
                 TypeManager.ModuleBeingBuilt.Translate([interface], syntaxNodeOpt, diagnostics, fromImplements:=True)
             Next
         End Sub
 
         Protected Overrides Function GetAssemblyRefIndex() As Integer
             Dim refs = TypeManager.ModuleBeingBuilt.SourceModule.GetReferencedAssemblySymbols()
-            Return refs.IndexOf(UnderlyingNamedType.ContainingAssembly, ReferenceEqualityComparer.Instance)
+            Return refs.IndexOf(UnderlyingNamedType.AdaptedNamedTypeSymbol.ContainingAssembly, ReferenceEqualityComparer.Instance)
         End Function
 
         Protected Overrides ReadOnly Property IsPublic As Boolean
             Get
-                Return UnderlyingNamedType.DeclaredAccessibility = Accessibility.Public
+                Return UnderlyingNamedType.AdaptedNamedTypeSymbol.DeclaredAccessibility = Accessibility.Public
             End Get
         End Property
 
         Protected Overrides Function GetBaseClass(moduleBuilder As PEModuleBuilder, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.ITypeReference
-            Dim baseType = UnderlyingNamedType.BaseTypeNoUseSiteDiagnostics
+            Dim baseType = UnderlyingNamedType.AdaptedNamedTypeSymbol.BaseTypeNoUseSiteDiagnostics
             Return If(baseType IsNot Nothing, moduleBuilder.Translate(baseType, syntaxNodeOpt, diagnostics), Nothing)
         End Function
 
-        Protected Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
-            Return UnderlyingNamedType.GetFieldsToEmit()
+        Protected Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbolAdapter)
+#If DEBUG Then
+            Return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetFieldsToEmit().Select(Function(s) s.GetCciAdapter())
+#Else
+            Return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetFieldsToEmit()
+#End If
         End Function
 
-        Protected Overrides Function GetMethodsToEmit() As IEnumerable(Of MethodSymbol)
-            Return UnderlyingNamedType.GetMethodsToEmit()
+        Protected Overrides Function GetMethodsToEmit() As IEnumerable(Of MethodSymbolAdapter)
+#If DEBUG Then
+            Return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetMethodsToEmit().Select(Function(s) s?.GetCciAdapter())
+#Else
+            Return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetMethodsToEmit()
+#End If
         End Function
 
-        Protected Overrides Function GetEventsToEmit() As IEnumerable(Of EventSymbol)
-            Return UnderlyingNamedType.GetEventsToEmit()
+        Protected Overrides Function GetEventsToEmit() As IEnumerable(Of EventSymbolAdapter)
+#If DEBUG Then
+            Return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetEventsToEmit().Select(Function(s) s.GetCciAdapter())
+#Else
+            Return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetEventsToEmit()
+#End If
         End Function
 
-        Protected Overrides Function GetPropertiesToEmit() As IEnumerable(Of PropertySymbol)
-            Return UnderlyingNamedType.GetPropertiesToEmit()
+        Protected Overrides Function GetPropertiesToEmit() As IEnumerable(Of PropertySymbolAdapter)
+#If DEBUG Then
+            Return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetPropertiesToEmit().Select(Function(s) s.GetCciAdapter())
+#Else
+            Return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetPropertiesToEmit()
+#End If
         End Function
 
         Protected Overrides Iterator Function GetInterfaces(context As EmitContext) As IEnumerable(Of Cci.TypeReferenceWithAttributes)
@@ -81,24 +107,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
 
-            For Each [interface] In UnderlyingNamedType.GetInterfacesToEmit()
+            For Each [interface] In UnderlyingNamedType.AdaptedNamedTypeSymbol.GetInterfacesToEmit()
                 Dim typeRef = moduleBeingBuilt.Translate([interface],
-                                                            DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                                            DirectCast(context.SyntaxNode, VisualBasicSyntaxNode),
                                                             context.Diagnostics)
 
-                Yield [interface].GetTypeRefWithAttributes(UnderlyingNamedType.DeclaringCompilation, typeRef)
+                Yield [interface].GetTypeRefWithAttributes(UnderlyingNamedType.AdaptedNamedTypeSymbol.DeclaringCompilation, typeRef)
             Next
         End Function
 
         Protected Overrides ReadOnly Property IsAbstract As Boolean
             Get
-                Return UnderlyingNamedType.IsMetadataAbstract
+                Return UnderlyingNamedType.AdaptedNamedTypeSymbol.IsMetadataAbstract
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsBeforeFieldInit As Boolean
             Get
-                Select Case UnderlyingNamedType.TypeKind
+                Select Case UnderlyingNamedType.AdaptedNamedTypeSymbol.TypeKind
                     Case TypeKind.Enum, TypeKind.Delegate, TypeKind.Interface
                         Return False
                 End Select
@@ -110,52 +136,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Protected Overrides ReadOnly Property IsComImport As Boolean
             Get
-                Return UnderlyingNamedType.IsComImport
+                Return UnderlyingNamedType.AdaptedNamedTypeSymbol.IsComImport
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsInterface As Boolean
             Get
-                Return UnderlyingNamedType.IsInterfaceType()
+                Return UnderlyingNamedType.AdaptedNamedTypeSymbol.IsInterfaceType()
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property IsDelegate As Boolean
+            Get
+                Return UnderlyingNamedType.AdaptedNamedTypeSymbol.IsDelegateType()
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsSerializable As Boolean
             Get
-                Return UnderlyingNamedType.IsSerializable
+                Return UnderlyingNamedType.AdaptedNamedTypeSymbol.IsSerializable
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsSpecialName As Boolean
             Get
-                Return UnderlyingNamedType.HasSpecialName
+                Return UnderlyingNamedType.AdaptedNamedTypeSymbol.HasSpecialName
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsWindowsRuntimeImport As Boolean
             Get
-                Return UnderlyingNamedType.IsWindowsRuntimeImport
+                Return UnderlyingNamedType.AdaptedNamedTypeSymbol.IsWindowsRuntimeImport
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsSealed As Boolean
             Get
-                Return UnderlyingNamedType.IsMetadataSealed
+                Return UnderlyingNamedType.AdaptedNamedTypeSymbol.IsMetadataSealed
             End Get
         End Property
 
         Protected Overrides Function GetTypeLayoutIfStruct() As TypeLayout?
-            Return If(UnderlyingNamedType.IsStructureType(), UnderlyingNamedType.Layout, Nothing)
+            Return If(UnderlyingNamedType.AdaptedNamedTypeSymbol.IsStructureType(), UnderlyingNamedType.AdaptedNamedTypeSymbol.Layout, Nothing)
         End Function
 
         Protected Overrides ReadOnly Property StringFormat As System.Runtime.InteropServices.CharSet
             Get
-                Return UnderlyingNamedType.MarshallingCharSet
+                Return UnderlyingNamedType.AdaptedNamedTypeSymbol.MarshallingCharSet
             End Get
         End Property
 
         Protected Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
-            Return UnderlyingNamedType.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
+            Return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
         End Function
 
         Protected Overrides Function CreateTypeIdentifierAttribute(hasGuid As Boolean, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
@@ -182,10 +214,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                 Dim stringType = TypeManager.GetSystemStringType(syntaxNodeOpt, diagnostics)
 
                 If stringType IsNot Nothing Then
-                    Dim guidString = TypeManager.GetAssemblyGuidString(UnderlyingNamedType.ContainingAssembly)
+                    Dim guidString = TypeManager.GetAssemblyGuidString(UnderlyingNamedType.AdaptedNamedTypeSymbol.ContainingAssembly)
                     Return New SynthesizedAttributeData(ctor,
                         ImmutableArray.Create(New TypedConstant(stringType, TypedConstantKind.Primitive, guidString),
-                            New TypedConstant(stringType, TypedConstantKind.Primitive, UnderlyingNamedType.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))),
+                            New TypedConstant(stringType, TypedConstantKind.Primitive, UnderlyingNamedType.AdaptedNamedTypeSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))),
                         ImmutableArray(Of KeyValuePair(Of String, TypedConstant)).Empty)
                 End If
             End If
@@ -194,20 +226,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         End Function
 
         Protected Overrides Sub ReportMissingAttribute(description As AttributeDescription, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
-            EmbeddedTypesManager.ReportDiagnostic(diagnostics, ERRID.ERR_NoPIAAttributeMissing2, syntaxNodeOpt, UnderlyingNamedType, description.FullName)
+            EmbeddedTypesManager.ReportDiagnostic(diagnostics, ERRID.ERR_NoPIAAttributeMissing2, syntaxNodeOpt, UnderlyingNamedType.AdaptedNamedTypeSymbol, description.FullName)
         End Sub
 
         Protected Overrides Sub EmbedDefaultMembers(defaultMember As String, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
-            For Each s In UnderlyingNamedType.GetMembers(defaultMember)
+            For Each s In UnderlyingNamedType.AdaptedNamedTypeSymbol.GetMembers(defaultMember)
                 Select Case s.Kind
                     Case SymbolKind.Field
-                        TypeManager.EmbedField(Me, DirectCast(s, FieldSymbol), syntaxNodeOpt, diagnostics)
+                        TypeManager.EmbedField(Me, DirectCast(s, FieldSymbol).GetCciAdapter(), syntaxNodeOpt, diagnostics)
                     Case SymbolKind.Method
-                        TypeManager.EmbedMethod(Me, DirectCast(s, MethodSymbol), syntaxNodeOpt, diagnostics)
+                        TypeManager.EmbedMethod(Me, DirectCast(s, MethodSymbol).GetCciAdapter(), syntaxNodeOpt, diagnostics)
                     Case SymbolKind.Property
-                        TypeManager.EmbedProperty(Me, DirectCast(s, PropertySymbol), syntaxNodeOpt, diagnostics)
+                        TypeManager.EmbedProperty(Me, DirectCast(s, PropertySymbol).GetCciAdapter(), syntaxNodeOpt, diagnostics)
                     Case SymbolKind.Event
-                        TypeManager.EmbedEvent(Me, DirectCast(s, EventSymbol), syntaxNodeOpt, diagnostics, isUsedForComAwareEventBinding:=False)
+                        TypeManager.EmbedEvent(Me, DirectCast(s, EventSymbol).GetCciAdapter(), syntaxNodeOpt, diagnostics, isUsedForComAwareEventBinding:=False)
                 End Select
             Next
         End Sub

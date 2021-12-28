@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Roslyn.Utilities;
-using Word = System.UInt32;
+using Word = System.UInt64;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -12,15 +14,15 @@ namespace Microsoft.CodeAnalysis
     internal struct BitVector : IEquatable<BitVector>
     {
         private const Word ZeroWord = 0;
-        private const int Log2BitsPerWord = 5;
+        private const int Log2BitsPerWord = 6;
 
         public const int BitsPerWord = 1 << Log2BitsPerWord;
 
         // Cannot expose the following two field publicly because this structure is mutable
         // and might become not null/empty, unless we restrict access to it.
-        private static readonly Word[] s_emptyArray = Array.Empty<Word>();
+        private static Word[] s_emptyArray => Array.Empty<Word>();
         private static readonly BitVector s_nullValue = default;
-        private static readonly BitVector s_emptyValue = new BitVector(0, s_emptyArray, 0);
+        private static readonly BitVector s_emptyValue = new(0, s_emptyArray, 0);
 
         private Word _bits0;
         private Word[] _bits;
@@ -38,15 +40,16 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(BitVector other)
         {
-            // Bit arrays only equal if their underlying sets are of the same size.
+            // Bit arrays only equal if their underlying sets are of the same size
             return _capacity == other._capacity
+                // and have the same set of bits set
                 && _bits0 == other._bits0
-                && _bits.ValueEquals(other._bits);
+                && _bits.AsSpan().SequenceEqual(other._bits.AsSpan());
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return obj is BitVector && Equals((BitVector)obj);
+            return obj is BitVector other && Equals(other);
         }
 
         public static bool operator ==(BitVector left, BitVector right)
@@ -108,9 +111,9 @@ namespace Microsoft.CodeAnalysis
                 yield return _bits0;
             }
 
-            for (int i = 0; i < _bits?.Length; i++)
+            for (int i = 0, n = _bits?.Length ?? 0; i < n; i++)
             {
-                yield return _bits[i];
+                yield return _bits![i];
             }
         }
 
@@ -146,6 +149,11 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
+        }
+
+        public static BitVector FromWords(Word bits0, Word[] bits, int capacity)
+        {
+            return new BitVector(bits0, bits, capacity);
         }
 
         /// <summary>
@@ -204,7 +212,32 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public BitVector Clone()
         {
-            return new BitVector(_bits0, (_bits == null) ? null : (_bits.Length == 0) ? s_emptyArray : (Word[])_bits.Clone(), _capacity);
+            Word[] newBits;
+            if (_bits is null || _bits.Length == 0)
+            {
+                newBits = s_emptyArray;
+            }
+            else
+            {
+                newBits = (Word[])_bits.Clone();
+            }
+
+            return new BitVector(_bits0, newBits, _capacity);
+        }
+
+        /// <summary>
+        /// Invert all the bits in the vector.
+        /// </summary>
+        public void Invert()
+        {
+            _bits0 = ~_bits0;
+            if (!(_bits is null))
+            {
+                for (int i = 0; i < _bits.Length; i++)
+                {
+                    _bits[i] = ~_bits[i];
+                }
+            }
         }
 
         /// <summary>
@@ -310,6 +343,8 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
+                if (index < 0)
+                    throw new IndexOutOfRangeException();
                 if (index >= _capacity)
                     return false;
                 int i = (index >> Log2BitsPerWord) - 1;
@@ -320,6 +355,8 @@ namespace Microsoft.CodeAnalysis
 
             set
             {
+                if (index < 0)
+                    throw new IndexOutOfRangeException();
                 if (index >= _capacity)
                     EnsureCapacity(index + 1);
                 int i = (index >> Log2BitsPerWord) - 1;

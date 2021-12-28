@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+#nullable disable
+
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -21,15 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         internal override IBraceMatchingService GetBraceMatchingService(TestWorkspace workspace)
             => new TestBraceMatchingService();
 
-        private ImmutableArray<TextSpan> GetSpans(BraceMatchingResult? result)
-            => result.HasValue
-                ? ImmutableArray.Create(result.Value.LeftSpan, result.Value.RightSpan)
-                : ImmutableArray<TextSpan>.Empty;
-
         private class TestBraceMatchingService : IBraceMatchingService
         {
             public async Task<BraceMatchingResult?> GetMatchingBracesAsync(
-                Document document, int position, CancellationToken cancellationToken = default(CancellationToken))
+                Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
             {
                 var text = (await document.GetTextAsync(cancellationToken)).ToString();
                 var braces = GetMatchingBraces(text, position);
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                 return braces;
             }
 
-            public BraceMatchingResult? GetMatchingBraces(
+            public static BraceMatchingResult? GetMatchingBraces(
                 string text, int position)
             {
                 if (position < text.Length)
@@ -151,8 +150,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
             await TestBraceHighlightingAsync(
 "<@    @> $$");
         }
-
-
 
         [WorkItem(18050, "https://github.com/dotnet/roslyn/issues/18050")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]

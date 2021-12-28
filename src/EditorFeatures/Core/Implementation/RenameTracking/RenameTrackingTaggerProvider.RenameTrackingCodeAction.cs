@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Threading;
@@ -6,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -20,17 +25,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private readonly Document _document;
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
+            private readonly IGlobalOptionService _globalOptions;
             private RenameTrackingCommitter _renameTrackingCommitter;
 
-            public RenameTrackingCodeAction(Document document, string title, IEnumerable<IRefactorNotifyService> refactorNotifyServices, ITextUndoHistoryRegistry undoHistoryRegistry)
+            public RenameTrackingCodeAction(
+                Document document,
+                string title,
+                IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+                ITextUndoHistoryRegistry undoHistoryRegistry,
+                IGlobalOptionService globalOptions)
             {
                 _document = document;
                 _title = title;
                 _refactorNotifyServices = refactorNotifyServices;
                 _undoHistoryRegistry = undoHistoryRegistry;
+                _globalOptions = globalOptions;
             }
 
             public override string Title => _title;
+            internal override CodeActionPriority Priority => CodeActionPriority.High;
 
             protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
@@ -49,8 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
             {
-                var documentOptions = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                if (!documentOptions.GetOption(FeatureOnOffOptions.RenameTrackingPreview) ||
+                if (!_globalOptions.GetOption(FeatureOnOffOptions.RenameTrackingPreview, _document.Project.Language) ||
                     !TryInitializeRenameTrackingCommitter(cancellationToken))
                 {
                     return await SpecializedTasks.EmptyEnumerable<CodeActionOperation>().ConfigureAwait(false);
@@ -69,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     var textBuffer = text.Container.GetTextBuffer();
                     if (textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
                     {
-                        if (!stateMachine.CanInvokeRename(out var trackingSession, cancellationToken: cancellationToken))
+                        if (!stateMachine.CanInvokeRename(out _, cancellationToken: cancellationToken))
                         {
                             // The rename tracking could be dismissed while a codefix is still cached
                             // in the lightbulb. If this happens, do not perform the rename requested
@@ -95,14 +107,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 private readonly RenameTrackingCommitter _committer;
 
                 public RenameTrackingCommitterOperation(RenameTrackingCommitter committer)
-                {
-                    _committer = committer;
-                }
+                    => _committer = committer;
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-                {
-                    _committer.Commit(cancellationToken);
-                }
+                    => _committer.Commit(cancellationToken);
             }
         }
     }

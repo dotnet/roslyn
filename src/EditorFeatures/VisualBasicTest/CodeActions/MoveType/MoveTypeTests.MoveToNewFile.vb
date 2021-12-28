@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.MoveType
     Partial Public Class MoveTypeTests
@@ -63,14 +65,14 @@ End Class
 "
             Dim codeAfterMove =
 "
-Public Partial Class Class1
+Partial Public Class Class1
 End Class
 "
             Dim expectedDocumentName = "Class2.vb"
 
             Dim destinationDocumentText =
 "
-Public Partial Class Class1
+Partial Public Class Class1
     Class Class2
     End Class
 End Class
@@ -89,14 +91,14 @@ End Class
 "
             Dim codeAfterMove =
 "
-Public Partial Class Class1
+Partial Public Class Class1
 End Class
 "
             Dim expectedDocumentName = "Class1.Class2.vb"
 
             Dim destinationDocumentText =
 "
-Public Partial Class Class1
+Partial Public Class Class1
     Class Class2
     End Class
 End Class
@@ -119,14 +121,14 @@ End Class
             Dim codeAfterMove =
 "
 ''' Outer comment
-Public Partial Class Class1
+Partial Public Class Class1
 End Class
 "
             Dim expectedDocumentName = "Class1.Class2.vb"
 
             Dim destinationDocumentText =
 "
-Public Partial Class Class1
+Partial Public Class Class1
     ''' Inner comment
     Class Class2
     End Class

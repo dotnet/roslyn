@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -17,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(type is PointerTypeSymbol || type is NamedTypeSymbol);
 
             var elementType = (type.TypeKind == TypeKind.Pointer
-                ? ((PointerTypeSymbol)type).PointedAtType
-                : ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0]).TypeSymbol;
+                ? ((PointerTypeSymbol)type).PointedAtTypeWithAnnotations
+                : ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]).Type;
 
             var initExprs = inits.Initializers;
 
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return ArrayInitializerStyle.Element;
             }
 
-            elementType = elementType.EnumUnderlyingType();
+            elementType = elementType.EnumUnderlyingTypeOrSelf();
 
             if (elementType.SpecialType.IsBlittable())
             {

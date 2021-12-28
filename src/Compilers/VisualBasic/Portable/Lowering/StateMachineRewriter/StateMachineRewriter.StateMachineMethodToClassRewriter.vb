@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -63,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _hoistedVariables As IReadOnlySet(Of Symbol) = Nothing
 
             Private ReadOnly _synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser
-            Private _nextFreeHoistedLocalSlot As Integer
+            Private ReadOnly _nextFreeHoistedLocalSlot As Integer
 
             Public Sub New(F As SyntheticBoundNodeFactory,
                            stateField As FieldSymbol,
@@ -72,16 +74,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
                            slotAllocatorOpt As VariableSlotAllocator,
                            nextFreeHoistedLocalSlot As Integer,
-                           Diagnostics As DiagnosticBag)
+                           diagnostics As BindingDiagnosticBag)
 
-                MyBase.New(slotAllocatorOpt, F.CompilationState, Diagnostics, preserveOriginalLocals:=False)
+                MyBase.New(slotAllocatorOpt, F.CompilationState, diagnostics, preserveOriginalLocals:=False)
 
                 Debug.Assert(F IsNot Nothing)
                 Debug.Assert(stateField IsNot Nothing)
                 Debug.Assert(hoistedVariables IsNot Nothing)
                 Debug.Assert(initialProxies IsNot Nothing)
                 Debug.Assert(nextFreeHoistedLocalSlot >= 0)
-                Debug.Assert(Diagnostics IsNot Nothing)
+                Debug.Assert(diagnostics IsNot Nothing)
 
                 Me.F = F
                 Me.StateField = stateField
@@ -127,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim oldSyntax As SyntaxNode = Me.F.Syntax
                 Me.F.Syntax = syntax
                 Dim result = Me.F.Me()
-                Debug.Assert(frameClass = result.Type)
+                Debug.Assert(TypeSymbol.Equals(frameClass, result.Type, TypeCompareKind.ConsiderEverything))
                 Me.F.Syntax = oldSyntax
                 Return result
             End Function
@@ -202,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' Ref synthesized variables have proxies that are allocated in VisitAssignmentOperator.
                     If local.IsByRef Then
-                        Debug.Assert(local.SynthesizedKind = SynthesizedLocalKind.AwaitSpill)
+                        Debug.Assert(local.SynthesizedKind = SynthesizedLocalKind.Spill)
                         Continue For
                     End If
 
@@ -364,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim newLocal As LocalSymbol = Nothing
                 If Not LocalMap.TryGetValue(local, newLocal) Then
                     Dim newType = VisitType(local.Type)
-                    If newType = local.Type Then
+                    If TypeSymbol.Equals(newType, local.Type, TypeCompareKind.ConsiderEverything) Then
                         ' keeping same local
                         newLocal = local
                     Else

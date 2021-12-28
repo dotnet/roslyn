@@ -1,58 +1,97 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// A lazily calculated diagnostic for missing [NonNullTypes(true)].
+    /// A lazily calculated diagnostic for use of nullable annotations outside of a '#nullable' annotations context.
     /// </summary>
     internal sealed class LazyMissingNonNullTypesContextDiagnosticInfo : LazyDiagnosticInfo
     {
-        private readonly CSharpCompilation _compilation;
-        private readonly bool _isNullableEnabled;
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _type;
+        private readonly DiagnosticInfo _info;
 
-        internal LazyMissingNonNullTypesContextDiagnosticInfo(CSharpCompilation compilation, bool isNullableEnabled, TypeSymbolWithAnnotations type)
+        private LazyMissingNonNullTypesContextDiagnosticInfo(TypeWithAnnotations type, DiagnosticInfo info)
         {
-            Debug.Assert(!type.IsNull);
-            _compilation = compilation;
-            _isNullableEnabled = isNullableEnabled;
+            Debug.Assert(type.HasType);
             _type = type;
+            _info = info;
         }
 
-        protected override DiagnosticInfo ResolveInfo()
+        public static void AddAll(bool isNullableEnabled, bool isGeneratedCode, TypeWithAnnotations type, Location location, DiagnosticBag diagnostics)
         {
-            return ReportNullableReferenceTypesIfNeeded(_compilation, _isNullableEnabled, _type);
+            var rawInfos = ArrayBuilder<DiagnosticInfo>.GetInstance();
+            GetRawDiagnosticInfos(isNullableEnabled, isGeneratedCode, (CSharpSyntaxTree)location.SourceTree, rawInfos);
+            foreach (var rawInfo in rawInfos)
+            {
+                diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(type, rawInfo), location);
+            }
+            rawInfos.Free();
         }
+
+#nullable enable
+        private static void GetRawDiagnosticInfos(bool isNullableEnabled, bool isGeneratedCode, CSharpSyntaxTree tree, ArrayBuilder<DiagnosticInfo> infos)
+        {
+            const MessageID featureId = MessageID.IDS_FeatureNullableReferenceTypes;
+            var info = featureId.GetFeatureAvailabilityDiagnosticInfo(tree.Options);
+            if (info is object)
+            {
+                infos.Add(info);
+            }
+
+            if (!isNullableEnabled && info?.Severity != DiagnosticSeverity.Error)
+            {
+                var code = isGeneratedCode
+                    ? ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode
+                    : ErrorCode.WRN_MissingNonNullTypesContextForAnnotation;
+                infos.Add(new CSDiagnosticInfo(code));
+            }
+        }
+#nullable disable
+
+        private static bool IsNullableReference(TypeSymbol type)
+            => type is null || !(type.IsValueType || type.IsErrorType());
+
+        protected override DiagnosticInfo ResolveInfo() => IsNullableReference(_type.Type) ? _info : null;
 
         /// <summary>
         /// A `?` annotation on a type that isn't a value type causes:
         /// - an error before C# 8.0
         /// - a warning outside of a NonNullTypes context
         /// </summary>
-        public static DiagnosticInfo ReportNullableReferenceTypesIfNeeded(CSharpCompilation compilation, bool isNullableEnabled, TypeSymbolWithAnnotations type)
+        public static void ReportNullableReferenceTypesIfNeeded(
+            bool isNullableEnabled,
+            bool isGeneratedCode,
+            TypeWithAnnotations type,
+            Location location,
+            DiagnosticBag diagnostics)
         {
-            return !type.IsNull && (type.IsValueType || type.IsErrorType()) ? null : ReportNullableReferenceTypesIfNeeded(compilation, isNullableEnabled);
+            if (IsNullableReference(type.Type))
+            {
+                ReportNullableReferenceTypesIfNeeded(isNullableEnabled, isGeneratedCode, location, diagnostics);
+            }
         }
 
-        public static DiagnosticInfo ReportNullableReferenceTypesIfNeeded(CSharpCompilation compilation, bool isNullableEnabled)
+        public static void ReportNullableReferenceTypesIfNeeded(
+            bool isNullableEnabled,
+            bool isGeneratedCode,
+            Location location,
+            DiagnosticBag diagnostics)
         {
-            var featureID = MessageID.IDS_FeatureNullableReferenceTypes;
-            if (!compilation.IsFeatureEnabled(featureID))
+            var rawInfos = ArrayBuilder<DiagnosticInfo>.GetInstance();
+            GetRawDiagnosticInfos(isNullableEnabled, isGeneratedCode, (CSharpSyntaxTree)location.SourceTree, rawInfos);
+            foreach (var rawInfo in rawInfos)
             {
-                LanguageVersion availableVersion = compilation.LanguageVersion;
-                LanguageVersion requiredVersion = featureID.RequiredVersion();
-
-                return new CSDiagnosticInfo(availableVersion.GetErrorCode(), featureID.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
+                diagnostics.Add(rawInfo, location);
             }
-            else if (!isNullableEnabled)
-            {
-                return new CSDiagnosticInfo(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation);
-            }
-
-            return null;
+            rawInfos.Free();
         }
     }
 }

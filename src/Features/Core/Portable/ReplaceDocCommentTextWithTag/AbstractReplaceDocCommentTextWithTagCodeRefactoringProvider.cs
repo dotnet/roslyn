@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -23,10 +26,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, span, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start, findInsideTrivia: true);
 
@@ -136,14 +136,14 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return true;
         }
 
-        private ISymbol GetEnclosingSymbol(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private static ISymbol GetEnclosingSymbol(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
             var token = root.FindToken(position);
 
             for (var node = token.Parent; node != null; node = node.Parent)
             {
-                if (semanticModel.GetDeclaredSymbol(node) is ISymbol declaration)
+                if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is ISymbol declaration)
                 {
                     return declaration;
                 }
@@ -152,15 +152,17 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return null;
         }
 
-        private void RegisterRefactoring(
+        private static void RegisterRefactoring(
             CodeRefactoringContext context, TextSpan expandedSpan, string replacement)
         {
-            context.RegisterRefactoring(new MyCodeAction(
-                string.Format(FeaturesResources.Use_0, replacement),
-                c => ReplaceTextAsync(context.Document, expandedSpan, replacement, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    string.Format(FeaturesResources.Use_0, replacement),
+                    c => ReplaceTextAsync(context.Document, expandedSpan, replacement, c)),
+                expandedSpan);
         }
 
-        private async Task<Document> ReplaceTextAsync(
+        private static async Task<Document> ReplaceTextAsync(
             Document document, TextSpan span, string replacement, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return document.WithText(newText);
         }
 
-        private TextSpan ExpandSpan(SourceText sourceText, TextSpan span, bool fullyQualifiedName)
+        private static TextSpan ExpandSpan(SourceText sourceText, TextSpan span, bool fullyQualifiedName)
         {
             if (span.Length != 0)
             {
@@ -193,7 +195,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return TextSpan.FromBounds(startInclusive, endExclusive);
         }
 
-        private bool ShouldExpandSpanForwardOneCharacter(
+        private static bool ShouldExpandSpanForwardOneCharacter(
             SourceText sourceText, int endExclusive, bool fullyQualifiedName)
         {
             var currentChar = sourceText[endExclusive];
@@ -214,7 +216,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return false;
         }
 
-        private bool ShouldExpandSpanBackwardOneCharacter(
+        private static bool ShouldExpandSpanBackwardOneCharacter(
             SourceText sourceText, int startInclusive, bool fullyQualifiedName)
         {
             Debug.Assert(startInclusive > 0);
@@ -236,7 +238,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

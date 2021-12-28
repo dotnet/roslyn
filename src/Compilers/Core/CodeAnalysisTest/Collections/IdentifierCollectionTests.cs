@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -34,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var idcol = new IdentifierCollection(strings).AsCaseSensitiveCollection();
 
             Assert.Equal(strings.Length, idcol.Count);
-            Assert.Equal(true, Enumerable.SequenceEqual(strings.OrderBy(x => x), idcol.OrderBy(x => x)));
+            Assert.True(Enumerable.SequenceEqual(strings.OrderBy(x => x), idcol.OrderBy(x => x)));
             Assert.Equal(idcol.GetEnumerator().GetType(), ((System.Collections.IEnumerable)idcol).GetEnumerator().GetType());
 
             AssertContains(idcol, strings);
@@ -43,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             var copy = new string[strings.Length];
             idcol.CopyTo(copy, 0);
-            Assert.Equal(true, Enumerable.SequenceEqual(strings.OrderBy(x => x), copy.OrderBy(x => x)));
+            Assert.True(Enumerable.SequenceEqual(strings.OrderBy(x => x), copy.OrderBy(x => x)));
         }
 
         private void TestCaseInsensitive(params string[] strings)
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var idcol = new IdentifierCollection(strings).AsCaseInsensitiveCollection();
 
             Assert.Equal(strings.Length, idcol.Count);
-            Assert.Equal(true, Enumerable.SequenceEqual(strings.OrderBy(x => x), idcol.OrderBy(x => x)));
+            Assert.True(Enumerable.SequenceEqual(strings.OrderBy(x => x), idcol.OrderBy(x => x)));
             Assert.Equal(idcol.GetEnumerator().GetType(), ((System.Collections.IEnumerable)idcol).GetEnumerator().GetType());
 
             AssertContains(idcol, strings);
@@ -60,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             var copy = new string[strings.Length];
             idcol.CopyTo(copy, 0);
-            Assert.Equal(true, Enumerable.SequenceEqual(strings.OrderBy(x => x), copy.OrderBy(x => x)));
+            Assert.True(Enumerable.SequenceEqual(strings.OrderBy(x => x), copy.OrderBy(x => x)));
         }
 
         [Fact]
@@ -73,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         private void TestReadOnly(ICollection<string> collection)
         {
-            Assert.Equal(true, collection.IsReadOnly);
+            Assert.True(collection.IsReadOnly);
             Assert.Throws<NotSupportedException>(() => collection.Add("x"));
             Assert.Throws<NotSupportedException>(() => collection.Remove("x"));
             Assert.Throws<NotSupportedException>(() => collection.Clear());
@@ -88,7 +92,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             foreach (var str in strings)
             {
-                Assert.Equal(true, collection.Contains(str));
+                Assert.True(collection.Contains(str));
             }
         }
 
@@ -101,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             foreach (var str in strings)
             {
-                Assert.Equal(false, collection.Contains(str));
+                Assert.False(collection.Contains(str));
             }
         }
     }

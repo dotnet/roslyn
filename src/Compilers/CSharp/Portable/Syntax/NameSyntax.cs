@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// containing the explicitly implemented interface symbol - there may be more than one.  We just want to know
         /// how the name was qualified in source so that we can make a similar qualification (for uniqueness purposes).
         /// </remarks>
-        internal string GetAliasQualifierOpt()
+        internal string? GetAliasQualifierOpt()
         {
             NameSyntax name = this;
             while (true)

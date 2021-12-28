@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -12,9 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
     Friend Class GetXmlNamespaceKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsAnyExpressionContext Then
-                Return SpecializedCollections.SingletonEnumerable(
+                Return ImmutableArray.Create(
                    CreateRecommendedKeywordForIntrinsicOperator(SyntaxKind.GetXmlNamespaceKeyword,
                                                                 VBFeaturesResources.GetXmlNamespace_function,
                                                                 Glyph.MethodPublic,
@@ -23,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                                                                 context.Position))
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
     End Class
 End Namespace

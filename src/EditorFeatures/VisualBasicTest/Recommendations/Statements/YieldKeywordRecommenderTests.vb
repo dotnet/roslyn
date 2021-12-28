@@ -1,15 +1,18 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class YieldKeywordRecommenderTests
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Yield")
-        End Function
+        Public Sub InMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Yield")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InLambdaBodyTest() As Task
+        Public Sub InLambdaBodyTest()
             Dim code =
 <MethodBody>
 Dim f = Function()
@@ -17,17 +20,17 @@ Dim f = Function()
         End Function
 </MethodBody>
 
-            Await VerifyRecommendationsContainAsync(code, "Yield")
-        End Function
+            VerifyRecommendationsContain(code, "Yield")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotInExpressionTest() As Task
+        Public Sub NotInExpressionTest()
             Dim code =
 <MethodBody>
 Dim f = |
 </MethodBody>
 
-            Await VerifyRecommendationsMissingAsync(code, "Yield")
-        End Function
+            VerifyRecommendationsMissing(code, "Yield")
+        End Sub
     End Class
 End Namespace

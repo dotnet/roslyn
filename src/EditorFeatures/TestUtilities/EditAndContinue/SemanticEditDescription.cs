@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,15 +13,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     {
         public readonly SemanticEditKind Kind;
         public readonly Func<Compilation, ISymbol> SymbolProvider;
-        public readonly IEnumerable<KeyValuePair<TextSpan, TextSpan>> SyntaxMap;
-        public readonly bool PreserveLocalVariables;
+        public readonly Func<Compilation, ITypeSymbol>? PartialType;
 
-        public SemanticEditDescription(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<KeyValuePair<TextSpan, TextSpan>> syntaxMap, bool preserveLocalVariables)
+        /// <summary>
+        /// If specified the node mappings will be validated against the actual syntax map function.
+        /// </summary>
+        public readonly IEnumerable<KeyValuePair<TextSpan, TextSpan>>? SyntaxMap;
+
+        public readonly bool HasSyntaxMap;
+
+        public SemanticEditDescription(
+            SemanticEditKind kind,
+            Func<Compilation, ISymbol> symbolProvider,
+            Func<Compilation, ITypeSymbol>? partialType,
+            IEnumerable<KeyValuePair<TextSpan, TextSpan>>? syntaxMap,
+            bool hasSyntaxMap)
         {
-            this.Kind = kind;
-            this.SymbolProvider = symbolProvider;
-            this.SyntaxMap = syntaxMap;
-            this.PreserveLocalVariables = preserveLocalVariables;
+            Kind = kind;
+            SymbolProvider = symbolProvider;
+            SyntaxMap = syntaxMap;
+            PartialType = partialType;
+            HasSyntaxMap = hasSyntaxMap;
         }
     }
 }

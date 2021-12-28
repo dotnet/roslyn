@@ -1,47 +1,36 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 {
-    internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider<TNumericLiteralExpression> : CodeRefactoringProvider where TNumericLiteralExpression : SyntaxNode
     {
+        protected abstract (string hexPrefix, string binaryPrefix) GetNumericLiteralPrefixes();
+
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var numericToken = await root.SyntaxTree.GetTouchingTokenAsync(context.Span.Start,
-                token => syntaxFacts.IsNumericLiteralExpression(token.Parent), cancellationToken).ConfigureAwait(false);
+            var (document, _, cancellationToken) = context;
+            var numericToken = await GetNumericTokenAsync(context).ConfigureAwait(false);
 
-            if (numericToken == default)
+            if (numericToken == default || numericToken.ContainsDiagnostics)
             {
                 return;
             }
 
-            if (numericToken.ContainsDiagnostics)
-            {
-                return;
-            }
-
-            if (context.Span.Length > 0 &&
-                context.Span != numericToken.Span)
-            {
-                return;
-            }
-
-            var syntaxNode = numericToken.Parent;
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxNode = numericToken.GetRequiredParent();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetTypeInfo(syntaxNode, cancellationToken).Type;
             if (symbol == null)
             {
@@ -58,6 +47,8 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             {
                 return;
             }
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var value = IntegerUtilities.ToInt64(valueOpt.Value);
             var numericText = numericToken.ToString();
@@ -80,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 
             if (kind != NumericKind.Binary)
             {
-                RegisterRefactoringWithResult(binaryPrefix + Convert.ToString(value, 2), FeaturesResources.Convert_to_binary);
+                RegisterRefactoringWithResult(binaryPrefix + Convert.ToString(value, toBase: 2), FeaturesResources.Convert_to_binary);
             }
 
             if (kind != NumericKind.Hexadecimal)
@@ -98,30 +89,48 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
                 switch (kind)
                 {
                     case NumericKind.Decimal when number.Length > 3:
-                        RegisterRefactoringWithResult(AddSeparators(number, 3), FeaturesResources.Separate_thousands);
+                        RegisterRefactoringWithResult(AddSeparators(number, interval: 3), FeaturesResources.Separate_thousands);
                         break;
 
                     case NumericKind.Hexadecimal when number.Length > 4:
-                        RegisterRefactoringWithResult(hexPrefix + AddSeparators(number, 4), FeaturesResources.Separate_words);
+                        RegisterRefactoringWithResult(hexPrefix + AddSeparators(number, interval: 4), FeaturesResources.Separate_words);
                         break;
 
                     case NumericKind.Binary when number.Length > 4:
-                        RegisterRefactoringWithResult(binaryPrefix + AddSeparators(number, 4), FeaturesResources.Separate_nibbles);
+                        RegisterRefactoringWithResult(binaryPrefix + AddSeparators(number, interval: 4), FeaturesResources.Separate_nibbles);
                         break;
                 }
             }
 
             void RegisterRefactoringWithResult(string text, string title)
             {
-                context.RegisterRefactoring(new MyCodeAction(title, c =>
-                {
-                    var generator = SyntaxGenerator.GetGenerator(document);
-                    var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value)
-                        .WithTriviaFrom(numericToken);
-                    var updatedRoot = root.ReplaceToken(numericToken, updatedToken);
-                    return Task.FromResult(document.WithSyntaxRoot(updatedRoot));
-                }));
+                context.RegisterRefactoring(
+                    new MyCodeAction(title, c => ReplaceTokenAsync(document, root, numericToken, value, text, suffix)),
+                    numericToken.Span);
             }
+        }
+
+        private static Task<Document> ReplaceTokenAsync(Document document, SyntaxNode root, SyntaxToken numericToken, long value, string text, string suffix)
+        {
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value)
+                .WithTriviaFrom(numericToken);
+            var updatedRoot = root.ReplaceToken(numericToken, updatedToken);
+            return Task.FromResult(document.WithSyntaxRoot(updatedRoot));
+        }
+
+        internal virtual async Task<SyntaxToken> GetNumericTokenAsync(CodeRefactoringContext context)
+        {
+            var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            var literalNode = await context.TryGetRelevantNodeAsync<TNumericLiteralExpression>().ConfigureAwait(false);
+            var numericLiteralExpressionNode = syntaxFacts.IsNumericLiteralExpression(literalNode)
+                ? literalNode
+                : null;
+
+            return numericLiteralExpressionNode != null
+                ? numericLiteralExpressionNode.GetFirstToken()    // We know that TNumericLiteralExpression has always only one token: NumericLiteralToken
+                : default;
         }
 
         private static (string prefix, string number, string suffix) GetNumericLiteralParts(string numericText, string hexPrefix, string binaryPrefix)
@@ -136,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             // Insert digit separators in the given interval.
             var result = Regex.Replace(numericText, $"(.{{{interval}}})", "_$1", RegexOptions.RightToLeft);
             // Fix for the case "0x_1111" that is not supported yet.
-            return result[0] == '_' ? result.Substring(1) : result;
+            return result[0] == '_' ? result[1..] : result;
         }
 
         private static bool IsIntegral(SpecialType specialType)
@@ -158,13 +167,11 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             }
         }
 
-        protected abstract (string hexPrefix, string binaryPrefix) GetNumericLiteralPrefixes();
-
         private enum NumericKind { Unknown, Decimal, Binary, Hexadecimal }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument, title)
             {
             }
         }

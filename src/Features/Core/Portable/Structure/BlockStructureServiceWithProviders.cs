@@ -1,11 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
@@ -25,13 +31,11 @@ namespace Microsoft.CodeAnalysis.Structure
         /// This does not included providers imported via MEF composition.
         /// </summary>
         protected virtual ImmutableArray<BlockStructureProvider> GetBuiltInProviders()
-        {
-            return ImmutableArray<BlockStructureProvider>.Empty;
-        }
+            => ImmutableArray<BlockStructureProvider>.Empty;
 
         private ImmutableArray<BlockStructureProvider> GetImportedProviders()
         {
-            var language = this.Language;
+            var language = Language;
             var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
 
             var providers = mefExporter.GetExports<BlockStructureProvider, LanguageMetadata>()
@@ -42,64 +46,56 @@ namespace Microsoft.CodeAnalysis.Structure
         }
 
         public override async Task<BlockStructure> GetBlockStructureAsync(
-            Document document, CancellationToken cancellationToken)
+            Document document,
+            BlockStructureOptions options,
+            CancellationToken cancellationToken)
         {
-            var context = new BlockStructureContext(document, cancellationToken);
-            foreach (var provider in _providers)
-            {
-                await provider.ProvideBlockStructureAsync(context).ConfigureAwait(false);
-            }
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var context = CreateContext(syntaxTree, options, cancellationToken);
 
-            return CreateBlockStructure(document, context);
+            return GetBlockStructure(context, _providers);
         }
 
-        public override BlockStructure GetBlockStructure(
-            Document document, CancellationToken cancellationToken)
+        public BlockStructure GetBlockStructure(
+            SyntaxTree syntaxTree,
+            in BlockStructureOptions options,
+            CancellationToken cancellationToken)
         {
-            var context = new BlockStructureContext(document, cancellationToken);
-            foreach (var provider in _providers)
-            {
+            var context = CreateContext(syntaxTree, options, cancellationToken);
+            return GetBlockStructure(context, _providers);
+        }
+
+        private static BlockStructureContext CreateContext(
+            SyntaxTree syntaxTree,
+            in BlockStructureOptions options,
+            CancellationToken cancellationToken)
+        {
+            return new BlockStructureContext(syntaxTree, options, cancellationToken);
+        }
+
+        private static BlockStructure GetBlockStructure(
+            BlockStructureContext context,
+            ImmutableArray<BlockStructureProvider> providers)
+        {
+            foreach (var provider in providers)
                 provider.ProvideBlockStructure(context);
-            }
 
-            return CreateBlockStructure(document, context);
+            return CreateBlockStructure(context);
         }
 
-        private static BlockStructure CreateBlockStructure(Document document, BlockStructureContext context)
+        private static BlockStructure CreateBlockStructure(BlockStructureContext context)
         {
-            var options = context.Document.Project.Solution.Workspace.Options;
-            var language = context.Document.Project.Language;
-
-            var showIndentGuidesForCodeLevelConstructs = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, language);
-            var showIndentGuidesForDeclarationLevelConstructs = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, language);
-            var showIndentGuidesForCommentsAndPreprocessorRegions = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, language);
-            var showOutliningForCodeLevelConstructs = options.GetOption(BlockStructureOptions.ShowOutliningForCodeLevelConstructs, language);
-            var showOutliningForDeclarationLevelConstructs = options.GetOption(BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs, language);
-            var showOutliningForCommentsAndPreprocessorRegions = options.GetOption(BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions, language);
-
-            var updatedSpans = ArrayBuilder<BlockSpan>.GetInstance();
+            using var _ = ArrayBuilder<BlockSpan>.GetInstance(out var updatedSpans);
             foreach (var span in context.Spans)
             {
-                var updatedSpan = UpdateBlockSpan(span,
-                    showIndentGuidesForCodeLevelConstructs,
-                    showIndentGuidesForDeclarationLevelConstructs,
-                    showIndentGuidesForCommentsAndPreprocessorRegions,
-                    showOutliningForCodeLevelConstructs,
-                    showOutliningForDeclarationLevelConstructs,
-                    showOutliningForCommentsAndPreprocessorRegions);
+                var updatedSpan = UpdateBlockSpan(span, context.Options);
                 updatedSpans.Add(updatedSpan);
             }
 
-            return new BlockStructure(updatedSpans.ToImmutableAndFree());
+            return new BlockStructure(updatedSpans.ToImmutable());
         }
 
-        private static BlockSpan UpdateBlockSpan(BlockSpan blockSpan,
-            bool showIndentGuidesForCodeLevelConstructs,
-            bool showIndentGuidesForDeclarationLevelConstructs,
-            bool showIndentGuidesForCommentsAndPreprocessorRegions,
-            bool showOutliningForCodeLevelConstructs,
-            bool showOutliningForDeclarationLevelConstructs,
-            bool showOutliningForCommentsAndPreprocessorRegions)
+        private static BlockSpan UpdateBlockSpan(BlockSpan blockSpan, in BlockStructureOptions options)
         {
             var type = blockSpan.Type;
 
@@ -107,9 +103,9 @@ namespace Microsoft.CodeAnalysis.Structure
             var isMemberLevel = BlockTypes.IsCodeLevelConstruct(type);
             var isComment = BlockTypes.IsCommentOrPreprocessorRegion(type);
 
-            if ((!showIndentGuidesForDeclarationLevelConstructs && isTopLevel) ||
-                (!showIndentGuidesForCodeLevelConstructs && isMemberLevel) ||
-                (!showIndentGuidesForCommentsAndPreprocessorRegions && isComment))
+            if ((!options.ShowBlockStructureGuidesForDeclarationLevelConstructs && isTopLevel) ||
+                (!options.ShowBlockStructureGuidesForCodeLevelConstructs && isMemberLevel) ||
+                (!options.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions && isComment))
             {
                 type = BlockTypes.Nonstructural;
             }
@@ -117,9 +113,9 @@ namespace Microsoft.CodeAnalysis.Structure
             var isCollapsible = blockSpan.IsCollapsible;
             if (isCollapsible)
             {
-                if ((!showOutliningForDeclarationLevelConstructs && isTopLevel) ||
-                    (!showOutliningForCodeLevelConstructs && isMemberLevel) ||
-                    (!showOutliningForCommentsAndPreprocessorRegions && isComment))
+                if ((!options.ShowOutliningForDeclarationLevelConstructs && isTopLevel) ||
+                    (!options.ShowOutliningForCodeLevelConstructs && isMemberLevel) ||
+                    (!options.ShowOutliningForCommentsAndPreprocessorRegions && isComment))
                 {
                     isCollapsible = false;
                 }

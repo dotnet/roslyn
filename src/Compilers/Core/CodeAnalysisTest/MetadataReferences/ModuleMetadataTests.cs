@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -59,8 +63,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentOutOfRangeException>(() => { fixed (byte* ptr = new byte[] { 1, 2, 3 }) ModuleMetadata.CreateFromImage((IntPtr)ptr, -1); });
 
             Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(default(ImmutableArray<byte>)));
-            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(default(IEnumerable<byte>)));
-            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(default(byte[])));
+
+            IEnumerable<byte> enumerableImage = null;
+            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(enumerableImage));
+
+            byte[] arrayImage = null;
+            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(arrayImage));
 
             // It's not particularly important that this not throw. The parsing of the metadata is now lazy, and the result is that an exception
             // will be thrown when something tugs on the metadata later.
@@ -93,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Disposal()
         {
-            var md = ModuleMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib);
+            var md = ModuleMetadata.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib);
             md.Dispose();
             Assert.Throws<ObjectDisposedException>(() => md.Module);
             md.Dispose();
@@ -102,7 +110,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ImageOwnership()
         {
-            var m = ModuleMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib);
+            var m = ModuleMetadata.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib);
             var copy1 = m.Copy();
             var copy2 = copy1.Copy();
 

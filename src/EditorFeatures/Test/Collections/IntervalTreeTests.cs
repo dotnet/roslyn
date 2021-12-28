@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -13,25 +17,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
 {
     public class IntervalTreeTests
     {
-        private class TupleIntrospector<T> : IIntervalIntrospector<Tuple<int, int, T>>
+        private readonly struct TupleIntrospector<T> : IIntervalIntrospector<Tuple<int, int, T>>
         {
             public int GetStart(Tuple<int, int, T> value)
-            {
-                return value.Item1;
-            }
+                => value.Item1;
 
             public int GetLength(Tuple<int, int, T> value)
-            {
-                return value.Item2;
-            }
+                => value.Item2;
         }
 
-        private static IEnumerable<SimpleIntervalTree<Tuple<int, int, string>>> CreateTrees(params Tuple<int, int, string>[] values)
-        {
-            return CreateTrees((IEnumerable<Tuple<int, int, string>>)values);
-        }
+        private static IEnumerable<SimpleIntervalTree<Tuple<int, int, string>, TupleIntrospector<string>>> CreateTrees(params Tuple<int, int, string>[] values)
+            => CreateTrees((IEnumerable<Tuple<int, int, string>>)values);
 
-        private static IEnumerable<SimpleIntervalTree<Tuple<int, int, string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values)
+        private static IEnumerable<SimpleIntervalTree<Tuple<int, int, string>, TupleIntrospector<string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values)
         {
             yield return SimpleIntervalTree.Create(new TupleIntrospector<string>(), values);
         }
@@ -248,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
         [Fact]
         public void TestCrash1()
         {
-            foreach (var tree in CreateTrees(Tuple.Create(8, 1, "A"), Tuple.Create(59, 1, "B"), Tuple.Create(52, 1, "C")))
+            foreach (var _ in CreateTrees(Tuple.Create(8, 1, "A"), Tuple.Create(59, 1, "B"), Tuple.Create(52, 1, "C")))
             {
             }
         }
@@ -262,31 +260,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             Assert.Equal(1, tree.Count());
         }
 
-        private class Int32Introspector : IIntervalIntrospector<int>
+        private readonly struct Int32Introspector : IIntervalIntrospector<int>
         {
-            public static Int32Introspector Instance = new Int32Introspector();
-
             public int GetLength(int value)
-            {
-                return 0;
-            }
+                => 0;
 
             public int GetStart(int value)
-            {
-                return value;
-            }
+                => value;
         }
 
-        private IntervalTree<int> CreateIntTree(params int[] values)
-        {
-            return new IntervalTree<int>(Int32Introspector.Instance, values);
-        }
+        private static IntervalTree<int> CreateIntTree(params int[] values)
+            => IntervalTree<int>.Create(new Int32Introspector(), values);
 
         [Fact]
         public void TestSortedEnumerable1()
         {
-            var tree = new IntervalTree<int>(Int32Introspector.Instance, new[] { 0, 0, 0 });
-
             Assert.Equal(CreateIntTree(0, 0, 0), new[] { 0, 0, 0 });
             Assert.Equal(CreateIntTree(0, 0, 1), new[] { 0, 0, 1 });
             Assert.Equal(CreateIntTree(0, 0, 2), new[] { 0, 0, 2 });
@@ -321,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
         [Fact]
         public void TestSortedEnumerable2()
         {
-            var tree = new IntervalTree<int>(Int32Introspector.Instance, new[] { 1, 0 });
+            var tree = IntervalTree<int>.Create(new Int32Introspector(), new[] { 1, 0 });
 
             Assert.Equal(tree, new[] { 0, 1 });
         }
@@ -331,9 +319,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             foreach (var tree in CreateTrees(spans))
             {
                 var max = spans.Max(t => t.Item1 + t.Item2);
-                for (int start = 0; start <= max; start++)
+                for (var start = 0; start <= max; start++)
                 {
-                    for (int length = 1; length <= max; length++)
+                    for (var length = 1; length <= max; length++)
                     {
                         var span = new Span(start, length);
 
@@ -358,14 +346,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        private ISet<T> Set<T>(params T[] values)
-        {
-            return new HashSet<T>(values);
-        }
+        private static ISet<T> Set<T>(params T[] values)
+            => new HashSet<T>(values);
 
-        private IList<T> List<T>(params T[] values)
-        {
-            return new List<T>(values);
-        }
+        private static IList<T> List<T>(params T[] values)
+            => new List<T>(values);
     }
 }

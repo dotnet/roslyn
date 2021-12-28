@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -8,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Utilities
@@ -19,24 +22,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
         Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
             Using workspace = TestWorkspace.Create(test)
                 Dim testDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
-                Dim buffer = testDocument.TextBuffer
-                Dim snapshot = testDocument.InitialTextSnapshot
+                Dim snapshot = testDocument.GetTextBuffer().CurrentSnapshot
                 Dim caretPosition = testDocument.CursorPosition.Value
                 Dim document As Document = workspace.CurrentSolution.Projects.First.Documents.First
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
 
-                workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language, optionIsEnabled)
+                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language), optionIsEnabled)
 
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractKeywordHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
 
-                Dim highlightingService = workspace.GetService(Of IHighlightingService)()
                 Dim tagProducer = New HighlighterViewTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                    highlightingService,
-                    workspace.GetService(Of IForegroundNotificationService),
+                    workspace.GetService(Of IThreadingContext),
+                    workspace.GetService(Of IHighlightingService)(),
+                    globalOptions,
                     AsynchronousOperationListenerProvider.NullProvider)
 
                 Dim context = New TaggerContext(Of KeywordHighlightTag)(document, snapshot, New SnapshotPoint(snapshot, caretPosition))
-                Await tagProducer.ProduceTagsAsync_ForTestingPurposesOnly(context)
+                Await tagProducer.GetTestAccessor().ProduceTagsAsync(context)
 
                 Dim producedTags = From tag In context.tagSpans
                                    Order By tag.Span.Start

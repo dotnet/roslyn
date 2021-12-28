@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -30,6 +34,8 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.RemoveQualificationDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
@@ -37,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             context.RegisterCodeFix(new MyCodeAction(
                 GetTitle(),
-                c => this.FixAsync(document, diagnostic, c),
+                c => FixAsync(document, diagnostic, c),
                 IDEDiagnosticIds.RemoveQualificationDiagnosticId), context.Diagnostics);
 
             return Task.CompletedTask;
@@ -47,7 +53,6 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -55,12 +60,11 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             var memberAccessNodes = diagnostics.Select(
                 d => (TMemberAccessExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken)).ToSet();
 
-            var newRoot = Rewrite(semanticModel, root, memberAccessNodes);
+            var newRoot = Rewrite(root, memberAccessNodes);
             editor.ReplaceNode(root, newRoot);
         }
 
-        protected abstract SyntaxNode Rewrite(
-            SemanticModel semanticModel, SyntaxNode root, ISet<TMemberAccessExpressionSyntax> memberAccessNodes);
+        protected abstract SyntaxNode Rewrite(SyntaxNode root, ISet<TMemberAccessExpressionSyntax> memberAccessNodes);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

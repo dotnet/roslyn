@@ -1,9 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -402,15 +408,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
 ";
             var ruleSet = ParseRuleSet(source);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
-            Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1012"], ReportDiagnostic.Error);
+            Assert.Equal(ReportDiagnostic.Error, ruleSet.SpecificDiagnosticOptions["CA1012"]);
             Assert.Contains("CA1013", ruleSet.SpecificDiagnosticOptions.Keys);
-            Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1013"], ReportDiagnostic.Warn);
+            Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1013"]);
             Assert.Contains("CA1014", ruleSet.SpecificDiagnosticOptions.Keys);
-            Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1014"], ReportDiagnostic.Suppress);
+            Assert.Equal(ReportDiagnostic.Suppress, ruleSet.SpecificDiagnosticOptions["CA1014"]);
             Assert.Contains("CA1015", ruleSet.SpecificDiagnosticOptions.Keys);
-            Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1015"], ReportDiagnostic.Info);
+            Assert.Equal(ReportDiagnostic.Info, ruleSet.SpecificDiagnosticOptions["CA1015"]);
             Assert.Contains("CA1016", ruleSet.SpecificDiagnosticOptions.Keys);
-            Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1016"], ReportDiagnostic.Hidden);
+            Assert.Equal(ReportDiagnostic.Hidden, ruleSet.SpecificDiagnosticOptions["CA1016"]);
         }
 
         [Fact]
@@ -443,8 +449,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 ";
             var ruleSet = ParseRuleSet(source);
             Assert.True(ruleSet.Includes.Count() == 1);
-            Assert.Equal(ruleSet.Includes.First().Action, ReportDiagnostic.Default);
-            Assert.Equal(ruleSet.Includes.First().IncludePath, "goo.ruleset");
+            Assert.Equal(ReportDiagnostic.Default, ruleSet.Includes.First().Action);
+            Assert.Equal("goo.ruleset", ruleSet.Includes.First().IncludePath);
         }
 
 #pragma warning disable CA2243 // Attribute string literals should parse correctly
@@ -1102,20 +1108,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected: include2.Path, actual: includePaths[2]);
         }
 
+        private string[] ParseSeparatedStrings(string arg, char[] separators, bool removeEmptyEntries = true)
+        {
+            var builder = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
+            CommandLineParser.ParseSeparatedStrings(arg.AsMemory(), separators, removeEmptyEntries, builder);
+            return builder.Select(x => x.ToString()).ToArray();
+        }
+
         [Fact]
         public void ParseSeparatedStrings_ExcludeSeparatorChar()
         {
             Assert.Equal(
-                CommandLineParser.ParseSeparatedStrings(@"a,b", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                ParseSeparatedStrings(@"a,b", new[] { ',' }),
                 new[] { "a", "b" });
 
             Assert.Equal(
-                CommandLineParser.ParseSeparatedStrings(@"a,,b", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                ParseSeparatedStrings(@"a,,b", new[] { ',' }),
                 new[] { "a", "b" });
-
-            Assert.Equal(
-                CommandLineParser.ParseSeparatedStrings(@"a,,b", new[] { ',' }, StringSplitOptions.None),
-                new[] { "a", "", "b" });
         }
 
         /// <summary>
@@ -1126,15 +1135,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void ParseSeparatedStrings_IncludeQuotes()
         {
             Assert.Equal(
-                CommandLineParser.ParseSeparatedStrings(@"""a"",b", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                ParseSeparatedStrings(@"""a"",b", new[] { ',' }),
                 new[] { @"""a""", "b" });
 
             Assert.Equal(
-                CommandLineParser.ParseSeparatedStrings(@"""a,b""", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                ParseSeparatedStrings(@"""a,b""", new[] { ',' }),
                 new[] { @"""a,b""" });
 
             Assert.Equal(
-                CommandLineParser.ParseSeparatedStrings(@"""a"",""b", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                ParseSeparatedStrings(@"""a"",""b", new[] { ',' }),
                 new[] { @"""a""", @"""b" });
         }
 
@@ -1224,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// as \"\\test.cs\". 
         /// </remarks>
         [Fact]
-        public void RemoveQuotes()
+        public void RemoveQuotesAndSlashes()
         {
             Assert.Equal(@"\\test.cs", CommandLineParser.RemoveQuotesAndSlashes(@"\\test.cs"));
             Assert.Equal(@"\\test.cs", CommandLineParser.RemoveQuotesAndSlashes(@"""\\test.cs"""));
@@ -1236,6 +1245,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(@"a"" mid ""b.cs", CommandLineParser.RemoveQuotesAndSlashes(@"a\"" mid \""b.cs"));
             Assert.Equal(@"a mid b.cs", CommandLineParser.RemoveQuotesAndSlashes(@"a"" mid ""b.cs"));
             Assert.Equal(@"a.cs", CommandLineParser.RemoveQuotesAndSlashes(@"""a.cs"""));
+            Assert.Equal(@"C:""My Folder\MyBinary.xml", CommandLineParser.RemoveQuotesAndSlashes(@"C:\""My Folder""\MyBinary.xml"));
+        }
+
+        /// <summary>
+        /// Verify that for the standard cases we do not allocate new memory but instead 
+        /// return a <see cref="ReadOnlyMemory{T}"/> to the existing string
+        /// </summary>
+        [Fact]
+        public void RemoveQuotesAndSlashes_NoAllocation()
+        {
+            assertSame(@"c:\test.cs");
+            assertSame(@"""c:\test.cs""");
+            assertSame(@"""c:\\\\\\\\\test.cs""");
+            assertSame(@"""c:\\\\\\\\\test.cs""");
+
+            void assertSame(string arg)
+            {
+                var memory = CommandLineParser.RemoveQuotesAndSlashesEx(arg.AsMemory());
+                Assert.True(MemoryMarshal.TryGetString(memory, out var memoryString, out _, out _));
+                Assert.Same(arg, memoryString);
+            }
         }
     }
 }

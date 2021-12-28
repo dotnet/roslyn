@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -680,7 +684,7 @@ End Class|]";
             var expected = @"Class A
     Sub Method( _
         ByVal _
- _
+              _
             t As String, ByRef t1 As String)
     End Sub
 End Class";
@@ -717,7 +721,7 @@ End Class|]";
             var expected = @"Class A
     Private _
         Shared _
- _
+               _
             a As Integer = 1
 End Class";
 
@@ -1067,13 +1071,13 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        private async Task VerifyAsync(string codeWithMarker, string expectedResult)
+        private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
             MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
-            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name == PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators || p.Name == PredefinedCodeCleanupProviderNames.Format);
+            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators or PredefinedCodeCleanupProviderNames.Format);
 
             var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
 

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
@@ -12,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class TraceLogger : ILogger
     {
-        public static readonly TraceLogger Instance = new TraceLogger();
+        public static readonly TraceLogger Instance = new();
 
-        private readonly Func<FunctionId, bool> _loggingChecker;
+        private readonly Func<FunctionId, bool> _isEnabledPredicate;
 
         public TraceLogger()
             : this((Func<FunctionId, bool>)null)
@@ -26,30 +30,22 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         {
         }
 
-        public TraceLogger(Func<FunctionId, bool> loggingChecker)
-        {
-            _loggingChecker = loggingChecker;
-        }
+        public TraceLogger(Func<FunctionId, bool> isEnabledPredicate)
+            => _isEnabledPredicate = isEnabledPredicate;
 
         public bool IsEnabled(FunctionId functionId)
-        {
-            return _loggingChecker == null || _loggingChecker(functionId);
-        }
+            => _isEnabledPredicate == null || _isEnabledPredicate(functionId);
 
         public void Log(FunctionId functionId, LogMessage logMessage)
-        {
-            Trace.WriteLine(string.Format("[{0}] {1} - {2}", Thread.CurrentThread.ManagedThreadId, functionId.ToString(), logMessage.GetMessage()));
-        }
+            => Trace.WriteLine(string.Format("[{0}] {1} - {2}", Environment.CurrentManagedThreadId, functionId.ToString(), logMessage.GetMessage()));
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
-        {
-            Trace.WriteLine(string.Format("[{0}] Start({1}) : {2} - {3}", Thread.CurrentThread.ManagedThreadId, uniquePairId, functionId.ToString(), logMessage.GetMessage()));
-        }
+            => Trace.WriteLine(string.Format("[{0}] Start({1}) : {2} - {3}", Environment.CurrentManagedThreadId, uniquePairId, functionId.ToString(), logMessage.GetMessage()));
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
         {
             var functionString = functionId.ToString() + (cancellationToken.IsCancellationRequested ? " Canceled" : string.Empty);
-            Trace.WriteLine(string.Format("[{0}] End({1}) : [{2}ms] {3}", Thread.CurrentThread.ManagedThreadId, uniquePairId, delta, functionString));
+            Trace.WriteLine(string.Format("[{0}] End({1}) : [{2}ms] {3}", Environment.CurrentManagedThreadId, uniquePairId, delta, functionString));
         }
     }
 }

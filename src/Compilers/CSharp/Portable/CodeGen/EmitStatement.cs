@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.Binder;
@@ -36,6 +41,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.SequencePointWithSpan:
                     this.EmitSequencePointStatement((BoundSequencePointWithSpan)statement);
+                    break;
+
+                case BoundKind.SavePreviousSequencePoint:
+                    this.EmitSavePreviousSequencePoint((BoundSavePreviousSequencePoint)statement);
+                    break;
+
+                case BoundKind.RestorePreviousSequencePoint:
+                    this.EmitRestorePreviousSequencePoint((BoundRestorePreviousSequencePoint)statement);
+                    break;
+
+                case BoundKind.StepThroughSequencePoint:
+                    this.EmitStepThroughSequencePoint((BoundStepThroughSequencePoint)statement);
                     break;
 
                 case BoundKind.ExpressionStatement:
@@ -70,8 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitTryStatement((BoundTryStatement)statement);
                     break;
 
-                case BoundKind.SwitchStatement:
-                    EmitSwitchStatement((BoundSwitchStatement)statement);
+                case BoundKind.SwitchDispatch:
+                    EmitSwitchDispatch((BoundSwitchDispatch)statement);
                     break;
 
                 case BoundKind.StateMachineScope:
@@ -659,7 +676,7 @@ oneMoreTime:
             {
                 Debug.Assert(local.Name != null);
                 Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection);
+                    (local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection || local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchExpressionArm));
                 if (!local.IsConst && !IsStackLocal(local))
                 {
                     _builder.AddLocalToScope(_builder.LocalSlotManager.GetLocal(local));
@@ -676,7 +693,10 @@ oneMoreTime:
             _builder.OpenLocalScope(ScopeType.StateMachineVariable);
             foreach (var field in scope.Fields)
             {
-                _builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
+                if (field.SlotIndex >= 0)
+                {
+                    _builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
+                }
             }
 
             EmitStatement(scope.Statement);
@@ -868,7 +888,7 @@ oneMoreTime:
         ///
         /// gets emitted as something like ===>
         ///
-        /// Try           
+        /// Try
         ///     TryBlock
         /// Filter 
         ///     var tmp = Pop() as {ExceptionType}
@@ -887,6 +907,9 @@ oneMoreTime:
         ///     variable ex can be used here
         ///     Handler
         /// EndCatch
+        /// 
+        /// When evaluating `Condition` requires additional statements be executed first, those
+        /// statements are stored in `catchBlock.ExceptionFilterPrologueOpt` and emitted before the condition.
         /// </remarks>
         private void EmitCatchBlock(BoundCatchBlock catchBlock)
         {
@@ -990,6 +1013,7 @@ oneMoreTime:
                 while (exceptionSource.Kind == BoundKind.Sequence)
                 {
                     var seq = (BoundSequence)exceptionSource;
+                    Debug.Assert(seq.Locals.IsDefaultOrEmpty);
                     EmitSideEffects(seq);
                     exceptionSource = seq.Value;
                 }
@@ -1040,6 +1064,12 @@ oneMoreTime:
                 _builder.EmitOpCode(ILOpCode.Pop);
             }
 
+            if (catchBlock.ExceptionFilterPrologueOpt != null)
+            {
+                Debug.Assert(_builder.IsStackEmpty);
+                EmitStatements(catchBlock.ExceptionFilterPrologueOpt.Statements);
+            }
+
             // Emit the actual filter expression, if we have one, and normalize
             // results.
             if (catchBlock.ExceptionFilterOpt != null)
@@ -1073,104 +1103,30 @@ oneMoreTime:
             }
         }
 
-        private void EmitSwitchStatement(BoundSwitchStatement switchStatement)
+        private void EmitSwitchDispatch(BoundSwitchDispatch dispatch)
         {
-            var preambleOpt = switchStatement.LoweredPreambleOpt;
-            if (preambleOpt != null)
-            {
-                EmitStatement(preambleOpt);
-            }
-
             // Switch expression must have a valid switch governing type
-            Debug.Assert((object)switchStatement.Expression.Type != null);
-            Debug.Assert(switchStatement.Expression.Type.IsValidV6SwitchGoverningType());
+            Debug.Assert((object)dispatch.Expression.Type != null);
+            Debug.Assert(dispatch.Expression.Type.IsValidV6SwitchGoverningType());
 
             // We must have rewritten nullable switch expression into non-nullable constructs.
-            Debug.Assert(!switchStatement.Expression.Type.IsNullableType());
+            Debug.Assert(!dispatch.Expression.Type.IsNullableType());
 
-            BoundExpression expression = switchStatement.Expression;
-            ImmutableArray<BoundSwitchSection> switchSections = switchStatement.SwitchSections;
-            GeneratedLabelSymbol breakLabel = switchStatement.BreakLabel;
-            LabelSymbol constantTargetOpt = switchStatement.ConstantTargetOpt;
+            // This must be used only for nontrivial dispatches.
+            Debug.Assert(dispatch.Cases.Any());
 
-            if ((object)constantTargetOpt != null)
-            {
-                EmitConstantSwitchHeader(expression, constantTargetOpt);
-            }
-            else
-            {
-                // ConstantTargetOpt should be set to breakLabel for empty switch statement
-                Debug.Assert(switchStatement.SwitchSections.Any());
-
-                // Get switch case labels (indexed by their constant value) for emitting switch header and jump table
-                LabelSymbol fallThroughLabel = breakLabel;
-                KeyValuePair<ConstantValue, object>[] switchCaseLabels = GetSwitchCaseLabels(switchSections, ref fallThroughLabel);
-
-                // CONSIDER: EmitSwitchHeader may modify the switchCaseLabels array by sorting it.
-                // CONSIDER: Currently, only purpose of creating this switchCaseLabels array is for Emitting the switch header.
-                // CONSIDER: If this requirement changes, we may want to pass in ArrayBuilder<KeyValuePair<ConstantValue, object>> instead.
-
-                if (switchCaseLabels.Length == 0)
-                {
-                    // no case labels
-                    EmitExpression(expression, used: false);
-                    _builder.EmitBranch(ILOpCode.Br, fallThroughLabel);
-                }
-                else
-                {
-                    EmitSwitchHeader(switchStatement, expression, switchCaseLabels, fallThroughLabel);
-                }
-            }
-
-            EmitSwitchBody(switchStatement.InnerLocals, switchSections, breakLabel, switchStatement.Syntax);
-        }
-
-        private KeyValuePair<ConstantValue, object>[] GetSwitchCaseLabels(ImmutableArray<BoundSwitchSection> sections, ref LabelSymbol fallThroughLabel)
-        {
-            var labelsBuilder = ArrayBuilder<KeyValuePair<ConstantValue, object>>.GetInstance();
-            foreach (var section in sections)
-            {
-                // all labels in a section are labeling the same region of code, 
-                // so we could use just the first one for a better codegen
-                object firstLabelInSection = null;
-
-                foreach (BoundSwitchLabel boundLabel in section.SwitchLabels)
-                {
-                    var label = boundLabel.Label;
-                    if (boundLabel.ConstantValueOpt == null)
-                    {
-                        fallThroughLabel = label;
-                    }
-                    else
-                    {
-                        var value = boundLabel.ConstantValueOpt;
-                        Debug.Assert(value != null
-                            && SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(value));
-
-                        if (firstLabelInSection == null)
-                        {
-                            firstLabelInSection = label;
-                        }
-
-                        labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, firstLabelInSection));
-                    }
-                }
-            }
-
-            return labelsBuilder.ToArrayAndFree();
-        }
-
-        private void EmitConstantSwitchHeader(BoundExpression expression, LabelSymbol target)
-        {
-            EmitExpression(expression, false);
-            _builder.EmitBranch(ILOpCode.Br, target);
+            EmitSwitchHeader(
+                dispatch.Expression,
+                dispatch.Cases.Select(p => new KeyValuePair<ConstantValue, object>(p.value, p.label)).ToArray(),
+                dispatch.DefaultLabel,
+                dispatch.EqualityMethod);
         }
 
         private void EmitSwitchHeader(
-            BoundSwitchStatement switchStatement,
             BoundExpression expression,
             KeyValuePair<ConstantValue, object>[] switchCaseLabels,
-            LabelSymbol fallThroughLabel)
+            LabelSymbol fallThroughLabel,
+            MethodSymbol equalityMethod)
         {
             Debug.Assert(expression.ConstantValue == null);
             Debug.Assert((object)expression.Type != null &&
@@ -1226,14 +1182,14 @@ oneMoreTime:
                     break;
             }
 
-            // Emit switch jump table            
+            // Emit switch jump table
             if (expression.Type.SpecialType != SpecialType.System_String)
             {
-                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingType().PrimitiveTypeCode);
+                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingTypeOrSelf().PrimitiveTypeCode);
             }
             else
             {
-                this.EmitStringSwitchJumpTable(switchStatement, switchCaseLabels, fallThroughLabel, key, expression.Syntax);
+                this.EmitStringSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Syntax, equalityMethod);
             }
 
             if (temp != null)
@@ -1249,11 +1205,11 @@ oneMoreTime:
         }
 
         private void EmitStringSwitchJumpTable(
-            BoundSwitchStatement switchStatement,
             KeyValuePair<ConstantValue, object>[] switchCaseLabels,
             LabelSymbol fallThroughLabel,
             LocalOrParameter key,
-            SyntaxNode syntaxNode)
+            SyntaxNode syntaxNode,
+            MethodSymbol equalityMethod)
         {
             LocalDefinition keyHash = null;
 
@@ -1287,7 +1243,7 @@ oneMoreTime:
                 }
             }
 
-            Cci.IReference stringEqualityMethodRef = _module.Translate(switchStatement.StringEquality, syntaxNode, _diagnostics);
+            Cci.IReference stringEqualityMethodRef = _module.Translate(equalityMethod, syntaxNode, _diagnostics);
 
             Cci.IMethodReference stringLengthRef = null;
             var stringLengthMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
@@ -1384,50 +1340,6 @@ oneMoreTime:
             _builder.EmitBranch(ILOpCode.Brtrue, targetLabel, ILOpCode.Brfalse);
         }
 
-        private void EmitSwitchBody(
-            ImmutableArray<LocalSymbol> locals,
-            ImmutableArray<BoundSwitchSection> switchSections,
-            GeneratedLabelSymbol breakLabel,
-            SyntaxNode syntaxNode)
-        {
-            var hasLocals = !locals.IsEmpty;
-
-            if (hasLocals)
-            {
-                _builder.OpenLocalScope();
-
-                foreach (var local in locals)
-                {
-                    DefineLocal(local, syntaxNode);
-                }
-            }
-
-            foreach (var section in switchSections)
-            {
-                EmitSwitchSection(section);
-            }
-
-            _builder.MarkLabel(breakLabel);
-
-            if (hasLocals)
-            {
-                _builder.CloseLocalScope();
-            }
-        }
-
-        private void EmitSwitchSection(BoundSwitchSection switchSection)
-        {
-            foreach (var boundSwitchLabel in switchSection.SwitchLabels)
-            {
-                _builder.MarkLabel(boundSwitchLabel.Label);
-            }
-
-            foreach (var statement in switchSection.Statements)
-            {
-                EmitStatement(statement);
-            }
-        }
-
         /// <summary>
         /// Gets already declared and initialized local.
         /// </summary>
@@ -1444,17 +1356,17 @@ oneMoreTime:
 
         private LocalDefinition DefineLocal(LocalSymbol local, SyntaxNode syntaxNode)
         {
-            var dynamicTransformFlags = !local.IsCompilerGenerated && local.Type.TypeSymbol.ContainsDynamic() ?
-                CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type.TypeSymbol, RefKind.None, 0) :
+            var dynamicTransformFlags = !local.IsCompilerGenerated && local.Type.ContainsDynamic() ?
+                CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, RefKind.None, 0) :
                 ImmutableArray<bool>.Empty;
-            var tupleElementNames = !local.IsCompilerGenerated && local.Type.TypeSymbol.ContainsTupleNames() ?
-                CSharpCompilation.TupleNamesEncoder.Encode(local.Type.TypeSymbol) :
+            var tupleElementNames = !local.IsCompilerGenerated && local.Type.ContainsTupleNames() ?
+                CSharpCompilation.TupleNamesEncoder.Encode(local.Type) :
                 ImmutableArray<string>.Empty;
 
             if (local.IsConst)
             {
                 Debug.Assert(local.HasConstantValue);
-                MetadataConstant compileTimeValue = _module.CreateConstant(local.Type.TypeSymbol, local.ConstantValue, syntaxNode, _diagnostics);
+                MetadataConstant compileTimeValue = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics);
                 LocalConstantDefinition localConstantDef = new LocalConstantDefinition(
                     local.Name,
                     local.Locations.FirstOrDefault() ?? Location.None,
@@ -1476,15 +1388,15 @@ oneMoreTime:
             if (local.DeclarationKind == LocalDeclarationKind.FixedVariable && local.IsPinned) // Excludes pointer local and string local in fixed string case.
             {
                 Debug.Assert(local.RefKind == RefKind.None);
-                Debug.Assert(local.Type.IsPointerType());
+                Debug.Assert(local.TypeWithAnnotations.Type.IsPointerType());
 
                 constraints = LocalSlotConstraints.ByRef | LocalSlotConstraints.Pinned;
-                PointerTypeSymbol pointerType = (PointerTypeSymbol)local.Type.TypeSymbol;
-                TypeSymbol pointedAtType = pointerType.PointedAtType.TypeSymbol;
+                PointerTypeSymbol pointerType = (PointerTypeSymbol)local.Type;
+                TypeSymbol pointedAtType = pointerType.PointedAtType;
 
                 // We can't declare a reference to void, so if the pointed-at type is void, use native int
                 // (represented here by IntPtr) instead.
-                translatedType = pointedAtType.SpecialType == SpecialType.System_Void
+                translatedType = pointedAtType.IsVoidType()
                     ? _module.GetSpecialType(SpecialType.System_IntPtr, syntaxNode, _diagnostics)
                     : _module.Translate(pointedAtType, syntaxNode, _diagnostics);
             }
@@ -1492,7 +1404,7 @@ oneMoreTime:
             {
                 constraints = (local.IsPinned ? LocalSlotConstraints.Pinned : LocalSlotConstraints.None) |
                     (local.RefKind != RefKind.None ? LocalSlotConstraints.ByRef : LocalSlotConstraints.None);
-                translatedType = _module.Translate(local.Type.TypeSymbol, syntaxNode, _diagnostics);
+                translatedType = _module.Translate(local.Type, syntaxNode, _diagnostics);
             }
 
             // Even though we don't need the token immediately, we will need it later when signature for the local is emitted.
@@ -1517,7 +1429,8 @@ oneMoreTime:
             // If named, add it to the local debug scope.
             if (localDef.Name != null &&
                 !(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection)) // Visibility scope of such locals is represented by BoundScope node.
+                // Visibility scope of such locals is represented by BoundScope node.
+                (local.ScopeDesignatorOpt?.Kind() is SyntaxKind.SwitchSection or SyntaxKind.SwitchExpressionArm)))
             {
                 _builder.AddLocalToScope(localDef);
             }
@@ -1553,13 +1466,8 @@ oneMoreTime:
             if (_ilEmitStyle == ILEmitStyle.Debug)
             {
                 var syntax = local.GetDeclaratorSyntax();
-                int syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
-
-                // Synthesized locals emitted for switch case patterns are all associated with the switch statement 
-                // and have distinct types. We use their types to match them, not the ordinal as the ordinal might
-                // change if switch cases are reordered.
-                int ordinal = (localKind != SynthesizedLocalKind.SwitchCasePatternMatching) ?
-                    _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset) : 0;
+                int syntaxOffset = _method.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(syntax), syntax.SyntaxTree);
+                int ordinal = _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset);
 
                 // user-defined locals should have 0 ordinal:
                 Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);
@@ -1642,26 +1550,6 @@ oneMoreTime:
                 return node.Update(GetLabelClone(node.Label));
             }
 
-            public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-            {
-                var breakLabelClone = GetLabelClone(node.BreakLabel);
-                var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
-
-                // expressions do not contain labels or branches
-                BoundExpression boundExpression = node.Expression;
-                ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-                return node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, breakLabelClone, node.StringEquality);
-            }
-
-            public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)
-            {
-                var labelClone = GetLabelClone(node.Label);
-
-                // expressions do not contain labels or branches
-                BoundExpression expressionOpt = node.ExpressionOpt;
-                return node.Update(labelClone, expressionOpt, node.ConstantValueOpt);
-            }
-
             public override BoundNode VisitGotoStatement(BoundGotoStatement node)
             {
                 var labelClone = GetLabelClone(node.Label);
@@ -1682,6 +1570,21 @@ oneMoreTime:
                 BoundExpression condition = node.Condition;
 
                 return node.Update(condition, node.JumpIfTrue, labelClone);
+            }
+
+            public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
+            {
+                // expressions do not contain labels or branches
+                BoundExpression expression = node.Expression;
+
+                var defaultClone = GetLabelClone(node.DefaultLabel);
+                var casesBuilder = ArrayBuilder<(ConstantValue, LabelSymbol)>.GetInstance();
+                foreach (var (value, label) in node.Cases)
+                {
+                    casesBuilder.Add((value, GetLabelClone(label)));
+                }
+
+                return node.Update(expression, casesBuilder.ToImmutableAndFree(), defaultClone, node.EqualityMethod);
             }
 
             public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)

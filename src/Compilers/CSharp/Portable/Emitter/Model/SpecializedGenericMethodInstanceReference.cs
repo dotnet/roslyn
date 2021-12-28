@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,10 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            foreach (var arg in UnderlyingMethod.TypeArguments)
+            foreach (var arg in UnderlyingMethod.TypeArgumentsWithAnnotations)
             {
                 Debug.Assert(arg.CustomModifiers.IsEmpty);
-                yield return moduleBeingBuilt.Translate(arg.TypeSymbol, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+                yield return moduleBeingBuilt.Translate(arg.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
             }
         }
 

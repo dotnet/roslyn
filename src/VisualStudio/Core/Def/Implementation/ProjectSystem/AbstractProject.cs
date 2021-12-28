@@ -1,21 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
-using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -26,26 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
-    // NOTE: Microsoft.VisualStudio.LanguageServices.TypeScript.TypeScriptProject derives from AbstractProject.
-#pragma warning disable CS0618 // IVisualStudioHostProject is obsolete
+    [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
     internal abstract partial class AbstractProject : ForegroundThreadAffinitizedObject, IVisualStudioHostProject
-#pragma warning restore CS0618 // IVisualStudioHostProject is obsolete
     {
         internal const string ProjectGuidPropertyName = "ProjectGuid";
 
-        internal static object RuleSetErrorId = new object();
-
         private string _displayName;
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
-
-        private readonly DiagnosticDescriptor _errorReadingRulesetRule = new DiagnosticDescriptor(
-            id: IDEDiagnosticIds.ErrorReadingRulesetId,
-            title: ServicesVSResources.ErrorReadingRuleset,
-            messageFormat: ServicesVSResources.Error_reading_ruleset_file_0_1,
-            category: FeaturesResources.Roslyn_HostError,
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
 
         public AbstractProject(
             VisualStudioProjectTracker projectTracker,
@@ -55,10 +39,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IVsHierarchy hierarchy,
             string language,
             Guid projectGuid,
-            IServiceProvider serviceProviderNotUsed, // not used, but left for compat with TypeScript
+#pragma warning disable IDE0060 // Remove unused parameter - not used, but left for compat with TypeScript
+            IServiceProvider serviceProviderNotUsed,
+#pragma warning restore IDE0060 // Remove unused parameter
             VisualStudioWorkspaceImpl workspace,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
+#pragma warning disable IDE0060 // Remove unused parameter - not used, but left for compat
             ICommandLineParserService commandLineParserServiceOpt = null)
+#pragma warning restore IDE0060 // Remove unused parameter
             : base(projectTracker.ThreadingContext)
         {
             Hierarchy = hierarchy;
@@ -103,11 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal string BinOutputPath => GetOutputFilePath();
 
         protected virtual string GetOutputFilePath()
-        {
-            return VisualStudioProject.OutputFilePath;
-        }
-
-        public IReferenceCountedDisposable<IRuleSetFile> RuleSetFile { get; private set; }
+            => VisualStudioProject.OutputFilePath;
 
         protected IVsReportExternalErrors ExternalErrorReporter { get; }
 
@@ -197,7 +181,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <remarks>Default value is true.</remarks>
         protected bool LastDesignTimeBuildSucceeded { get; private set; }
 
-        public VisualStudioProject VisualStudioProject { get; internal set; }
+#nullable enable
+
+        public VisualStudioProject? VisualStudioProject { get; internal set; }
+
+#nullable disable
 
         internal void UpdateVisualStudioProjectProperties()
         {
@@ -209,9 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         protected void UpdateProjectDisplayName(string displayName)
-        {
-            this.DisplayName = displayName;
-        }
+            => this.DisplayName = displayName;
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal void AddDocument(IVisualStudioHostDocument document, bool isCurrentContext, bool hookupHandlers)
@@ -224,8 +210,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal void RemoveDocument(IVisualStudioHostDocument document)
         {
-            var shimDocument = (DocumentProvider.ShimDocument)document;
-
             var containedDocument = ContainedDocument.TryGetContainedDocument(document.Id);
             if (containedDocument != null)
             {
@@ -234,6 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
             else
             {
+                var shimDocument = (DocumentProvider.ShimDocument)document;
                 VisualStudioProject.RemoveSourceFile(shimDocument.FilePath);
             }
         }

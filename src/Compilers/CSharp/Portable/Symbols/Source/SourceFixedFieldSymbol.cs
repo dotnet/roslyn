@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             VariableDeclaratorSyntax declarator,
             DeclarationModifiers modifiers,
             bool modifierErrors,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(containingType, declarator, modifiers, modifierErrors, diagnostics)
         {
             // Checked in parser: a fixed field declaration requires a length in square brackets
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
             var systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            var item1 = new TypedConstant(systemType, TypedConstantKind.Type, ((PointerTypeSymbol)this.Type.TypeSymbol).PointedAtType.TypeSymbol);
+            var item1 = new TypedConstant(systemType, TypedConstantKind.Type, ((PointerTypeSymbol)this.Type).PointedAtType);
             var item2 = new TypedConstant(intType, TypedConstantKind.Primitive, this.FixedSize);
             AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_FixedBufferAttribute__ctor,
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_fixedSize == FixedSizeNotInitialized)
                 {
-                    DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+                    BindingDiagnosticBag diagnostics = BindingDiagnosticBag.GetInstance();
                     int size = 0;
 
                     VariableDeclaratorSyntax declarator = VariableDeclaratorNode;
@@ -102,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 {
                                     size = int32Value;
 
-                                    TypeSymbol elementType = ((PointerTypeSymbol)this.Type.TypeSymbol).PointedAtType.TypeSymbol;
+                                    TypeSymbol elementType = ((PointerTypeSymbol)this.Type).PointedAtType;
                                     int elementSize = elementType.FixedBufferElementSizeInBytes();
                                     long totalSize = elementSize * 1L * int32Value;
                                     if (totalSize > int.MaxValue)
@@ -153,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _field = field;
             _constructor = new SynthesizedInstanceConstructor(this);
-            _internalField = new SynthesizedFieldSymbol(this, ((PointerTypeSymbol)field.Type.TypeSymbol).PointedAtType.TypeSymbol, FixedElementFieldName, isPublic: true);
+            _internalField = new SynthesizedFieldSymbol(this, ((PointerTypeSymbol)field.Type).PointedAtType, FixedElementFieldName, isPublic: true);
         }
 
         public override Symbol ContainingSymbol
@@ -176,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 int nElements = _field.FixedSize;
-                var elementType = ((PointerTypeSymbol)_field.Type.TypeSymbol).PointedAtType.TypeSymbol;
+                var elementType = ((PointerTypeSymbol)_field.Type).PointedAtType;
                 int elementSize = elementType.FixedBufferElementSizeInBytes();
                 const int alignment = 0;
                 int totalSize = nElements * elementSize;
@@ -231,5 +235,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
             => ContainingAssembly.GetSpecialType(SpecialType.System_ValueType);
+
+        public sealed override bool AreLocalsZeroed
+            => throw ExceptionUtilities.Unreachable;
+
+        internal override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
     }
 }

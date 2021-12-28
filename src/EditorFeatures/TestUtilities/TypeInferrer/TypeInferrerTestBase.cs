@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -8,26 +11,18 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Xunit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
 {
     [UseExportProvider]
-    public abstract class TypeInferrerTestBase<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>, IDisposable
+    public abstract class TypeInferrerTestBase<TWorkspaceFixture> : TestBase
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
-        protected TWorkspaceFixture fixture;
+        private readonly TestFixtureHelper<TWorkspaceFixture> _fixtureHelper = new();
 
-        protected TypeInferrerTestBase(TWorkspaceFixture workspaceFixture)
-        {
-            this.fixture = workspaceFixture;
-        }
-
-        public override void Dispose()
-        {
-            this.fixture.DisposeAfterTest();
-            base.Dispose();
-        }
+        private protected ReferenceCountedDisposable<TWorkspaceFixture> GetOrCreateWorkspaceFixture()
+            => _fixtureHelper.GetOrCreateFixture();
 
         private static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
@@ -37,39 +32,39 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
-        protected async Task TestAsync(string text, string expectedType, bool testNode = true, bool testPosition = true,
-            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+        /// <summary>
+        /// Specifies which overload of the <see cref="ITypeInferenceService"/> will be tested.
+        /// </summary>
+        public enum TestMode
         {
-            MarkupTestFile.GetSpan(text.NormalizeLineEndings(), out text, out var textSpan);
+            /// <summary>
+            /// Specifies the test is going to call into <see cref="ITypeInferenceService.InferTypes(SemanticModel, SyntaxNode, string, System.Threading.CancellationToken)"/>.
+            /// </summary>
+            Node,
 
-            if (testNode)
-            {
-                await TestWithAndWithoutSpeculativeSemanticModelAsync(text, textSpan, expectedType, useNodeStartPosition: false, sourceCodeKind);
-            }
-
-            if (testPosition)
-            {
-                await TestWithAndWithoutSpeculativeSemanticModelAsync(text, textSpan, expectedType, useNodeStartPosition: true, sourceCodeKind);
-            }
+            /// <summary>
+            /// Specifies the test is going to call into <see cref="ITypeInferenceService.InferTypes(SemanticModel, int, string, System.Threading.CancellationToken)"/>.
+            /// </summary>
+            Position
         }
 
-        private async Task TestWithAndWithoutSpeculativeSemanticModelAsync(
-            string text,
-            TextSpan textSpan,
-            string expectedType,
-            bool useNodeStartPosition,
-            SourceCodeKind sourceCodeKind)
+        protected async Task TestAsync(string text, string expectedType, TestMode mode,
+            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
-            var document = fixture.UpdateDocument(text, sourceCodeKind);
-            await TestWorkerAsync(document, textSpan, expectedType, useNodeStartPosition);
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            MarkupTestFile.GetSpan(text.NormalizeLineEndings(), out text, out var textSpan);
+
+            var document = workspaceFixture.Target.UpdateDocument(text, sourceCodeKind);
+            await TestWorkerAsync(document, textSpan, expectedType, mode);
 
             if (await CanUseSpeculativeSemanticModelAsync(document, textSpan.Start))
             {
-                var document2 = fixture.UpdateDocument(text, sourceCodeKind, cleanBeforeUpdate: false);
-                await TestWorkerAsync(document2, textSpan, expectedType, useNodeStartPosition);
+                var document2 = workspaceFixture.Target.UpdateDocument(text, sourceCodeKind, cleanBeforeUpdate: false);
+                await TestWorkerAsync(document2, textSpan, expectedType, mode);
             }
         }
 
-        protected abstract Task TestWorkerAsync(Document document, TextSpan textSpan, string expectedType, bool useNodeStartPosition);
+        protected abstract Task TestWorkerAsync(Document document, TextSpan textSpan, string expectedType, TestMode mode);
     }
 }

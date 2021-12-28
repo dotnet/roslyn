@@ -1,36 +1,40 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class IfDirectiveKeywordRecommenderTests
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashIfInFileTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>|</File>, "#If")
-        End Function
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashIfInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "#If")
-        End Function
+        Public Sub HashIfInFileTest()
+            VerifyRecommendationsContain(<File>|</File>, "#If")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotInEnumBlockMemberDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub HashIfInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "#If")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub NotInEnumBlockMemberDeclarationTest()
+            VerifyRecommendationsMissing(<File>
                                              Enum goo
                                                 |
                                             End enum
                                          </File>, "#If")
-        End Function
+        End Sub
 
         <WorkItem(6389, "https://github.com/dotnet/roslyn/issues/6389")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterHashRegionTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub NotAfterHashRegionTest()
+            VerifyRecommendationsMissing(<File>
                                          Class C
 
                                              #Region |
 
                                          End Class
                                          </File>, "#If")
-        End Function
+        End Sub
     End Class
 End Namespace

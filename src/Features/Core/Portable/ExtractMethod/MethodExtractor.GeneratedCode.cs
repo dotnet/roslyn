@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Roslyn.Utilities;
 
@@ -20,11 +24,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfNull(callsiteAnnotation);
                 Contract.ThrowIfNull(methodDefinitionAnnotation);
 
-                this.Status = status;
-                this.SemanticDocument = document;
-                this.MethodNameAnnotation = methodNameAnnotation;
-                this.CallSiteAnnotation = callsiteAnnotation;
-                this.MethodDefinitionAnnotation = methodDefinitionAnnotation;
+                Status = status;
+                SemanticDocument = document;
+                MethodNameAnnotation = methodNameAnnotation;
+                CallSiteAnnotation = callsiteAnnotation;
+                MethodDefinitionAnnotation = methodDefinitionAnnotation;
             }
 
             public OperationStatus Status { get; }

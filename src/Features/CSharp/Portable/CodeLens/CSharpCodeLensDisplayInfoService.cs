@@ -1,8 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -14,6 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
         private static readonly SymbolDisplayFormat Format =
             SymbolDisplayFormat.CSharpErrorMessageFormat.RemoveMemberOptions(
                 SymbolDisplayMemberOptions.IncludeExplicitInterface);
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpCodeLensDisplayInfoService()
+        {
+        }
 
         /// <summary>
         /// Returns the node that should be displayed
@@ -56,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                             node = structuredTriviaSyntax.ParentTrivia.Token.Parent;
                             continue;
                         }
+
                         return null;
 
                     default:
@@ -74,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                 return FeaturesResources.paren_Unknown_paren;
             }
 
-            if (CSharpSyntaxFactsService.Instance.IsGlobalAttribute(node))
+            if (CSharpSyntaxFacts.Instance.IsGlobalAssemblyAttribute(node))
             {
                 return "assembly: " + node.ConvertToSingleLine();
             }

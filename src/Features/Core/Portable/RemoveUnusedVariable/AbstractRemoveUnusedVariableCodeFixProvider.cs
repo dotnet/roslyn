@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -30,11 +34,24 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
         protected abstract SeparatedSyntaxList<SyntaxNode> GetVariables(TLocalDeclarationStatement localDeclarationStatement);
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        protected abstract bool ShouldOfferFixForLocalDeclaration(ISyntaxFactsService syntaxFacts, SyntaxNode node);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
+
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            Diagnostic diagnostic = context.Diagnostics.First();
-            context.RegisterCodeFix(new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)), diagnostic);
-            return Task.CompletedTask;
+            var diagnostic = context.Diagnostics.First();
+
+            var document = context.Document;
+            var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var node = root.FindNode(diagnostic.Location.SourceSpan);
+
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            if (ShouldOfferFixForLocalDeclaration(syntaxFacts, node))
+            {
+                context.RegisterCodeFix(new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)), diagnostic);
+            }
         }
 
         protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CancellationToken cancellationToken)
@@ -65,7 +82,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
                     nodesToRemove.Add(node);
                 }
 
-                var symbol = documentEditor.SemanticModel.GetDeclaredSymbol(node);
+                var symbol = documentEditor.SemanticModel.GetDeclaredSymbol(node, cancellationToken);
                 var referencedSymbols = await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, documentsToBeSearched, cancellationToken).ConfigureAwait(false);
 
                 foreach (var referencedSymbol in referencedSymbols)
@@ -103,14 +120,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
             }
         }
 
-        protected void RemoveNode(SyntaxEditor editor, SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        protected static void RemoveNode(SyntaxEditor editor, SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
             var localDeclaration = node.GetAncestorOrThis<TLocalDeclarationStatement>();
             var removeOptions = CreateSyntaxRemoveOptions(localDeclaration, syntaxFacts);
             editor.RemoveNode(node, removeOptions);
         }
 
-        private SyntaxRemoveOptions CreateSyntaxRemoveOptions(TLocalDeclarationStatement localDeclaration, ISyntaxFactsService syntaxFacts)
+        private static SyntaxRemoveOptions CreateSyntaxRemoveOptions(TLocalDeclarationStatement localDeclaration, ISyntaxFactsService syntaxFacts)
         {
             var removeOptions = SyntaxGenerator.DefaultRemoveOptions;
 
@@ -152,8 +169,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
             var candidateLocalDeclarationsToRemove = new HashSet<TLocalDeclarationStatement>();
             foreach (var variableDeclarator in nodesToRemove.OfType<TVariableDeclarator>())
             {
-                var localDeclaration = (TLocalDeclarationStatement)variableDeclarator.Parent.Parent;
-                candidateLocalDeclarationsToRemove.Add(localDeclaration);
+                // Parents of the variable declarator could be candaditaes for removal for example 
+                // if all declarators in a declaration will be removed.
+
+                if (variableDeclarator.Parent?.Parent is TLocalDeclarationStatement candidate)
+                {
+                    candidateLocalDeclarationsToRemove.Add(candidate);
+                }
             }
 
             foreach (var candidate in candidateLocalDeclarationsToRemove)
@@ -181,8 +203,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Remove_unused_variable, createChangedDocument, FeaturesResources.Remove_unused_variable)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Remove_unused_variable, createChangedDocument, FeaturesResources.Remove_unused_variable)
             {
             }
         }

@@ -1,7 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -10,9 +14,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class SingleLineIfBlockHighlighter
         Inherits AbstractKeywordHighlighter(Of SingleLineIfStatementSyntax)
 
-        Protected Overloads Overrides Function GetHighlights(ifStatement As SingleLineIfStatementSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            Dim highlights As New List(Of TextSpan)
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
+        Protected Overloads Overrides Sub AddHighlights(ifStatement As SingleLineIfStatementSyntax, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             highlights.Add(ifStatement.IfKeyword.Span)
 
             highlights.Add(ifStatement.ThenKeyword.Span)
@@ -20,8 +27,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             If ifStatement.ElseClause IsNot Nothing Then
                 highlights.Add(ifStatement.ElseClause.ElseKeyword.Span)
             End If
-
-            Return highlights
-        End Function
+        End Sub
     End Class
 End Namespace

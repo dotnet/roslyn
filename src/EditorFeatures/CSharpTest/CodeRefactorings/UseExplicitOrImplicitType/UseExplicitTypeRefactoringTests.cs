@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -10,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseExplicitOrImplicitType
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
-    public class UseExplicitTypeRefactoringTests : AbstractUseTypeRefactoringTests
+    public class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new UseExplicitTypeCodeRefactoringProvider();
@@ -89,7 +94,6 @@ class C
         var[||] i = 0, j = j;
     }
 }";
-
 
             await TestMissingInRegularAndScriptAsync(code);
         }
@@ -293,39 +297,296 @@ class Program
 }");
         }
 
+        [Fact]
+        public async Task TestWithTopLevelNullability()
+        {
+            var code = @"
+#nullable enable
+
+class C
+{
+    private static string? s_data;
+
+    static void Main()
+    {
+        var[||] v = s_data;
+    }
+}";
+
+            var expected = @"
+#nullable enable
+
+class C
+{
+    private static string? s_data;
+
+    static void Main()
+    {
+        string? v = s_data;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestWithTopLevelAndNestedArrayNullability1()
+        {
+            var code = @"
+#nullable enable
+
+class C
+{
+    private static string?[]?[,]? s_data;
+
+    static void Main()
+    {
+        var[||] v = s_data;
+    }
+}";
+
+            var expected = @"
+#nullable enable
+
+class C
+{
+    private static string?[]?[,]? s_data;
+
+    static void Main()
+    {
+        string?[]?[,]? v = s_data;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestWithTopLevelAndNestedArrayNullability2()
+        {
+            var code = @"
+#nullable enable
+
+class C
+{
+    private static string?[][,]? s_data;
+
+    static void Main()
+    {
+        var[||] v = s_data;
+    }
+}";
+
+            var expected = @"
+#nullable enable
+
+class C
+{
+    private static string?[][,]? s_data;
+
+    static void Main()
+    {
+        string?[][,]? v = s_data;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestWithTopLevelAndNestedArrayNullability3()
+        {
+            var code = @"
+#nullable enable
+
+class C
+{
+    private static string?[]?[,][,,]? s_data;
+
+    static void Main()
+    {
+        var[||] v = s_data;
+    }
+}";
+
+            var expected = @"
+#nullable enable
+
+class C
+{
+    private static string?[]?[,][,,]? s_data;
+
+    static void Main()
+    {
+        string?[]?[,][,,]? v = s_data;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefLocal1()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        [||]ref var rStr1 = ref str;
+    }
+}";
+
+            await TestMissingAsync(code);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefLocal2()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref [||]var rStr1 = ref str;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref string rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefLocal3()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref var [||]rStr1 = ref str;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref string rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefReadonlyLocal1()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref readonly [||]var rStr1 = ref str;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref readonly string rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefReadonlyLocal2()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref readonly var[||] rStr1 = ref str;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref readonly string rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
         private async Task TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(string initialMarkup, string expectedMarkup)
         {
             // Enabled because the diagnostic is disabled
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: PreferExplicitTypeWithNone());
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferExplicitTypeWithNone());
 
             // Enabled because the diagnostic is checking for the other direction
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: PreferImplicitTypeWithNone());
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: PreferImplicitTypeWithSilent());
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferImplicitTypeWithNone());
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferImplicitTypeWithSilent());
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferImplicitTypeWithInfo());
 
             // Disabled because the diagnostic will report it instead
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferExplicitTypeWithSilent()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferExplicitTypeWithInfo()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferExplicitTypeWithWarning()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferExplicitTypeWithError()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithSilent()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithInfo()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithWarning()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithError()));
 
             // Currently this refactoring is still enabled in cases where it would cause a warning or error
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: PreferImplicitTypeWithWarning());
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: PreferImplicitTypeWithError());
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferImplicitTypeWithWarning());
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferImplicitTypeWithError());
         }
 
         private async Task TestMissingInRegularAndScriptAsync(string initialMarkup)
         {
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferImplicitTypeWithNone()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferExplicitTypeWithNone()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferImplicitTypeWithSilent()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferExplicitTypeWithSilent()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferImplicitTypeWithInfo()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferExplicitTypeWithInfo()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferImplicitTypeWithWarning()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferExplicitTypeWithWarning()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferImplicitTypeWithError()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferExplicitTypeWithError()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithNone()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithNone()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithSilent()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithSilent()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithInfo()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithInfo()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithWarning()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithWarning()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithError()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithError()));
         }
     }
 }

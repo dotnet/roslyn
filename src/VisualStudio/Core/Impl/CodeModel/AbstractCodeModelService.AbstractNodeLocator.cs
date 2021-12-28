@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -22,9 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             protected abstract VirtualTreePoint? GetEndPoint(SourceText text, OptionSet options, SyntaxNode node, EnvDTE.vsCMPart part);
 
             protected int GetTabSize(OptionSet options)
-            {
-                return options.GetOption(FormattingOptions.TabSize, LanguageName);
-            }
+                => options.GetOption(FormattingOptions.TabSize, LanguageName);
 
             public VirtualTreePoint? GetStartPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)
             {

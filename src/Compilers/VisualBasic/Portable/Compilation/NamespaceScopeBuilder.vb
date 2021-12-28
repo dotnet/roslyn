@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -32,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each aliasImport In aliasImportsOpt
                     Dim target = aliasImport.Alias.Target
                     If target.IsNamespace Then
-                        scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateNamespace(DirectCast(target, NamespaceSymbol), aliasOpt:=aliasImport.Alias.Name))
+                        scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateNamespace(DirectCast(target, NamespaceSymbol).GetCciAdapter(), aliasOpt:=aliasImport.Alias.Name))
                     ElseIf target.Kind <> SymbolKind.ErrorType AndAlso Not target.ContainingAssembly.IsLinked Then
                         ' It is not an error to import a non-existing type (unlike C#), skip the error types.
                         ' We also skip alias imports of embedded types to avoid breaking existing code that
@@ -51,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(target.Kind <> SymbolKind.ErrorType)
 
                 If target.IsNamespace Then
-                    scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateNamespace(DirectCast(target, NamespaceSymbol)))
+                    scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateNamespace(DirectCast(target, NamespaceSymbol).GetCciAdapter()))
                 ElseIf Not target.ContainingAssembly.IsLinked Then
                     ' We skip imports of embedded types to avoid breaking existing code that
                     ' imports types that can't be embedded but doesn't use them anywhere else in the code.

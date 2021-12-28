@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Roslyn.Test.Utilities
 
@@ -581,7 +583,7 @@ End Class
 
             Dim compilation = CreateEmptyCompilationWithReferences(
                 compilationDef,
-                {MsvbRef, TestReferences.NetFx.v2_0_50727.mscorlib},
+                {MsvbRef, TestMetadata.Net20.mscorlib},
                 TestOptions.DebugExe.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
 
             Dim verifier = CompileAndVerify(compilation)

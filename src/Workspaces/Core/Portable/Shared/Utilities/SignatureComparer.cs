@@ -1,23 +1,24 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal class SignatureComparer
     {
-        public static readonly SignatureComparer Instance = new SignatureComparer(SymbolEquivalenceComparer.Instance);
-        public static readonly SignatureComparer IgnoreAssembliesInstance = new SignatureComparer(SymbolEquivalenceComparer.IgnoreAssembliesInstance);
+        public static readonly SignatureComparer Instance = new(SymbolEquivalenceComparer.Instance);
+        public static readonly SignatureComparer IgnoreAssembliesInstance = new(SymbolEquivalenceComparer.IgnoreAssembliesInstance);
 
         private readonly SymbolEquivalenceComparer _symbolEquivalenceComparer;
 
         private SignatureComparer(SymbolEquivalenceComparer symbolEquivalenceComparer)
-        {
-            _symbolEquivalenceComparer = symbolEquivalenceComparer;
-        }
+            => _symbolEquivalenceComparer = symbolEquivalenceComparer;
 
         private IEqualityComparer<IParameterSymbol> ParameterEquivalenceComparer => _symbolEquivalenceComparer.ParameterEquivalenceComparer;
 
@@ -54,10 +55,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return true;
         }
 
-        private bool HaveSameSignature(IEventSymbol event1, IEventSymbol event2, bool caseSensitive)
-        {
-            return IdentifiersMatch(event1.Name, event2.Name, caseSensitive);
-        }
+        private static bool HaveSameSignature(IEventSymbol event1, IEventSymbol event2, bool caseSensitive)
+            => IdentifiersMatch(event1.Name, event2.Name, caseSensitive);
 
         public bool HaveSameSignature(IPropertySymbol property1, IPropertySymbol property2, bool caseSensitive)
         {
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 this.ParameterEquivalenceComparer);
         }
 
-        private bool BadPropertyAccessor(IMethodSymbol method1, IMethodSymbol method2)
+        private static bool BadPropertyAccessor(IMethodSymbol method1, IMethodSymbol method2)
         {
             return method1 != null &&
                 (method2 == null || method2.DeclaredAccessibility != Accessibility.Public);
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return HaveSameSignature(method1.Parameters, method2.Parameters, compareParameterName, isParameterCaseSensitive);
         }
 
-        private bool IdentifiersMatch(string identifier1, string identifier2, bool caseSensitive)
+        private static bool IdentifiersMatch(string identifier1, string identifier2, bool caseSensitive)
         {
             return caseSensitive
                 ? identifier1 == identifier2
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return false;
             }
 
-            for (int i = 0; i < parameters1.Count; ++i)
+            for (var i = 0; i < parameters1.Count; ++i)
             {
                 if (!_symbolEquivalenceComparer.ParameterEquivalenceComparer.Equals(parameters1[i], parameters2[i], compareParameterName, isCaseSensitive))
                 {
@@ -184,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return true;
         }
 
-        private bool HaveSameAccessors(IPropertySymbol property1, IPropertySymbol property2)
+        private static bool HaveSameAccessors(IPropertySymbol property1, IPropertySymbol property2)
         {
             if (property1.ContainingType == null ||
                 property1.ContainingType.TypeKind == TypeKind.Interface)
@@ -254,13 +253,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private bool HaveSameReturnType(IPropertySymbol property1, IPropertySymbol property2)
-        {
-            return this.SignatureTypeEquivalenceComparer.Equals(property1.Type, property2.Type);
-        }
+            => this.SignatureTypeEquivalenceComparer.Equals(property1.Type, property2.Type);
 
         private bool HaveSameReturnType(IEventSymbol ev1, IEventSymbol ev2)
-        {
-            return this.SignatureTypeEquivalenceComparer.Equals(ev1.Type, ev2.Type);
-        }
+            => this.SignatureTypeEquivalenceComparer.Equals(ev1.Type, ev2.Type);
     }
 }

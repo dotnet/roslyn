@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -14,14 +16,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             private readonly ITextBuffer _subjectBuffer;
             private readonly IDiagnosticService _service;
 
-            public DiagnosticsChangedEventSource(ITextBuffer subjectBuffer, IDiagnosticService service, TaggerDelay delay)
-                : base(delay)
+            public DiagnosticsChangedEventSource(ITextBuffer subjectBuffer, IDiagnosticService service)
             {
                 _subjectBuffer = subjectBuffer;
                 _service = service;
             }
 
-            private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
             {
                 var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
 
@@ -32,14 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             public override void Connect()
-            {
-                _service.DiagnosticsUpdated += OnDiagnosticsUpdated;
-            }
+                => _service.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
             public override void Disconnect()
-            {
-                _service.DiagnosticsUpdated -= OnDiagnosticsUpdated;
-            }
+                => _service.DiagnosticsUpdated -= OnDiagnosticsUpdated;
         }
     }
 }

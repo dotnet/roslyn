@@ -1,0 +1,392 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="es" original="../AnalyzersResources.resx">
+    <body>
+      <trans-unit id="A_source_file_contains_a_header_that_does_not_match_the_required_text">
+        <source>A source file contains a header that does not match the required text</source>
+        <target state="translated">Un archivo de código fuente contiene un encabezado que no coincide con el texto requerido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_source_file_is_missing_a_required_header">
+        <source>A source file is missing a required header.</source>
+        <target state="translated">Falta un encabezado obligatorio en un archivo de código fuente.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Accessibility_modifiers_required">
+        <source>Accessibility modifiers required</source>
+        <target state="translated">Modificadores de accesibilidad requeridos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_accessibility_modifiers">
+        <source>Add accessibility modifiers</source>
+        <target state="translated">Agregar modificadores de accesibilidad</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parentheses_for_clarity">
+        <source>Add parentheses for clarity</source>
+        <target state="translated">Agregar paréntesis para claridad</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_readonly_modifier">
+        <source>Add readonly modifier</source>
+        <target state="translated">Agregar modificador de solo lectura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_this_or_Me_qualification">
+        <source>Add 'this' or 'Me' qualification.</source>
+        <target state="translated">Agregar cualificación 'this' o 'Me'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">
+        <source>Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</source>
+        <target state="translated">Evitar el destino del formato heredado "{0}" en "SuppressMessageAttribute"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_legacy_format_target_in_SuppressMessageAttribute">
+        <source>Avoid legacy format target in 'SuppressMessageAttribute'</source>
+        <target state="translated">Evitar el destino del formato heredado en "SuppressMessageAttribute"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_multiple_blank_lines">
+        <source>Avoid multiple blank lines</source>
+        <target state="translated">Evitar varias líneas en blanco</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
+        <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
+        <target state="translated">Evite las asignaciones de valores innecesarias en el código, ya que probablemente indican cálculos de valores redundantes. Si el cálculo de valor no es redundante y tiene intención de retener la asignación, cambie el destino de la asignación a una variable local cuyo nombre empiece por un carácter de subrayado, seguido opcionalmente por un entero, como "_", "_1", "_2", etc. Estos se tratan como nombres de símbolos de descarte especiales.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
+        <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
+        <target state="translated">Evite los parámetros sin usar en el código. Si el parámetro no se puede quitar, cámbielo de nombre para que empiece por un carácter de subrayado, seguido opcionalmente por un entero, como "_", "_1", "_2", etc. Estos se tratan como nombres de símbolos de descarte especiales.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
+        <source>Blank line required between block and subsequent statement</source>
+        <target state="translated">Se requiere una línea en blanco entre el bloque y la instrucción subsiguiente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_namespace_to_match_folder_structure">
+        <source>Change namespace to match folder structure</source>
+        <target state="translated">Cambiar namespace para que coincida con la estructura de carpetas</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
+        <source>Changes to expression trees may result in behavior changes at runtime</source>
+        <target state="translated">Los cambios en los árboles de expresión pueden originar cambios de comportamiento en tiempo de ejecución</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="translated">La expresión condicional se puede simplificar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_conditional_expression">
+        <source>Convert to conditional expression</source>
+        <target state="translated">Convertir a expresión condicional</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_value_is_never_used">
+        <source>Expression value is never used</source>
+        <target state="translated">El valor de la expresión no se utiliza nunca.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collection_initialization_can_be_simplified">
+        <source>Collection initialization can be simplified</source>
+        <target state="translated">La inicialización de la recopilación se pueden simplificar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_string_contains_invalid_placeholder">
+        <source>Format string contains invalid placeholder</source>
+        <target state="translated">La cadena de formato contiene un marcador de posición no válido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="translated">La implementación de "GetHashCode" se puede simplificar.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interpolation_can_be_simplified">
+        <source>Interpolation can be simplified</source>
+        <target state="translated">La interpolación se puede simplificar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_format_string">
+        <source>Invalid format string</source>
+        <target state="translated">Cadena de formato no válida</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_global_SuppressMessageAttribute">
+        <source>Invalid global 'SuppressMessageAttribute'</source>
+        <target state="translated">"SuppressMessageAttribute" global no válido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_or_missing_target_for_SuppressMessageAttribute">
+        <source>Invalid or missing target for 'SuppressMessageAttribute'</source>
+        <target state="translated">Falta el destino de "SuppressMessageAttribute" o no es válido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_scope_for_SuppressMessageAttribute">
+        <source>Invalid scope for 'SuppressMessageAttribute'</source>
+        <target state="translated">Ámbito no válido para "SuppressMessageAttribute"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_field_readonly">
+        <source>Make field readonly</source>
+        <target state="translated">Hacer el archivo de solo lectura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Member_access_should_be_qualified">
+        <source>Member access should be qualified.</source>
+        <target state="translated">Debe calificarse el acceso a miembros.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_cases">
+        <source>Add missing cases</source>
+        <target state="translated">Agregar casos que faltan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Member_name_can_be_simplified">
+        <source>Member name can be simplified</source>
+        <target state="translated">El nombre del miembro se puede simplificar.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifiers_are_not_ordered">
+        <source>Modifiers are not ordered</source>
+        <target state="translated">Los modificadores no están ordenados.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
+        <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
+        <target state="translated">El espacio de nombres "{0}" no coincide con la estructura de carpetas, se esperaba "{1}"</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Namespace_does_not_match_folder_structure">
+        <source>Namespace does not match folder structure</source>
+        <target state="translated">El espacio de nombres no coincide con la estructura de carpetas</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Naming_Styles">
+        <source>Naming Styles</source>
+        <target state="translated">Estilos de nombres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_rule_violation_0">
+        <source>Naming rule violation: {0}</source>
+        <target state="translated">Infracción de la regla de nomenclatura: {0}</target>
+        <note>{0} is the rule title, {1} is the way in which the rule was violated</note>
+      </trans-unit>
+      <trans-unit id="Null_check_can_be_simplified">
+        <source>Null check can be simplified</source>
+        <target state="translated">La comprobación de valores null se puede simplificar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Order_modifiers">
+        <source>Order modifiers</source>
+        <target state="translated">Ordenar modificadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</source>
+        <target state="translated">Se puede quitar el parámetro "{0}" si no forma parte de una API pública enviada; su valor inicial no se usa nunca.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed; its initial value is never used</source>
+        <target state="translated">Se puede quitar el parámetro "{0}"; su valor inicial no se usa nunca.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Object_initialization_can_be_simplified">
+        <source>Object initialization can be simplified</source>
+        <target state="translated">La inicialización del objeto se puede simplificar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_can_be_removed">
+        <source>Parentheses can be removed</source>
+        <target state="translated">Los paréntesis se pueden quitar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_should_be_added_for_clarity">
+        <source>Parentheses should be added for clarity</source>
+        <target state="translated">Los paréntesis deben agregarse para mejorar la claridad</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Populate_switch">
+        <source>Populate switch</source>
+        <target state="translated">Rellenar switch</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
+        <source>Prefer explicitly provided tuple element name</source>
+        <target state="translated">Preferir el nombre del elemento de tupla proporcionado explícitamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
+        <source>Private member '{0}' can be removed as the value assigned to it is never read</source>
+        <target state="translated">El miembro privado "{0}" puede quitarse porque el valor que tiene asignado no se lee nunca</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_is_unused">
+        <source>Private member '{0}' is unused</source>
+        <target state="translated">El miembro privado "{0}" no se usa</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
+        <source>Private method '{0}' can be removed as it is never invoked.</source>
+        <target state="translated">El método privado "{0}" se puede quitar porque nunca se invoca.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
+        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
+        <target state="translated">La propiedad privada "{0}" se puede convertir en un método porque su descriptor de acceso get nunca se invoca.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Unnecessary_Cast">
+        <source>Remove Unnecessary Cast</source>
+        <target state="translated">Quitar conversión innecesaria</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_redundant_equality">
+        <source>Remove redundant equality</source>
+        <target state="translated">Quitar la igualdad redundante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_parentheses">
+        <source>Remove unnecessary parentheses</source>
+        <target state="translated">Quitar los paréntesis innecesarios</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_suppression">
+        <source>Remove unnecessary suppression</source>
+        <target state="translated">Quitar supresión innecesaria</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unread_private_members">
+        <source>Remove unread private members</source>
+        <target state="translated">Quitar miembros privados no leídos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_member">
+        <source>Remove unused member</source>
+        <target state="translated">Quitar miembros sin usar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter">
+        <source>Remove unused parameter</source>
+        <target state="translated">Quitar el parámetro no utilizado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0">
+        <source>Remove unused parameter '{0}'</source>
+        <target state="translated">Retirar el parámetro "{0}" sin usar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API">
+        <source>Remove unused parameter '{0}' if it is not part of a shipped public API</source>
+        <target state="translated">Quitar el parámetro "{0}" sin usar si no forma parte de una API pública enviada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_private_members">
+        <source>Remove unused private members</source>
+        <target state="translated">Quitar miembros privados no utilizados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_LINQ_expression">
+        <source>Simplify LINQ expression</source>
+        <target state="translated">Simplificar la expresión LINQ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_collection_initialization">
+        <source>Simplify collection initialization</source>
+        <target state="translated">Simplificar la inicialización de la recopilación</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="translated">Simplificar la expresión condicional</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_interpolation">
+        <source>Simplify interpolation</source>
+        <target state="translated">Simplificar la interpolación</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_object_initialization">
+        <source>Simplify object initialization</source>
+        <target state="translated">Simplificar la inicialización de objetos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_file_header_does_not_match_the_required_text">
+        <source>The file header does not match the required text</source>
+        <target state="translated">El encabezado de archivo no coincide con el texto requerido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_file_header_is_missing_or_not_located_at_the_top_of_the_file">
+        <source>The file header is missing or not located at the top of the file</source>
+        <target state="translated">Falta el encabezado del archivo o no se encuentra en la parte superior del archivo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unnecessary_assignment_of_a_value">
+        <source>Unnecessary assignment of a value</source>
+        <target state="translated">Asignación innecesaria de un valor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
+        <source>Unnecessary assignment of a value to '{0}'</source>
+        <target state="translated">Asignación innecesaria de un valor a "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="translated">Usar "System.HashCode"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_auto_property">
+        <source>Use auto property</source>
+        <target state="translated">Usar propiedad automática</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_coalesce_expression">
+        <source>Use coalesce expression</source>
+        <target state="translated">Usar expresión coalesce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_compound_assignment">
+        <source>Use compound assignment</source>
+        <target state="translated">Usar la asignación compuesta</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_decrement_operator">
+        <source>Use '--' operator</source>
+        <target state="translated">Usar el operador "--"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_explicitly_provided_tuple_name">
+        <source>Use explicitly provided tuple name</source>
+        <target state="translated">Usar el nombre de tupla proporcionado explícitamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_increment_operator">
+        <source>Use '++' operator</source>
+        <target state="translated">Usar el operador "++"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_inferred_member_name">
+        <source>Use inferred member name</source>
+        <target state="translated">Usar nombre de miembro inferido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_null_propagation">
+        <source>Use null propagation</source>
+        <target state="translated">Usar propagación de null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_throw_expression">
+        <source>Use 'throw' expression</source>
+        <target state="translated">Usar expresión "throw"</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

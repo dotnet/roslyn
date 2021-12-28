@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Syntax;
 
@@ -11,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Represents a <see cref="CSharpSyntaxVisitor{TResult}"/> which descends an entire <see cref="CSharpSyntaxNode"/> graph and
     /// may replace or remove visited SyntaxNodes in depth-first order.
     /// </summary>
-    public abstract partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode>
+    public abstract partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
     {
         private readonly bool _visitIntoStructuredTrivia;
 
@@ -27,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private int _recursionDepth;
 
-        public override SyntaxNode Visit(SyntaxNode node)
+        [return: NotNullIfNotNull("node")]
+        public override SyntaxNode? Visit(SyntaxNode? node)
         {
             if (node != null)
             {
@@ -37,7 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = ((CSharpSyntaxNode)node).Accept(this);
 
                 _recursionDepth--;
-                return result;
+                // https://github.com/dotnet/roslyn/issues/47682
+                return result!;
             }
             else
             {
@@ -113,8 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.VisitIntoStructuredTrivia && trivia.HasStructure)
             {
-                var structure = (CSharpSyntaxNode)trivia.GetStructure();
-                var newStructure = (StructuredTriviaSyntax)this.Visit(structure);
+                var structure = (CSharpSyntaxNode)trivia.GetStructure()!;
+                var newStructure = (StructuredTriviaSyntax?)this.Visit(structure);
                 if (newStructure != structure)
                 {
                     if (newStructure != null)
@@ -123,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        return default(SyntaxTrivia);
+                        return default;
                     }
                 }
             }
@@ -133,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public virtual SyntaxList<TNode> VisitList<TNode>(SyntaxList<TNode> list) where TNode : SyntaxNode
         {
-            SyntaxListBuilder alternate = null;
+            SyntaxListBuilder? alternate = null;
             for (int i = 0, n = list.Count; i < n; i++)
             {
                 var item = list[i];
@@ -158,9 +163,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return list;
         }
 
-        public virtual TNode VisitListElement<TNode>(TNode node) where TNode : SyntaxNode
+        public virtual TNode? VisitListElement<TNode>(TNode? node) where TNode : SyntaxNode
         {
-            return (TNode)(SyntaxNode)this.Visit(node);
+            return (TNode?)this.Visit(node);
         }
 
         public virtual SeparatedSyntaxList<TNode> VisitList<TNode>(SeparatedSyntaxList<TNode> list) where TNode : SyntaxNode
@@ -168,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var count = list.Count;
             var sepCount = list.SeparatorCount;
 
-            SeparatedSyntaxListBuilder<TNode> alternate = default(SeparatedSyntaxListBuilder<TNode>);
+            SeparatedSyntaxListBuilder<TNode> alternate = default;
 
             int i = 0;
             for (; i < sepCount; i++)
@@ -245,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public virtual SyntaxTokenList VisitList(SyntaxTokenList list)
         {
-            SyntaxTokenListBuilder alternate = null;
+            SyntaxTokenListBuilder? alternate = null;
             var count = list.Count;
             var index = -1;
 
@@ -278,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var count = list.Count;
             if (count != 0)
             {
-                SyntaxTriviaListBuilder alternate = null;
+                SyntaxTriviaListBuilder? alternate = null;
                 var index = -1;
 
                 foreach (var item in list)

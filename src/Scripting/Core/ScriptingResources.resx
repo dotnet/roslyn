@@ -187,4 +187,7 @@ Script directives:
   <data name="AssemblyAlreadyLoadedNotSigned" xml:space="preserve">
     <value>Assembly '{0}' has already been loaded from '{1}'. A different assembly with the same name can't be loaded unless it's signed: '{2}'.</value>
   </data>
+  <data name="CannotSetLanguageSpecificOption" xml:space="preserve">
+    <value>Cannot set {0} specific option {1} because the options were already configured for a different language.</value>
+  </data>
 </root>

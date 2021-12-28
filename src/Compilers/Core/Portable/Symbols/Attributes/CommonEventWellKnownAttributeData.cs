@@ -1,16 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
+#nullable disable
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Information decoded from well-known custom attributes applied on an event.
     /// </summary>
-    internal class CommonEventWellKnownAttributeData : WellKnownAttributeData
+    internal class CommonEventWellKnownAttributeData : WellKnownAttributeData, ISkipLocalsInitAttributeTarget
     {
-        #region SpecialNameAttribute
         private bool _hasSpecialNameAttribute;
         public bool HasSpecialNameAttribute
         {
@@ -26,9 +26,6 @@ namespace Microsoft.CodeAnalysis
                 SetDataStored();
             }
         }
-        #endregion
-
-        #region ExcludeFromCodeCoverageAttribute
 
         private bool _hasExcludeFromCodeCoverageAttribute;
         public bool HasExcludeFromCodeCoverageAttribute
@@ -46,6 +43,20 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        #endregion
+        private bool _hasSkipLocalsInitAttribute;
+        public bool HasSkipLocalsInitAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasSkipLocalsInitAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasSkipLocalsInitAttribute = value;
+                SetDataStored();
+            }
+        }
     }
 }

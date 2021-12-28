@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         internal static RunRequest GetRunRequest(BuildRequest req)
         {
-            string currentDirectory;
-            string libDirectory;
-            string tempDirectory;
+            string? currentDirectory;
+            string? libDirectory;
+            string? tempDirectory;
             string[] arguments = GetCommandLineArguments(req, out currentDirectory, out tempDirectory, out libDirectory);
             string language = "";
             switch (req.Language)
@@ -30,10 +32,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     break;
             }
 
-            return new RunRequest(language, currentDirectory, tempDirectory, libDirectory, arguments);
+            return new RunRequest(req.RequestId, language, currentDirectory, tempDirectory, libDirectory, arguments);
         }
 
-        internal static string[] GetCommandLineArguments(BuildRequest req, out string currentDirectory, out string tempDirectory, out string libDirectory)
+        internal static string[] GetCommandLineArguments(BuildRequest req, out string? currentDirectory, out string? tempDirectory, out string? libDirectory)
         {
             currentDirectory = null;
             libDirectory = null;
@@ -56,10 +58,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.CommandLineArgument)
                 {
-                    int argIndex = arg.ArgumentIndex;
-                    while (argIndex >= commandLineArguments.Count)
-                        commandLineArguments.Add("");
-                    commandLineArguments[argIndex] = arg.Value;
+                    if (arg.Value is object)
+                    {
+                        int argIndex = arg.ArgumentIndex;
+                        while (argIndex >= commandLineArguments.Count)
+                            commandLineArguments.Add("");
+                        commandLineArguments[argIndex] = arg.Value;
+                    }
                 }
             }
 

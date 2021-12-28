@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -8,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -43,7 +48,7 @@ public class C : Interface1
                 },
                 new[]
                     {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                     });
 
@@ -108,7 +113,7 @@ public  class D : C
                 },
                 new MetadataReference[]
                 {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                         new CSharpCompilationReference(comp1)
                 });
@@ -195,7 +200,7 @@ public  class D : C
                 Assert.Same(interfaceV2Property1, retargetedClassCProperty1Impl);
                 Assert.NotSame(interfaceV1Property1, retargetedClassCProperty1Impl);
                 Assert.Equal(retargetedClassCProperty1Impl.Name, interfaceV1Property1.Name);
-                Assert.Equal(retargetedClassCProperty1Impl.Type.TypeSymbol.ToTestDisplayString(), interfaceV1Property1.Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal(retargetedClassCProperty1Impl.Type.ToTestDisplayString(), interfaceV1Property1.Type.ToTestDisplayString());
             }
 
             var retargetedClassCProperty2 = (PropertySymbol)retargetedClassC.GetMembers("Interface1.Property2").Single();
@@ -222,7 +227,7 @@ public  class D : C
                 Assert.Same(interfaceV2Property4, retargetedClassCProperty4Impl);
                 Assert.NotSame(interfaceV1Property4, retargetedClassCProperty4Impl);
                 Assert.Equal(retargetedClassCProperty4Impl.Name, interfaceV1Property4.Name);
-                Assert.Equal(retargetedClassCProperty4Impl.Type.TypeSymbol.ToTestDisplayString(), interfaceV1Property4.Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal(retargetedClassCProperty4Impl.Type.ToTestDisplayString(), interfaceV1Property4.Type.ToTestDisplayString());
             }
 
             var retargetedClassCIndexer1 = FindIndexerWithParameterCount(retargetedClassC, 1);
@@ -233,7 +238,7 @@ public  class D : C
                 Assert.Same(interfaceV2Indexer1, retargetedClassCIndexer1Impl);
                 Assert.NotSame(interfaceV1Indexer1, retargetedClassCIndexer1Impl);
                 Assert.Equal(retargetedClassCIndexer1Impl.Name, interfaceV1Indexer1.Name);
-                Assert.Equal(retargetedClassCIndexer1Impl.Type.TypeSymbol.ToTestDisplayString(), interfaceV1Indexer1.Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal(retargetedClassCIndexer1Impl.Type.ToTestDisplayString(), interfaceV1Indexer1.Type.ToTestDisplayString());
             }
 
             var retargetedClassCIndexer2 = FindIndexerWithParameterCount(retargetedClassC, 2);
@@ -260,7 +265,7 @@ public  class D : C
                 Assert.Same(interfaceV2Indexer4, retargetedClassCIndexer4Impl);
                 Assert.NotSame(interfaceV1Indexer4, retargetedClassCIndexer4Impl);
                 Assert.Equal(retargetedClassCIndexer4Impl.Name, interfaceV1Indexer4.Name);
-                Assert.Equal(retargetedClassCIndexer4Impl.Type.TypeSymbol.ToTestDisplayString(), interfaceV1Indexer4.Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal(retargetedClassCIndexer4Impl.Type.ToTestDisplayString(), interfaceV1Indexer4.Type.ToTestDisplayString());
             }
 
             var retargetedClassCEvent1 = (EventSymbol)retargetedClassC.GetMembers("Interface1.Event1").Single();
@@ -271,7 +276,7 @@ public  class D : C
                 Assert.Same(interfaceV2Event1, retargetedClassCEvent1Impl);
                 Assert.NotSame(interfaceV1Event1, retargetedClassCEvent1Impl);
                 Assert.Equal(retargetedClassCEvent1Impl.Name, interfaceV1Event1.Name);
-                Assert.Equal(retargetedClassCEvent1Impl.Type.TypeSymbol.ToTestDisplayString(), interfaceV1Event1.Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal(retargetedClassCEvent1Impl.Type.ToTestDisplayString(), interfaceV1Event1.Type.ToTestDisplayString());
             }
 
             var retargetedClassCEvent2 = (EventSymbol)retargetedClassC.GetMembers("Interface1.Event2").Single();
@@ -298,7 +303,7 @@ public  class D : C
                 Assert.Same(interfaceV2Event4, retargetedClassCEvent4Impl);
                 Assert.NotSame(interfaceV1Event4, retargetedClassCEvent4Impl);
                 Assert.Equal(retargetedClassCEvent4Impl.Name, interfaceV1Event4.Name);
-                Assert.Equal(retargetedClassCEvent4Impl.Type.TypeSymbol.ToTestDisplayString(), interfaceV1Event4.Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal(retargetedClassCEvent4Impl.Type.ToTestDisplayString(), interfaceV1Event4.Type.ToTestDisplayString());
             }
         }
 
@@ -338,7 +343,7 @@ public class C3 : Interface2<Class1>
                 },
                 new[]
                     {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                     });
 
@@ -373,7 +378,7 @@ public  class D3 : C3
                 },
                 new MetadataReference[]
                 {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                         new CSharpCompilationReference(comp1)
                 });
@@ -430,6 +435,41 @@ public  class D3 : C3
             var retargetedClassC3Event1 = (EventSymbol)retargetedClassC3.GetMembers("Interface2<Class1>.Event1").Single();
             var retargetedClassC3Event1Impl = retargetedClassC3Event1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Event1, retargetedClassC3Event1Impl.OriginalDefinition);
+        }
+
+        [Fact]
+        public void ExplicitInterfaceImplementationRetargetingGenericType()
+        {
+            var source1 = @"
+public class C1<T>
+{
+    public interface I1
+    {
+        void M(T x);
+    }
+}
+";
+            var ref1 = CreateEmptyCompilation("").ToMetadataReference();
+            var compilation1 = CreateCompilation(source1, references: new[] { ref1 });
+
+            var source2 = @"
+public class C2<U> : C1<U>.I1
+{
+    void C1<U>.I1.M(U x) {}
+}
+";
+            var compilation2 = CreateCompilation(source2, references: new[] { compilation1.ToMetadataReference(), ref1, CreateEmptyCompilation("").ToMetadataReference() });
+
+            var compilation3 = CreateCompilation("", references: new[] { compilation1.ToMetadataReference(), compilation2.ToMetadataReference() });
+
+            Assert.NotSame(compilation2.GetTypeByMetadataName("C1`1"), compilation3.GetTypeByMetadataName("C1`1"));
+
+            var c2 = compilation3.GetTypeByMetadataName("C2`1");
+            Assert.IsType<RetargetingNamedTypeSymbol>(c2);
+
+            var m = c2.GetMethod("C1<U>.I1.M");
+
+            Assert.Equal(c2.Interfaces().Single().GetMethod("M"), m.ExplicitInterfaceImplementations.Single());
         }
     }
 }

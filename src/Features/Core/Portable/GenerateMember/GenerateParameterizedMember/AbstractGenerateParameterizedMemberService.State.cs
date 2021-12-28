@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using System.Threading;
@@ -53,19 +57,18 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             protected async Task<bool> TryFinishInitializingStateAsync(TService service, SemanticDocument document, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                this.TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(this.TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
-                if (this.TypeToGenerateIn.IsErrorType())
+                TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                if (TypeToGenerateIn.IsErrorType())
                 {
                     return false;
                 }
 
-                if (!service.ValidateTypeToGenerateIn(document.Project.Solution, this.TypeToGenerateIn,
-                        this.IsStatic, ClassInterfaceModuleStructTypes, cancellationToken))
+                if (!ValidateTypeToGenerateIn(TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
                 {
                     return false;
                 }
 
-                if (!CodeGenerator.CanAdd(document.Project.Solution, this.TypeToGenerateIn, cancellationToken))
+                if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, cancellationToken))
                 {
                     return false;
                 }
@@ -74,14 +77,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 // errors.  In the former case we definitely want to offer to generate a method.  In
                 // the latter case, we want to generate a method *unless* there's an existing method
                 // with the same signature.
-                var existingMethods = this.TypeToGenerateIn.GetMembers(this.IdentifierToken.ValueText)
+                var existingMethods = TypeToGenerateIn.GetMembers(IdentifierToken.ValueText)
                                                            .OfType<IMethodSymbol>();
 
-                var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(this.TypeToGenerateIn.Language);
+                var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
                 var syntaxFactory = destinationProvider.GetService<SyntaxGenerator>();
-                this.IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(this.TypeToGenerateIn);
-                var generatedMethod = this.SignatureInfo.GenerateMethod(syntaxFactory, false, cancellationToken);
+                IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);
+                var generatedMethod = await SignatureInfo.GenerateMethodAsync(syntaxFactory, false, cancellationToken).ConfigureAwait(false);
                 return !existingMethods.Any(m => SignatureComparer.Instance.HaveSameSignature(m, generatedMethod, caseSensitive: syntaxFacts.IsCaseSensitive, compareParameterName: true, isParameterCaseSensitive: syntaxFacts.IsCaseSensitive));
             }
         }

@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -50,17 +53,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ReverseArrayRankSpecifiers = 1 << 5,
 
-        //  https://github.com/dotnet/roslyn/issues/26198 Should this option be made public?
-        /// <summary>
-        /// Append '!' to non-nullable reference types.
-        /// Note this causes SymbolDisplay to pull on IsNullable and therefore NonNullTypes,
-        /// so don't use this option in binding, in order to avoid cycles.
-        /// </summary>
-        IncludeNonNullableTypeModifier = 1 << 6,
-
         /// <summary>
         /// Display `System.ValueTuple` instead of tuple syntax `(...)`.
         /// </summary>
-        UseValueTuple = 1 << 7,
+        UseValueTuple = 1 << 6,
+
+        /// <summary>
+        /// Display `System.[U]IntPtr` instead of `n[u]int`.
+        /// </summary>
+        UseNativeIntegerUnderlyingType = 1 << 7,
     }
 }

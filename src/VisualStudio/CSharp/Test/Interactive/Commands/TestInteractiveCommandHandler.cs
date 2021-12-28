@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow;
@@ -12,20 +15,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
     internal class TestInteractiveCommandHandler : InteractiveCommandHandler
     {
-        private IInteractiveWindow _interactiveWindow;
+        private readonly IInteractiveWindow _interactiveWindow;
 
-        private ISendToInteractiveSubmissionProvider _sendToInteractiveSubmissionProvider;
+        private readonly ISendToInteractiveSubmissionProvider _sendToInteractiveSubmissionProvider;
 
         public TestInteractiveCommandHandler(
             IInteractiveWindow interactiveWindow,
+            ISendToInteractiveSubmissionProvider sendToInteractiveSubmissionProvider,
             IContentTypeRegistryService contentTypeRegistryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            IWaitIndicator waitIndicator)
-            : base(contentTypeRegistryService, editorOptionsFactoryService, editorOperationsFactoryService, waitIndicator)
+            IEditorOperationsFactoryService editorOperationsFactoryService)
+            : base(contentTypeRegistryService, editorOptionsFactoryService, editorOperationsFactoryService)
         {
             _interactiveWindow = interactiveWindow;
-            _sendToInteractiveSubmissionProvider = new CSharpSendToInteractiveSubmissionProvider();
+            _sendToInteractiveSubmissionProvider = sendToInteractiveSubmissionProvider;
         }
 
         protected override ISendToInteractiveSubmissionProvider SendToInteractiveSubmissionProvider => _sendToInteractiveSubmissionProvider;

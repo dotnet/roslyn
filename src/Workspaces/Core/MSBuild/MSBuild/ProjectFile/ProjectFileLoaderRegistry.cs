@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
@@ -10,14 +13,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class ProjectFileLoaderRegistry
     {
-        private readonly Workspace _workspace;
+        private readonly HostWorkspaceServices _workspaceServices;
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly Dictionary<string, string> _extensionToLanguageMap;
         private readonly NonReentrantLock _dataGuard;
 
-        public ProjectFileLoaderRegistry(Workspace workspace, DiagnosticReporter diagnosticReporter)
+        public ProjectFileLoaderRegistry(HostWorkspaceServices workspaceServices, DiagnosticReporter diagnosticReporter)
         {
-            _workspace = workspace;
+            _workspaceServices = workspaceServices;
             _diagnosticReporter = diagnosticReporter;
             _extensionToLanguageMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             _dataGuard = new NonReentrantLock();
@@ -34,26 +37,33 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        public bool TryGetLoaderFromProjectPath(string projectFilePath, out IProjectFileLoader loader)
+        public bool TryGetLoaderFromProjectPath(string? projectFilePath, [NotNullWhen(true)] out IProjectFileLoader? loader)
         {
             return TryGetLoaderFromProjectPath(projectFilePath, DiagnosticReportingMode.Ignore, out loader);
         }
 
-        public bool TryGetLoaderFromProjectPath(string projectFilePath, DiagnosticReportingMode mode, out IProjectFileLoader loader)
+        public bool TryGetLoaderFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out IProjectFileLoader? loader)
         {
             using (_dataGuard.DisposableWait())
             {
                 var extension = Path.GetExtension(projectFilePath);
+                if (extension is null)
+                {
+                    loader = null;
+                    _diagnosticReporter.Report(mode, $"Project file path was 'null'");
+                    return false;
+                }
+
                 if (extension.Length > 0 && extension[0] == '.')
                 {
-                    extension = extension.Substring(1);
+                    extension = extension[1..];
                 }
 
                 if (_extensionToLanguageMap.TryGetValue(extension, out var language))
                 {
-                    if (_workspace.Services.SupportedLanguages.Contains(language))
+                    if (_workspaceServices.SupportedLanguages.Contains(language))
                     {
-                        loader = _workspace.Services.GetLanguageServices(language).GetService<IProjectFileLoader>();
+                        loader = _workspaceServices.GetLanguageServices(language).GetService<IProjectFileLoader>();
                     }
                     else
                     {
@@ -64,7 +74,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
                 else
                 {
-                    loader = ProjectFileLoader.GetLoaderForProjectFileExtension(_workspace, extension);
+                    loader = ProjectFileLoader.GetLoaderForProjectFileExtension(_workspaceServices, extension);
 
                     if (loader == null)
                     {
@@ -79,7 +89,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     language = loader.Language;
 
                     // check for command line parser existing... if not then error.
-                    var commandLineParser = _workspace.Services
+                    var commandLineParser = _workspaceServices
                         .GetLanguageServices(language)
                         .GetService<ICommandLineParserService>();
 

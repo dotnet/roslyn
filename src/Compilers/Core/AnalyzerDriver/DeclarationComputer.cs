@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -6,21 +8,25 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis
 {
     internal class DeclarationComputer
     {
-        internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, IEnumerable<SyntaxNode> executableCodeBlocks, CancellationToken cancellationToken)
+        internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, IEnumerable<SyntaxNode>? executableCodeBlocks, CancellationToken cancellationToken)
         {
             var declaredSymbol = GetDeclaredSymbol(model, node, getSymbol, cancellationToken);
+            return GetDeclarationInfo(node, declaredSymbol, executableCodeBlocks);
+        }
+
+        internal static DeclarationInfo GetDeclarationInfo(SyntaxNode node, ISymbol? declaredSymbol, IEnumerable<SyntaxNode>? executableCodeBlocks)
+        {
             var codeBlocks = executableCodeBlocks?.Where(c => c != null).AsImmutableOrEmpty() ?? ImmutableArray<SyntaxNode>.Empty;
             return new DeclarationInfo(node, codeBlocks, declaredSymbol);
         }
 
         internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
         {
-            return GetDeclarationInfo(model, node, getSymbol, (IEnumerable<SyntaxNode>)null, cancellationToken);
+            return GetDeclarationInfo(model, node, getSymbol, (IEnumerable<SyntaxNode>?)null, cancellationToken);
         }
 
         internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, SyntaxNode executableCodeBlock, CancellationToken cancellationToken)
@@ -33,7 +39,7 @@ namespace Microsoft.CodeAnalysis
             return GetDeclarationInfo(model, node, getSymbol, executableCodeBlocks.AsEnumerable(), cancellationToken);
         }
 
-        private static ISymbol GetDeclaredSymbol(SemanticModel model, SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
+        private static ISymbol? GetDeclaredSymbol(SemanticModel model, SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
         {
             if (!getSymbol)
             {
@@ -45,8 +51,7 @@ namespace Microsoft.CodeAnalysis
             // For namespace declarations, GetDeclaredSymbol returns a compilation scoped namespace symbol,
             // which includes declarations across the compilation, including those in referenced assemblies.
             // However, we are only interested in the namespace symbol scoped to the compilation's source assembly.
-            var namespaceSymbol = declaredSymbol as INamespaceSymbol;
-            if (namespaceSymbol != null && namespaceSymbol.ConstituentNamespaces.Length > 1)
+            if (declaredSymbol is INamespaceSymbol namespaceSymbol && namespaceSymbol.ConstituentNamespaces.Length > 1)
             {
                 var assemblyToScope = model.Compilation.Assembly;
                 var assemblyScopedNamespaceSymbol = namespaceSymbol.ConstituentNamespaces.FirstOrDefault(ns => ns.ContainingAssembly == assemblyToScope);

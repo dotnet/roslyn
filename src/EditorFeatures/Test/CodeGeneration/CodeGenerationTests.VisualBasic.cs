@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -355,6 +359,40 @@ End Class";
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddCustomEventToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"Public Class [|C2|]
+    Public Custom Event Click As EventHandler
+        AddHandler(ByVal value As EventHandler)
+            Events.AddHandler(""ClickEvent"", value)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+            Events.RemoveHandler(""ClickEvent"", value)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+            CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
+        End RaiseEvent
+    End Event
+End Class";
+                var input = "Class [|C1|]\nEnd Class";
+                var expected = @"Class C1
+    Public Custom Event Click As EventHandler
+        AddHandler(ByVal value As EventHandler)
+            Events.AddHandler(""ClickEvent"", value)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+            Events.RemoveHandler(""ClickEvent"", value)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+            CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
+        End RaiseEvent
+    End Event
+End Class";
+                var options = new CodeGenerationOptions(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public async Task AddEventWithAccessorAndImplementsClause()
             {
                 var input = "Class [|C|] \n End Class";
@@ -368,7 +406,7 @@ End Class";
         End RaiseEvent
     End Event
 End Class";
-                ImmutableArray<IEventSymbol> GetExplicitInterfaceEvent(SemanticModel semanticModel)
+                static ImmutableArray<IEventSymbol> GetExplicitInterfaceEvent(SemanticModel semanticModel)
                 {
                     var parameterSymbols = SpecializedCollections.EmptyList<AttributeData>();
                     return ImmutableArray.Create<IEventSymbol>(
@@ -380,7 +418,7 @@ End Class";
                             GetTypeSymbol(typeof(System.ComponentModel.PropertyChangedEventHandler))(semanticModel),
                             explicitInterfaceImplementations: default,
                             nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null));
-                };
+                }
 
                 await TestAddEventAsync(input, expected,
                     addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
@@ -455,6 +493,24 @@ End Class";
 End Class";
                 await TestAddMethodAsync(input, expected,
                     returnType: typeof(void));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddMethodToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"Public Class [|C2|]
+    Public Function FInt() As Integer
+        Return 0
+    End Function
+End Class";
+                var input = "Class [|C1|]\nEnd Class";
+                var expected = @"Class C1
+    Public Function FInt() As Integer
+        Return 0
+    End Function
+End Class";
+                var options = new CodeGenerationOptions(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -959,6 +1015,28 @@ $$ End Set
 End Class";
                 await TestAddPropertyAsync(input, expected,
                     type: typeof(int));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddPropertyToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"Public Class [|C2|]
+    Public Property P As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Class";
+                var input = "Class [|C1|]\nEnd Class";
+                var expected = @"Class C1
+    Public Property P As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Class";
+                var options = new CodeGenerationOptions(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Concurrent;
@@ -8,6 +12,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -21,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CSharpCompilation _compilation;
         private readonly SyntaxTree _filterTree; //if not null, limit analysis to types residing in this tree
         private readonly TextSpan? _filterSpanWithinTree; //if filterTree and filterSpanWithinTree is not null, limit analysis to types residing within this span in the filterTree.
-        private readonly ConcurrentQueue<Diagnostic> _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private readonly CancellationToken _cancellationToken;
 
         private readonly ConcurrentDictionary<Symbol, Compliance> _declaredOrInheritedCompliance;
@@ -33,16 +38,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             SyntaxTree filterTree,
             TextSpan? filterSpanWithinTree,
-            ConcurrentQueue<Diagnostic> diagnostics,
+            BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(diagnostics.DependenciesBag is null || diagnostics.DependenciesBag is ConcurrentSet<AssemblySymbol>);
+
             _compilation = compilation;
             _filterTree = filterTree;
             _filterSpanWithinTree = filterSpanWithinTree;
             _diagnostics = diagnostics;
             _cancellationToken = cancellationToken;
 
-            _declaredOrInheritedCompliance = new ConcurrentDictionary<Symbol, Compliance>();
+            _declaredOrInheritedCompliance = new ConcurrentDictionary<Symbol, Compliance>(Symbols.SymbolEqualityComparer.ConsiderEverything);
 
             if (ConcurrentAnalysis)
             {
@@ -63,17 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">To stop traversing the symbol table early.</param>
         /// <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         /// <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and <paramref name="filterSpanWithinTree"/> is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
-        public static void CheckCompliance(CSharpCompilation compilation, DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
+        public static void CheckCompliance(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
         {
-            var queue = new ConcurrentQueue<Diagnostic>();
+            var queue = new BindingDiagnosticBag(diagnostics.DiagnosticBag, diagnostics.AccumulatesDependencies ? new ConcurrentSet<AssemblySymbol>() : null);
             var checker = new ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken);
             checker.Visit(compilation.Assembly);
             checker.WaitForWorkers();
-
-            foreach (Diagnostic diag in queue)
-            {
-                diagnostics.Add(diag);
-            }
+            diagnostics.AddDependencies(queue);
         }
 
         public override void VisitAssembly(AssemblySymbol symbol)
@@ -207,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Visit(m);
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
@@ -270,10 +273,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     bool hasUnacceptableParameterType = false;
 
-                    foreach (var paramType in constructor.ParameterTypes) // Public caller would select type out of parameters.
+                    foreach (var paramType in constructor.ParameterTypesWithAnnotations) // Public caller would select type out of parameters.
                     {
                         if (paramType.TypeKind == TypeKind.Array ||
-                            paramType.TypeSymbol.GetAttributeParameterTypedConstantKind(_compilation) == TypedConstantKind.Error)
+                            paramType.Type.GetAttributeParameterTypedConstantKind(_compilation) == TypedConstantKind.Error)
                         {
                             hasUnacceptableParameterType = true;
                             break;
@@ -546,14 +549,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (TypeParameterSymbol typeParameter in typeParameters)
             {
-                foreach (TypeSymbolWithAnnotations constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                foreach (TypeWithAnnotations constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
                 {
-                    if (!IsCompliantType(constraintType.TypeSymbol, context))
+                    if (!IsCompliantType(constraintType.Type, context))
                     {
                         // TODO: it would be nice to report this on the constraint clause.
                         // NOTE: we're improving over dev11 by reporting on the type parameter declaration,
                         // rather than on the constraint type declaration.
-                        this.AddDiagnostic(ErrorCode.WRN_CLS_BadTypeVar, typeParameter.Locations[0], constraintType.TypeSymbol);
+                        this.AddDiagnostic(ErrorCode.WRN_CLS_BadTypeVar, typeParameter.Locations[0], constraintType.Type);
                     }
                 }
             }
@@ -565,9 +568,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (ParameterSymbol parameter in parameters)
             {
-                if (!IsCompliantType(parameter.Type.TypeSymbol, context))
+                if (!IsCompliantType(parameter.Type, context))
                 {
-                    this.AddDiagnostic(ErrorCode.WRN_CLS_BadArgType, parameter.Locations[0], parameter.Type.TypeSymbol);
+                    this.AddDiagnostic(ErrorCode.WRN_CLS_BadArgType, parameter.Locations[0], parameter.Type);
                 }
             }
         }
@@ -592,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (TypedConstant argument in attribute.ConstructorArguments)
                 {
-                    if (argument.Type.TypeKind == TypeKind.Array)
+                    if (argument.TypeInternal.TypeKind == TypeKind.Array)
                     {
                         // TODO: it would be nice to report for each bad argument, but currently it's pointless since they
                         // would all have the same message and location.
@@ -608,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var pair in attribute.NamedArguments)
                 {
                     TypedConstant argument = pair.Value;
-                    if (argument.Type.TypeKind == TypeKind.Array)
+                    if (argument.TypeInternal.TypeKind == TypeKind.Array)
                     {
                         // TODO: it would be nice to report for each bad argument, but currently it's pointless since they
                         // would all have the same message and location.
@@ -624,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This catches things like param arrays and converted null literals.
                 if ((object)attribute.AttributeConstructor != null) // Happens in error scenarios.
                 {
-                    foreach (var type in attribute.AttributeConstructor.ParameterTypes)
+                    foreach (var type in attribute.AttributeConstructor.ParameterTypesWithAnnotations)
                     {
                         if (type.TypeKind == TypeKind.Array)
                         {
@@ -708,20 +711,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SymbolKind.Field:
                     code = ErrorCode.WRN_CLS_BadFieldPropType;
-                    type = ((FieldSymbol)symbol).Type.TypeSymbol;
+                    type = ((FieldSymbol)symbol).Type;
                     break;
                 case SymbolKind.Property:
                     code = ErrorCode.WRN_CLS_BadFieldPropType;
-                    type = ((PropertySymbol)symbol).Type.TypeSymbol;
+                    type = ((PropertySymbol)symbol).Type;
                     break;
                 case SymbolKind.Event:
                     code = ErrorCode.WRN_CLS_BadFieldPropType;
-                    type = ((EventSymbol)symbol).Type.TypeSymbol;
+                    type = ((EventSymbol)symbol).Type;
                     break;
                 case SymbolKind.Method:
                     code = ErrorCode.WRN_CLS_BadReturnType;
                     MethodSymbol method = (MethodSymbol)symbol;
-                    type = method.ReturnType.TypeSymbol;
+                    type = method.ReturnType;
 
                     if (method.MethodKind == MethodKind.DelegateInvoke)
                     {
@@ -806,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // with all the potential breaks.
                 // NOTE: It's not clear why dev11 is looking in interfaces at all. Maybe
                 // it was only supposed to happen for interface types?
-                foreach (NamedTypeSymbol @interface in type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics) // NOTE: would be hand-rolled in a standalone component.
+                foreach (NamedTypeSymbol @interface in type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys) // NOTE: would be hand-rolled in a standalone component.
                 {
                     if (!IsAccessibleOutsideAssembly(@interface)) continue;
 
@@ -973,13 +976,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (type.TypeKind)
             {
                 case TypeKind.Array:
-                    return IsCompliantType(((ArrayTypeSymbol)type).ElementType.TypeSymbol, context);
+                    return IsCompliantType(((ArrayTypeSymbol)type).ElementType, context);
                 case TypeKind.Dynamic:
                     // NOTE: It would probably be most correct to return 
                     // IsCompliantType(this.compilation.GetSpecialType(SpecialType.System_Object), context)
                     // but that's way too much work in the 99.9% case.
                     return true;
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     return false;
                 case TypeKind.Error:
                 case TypeKind.TypeParameter:
@@ -1030,14 +1034,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (type.IsTupleType)
+            foreach (TypeWithAnnotations typeArg in type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
             {
-                return IsCompliantType(type.TupleUnderlyingType, context);
-            }
-
-            foreach (TypeSymbolWithAnnotations typeArg in type.TypeArgumentsNoUseSiteDiagnostics)
-            {
-                if (!IsCompliantType(typeArg.TypeSymbol, context))
+                if (!IsCompliantType(typeArg.Type, context))
                 {
                     return false;
                 }
@@ -1091,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NamedTypeSymbol containingType;
                     if (containingTypes.TryGetValue(contextBaseType.OriginalDefinition, out containingType))
                     {
-                        return containingType != contextBaseType;
+                        return !TypeSymbol.Equals(containingType, contextBaseType, TypeCompareKind.ConsiderEverything2);
                     }
 
                     contextBaseType = contextBaseType.BaseTypeNoUseSiteDiagnostics;
@@ -1186,15 +1185,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NamedTypeSymbol attributeClass = data.AttributeClass;
                     if ((object)attributeClass != null)
                     {
-                        DiagnosticInfo info = attributeClass.GetUseSiteDiagnostic();
-                        if (info != null)
+                        if (_diagnostics.ReportUseSite(attributeClass, symbol.Locations.IsEmpty ? NoLocation.Singleton : symbol.Locations[0]))
                         {
-                            Location location = symbol.Locations.IsEmpty ? NoLocation.Singleton : symbol.Locations[0];
-                            _diagnostics.Enqueue(new CSDiagnostic(info, location));
-                            if (info.Severity >= DiagnosticSeverity.Error)
-                            {
-                                continue;
-                            }
+                            continue;
                         }
                     }
 
@@ -1209,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         System.Diagnostics.Debug.Assert(args.Length == 1, "We already checked the signature and HasErrors.");
 
                         // Duplicates are reported elsewhere - we only care about the first (error-free) occurrence.
-                        return (bool)args[0].Value;
+                        return (bool)args[0].ValueInternal;
                     }
                 }
             }
@@ -1254,14 +1247,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var info = new CSDiagnosticInfo(code);
             var diag = new CSDiagnostic(info, location);
-            _diagnostics.Enqueue(diag);
+            _diagnostics.Add(diag);
         }
 
         private void AddDiagnostic(ErrorCode code, Location location, params object[] args)
         {
             var info = new CSDiagnosticInfo(code, args);
             var diag = new CSDiagnostic(info, location);
-            _diagnostics.Enqueue(diag);
+            _diagnostics.Add(diag);
         }
 
         private static bool IsImplicitClass(Symbol symbol)
@@ -1322,28 +1315,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             code = ErrorCode.Void;
 
-            ImmutableArray<TypeSymbolWithAnnotations> xParameterTypes;
-            ImmutableArray<TypeSymbolWithAnnotations> yParameterTypes;
+            ImmutableArray<TypeWithAnnotations> xParameterTypes;
+            ImmutableArray<TypeWithAnnotations> yParameterTypes;
             ImmutableArray<RefKind> xRefKinds;
             ImmutableArray<RefKind> yRefKinds;
             switch (x.Kind)
             {
                 case SymbolKind.Method:
                     var mX = (MethodSymbol)x;
-                    xParameterTypes = mX.ParameterTypes;
+                    xParameterTypes = mX.ParameterTypesWithAnnotations;
                     xRefKinds = mX.ParameterRefKinds;
 
                     var mY = (MethodSymbol)y;
-                    yParameterTypes = mY.ParameterTypes;
+                    yParameterTypes = mY.ParameterTypesWithAnnotations;
                     yRefKinds = mY.ParameterRefKinds;
                     break;
                 case SymbolKind.Property:
                     var pX = (PropertySymbol)x;
-                    xParameterTypes = pX.ParameterTypes;
+                    xParameterTypes = pX.ParameterTypesWithAnnotations;
                     xRefKinds = pX.ParameterRefKinds;
 
                     var pY = (PropertySymbol)y;
-                    yParameterTypes = pY.ParameterTypes;
+                    yParameterTypes = pY.ParameterTypesWithAnnotations;
                     yRefKinds = pY.ParameterRefKinds;
                     break;
                 default:
@@ -1366,8 +1359,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numParams; i++)
             {
-                TypeSymbol xType = xParameterTypes[i].TypeSymbol;
-                TypeSymbol yType = yParameterTypes[i].TypeSymbol;
+                TypeSymbol xType = xParameterTypes[i].Type;
+                TypeSymbol yType = yParameterTypes[i].Type;
 
                 TypeKind typeKind = xType.TypeKind;
                 if (yType.TypeKind != typeKind)
@@ -1382,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     sawArrayRankDifference = sawArrayRankDifference || xArrayType.Rank != yArrayType.Rank;
 
-                    bool elementTypesDiffer = xArrayType.ElementType.TypeSymbol != yArrayType.ElementType.TypeSymbol;
+                    bool elementTypesDiffer = !TypeSymbol.Equals(xArrayType.ElementType, yArrayType.ElementType, TypeCompareKind.ConsiderEverything2);
 
                     // You might expect that only unnamed-vs-unnamed would produce a warning, but
                     // dev11 reports unnamed-vs-anything.
@@ -1395,7 +1388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                 }
-                else if (xType != yType)
+                else if (!TypeSymbol.Equals(xType, yType, TypeCompareKind.ConsiderEverything2))
                 {
                     return false;
                 }

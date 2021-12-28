@@ -1,33 +1,39 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
     internal abstract class AbstractDiagnosticsAdornmentTaggerProvider<TTag> :
         AbstractDiagnosticsTaggerProvider<TTag>
-        where TTag : ITag
+        where TTag : class, ITag
     {
         public AbstractDiagnosticsAdornmentTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
-            IForegroundNotificationService notificationService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
+            : base(threadingContext, diagnosticService, globalOptions, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
         {
         }
 
-        protected sealed internal override bool IsEnabled => true;
+        protected internal sealed override bool IsEnabled => true;
 
-        protected sealed internal override ITagSpan<TTag> CreateTagSpan(
-            bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
+        protected internal sealed override ITagSpan<TTag>? CreateTagSpan(
+            Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
         {
-            var errorTag = CreateTag(data);
+            var errorTag = CreateTag(workspace, data);
             if (errorTag == null)
             {
                 return null;
@@ -44,10 +50,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return new TagSpan<TTag>(adjustedSpan, errorTag);
         }
 
+        protected static object CreateToolTipContent(Workspace workspace, DiagnosticData diagnostic)
+        {
+            Action? navigationAction = null;
+            string? tooltip = null;
+            if (workspace is object
+                && diagnostic.HelpLink is { } helpLink
+                && Uri.TryCreate(helpLink, UriKind.Absolute, out var helpLinkUri))
+            {
+                navigationAction = new QuickInfoHyperLink(workspace, helpLinkUri).NavigationAction;
+                tooltip = helpLink;
+            }
+
+            var diagnosticIdTextRun = navigationAction is null
+                ? new ClassifiedTextRun(ClassificationTypeNames.Text, diagnostic.Id)
+                : new ClassifiedTextRun(ClassificationTypeNames.Text, diagnostic.Id, navigationAction, tooltip);
+
+            return new ContainerElement(
+                ContainerElementStyle.Wrapped,
+                new ClassifiedTextElement(
+                    diagnosticIdTextRun,
+                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
+                    new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, diagnostic.Message)));
+        }
+
         protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
             => AdjustSnapshotSpan(span, minimumLength, int.MaxValue);
 
-        protected SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength, int maximumLength)
+        protected static SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength, int maximumLength)
         {
             var snapshot = span.Snapshot;
 
@@ -61,6 +92,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return new SnapshotSpan(snapshot, start, Math.Min(start + length, snapshot.Length) - start);
         }
 
-        protected abstract TTag CreateTag(DiagnosticData diagnostic);
+        protected abstract TTag? CreateTag(Workspace workspace, DiagnosticData diagnostic);
     }
 }

@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
@@ -78,11 +81,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Protected Overridable Sub Dispose(disposing As Boolean)
             If Not disposing Then
-                Environment.FailFast("TestWorkspaceAndFileModelCodel GC'd without call to Dispose()!")
+                FailFast.Fail("TestWorkspaceAndFileModelCodel GC'd without call to Dispose()!")
             End If
 
             If Not Me._disposedValue Then
                 If disposing Then
+                    ' Ensure the existing project is removed from the ProjectCodeModelFactory; we otherwise later might try updating any state
+                    ' for it.
+                    Dim projectId = Workspace.CurrentSolution.ProjectIds.Single()
+                    Dim projectCodeModel = Workspace.ExportProvider.GetExportedValue(Of ProjectCodeModelFactory)().GetProjectCodeModel(projectId)
+                    projectCodeModel.OnProjectClosed()
+
                     Workspace.Dispose()
                 End If
             End If
