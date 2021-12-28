@@ -9,7 +9,6 @@
     <Import_RootNamespace>Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)AbstractIdeIntegrationTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IdeFactTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IdeTheoryTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XunitAssemblyInfo.cs" />

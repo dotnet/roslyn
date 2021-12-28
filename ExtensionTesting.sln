@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31220.325
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32014.330
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit", "src\Microsoft.VisualStudio.Extensibility.Testing.Xunit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj", "{C4C38EAE-B6B1-4EE5-9F01-03B4D9249BBD}"
 EndProject
@@ -16,6 +16,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.15", "src\Microsoft.VisualStudio.VsixInstaller.15\Microsoft.VisualStudio.VsixInstaller.15.csproj", "{4232A7BA-A7B7-4C65-B7A1-17FB5CDED299}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests", "src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.csproj", "{346081A2-A088-4486-94B3-B586BD6FD888}"
+	ProjectSection(ProjectDependencies) = postProject
+		{25E61E07-E449-4ABB-A197-BD5C8EE3347F} = {25E61E07-E449-4ABB-A197-BD5C8EE3347F}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EF963386-CD2E-4E1F-938A-ADACA3CF0E17}"
 	ProjectSection(SolutionItems) = preProject
@@ -44,6 +47,9 @@ EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared", "src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.shproj", "{9B5759AD-4EFF-4E2D-921B-D617BB8CFA22}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests", "src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests.csproj", "{CE32D863-E8C3-461F-80C7-32D0B0853217}"
+	ProjectSection(ProjectDependencies) = postProject
+		{25E61E07-E449-4ABB-A197-BD5C8EE3347F} = {25E61E07-E449-4ABB-A197-BD5C8EE3347F}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit", "Microsoft.VisualStudio.Extensibility.Testing.Xunit", "{9ED7BE6A-BDEE-44CF-B5C8-EA5F6E212CFD}"
 EndProject
@@ -52,6 +58,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.IntegrationTestService", "Microsoft.VisualStudio.IntegrationTestService", "{F8D033DE-AC32-4928-A1D9-30AD5FBD212A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.VsixInstaller", "Microsoft.VisualStudio.VsixInstaller", "{37C00986-FB67-46DA-8B12-6CF99786ECC6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator", "Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator", "{D2869BF7-27E8-42B9-BF23-8790C0CE08C2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator", "src\Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator\Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator.csproj", "{25E61E07-E449-4ABB-A197-BD5C8EE3347F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests", "src\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests.csproj", "{DA9797F0-F158-42AB-BE2B-922588756941}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -125,6 +137,14 @@ Global
 		{CE32D863-E8C3-461F-80C7-32D0B0853217}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE32D863-E8C3-461F-80C7-32D0B0853217}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE32D863-E8C3-461F-80C7-32D0B0853217}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25E61E07-E449-4ABB-A197-BD5C8EE3347F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25E61E07-E449-4ABB-A197-BD5C8EE3347F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25E61E07-E449-4ABB-A197-BD5C8EE3347F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25E61E07-E449-4ABB-A197-BD5C8EE3347F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA9797F0-F158-42AB-BE2B-922588756941}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA9797F0-F158-42AB-BE2B-922588756941}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA9797F0-F158-42AB-BE2B-922588756941}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA9797F0-F158-42AB-BE2B-922588756941}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -146,6 +166,8 @@ Global
 		{8BDA92B2-E2E0-4607-94F6-444F56AD0582} = {9ED7BE6A-BDEE-44CF-B5C8-EA5F6E212CFD}
 		{9B5759AD-4EFF-4E2D-921B-D617BB8CFA22} = {7A983C88-A0B8-4A6C-8837-E45ADD6C01EE}
 		{CE32D863-E8C3-461F-80C7-32D0B0853217} = {7A983C88-A0B8-4A6C-8837-E45ADD6C01EE}
+		{25E61E07-E449-4ABB-A197-BD5C8EE3347F} = {D2869BF7-27E8-42B9-BF23-8790C0CE08C2}
+		{DA9797F0-F158-42AB-BE2B-922588756941} = {D2869BF7-27E8-42B9-BF23-8790C0CE08C2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BEAADCC8-C5EB-46B6-8AA8-0242304BE240}

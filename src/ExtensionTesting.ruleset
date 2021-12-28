@@ -8,7 +8,7 @@
     <Rule Id="CA1049" Action="Warning" />
     <Rule Id="CA1060" Action="Warning" />
     <Rule Id="CA1061" Action="Warning" />
-    <Rule Id="CA1063" Action="Warning" />
+    <Rule Id="CA1063" Action="None" />
     <Rule Id="CA1065" Action="Warning" />
     <Rule Id="CA1301" Action="Warning" />
     <Rule Id="CA1400" Action="Warning" />
@@ -18,6 +18,7 @@
     <Rule Id="CA1405" Action="Warning" />
     <Rule Id="CA1410" Action="Warning" />
     <Rule Id="CA1415" Action="Warning" />
+    <Rule Id="CA1816" Action="None" />
     <Rule Id="CA1821" Action="Warning" />
     <Rule Id="CA1900" Action="Warning" />
     <Rule Id="CA1901" Action="Warning" />
@@ -72,6 +73,10 @@
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp.Features" RuleNamespace="Microsoft.CodeAnalysis.CSharp.Features">
     <!-- IDE0003 duplicates functionality provided by SX1101 -->
     <Rule Id="IDE0003" Action="None" />
+  </Rules>
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.PublicApiAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.PublicApiAnalyzers">
+    <Rule Id="RS0016" Action="None" />
+    <Rule Id="RS0037" Action="None" />
   </Rules>
   <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers.CSharp" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers.CSharp">
     <Rule Id="VSTHRD010" Action="None" />

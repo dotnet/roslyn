@@ -1,0 +1,35 @@
+﻿<Project>
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.0.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit" Version="1.1.1-beta1.21615.2" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.csproj" OutputItemType="LegacyContent" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibility.Testing.Xunit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" OutputItemType="CurrentContent" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator\Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator.csproj" />
+  </ItemGroup>
+
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
+
+  <Target Name="UpdateContentPaths" AfterTargets="ResolveProjectReferences">
+    <ItemGroup>
+      <Content Include="@(LegacyContent)" Link="Legacy\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="@(CurrentContent)" Link="Current\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+</Project>
