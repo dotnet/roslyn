@@ -113,8 +113,12 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 var guideLineSpanStart = span.Start;
                 var guideLineSpanEnd = span.End;
 
+                // We want to draw the line right before the quote character.  So -1 to get that character's position.
                 // Horizontally position the adornment in the center of the character.
                 var bufferPosition = span.End - 1;
+                if (bufferPosition < 0)
+                    return null;
+
                 var anchorPointLine = view.GetTextViewLineContainingBufferPosition(bufferPosition);
                 var bounds = anchorPointLine.GetCharacterBounds(bufferPosition);
                 var x = Math.Floor((bounds.Left + bounds.Right) * 0.5);
