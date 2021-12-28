@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                               isReadOnly: (HasGetAccessor && !HasSetAccessor) || IsInitOnly,
                                               this.IsStatic,
                                               hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0,
-                                              isCreatedForfieldKeyword: isCreatedForFieldKeyword,
+                                              isCreatedForFieldKeyword: isCreatedForFieldKeyword,
                                               isEarlyConstructed: isEarlyConstructed);
                 Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, backingField, _lazyBackingFieldSymbolSentinel);
             }
