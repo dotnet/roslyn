@@ -340,6 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                  BoundDelegateCreationExpression { WasTargetTyped: true } or
                                  BoundBadExpression);
 
+            // Assert that the shape of the BoundBadExpression is sound and is not going to confuse NullableWalker for target-typed 'new'.
             Debug.Assert(expr is not BoundBadExpression { ChildBoundNodes: var children } || !children.Any((child, node) => child.Syntax == node.Syntax, node));
 
             if (wasCompilerGenerated)

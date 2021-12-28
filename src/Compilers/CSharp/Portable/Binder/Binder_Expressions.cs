@@ -4204,6 +4204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression result = bindObjectCreationExpression(node, diagnostics);
 
+            // Assert that the shape of the BoundBadExpression is sound and is not going to confuse NullableWalker for target-typed 'new'.
             Debug.Assert(result is not BoundBadExpression { ChildBoundNodes: var children } || !children.Any((child, node) => child.Syntax == node, node));
 
             return result;

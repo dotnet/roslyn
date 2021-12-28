@@ -3543,8 +3543,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Action<int, Symbol>? completeNestedInitializerAnalysis(
-                Symbol symbol, BoundObjectInitializerExpressionBase initializer, int slot, Action<int,
-                TypeSymbol>? nestedCompletion, bool delayCompletionForType)
+                Symbol symbol, BoundObjectInitializerExpressionBase initializer, int slot, Action<int, TypeSymbol>? nestedCompletion,
+                bool delayCompletionForType)
             {
                 if (delayCompletionForType)
                 {
@@ -3691,7 +3691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(!argumentResults.IsDefault);
 
-                return (int containigSlot, TypeSymbol containingType) =>
+                return (int containingSlot, TypeSymbol containingType) =>
                 {
                     MethodSymbol addMethod = addMethodAsMemberOfContainingType(node, containingType, ref argumentResults);
 
