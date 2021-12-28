@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.StringIndentation
+namespace Microsoft.CodeAnalysis.StringIndentation
 {
     internal interface IStringIndentationService : ILanguageService
     {

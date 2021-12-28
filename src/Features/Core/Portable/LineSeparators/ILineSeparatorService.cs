@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.LineSeparators
+namespace Microsoft.CodeAnalysis.LineSeparators
 {
     internal interface ILineSeparatorService : ILanguageService
     {
