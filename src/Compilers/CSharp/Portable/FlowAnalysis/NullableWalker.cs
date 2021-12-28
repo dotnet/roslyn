@@ -3203,7 +3203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializerCompletion = VisitObjectCreationInitializer(slot, type, initializerOpt, delayCompletionForType: isTargetTyped);
             }
 
-            TypeWithState result = setAnalyzedNullability(node, type, argumentResults, argumentsCompletion, initialStateInferenceCompletion,initializerCompletion, resultState, isTargetTyped);
+            TypeWithState result = setAnalyzedNullability(node, type, argumentResults, argumentsCompletion, initialStateInferenceCompletion, initializerCompletion, resultState, isTargetTyped);
             SetResultType(node, result, updateAnalyzedNullability: false);
             return;
 
