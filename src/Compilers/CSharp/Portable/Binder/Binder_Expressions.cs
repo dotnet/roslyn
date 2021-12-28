@@ -2995,8 +2995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<TMember> methodResult,
             ArrayBuilder<BoundExpression> arguments,
             BindingDiagnosticBag diagnostics,
-            TypeSymbol? receiverType,
-            uint receiverEscapeScope)
+            BoundExpression? receiver)
             where TMember : Symbol
         {
             var result = methodResult.Result;
@@ -3014,7 +3013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
                     TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
-                    arguments[arg] = BindInterpolatedStringHandlerInMemberCall(argument, arguments, parameters, ref result, arg, receiverType, receiverEscapeScope, diagnostics);
+                    arguments[arg] = BindInterpolatedStringHandlerInMemberCall(argument, arguments, parameters, ref result, arg, receiver, methodResult.LeastOverriddenMember.RequiresInstanceReceiver(), diagnostics);
                 }
                 // https://github.com/dotnet/roslyn/issues/37119 : should we create an (Identity) conversion when the kind is Identity but the types differ?
                 else if (!kind.IsIdentity)
@@ -4811,13 +4810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (argument is BoundConversion { Conversion.IsInterpolatedStringHandler: true, Operand: var operand })
                             {
-                                var handlerPlaceholders = operand switch
-                                {
-                                    BoundBinaryOperator { InterpolatedStringHandlerData: { } data } => data.ArgumentPlaceholders,
-                                    BoundInterpolatedString { InterpolationData: { } data } => data.ArgumentPlaceholders,
-                                    _ => throw ExceptionUtilities.UnexpectedValue(operand.Kind)
-                                };
-
+                                var handlerPlaceholders = operand.GetInterpolatedStringHandlerData().ArgumentPlaceholders;
                                 if (handlerPlaceholders.Any(placeholder => placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, argument.Syntax.Location);
@@ -5747,7 +5740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (succeededIgnoringAccessibility)
             {
-                this.CoerceArguments<MethodSymbol>(result.ValidResult, analyzedArguments.Arguments, diagnostics, receiverType: null, receiverEscapeScope: Binder.ExternalScope);
+                this.CoerceArguments<MethodSymbol>(result.ValidResult, analyzedArguments.Arguments, diagnostics, receiver: null);
             }
 
             // Fill in the out parameter with the result, if there was one; it might be inaccessible.
@@ -8017,11 +8010,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                 PropertySymbol property = resolutionResult.Member;
-                RefKind? receiverRefKind = receiver.GetRefKind();
-                uint receiverEscapeScope = property.RequiresInstanceReceiver && receiver != null
-                    ? receiverRefKind?.IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
-                    : Binder.ExternalScope;
-                this.CoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments.Arguments, diagnostics, receiver.Type, receiverEscapeScope);
 
                 var isExpanded = resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                 var argsToParams = resolutionResult.Result.ArgsToParamsOpt;
@@ -8032,6 +8020,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
 
                 receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
+
+                this.CoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments.Arguments, diagnostics, receiver);
 
                 if (!gotError && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
                 {

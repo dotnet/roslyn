@@ -50,8 +50,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // document request, so caching range results is unnecessary since the whole document
             // handler will cache the results anyway.
             var (tokensData, isFinalized) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                context.Document, SemanticTokensHelpers.TokenTypeToIndex,
-                request.Range, cancellationToken).ConfigureAwait(false);
+                context.Document,
+                SemanticTokensHelpers.TokenTypeToIndex,
+                request.Range,
+                includeSyntacticClassifications: context.Document.IsRazorDocument(),
+                cancellationToken).ConfigureAwait(false);
 
             return new RoslynSemanticTokens { Data = tokensData, IsFinalized = isFinalized };
         }

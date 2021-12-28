@@ -4472,6 +4472,19 @@ class C { }",
 
         [Theory]
         [CombinatorialData]
+        public async Task NullCheckedParameterClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M(string s!!) { }
+}",
+                testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
         [WorkItem(57184, "https://github.com/dotnet/roslyn/issues/57184")]
         public async Task MethodGroupClassifications(TestHost testHost)
         {

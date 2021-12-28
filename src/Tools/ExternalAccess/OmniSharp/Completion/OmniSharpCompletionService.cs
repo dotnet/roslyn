@@ -7,24 +7,35 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
 {
     internal static class OmniSharpCompletionService
     {
-        public static Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsAsync(
+        public static async ValueTask<bool> ShouldTriggerCompletionAsync(
             this CompletionService completionService,
             Document document,
             int caretPosition,
             CompletionTrigger trigger,
             ImmutableHashSet<string>? roles,
+            OmniSharpCompletionOptions options,
             CancellationToken cancellationToken)
-            => completionService.GetCompletionsInternalAsync(document, caretPosition, CompletionOptions.Default, trigger, roles, cancellationToken);
+        {
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            return completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options.ToCompletionOptions(), roles);
+        }
+
+        public static Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsAsync(
+           this CompletionService completionService,
+           Document document,
+           int caretPosition,
+           CompletionTrigger trigger,
+           ImmutableHashSet<string>? roles,
+           OmniSharpCompletionOptions options,
+           CancellationToken cancellationToken)
+           => completionService.GetCompletionsInternalAsync(document, caretPosition, options.ToCompletionOptions(), trigger, roles, cancellationToken);
 
         public static string? GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;
-
-        public static bool? IncludeItemsFromUnimportedNamespaces(Document document)
-            => document.Project.Solution.Options.GetOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, document.Project.Language);
     }
 }
