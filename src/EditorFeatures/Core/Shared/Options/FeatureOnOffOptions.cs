@@ -68,6 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> PrettyListing = new(FeatureName, "PrettyListing", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PrettyListing"));
 
+        public static readonly PerLanguageOption2<bool> StringIdentation = new(FeatureName, "StringIdentation", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.StringIdentation"));
+
         public static readonly PerLanguageOption2<bool> RenameTrackingPreview = new(FeatureName, "RenameTrackingPreview", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.RenameTrackingPreview" : "TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview"));
 

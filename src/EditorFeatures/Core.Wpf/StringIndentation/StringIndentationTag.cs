@@ -11,14 +11,14 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
+namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
 {
     /// <summary>
     /// Tag that specifies line separator.
     /// </summary>
-    internal class LineSeparatorTag : GraphicsTag
+    internal class StringIndentationTag : GraphicsTag
     {
-        public LineSeparatorTag(IEditorFormatMap editorFormatMap)
+        public StringIndentationTag(IEditorFormatMap editorFormatMap)
             : base(editorFormatMap)
         {
         }

@@ -8,14 +8,13 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Tagging;
-using Microsoft.CodeAnalysis.Editor.LineSeparators;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.StringIndentation;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -27,24 +26,24 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
+namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
 {
     /// <summary>
     /// This factory is called to create taggers that provide information about where line
     /// separators go.
     /// </summary>
     [Export(typeof(ITaggerProvider))]
-    [TagType(typeof(LineSeparatorTag))]
+    [TagType(typeof(StringIndentationTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag>
+    internal partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<StringIndentationTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
 
         protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.LineSeparator);
 
         private readonly object _lineSeperatorTagGate = new object();
-        private LineSeparatorTag _lineSeparatorTag;
+        private StringIndentationTag _lineSeparatorTag;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;
-            _lineSeparatorTag = new LineSeparatorTag(_editorFormatMap);
+            _lineSeparatorTag = new StringIndentationTag(_editorFormatMap);
         }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         {
             lock (_lineSeperatorTagGate)
             {
-                _lineSeparatorTag = new LineSeparatorTag(_editorFormatMap);
+                _lineSeparatorTag = new StringIndentationTag(_editorFormatMap);
             }
         }
 
@@ -79,37 +78,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         }
 
         protected override async Task ProduceTagsAsync(
-            TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
+            TaggerContext<StringIndentationTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
             var document = documentSnapshotSpan.Document;
             if (document == null)
                 return;
 
-            if (!GlobalOptions.GetOption(FeatureOnOffOptions.LineSeparator, document.Project.Language))
+            if (!GlobalOptions.GetOption(FeatureOnOffOptions.StringIdentation, document.Project.Language))
                 return;
 
-            using (Logger.LogBlock(FunctionId.Tagger_LineSeparator_TagProducer_ProduceTags, cancellationToken))
+            var service = document.GetLanguageService<IStringIndentationService>();
+            if (service == null)
+                return;
+
+            var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+            var spans = await service.GetStringIndentationSpansAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (spans.Length == 0)
+                return;
+
+            StringIndentationTag tag;
+            lock (_lineSeperatorTagGate)
             {
-                var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-                var lineSeparatorService = document.GetLanguageService<ILineSeparatorService>();
-                if (lineSeparatorService == null)
-                    return;
-
-                var lineSeparatorSpans = await lineSeparatorService.GetLineSeparatorsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (lineSeparatorSpans.Length == 0)
-                    return;
-
-                LineSeparatorTag tag;
-                lock (_lineSeperatorTagGate)
-                {
-                    tag = _lineSeparatorTag;
-                }
-
-                foreach (var span in lineSeparatorSpans)
-                    context.AddTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
+                tag = _lineSeparatorTag;
             }
+
+            foreach (var span in spans)
+                context.AddTag(new TagSpan<StringIndentationTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
         }
     }
 }

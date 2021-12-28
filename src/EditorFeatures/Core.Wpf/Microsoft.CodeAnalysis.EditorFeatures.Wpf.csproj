@@ -75,7 +75,4 @@
   <ItemGroup>
     <EmbeddedResource Update="EditorFeaturesWpfResources.resx" GenerateSource="true" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="StringIndentation\" />
-  </ItemGroup>
 </Project>
