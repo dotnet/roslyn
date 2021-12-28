@@ -42,9 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
 
         protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.StringIdentation);
 
-        private readonly object _lineSeperatorTagGate = new();
-        private StringIndentationTag _lineSeparatorTag;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LineSeparatorTaggerProvider(
@@ -55,19 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
             : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.LineSeparators))
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
-            _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;
-            _lineSeparatorTag = new StringIndentationTag(_editorFormatMap);
         }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
-
-        private void OnFormatMappingChanged(object sender, FormatItemsEventArgs e)
-        {
-            lock (_lineSeperatorTagGate)
-            {
-                _lineSeparatorTag = new StringIndentationTag(_editorFormatMap);
-            }
-        }
 
         protected override ITaggerEventSource CreateEventSource(
             ITextView textView, ITextBuffer subjectBuffer)
@@ -92,20 +79,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
                 return;
 
             var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-            var spans = await service.GetStringIndentationSpansAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+            var regions = await service.GetStringIndentationRegionsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (spans.Length == 0)
+            if (regions.Length == 0)
                 return;
 
-            StringIndentationTag tag;
-            lock (_lineSeperatorTagGate)
+            var snapshot = snapshotSpan.Snapshot;
+            foreach (var region in regions)
             {
-                tag = _lineSeparatorTag;
+                context.AddTag(new TagSpan<StringIndentationTag>(
+                    region.IndentSpan.ToSnapshotSpan(snapshot),
+                    new StringIndentationTag(
+                        _editorFormatMap,
+                        region.HoleSpans.Order().SelectAsArray(
+                            s => s.ToSnapshotSpan(snapshot)))));
             }
-
-            foreach (var span in spans)
-                context.AddTag(new TagSpan<StringIndentationTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
         }
     }
 }

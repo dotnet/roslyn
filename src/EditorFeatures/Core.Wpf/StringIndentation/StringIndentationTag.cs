@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -19,9 +20,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
     /// </summary>
     internal class StringIndentationTag : GraphicsTag
     {
-        public StringIndentationTag(IEditorFormatMap editorFormatMap)
+        public readonly ImmutableArray<SnapshotSpan> OrderedHoleSpans;
+
+        public StringIndentationTag(
+            IEditorFormatMap editorFormatMap,
+            ImmutableArray<SnapshotSpan> orderedHoleSpans)
             : base(editorFormatMap)
         {
+            OrderedHoleSpans = orderedHoleSpans;
         }
 
         protected override Color? GetColor(
