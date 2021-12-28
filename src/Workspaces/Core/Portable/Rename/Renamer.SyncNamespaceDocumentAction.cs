@@ -26,20 +26,21 @@ namespace Microsoft.CodeAnalysis.Rename
         /// a namespace definition of Bat.Bar.Baz in the document, then it would update that definition to 
         /// Bat.Bar.Baz.Bat and update the solution to reflect these changes. Uses <see cref="IChangeNamespaceService"/>
         /// </summary>
-        internal sealed class SyncNamespaceDocumentAction : RenameDocumentAction
+        internal sealed class SyncNamespaceDocumentAction : IRenameAction
         {
             private readonly AnalysisResult _analysis;
 
             private SyncNamespaceDocumentAction(AnalysisResult analysis)
-                : base(ImmutableArray<ErrorResource>.Empty)
             {
                 _analysis = analysis;
             }
 
-            public override string GetDescription(CultureInfo? culture)
+            public ImmutableArray<string> GetErrors(CultureInfo? culture) => ImmutableArray<string>.Empty;
+
+            public string GetDescription(CultureInfo? culture)
                 => WorkspacesResources.ResourceManager.GetString("Sync_namespace_to_folder_structure", culture ?? WorkspacesResources.Culture)!;
 
-            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet _, CancellationToken cancellationToken)
+            public async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet _, CancellationToken cancellationToken)
             {
                 var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
                 var solution = await changeNamespaceService.TryChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, cancellationToken).ConfigureAwait(false);

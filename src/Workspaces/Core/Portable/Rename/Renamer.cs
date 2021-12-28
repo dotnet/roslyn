@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 return new RenameDocumentActionSet(ImmutableArray<RenameDocumentAction>.Empty, document.Id, document.Name, document.Folders.ToImmutableArray(), document.Project.Solution.Options);
             }
 
-            using var _ = ArrayBuilder<RenameDocumentAction>.GetInstance(out var actions);
+            using var _ = ArrayBuilder<IRenameAction>.GetInstance(out var actions);
 
             if (newDocumentName != null && !newDocumentName.Equals(document.Name))
             {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Rename
             optionSet ??= document.Project.Solution.Options;
 
             return new RenameDocumentActionSet(
-                actions.ToImmutable(),
+                actions.SelectAsArray(a => new RenameDocumentAction(a)),
                 document.Id,
                 newDocumentName,
                 newDocumentFolders.ToImmutableArray(),

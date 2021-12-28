@@ -19,41 +19,29 @@ namespace Microsoft.CodeAnalysis.Rename
         /// 
         /// See <see cref="RenameDocumentActionSet" /> on use case and how to apply them to a solution.
         /// </summary>
-        public abstract class RenameDocumentAction
+        public sealed class RenameDocumentAction
         {
-            private readonly ImmutableArray<ErrorResource> _errorStringKeys;
+            private readonly IRenameAction _renameAction;
 
-            internal RenameDocumentAction(ImmutableArray<ErrorResource> errors)
+            internal RenameDocumentAction(IRenameAction renameAction)
             {
-                _errorStringKeys = errors;
+                _renameAction = renameAction;
             }
 
             /// <summary>
             /// Get any errors that have been noted for this action before it is applied.
             /// Can be used to present to a user.
             /// </summary>
-            public ImmutableArray<string> GetErrors(CultureInfo? culture = null)
-                => _errorStringKeys.SelectAsArray(s => string.Format(WorkspacesResources.ResourceManager.GetString(s.FormatString, culture ?? WorkspacesResources.Culture)!, s.Arguments));
+            public ImmutableArray<string> GetErrors(CultureInfo? culture = null) => _renameAction.GetErrors(culture);
 
             /// <summary>
             /// Gets the description of the action. Can be used to present to a user to describe
             /// what extra actions will be taken.
             /// </summary>
-            public abstract string GetDescription(CultureInfo? culture = null);
+            public string GetDescription(CultureInfo? culture = null) => _renameAction.GetDescription(culture);
 
-            internal abstract Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken);
-
-            internal readonly struct ErrorResource
-            {
-                public string FormatString { get; }
-                public object[] Arguments { get; }
-
-                public ErrorResource(string formatString, object[] arguments)
-                {
-                    FormatString = formatString;
-                    Arguments = arguments;
-                }
-            }
+            internal Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
+                => _renameAction.GetModifiedSolutionAsync(document, optionSet, cancellationToken);
         }
     }
 }
