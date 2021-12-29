@@ -9133,12 +9133,12 @@ public partial struct CustomHandler
 
             comp.VerifyDiagnostics(extraConstructorArg != ""
                 ? new[] {
-                    // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
-                    // GetC(ref c).M($"literal" + $"");
-                    Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1),
-                    // (6,15): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, ref C, out bool)'
-                    // GetC(ref c).M($"literal" + $"");
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, ref C, out bool)").WithLocation(6, 15)
+                // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                // GetC(ref c).M($"""literal""");
+                Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1),
+                // (6,15): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, ref C, out bool)'
+                // GetC(ref c).M($"""literal""");
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"$""""""literal""""""").WithArguments("success", "CustomHandler.CustomHandler(int, int, ref C, out bool)").WithLocation(6, 15)
                 }
                 : new[] {
                     // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
