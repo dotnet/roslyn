@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Roslyn.Utilities;
 
@@ -10,6 +12,27 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
+        private static ImmutableArray<SignatureHelpItem> ConvertDelegateTypeConstructor(
+            Syntax.BaseObjectCreationExpressionSyntax objectCreationExpression,
+            IMethodSymbol invokeMethod,
+            SemanticModel semanticModel,
+            IStructuralTypeDisplayService structuralTypeDisplayService,
+            int position)
+        {
+            var item = CreateItem(
+                invokeMethod, semanticModel,
+                objectCreationExpression.SpanStart,
+                structuralTypeDisplayService,
+                isVariadic: false,
+                documentationFactory: null,
+                prefixParts: GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),
+                separatorParts: GetSeparatorParts(),
+                suffixParts: GetDelegateTypePostambleParts(),
+                parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position));
+
+            return ImmutableArray.Create<SignatureHelpItem>(item);
+        }
+
         private static IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
         {
             var result = new List<SymbolDisplayPart>();

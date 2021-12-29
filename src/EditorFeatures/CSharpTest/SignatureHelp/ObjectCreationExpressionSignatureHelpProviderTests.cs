@@ -205,12 +205,13 @@ class D
     {
         [|new D(i: 1$$|]);
     }
-    D(D filtered) => throw null;
+    D(D other) => throw null;
     D(string i) => throw null;
     D(int i) => throw null;
 }";
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
+                new SignatureHelpTestItem("D(D other)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("D(int i)", currentParameterIndex: 0, isSelected: true),
                 new SignatureHelpTestItem("D(string i)", currentParameterIndex: 0),
             };
@@ -228,12 +229,13 @@ class D
     {
         D d = [|new(i: 1$$|]);
     }
-    D(D filtered) => throw null;
+    D(D other) => throw null;
     D(string i) => throw null;
     D(int i) => throw null;
 }";
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
+                new SignatureHelpTestItem("D(D other)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("D(int i)", currentParameterIndex: 0, isSelected: true),
                 new SignatureHelpTestItem("D(string i)", currentParameterIndex: 0),
             };
@@ -252,12 +254,13 @@ class D
     {
         [|new D(i: null$$|]);
     }
-    D(D filtered) => throw null;
+    D(D other) => throw null;
     D(string i) => throw null;
     D(int i) => throw null;
 }";
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
+                new SignatureHelpTestItem("D(D other)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("D(int i)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("D(string i)", currentParameterIndex: 0, isSelected: true),
             };
@@ -275,12 +278,13 @@ class D
     {
         D d = [|new(i: null$$|]);
     }
-    D(D filtered) => throw null;
+    D(D other) => throw null;
     D(string i) => throw null;
     D(int i) => throw null;
 }";
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
+                new SignatureHelpTestItem("D(D other)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("D(int i)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("D(string i)", currentParameterIndex: 0, isSelected: true),
             };
@@ -831,7 +835,7 @@ class Program
         [InlineData("s2: string.Empty,$$", 0)]
         [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
-        public async Task PickCorrectOverload_Incomplete_WithNameS(string arguments, int expectedParameterIndex)
+        public async Task PickCorrectOverload_Incomplete_WithNames(string arguments, int expectedParameterIndex)
         {
             var markup = @"
 class Program
@@ -846,6 +850,7 @@ class Program
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
+                new SignatureHelpTestItem($"Program(int i, string s)", currentParameterIndex: expectedParameterIndex),
                 new SignatureHelpTestItem($"Program(string s, string s2)", currentParameterIndex: expectedParameterIndex, isSelected: true),
             };
 

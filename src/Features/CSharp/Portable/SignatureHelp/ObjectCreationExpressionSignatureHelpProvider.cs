@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!TryGetObjectCreationExpression(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var objectCreationExpression))
+            if (!TryGetObjectCreationExpression(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var objectCreationExpression)
+                || objectCreationExpression.ArgumentList is null)
             {
                 return null;
             }
@@ -97,9 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            // try to bind to the actual constructor
+            // figure out the best candidate (if any)
             var currentSymbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol;
-
             var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
             var arguments = objectCreationExpression.ArgumentList.Arguments;
             var parameterIndex = -1;
@@ -121,24 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (type.TypeKind == TypeKind.Delegate)
             {
                 var invokeMethod = type.DelegateInvokeMethod;
-
-                var item = CreateItem(
-                    invokeMethod, semanticModel,
-                    objectCreationExpression.SpanStart,
-                    structuralTypeDisplayService,
-                    isVariadic: false,
-                    documentationFactory: null,
-                    prefixParts: GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),
-                    separatorParts: GetSeparatorParts(),
-                    suffixParts: GetDelegateTypePostambleParts(),
-                    parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position));
-
-                items = ImmutableArray.Create<SignatureHelpItem>(item);
+                Debug.Assert(invokeMethod is not null);
+                items = ConvertDelegateTypeConstructor(objectCreationExpression, invokeMethod, semanticModel, structuralTypeDisplayService, position);
                 selectedItem = 0;
             }
             else
             {
-                var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
+                var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
 
                 items = methods.SelectAsArray(c =>
                     ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
@@ -148,37 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
             return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol?)currentSymbol, parameterIndex, selectedItem, arguments, position);
-
-            //var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
-            //var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
-            //var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList!);
-            //var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-            //// TODO2 need to re-implement
-            //throw null;
-            ////var (items, selectedItem) = type.TypeKind == TypeKind.Delegate
-            //    ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, structuralTypeDisplayService, type)
-            //    : GetNormalTypeConstructors(objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, type, within, options, cancellationToken);
-
-            //return CreateSignatureHelpItems(items, textSpan,
-            //    GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
-        }
-
-        private SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
-        {
-            if (TryGetObjectCreationExpression(
-                    root,
-                    position,
-                    syntaxFacts,
-                    SignatureHelpTriggerReason.InvokeSignatureHelpCommand,
-                    cancellationToken,
-                    out var expression) &&
-                currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList!).Start)
-            {
-                return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList!, position);
-            }
-
-            return null;
         }
     }
 }

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -99,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            // try to bind to the actual method
+            // figure out the best candidate (if any)
             var currentSymbol = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken).Symbol;
             var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
             var arguments = constructorInitializer.ArgumentList.Arguments;
