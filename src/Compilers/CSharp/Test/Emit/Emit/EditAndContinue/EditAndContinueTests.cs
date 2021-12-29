@@ -1621,58 +1621,6 @@ class C
                 Diagnostic(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged).WithLocation(1, 1));
         }
 
-        [Fact]
-        public void Lambda_SynthesizedDelegate_06()
-        {
-            var source0 = MarkedSource(
-@"using System;
-class C<T>
-{
-    static unsafe void F()
-    {
-        static Delegate Local<U>() => default;
-        var x = <N:0>(int* p) => *p</N:0>;
-    }
-}");
-            var source1 = MarkedSource(
-@"using System;
-class C<T>
-{
-    static unsafe void F()
-    {
-        static Delegate Local<U>() => <N:0>(int* q) => *q</N:0>;
-        var x = <N:0>(int* p) => *p</N:0>;
-    }
-}");
-
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All));
-            var compilation1 = compilation0.WithSource(source1.Tree);
-
-            var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
-            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
-            var reader0 = md0.MetadataReader;
-
-            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
-
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousDelegate0`1", "C`1", "<>c");
-            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "Invoke", "F", ".ctor", "<F>g__Local|0_0", ".cctor", ".ctor", "<F>b__0_1");
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
-
-            Assert.False(diff1.EmitResult.Success);
-            diff1.EmitResult.Diagnostics.Verify(
-                // error CS8983: Cannot update because an inferred delegate type has changed.
-                Diagnostic(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged).WithLocation(1, 1),
-                // (6,25): warning CS8321: The local function 'Local' is declared but never used
-                //         static Delegate Local<U>() =>      (int* q) => *q      ;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(6, 25));
-        }
-
         [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
         [Fact]
         public void PartialMethod()
