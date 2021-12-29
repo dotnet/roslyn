@@ -91,6 +91,62 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringIndentation
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestZeroColumn1()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var v = """"""
+goo
+"""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestZeroColumn2()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var v = """"""
+    goo
+"""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestOneColumn1()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var v = """"""
+|goo
+ """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestOneColumn2()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var v = """"""
+|   goo
+ """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
         public async Task TestCase1()
         {
             await TestAsync(@"class C
