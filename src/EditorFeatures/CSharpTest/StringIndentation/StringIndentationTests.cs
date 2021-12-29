@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringIndentation
 {
     void M()
     {
-        // not enough lines in literal
+        // invalid literal
         var v = """"""
             text too early
                 """""";
