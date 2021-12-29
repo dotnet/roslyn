@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
 {
     /// <summary>
-    /// This factory is called to create the view service that will manage line separators.
+    /// This factory is called to create the view service that will manage the indentation line for raw strings.
     /// </summary>
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]

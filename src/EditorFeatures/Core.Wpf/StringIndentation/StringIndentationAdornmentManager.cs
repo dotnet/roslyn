@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
 
                     var block = blockOpt.Value;
                     var tag = tagMappingSpan.Tag;
-                    var brush = tag.GetGraphicsTagBrush(TextView);
+                    var brush = tag.GetBrush(TextView);
 
                     foreach (var (start, end) in block.YSegments)
                     {

@@ -36,22 +36,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         /// </summary>
         public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties? format)
         {
-            var brush = GetGraphicsTagBrush(view);
-
             var border = new Border()
             {
-                BorderBrush = brush,
+                BorderBrush = (Brush?)GetBrush(view),
                 BorderThickness = new Thickness(0, 0, 0, bottom: 1),
                 Height = 1,
                 Width = view.ViewportWidth
             };
 
-            void viewportWidthChangedHandler(object s, EventArgs e)
-            {
-                border.Width = view.ViewportWidth;
-            }
-
-            view.ViewportWidthChanged += viewportWidthChangedHandler;
+            view.ViewportWidthChanged += ViewportWidthChangedHandler;
 
             // Subtract rect.Height to ensure that the line separator is drawn
             // at the bottom of the line, rather than immediately below.
@@ -59,7 +52,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             Canvas.SetTop(border, bounds.Bounds.Bottom - border.Height);
 
             return new GraphicsResult(border,
-                () => view.ViewportWidthChanged -= viewportWidthChangedHandler);
+                () => view.ViewportWidthChanged -= ViewportWidthChangedHandler);
+
+            void ViewportWidthChangedHandler(object s, EventArgs e)
+            {
+                border.Width = view.ViewportWidth;
+            }
         }
     }
 }
