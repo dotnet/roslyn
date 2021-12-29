@@ -66,14 +66,24 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 }
 
                 var guideLineTopLine = view.TextViewLines.GetTextViewLineContainingBufferPosition(guideLineSpanStart);
-                var yTop = guideLineTopLine == null ? firstLine.Top : guideLineTopLine.Bottom;
-
                 var guideLineBottomLine = view.TextViewLines.GetTextViewLineContainingBufferPosition(guideLineSpanEnd);
+
+                // This is slightly subtle.  First, the line might start on a line that is above/below what the actual
+                // view is displaying.  In that case we want to draw up to the boundary of the view to make it look like
+                // the line is correctly going past that to wherever it starts/ends at.
+                //
+                // Second, the span we are working with actually includes the lines containing the delimiters of the
+                // string literal (since those are the only lines we're certain we have content we can snap the line
+                // to).  But we don't want the vertical line to actually be drawn into those lines.  So if those lines
+                // are visible, we draw at the interior border of them so that the vertical-line does not intrude into
+                // them.
+                var yTop = guideLineTopLine == null ? firstLine.Top : guideLineTopLine.Bottom;
                 var yBottom = guideLineBottomLine == null ? lastLine.Bottom : guideLineBottomLine.Top;
 
-                var visibleSegments = CreateVisibleSegments(view.TextViewLines, span, orderedHoleSpans, x, yTop, yBottom);
-
-                return visibleSegments.Length == 0 ? null : new VisibleBlock(x, visibleSegments);
+                // Now that we have the 'x' coordinate of hte vertical line, and the top/bottom points we want to draw
+                // it through, actually create line segments to draw.  We have segments in case there are gaps in the
+                // line we don't want to draw (for example, for a hole).
+                return new VisibleBlock(x, CreateVisibleSegments(view.TextViewLines, span, orderedHoleSpans, x, yTop, yBottom));
             }
 
             /// <summary>
