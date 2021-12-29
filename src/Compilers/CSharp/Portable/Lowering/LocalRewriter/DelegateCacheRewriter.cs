@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -187,7 +188,7 @@ internal sealed partial class DelegateCreationRewriter
     }
 
     private static void FindTypeParameters(TypeSymbol type, HashSet<TypeParameterSymbol> result)
-        => type.VisitType(TypeParameterSymbolCollector, result, visitCustomModifiers: true);
+        => type.VisitType(s_typeParameterSymbolCollector, result, visitCustomModifiers: true);
 
     private static void FindTypeParameters(MethodSymbol method, HashSet<TypeParameterSymbol> result)
     {
@@ -195,11 +196,11 @@ internal sealed partial class DelegateCreationRewriter
 
         foreach (var typeArgument in method.TypeArgumentsWithAnnotations)
         {
-            typeArgument.VisitType(type: null, typeWithAnnotationsPredicate: null, TypeParameterSymbolCollector, result, visitCustomModifiers: true);
+            typeArgument.VisitType(type: null, typeWithAnnotationsPredicate: null, s_typeParameterSymbolCollector, result, visitCustomModifiers: true);
         }
     }
 
-    private static bool TypeParameterSymbolCollector(TypeSymbol typeSymbol, HashSet<TypeParameterSymbol> result, bool _)
+    private static readonly Func<TypeSymbol, HashSet<TypeParameterSymbol>, bool, bool> s_typeParameterSymbolCollector = (typeSymbol, result, _) =>
     {
         if (typeSymbol is TypeParameterSymbol typeParameter)
         {
@@ -207,5 +208,5 @@ internal sealed partial class DelegateCreationRewriter
         }
 
         return false;
-    }
+    };
 }

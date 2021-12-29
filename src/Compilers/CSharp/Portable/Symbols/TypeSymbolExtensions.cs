@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RoslynDebug.Assert(typeWithAnnotationsOpt.HasType == (type is null));
             RoslynDebug.Assert(canDigThroughNullable == false || useDefaultType == false, "digging through nullable will cause early resolution of nullable types");
             RoslynDebug.Assert(canDigThroughNullable == false || visitCustomModifiers == false);
-            RoslynDebug.Assert(!visitCustomModifiers || (visitCustomModifiers && typePredicate is { }));
+            RoslynDebug.Assert(visitCustomModifiers == false || typePredicate is { });
 
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
