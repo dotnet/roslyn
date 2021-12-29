@@ -193,11 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasGetAccessor)
             {
-                _getMethod = CreateGetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
+                _getMethod = CreateGetAccessorSymbol(diagnostics);
             }
             if (hasSetAccessor)
             {
-                _setMethod = CreateSetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
+                _setMethod = CreateSetAccessorSymbol(diagnostics);
             }
         }
 
@@ -642,17 +642,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The method is called at the end of <see cref="SourcePropertySymbolBase"/> constructor.
         /// The implementation may depend only on information available from the <see cref="SourcePropertySymbolBase"/> type.
         /// </summary>
-        protected abstract SourcePropertyAccessorSymbol CreateGetAccessorSymbol(
-            bool isAutoPropertyAccessor,
-            BindingDiagnosticBag diagnostics);
+        protected abstract SourcePropertyAccessorSymbol CreateGetAccessorSymbol(BindingDiagnosticBag diagnostics);
 
         /// <summary>
         /// The method is called at the end of <see cref="SourcePropertySymbolBase"/> constructor.
         /// The implementation may depend only on information available from the <see cref="SourcePropertySymbolBase"/> type.
         /// </summary>
-        protected abstract SourcePropertyAccessorSymbol CreateSetAccessorSymbol(
-            bool isAutoPropertyAccessor,
-            BindingDiagnosticBag diagnostics);
+        protected abstract SourcePropertyAccessorSymbol CreateSetAccessorSymbol(BindingDiagnosticBag diagnostics);
 
         public sealed override MethodSymbol? GetMethod
         {
@@ -737,6 +733,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return data?.HasSkipLocalsInitAttribute == true;
             }
         }
+
+        internal bool IsAutoPropertyWithGetAccessor
+            => IsAutoProperty && _getMethod is object;
 
         internal bool IsAutoProperty
         {

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private string _lazyName;
-        private readonly bool _isAutoPropertyAccessor;
+        private readonly bool _accessorBodyShouldBeSynthesized;
         private readonly bool _isExpressionBodied;
         private readonly bool _containsFieldKeyword;
         private readonly bool _usesInit;
@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourcePropertySymbol property,
             DeclarationModifiers propertyModifiers,
             AccessorDeclarationSyntax syntax,
-            bool isAutoPropertyAccessor,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration ||
@@ -58,7 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Modifiers,
                 methodKind,
                 syntax.Keyword.IsKind(SyntaxKind.InitKeyword),
-                isAutoPropertyAccessor,
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 diagnostics);
         }
@@ -105,7 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifiers: new SyntaxTokenList(),
                 methodKind,
                 usesInit,
-                isAutoPropertyAccessor: true,
                 isNullableAnalysisEnabled: false,
                 diagnostics);
         }
@@ -166,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(containingType, syntax.GetReference(), location, isIterator: false)
         {
             _property = property;
-            _isAutoPropertyAccessor = false;
+            _accessorBodyShouldBeSynthesized = false;
             _isExpressionBodied = true;
             _containsFieldKeyword = property.IsIndexer ? false : NodeContainsFieldKeyword(syntax);
 
@@ -204,7 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxTokenList modifiers,
             MethodKind methodKind,
             bool usesInit,
-            bool isAutoPropertyAccessor,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics)
             : base(containingType,
@@ -213,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    isIterator)
         {
             _property = property;
-            _isAutoPropertyAccessor = isAutoPropertyAccessor;
+            _accessorBodyShouldBeSynthesized = property.IsAutoProperty && syntax is AccessorDeclarationSyntax { SemicolonToken.RawKind: (int)SyntaxKind.SemicolonToken, ExpressionBody: null, Body: null };
             _containsFieldKeyword = property.IsIndexer ? false : NodeContainsFieldKeyword(getAccessorSyntax(syntax));
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
             _isExpressionBodied = !hasBody && hasExpressionBody;
@@ -239,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: property.IsExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0);
 
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: hasBody || hasExpressionBody || isAutoPropertyAccessor, diagnostics);
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: hasBody || hasExpressionBody || _accessorBodyShouldBeSynthesized, diagnostics);
 
             if (hasBody || hasExpressionBody)
             {
@@ -254,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!modifierErrors)
             {
-                this.CheckModifiers(location, hasBody || hasExpressionBody, isAutoPropertyAccessor, diagnostics);
+                this.CheckModifiers(location, hasBody || hasExpressionBody, _accessorBodyShouldBeSynthesized, diagnostics);
             }
 
             static CSharpSyntaxNode? getAccessorSyntax(CSharpSyntaxNode node)
@@ -479,6 +475,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool ContainsFieldKeyword => _containsFieldKeyword;
 
         /// <summary>
+        /// Indicates whether this accessor has no body in source and a body will be synthesized by the compiler.
+        /// </summary>
+        internal bool AccessorBodyShouldBeSynthesized => _accessorBodyShouldBeSynthesized;
+
+        /// <summary>
         /// Indicates whether this accessor is readonly due to reasons scoped to itself and its containing property.
         /// </summary>
         internal sealed override bool IsDeclaredReadOnly
@@ -527,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return ContainingType.IsStructType() &&
                     !_property.IsStatic &&
-                    _isAutoPropertyAccessor &&
+                    _accessorBodyShouldBeSynthesized &&
                     MethodKind == MethodKind.PropertyGet;
             }
         }
@@ -602,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // 'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.
                 diagnostics.Add(ErrorCode.ERR_InitCannotBeReadonly, location, _property);
             }
-            else if (LocalDeclaredReadOnly && _isAutoPropertyAccessor && MethodKind == MethodKind.PropertySet)
+            else if (LocalDeclaredReadOnly && _accessorBodyShouldBeSynthesized && MethodKind == MethodKind.PropertySet)
             {
                 // Auto-implemented accessor '{0}' cannot be marked 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_AutoSetterCantBeReadOnly, location, this);
@@ -835,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (_isAutoPropertyAccessor)
+            if (_accessorBodyShouldBeSynthesized)
             {
                 var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
