@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Windows.Shapes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Text.UI.Adornments;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.StringIndentation
@@ -73,8 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                             StrokeThickness = 1.0,
                             X1 = block.X,
                             X2 = block.X,
-                            Y1 = ySegment.Start,
-                            Y2 = ySegment.End,
+                            Y1 = ySegment.start,
+                            Y2 = ySegment.end,
                             Stroke = brush,
                         };
 

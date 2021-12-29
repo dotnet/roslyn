@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
         private readonly struct VisibleBlock
         {
             public readonly double X;
-            public readonly ImmutableArray<VerticalBlockSpan> YSegments;
+            public readonly ImmutableArray<(double start, double end)> YSegments;
             public readonly SnapshotSpan Extent;
 
-            private VisibleBlock(double x, SnapshotSpan extent, ImmutableArray<VerticalBlockSpan> ySegments)
+            private VisibleBlock(double x, SnapshotSpan extent, ImmutableArray<(double start, double end)> ySegments)
             {
                 X = x;
                 Extent = extent;
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 return new VisibleBlock(x, extent.Value, visibleSegments);
             }
 
-            private static ImmutableArray<VerticalBlockSpan> CreateVisibleSegments(
+            private static ImmutableArray<(double start, double end)> CreateVisibleSegments(
                 ITextViewLineCollection linesCollection,
                 SnapshotSpan extent,
                 ImmutableArray<SnapshotSpan> orderedHoleSpans,
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 double yTop,
                 double yBottom)
             {
-                using var _ = ArrayBuilder<VerticalBlockSpan>.GetInstance(out var segments);
+                using var _ = ArrayBuilder<(double start, double end)>.GetInstance(out var segments);
 
                 // MinLineHeight must always be larger than ContinuationPadding so that no segments
                 // are created for vertical spans between lines.
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                         // a few pixels in height so we don't have artifacts between lines of intersecting
                         // text.
                         if ((currentSegmentBottom - currentSegmentTop) >= MinLineHeight)
-                            segments.Add(new VerticalBlockSpan(currentSegmentTop, currentSegmentBottom));
+                            segments.Add((currentSegmentTop, currentSegmentBottom));
 
                         currentSegmentTop = line.Bottom + ContinuationPadding;
                     }
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 // an entire line in height so we don't have 1 to 3 pixel artifacts between lines
                 // of intersecting text.
                 if ((currentSegmentBottom - currentSegmentTop) >= MinLineHeight)
-                    segments.Add(new VerticalBlockSpan(currentSegmentTop, currentSegmentBottom));
+                    segments.Add((currentSegmentTop, currentSegmentBottom));
 
                 return segments.ToImmutable();
             }
