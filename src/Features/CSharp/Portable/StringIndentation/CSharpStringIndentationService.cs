@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
             if (node.IsKind(SyntaxKind.InterpolatedStringExpression, out InterpolatedStringExpressionSyntax? interpolatedString) &&
                 interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
             {
-                .ProcessInterpolatedStringExpression(text, interpolatedString, result, cancellationToken);
+                ProcessInterpolatedStringExpression(text, interpolatedString, result, cancellationToken);
             }
 
             foreach (var child in node.ChildNodesAndTokens())
