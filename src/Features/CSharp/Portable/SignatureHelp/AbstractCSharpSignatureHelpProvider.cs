@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             if (selectedSymbol is null || selectedParameterIndex < 0)
             {
-                var argumentIndex = GetArgumentIndex(arguments, position);
+                var argumentIndex = TryGetArgumentIndex(arguments, position);
                 return new SignatureHelpItems(items, textSpan, argumentIndex < 0 ? 0 : argumentIndex, arguments.Count, argumentName: null, selectedItem);
             }
 
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 // find the parameter at the cursor position
-                var argumentIndexToSave = GetArgumentIndex(arguments, position);
+                var argumentIndexToSave = TryGetArgumentIndex(arguments, position);
                 if (argumentIndexToSave >= 0)
                 {
                     var foundParam = argToParamMap[argumentIndexToSave];
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         /// Given the cursor position, find which argument is active.
         /// This will be useful to later find which parameter should be highlighted.
         /// </summary>
-        protected static int GetArgumentIndex(SeparatedSyntaxList<ArgumentSyntax> arguments, int position)
+        protected static int TryGetArgumentIndex(SeparatedSyntaxList<ArgumentSyntax> arguments, int position)
         {
             if (arguments.Count == 0)
             {
