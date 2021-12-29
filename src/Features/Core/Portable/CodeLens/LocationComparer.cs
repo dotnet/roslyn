@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return Hash.Combine(obj.SourceSpan.GetHashCode(),
                    StringComparer.OrdinalIgnoreCase.GetHashCode(obj.SourceTree.FilePath));
             }
+
             return obj?.GetHashCode() ?? 0;
         }
     }

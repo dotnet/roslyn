@@ -38,8 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestFormattingRuleFactoryServiceFactory));
 
         private readonly ITestOutputHelper _output;
-        public CoreFormatterTestsBase(ITestOutputHelper output)
-            => this._output = output;
+
+        protected CoreFormatterTestsBase(ITestOutputHelper output)
+            => _output = output;
 
         protected abstract string GetLanguageName();
         protected abstract SyntaxNode ParseCompilationUnit(string expected);

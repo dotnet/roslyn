@@ -4,23 +4,21 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [ExportLspMethod(MSLSPMethods.DocumentPullDiagnosticName, mutatesSolutionState: false), Shared]
-    internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<DocumentDiagnosticsParams, DiagnosticReport>
+    internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport, VSInternalDiagnosticReport[]>
     {
         private readonly IDiagnosticAnalyzerService _analyzerService;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public override string Method => VSInternalMethods.DocumentPullDiagnosticName;
+
         public DocumentPullDiagnosticHandler(
             IDiagnosticService diagnosticService,
             IDiagnosticAnalyzerService analyzerService)
@@ -29,11 +27,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _analyzerService = analyzerService;
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticsParams diagnosticsParams)
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.TextDocument;
 
-        protected override DiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-            => new DiagnosticReport
+        protected override VSInternalDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
+            => new VSInternalDiagnosticReport
             {
                 Diagnostics = diagnostics,
                 ResultId = resultId,
@@ -45,28 +43,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Supersedes = WorkspaceDiagnosticIdentifier,
             };
 
-        protected override DiagnosticParams[]? GetPreviousResults(DocumentDiagnosticsParams diagnosticsParams)
-            => new[] { diagnosticsParams };
+        protected override ImmutableArray<PreviousResult>? GetPreviousResults(VSInternalDocumentDiagnosticsParams diagnosticsParams)
+        {
+            if (diagnosticsParams.PreviousResultId != null && diagnosticsParams.TextDocument != null)
+            {
+                return ImmutableArray.Create(new PreviousResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument));
+            }
 
-        protected override IProgress<DiagnosticReport[]>? GetProgress(DocumentDiagnosticsParams diagnosticsParams)
-            => diagnosticsParams.PartialResultToken;
+            // The client didn't provide us with a previous result to look for, so we can't lookup anything.
+            return null;
+        }
 
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
             => ConvertTags(diagnosticData, potentialDuplicate: false);
 
         protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
         {
-            // For the single document case, that is the only doc we want to process.
-            //
-            // Note: context.Document may be null in the case where the client is asking about a document that we have
-            // since removed from the workspace.  In this case, we don't really have anything to process.
-            // GetPreviousResults will be used to properly realize this and notify the client that the doc is gone.
-            //
-            // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
-            // handler treats those as separate worlds that they are responsible for.
-            return context.Document != null && context.IsTracking(context.Document.GetURI())
-                ? ImmutableArray.Create(context.Document)
-                : ImmutableArray<Document>.Empty;
+            return GetRequestedDocument(context);
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
@@ -76,7 +69,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
             // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
             // and do not need to be adjusted.
-            return _analyzerService.GetDiagnosticsAsync(document.Project.Solution, documentId: document.Id, cancellationToken: cancellationToken);
+            return _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
+        }
+
+        protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport> progress)
+        {
+            return progress.GetValues();
+        }
+
+        internal static ImmutableArray<Document> GetRequestedDocument(RequestContext context)
+        {
+            // For the single document case, that is the only doc we want to process.
+            //
+            // Note: context.Document may be null in the case where the client is asking about a document that we have
+            // since removed from the workspace.  In this case, we don't really have anything to process.
+            // GetPreviousResults will be used to properly realize this and notify the client that the doc is gone.
+            //
+            // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
+            // handler treats those as separate worlds that they are responsible for.
+            if (context.Document == null)
+            {
+                context.TraceInformation("Ignoring diagnostics request because no document was provided");
+                return ImmutableArray<Document>.Empty;
+            }
+
+            if (!context.IsTracking(context.Document.GetURI()))
+            {
+                context.TraceInformation($"Ignoring diagnostics request for untracked document: {context.Document.GetURI()}");
+                return ImmutableArray<Document>.Empty;
+            }
+
+            return ImmutableArray.Create(context.Document);
         }
     }
 }

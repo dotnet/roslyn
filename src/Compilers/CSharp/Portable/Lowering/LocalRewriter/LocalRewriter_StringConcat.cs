@@ -187,20 +187,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.NullCoalescingOperator:
                     var boundCoalesce = (BoundNullCoalescingOperator)lowered;
 
-                    if (boundCoalesce.LeftConversion.IsIdentity)
-                    {
-                        // The RHS may be a constant value with an identity conversion to string even
-                        // if it is not a string: in particular, the null literal behaves this way.
-                        // To be safe, check that the constant value is actually a string before
-                        // attempting to access its value as a string.
+                    Debug.Assert(boundCoalesce.LeftPlaceholder is null);
+                    Debug.Assert(boundCoalesce.LeftConversion is null);
 
-                        var rightConstant = boundCoalesce.RightOperand.ConstantValue;
-                        if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
-                        {
-                            arguments = ImmutableArray.Create(boundCoalesce.LeftOperand);
-                            return true;
-                        }
+                    // The RHS may be a constant value with an identity conversion to string even
+                    // if it is not a string: in particular, the null literal behaves this way.
+                    // To be safe, check that the constant value is actually a string before
+                    // attempting to access its value as a string.
+
+                    var rightConstant = boundCoalesce.RightOperand.ConstantValue;
+                    if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
+                    {
+                        arguments = ImmutableArray.Create(boundCoalesce.LeftOperand);
+                        return true;
                     }
+
                     break;
             }
 
@@ -304,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringString);
             Debug.Assert((object)method != null);
 
-            return (BoundExpression)BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight, binder: null);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight);
         }
 
         private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird)
@@ -316,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringString);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, receiverOpt: null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird), binder: null);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
         }
 
         private BoundExpression RewriteStringConcatenationFourExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird, BoundExpression loweredFourth)
@@ -329,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringStringString);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, receiverOpt: null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird, loweredFourth), binder: null);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird, loweredFourth));
         }
 
         private BoundExpression RewriteStringConcatenationManyExprs(SyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
@@ -342,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var array = _factory.ArrayOrEmpty(_factory.SpecialType(SpecialType.System_String), loweredArgs);
 
-            return (BoundExpression)BoundCall.Synthesized(syntax, receiverOpt: null, method, array, binder: null);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, array);
         }
 
         /// <summary>
@@ -358,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
-            return new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, method, default(LookupResultKind), loweredLeft, loweredRight, type);
+            return new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, method, constrainedToTypeOpt: null, default(LookupResultKind), loweredLeft, loweredRight, type);
         }
 
         /// <summary>
@@ -430,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // types to all special value types.
             if (structToStringMethod != null && (expr.Type.SpecialType != SpecialType.None && !isFieldOfMarshalByRef(expr, _compilation)))
             {
-                return BoundCall.Synthesized(expr.Syntax, expr, structToStringMethod, binder: null);
+                return BoundCall.Synthesized(expr.Syntax, expr, structToStringMethod);
             }
 
             // - It's a reference type (excluding unconstrained generics): no copy
@@ -455,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     expr = new BoundPassByCopy(expr.Syntax, expr, expr.Type);
                 }
-                return BoundCall.Synthesized(expr.Syntax, expr, objectToStringMethod, binder: null);
+                return BoundCall.Synthesized(expr.Syntax, expr, objectToStringMethod);
             }
 
             if (callWithoutCopy)
@@ -486,8 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenNotNull: BoundCall.Synthesized(
                         syntax,
                         new BoundConditionalReceiver(syntax, currentConditionalAccessID, expr.Type),
-                        objectToStringMethod,
-                        binder: null),
+                        objectToStringMethod),
                     whenNullOpt: null,
                     id: currentConditionalAccessID,
                     type: _compilation.GetSpecialType(SpecialType.System_String));

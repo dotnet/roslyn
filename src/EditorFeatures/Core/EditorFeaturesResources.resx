@@ -414,9 +414,6 @@
   <data name="Format_Token" xml:space="preserve">
     <value>Format Token</value>
   </data>
-  <data name="Smart_Indenting" xml:space="preserve">
-    <value>Smart Indenting</value>
-  </data>
   <data name="Find_References" xml:space="preserve">
     <value>Find References</value>
   </data>
@@ -938,5 +935,120 @@ Do you want to proceed?</value>
   </data>
   <data name="User_Types_Records" xml:space="preserve">
     <value>User Types - Records</value>
+  </data>
+  <data name="User_Types_Record_Structs" xml:space="preserve">
+    <value>User Types - Record Structs</value>
+  </data>
+  <data name="Get_help_for_0" xml:space="preserve">
+    <value>Get help for '{0}'</value>
+  </data>
+  <data name="Get_help_for_0_from_Bing" xml:space="preserve">
+    <value>Get help for '{0}' from Bing</value>
+  </data>
+  <data name="Gathering_Suggestions_0" xml:space="preserve">
+    <value>Gathering Suggestions - '{0}'</value>
+  </data>
+  <data name="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load" xml:space="preserve">
+    <value>Gathering Suggestions - Waiting for the solution to fully load</value>
+  </data>
+  <data name="Reassigned_variable" xml:space="preserve">
+    <value>Reassigned variable</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Do_not_prefer_this_or_Me" xml:space="preserve">
+    <value>Do not prefer 'this.' or 'Me.'</value>
+  </data>
+  <data name="In_arithmetic_binary_operators" xml:space="preserve">
+    <value>In arithmetic operators</value>
+  </data>
+  <data name="In_other_binary_operators" xml:space="preserve">
+    <value>In other binary operators</value>
+  </data>
+  <data name="In_relational_binary_operators" xml:space="preserve">
+    <value>In relational operators</value>
+  </data>
+  <data name="Prefer_is_null_for_reference_equality_checks" xml:space="preserve">
+    <value>Prefer 'is null' for reference equality checks</value>
+  </data>
+  <data name="Prefer_this_or_Me" xml:space="preserve">
+    <value>Prefer 'this.' or 'Me.'</value>
+  </data>
+  <data name="Qualify_event_access_with_this_or_Me" xml:space="preserve">
+    <value>Qualify event access with 'this' or 'Me'</value>
+  </data>
+  <data name="Qualify_field_access_with_this_or_Me" xml:space="preserve">
+    <value>Qualify field access with 'this' or 'Me'</value>
+  </data>
+  <data name="Qualify_method_access_with_this_or_Me" xml:space="preserve">
+    <value>Qualify method access with 'this' or 'Me'</value>
+  </data>
+  <data name="Qualify_property_access_with_this_or_Me" xml:space="preserve">
+    <value>Qualify property access with 'this' or 'Me'</value>
+  </data>
+  <data name="Indentation_Size" xml:space="preserve">
+    <value>Indentation Size</value>
+  </data>
+  <data name="Insert_Final_Newline" xml:space="preserve">
+    <value>Insert Final Newline</value>
+  </data>
+  <data name="New_Line" xml:space="preserve">
+    <value>New Line</value>
+  </data>
+  <data name="Tab_Size" xml:space="preserve">
+    <value>Tab Size</value>
+  </data>
+  <data name="Use_Tabs" xml:space="preserve">
+    <value>Use Tabs</value>
+  </data>
+  <data name="Regex_Comment" xml:space="preserve">
+    <value>Regex - Comment</value>
+  </data>
+  <data name="Regex_Character_Class" xml:space="preserve">
+    <value>Regex - Character Class</value>
+  </data>
+  <data name="Regex_Alternation" xml:space="preserve">
+    <value>Regex - Alternation</value>
+  </data>
+  <data name="Regex_Anchor" xml:space="preserve">
+    <value>Regex - Anchor</value>
+  </data>
+  <data name="Regex_Quantifier" xml:space="preserve">
+    <value>Regex - Quantifier</value>
+  </data>
+  <data name="Regex_SelfEscapedCharacter" xml:space="preserve">
+    <value>Regex - Self Escaped Character</value>
+  </data>
+  <data name="Regex_Grouping" xml:space="preserve">
+    <value>Regex - Grouping</value>
+  </data>
+  <data name="Regex_Text" xml:space="preserve">
+    <value>Regex - Text</value>
+  </data>
+  <data name="Regex_OtherEscape" xml:space="preserve">
+    <value>Regex - Other Escape</value>
+  </data>
+  <data name="Inline_Diagnostics_Error" xml:space="preserve">
+    <value>Inline Diagnostics - Error</value>
+  </data>
+  <data name="Inline_Diagnostics_Rude_Edit" xml:space="preserve">
+    <value>Inline Diagnostics - Rude Edit</value>
+  </data>
+  <data name="Inline_Diagnostics_Warning" xml:space="preserve">
+    <value>Inline Diagnostics - Warning</value>
+  </data>
+  <data name="Execute_Suggested_Action" xml:space="preserve">
+    <value>Execute Suggested Action</value>
+  </data>
+  <data name="Language_client_initialization_failed" xml:space="preserve">
+    <value>{0} failed to initialize. Status = {1}. Exception = {2}</value>
+    <comment>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</comment>
+  </data>
+  <data name="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects" xml:space="preserve">
+    <value>The results may be incomplete due to the solution still loading projects.</value>
   </data>
 </root>

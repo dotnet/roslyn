@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if the parameter is semantically optional.
         /// </summary>
         /// <remarks>
-        /// True iff the parameter has a default argument syntax, 
+        /// True if and only if the parameter has a default argument syntax, 
         /// or the parameter is not a params-array and Optional metadata flag is set.
         /// </remarks>
         public bool IsOptional
@@ -166,6 +166,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// True if Optional flag is set in metadata.
         /// </summary>
         internal abstract bool IsMetadataOptional { get; }
+
+        /// <summary>
+        /// True if the compiler will synthesize a null check for this parameter (the parameter is declared in source with a '!' following the parameter name). 
+        /// </summary>
+        public abstract bool IsNullChecked { get; }
 
         /// <summary>
         /// True if In flag is set in metadata.
@@ -395,9 +400,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsCallerMemberName { get; }
 
+        internal abstract int CallerArgumentExpressionParameterIndex { get; }
+
         internal abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
         internal abstract ImmutableHashSet<string> NotNullIfParameterNotNull { get; }
+
+        /// <summary>
+        /// Indexes of the parameters that will be passed to the constructor of the interpolated string handler type
+        /// when an interpolated string handler conversion occurs. These indexes are ordered in the order to be passed
+        /// to the constructor.
+        /// <para/>
+        /// Indexes greater than or equal to 0 are references to parameters defined on the containing method or indexer.
+        /// Indexes less than 0 are constants defined on <see cref="BoundInterpolatedStringArgumentPlaceholder"/>.
+        /// </summary>
+        internal abstract ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes { get; }
+
+        /// <summary>
+        /// True if the parameter is attributed with <c>InterpolatedStringHandlerArgumentAttribute</c> and the attribute
+        /// has some error (such as invalid names).
+        /// </summary>
+        internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
 
         protected sealed override int HighestPriorityUseSiteError
         {
@@ -411,9 +434,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = null;
-                DeriveUseSiteDiagnosticFromParameter(ref info, this);
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BogusType;
+                UseSiteInfo<AssemblySymbol> info = default;
+                DeriveUseSiteInfoFromParameter(ref info, this);
+                return info.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BogusType;
             }
         }
 

@@ -10,6 +10,7 @@ using Xunit;
 using Moq;
 using System.IO;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -497,6 +498,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(52467, "https://github.com/dotnet/roslyn/issues/52467")]
+        public void UnexpectedExceptionLogsMessage()
+        {
+            var engine = new MockEngine();
+            var csc = new Csc()
+            {
+                BuildEngine = engine,
+            };
+
+            csc.ExecuteTool(@"q:\path\csc.exe", "", "", new TestableCompilerServerLogger()
+            {
+                LogFunc = delegate { throw new Exception(""); }
+            });
+            Assert.False(string.IsNullOrEmpty(engine.Log));
         }
     }
 }

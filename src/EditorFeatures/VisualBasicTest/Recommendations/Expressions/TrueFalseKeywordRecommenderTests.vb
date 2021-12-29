@@ -4,113 +4,115 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class TrueFalseKeywordRecommenderTests
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInClassDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "True", "False")
-        End Function
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseInStatementTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "True", "False")
-        End Function
+        Public Sub NoneInClassDeclarationTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterReturnTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Return |</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseInStatementTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterReturnTest()
+            VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterArgument1Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterArgument2Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar, |</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterBinaryExpressionTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar + |</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterTypeOfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If TypeOf |</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterNotTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(Not |</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterDoWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do While |</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterTypeOfTest()
+            VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterDoUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do Until |</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterDoWhileTest()
+            VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterLoopWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub TrueFalseAfterDoUntilTest()
+            VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "True", "False")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub TrueFalseAfterLoopWhileTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop While |</MethodBody>, "True", "False")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterLoopUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub TrueFalseAfterLoopUntilTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop Until |</MethodBody>, "True", "False")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If |</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterIfTest()
+            VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterElseIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>ElseIf |</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterElseIfTest()
+            VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterElseSpaceIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Else If |</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterElseSpaceIfTest()
+            VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterErrorTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Error |</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterErrorTest()
+            VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterThrowTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Throw |</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterThrowTest()
+            VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterInitializerTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = |</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterInitializerTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = |</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterArrayInitializerSquiggleTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {|</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterArrayInitializerSquiggleTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseAfterArrayInitializerCommaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {0, |</MethodBody>, "True", "False")
-        End Function
+        Public Sub TrueFalseAfterArrayInitializerCommaTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "True", "False")
+        End Sub
 
         <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotInDelegateCreationTest() As Task
+        Public Sub NotInDelegateCreationTest()
             Dim code =
 <File>
 Module Program
@@ -126,51 +128,51 @@ Module Program
 End Module
 </File>
 
-            Await VerifyRecommendationsMissingAsync(code, "True", "False")
-        End Function
+            VerifyRecommendationsMissing(code, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseInDirective1() As Task
-            Await VerifyRecommendationsContainAsync(<File>#if |</File>, "True", "False")
-        End Function
+        Public Sub TrueFalseInDirective1()
+            VerifyRecommendationsContain(<File>#if |</File>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseInDirective2() As Task
-            Await VerifyRecommendationsContainAsync(<File>#if not |</File>, "True", "False")
-        End Function
+        Public Sub TrueFalseInDirective2()
+            VerifyRecommendationsContain(<File>#if not |</File>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseInDirective3() As Task
-            Await VerifyRecommendationsContainAsync(<File>#if (|</File>, "True", "False")
-        End Function
+        Public Sub TrueFalseInDirective3()
+            VerifyRecommendationsContain(<File>#if (|</File>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseInDirective4() As Task
-            Await VerifyRecommendationsContainAsync(<File>#if true andalso |</File>, "True", "False")
-        End Function
+        Public Sub TrueFalseInDirective4()
+            VerifyRecommendationsContain(<File>#if true andalso |</File>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseInDirective5() As Task
-            Await VerifyRecommendationsContainAsync(<File>#if true and |</File>, "True", "False")
-        End Function
+        Public Sub TrueFalseInDirective5()
+            VerifyRecommendationsContain(<File>#if true and |</File>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseInDirective6() As Task
-            Await VerifyRecommendationsContainAsync(<File>#if true orelse |</File>, "True", "False")
-        End Function
+        Public Sub TrueFalseInDirective6()
+            VerifyRecommendationsContain(<File>#if true orelse |</File>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseInDirective7() As Task
-            Await VerifyRecommendationsContainAsync(<File>#if true or |</File>, "True", "False")
-        End Function
+        Public Sub TrueFalseInDirective7()
+            VerifyRecommendationsContain(<File>#if true or |</File>, "True", "False")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function TrueFalseInDirective() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub TrueFalseInDirective()
+            VerifyRecommendationsContain(
 <File>
 #if true
 #elseif |
 </File>, "True", "False")
-        End Function
+        End Sub
     End Class
 End Namespace

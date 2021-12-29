@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Export(typeof(IAttachedCollectionSourceProvider))]
     [Name(nameof(CpsDiagnosticItemSourceProvider))]
     [Order]
-    [AppliesToProject("(CSharp | VisualBasic) & CPS")]
+    [AppliesToProject("(CSharp | VB) & CPS")]
     internal sealed class CpsDiagnosticItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
     {
         private readonly IAnalyzersCommandHandler _commandHandler;

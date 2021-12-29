@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -101,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             var projectFactory = componentModel.GetService<VisualStudioProjectFactory>();
-            VisualStudioProject = projectFactory.CreateAndAddToWorkspace(
+            VisualStudioProject = threadingContext.JoinableTaskFactory.Run(() => projectFactory.CreateAndAddToWorkspaceAsync(
                 projectSystemName,
                 language,
                 new VisualStudioProjectCreationInfo
@@ -112,7 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     FilePath = projectFilePath,
                     Hierarchy = hierarchy,
                     ProjectGuid = GetProjectIDGuid(hierarchy),
-                });
+                },
+                CancellationToken.None));
 
             workspaceImpl.AddProjectRuleSetFileToInternalMaps(
                 VisualStudioProject,
@@ -247,7 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 return;
             }
 
-            if (!(Hierarchy is IVsBuildPropertyStorage storage))
+            if (Hierarchy is not IVsBuildPropertyStorage storage)
             {
                 return;
             }
@@ -315,7 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             if (documentItemID != (uint)VSConstants.VSITEMID.Nil && Hierarchy.GetProperty(documentItemID, (int)VsHierarchyPropID.Parent, out var parentObj) == VSConstants.S_OK)
             {
                 var parentID = UnboxVSItemId(parentObj);
-                if (parentID != (uint)VSConstants.VSITEMID.Nil && parentID != (uint)VSConstants.VSITEMID.Root)
+                if (parentID is not ((uint)VSConstants.VSITEMID.Nil) and not ((uint)VSConstants.VSITEMID.Root))
                 {
                     return GetFolderNamesForFolder(parentID);
                 }
@@ -363,7 +365,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         private static void ComputeFolderNames(uint folderItemID, List<string> names, IVsHierarchy hierarchy)
         {
-            if (hierarchy.GetProperty((uint)folderItemID, (int)VsHierarchyPropID.Name, out var nameObj) == VSConstants.S_OK)
+            if (hierarchy.GetProperty(folderItemID, (int)VsHierarchyPropID.Name, out var nameObj) == VSConstants.S_OK)
             {
                 // For 'Shared' projects, IVSHierarchy returns a hierarchy item with < character in its name (i.e. <SharedProjectName>)
                 // as a child of the root item. There is no such item in the 'visual' hierarchy in solution explorer and no such folder
@@ -378,10 +380,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 }
             }
 
-            if (hierarchy.GetProperty((uint)folderItemID, (int)VsHierarchyPropID.Parent, out var parentObj) == VSConstants.S_OK)
+            if (hierarchy.GetProperty(folderItemID, (int)VsHierarchyPropID.Parent, out var parentObj) == VSConstants.S_OK)
             {
                 var parentID = UnboxVSItemId(parentObj);
-                if (parentID != (uint)VSConstants.VSITEMID.Nil && parentID != (uint)VSConstants.VSITEMID.Root)
+                if (parentID is not ((uint)VSConstants.VSITEMID.Nil) and not ((uint)VSConstants.VSITEMID.Root))
                 {
                     ComputeFolderNames(parentID, names, hierarchy);
                 }
@@ -424,7 +426,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         private static bool TryGetPropertyValue(IVsHierarchy hierarchy, string propertyName, out string propertyValue)
         {
-            if (!(hierarchy is IVsBuildPropertyStorage storage))
+            if (hierarchy is not IVsBuildPropertyStorage storage)
             {
                 propertyValue = null;
                 return false;
@@ -441,7 +443,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 return false;
             }
 
-            propertyValue = bool.TryParse(stringPropertyValue, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+            propertyValue = bool.TryParse(stringPropertyValue, out var parsedBoolValue) ? parsedBoolValue : null;
             return true;
         }
     }

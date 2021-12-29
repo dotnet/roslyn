@@ -6,12 +6,12 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <AutoGenerateAssemblyVersion>true</AutoGenerateAssemblyVersion>
     <AssemblyVersion/>
     <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
     <NoWarn>$(NoWarn);CA1819</NoWarn>
-    
+
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Build.Tasks</PackageId>
@@ -51,12 +51,54 @@
     <EmbeddedResource Update="ErrorString.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" />
     <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" Condition="'$(TargetFramework)' != 'netcoreapp3.1'" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" Condition="'$(TargetFramework)' != 'netcoreapp3.1'" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
   </ItemGroup>
+
+  <!-- Generate a .targets file that sets $(CompilerApiVersion) to the current Roslyn version -->
+  <PropertyGroup>
+    <CompilerVersionTargetsFileIntermediatePath>$(IntermediateOutputPath)Microsoft.Managed.Core.CurrentVersions.targets</CompilerVersionTargetsFileIntermediatePath>
+  </PropertyGroup>
+
+  <Target Name="GenerateCompilerVersionTargets"
+          BeforeTargets="AssignTargetPaths"
+          DependsOnTargets="GenerateCompilerVersionTargetsFile">
+    <ItemGroup>
+      <Content Include="$(CompilerVersionTargetsFileIntermediatePath)">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Pack>true</Pack>
+        <BuildAction>None</BuildAction>
+        <PackageCopyToOutput>true</PackageCopyToOutput>
+        <PackagePath>contentFiles\any\any</PackagePath>
+      </Content>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GenerateCompilerVersionTargetsFile"
+          Inputs="$(MSBuildThisFileFullPath)"
+          Outputs="$(CompilerVersionTargetsFileIntermediatePath)">
+
+    <PropertyGroup>
+      <CompilerApiVersion>$([System.Version]::Parse($(VersionPrefix)).Major).$([System.Version]::Parse($(VersionPrefix)).Minor)</CompilerApiVersion>
+      <CompilerVersionTargetsFileContent>
+<![CDATA[<Project>
+  <PropertyGroup>
+    <CompilerApiVersion>roslyn$(CompilerApiVersion)</CompilerApiVersion>
+  </PropertyGroup>
+</Project>]]>
+      </CompilerVersionTargetsFileContent>
+    </PropertyGroup>
+
+    <WriteLinesToFile File="$(CompilerVersionTargetsFileIntermediatePath)"
+                      Lines="$(CompilerVersionTargetsFileContent)"
+                      Overwrite="true" />
+  </Target>
+
   <Import Project="..\CommandLine\CommandLine.projitems" Label="Shared" />
 </Project>

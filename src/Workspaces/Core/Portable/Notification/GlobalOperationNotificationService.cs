@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -62,12 +63,12 @@ namespace Microsoft.CodeAnalysis.Notification
             return Task.CompletedTask;
         }
 
-        private Task RaiseGlobalOperationStoppedAsync(IReadOnlyList<string> operations, bool cancelled)
+        private Task RaiseGlobalOperationStoppedAsync(ImmutableArray<string> operations)
         {
             var ev = _eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
             if (ev.HasHandlers)
             {
-                var args = new GlobalOperationEventArgs(operations, cancelled);
+                var args = new GlobalOperationEventArgs(operations);
                 return _eventQueue.ScheduleTask(GlobalOperationStoppedEventName, () => ev.RaiseEvent(handler => handler(this, args)), CancellationToken.None);
             }
 
@@ -104,25 +105,6 @@ namespace Microsoft.CodeAnalysis.Notification
             }
         }
 
-        public override void Cancel(GlobalOperationRegistration registration)
-        {
-            lock (_gate)
-            {
-                var result = _registrations.Remove(registration);
-                Contract.ThrowIfFalse(result);
-
-                if (_registrations.Count == 0)
-                {
-                    var operations = _operations.AsImmutable();
-                    _operations.Clear();
-
-                    // We don't care if an individual operation has canceled.
-                    // We only care whether whole thing has cancelled or not.
-                    RaiseGlobalOperationStoppedAsync(operations, cancelled: true);
-                }
-            }
-        }
-
         public override void Done(GlobalOperationRegistration registration)
         {
             lock (_gate)
@@ -135,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Notification
                     var operations = _operations.AsImmutable();
                     _operations.Clear();
 
-                    RaiseGlobalOperationStoppedAsync(operations, cancelled: false);
+                    RaiseGlobalOperationStoppedAsync(operations);
                 }
             }
         }

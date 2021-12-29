@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -43,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <summary>
         /// The active IVsWindowFrame. This can only be written by the UI thread, although can be read (with care) from any thread.
         /// </summary>
-        private IVsWindowFrame _activeFrame;
+        private IVsWindowFrame? _activeFrame;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -58,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                var monitorSelectionService = (IVsMonitorSelection)await asyncServiceProvider.GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(true);
+                var monitorSelectionService = (IVsMonitorSelection?)await asyncServiceProvider.GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(true);
                 Assumes.Present(monitorSelectionService);
 
                 // No need to track windows if we are shutting down
@@ -80,17 +78,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// Raised when the set of window frames being tracked changes, which means the results from <see cref="TryGetActiveDocument"/> or <see cref="GetVisibleDocuments"/> may change.
         /// May be raised on any thread.
         /// </summary>
-        public event EventHandler DocumentsChanged;
+        public event EventHandler? DocumentsChanged;
 
         /// <summary>
         /// Raised when a non-Roslyn text buffer is edited, which can be used to back off of expensive background processing. May be raised on any thread.
         /// </summary>
-        public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
+        public event EventHandler<EventArgs>? NonRoslynBufferTextChanged;
 
         /// <summary>
         /// Returns the <see cref="DocumentId"/> of the active document in a given <see cref="Workspace"/>.
         /// </summary>
-        public DocumentId TryGetActiveDocument(Workspace workspace)
+        public DocumentId? TryGetActiveDocument(Workspace workspace)
         {
             ThisCanBeCalledOnAnyThread();
 
@@ -149,8 +147,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             _activeFrame = frame;
 
-            if (!_visibleFrames.Any(f => f.Frame == frame))
+            var existingFrame = _visibleFrames.FirstOrDefault(f => f.Frame == frame);
+            if (existingFrame == null)
             {
+                _visibleFrames = _visibleFrames.Add(new FrameListener(this, frame));
+            }
+            else if (existingFrame.TextBuffer == null)
+            {
+                // If no text buffer is associated with existing frame, remove the existing frame and add the new one.
+                // Note that we do not need to disconnect the existing frame here. It will get disconnected along with
+                // the new frame whenever the document is closed or de-activated.
+                _visibleFrames = _visibleFrames.Remove(existingFrame);
                 _visibleFrames = _visibleFrames.Add(new FrameListener(this, frame));
             }
 
@@ -178,11 +185,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             AssertIsForeground();
 
-            if (elementid == (uint)VSConstants.VSSELELEMID.SEID_DocumentFrame)
+            // Process and track newly active document frame.
+            // Note that sometimes we receive 'SEID_WindowFrame' instead of 'SEID_DocumentFrame'
+            // for the newly active document. We ensure that we only process frames for documents
+            // and not other tool windows by checking the frame type is 'WINDOWFRAMETYPE_Document'.
+            if (elementid == (uint)VSConstants.VSSELELEMID.SEID_DocumentFrame ||
+                elementid == (uint)VSConstants.VSSELELEMID.SEID_WindowFrame)
             {
                 // Remember the newly activated frame so it can be read from another thread.
 
-                if (varValueNew is IVsWindowFrame frame)
+                if (varValueNew is IVsWindowFrame frame &&
+                    ErrorHandler.Succeeded(frame.GetProperty((int)__VSFPROPID.VSFPROPID_Type, out var frameType)) &&
+                    (int)frameType == (int)__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document)
                 {
                     TrackNewActiveWindowFrame(frame);
                 }
@@ -205,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly VisualStudioActiveDocumentTracker _documentTracker;
             private readonly uint _frameEventsCookie;
 
-            private readonly ITextBuffer _textBuffer;
+            internal ITextBuffer? TextBuffer { get; }
 
             public FrameListener(VisualStudioActiveDocumentTracker service, IVsWindowFrame frame)
             {
@@ -220,11 +234,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     if (docData is IVsTextBuffer bufferAdapter)
                     {
-                        _textBuffer = _documentTracker._editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
+                        TextBuffer = _documentTracker._editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
 
-                        if (_textBuffer != null && !_textBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
+                        if (TextBuffer != null && !TextBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
                         {
-                            _textBuffer.Changed += NonRoslynTextBuffer_Changed;
+                            TextBuffer.Changed += NonRoslynTextBuffer_Changed;
                         }
                     }
                 }
@@ -237,14 +251,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             /// Returns the current DocumentId for this window frame. Care must be made with this value, since "current" could change asynchronously as the document
             /// could be unregistered from a workspace.
             /// </summary>
-            public DocumentId GetDocumentId(Workspace workspace)
+            public DocumentId? GetDocumentId(Workspace workspace)
             {
-                if (_textBuffer == null)
+                if (TextBuffer == null)
                 {
                     return null;
                 }
 
-                var textContainer = _textBuffer.AsTextContainer();
+                var textContainer = TextBuffer.AsTextContainer();
                 return workspace.GetDocumentIdInCurrentContext(textContainer);
             }
 
@@ -278,9 +292,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _documentTracker.AssertIsForeground();
                 _documentTracker.RemoveFrame(this);
 
-                if (_textBuffer != null)
+                if (TextBuffer != null)
                 {
-                    _textBuffer.Changed -= NonRoslynTextBuffer_Changed;
+                    TextBuffer.Changed -= NonRoslynTextBuffer_Changed;
                 }
 
                 if (_frameEventsCookie != VSConstants.VSCOOKIE_NIL)

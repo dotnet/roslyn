@@ -27,7 +27,7 @@
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Collections.SR" />
+    <EmbeddedResource Update="Internal\Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Collections.Internal.SR" />
   </ItemGroup>
 
   <!--

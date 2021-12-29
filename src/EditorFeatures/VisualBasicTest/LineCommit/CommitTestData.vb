@@ -9,6 +9,8 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.Indentation
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -65,7 +67,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 commitManagerFactory,
                 workspace.GetService(Of IEditorOperationsFactoryService),
                 workspace.GetService(Of ISmartIndentationService),
-                textUndoHistoryRegistry)
+                textUndoHistoryRegistry,
+                workspace.GetService(Of IGlobalOptionService))
         End Sub
 
         Friend Sub AssertHadCommit(expectCommit As Boolean)
@@ -142,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                     Assert.Equal(trackingSpan.GetSpan(spanToFormat.Snapshot), spanToFormat.Span)
                 End If
 
-                Dim realCommitFormatter As New CommitFormatter(_testWorkspace.GetService(Of IIndentationManagerService))
+                Dim realCommitFormatter = Assert.IsType(Of CommitFormatter)(_testWorkspace.GetService(Of ICommitFormatter)())
                 realCommitFormatter.CommitRegion(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken)
             End Sub
         End Class

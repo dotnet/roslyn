@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -14,6 +16,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class PatternTests : EmitMetadataTestBase
     {
         #region Miscellaneous
+
+        [Fact, WorkItem(48493, "https://github.com/dotnet/roslyn/issues/48493")]
+        public void Repro_48493()
+        {
+            var source = @"
+using System;
+using System.Linq;
+
+namespace Sample
+{
+    internal class Row
+    {
+        public string Message { get; set; } = """";
+    }
+
+    internal class Program
+    {
+        private static void Main()
+        {
+            Console.WriteLine(ProcessRow(new Row()));
+        }
+
+        private static string ProcessRow(Row row)
+        {
+            if (row == null) throw new ArgumentNullException(nameof(row));
+            return row switch
+            {
+                { Message: ""stringA"" } => ""stringB"",
+                var r when new[] { ""stringC"", ""stringD"" }.Any(x => r.Message.Contains(x)) => ""stringE"",
+                { Message: ""stringF"" } => ""stringG"",
+                _ => ""stringH"",
+            };
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput: "stringH");
+        }
+
+        [Fact, WorkItem(48493, "https://github.com/dotnet/roslyn/issues/48493")]
+        public void Repro_48493_Simple()
+        {
+            var source = @"
+using System;
+
+internal class Widget
+{
+    public bool IsGood { get; set; }
+}
+
+internal class Program
+{
+    private static bool M0(Func<bool> fn) => fn();
+
+    private static void Main()
+    {
+        Console.Write(new Widget() switch
+        {
+            { IsGood: true } => 1,
+            _ when M0(() => true) => 2,
+            { } => 3,
+        });
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"2");
+        }
 
         [Fact, WorkItem(18811, "https://github.com/dotnet/roslyn/issues/18811")]
         public void MissingNullable_01()
@@ -2002,6 +2069,56 @@ public class C {
   IL_003e:  call       ""string string.Concat(string, string, string)""
   IL_0043:  call       ""void System.Console.WriteLine(string)""
   IL_0048:  ret
+}");
+        }
+
+        [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
+        public void PropertyOverrideLacksAccessor()
+        {
+            var source = @"
+#nullable enable
+
+class Base
+{
+  public virtual bool IsOk { get { return true; } set { } }
+}
+
+class C : Base
+{
+  public override bool IsOk { set { } }
+  public string? Value { get; }
+
+  public string M()
+  {
+    switch (this)
+    {
+      case { IsOk: true }:
+        return Value;
+      default:
+        return Value;
+    }
+  }
+}
+";
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0013
+  IL_0005:  ldloc.0
+  IL_0006:  callvirt   ""bool Base.IsOk.get""
+  IL_000b:  pop
+  IL_000c:  ldarg.0
+  IL_000d:  call       ""string C.Value.get""
+  IL_0012:  ret
+  IL_0013:  ldarg.0
+  IL_0014:  call       ""string C.Value.get""
+  IL_0019:  ret
 }");
         }
 
@@ -4871,6 +4988,387 @@ public class B
                     //     [My(1 switch { 1 => 1, _ => string.Empty })]
                     Diagnostic(ErrorCode.ERR_BadArgType, "1 switch { 1 => 1, _ => string.Empty }").WithArguments("1", "<switch expression>", "int").WithLocation(11, 9)
                 );
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var switchExpressions = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().ToArray();
+
+            VerifyOperationTreeForNode(compilation, model, switchExpressions[0], @"
+ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... 1, _ => 2 }')
+  Value: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+  Arms(2):
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '1 => 1')
+        Pattern: 
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => 2')
+        Pattern: 
+          IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+");
+
+            VerifyOperationTreeForNode(compilation, model, switchExpressions[1], @"
+ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... > new B() }')
+  Value: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+  Arms(2):
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '1 => new A()')
+        Pattern: 
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+        Value: 
+          IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 A.op_Implicit(A a)) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new A()')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 A.op_Implicit(A a))
+            Operand: 
+              IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A, IsInvalid) (Syntax: 'new A()')
+                Arguments(0)
+                Initializer: 
+                  null
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => new B()')
+        Pattern: 
+          IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+        Value: 
+          IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 B.op_Implicit(B b)) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new B()')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 B.op_Implicit(B b))
+            Operand: 
+              IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B, IsInvalid) (Syntax: 'new B()')
+                Arguments(0)
+                Initializer: 
+                  null
+");
+
+            VerifyOperationTreeForNode(compilation, model, switchExpressions[2], @"
+ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: '1 switch {  ... ing.Empty }')
+  Value: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+  Arms(2):
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '1 => 1')
+        Pattern: 
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+        Value: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: '1')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => string.Empty')
+        Pattern: 
+          IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+        Value: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'string.Empty')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
+                Instance Receiver: 
+                  null
+");
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Attribute_NamedArgument()
+        {
+            var source = @"
+using System;
+class Program
+{
+    [My(Value = 1 switch { 1 => 1, _ => 2 })]
+    public static void M1() { }
+
+    [My(Value = 1 switch { 1 => new A(), _ => new B() })]
+    public static void M2() { }
+
+    [My(Value = 1 switch { 1 => 1, _ => string.Empty })]
+    public static void M3() { }
+}
+public class MyAttribute : Attribute
+{
+    public MyAttribute() { }
+    public int Value { get; set; }
+}
+public class A
+{
+    public static implicit operator int(A a) => 4;
+}
+public class B
+{
+    public static implicit operator int(B b) => 2;
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,17): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [My(Value = 1 switch { 1 => 1, _ => 2 })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "1 switch { 1 => 1, _ => 2 }").WithLocation(5, 17),
+                // (8,17): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [My(Value = 1 switch { 1 => new A(), _ => new B() })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "1 switch { 1 => new A(), _ => new B() }").WithLocation(8, 17),
+                // (11,41): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //     [My(Value = 1 switch { 1 => 1, _ => string.Empty })]
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "string.Empty").WithArguments("string", "int").WithLocation(11, 41)
+                );
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var attributeArguments = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().ToArray();
+
+            VerifyOperationTreeForNode(compilation, model, attributeArguments[0], @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'Value = 1 s ... 1, _ => 2 }')
+  Left: 
+    IPropertyReferenceOperation: System.Int32 MyAttribute.Value { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Value')
+      Instance Receiver: 
+        null
+  Right: 
+    ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... 1, _ => 2 }')
+      Value: 
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+      Arms(2):
+          ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '1 => 1')
+            Pattern: 
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                Value: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+          ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => 2')
+            Pattern: 
+              IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+");
+
+            VerifyOperationTreeForNode(compilation, model, attributeArguments[1], @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'Value = 1 s ... > new B() }')
+  Left: 
+    IPropertyReferenceOperation: System.Int32 MyAttribute.Value { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Value')
+      Instance Receiver: 
+        null
+  Right: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '1 switch {  ... > new B() }')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... > new B() }')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+          Arms(2):
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '1 => new A()')
+                Pattern: 
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 A.op_Implicit(A a)) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new A()')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 A.op_Implicit(A a))
+                    Operand: 
+                      IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A, IsInvalid) (Syntax: 'new A()')
+                        Arguments(0)
+                        Initializer: 
+                          null
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => new B()')
+                Pattern: 
+                  IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 B.op_Implicit(B b)) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'new B()')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 B.op_Implicit(B b))
+                    Operand: 
+                      IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B, IsInvalid) (Syntax: 'new B()')
+                        Arguments(0)
+                        Initializer: 
+                          null
+");
+
+            VerifyOperationTreeForNode(compilation, model, attributeArguments[2], @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'Value = 1 s ... ing.Empty }')
+  Left: 
+    IPropertyReferenceOperation: System.Int32 MyAttribute.Value { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Value')
+      Instance Receiver: 
+        null
+  Right: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '1 switch {  ... ing.Empty }')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: '1 switch {  ... ing.Empty }')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          Arms(2):
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '1 => 1')
+                Pattern: 
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => string.Empty')
+                Pattern: 
+                  IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'string.Empty')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
+                        Instance Receiver: 
+                          null
+");
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Attribute_MissingNamedArgument()
+        {
+            var source = @"
+using System;
+class Program
+{
+    [My(Value = 1 switch { 1 => 1, _ => 2 })]
+    public static void M1() { }
+
+    [My(Value = 1 switch { 1 => new A(), _ => new B() })]
+    public static void M2() { }
+
+    [My(Value = 1 switch { 1 => 1, _ => string.Empty })]
+    public static void M3() { }
+}
+public class MyAttribute : Attribute
+{
+    public MyAttribute() { }
+}
+public class A
+{
+    public static implicit operator int(A a) => 4;
+}
+public class B
+{
+    public static implicit operator int(B b) => 2;
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,9): error CS0246: The type or namespace name 'Value' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My(Value = 1 switch { 1 => 1, _ => 2 })]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Value").WithArguments("Value").WithLocation(5, 9),
+                // (8,9): error CS0246: The type or namespace name 'Value' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My(Value = 1 switch { 1 => new A(), _ => new B() })]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Value").WithArguments("Value").WithLocation(8, 9),
+                // (11,9): error CS0246: The type or namespace name 'Value' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My(Value = 1 switch { 1 => 1, _ => string.Empty })]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Value").WithArguments("Value").WithLocation(11, 9)
+                );
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var attributeArguments = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().ToArray();
+
+            VerifyOperationTreeForNode(compilation, model, attributeArguments[0], @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'Value = 1 s ... 1, _ => 2 }')
+  Left: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Value')
+      Children(0)
+  Right: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1 switch {  ... 1, _ => 2 }')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: '1 switch {  ... 1, _ => 2 }')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          Arms(2):
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '1 => 1')
+                Pattern: 
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Value: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => 2')
+                Pattern: 
+                  IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                Value: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+");
+
+            VerifyOperationTreeForNode(compilation, model, attributeArguments[1], @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'Value = 1 s ... > new B() }')
+  Left: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Value')
+      Children(0)
+  Right: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1 switch {  ... > new B() }')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?) (Syntax: '1 switch {  ... > new B() }')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          Arms(2):
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '1 => new A()')
+                Pattern: 
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: 'new A()')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A) (Syntax: 'new A()')
+                        Arguments(0)
+                        Initializer: 
+                          null
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => new B()')
+                Pattern: 
+                  IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: 'new B()')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B) (Syntax: 'new B()')
+                        Arguments(0)
+                        Initializer: 
+                          null
+");
+
+            VerifyOperationTreeForNode(compilation, model, attributeArguments[2], @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'Value = 1 s ... ing.Empty }')
+  Left: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Value')
+      Children(0)
+  Right: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1 switch {  ... ing.Empty }')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?) (Syntax: '1 switch {  ... ing.Empty }')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          Arms(2):
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '1 => 1')
+                Pattern: 
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => string.Empty')
+                Pattern: 
+                  IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: 'string.Empty')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String) (Syntax: 'string.Empty')
+                        Instance Receiver: 
+                          null
+");
         }
 
         [Fact]

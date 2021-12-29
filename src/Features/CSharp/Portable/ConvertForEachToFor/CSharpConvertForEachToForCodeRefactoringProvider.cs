@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertForEachToForCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertForEachToFor), Shared]
     internal sealed class CSharpConvertForEachToForCodeRefactoringProvider :
         AbstractConvertForEachToForCodeRefactoringProvider<StatementSyntax, ForEachStatementSyntax>
     {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
                 // If the block was empty, still put the new variable inside of it. This handles the case where the user
                 // writes the foreach and immediately decides to change it to a for-loop.  Now they'll still have their
                 // variable to use in the body instead of having to write it again.
-                return bodyBlock.AddStatements((StatementSyntax)variableStatement);
+                return bodyBlock.AddStatements(variableStatement);
             }
             else
             {

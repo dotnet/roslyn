@@ -35,12 +35,16 @@ namespace RunTests
         {
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
-
             var options = Options.Parse(args);
             if (options == null)
             {
                 return ExitFailure;
             }
+
+            ConsoleUtil.WriteLine($"Running '{options.DotnetFilePath} --version'..");
+            var dotnetResult = await ProcessRunner.CreateProcess(options.DotnetFilePath, arguments: "--version", captureOutput: true).Result;
+            ConsoleUtil.WriteLine(string.Join(Environment.NewLine, dotnetResult.OutputLines));
+            ConsoleUtil.WriteLine(ConsoleColor.Red, string.Join(Environment.NewLine, dotnetResult.ErrorLines));
 
             if (options.CollectDumps)
             {
@@ -136,7 +140,9 @@ namespace RunTests
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
             ConsoleUtil.WriteLine($"Running {assemblyCount} test assemblies in {assemblyInfoList.Count} partitions");
 
-            var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
+            var result = options.UseHelix
+                ? await testRunner.RunAllOnHelixAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true)
+                : await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 
             ConsoleUtil.WriteLine($"Test execution time: {elapsed}");
@@ -186,6 +192,7 @@ namespace RunTests
             var logFilePath = Path.Combine(options.LogFilesDirectory, "runtests.log");
             try
             {
+                Directory.CreateDirectory(options.LogFilesDirectory);
                 using (var writer = new StreamWriter(logFilePath, append: false))
                 {
                     Logger.WriteTo(writer);
@@ -212,7 +219,7 @@ namespace RunTests
 
                 // Our space for saving dump files is limited. Skip dumping for processes that won't contribute
                 // to bug investigations.
-                if (name == "procdump" || name == "conhost")
+                if (name is "procdump" or "conhost")
                 {
                     return;
                 }
@@ -319,10 +326,23 @@ namespace RunTests
                 var fileName = $"{name}.dll";
                 foreach (var targetFramework in options.TargetFrameworks)
                 {
-                    var filePath = Path.Combine(project, options.Configuration, targetFramework, fileName);
+                    var fileContainingDirectory = Path.Combine(project, options.Configuration, targetFramework);
+                    var filePath = Path.Combine(fileContainingDirectory, fileName);
                     if (File.Exists(filePath))
                     {
                         list.Add((filePath, targetFramework));
+                    }
+                    else if (Directory.Exists(fileContainingDirectory) && Directory.GetFiles(fileContainingDirectory, searchPattern: "*.UnitTests.dll") is { Length: > 0 } matches)
+                    {
+                        // If the unit test assembly name doesn't match the project folder name, but still matches our "unit test" name pattern, we want to run it.
+                        // If more than one such assembly is present in a project output folder, we assume something is wrong with the build configuration.
+                        // For example, one unit test project might be referencing another unit test project.
+                        if (matches.Length > 1)
+                        {
+                            var message = $"Multiple unit test assemblies found in '{fileContainingDirectory}'. Please adjust the build to prevent this. Matches:{Environment.NewLine}{string.Join(Environment.NewLine, matches)}";
+                            throw new Exception(message);
+                        }
+                        list.Add((matches[0], targetFramework));
                     }
                 }
             }
@@ -364,8 +384,7 @@ namespace RunTests
                 dotnetFilePath: options.DotnetFilePath,
                 procDumpInfo: options.CollectDumps ? GetProcDumpInfo(options) : null,
                 testResultsDirectory: options.TestResultsDirectory,
-                trait: options.Trait,
-                noTrait: options.NoTrait,
+                testFilter: options.TestFilter,
                 includeHtml: options.IncludeHtml,
                 retry: options.Retry);
             return new ProcessTestExecutor(testExecutionOptions);

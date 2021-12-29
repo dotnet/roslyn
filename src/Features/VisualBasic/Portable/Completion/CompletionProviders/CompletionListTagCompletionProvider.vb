@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -26,7 +25,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             MyBase.New()
         End Sub
 
-        Protected Overrides Function GetPreselectedSymbolsAsync(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+        Protected Overrides Async Function GetSymbolsAsync(
+                completionContext As CompletionContext,
+                syntaxContext As VisualBasicSyntaxContext,
+                position As Integer,
+                options As CompletionOptions,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)))
+
+            Dim symbols = Await GetPreselectedSymbolsAsync(syntaxContext, position, options, cancellationToken).ConfigureAwait(False)
+            Return symbols.SelectAsArray(Function(s) (s, preselect:=True))
+        End Function
+
+        Private Shared Function GetPreselectedSymbolsAsync(context As VisualBasicSyntaxContext, position As Integer, options As CompletionOptions, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
             If context.SyntaxTree.IsObjectCreationTypeContext(position, cancellationToken) OrElse
                 context.SyntaxTree.IsInNonUserCode(position, cancellationToken) Then
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
@@ -49,17 +59,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
-            Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
-
             Return Task.FromResult(completionListType.GetAccessibleMembersInThisAndBaseTypes(Of ISymbol)(within) _
                                                 .WhereAsArray(Function(m) m.MatchesKind(SymbolKind.Field, SymbolKind.Property) AndAlso
                                                                     m.IsStatic AndAlso
                                                                     m.IsAccessibleWithin(within) AndAlso
-                                                                    m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)))
-        End Function
-
-        Protected Overrides Function GetSymbolsAsync(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
-            Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+                                                                    m.IsEditorBrowsable(options.HideAdvancedMembers, context.SemanticModel.Compilation)))
         End Function
 
         Private Shared Function GetCompletionListType(inferredType As ITypeSymbol, within As INamedTypeSymbol, compilation As Compilation, cancellationToken As CancellationToken) As ITypeSymbol
@@ -77,21 +81,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Nothing
         End Function
 
-        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
+        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As VisualBasicSyntaxContext) As (displayText As String, suffix As String, insertionText As String)
             Dim displayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType).WithKindOptions(SymbolDisplayKindOptions.None)
             Dim text = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, displayFormat)
             Return (text, "", text)
         End Function
 
-        Protected Overrides Function CreateItem(completionContext As CompletionContext,
-                displayText As String, displayTextSuffix As String, insertionText As String,
-                symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+        Protected Overrides Function CreateItem(
+                completionContext As CompletionContext,
+                displayText As String,
+                displayTextSuffix As String,
+                insertionText As String,
+                symbols As ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)),
+                context As VisualBasicSyntaxContext,
+                supportedPlatformData As SupportedPlatformData) As CompletionItem
+
             Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
                 displayTextSuffix:=displayTextSuffix,
                 insertionText:=insertionText,
-                filterText:=GetFilterText(symbols(0), displayText, context),
-                symbols:=symbols,
+                filterText:=GetFilterText(symbols(0).symbol, displayText, context),
+                symbols:=symbols.SelectAsArray(Function(t) t.symbol),
                 rules:=CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect),
                 contextPosition:=context.Position,
                 sortText:=displayText,

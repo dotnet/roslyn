@@ -1616,5 +1616,32 @@ End Class]]>
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCrefReferenceInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+        using System;
+        class {|Definition:$$EClass|} : Exception { }
+        }]]>
+        </Document>
+        <DocumentFromSourceGenerator><![CDATA[
+
+        class Program
+        {
+            /// <exception cref="[|EClass|]"></exception>
+            static void Main(string[] pargs)
+            {
+
+            }
+        }
+
+        ]]></DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

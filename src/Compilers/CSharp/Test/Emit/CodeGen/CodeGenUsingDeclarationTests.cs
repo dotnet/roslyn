@@ -1349,5 +1349,59 @@ class C2
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(16, 9)
                 );
         }
+
+        [Fact]
+        public void UsingDeclarationAsync_WithOptionalParameter()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+class C1
+{
+    public ValueTask DisposeAsync(int i = 1) 
+    { 
+        Console.WriteLine($""Dispose async {i}"");
+        return new ValueTask(Task.CompletedTask);
+    }
+}
+
+class C2
+{
+    static async Task Main()
+    {
+        await using C1 c = new C1();
+    }
+}";
+            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: "Dispose async 1");
+        }
+
+        [Fact]
+        public void UsingDeclarationAsync_WithParamsParameter()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+class C1
+{
+    public ValueTask DisposeAsync(params object[] o) 
+    { 
+        Console.WriteLine($""Dispose async {o.Length}"");
+        return new ValueTask(Task.CompletedTask);
+    }
+}
+
+class C2
+{
+    static async Task Main()
+    {
+        await using C1 c = new C1();
+    }
+}";
+            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: "Dispose async 0");
+        }
     }
 }

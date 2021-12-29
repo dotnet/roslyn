@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -13,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    [ExportOptionProvider, Shared]
+    [ExportSolutionOptionProvider, Shared]
     internal class SolutionCrawlerOnOffOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
@@ -23,6 +21,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            SolutionCrawlerOptions.BackgroundAnalysisScopeOption);
+            SolutionCrawlerOptions.BackgroundAnalysisScopeOption,
+            SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption);
     }
 }

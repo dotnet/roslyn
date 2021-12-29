@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline hints;
+        <source>Underline reassigned variables;
+Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -80,11 +81,13 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="translated">Exibir as dicas embutidas;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">Variáveis reatribuídas de sublinhado;
+Exibir as dicas embutidas;
 Mostrar os diagnósticos de arquivos fechados;
 Colorir a expressão regular; 
-Realçar os componentes relacionados sob o cursor; 
+Realçar os componentes relacionados sob o cursor;
 Relatar as expressões regulares inválidas;
 Habilitar a análise completa da solução;
 Executar a análise de recurso do editor em processo externo;
@@ -95,8 +98,8 @@ Separar grupos de diretivas using;
 Sugerir usings para tipos em assemblies de referência;
 Sugerir usings para tipos em pacotes NuGet;
 Realce;
-Realçar as referências ao símbolo sob o cursor;
-Realçar as palavras-chave relacionadas sob o cursor;
+Realçar as referências ao símbolo sob o cursor
+;Realçar as palavras-chave relacionadas sob o cursor;
 Estrutura de tópicos;
 Entrar no modo de estrutura de tópicos quando os arquivos são abertos;
 Mostrar separadores de linha de procedimento;
@@ -128,7 +131,8 @@ preferir propriedades automáticas;
 regex;
 expressão regular;
 Usar cores avançadas;
-Esquema de Cores do Editor;</target>
+Esquema de Cores do Editor;
+Margem de herança;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -279,6 +283,7 @@ Show completion list after a character is deleted;
 Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -295,14 +300,15 @@ Mostrar a lista de conclusão após a exclusão de um caractere;
 Mostrar automaticamente a lista de conclusão nas listas de argumentos (experimental);
 Realçar as partes correspondentes dos itens da lista de conclusão;
 Mostrar os filtros de itens de conclusão;
-Comportamento de trechos;
-Nunca incluir trechos;
-Sempre incluir trechos;
-Incluir trechos quando ?-Tab é digitado após um identificador;
-Inserir o comportamento chave;
+Concluir a instrução automaticamente no ponto e vírgula;
+Comportamento de snippets;
+Nunca incluir snippets;
+Sempre incluir snippets;
+Incluir snippets quando ?-Tab é digitado após um identificador;
+Comportamento da tecla Enter;
 Nunca adicionar uma nova linha ao pressionar Enter;
-Apenas adicionar uma nova linha ao pressionar Enter depois que a palavra for digitada completamente;
-Sempre adicionar nova linha ao pressionar Enter;
+Apenas adicionar uma nova linha ao pressionar Enter depois que a palavra é digitada completamente;
+Sempre adicionar uma nova linha ao pressionar Enter;
 Mostrar sugestões de nomes;
 Mostrar itens de namespaces não importados (experimental);</target>
         <note>C# IntelliSense options page keywords</note>

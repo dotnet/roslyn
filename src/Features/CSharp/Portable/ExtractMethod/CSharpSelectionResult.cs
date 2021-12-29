@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Options;
@@ -79,17 +80,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var current = token.Parent;
             for (; current != null; current = current.Parent)
             {
-                if (current is MemberDeclarationSyntax ||
-                    current is SimpleLambdaExpressionSyntax ||
-                    current is ParenthesizedLambdaExpressionSyntax ||
-                    current is AnonymousMethodExpressionSyntax ||
-                    current is LocalFunctionStatementSyntax)
+                if (current is MemberDeclarationSyntax or
+                    SimpleLambdaExpressionSyntax or
+                    ParenthesizedLambdaExpressionSyntax or
+                    AnonymousMethodExpressionSyntax or
+                    LocalFunctionStatementSyntax)
                 {
                     break;
                 }
             }
 
-            if (current == null || current is MemberDeclarationSyntax)
+            if (current is null or MemberDeclarationSyntax)
             {
                 return false;
             }
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             Contract.ThrowIfNull(statement);
             var firstStatementUnderContainer = GetFirstStatementUnderContainer();
-            Contract.ThrowIfFalse(statement.Parent == firstStatementUnderContainer.Parent);
+            Contract.ThrowIfFalse(CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(statement, firstStatementUnderContainer));
 
             return statement;
         }

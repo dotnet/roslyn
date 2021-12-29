@@ -7,6 +7,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Assert.Equal("", d.Description);
             Assert.Equal("", d.HelpLinkUri);
             Assert.Equal(new LocalizableResourceString(nameof(FeaturesResources.RudeEdit), FeaturesResources.ResourceManager, typeof(FeaturesResources)), d.Title);
-            Assert.Equal(new LocalizableResourceString(nameof(FeaturesResources.Updating_an_active_statement_will_prevent_the_debug_session_from_continuing),
+            Assert.Equal(new LocalizableResourceString(nameof(FeaturesResources.Updating_an_active_statement_requires_restarting_the_application),
                 FeaturesResources.ResourceManager, typeof(FeaturesResources)), d.MessageFormat);
 
             Assert.Equal("ENC0087", EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.ComplexQueryExpression).Id);
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Assert.Equal(new LocalizableResourceString(nameof(FeaturesResources.ErrorReadingFile),
                 FeaturesResources.ResourceManager, typeof(FeaturesResources)), d.MessageFormat);
 
-            d = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(12);
+            d = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(ManagedHotReloadAvailabilityStatus.Optimized);
             Assert.Equal("ENC2012", d.Id);
             Assert.Equal(DiagnosticCategory.EditAndContinue, d.Category);
             Assert.Equal(new[] { "EditAndContinue", "Telemetry", "NotConfigurable", EnforceOnBuild.Never.ToCustomTag() }, d.CustomTags);

@@ -121,7 +121,7 @@ End Class"
             Assert.Equal(SpecialType.System_Int32, volatileFld.[Type].SpecialType)
             Assert.Equal("volatileFld", volatileFld.Name)
             Assert.Same(volatileFld, volatileFld.OriginalDefinition)
-            Assert.Null(volatileFld.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty))
+            Assert.Null(volatileFld.GetConstantValue(ConstantFieldsInProgress.Empty))
             Assert.Null(volatileFld.ConstantValue)
             Assert.Null(volatileFld.AssociatedSymbol)
             Assert.Same(c1AsmRef, volatileFld.ContainingAssembly)

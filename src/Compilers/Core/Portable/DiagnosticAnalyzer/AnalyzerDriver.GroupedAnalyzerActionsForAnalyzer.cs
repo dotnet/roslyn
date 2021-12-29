@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -18,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly DiagnosticAnalyzer _analyzer;
             private readonly bool _analyzerActionsNeedFiltering;
 
-            private ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>? _lazyNodeActionsByKind;
-            private ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>? _lazyOperationActionsByKind;
+            private ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> _lazyNodeActionsByKind;
+            private ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> _lazyOperationActionsByKind;
             private ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> _lazyCodeBlockStartActions;
             private ImmutableArray<CodeBlockAnalyzerAction> _lazyCodeBlockEndActions;
             private ImmutableArray<CodeBlockAnalyzerAction> _lazyCodeBlockActions;
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return actions.WhereAsArray((action, analyzer) => action.Analyzer == analyzer, analyzer);
             }
 
-            public ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> NodeActionsByAnalyzerAndKind
+            public ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> NodeActionsByAnalyzerAndKind
             {
                 get
                 {
@@ -78,15 +76,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         VerifyActions(nodeActions, _analyzer);
                         var analyzerActionsByKind = !nodeActions.IsEmpty ?
                             AnalyzerExecutor.GetNodeActionsByKind(nodeActions) :
-                            ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.Empty;
-                        Interlocked.CompareExchange(ref _lazyNodeActionsByKind, analyzerActionsByKind, null);
+                            ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.Empty;
+                        RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyNodeActionsByKind, analyzerActionsByKind);
                     }
 
                     return _lazyNodeActionsByKind;
                 }
             }
 
-            public ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> OperationActionsByAnalyzerAndKind
+            public ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> OperationActionsByAnalyzerAndKind
             {
                 get
                 {
@@ -96,8 +94,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         VerifyActions(operationActions, _analyzer);
                         var analyzerActionsByKind = operationActions.Any() ?
                             AnalyzerExecutor.GetOperationActionsByKind(operationActions) :
-                            ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>.Empty;
-                        Interlocked.CompareExchange(ref _lazyOperationActionsByKind, analyzerActionsByKind, null);
+                            ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>.Empty;
+                        RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyOperationActionsByKind, analyzerActionsByKind);
                     }
 
                     return _lazyOperationActionsByKind;

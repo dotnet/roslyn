@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lockSyntax,
                     receiverOpt: null,
                     exitMethod,
-                    boundLockTemp,
-                    binder: null);
+                    boundLockTemp);
             }
             else
             {
@@ -112,8 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiverOpt: null,
                         enterMethod,
                         boundLockTemp,
-                        boundLockTakenTemp,
-                        binder: null));
+                        boundLockTakenTemp));
 
                 exitCall = RewriteIfStatement(
                     lockSyntax,
@@ -161,8 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lockSyntax,
                         receiverOpt: null,
                         enterMethod,
-                        boundLockTemp,
-                        binder: null);
+                        boundLockTemp);
                 }
                 else
                 {

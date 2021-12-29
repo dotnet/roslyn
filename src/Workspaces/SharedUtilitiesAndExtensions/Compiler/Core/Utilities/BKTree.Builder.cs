@@ -163,10 +163,8 @@ namespace Roslyn.Utilities
                         {
                             Debug.Assert(spilledEdges.Count == (edgeCount - CompactEdgeAllocationSize));
 
-                            foreach (var kvp in spilledEdges)
-                            {
-                                edges.Add(new Edge(kvp.Key, kvp.Value));
-                            }
+                            foreach (var (distance, childIndex) in spilledEdges)
+                                edges.Add(new Edge(distance, childIndex));
                         }
                     }
 

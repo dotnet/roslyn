@@ -487,8 +487,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class FlowCaptureReferenceOperation
     {
-        public FlowCaptureReferenceOperation(int id, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue) :
-            this(new CaptureId(id), semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
+        public FlowCaptureReferenceOperation(int id, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isInitialization = false) :
+            this(new CaptureId(id), isInitialization, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
         {
         }
     }
@@ -543,8 +543,9 @@ namespace Microsoft.CodeAnalysis.Operations
             // Intentionally skipping SetParentOperation: this is used by CreateTemporaryBlock for the purposes of the
             // control flow factory, to temporarily create a new block for use in emulating the "block" a using variable
             // declaration introduces. These statements already have a parent node, and `SetParentOperation`'s verification
-            // would fail because that parent isn't this.
-            Debug.Assert(statements.All(s => s.Parent != this && s.Parent!.Kind == OperationKind.Block));
+            // would fail because that parent isn't this. In error cases, the parent can also be a switch statement if
+            // the using declaration was used directly as an embedded statement in the case without a block.
+            Debug.Assert(statements.All(s => s.Parent != this && s.Parent!.Kind is OperationKind.Block or OperationKind.SwitchCase));
             Operations = statements;
             Locals = ImmutableArray<ILocalSymbol>.Empty;
         }

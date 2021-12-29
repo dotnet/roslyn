@@ -110,6 +110,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 If Not node.IntoKeyword.IsMissing Then
                     result = HelpKeywords.QueryAggregateInto
                 End If
+
                 result = HelpKeywords.QueryAggregate
             End Sub
 

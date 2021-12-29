@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     using static FeaturesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal partial class RegexEmbeddedCompletionProvider : LSPCompletionProvider
+    internal sealed partial class RegexEmbeddedCompletionProvider : EmbeddedLanguageCompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -32,23 +33,23 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         // Always soft-select these completion items.  Also, never filter down.
         private static readonly CompletionItemRules s_rules =
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
-                                       .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));
+                                       .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, Array.Empty<char>()));
 
         private readonly RegexEmbeddedLanguage _language;
 
         public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language)
             => _language = language;
 
-        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create(
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(
             '\\', // any escape
             '[', // character class
             '(', // any group
             '{'); // \p{
 
-        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger)
         {
-            if (trigger.Kind == CompletionTriggerKind.Invoke ||
-                trigger.Kind == CompletionTriggerKind.InvokeAndCommitIfUnique)
+            if (trigger.Kind is CompletionTriggerKind.Invoke or
+                CompletionTriggerKind.InvokeAndCommitIfUnique)
             {
                 return true;
             }
@@ -63,14 +64,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (!context.Options.GetOption(RegularExpressionsOptions.ProvideRegexCompletions, context.Document.Project.Language))
+            if (!context.CompletionOptions.ProvideRegexCompletions)
             {
                 return;
             }
 
-            if (context.Trigger.Kind != CompletionTriggerKind.Invoke &&
-                context.Trigger.Kind != CompletionTriggerKind.InvokeAndCommitIfUnique &&
-                context.Trigger.Kind != CompletionTriggerKind.Insertion)
+            if (context.Trigger.Kind is not CompletionTriggerKind.Invoke and
+                not CompletionTriggerKind.InvokeAndCommitIfUnique and
+                not CompletionTriggerKind.Insertion)
             {
                 return;
             }
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 properties.Add(LengthKey, textChange.Span.Length.ToString());
                 properties.Add(NewTextKey, textChange.NewText);
                 properties.Add(DescriptionKey, embeddedItem.FullDescription);
-                properties.Add(AbstractEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
+                properties.Add(AbstractAggregateEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
 
                 if (change.NewPosition != null)
                 {
@@ -255,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             if (index >= 2 && tree.Text[index - 2] == '\\')
             {
                 var escapeChar = tree.Text[index - 1];
-                if (escapeChar == 'p' || escapeChar == 'P')
+                if (escapeChar.Value is 'p' or 'P')
                 {
                     var token = FindToken(tree.Root, escapeChar);
                     if (token?.parent is RegexEscapeNode)
@@ -300,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return;
             }
 
-            if (parentOpt != null && !(parentOpt is RegexGroupingNode))
+            if (parentOpt is not null and not RegexGroupingNode)
             {
                 return;
             }
@@ -342,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private static void ProvideBackslashCompletions(
             EmbeddedCompletionContext context, bool inCharacterClass, RegexNode parentOpt)
         {
-            if (parentOpt != null && !(parentOpt is RegexEscapeNode))
+            if (parentOpt is not null and not RegexEscapeNode)
             {
                 return;
             }
@@ -456,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             return Task.FromResult(CompletionChange.Create(
                 new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText),
-                newPositionString == null ? (int?)null : int.Parse(newPositionString)));
+                newPositionString == null ? null : int.Parse(newPositionString)));
         }
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)

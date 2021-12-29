@@ -51,9 +51,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         private void UpdateBuffer(TextDocument document)
         {
+            // Note, even if the passed TextDocument has the same ID as _currentDocumentId, we still need
+            // to refresh the buffer; if the user has a set of edits for a single document from a fix all operation,
+            // you can check and uncheck the individual edits and we show the result. In that case, we're getting new
+            // snapshots each time of the same document.
+
             if (document.Id == _currentDocumentId)
             {
-                return;
+                Contract.ThrowIfNull(_previewWorkspace, "We shouldn't have a current document if we don't have a workspace.");
+                var existingDocument = _previewWorkspace.CurrentSolution.GetRequiredTextDocument(_currentDocumentId);
+                if (existingDocument.GetTextSynchronously(CancellationToken.None).ContentEquals(document.GetTextSynchronously(CancellationToken.None)))
+                {
+                    // The contents of the buffer matches what we'd update it to, so no reason to change.
+                    return;
+                }
             }
 
             if (_currentDocumentId != null)

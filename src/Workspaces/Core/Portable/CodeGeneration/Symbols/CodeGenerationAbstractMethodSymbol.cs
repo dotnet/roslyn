@@ -25,13 +25,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name,
-            ImmutableArray<AttributeData> returnTypeAttributes)
-            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
+            ImmutableArray<AttributeData> returnTypeAttributes,
+            string documentationCommentXml = null)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, documentationCommentXml)
         {
             _returnTypeAttributes = returnTypeAttributes.NullToEmpty();
         }
 
         public abstract int Arity { get; }
+        public abstract System.Reflection.MethodImplAttributes MethodImplementationFlags { get; }
         public abstract bool ReturnsVoid { get; }
         public abstract bool ReturnsByRef { get; }
         public abstract bool ReturnsByRefReadonly { get; }
@@ -50,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations { get; }
         public abstract IMethodSymbol PartialDefinitionPart { get; }
         public abstract IMethodSymbol PartialImplementationPart { get; }
+        public abstract bool IsPartialDefinition { get; }
 
         public NullableAnnotation ReceiverNullableAnnotation => ReceiverType.NullableAnnotation;
         public NullableAnnotation ReturnNullableAnnotation => ReturnType.NullableAnnotation;

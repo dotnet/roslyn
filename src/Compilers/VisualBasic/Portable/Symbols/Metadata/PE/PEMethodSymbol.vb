@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
+Imports System.Reflection.Metadata.Ecma335
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -49,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Structure PackedFlags
             ' Flags are packed into a 32-bit int with the following layout:
-            ' |              h|g|f|e|d|c|b|aaaaa|
+            ' |              |j|i|h|g|f|e|d|c|b|aaaaa|
             '
             ' a = method kind. 5 bits
             ' b = method kind populated. 1 bit
@@ -59,6 +60,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' f = custom attributes populated. 1 bit
             ' g = use site diagnostic populated. 1 bit
             ' h = conditional attributes populated. 1 bit
+            ' i = is init-only. 1 bit.
+            ' j = is init-only populated. 1 bit.
 
             Private _bits As Integer
 
@@ -71,6 +74,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Private Const s_isCustomAttributesPopulatedBit As Integer = 1 << 9
             Private Const s_isUseSiteDiagnosticPopulatedBit As Integer = 1 << 10
             Private Const s_isConditionalAttributePopulatedBit As Integer = 1 << 11
+            Private Const s_isInitOnlyBit = 1 << 12
+            Private Const s_isInitOnlyPopulatedBit = 1 << 13
 
             Public Property MethodKind As MethodKind
                 Get
@@ -124,6 +129,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End Get
             End Property
 
+            Public ReadOnly Property IsInitOnly As Boolean
+                Get
+                    Return (_bits And s_isInitOnlyBit) <> 0
+                End Get
+            End Property
+
+            Public ReadOnly Property IsInitOnlyPopulated As Boolean
+                Get
+                    Return (_bits And s_isInitOnlyPopulatedBit) <> 0
+                End Get
+            End Property
+
             Private Shared Function BitsAreUnsetOrSame(bits As Integer, mask As Integer) As Boolean
                 Return (bits And mask) = 0 OrElse (bits And mask) = mask
             End Function
@@ -156,6 +173,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Public Sub SetIsConditionalAttributePopulated()
                 ThreadSafeFlagOperations.Set(_bits, s_isConditionalAttributePopulatedBit)
             End Sub
+
+            Public Sub InitializeIsInitOnly(isInitOnly As Boolean)
+                Dim bitsToSet = If(isInitOnly, s_isInitOnlyBit, 0) Or s_isInitOnlyPopulatedBit
+                Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet))
+                ThreadSafeFlagOperations.Set(_bits, bitsToSet)
+            End Sub
         End Structure
 
         ''' <summary>
@@ -167,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Public _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
             Public _lazyConditionalAttributeSymbols As ImmutableArray(Of String)
             Public _lazyObsoleteAttributeData As ObsoleteAttributeData
-            Public _lazyUseSiteErrorInfo As DiagnosticInfo
+            Public _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol)
         End Class
 
         Private Function CreateUncommonFields() As UncommonFields
@@ -178,12 +201,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             '
-            ' Do not set _lazyUseSiteErrorInfo !!!!
+            ' Do not set _lazyCachedUseSiteInfo !!!!
             '
             ' "null" Indicates "no errors" or "unknown state",
             ' and we know which one of the states we have from IsUseSiteDiagnosticPopulated
             '
-            ' Setting _lazyUseSiteErrorInfo to a sentinel value here would introduce
+            ' Setting _lazyCachedUseSiteInfo to a sentinel value here would introduce
             ' a number of extra states for various permutations of IsUseSiteDiagnosticPopulated, UncommonFields and _lazyUseSiteDiagnostic
             ' Some of them, in tight races, may lead to returning the sentinel as the diagnostics.
             '
@@ -243,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     _name = String.Empty
                 End If
 
-                InitializeUseSiteErrorInfo(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+                InitializeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))))
             End Try
         End Sub
 
@@ -262,6 +285,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property Name As String
             Get
                 Return _name
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MetadataToken As Integer
+            Get
+                Return MetadataTokens.GetToken(_handle)
             End Get
         End Property
 
@@ -359,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End If
             End If
 
-            If Not IsShared AndAlso String.Equals(name, WellKnownMemberNames.DelegateInvokeName, StringComparison.Ordinal) AndAlso _containingType.TypeKind = TypeKind.Delegate Then
+            If Not IsShared AndAlso String.Equals(name, WellKnownMemberNames.DelegateInvokeName, StringComparison.Ordinal) AndAlso _containingType.TypeKind = TYPEKIND.Delegate Then
                 Return MethodKind.DelegateInvoke
             End If
 
@@ -831,6 +860,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsInitOnly As Boolean
+            Get
+                If Not _packedFlags.IsInitOnlyPopulated Then
+
+                    Dim result As Boolean = Not Me.IsShared AndAlso
+                                            Me.MethodKind = MethodKind.PropertySet AndAlso
+                                            CustomModifierUtils.HasIsExternalInitModifier(ReturnTypeCustomModifiers)
+
+                    _packedFlags.InitializeIsInitOnly(result)
+                End If
+
+                Return _packedFlags.IsInitOnly
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return StaticCast(Of Location).From(_containingType.ContainingPEModule.MetadataLocation)
@@ -905,7 +949,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' false if the method is already associated with a property or event.
         ''' </summary>
         Friend Function SetAssociatedProperty(propertySymbol As PEPropertySymbol, methodKind As MethodKind) As Boolean
-            Debug.Assert((methodKind = MethodKind.PropertyGet) OrElse (methodKind = MethodKind.PropertySet))
+            Debug.Assert((methodKind = methodKind.PropertyGet) OrElse (methodKind = methodKind.PropertySet))
             Return Me.SetAssociatedPropertyOrEvent(propertySymbol, methodKind)
         End Function
 
@@ -914,7 +958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' false if the method is already associated with a property or event.
         ''' </summary>
         Friend Function SetAssociatedEvent(eventSymbol As PEEventSymbol, methodKind As MethodKind) As Boolean
-            Debug.Assert((methodKind = MethodKind.EventAdd) OrElse (methodKind = MethodKind.EventRemove) OrElse (methodKind = MethodKind.EventRaise))
+            Debug.Assert((methodKind = methodKind.EventAdd) OrElse (methodKind = methodKind.EventRemove) OrElse (methodKind = methodKind.EventRaise))
             Return Me.SetAssociatedPropertyOrEvent(eventSymbol, methodKind)
         End Function
 
@@ -969,7 +1013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim returnParam = PEParameterSymbol.Create(moduleSymbol, Me, 0, paramInfo(0), isBad)
 
             If mrEx IsNot Nothing OrElse hasBadParameter OrElse isBad Then
-                InitializeUseSiteErrorInfo(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+                InitializeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))))
             End If
 
             Dim signature As New SignatureData(signatureHeader, params, returnParam)
@@ -983,7 +1027,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 EnsureTypeParametersAreLoaded(errorInfo)
                 Dim typeParams = EnsureTypeParametersAreLoaded(errorInfo)
                 If errorInfo IsNot Nothing Then
-                    InitializeUseSiteErrorInfo(errorInfo)
+                    InitializeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(errorInfo))
                 End If
                 Return typeParams
             End Get
@@ -1095,28 +1139,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
-                Dim errorInfo As DiagnosticInfo = CalculateUseSiteErrorInfo()
+                Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
+                Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
                 EnsureTypeParametersAreLoaded(errorInfo)
-                Return InitializeUseSiteErrorInfo(errorInfo)
+                CheckUnmanagedCallersOnly(errorInfo)
+                Return InitializeUseSiteInfo(useSiteInfo.AdjustDiagnosticInfo(errorInfo))
             End If
 
-            Return _uncommonFields?._lazyUseSiteErrorInfo
+            Return GetCachedUseSiteInfo()
         End Function
 
-        Private Function InitializeUseSiteErrorInfo(errorInfo As DiagnosticInfo) As DiagnosticInfo
+        Private Function GetCachedUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Return If(_uncommonFields?._lazyCachedUseSiteInfo, New CachedUseSiteInfo(Of AssemblySymbol)()).ToUseSiteInfo(PrimaryDependency)
+        End Function
+
+        Private Sub CheckUnmanagedCallersOnly(ByRef errorInfo As DiagnosticInfo)
+            If errorInfo Is Nothing OrElse errorInfo.Code <> ERRID.ERR_UnsupportedMethod1 Then
+                Dim hasUnmanagedCallersOnly As Boolean =
+                    DirectCast(ContainingModule, PEModuleSymbol).Module.FindTargetAttribute(_handle, AttributeDescription.UnmanagedCallersOnlyAttribute).HasValue
+
+                If hasUnmanagedCallersOnly Then
+                    errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
+                End If
+            End If
+        End Sub
+
+        Private Function InitializeUseSiteInfo(useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As UseSiteInfo(Of AssemblySymbol)
             If _packedFlags.IsUseSiteDiagnosticPopulated Then
-                Return _uncommonFields?._lazyUseSiteErrorInfo
+                Return GetCachedUseSiteInfo()
             End If
 
-            If errorInfo IsNot Nothing Then
-                Debug.Assert(errorInfo IsNot ErrorFactory.EmptyErrorInfo)
-                errorInfo = InterlockedOperations.Initialize(AccessUncommonFields()._lazyUseSiteErrorInfo, errorInfo)
+            If useSiteInfo.DiagnosticInfo IsNot Nothing OrElse Not useSiteInfo.SecondaryDependencies.IsNullOrEmpty() Then
+                useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitialize(PrimaryDependency, useSiteInfo)
             End If
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated()
-            Return errorInfo
+            Return useSiteInfo
         End Function
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData

@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             if (_toolTipPresenter == null &&
                 CurrentSession == analyzedSession &&
                 caretPoint.HasValue &&
-                analyzedSession.TrackingSpan.GetSpan(CurrentSession.TextView.TextSnapshot).Contains(caretPoint.Value))
+                IsCaretWithinSpanOrAtEnd(analyzedSession.TrackingSpan, analyzedSession.TextView.TextSnapshot, caretPoint.Value))
             {
                 // Create a tooltip presenter that stays alive, even when the user types, without tracking the mouse.
-                _toolTipPresenter = this._toolTipService.CreatePresenter(analyzedSession.TextView,
+                _toolTipPresenter = _toolTipService.CreatePresenter(analyzedSession.TextView,
                     new ToolTipParameters(trackMouse: false, ignoreBufferChange: true));
 
                 // tooltips text is: Program_MyEvents;      (Press TAB to insert)
@@ -78,6 +78,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 analyzedSession.TextView.Caret.PositionChanged += Caret_PositionChanged;
                 CurrentSession.Dismissed += () => { analyzedSession.TextView.Caret.PositionChanged -= Caret_PositionChanged; };
             }
+        }
+
+        private static bool IsCaretWithinSpanOrAtEnd(ITrackingSpan trackingSpan, ITextSnapshot textSnapshot, SnapshotPoint caretPoint)
+        {
+            var snapshotSpan = trackingSpan.GetSpan(textSnapshot);
+
+            // If the caret is within the span, then we want to show the tooltip
+            if (snapshotSpan.Contains(caretPoint))
+            {
+                return true;
+            }
+
+            // Otherwise if the span is empty, and at the end of the file, and the caret
+            // is also at the end of the file, then show the tooltip.
+            if (snapshotSpan.IsEmpty &&
+                snapshotSpan.Start.Position == caretPoint.Position &&
+                caretPoint.Position == textSnapshot.Length)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         internal void BeginSession(

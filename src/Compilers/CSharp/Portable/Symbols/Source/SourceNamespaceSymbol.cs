@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -27,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Dictionary<string, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
         private ImmutableArray<Symbol> _lazyAllMembers;
         private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
+        private readonly ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings;
+#if DEBUG
+        private readonly ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts;
+#endif
+        private MergedGlobalAliasesAndUsings _lazyMergedGlobalAliasesAndUsings;
 
         private const int LazyAllMembersIsSorted = 0x1;   // Set if "lazyAllMembers" is sorted.
         private int _flags;
@@ -36,17 +42,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceNamespaceSymbol(
             SourceModuleSymbol module, Symbol container,
             MergedNamespaceDeclaration mergedDeclaration,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(mergedDeclaration != null);
             _module = module;
             _container = container;
             _mergedDeclaration = mergedDeclaration;
 
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
+#if DEBUG
+            var builderForAsserts = ImmutableSegmentedDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
+#endif
             foreach (var singleDeclaration in mergedDeclaration.Declarations)
             {
+                if (singleDeclaration.HasExternAliases || singleDeclaration.HasGlobalUsings || singleDeclaration.HasUsings)
+                {
+                    builder.Add(singleDeclaration, new AliasesAndUsings());
+                }
+#if DEBUG
+                else
+                {
+                    builderForAsserts.Add(singleDeclaration, new AliasesAndUsings());
+                }
+#endif
+
                 diagnostics.AddRange(singleDeclaration.Diagnostics);
             }
+
+            _aliasesAndUsings = builder.ToImmutable();
+#if DEBUG
+            _aliasesAndUsingsForAsserts = builderForAsserts.ToImmutable();
+#endif
         }
 
         internal MergedNamespaceDeclaration MergedDeclaration
@@ -57,18 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override AssemblySymbol ContainingAssembly
             => _module.ContainingAssembly;
-
-        internal IEnumerable<Imports> GetBoundImportsMerged()
-        {
-            var compilation = this.DeclaringCompilation;
-            foreach (var declaration in _mergedDeclaration.Declarations)
-            {
-                if (declaration.HasUsings || declaration.HasExternAliases)
-                {
-                    yield return compilation.GetImports(declaration);
-                }
-            }
-        }
 
         public override string Name
             => _mergedDeclaration.Name;
@@ -204,12 +218,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_nameToMembersMap == null)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
                 if (Interlocked.CompareExchange(ref _nameToMembersMap, MakeNameToMembersMap(diagnostics), null) == null)
                 {
                     // NOTE: the following is not cancellable.  Once we've set the
                     // members, we *must* do the following to make sure we're in a consistent state.
-                    this.DeclaringCompilation.DeclarationDiagnostics.AddRange(diagnostics);
+                    this.AddDeclarationDiagnostics(diagnostics);
                     RegisterDeclaredCorTypes();
 
                     // We may produce a SymbolDeclaredEvent for the enclosing namespace before events for its contained members
@@ -284,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return dictionary;
         }
 
-        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(DiagnosticBag diagnostics)
+        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(BindingDiagnosticBag diagnostics)
         {
             // NOTE: Even though the resulting map stores ImmutableArray<NamespaceOrTypeSymbol> as 
             // NOTE: values if the name is mapped into an array of named types, which is frequently 
@@ -308,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> result, DiagnosticBag diagnostics)
+        private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> result, BindingDiagnosticBag diagnostics)
         {
             var memberOfArity = new Symbol[10];
             MergedNamespaceSymbol mergedAssemblyNamespace = null;
@@ -383,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private NamespaceOrTypeSymbol BuildSymbol(MergedNamespaceOrTypeDeclaration declaration, DiagnosticBag diagnostics)
+        private NamespaceOrTypeSymbol BuildSymbol(MergedNamespaceOrTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
         {
             switch (declaration.Kind)
             {
@@ -396,15 +410,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Delegate:
                 case DeclarationKind.Class:
                 case DeclarationKind.Record:
+                case DeclarationKind.RecordStruct:
                     return new SourceNamedTypeSymbol(this, (MergedTypeDeclaration)declaration, diagnostics);
 
                 case DeclarationKind.Script:
                 case DeclarationKind.Submission:
                 case DeclarationKind.ImplicitClass:
                     return new ImplicitNamedTypeSymbol(this, (MergedTypeDeclaration)declaration, diagnostics);
-
-                case DeclarationKind.SimpleProgram:
-                    return new SimpleProgramNamedTypeSymbol(this, (MergedTypeDeclaration)declaration, diagnostics);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(declaration.Kind);

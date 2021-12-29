@@ -52,7 +52,6 @@ class 123 { }
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
-                WpfTestRunner.RequireWpfFact($"This test uses {NameOf(IForegroundNotificationService)}")
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim provider = workspace.ExportProvider.GetExportedValues(Of ITaggerProvider)().OfType(Of DiagnosticsSquiggleTaggerProvider)().Single()
@@ -106,7 +105,7 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = diagnosticService.GetPushDiagnostics(
+                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
                     workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
 
                 Assert.Single(diagnostics)
@@ -144,7 +143,7 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = diagnosticService.GetPushDiagnostics(
+                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
                     workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
 
                 ' error CS0246: The type or namespace name 'M' could not be found
@@ -183,7 +182,7 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = diagnosticService.GetPushDiagnostics(
+                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
                     workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
 
                 ' error CS1002: ; expected
@@ -225,7 +224,7 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = diagnosticService.GetPushDiagnostics(
+                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
                     workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
 
                 AssertEx.Empty(diagnostics)
@@ -328,7 +327,7 @@ End Class
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = diagnosticService.GetPushDiagnostics(
+                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
                     workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
 
                 Assert.Single(diagnostics)

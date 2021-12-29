@@ -145,7 +145,7 @@ class C : IB, IC
             var sourceType = globalNamespace.GetMember<SourceNamedTypeSymbol>("B");
             CheckIndexer(sourceType.Indexers.Single(), true, true, SpecialType.System_Object, SpecialType.System_String);
 
-            var bridgeMethods = sourceType.GetSynthesizedExplicitImplementations(CancellationToken.None);
+            var bridgeMethods = sourceType.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods;
             Assert.Equal(2, bridgeMethods.Length);
             Assert.True(bridgeMethods.Select(GetPairForSynthesizedExplicitImplementation).SetEquals(new[]
             {
@@ -156,7 +156,7 @@ class C : IB, IC
             sourceType = globalNamespace.GetMember<SourceNamedTypeSymbol>("C");
             CheckIndexer(sourceType.Indexers.Single(), true, true, SpecialType.System_Object, SpecialType.System_String);
 
-            bridgeMethods = sourceType.GetSynthesizedExplicitImplementations(CancellationToken.None);
+            bridgeMethods = sourceType.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods;
             Assert.Equal(3, bridgeMethods.Length);
             Assert.True(bridgeMethods.Select(GetPairForSynthesizedExplicitImplementation).SetEquals(new[]
             {
@@ -335,7 +335,7 @@ class C : I1, I2
             Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interface1Indexer));
             Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interface2Indexer));
 
-            var synthesizedExplicitImplementations = @class.GetSynthesizedExplicitImplementations(default(CancellationToken));
+            var synthesizedExplicitImplementations = @class.GetSynthesizedExplicitImplementations(default(CancellationToken)).ForwardingMethods;
             Assert.Equal(2, synthesizedExplicitImplementations.Length);
 
             Assert.Equal(classIndexer.GetMethod, synthesizedExplicitImplementations[0].ImplementingMethod);
@@ -417,7 +417,7 @@ class C : I1, I2
                 Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interface1Indexer));
                 Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interface2Indexer));
 
-                var synthesizedExplicitImplementations = @class.GetSynthesizedExplicitImplementations(default(CancellationToken));
+                var synthesizedExplicitImplementations = @class.GetSynthesizedExplicitImplementations(default(CancellationToken)).ForwardingMethods;
                 Assert.Equal(2, synthesizedExplicitImplementations.Length);
 
                 Assert.Equal(classIndexer.GetMethod, synthesizedExplicitImplementations[0].ImplementingMethod);
@@ -484,7 +484,7 @@ class C : I1
                 Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interfaceIndexers[0]));
                 Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interfaceIndexers[1]));
 
-                var synthesizedExplicitImplementation = @class.GetSynthesizedExplicitImplementations(default(CancellationToken)).Single();
+                var synthesizedExplicitImplementation = @class.GetSynthesizedExplicitImplementations(default(CancellationToken)).ForwardingMethods.Single();
 
                 Assert.Equal(classIndexer.GetMethod, synthesizedExplicitImplementation.ImplementingMethod);
 
@@ -524,14 +524,14 @@ class C : I1
 } // end of class I1
 ";
 
-            var csharp = @"
+            var csharp1 = @"
 class C : I1
 {
     int I1.this[int x] { get { return 0; } }
 }
 ";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp1, il).VerifyDiagnostics(
                 // (4,12): warning CS0473: Explicit interface implementation 'C.I1.this[int]' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
                 Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "this").WithArguments("C.I1.this[int]"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'I1.this[int]'
@@ -551,6 +551,15 @@ class C : I1
             var indexer1Impl = @class.FindImplementationForInterfaceMember(interfaceIndexers[1]);
             Assert.True(indexer0Impl == classIndexer ^ indexer1Impl == classIndexer);
             Assert.True(indexer0Impl == null ^ indexer1Impl == null);
+
+            var csharp2 = @"
+class C : I1
+{
+    public int this[int x] { get { return 0; } }
+}
+";
+
+            compilation = CreateCompilationWithILAndMscorlib40(csharp2, il).VerifyDiagnostics();
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1775,7 +1784,7 @@ interface B
 }
 ";
             // CONSIDER: this cascading is a bit verbose.
-            CreateCompilation(source, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (18,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Constant2").WithLocation(18, 18),
@@ -1890,7 +1899,7 @@ interface B<T>
     int this[int x] { get; }
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (9,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(B<byte>.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B<byte>.Constant2").WithLocation(9, 18),

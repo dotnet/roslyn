@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../BuildValidatorResources.resx">
+    <body>
+      <trans-unit id="Assemblies_to_be_excluded_substring_match">
+        <source>Assemblies to be excluded (substring match)</source>
+        <target state="translated">要排除的元件 (子字串相符)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_output_log_information_to_console">
+        <source>Do not output log information to console</source>
+        <target state="translated">不要將記錄資訊輸出至主控台</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Output_debug_info_when_rebuild_is_not_equal_to_the_original">
+        <source>Output debug info when rebuild is not equal to the original</source>
+        <target state="translated">重建不等於原始值時的輸出偵錯資訊</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Output_verbose_log_information">
+        <source>Output verbose log information</source>
+        <target state="translated">輸出詳細資訊記錄資訊</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path_to_assemblies_to_rebuild_can_be_specified_one_or_more_times">
+        <source>Path to assemblies to rebuild (can be specified one or more times)</source>
+        <target state="translated">要重建之元件的路徑 (可指定一或多次)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path_to_output_debug_info">
+        <source>Path to output debug info. Defaults to the user temp directory. Note that a unique debug path should be specified for every instance of the tool running with `--debug` enabled.</source>
+        <target state="translated">輸出偵錯資訊的路徑。預設為使用者臨時目錄。請注意，應為已啟用「--debug」的每個工具執行個體，指定唯一的偵錯路徑。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path_to_referenced_assemblies_can_be_specified_zero_or_more_times">
+        <source>Path to referenced assemblies (can be specified zero or more times)</source>
+        <target state="translated">參照元件的路徑 (可以指定零次或多次)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path_to_sources_to_use_in_rebuild">
+        <source>Path to sources to use in rebuild</source>
+        <target state="translated">要用於重建的來源路徑</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

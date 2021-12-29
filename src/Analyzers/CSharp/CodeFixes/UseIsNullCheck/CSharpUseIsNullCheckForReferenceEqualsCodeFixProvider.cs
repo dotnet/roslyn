@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
     using static SyntaxFactory;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseIsNullCheckForReferenceEquals), Shared]
     internal class CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider
         : AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider<ExpressionSyntax>
     {

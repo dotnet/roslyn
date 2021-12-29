@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
             }
 
-            internal virtual async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
+            internal static async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
                 FixAllContext fixAllContext)
             {
                 using (Logger.LogBlock(

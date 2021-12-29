@@ -128,8 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // For varargs there is no C# syntax. You get a use-site diagnostic if you attempt to use it, and just
                 // making a default-convention symbol is likely good enough. This is only observable through metadata
                 // that always be uncompilable in C# anyway.
-                if (symbol.Signature.CallingConvention != System.Reflection.Metadata.SignatureCallingConvention.Default
-                    && symbol.Signature.CallingConvention != System.Reflection.Metadata.SignatureCallingConvention.VarArgs)
+                if (symbol.Signature.CallingConvention is not System.Reflection.Metadata.SignatureCallingConvention.Default
+                    and not System.Reflection.Metadata.SignatureCallingConvention.VarArgs)
                 {
                     var conventionsList = symbol.Signature.CallingConvention switch
                     {
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return typeSyntax;
 
                 typeSyntax = CreateSimpleTypeSyntax(symbol);
-                if (!(typeSyntax is SimpleNameSyntax))
+                if (typeSyntax is not SimpleNameSyntax)
                     return typeSyntax;
 
                 var simpleNameSyntax = (SimpleNameSyntax)typeSyntax;
@@ -300,9 +300,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                 }
 
-                if (symbol.NullableAnnotation == NullableAnnotation.Annotated &&
-                    !symbol.IsValueType)
+                if (symbol is { IsValueType: false, NullableAnnotation: NullableAnnotation.Annotated })
                 {
+                    // value type with nullable annotation may be composed from unconstrained nullable generic
+                    // doesn't mean nullable value type in this case
                     typeSyntax = AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol);
                 }
 
@@ -355,8 +356,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             public override TypeSyntax VisitTypeParameter(ITypeParameterSymbol symbol)
             {
                 TypeSyntax typeSyntax = AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
-                if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
+                if (symbol is { IsValueType: false, NullableAnnotation: NullableAnnotation.Annotated })
+                {
+                    // value type with nullable annotation may be composed from unconstrained nullable generic
+                    // doesn't mean nullable value type in this case
                     typeSyntax = AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol);
+                }
 
                 return typeSyntax;
             }

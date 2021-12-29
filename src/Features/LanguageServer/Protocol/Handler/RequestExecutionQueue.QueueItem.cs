@@ -5,48 +5,204 @@
 #nullable enable
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal partial class RequestExecutionQueue
     {
-        private readonly struct QueueItem
+        private interface IQueueItem
         {
             /// <summary>
-            /// Processes the queued request. Exceptions that occur will be sent back to the requesting client, then re-thrown
+            /// Begins executing the work specified by this queue item.
             /// </summary>
-            public readonly Func<RequestContext, CancellationToken, Task> CallbackAsync;
+            Task CallbackAsync(RequestContext? context, CancellationToken cancellationToken);
 
-            /// <inheritdoc cref="ExportLspMethodAttribute.MutatesSolutionState" />
-            public readonly bool MutatesSolutionState;
+            /// <inheritdoc cref="IRequestHandler.RequiresLSPSolution" />
+            bool RequiresLSPSolution { get; }
+
+            /// <inheritdoc cref="IRequestHandler.MutatesSolutionState" />
+            bool MutatesSolutionState { get; }
 
             /// <inheritdoc cref="RequestContext.ClientName" />
-            public readonly string? ClientName;
+            string? ClientName { get; }
 
-            /// <inheritdoc cref="RequestContext.ClientCapabilities" />
-            public readonly ClientCapabilities ClientCapabilities;
+            string MethodName { get; }
 
             /// <summary>
             /// The document identifier that will be used to find the solution and document for this request. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
             /// </summary>
-            public readonly TextDocumentIdentifier? TextDocument;
+            TextDocumentIdentifier? TextDocument { get; }
+
+            /// <inheritdoc cref="RequestContext.ClientCapabilities" />
+            ClientCapabilities ClientCapabilities { get; }
 
             /// <summary>
-            /// A cancellation token that will cancel the handing of this request. The request could also be cancelled by the queue shutting down.
+            /// <see cref="CorrelationManager.ActivityId"/> used to properly correlate this work with the loghub
+            /// tracing/logging subsystem.
             /// </summary>
-            public readonly CancellationToken CancellationToken;
+            Guid ActivityId { get; }
 
-            public QueueItem(bool mutatesSolutionState, ClientCapabilities clientCapabilities, string? clientName, TextDocumentIdentifier? textDocument, Func<RequestContext, CancellationToken, Task> callbackAsync, CancellationToken cancellationToken)
+            RequestMetrics Metrics { get; }
+        }
+
+        private class QueueItem<TRequestType, TResponseType> : IQueueItem
+        {
+            private readonly ILspLogger _logger;
+
+            private readonly TRequestType _request;
+            private readonly IRequestHandler<TRequestType, TResponseType> _handler;
+
+            /// <summary>
+            /// A task completion source representing the result of this queue item's work.
+            /// This is the task that the client is waiting on.
+            /// </summary>
+            private readonly TaskCompletionSource<TResponseType?> _completionSource;
+
+            public bool RequiresLSPSolution { get; }
+
+            public bool MutatesSolutionState { get; }
+
+            public string? ClientName { get; }
+
+            public string MethodName { get; }
+
+            public TextDocumentIdentifier? TextDocument { get; }
+
+            public ClientCapabilities ClientCapabilities { get; }
+
+            public Guid ActivityId { get; }
+
+            public RequestMetrics Metrics { get; }
+
+            public QueueItem(
+                bool mutatesSolutionState,
+                bool requiresLSPSolution,
+                ClientCapabilities clientCapabilities,
+                string? clientName,
+                string methodName,
+                TextDocumentIdentifier? textDocument,
+                TRequestType request,
+                IRequestHandler<TRequestType, TResponseType> handler,
+                Guid activityId,
+                ILspLogger logger,
+                RequestTelemetryLogger telemetryLogger,
+                CancellationToken cancellationToken)
             {
+                _completionSource = new TaskCompletionSource<TResponseType?>();
+                // Set the tcs state to cancelled if the token gets cancelled outside of our callback (for example the server shutting down).
+                cancellationToken.Register(() => _completionSource.TrySetCanceled(cancellationToken));
+
+                Metrics = new RequestMetrics(methodName, telemetryLogger);
+
+                _handler = handler;
+                _logger = logger;
+                _request = request;
+
+                ActivityId = activityId;
                 MutatesSolutionState = mutatesSolutionState;
+                RequiresLSPSolution = requiresLSPSolution;
                 ClientCapabilities = clientCapabilities;
                 ClientName = clientName;
+                MethodName = methodName;
                 TextDocument = textDocument;
-                CallbackAsync = callbackAsync;
-                CancellationToken = cancellationToken;
+            }
+
+            public static (IQueueItem, Task<TResponseType?>) Create(
+                bool mutatesSolutionState,
+                bool requiresLSPSolution,
+                ClientCapabilities clientCapabilities,
+                string? clientName,
+                string methodName,
+                TextDocumentIdentifier? textDocument,
+                TRequestType request,
+                IRequestHandler<TRequestType, TResponseType> handler,
+                Guid activityId,
+                ILspLogger logger,
+                RequestTelemetryLogger telemetryLogger,
+                CancellationToken cancellationToken)
+            {
+                var queueItem = new QueueItem<TRequestType, TResponseType>(
+                    mutatesSolutionState,
+                    requiresLSPSolution,
+                    clientCapabilities,
+                    clientName,
+                    methodName,
+                    textDocument,
+                    request,
+                    handler,
+                    activityId,
+                    logger,
+                    telemetryLogger,
+                    cancellationToken);
+
+                return (queueItem, queueItem._completionSource.Task);
+            }
+
+            /// <summary>
+            /// Processes the queued request. Exceptions will be sent to the task completion source
+            /// representing the task that the client is waiting for, then re-thrown so that
+            /// the queue can correctly handle them depending on the type of request.
+            /// </summary>
+            public async Task CallbackAsync(RequestContext? context, CancellationToken cancellationToken)
+            {
+                // Restore our activity id so that logging/tracking works.
+                Trace.CorrelationManager.ActivityId = ActivityId;
+                _logger.TraceStart($"{MethodName} - Roslyn");
+                try
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    TResponseType? result;
+                    if (context == null)
+                    {
+                        // If we weren't able to get a corresponding context for this request (for example, we
+                        // couldn't map a doc request to a particular Document, or we couldn't find an appropriate
+                        // Workspace for a global operation), then just immediately complete the request with a
+                        // 'null' response.  Note: the lsp spec was checked to ensure that 'null' is valid for all
+                        // the requests this could happen for.  However, this assumption may not hold in the future.
+                        // If that turns out to be the case, we could defer to the individual handler to decide
+                        // what to do.
+                        _logger.TraceWarning($"Could not get request context for {MethodName}");
+                        this.Metrics.RecordFailure();
+                        result = default;
+                    }
+                    else
+                    {
+                        result = await _handler.HandleRequestAsync(_request, context.Value, cancellationToken).ConfigureAwait(false);
+                        this.Metrics.RecordSuccess();
+                    }
+
+                    _completionSource.TrySetResult(result);
+                }
+                catch (OperationCanceledException ex)
+                {
+                    // Record logs + metrics on cancellation.
+                    _logger.TraceInformation($"{MethodName} - Canceled");
+                    this.Metrics.RecordCancellation();
+
+                    _completionSource.TrySetCanceled(ex.CancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    // Record logs and metrics on the exception.
+                    _logger.TraceException(ex);
+                    this.Metrics.RecordFailure();
+
+                    _completionSource.TrySetException(ex);
+                }
+                finally
+                {
+                    _logger.TraceStop($"{MethodName} - Roslyn");
+                }
+
+                // Return the result of this completion source to the caller
+                // so it can decide how to handle the result / exception.
+                await _completionSource.Task.ConfigureAwait(false);
             }
         }
     }

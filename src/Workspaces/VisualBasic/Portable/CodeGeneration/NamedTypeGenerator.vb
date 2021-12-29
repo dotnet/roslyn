@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 service.AddMembers(declaration, GetMembers(namedType), options, cancellationToken),
                 declaration)
 
-            Return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options))
+            Return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options, cancellationToken))
         End Function
 
         Public Function UpdateNamedTypeDeclaration(service As ICodeGenerationService,

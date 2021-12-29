@@ -13,7 +13,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -107,6 +109,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(state.SemanticDocument.Root);
             var isNestedType = IsNestedType(state.TypeNode);
 
+            var syntaxFacts = state.SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var isClassNextToGlobalStatements = manyTypes
+                ? false
+                : ClassNextToGlobalStatements(state.SemanticDocument.Root, syntaxFacts);
+
             var suggestedFileNames = GetSuggestedFileNames(
                 state.TypeNode,
                 isNestedType,
@@ -120,7 +127,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             // case 2: This is a nested type, offer to move to new file.
             // case 3: If there is a single type decl in current file, *do not* offer move to new file,
             //         rename actions are sufficient in this case.
-            if (manyTypes || isNestedType)
+            // case 4: If there are top level statements(Global statements) offer to move even
+            //         in cases where there are only one class in the file.
+            if (manyTypes || isNestedType || isClassNextToGlobalStatements)
             {
                 foreach (var fileName in suggestedFileNames)
                 {
@@ -152,6 +161,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             return actions.ToImmutable();
         }
 
+        private static bool ClassNextToGlobalStatements(SyntaxNode root, ISyntaxFactsService syntaxFacts)
+            => syntaxFacts.ContainsGlobalStatement(root);
+
         private CodeAction GetCodeAction(State state, string fileName, MoveTypeOperationKind operationKind) =>
             new MoveTypeCodeAction((TService)this, state, operationKind, fileName);
 
@@ -168,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             TopLevelTypeDeclarations(root).Skip(1).Any();
 
         private static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations(SyntaxNode root) =>
-            root.DescendantNodes(n => n is TCompilationUnitSyntax || n is TNamespaceDeclarationSyntax)
+            root.DescendantNodes(n => n is TCompilationUnitSyntax or TNamespaceDeclarationSyntax)
                 .OfType<TTypeDeclarationSyntax>();
 
         private static bool AnyTopLevelTypeMatchesDocumentName(State state, CancellationToken cancellationToken)

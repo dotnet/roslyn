@@ -122,10 +122,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public bool IsRemote
-            => Assemblies.Contains(typeof(Remote.ServiceBase).Assembly);
+            => Assemblies.Contains(typeof(Remote.BrokeredServiceBase).Assembly);
 
         private ComposableCatalog GetCatalog()
             => ExportProviderCache.CreateAssemblyCatalog(Assemblies, ExportProviderCache.CreateResolver()).WithoutPartsOfTypes(ExcludedPartTypes).WithParts(Parts);
+
+        public CompositionConfiguration GetCompositionConfiguration()
+            => CompositionConfiguration.Create(GetCatalog());
 
         public TestComposition Add(TestComposition composition)
             => AddAssemblies(composition.Assemblies).AddParts(composition.Parts).AddExcludedPartTypes(composition.ExcludedPartTypes);

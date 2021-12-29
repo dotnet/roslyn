@@ -195,5 +195,26 @@ class Test
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestLocalFunctionUsedInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <DocumentFromSourceGenerator>
+class Test
+{
+    void Main()
+    {
+        int x = 1;
+        [|$$Print|](x);
+        void {|Definition:Print|}(int y) { }
+    }
+}
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

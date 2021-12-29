@@ -196,15 +196,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 if (source != null)
                 {
-                    foreach (var kvp in source._reachingWrites)
+                    foreach (var (symbol, operations) in source._reachingWrites)
                     {
-                        if (!result.TryGetValue(kvp.Key, out var values))
+                        if (!result.TryGetValue(symbol, out var values))
                         {
                             values = PooledHashSet<IOperation>.GetInstance();
-                            result.Add(kvp.Key, values);
+                            result.Add(symbol, values);
                         }
 
-                        values.AddRange(kvp.Value);
+                        values.AddRange(operations);
                     }
                 }
             }

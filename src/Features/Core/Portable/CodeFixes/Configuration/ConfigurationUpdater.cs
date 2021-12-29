@@ -353,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                             // Did not find a match, bail out.
                             return ImmutableArray<(string optionName, string currentOptionValue, bool isPerLanguage)>.Empty;
                         }
+
                         builder.Add((parts.optionName, parts.optionValue, isPerLanguage));
                     }
 
@@ -602,6 +603,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                         {
                             headerRegexStr += @"|(\." + splicedFileExtensions[i] + ")";
                         }
+
                         headerRegexStr += ")";
 
                         var headerRegex = new Regex(headerRegexStr);
@@ -644,6 +646,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                                         lastValidSpecificHeader = mostRecentHeader;
                                     }
                                 }
+
                                 lastValidHeader = mostRecentHeader;
                             }
                         }
@@ -745,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             // We need to generate a new header such as '[*.cs]' or '[*.vb]':
             //      - For compiler diagnostic entries and code style entries which have per-language option = false, generate only [*.cs] or [*.vb].
             //      - For the remainder, generate [*.{cs,vb}]
-            if (_language == LanguageNames.CSharp || _language == LanguageNames.VisualBasic)
+            if (_language is LanguageNames.CSharp or LanguageNames.VisualBasic)
             {
                 // Insert a newline if not already present
                 var lines = result.Lines;

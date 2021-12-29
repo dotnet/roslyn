@@ -15,36 +15,41 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(MSLSPMethods.ProjectContextsName, mutatesSolutionState: false)]
-    internal class GetTextDocumentWithContextHandler : IRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(VSMethods.GetProjectContextsName)]
+    internal class GetTextDocumentWithContextHandler : AbstractStatelessRequestHandler<VSGetProjectContextsParams, VSProjectContextList?>
     {
-        private readonly ILspSolutionProvider _solutionProvider;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GetTextDocumentWithContextHandler(ILspSolutionProvider solutionProvider)
+        public GetTextDocumentWithContextHandler()
         {
-            _solutionProvider = solutionProvider;
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(GetTextDocumentWithContextParams request) => null;
+        public override string Method => VSMethods.GetProjectContextsName;
 
-        public Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
+
+        public override Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var documents = _solutionProvider.GetDocuments(request.TextDocument.Uri, context.ClientName);
+            Contract.ThrowIfNull(context.Solution);
+
+            // We specifically don't use context.Document here because we want multiple
+            var documents = context.Solution.GetDocuments(request.TextDocument.Uri, context.ClientName);
 
             if (!documents.Any())
             {
-                return SpecializedTasks.Null<ActiveProjectContexts>();
+                return SpecializedTasks.Null<VSProjectContextList>();
             }
 
-            var contexts = new List<ProjectContext>();
+            var contexts = new List<VSProjectContext>();
 
             foreach (var document in documents)
             {
                 var project = document.Project;
-                var projectContext = new ProjectContext
+                var projectContext = new VSProjectContext
                 {
                     Id = ProtocolConversions.ProjectIdToProjectContextId(project.Id),
                     Label = project.Name
@@ -52,11 +57,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 if (project.Language == LanguageNames.CSharp)
                 {
-                    projectContext.Kind = ProjectContextKind.CSharp;
+                    projectContext.Kind = VSProjectKind.CSharp;
                 }
                 else if (project.Language == LanguageNames.VisualBasic)
                 {
-                    projectContext.Kind = ProjectContextKind.VisualBasic;
+                    projectContext.Kind = VSProjectKind.VisualBasic;
                 }
 
                 contexts.Add(projectContext);
@@ -70,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var openDocument = documents.First();
             var currentContextDocumentId = openDocument.Project.Solution.Workspace.GetDocumentIdInCurrentContext(openDocument.Id);
 
-            return Task.FromResult<ActiveProjectContexts?>(new ActiveProjectContexts
+            return Task.FromResult<VSProjectContextList?>(new VSProjectContextList
             {
                 ProjectContexts = contexts.ToArray(),
                 DefaultIndex = documents.IndexOf(d => d.Id == currentContextDocumentId)

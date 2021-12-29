@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -43,6 +41,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Identifier("var"),
                 Field("goo"),
                 Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNamespace(TestHost testHost)
+        {
+            await TestAsync(
+@"namespace N
+{
+}",
+                testHost,
+                Keyword("namespace"),
+                Namespace("N"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestFileScopedNamespace(TestHost testHost)
+        {
+            await TestAsync(
+@"namespace N;
+",
+                testHost,
+                Keyword("namespace"),
+                Namespace("N"),
+                Punctuation.Semicolon);
         }
 
         [Theory]
@@ -4865,6 +4891,51 @@ int (foo, bar) = (1, 2);",
 
         [Theory]
         [CombinatorialData]
+        public async Task TestListPattern(TestHost testHost)
+        {
+            await TestInMethodAsync(@"
+_ = new int[0] switch
+{
+    case [1, 2]:
+        break;
+    case [1, .. var end]:
+        break;
+}",
+testHost,
+            Identifier("_"),
+            Operators.Equals,
+            Keyword("new"),
+            Keyword("int"),
+            Punctuation.OpenBracket,
+            Number("0"),
+            Punctuation.CloseBracket,
+            ControlKeyword("switch"),
+            Punctuation.OpenCurly,
+            Keyword("case"),
+            Punctuation.OpenBracket,
+            Number("1"),
+            Punctuation.Comma,
+            Number("2"),
+            Punctuation.CloseBracket,
+            Punctuation.Colon,
+            ControlKeyword("break"),
+            Punctuation.Semicolon,
+            Keyword("case"),
+            Punctuation.OpenBracket,
+            Number("1"),
+            Punctuation.Comma,
+            Punctuation.DotDot,
+            Identifier("var"),
+            Identifier("end"),
+            Punctuation.CloseBracket,
+            Punctuation.Colon,
+            ControlKeyword("break"),
+            Punctuation.Semicolon,
+            Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestTupleTypeSyntax(TestHost testHost)
         {
             await TestInClassAsync(@"
@@ -5560,6 +5631,81 @@ class C
                 new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentName, new TextSpan(33, 5)),
                 new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(38, 1))
             }, classifications);
+        }
+
+        [Theory, WorkItem(52290, "https://github.com/dotnet/roslyn/issues/52290")]
+        [CombinatorialData]
+        public async Task TestStaticLocalFunction(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M()
+    {
+        static void LocalFunc() { }
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("static"),
+                Keyword("void"),
+                Method("LocalFunc"),
+                Static("LocalFunc"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory, WorkItem(52290, "https://github.com/dotnet/roslyn/issues/52290")]
+        [CombinatorialData]
+        public async Task TestConstantLocalVariable(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M()
+    {
+        const int Zero = 0;
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("const"),
+                Keyword("int"),
+                Constant("Zero"),
+                Static("Zero"),
+                Operators.Equals,
+                Number("0"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
         }
     }
 }
