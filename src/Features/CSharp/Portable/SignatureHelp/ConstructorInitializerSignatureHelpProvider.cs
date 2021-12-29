@@ -93,40 +93,39 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                                              .WhereAsArray(c => c.IsAccessibleWithin(within) && !c.Equals(currentConstructor))
                                              .WhereAsArray(c => c.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
                                              .Sort(semanticModel, constructorInitializer.SpanStart);
-            //accessibleConstructors = RemoveUnacceptable(accessibleConstructors, constructorInitializer, within, semanticModel, cancellationToken);
 
             if (!accessibleConstructors.Any())
             {
                 return null;
             }
 
+            // try to bind to the actual method
+            var currentSymbol = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken).Symbol;
+            var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var arguments = constructorInitializer.ArgumentList.Arguments;
+            var parameterIndex = -1;
+            if (currentSymbol is null)
+            {
+                (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, accessibleConstructors, position,
+                    semanticModel, semanticFactsService);
+            }
+            else
+            {
+                // The compiler told us the correct overload, but we need to find out the parameter to highlight given cursor position
+                _ = FindParameterIndexIfCompatibleMethod(arguments, (IMethodSymbol)currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
+            }
+
             // present items and select
+            var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
             var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
             var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
-            var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var symbolInfo = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken);
-            var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo.Symbol);
+            var items = accessibleConstructors.SelectAsArray(m => Convert(m, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
+            var selectedItem = TryGetSelectedIndex(accessibleConstructors, currentSymbol);
 
-            // TODO2 need to re-implement
-            throw null;
-            //return CreateSignatureHelpItems(accessibleConstructors.SelectAsArray(c =>
-            //    Convert(c, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
-            //    textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
-            // TODO2
-            //var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
-            //return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol)currentSymbol, parameterIndex, selectedItem, arguments, position);
+            return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol?)currentSymbol, parameterIndex, selectedItem, arguments, position);
         }
 
-        // TODO2
-        //private static ImmutableArray<IMethodSymbol> RemoveUnacceptable(IEnumerable<IMethodSymbol> methodGroup, ConstructorInitializerSyntax constructorInitializer,
-        //    ISymbol within, SemanticModel semanticModel, CancellationToken cancellationToken)
-        //{
-        //    return methodGroup.Where(m => !IsUnacceptable(constructorInitializer.ArgumentList.Arguments, m)).ToImmutableArray();
-        //}
-
-        // TODO2 remove unused method?
         private static SignatureHelpItem Convert(
             IMethodSymbol constructor,
             SyntaxToken openToken,

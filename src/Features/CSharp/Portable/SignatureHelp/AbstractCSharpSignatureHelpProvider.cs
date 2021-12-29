@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         /// Otherwise, we try to guess which parameter to highlight based on the cursor's position in the arguments.
         /// </summary>
         protected static SignatureHelpItems MakeSignatureHelpItems(IList<SignatureHelpItem> items, Text.TextSpan textSpan,
-            IMethodSymbol selectedSymbol, int selectedParameterIndex, int? selectedItem,
+            IMethodSymbol? selectedSymbol, int selectedParameterIndex, int? selectedItem,
             SeparatedSyntaxList<ArgumentSyntax> arguments, int position)
         {
             if (selectedSymbol is null || selectedParameterIndex < 0)
@@ -99,7 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         /// <summary>
         /// If the symbol could not be bound, we could be dealing with a partial invocation, we'll try to find a possible overload.
-        /// If it was bound, we'll find which parameter to highlight.
         /// </summary>
         protected static (ISymbol? symbol, int parameterIndex) GuessCurrentSymbolAndParameter(
             SeparatedSyntaxList<ArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodGroup, int position,
