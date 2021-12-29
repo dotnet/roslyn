@@ -8,12 +8,13 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Formatting;
 
 namespace Microsoft.CodeAnalysis.Editor.StringIndentation
 {
     internal partial class StringIndentationAdornmentManager
     {
-        private sealed class VisibleBlock
+        private readonly struct VisibleBlock
         {
             public readonly double X;
             public readonly ImmutableArray<VerticalBlockSpan> YSegments;
@@ -25,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 Extent = extent;
                 YSegments = ySegments;
             }
-
-            #region Factory
 
             public static VisibleBlock? CreateVisibleBlock(
                 SnapshotSpan span, ImmutableArray<SnapshotSpan> orderedHoleSpans, IWpfTextView view)
@@ -110,20 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                     var line = visibleSpanTextViewLinesCollection[i];
                     var intersectingCharSnapshotPoint = line.GetBufferPositionFromXCoordinate(x);
 
-                    var intersectsNonWhitespaceChar = intersectingCharSnapshotPoint != null &&
-                        !char.IsWhiteSpace(intersectingCharSnapshotPoint.Value.GetChar());
-
-                    var isInHole = orderedHoleSpans.BinarySearch(line.Start.Position,
-                        (ss, pos) =>
-                        {
-                            if (pos < ss.Start)
-                                return 1;
-                            if (ss.Span.Contains(pos))
-                                return 0;
-                            return -1;
-                        }) >= 0;
-
-                    // Three main cases:
+                    // Three main cases for IntersectsNonWhitespaceChar:
                     // A) SV intersects a non-whitespace character. In this case we terminate
                     //    the current segment and start the next segment at the top of the following
                     //    line so that the segment does not intersect with text.
@@ -132,7 +118,9 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                     //    to ensure that lines with an end-point that is not visible are still drawn.
                     // C) Line is not last line and does not have non-whitespace intersecting the SV
                     //    so we continue the current segment.
-                    if (intersectsNonWhitespaceChar || isInHole)
+                    //
+                    // Also, if the line would go through an interpolation hole we want to skip it as well.
+                    if (IntersectsNonWhitespaceChar(intersectingCharSnapshotPoint) || IsInHole(orderedHoleSpans, line))
                     {
                         currentSegmentBottom = line.Top;
 
@@ -159,7 +147,14 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 return segments.ToImmutable();
             }
 
-            #endregion
+            private static bool IsInHole(ImmutableArray<SnapshotSpan> orderedHoleSpans, ITextViewLine line)
+                => orderedHoleSpans.BinarySearch(
+                    line.Start.Position,
+                    (ss, pos) => pos < ss.Start ? 1 : ss.Span.Contains(pos) ? 0 : 1) >= 0;
+
+            private static bool IntersectsNonWhitespaceChar(SnapshotPoint? intersectingCharSnapshotPoint)
+                => intersectingCharSnapshotPoint != null &&
+                   !char.IsWhiteSpace(intersectingCharSnapshotPoint.Value.GetChar());
         }
     }
 }

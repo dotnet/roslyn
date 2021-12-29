@@ -29,8 +29,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
 {
     /// <summary>
-    /// This factory is called to create taggers that provide information about where line
-    /// separators go.
+    /// This factory is called to create taggers that provide information about how strings are indented.
     /// </summary>
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(StringIndentationTag))]
@@ -88,6 +87,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
             var snapshot = snapshotSpan.Snapshot;
             foreach (var region in regions)
             {
+                var line = snapshot.GetLineFromPosition(region.IndentSpan.End);
+
+                // If the indent is on the first column, then no need to actually show anything (plus we can't as we
+                // want to draw one column earlier, and that column doesn't exist).
+                if (line.Start == region.IndentSpan.End)
+                    continue;
+
                 context.AddTag(new TagSpan<StringIndentationTag>(
                     region.IndentSpan.ToSnapshotSpan(snapshot),
                     new StringIndentationTag(
