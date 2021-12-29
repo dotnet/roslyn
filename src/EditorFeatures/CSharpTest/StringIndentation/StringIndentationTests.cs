@@ -445,5 +445,54 @@ goo
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestWithHoles8()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var v = $""""""
+           |    { 1 + 1 }
+           |    baz
+            """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestWithHoles9()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var v = $""""""
+           |    {
+           |        1 + 1
+           |    }
+           |    baz
+            """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestWithHoles10()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var v = $""""""
+           |    {
+        1 + 1
+                }
+           |    baz
+            """""";
+    }
+}");
+        }
     }
 }
