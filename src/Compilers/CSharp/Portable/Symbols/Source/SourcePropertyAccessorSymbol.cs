@@ -209,7 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    isIterator)
         {
             _property = property;
-            _accessorBodyShouldBeSynthesized = property.IsAutoProperty && syntax is AccessorDeclarationSyntax { SemicolonToken.RawKind: (int)SyntaxKind.SemicolonToken, ExpressionBody: null, Body: null };
+            _accessorBodyShouldBeSynthesized = (property.IsAutoPropertyWithGetAccessor && syntax is AccessorDeclarationSyntax { SemicolonToken.RawKind: (int)SyntaxKind.SemicolonToken, ExpressionBody: null, Body: null }) ||
+                                                property is SynthesizedRecordPropertySymbol;
             _containsFieldKeyword = property.IsIndexer ? false : NodeContainsFieldKeyword(getAccessorSyntax(syntax));
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
             _isExpressionBodied = !hasBody && hasExpressionBody;
