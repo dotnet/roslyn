@@ -37,9 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 // This method assumes that we've already been mapped to the view's snapshot.
                 Debug.Assert(span.Snapshot == view.TextSnapshot);
 
-                var guideLineSpanStart = span.Start;
-                var guideLineSpanEnd = span.End;
-
                 // We want to draw the line right before the quote character.  So -1 to get that character's position.
                 // Horizontally position the adornment in the center of the character.
                 var bufferPosition = span.End - 1;
@@ -59,6 +56,9 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 // usually assume that it's the top of the first visible line, or the bottom of the last visible
                 // line, respectively. If the editor invalidates an invisible span, this can result in an erroneous
                 // top to bottom adornment.
+                var guideLineSpanStart = span.Start;
+                var guideLineSpanEnd = span.End;
+
                 if ((guideLineSpanStart > lastLine.End) ||
                     (guideLineSpanEnd < firstLine.Start))
                 {
@@ -73,14 +73,14 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
 
                 var visibleSegments = CreateVisibleSegments(view.TextViewLines, span, orderedHoleSpans, x, yTop, yBottom);
 
-                // This seemingly redundant check prevents a very rare case where a block is created
-                // erroneously with no visible segments.
-                if (visibleSegments.Length == 0)
-                    return null;
-
-                return new VisibleBlock(x, visibleSegments);
+                return visibleSegments.Length == 0 ? null : new VisibleBlock(x, visibleSegments);
             }
 
+            /// <summary>
+            /// Given the horizontal position <paramref name="x"/> and the <paramref name="extent"/> to draw the
+            /// vertical line through, create a set of vertical chunks to actually draw.  Multiple chunks happen when we
+            /// have interpolation holes we have to skip over.
+            /// </summary>
             private static ImmutableArray<(double start, double end)> CreateVisibleSegments(
                 ITextViewLineCollection linesCollection,
                 SnapshotSpan extent,
