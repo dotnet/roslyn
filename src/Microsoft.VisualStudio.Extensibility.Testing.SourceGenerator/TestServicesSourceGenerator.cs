@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-namespace Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator
+namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator
 {
     using System;
     using System.Collections.Generic;

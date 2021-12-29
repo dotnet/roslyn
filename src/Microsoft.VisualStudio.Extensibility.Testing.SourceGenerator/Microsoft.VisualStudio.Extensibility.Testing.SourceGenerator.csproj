@@ -24,7 +24,7 @@
       <TfmSpecificPackageFile Include="$(TargetPath)" PackagePath="analyzers\dotnet\roslyn4.0\cs\" />
       <TfmSpecificPackageFile Include="@(SatelliteDllsProjectOutputGroupDependency)" PackagePath="analyzers\dotnet\roslyn4.0\cs\%(SatelliteDllsProjectOutputGroupDependency.DestinationSubDirectory)" Condition=" '%(SatelliteDllsProjectOutputGroupDependency.DestinationSubDirectory)' != '' " />
       <TfmSpecificPackageFile Include="@(SatelliteDllsProjectOutputGroupOutput->'%(FinalOutputPath)')" PackagePath="analyzers\dotnet\roslyn4.0\cs\%(SatelliteDllsProjectOutputGroupOutput.Culture)\" />
-      <TfmSpecificPackageFile Include="%(_ResolvedProjectReferencePaths.Identity)" Condition="'%(FileName)' != 'Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator.VisualBasic'" PackagePath="analyzers\dotnet\roslyn4.0\cs\" />
+      <TfmSpecificPackageFile Include="%(_ResolvedProjectReferencePaths.Identity)" Condition="'%(FileName)' != 'Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.VisualBasic'" PackagePath="analyzers\dotnet\roslyn4.0\cs\" />
     </ItemGroup>
   </Target>
 

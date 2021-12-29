@@ -25,7 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.csproj" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator\Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator.csproj"
+    <ProjectReference Include="..\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false"
                       SetTargetFramework="TargetFramework=netstandard2.0" />

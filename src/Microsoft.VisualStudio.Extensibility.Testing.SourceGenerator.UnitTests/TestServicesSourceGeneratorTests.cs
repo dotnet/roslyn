@@ -12,10 +12,10 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
     using System.Threading.Tasks;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.Testing;
-    using Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator;
+    using Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator;
     using Xunit;
     using VerifyCS = Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests.Verifiers.CSharpSourceGeneratorVerifier<
-        Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator.TestServicesSourceGenerator>;
+        Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.TestServicesSourceGenerator>;
 
     public class TestServicesSourceGeneratorTests
     {
