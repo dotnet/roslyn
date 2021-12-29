@@ -149,49 +149,10 @@ class C
             End Using
         End Function
 
-        <WorkItem(544551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544551")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestFilterOnNamedParameters1(showCompletionInArgumentLists As Boolean) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(
-                              <Document>
-class C
-{
-    public void M(int first, int second) { }
-    public void M(int third) { }
-}
- 
-class Program
-{
-    void Main()
-    {
-        new C().M(first$$
-    }
-}
-
-                              </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
-
-                state.SendInvokeSignatureHelp()
-                Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("void C.M(int third)")
-                Assert.Equal(2, state.GetSignatureHelpItems().Count)
-
-                state.SendTypeChars(":")
-                Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("void C.M(int first, int second)")
-                Assert.Equal(1, state.GetSignatureHelpItems().Count)
-
-                ' Now both items are available again, and we're sticking with last selection
-                state.SendBackspace()
-                Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("void C.M(int first, int second)")
-                Assert.Equal(2, state.GetSignatureHelpItems().Count)
-            End Using
-        End Function
-
         <WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")>
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestOnIncompleteInvocation(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestOnIncompleteInvocation(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 class Program
 {
@@ -202,7 +163,7 @@ class Program
     static void F(int i, int j) { }
     static void F(string s, int j, int k) { }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 ' We don't have a definite symbol, so default to first
                 state.SendTypeChars("(")
@@ -234,9 +195,9 @@ class Program
         End Function
 
         <WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")>
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestOnIncompleteInvocation_CommaMatters(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestOnIncompleteInvocation_CommaMatters(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 class Program
 {
@@ -247,7 +208,7 @@ class Program
     static void F(int i) { }
     static void F(string s, int j) { }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 ' We don't have a definite symbol, so default to first
                 state.SendTypeChars("(")
@@ -274,9 +235,9 @@ class Program
         End Function
 
         <WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")>
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestOnIncompleteInvocation_WithRef(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestOnIncompleteInvocation_WithRef(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 class Program
 {
@@ -287,7 +248,7 @@ class Program
     static void F(ref int i, int j) { }
     static void F(double d) { }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 ' We don't have a definite symbol, so default to first
                 state.SendTypeChars("(")
@@ -310,9 +271,9 @@ class Program
         End Function
 
         <WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")>
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestOnIncompleteInvocation_WithArgumentName(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestOnIncompleteInvocation_WithArgumentName(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 class Program
 {
@@ -323,22 +284,20 @@ class Program
     static void F(int i, int j) { }
     static void F(string name) { }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                ' The name is ignored in the guess of the overload, but our choice is rejected as
-                ' that overload is eventually filtered out. So we fall back to default selection.
                 state.SendTypeChars("(name: 1")
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem("void Program.F(string name)")
-                Assert.Equal({"void Program.F(string name)"},
+                Assert.Equal({"void Program.F(string name)", "void Program.F(int i, int j)"},
                              state.GetSignatureHelpItems().Select(Function(i) i.ToString()))
             End Using
         End Function
 
         <WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")>
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestOnIncompleteInvocation_WithExtension(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestOnIncompleteInvocation_WithExtension(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 class Program
 {
@@ -352,7 +311,7 @@ public static class ProgramExtension
     public static void F(this Program p, int i, int j) { }
     public static void F(this Program p, string name) { }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("(")
                 Await state.AssertSignatureHelpSession()
@@ -367,9 +326,9 @@ public static class ProgramExtension
         End Function
 
         <WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")>
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestOnIncompleteObjectConstruction(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestOnIncompleteObjectConstruction(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 class Program
 {
@@ -380,7 +339,7 @@ class Program
     Program(int i, int j) { }
     Program(string name) { }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("(")
                 Await state.AssertSignatureHelpSession()
@@ -395,9 +354,9 @@ class Program
         End Function
 
         <WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")>
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function TestOnIncompleteConstructorInitializer(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestOnIncompleteConstructorInitializer(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
 class Program
 {
@@ -407,7 +366,7 @@ class Program
     Program(int i, int j) { }
     Program(string name) { }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("(")
                 Await state.AssertSignatureHelpSession()
