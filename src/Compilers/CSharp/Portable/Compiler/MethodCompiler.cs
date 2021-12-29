@@ -1869,12 +1869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-<<<<<<< HEAD
                     if (sourceMethod is SourcePropertyAccessorSymbol { AccessorBodyShouldBeSynthesized: true })
-=======
-                    var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
-                    if ((object)property != null && property.IsAutoPropertyWithGetAccessor) // PROTOTYPE: Just IsAutoProperty, or _isAutoPropertyAccessor?
->>>>>>> parent of 5a1748ceb44 (Remove IsAutoPropertyWithGetAccessor)
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
