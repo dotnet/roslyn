@@ -513,6 +513,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Threading;
+    using global::Xunit;
     using global::Xunit.Harness;
     using global::Xunit.Threading;
     using Microsoft;
@@ -522,7 +523,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     using Microsoft.VisualStudio.Threading;
 {aliases}
 
-    internal abstract class InProcComponent
+    internal abstract class InProcComponent : IAsyncLifetime
     {{
         protected InProcComponent(TestServices testServices)
         {{
@@ -532,6 +533,21 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public TestServices TestServices {{ get; }}
 
         protected JoinableTaskFactory JoinableTaskFactory => TestServices.JoinableTaskFactory;
+
+        Task IAsyncLifetime.InitializeAsync()
+        {{
+            return InitializeCoreAsync();
+        }}
+
+        Task IAsyncLifetime.DisposeAsync()
+        {{
+            return Task.CompletedTask;
+        }}
+
+        protected virtual Task InitializeCoreAsync()
+        {{
+            return Task.CompletedTask;
+        }}
 
         protected async Task<TInterface> GetRequiredGlobalServiceAsync<TService, TInterface>(CancellationToken cancellationToken)
             where TService : class
@@ -898,6 +914,7 @@ namespace {namespaceName}
                 {
                     var initializers = new List<string>();
                     var properties = new List<string>();
+                    var asyncInitializers = new List<string>();
                     foreach (var service in services)
                     {
                         if (service is null)
@@ -909,6 +926,8 @@ namespace {namespaceName}
 
                         var accessibility = service.Accessibility is Accessibility.Public ? "public" : "internal";
                         properties.Add($"{accessibility} {service.ImplementingTypeName} {service.ServiceName} {{ get; }}");
+
+                        asyncInitializers.Add($"await ((IAsyncLifetime){service.ServiceName}).InitializeAsync();");
                     }
 
                     var testServices = $@"// Copyright (c) Microsoft. All rights reserved.
@@ -922,11 +941,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
+    using global::Xunit;
     using Microsoft.VisualStudio.Threading;
 
-    public class TestServices
+    public sealed class TestServices
     {{
-        protected TestServices(JoinableTaskFactory joinableTaskFactory)
+        private TestServices(JoinableTaskFactory joinableTaskFactory)
         {{
             JoinableTaskFactory = joinableTaskFactory;
 
@@ -944,9 +964,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return services;
         }}
 
-        protected virtual Task InitializeAsync()
+        private async Task InitializeAsync()
         {{
-            return Task.CompletedTask;
+{string.Join("\r\n", asyncInitializers.Select(initializer => "            " + initializer))}
         }}
     }}
 }}
