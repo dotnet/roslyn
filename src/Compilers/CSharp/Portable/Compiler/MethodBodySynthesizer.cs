@@ -184,6 +184,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var field = property.BackingField;
+            if (field is null)
+            {
+                // This happens for public int { set; } where we produce ERR_AutoPropertyMustHaveGetAccessor
+                Debug.Assert(!property.HasGetAccessor);
+                return null;
+            }
+
             Debug.Assert(!field.IsCreatedForFieldKeyword);
             var fieldAccess = new BoundFieldAccess(syntax, thisReference, field, ConstantValue.NotAvailable) { WasCompilerGenerated = true };
             BoundStatement statement;
