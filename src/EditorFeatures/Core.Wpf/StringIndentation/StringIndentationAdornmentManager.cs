@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                     if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
                         continue;
 
-                    if (!GetHoleSpans(tagMappingSpan.Tag.OrderedHoleSpans, out var orderedHoleSpans))
+                    if (!TryMapHoleSpans(tagMappingSpan.Tag.OrderedHoleSpans, out var orderedHoleSpans))
                         continue;
 
                     var blockOpt = VisibleBlock.CreateVisibleBlock(span, orderedHoleSpans, TextView);
@@ -61,18 +61,16 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                     var tag = tagMappingSpan.Tag;
                     var brush = tag.GetGraphicsTagBrush(TextView);
 
-                    for (var i = 0; i < block.YSegments.Length; i++)
+                    foreach (var (start, end) in block.YSegments)
                     {
-                        var ySegment = block.YSegments[i];
-
                         var line = new Line
                         {
                             SnapsToDevicePixels = true,
                             StrokeThickness = 1.0,
                             X1 = block.X,
                             X2 = block.X,
-                            Y1 = ySegment.start,
-                            Y2 = ySegment.end,
+                            Y1 = start,
+                            Y2 = end,
                             Stroke = brush,
                         };
 
@@ -87,14 +85,14 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
             }
         }
 
-        private bool GetHoleSpans(
+        private bool TryMapHoleSpans(
             ImmutableArray<SnapshotSpan> spans,
             out ImmutableArray<SnapshotSpan> result)
         {
             using var _ = ArrayBuilder<SnapshotSpan>.GetInstance(out var builder);
             foreach (var span in spans)
             {
-                var mapped = ContiguousMapUpToView(TextView, span);
+                var mapped = MapUpToView(TextView, span);
                 if (mapped == null)
                 {
                     result = default;
@@ -108,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
             return true;
         }
 
-        private static SnapshotSpan? ContiguousMapUpToView(ITextView textView, SnapshotSpan span)
+        private static SnapshotSpan? MapUpToView(ITextView textView, SnapshotSpan span)
         {
             // Must be called from the UI thread.
             var start = textView.BufferGraph.MapUpToSnapshot(
@@ -117,23 +115,21 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 PositionAffinity.Predecessor,
                 textView.TextSnapshot);
 
-            if (start != null)
-            {
-                var end = textView.BufferGraph.MapUpToSnapshot(
-                    span.End,
-                    PointTrackingMode.Negative,
-                    PositionAffinity.Successor,
-                    textView.TextSnapshot);
+            if (start == null)
+                return null;
 
-                // Range check is required to guard against the end being
-                // mapped before the start, causing a 'negative' span length.
-                if ((end != null) && (start <= end))
-                {
-                    return new SnapshotSpan(start.Value, end.Value);
-                }
-            }
+            var end = textView.BufferGraph.MapUpToSnapshot(
+                span.End,
+                PointTrackingMode.Negative,
+                PositionAffinity.Successor,
+                textView.TextSnapshot);
 
-            return null;
+            // Range check is required to guard against the end being
+            // mapped before the start, causing a 'negative' span length.
+            if (end == null || end < start)
+                return null;
+
+            return new SnapshotSpan(start.Value, end.Value);
         }
     }
 }
