@@ -220,6 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return this; }
             }
 
+            internal abstract override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics { get; }
+
             internal sealed override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
             {
                 return this.Manager.System_Object;

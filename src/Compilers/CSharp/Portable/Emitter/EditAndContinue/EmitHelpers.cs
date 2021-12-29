@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return true;
 
             static IEnumerable<Cci.ITypeDefinition> getTypes(IReadOnlyDictionary<string, AnonymousTypeValue> dictionary) => dictionary.Values.Select(v => v.Type);
-            static string? getName(Cci.ITypeDefinition type) => ((Cci.INamedEntity)type).Name;
+            static string getName(Cci.ITypeDefinition type) => ((Cci.INamedEntity)type).Name!;
         }
 
         /// <summary>

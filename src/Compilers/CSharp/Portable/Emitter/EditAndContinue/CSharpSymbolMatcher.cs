@@ -652,11 +652,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return otherTypeParameters[symbol.Ordinal];
             }
 
-            private TypeWithAnnotations VisitTypeWithAnnotations(TypeWithAnnotations type)
-            {
-                return TypeWithAnnotations.Create((TypeSymbol?)Visit(type.Type));
-            }
-
             private ImmutableArray<CustomModifier> VisitCustomModifiers(ImmutableArray<CustomModifier> modifiers)
             {
                 return modifiers.SelectAsArray(VisitCustomModifier);

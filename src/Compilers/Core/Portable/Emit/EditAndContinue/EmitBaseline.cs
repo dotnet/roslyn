@@ -64,13 +64,21 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal sealed class MetadataSymbols
         {
-            // In VB, AnonymousTypes contains all anonymous types and delegates, and the other two dictionaries are empty.
-            // In C#, AnonymousTypes contains just anonymous types, SynthesizedDelegates contains anonymous delegates
-            // where the parameter types and return types are generic type arguments, and AnonymousDelegates contains
-            // anonymous delegates where at least one of the parameter types or return type is not a valid type argument.
-
+            /// <summary>
+            /// In C#, this is the set of anonymous types only; in VB, this is the set of anonymous types and delegates.
+            /// </summary>
             public readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypes;
+
+            /// <summary>
+            /// In C#, the set of anonymous delegates where the parameter types and return type are
+            /// generic type arguments; in VB, this set is unused and empty.
+            /// </summary>
             public readonly IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> SynthesizedDelegates;
+
+            /// <summary>
+            /// In C#, the set of anonymous delegates where at least one of the parameter types or return type
+            /// is not a valid type argument; in VB, this set is unused and empty.
+            /// </summary>
             public readonly IReadOnlyDictionary<string, AnonymousTypeValue> AnonymousDelegates;
 
             /// <summary>
