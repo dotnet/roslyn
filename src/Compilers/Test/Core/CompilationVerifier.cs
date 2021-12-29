@@ -196,7 +196,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output.ToString(), escapeQuotes: false);
         }
 
-        public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, Verification peVerify, SignatureDescription[] expectedSignatures)
+        public void Emit(
+            string expectedOutput,
+            bool trimOutput,
+            int? expectedReturnCode,
+            string[] args,
+            IEnumerable<ResourceDescription> manifestResources,
+            EmitOptions emitOptions,
+            Verification peVerify,
+            SignatureDescription[] expectedSignatures)
         {
             using var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies);
 
@@ -211,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (expectedOutput != null || expectedReturnCode != null)
             {
-                var returnCode = testEnvironment.Execute(mainModuleName, args, expectedOutput);
+                var returnCode = testEnvironment.Execute(mainModuleName, args, expectedOutput, trimOutput);
 
                 if (expectedReturnCode is int exCode)
                 {
