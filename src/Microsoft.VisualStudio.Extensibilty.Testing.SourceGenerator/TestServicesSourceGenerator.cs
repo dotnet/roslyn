@@ -407,7 +407,7 @@ namespace Microsoft.VisualStudio
 
                     return false;
                 },
-                static (context, cancellationToken) =>
+                transform: static (context, cancellationToken) =>
                 {
                     var attribute = (AttributeSyntax)context.Node;
 
@@ -967,48 +967,18 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             };
         }
 
-        private class ServiceDataModel
-        {
-            public ServiceDataModel(Accessibility accessibility, string serviceName, string? baseTypeName, string implementingTypeName)
-            {
-                Accessibility = accessibility;
-                ServiceName = serviceName;
-                BaseTypeName = baseTypeName;
-                ImplementingTypeName = implementingTypeName;
-            }
+        private sealed record ServiceDataModel(
+            Accessibility Accessibility,
+            string ServiceName,
+            string? BaseTypeName,
+            string ImplementingTypeName);
 
-            public Accessibility Accessibility { get; }
-
-            public string ServiceName { get; }
-
-            public string? BaseTypeName { get; }
-
-            public string ImplementingTypeName { get; }
-        }
-
-        private class ReferenceDataModel
-        {
-            public ReferenceDataModel(bool hasSAsyncServiceProvider, bool hasThreadHelperJoinableTaskContext, bool canCancelJoinTillEmptyAsync, bool hasJoinableTaskFactoryWithPriority, bool hasAsyncEnumerable, bool hasErrorHandler)
-            {
-                HasSAsyncServiceProvider = hasSAsyncServiceProvider;
-                HasThreadHelperJoinableTaskContext = hasThreadHelperJoinableTaskContext;
-                CanCancelJoinTillEmptyAsync = canCancelJoinTillEmptyAsync;
-                HasJoinableTaskFactoryWithPriority = hasJoinableTaskFactoryWithPriority;
-                HasAsyncEnumerable = hasAsyncEnumerable;
-                HasErrorHandler = hasErrorHandler;
-            }
-
-            public bool HasSAsyncServiceProvider { get; }
-
-            public bool HasThreadHelperJoinableTaskContext { get; }
-
-            public bool CanCancelJoinTillEmptyAsync { get; }
-
-            public bool HasJoinableTaskFactoryWithPriority { get; }
-
-            public bool HasAsyncEnumerable { get; }
-
-            public bool HasErrorHandler { get; }
-        }
+        private sealed record ReferenceDataModel(
+            bool HasSAsyncServiceProvider,
+            bool HasThreadHelperJoinableTaskContext,
+            bool CanCancelJoinTillEmptyAsync,
+            bool HasJoinableTaskFactoryWithPriority,
+            bool HasAsyncEnumerable,
+            bool HasErrorHandler);
     }
 }
