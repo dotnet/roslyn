@@ -120,33 +120,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return (null, -1);
         }
 
-        // TODO2 remove unused method?
-        ///// <summary>
-        ///// If an argument name does not correspond to a parameter name, this method is unacceptable.
-        ///// We'll filter it out, so it will not be displayed as a SignatureHelp candidate.
-        ///// </summary>
-        //protected static bool IsUnacceptable(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method)
-        //{
-        //    if (arguments.Count == 0)
-        //    {
-        //        return false;
-        //    }
-
-        //    var parameterNames = method.Parameters.SelectAsArray(p => p.Name);
-        //    foreach (var argument in arguments)
-        //    {
-        //        if (HasName(argument, out var name))
-        //        {
-        //            if (!parameterNames.Contains(name))
-        //            {
-        //                return true;
-        //            }
-        //        }
-        //    }
-
-        //    return false;
-        //}
-
         /// <summary>
         /// Simulates overload resolution with the arguments provided so far and determines if you might be calling this overload.
         /// Returns true if an overload is acceptable. In that case, we output the parameter should be highlighted given the cursor's

@@ -73,16 +73,37 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
+            var structuralTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();
+            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
+            var invokedType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type;
+            // TODO2 deal with items2
+            if (invokedType is INamedTypeSymbol expressionType && expressionType.TypeKind == TypeKind.Delegate)
+            {
+                var items2 = GetDelegateInvokeItems(invocationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService,
+                    within, expressionType, out var selectedItem2, cancellationToken);
+
+                return CreateSignatureHelpItems(items2, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem2);
+            }
+            else if (invokedType is IFunctionPointerTypeSymbol functionPointerType)
+            {
+                var items2 = GetFunctionPointerInvokeItems(invocationExpression, semanticModel, structuralTypeDisplayService,
+                    documentationCommentFormattingService, functionPointerType, out var selectedItem2, cancellationToken);
+
+                return CreateSignatureHelpItems(items2, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem2);
+            }
+
             // get the candidate methods
-            var expressionType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
             var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
+            IList<SignatureHelpItem> items;
+            int? selectedItem;
             var methods = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken)
                                            .OfType<IMethodSymbol>()
                                            .ToImmutableArray()
                                            .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
 
             methods = methods.Sort(semanticModel, invocationExpression.SpanStart);
-            //methods = RemoveUnacceptable(methods, invocationExpression, within, semanticModel, cancellationToken); // TODO2
 
             if (!methods.Any())
             {
@@ -112,61 +133,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             // present items and select
-            var structuralTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();
-            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var accessibleMethods = GetAccessibleMethods(invocationExpression, semanticModel, within, methods, cancellationToken);
             if (!accessibleMethods.Any())
             {
                 return null;
             }
 
-            var (items, selectedItem) = await GetMethodGroupItemsAndSelectionAsync(
+            (items, selectedItem) = await GetMethodGroupItemsAndSelectionAsync(
                 accessibleMethods, document, invocationExpression, semanticModel, new SymbolInfo(currentSymbol), cancellationToken).ConfigureAwait(false); // TODO2 deal with nullability
-            var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
             return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol)currentSymbol, parameterIndex, selectedItem, arguments, position);
-            // TODO2 deal with delegate types and function pointer types
-
-            //methodGroup = methodGroup.Sort(
-            //    semanticModel, invocationExpression.SpanStart);
-
-            //var structuralTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();
-            //var documentationCommentFormattingService = document.Project.LanguageServices.GetRequiredService<IDocumentationCommentFormattingService>();
-
-            //var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
-            //var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-            //if (methodGroup.Any())
-            //{
-            //    var accessibleMethods = GetAccessibleMethods(invocationExpression, semanticModel, within, methodGroup, cancellationToken);
-            //    var (items, selectedItem) = await GetMethodGroupItemsAndSelectionAsync(accessibleMethods, document, invocationExpression, semanticModel, symbolInfo, cancellationToken).ConfigureAwait(false);
-
-            //    return CreateSignatureHelpItems(
-            //        items,
-            //        textSpan,
-            //        GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken),
-            //        selectedItem);
-            //}
-
-            //var invokedType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type;
-            //if (invokedType is INamedTypeSymbol expressionType && expressionType.TypeKind == TypeKind.Delegate)
-            //{
-            //    var items = GetDelegateInvokeItems(invocationExpression, semanticModel, structuralTypeDisplayService,
-            //        documentationCommentFormattingService, within, expressionType, out var selectedItem, cancellationToken);
-
-            //    return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
-            //}
-            //else if (invokedType is IFunctionPointerTypeSymbol functionPointerType)
-            //{
-            //    var items = GetFunctionPointerInvokeItems(invocationExpression, semanticModel, structuralTypeDisplayService,
-            //        documentationCommentFormattingService, functionPointerType, out var selectedItem, cancellationToken);
-
-            //    return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
-            //}
-
-            //return null;
         }
 
-        // TODO2 remove unused method?
         private SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             if (TryGetInvocationExpression(

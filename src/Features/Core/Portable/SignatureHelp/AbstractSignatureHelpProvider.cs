@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken);
 
+        // TODO2 unused
         /// <remarks>
         /// This overload is required for compatibility with existing extensions.
         /// </remarks>
