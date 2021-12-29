@@ -69,7 +69,6 @@ internal sealed partial class DelegateCreationRewriter
         DelegateCacheContainer? container;
 
         // We don't need to synthesize a container for each and every function.
-        // For functions with zero arity, we can share the container with the closest generic ancestor function.
         //
         // For example:
         //   void LF1<T>()
