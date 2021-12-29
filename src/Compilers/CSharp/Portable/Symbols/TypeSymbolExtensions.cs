@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typePredicate: predicate,
                 arg,
                 canDigThroughNullable,
-                visitCustomModifiers);
+                visitCustomModifiers: visitCustomModifiers);
         }
 
         /// <summary>
