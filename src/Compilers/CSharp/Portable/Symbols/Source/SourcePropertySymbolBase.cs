@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsExplicitInterfaceImplementation
             => (_propertyFlags & Flags.IsExplicitInterfaceImplementation) != 0;
 
-        private bool HasGetAccessor => (_propertyFlags & Flags.HasGetAccessor) != 0;
+        internal bool HasGetAccessor => (_propertyFlags & Flags.HasGetAccessor) != 0;
 
         private bool HasSetAccessor => (_propertyFlags & Flags.HasSetAccessor) != 0;
 
