@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                     {
                         var ySegment = block.YSegments[i];
 
-                        var line = new Line()
+                        var line = new Line
                         {
                             SnapsToDevicePixels = true,
                             StrokeThickness = 1.0,
@@ -77,10 +77,10 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                         };
 
                         AdornmentLayer.AddAdornment(
-                            AdornmentPositioningBehavior.TextRelative,
-                            block.Extent,
+                            behavior: AdornmentPositioningBehavior.TextRelative,
+                            visualSpan: span,
                             tag: block,
-                            line,
+                            adornment: line,
                             removedCallback: delegate { });
                     }
                 }

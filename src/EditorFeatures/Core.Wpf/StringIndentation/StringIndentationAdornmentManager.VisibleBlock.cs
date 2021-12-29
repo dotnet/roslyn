@@ -18,18 +18,16 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
         /// Represents the X position of the vertical line we're drawing, and the chunks of that vertical line if we
         /// need to break it up (for example if we need to jump past interpolation holes).
         /// 
-        /// Forked from https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform?path=%2Fsrc%2FEditor%2FText%2FImpl%2FStructure%2FVisibleBlock.cs&_a=contents&version=GBmain
+        /// Forked from https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform?path=/src/Editor/Text/Impl/Structure/VisibleBlock.cs
         /// </summary>
         private readonly struct VisibleBlock
         {
             public readonly double X;
             public readonly ImmutableArray<(double start, double end)> YSegments;
-            public readonly SnapshotSpan Extent;
 
-            private VisibleBlock(double x, SnapshotSpan extent, ImmutableArray<(double start, double end)> ySegments)
+            private VisibleBlock(double x, ImmutableArray<(double start, double end)> ySegments)
             {
                 X = x;
-                Extent = extent;
                 YSegments = ySegments;
             }
 
@@ -80,11 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 if (visibleSegments.Length == 0)
                     return null;
 
-                var extent = ContiguousMapUpToView(view, span);
-                if (extent == null)
-                    return null;
-
-                return new VisibleBlock(x, extent.Value, visibleSegments);
+                return new VisibleBlock(x, visibleSegments);
             }
 
             private static ImmutableArray<(double start, double end)> CreateVisibleSegments(
