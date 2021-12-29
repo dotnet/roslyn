@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                                              .WhereAsArray(c => c.IsAccessibleWithin(within) && !c.Equals(currentConstructor))
                                              .WhereAsArray(c => c.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
                                              .Sort(semanticModel, constructorInitializer.SpanStart);
-            accessibleConstructors = RemoveUnacceptable(accessibleConstructors, constructorInitializer, within, semanticModel, cancellationToken);
+            //accessibleConstructors = RemoveUnacceptable(accessibleConstructors, constructorInitializer, within, semanticModel, cancellationToken);
 
             if (!accessibleConstructors.Any())
             {
@@ -119,12 +119,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             //return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol)currentSymbol, parameterIndex, selectedItem, arguments, position);
         }
 
-        private static ImmutableArray<IMethodSymbol> RemoveUnacceptable(IEnumerable<IMethodSymbol> methodGroup, ConstructorInitializerSyntax constructorInitializer,
-            ISymbol within, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            return methodGroup.Where(m => !IsUnacceptable(constructorInitializer.ArgumentList.Arguments, m)).ToImmutableArray();
-        }
+        // TODO2
+        //private static ImmutableArray<IMethodSymbol> RemoveUnacceptable(IEnumerable<IMethodSymbol> methodGroup, ConstructorInitializerSyntax constructorInitializer,
+        //    ISymbol within, SemanticModel semanticModel, CancellationToken cancellationToken)
+        //{
+        //    return methodGroup.Where(m => !IsUnacceptable(constructorInitializer.ArgumentList.Arguments, m)).ToImmutableArray();
+        //}
 
+        // TODO2 remove unused method?
         private static SignatureHelpItem Convert(
             IMethodSymbol constructor,
             SyntaxToken openToken,

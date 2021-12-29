@@ -111,17 +111,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 methods = methods.SelectAsArray(m => Equals(matchedMethodSymbol.OriginalDefinition, m) ? matchedMethodSymbol : m);
             }
 
-            if (!methods.Any())
-            {
-                return null;
-            }
-
             // present items and select
             var structuralTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();
             var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var accessibleMethods = GetAccessibleMethods(invocationExpression, semanticModel, within, methods, cancellationToken);
-            var (items, selectedItem) = await GetMethodGroupItemsAndSelectionAsync(accessibleMethods, document, invocationExpression, semanticModel, new SymbolInfo(currentSymbol), cancellationToken).ConfigureAwait(false);
+            if (!accessibleMethods.Any())
+            {
+                return null;
+            }
 
+            var (items, selectedItem) = await GetMethodGroupItemsAndSelectionAsync(
+                accessibleMethods, document, invocationExpression, semanticModel, new SymbolInfo(currentSymbol), cancellationToken).ConfigureAwait(false); // TODO2 deal with nullability
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
             return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol)currentSymbol, parameterIndex, selectedItem, arguments, position);
             // TODO2 deal with delegate types and function pointer types
@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             //return null;
         }
 
+        // TODO2 remove unused method?
         private SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             if (TryGetInvocationExpression(

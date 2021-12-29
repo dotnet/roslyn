@@ -120,31 +120,32 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return (null, -1);
         }
 
-        /// <summary>
-        /// If an argument name does not correspond to a parameter name, this method is unacceptable.
-        /// We'll filter it out, so it will not be displayed as a SignatureHelp candidate.
-        /// </summary>
-        protected static bool IsUnacceptable(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method)
-        {
-            if (arguments.Count == 0)
-            {
-                return false;
-            }
+        // TODO2 remove unused method?
+        ///// <summary>
+        ///// If an argument name does not correspond to a parameter name, this method is unacceptable.
+        ///// We'll filter it out, so it will not be displayed as a SignatureHelp candidate.
+        ///// </summary>
+        //protected static bool IsUnacceptable(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method)
+        //{
+        //    if (arguments.Count == 0)
+        //    {
+        //        return false;
+        //    }
 
-            var parameterNames = method.Parameters.SelectAsArray(p => p.Name);
-            foreach (var argument in arguments)
-            {
-                if (HasName(argument, out var name))
-                {
-                    if (!parameterNames.Contains(name))
-                    {
-                        return true;
-                    }
-                }
-            }
+        //    var parameterNames = method.Parameters.SelectAsArray(p => p.Name);
+        //    foreach (var argument in arguments)
+        //    {
+        //        if (HasName(argument, out var name))
+        //        {
+        //            if (!parameterNames.Contains(name))
+        //            {
+        //                return true;
+        //            }
+        //        }
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
         /// <summary>
         /// Simulates overload resolution with the arguments provided so far and determines if you might be calling this overload.
@@ -381,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return -1;
             }
 
-            for (int i = 0; i < arguments.Count - 1; i++)
+            for (var i = 0; i < arguments.Count - 1; i++)
             {
                 // `$$,` points to the argument before the separator
                 // but `,$$` points to the argument following the separator
@@ -394,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return arguments.Count - 1;
         }
 
-        private static bool HasName(ArgumentSyntax argument, out string name)
+        private static bool HasName(ArgumentSyntax argument, out string? name)
         {
             var nameColon = argument.NameColon;
             if (nameColon is null)
