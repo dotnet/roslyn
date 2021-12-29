@@ -77,13 +77,13 @@ namespace Microsoft.CodeAnalysis.StringIndentation
         /// <code>
         /// var x = $"""
         ///         x
-        ///         {
-        /// ^            1 + 1
-        ///         } xcont^
+        ///         ^{
+        ///             1 + 1
+        ///         }^ xcont
         ///         y
-        ///         {
-        /// ^            2 + 2
-        ///         } ycont^
+        ///         ^{
+        ///             2 + 2
+        ///         }^ ycont
         ///         z
         ///         """;
         /// </code>
@@ -106,12 +106,12 @@ namespace Microsoft.CodeAnalysis.StringIndentation
         /// </code>
         /// 
         /// </summary>
-        public readonly ImmutableHashSet<TextSpan> HoleSpans;
+        public readonly ImmutableArray<TextSpan> HoleSpans;
 
-        public StringIndentationRegion(TextSpan indentSpan, ImmutableHashSet<TextSpan>? holeSpans = null)
+        public StringIndentationRegion(TextSpan indentSpan, ImmutableArray<TextSpan> holeSpans = default)
         {
             IndentSpan = indentSpan;
-            HoleSpans = holeSpans ?? ImmutableHashSet<TextSpan>.Empty;
+            HoleSpans = holeSpans.NullToEmpty();
         }
     }
 }

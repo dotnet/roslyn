@@ -79,15 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
             if (!TryGetIndentSpan(text, interpolatedString, out var indentSpan))
                 return;
 
-            var builder = ImmutableHashSet.CreateBuilder<TextSpan>();
+            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var builder);
 
             foreach (var content in interpolatedString.Contents)
             {
                 if (content is InterpolationSyntax interpolation)
-                {
-                    var interpolationEndLine = text.Lines.GetLineFromPosition(interpolation.Span.End);
-                    builder.Add(TextSpan.FromBounds(interpolation.SpanStart, interpolationEndLine.End));
-                }
+                    builder.Add(interpolation.Span);
             }
 
             result.Add(new StringIndentationRegion(indentSpan, builder.ToImmutable()));

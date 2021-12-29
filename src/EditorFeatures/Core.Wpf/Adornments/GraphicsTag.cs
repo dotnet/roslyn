@@ -19,15 +19,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
     internal abstract class GraphicsTag : ITag
     {
         private readonly IEditorFormatMap _editorFormatMap;
-        public Brush GraphicsTagBrush { get; private set; }
+        private Brush _graphicsTagBrush;
         private Color _graphicsTagColor;
 
         protected GraphicsTag(IEditorFormatMap editorFormatMap)
             => _editorFormatMap = editorFormatMap;
 
-        public void Initialize(IWpfTextView view)
+        public Brush GetGraphicsTagBrush(IWpfTextView view)
         {
-            if (GraphicsTagBrush != null)
+            Initialize(view);
+            return _graphicsTagBrush;
+        }
+
+        private void Initialize(IWpfTextView view)
+        {
+            if (_graphicsTagBrush != null)
             {
                 return;
             }
@@ -39,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             var color = this.GetColor(view, _editorFormatMap) ?? lightGray;
 
             _graphicsTagColor = color;
-            GraphicsTagBrush = new SolidColorBrush(_graphicsTagColor);
+            _graphicsTagBrush = new SolidColorBrush(_graphicsTagColor);
         }
 
         protected abstract Color? GetColor(IWpfTextView view, IEditorFormatMap editorFormatMap);

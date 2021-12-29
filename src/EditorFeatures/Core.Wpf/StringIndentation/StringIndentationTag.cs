@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.VisualStudio.Text;

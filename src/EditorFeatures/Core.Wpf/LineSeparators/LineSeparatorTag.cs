@@ -36,11 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         /// </summary>
         public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties? format)
         {
-            Initialize(view);
+            var brush = GetGraphicsTagBrush(view);
 
             var border = new Border()
             {
-                BorderBrush = GraphicsTagBrush,
+                BorderBrush = brush,
                 BorderThickness = new Thickness(0, 0, 0, bottom: 1),
                 Height = 1,
                 Width = view.ViewportWidth
