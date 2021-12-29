@@ -37,12 +37,21 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 // This method assumes that we've already been mapped to the view's snapshot.
                 Debug.Assert(span.Snapshot == view.TextSnapshot);
 
-                // We want to draw the line right before the quote character.  So -1 to get that character's position.
-                // Horizontally position the adornment in the center of the character.
-                var bufferPosition = span.End - 1;
-                if (bufferPosition < 0)
+                // While editing (for example, deleting all the whitespace before the final quotes) the indentation line
+                // may move to the 0 column (temporarily until we compute the updated tags and realize this tag needs to
+                // go).  Don't try to draw the line here as moving the line back by one will place it at the end of the
+                // previous line (which will cause a very distracting visual glitch).
+                if (span.End.GetContainingLine().Start == span.End)
                     return null;
 
+                // We want to draw the line right before the quote character.  So -1 to get that character's position.
+                // Horizontally position the adornment in the center of the character.  This position could actually be
+                // 0 if the entire doc is deleted and we haven't recomputed the updated tags yet.  So be resilient for 
+                // the position being out of bounds.
+                if (span.End == 0)
+                    return null;
+
+                var bufferPosition = span.End - 1;
                 var anchorPointLine = view.GetTextViewLineContainingBufferPosition(bufferPosition);
                 var bounds = anchorPointLine.GetCharacterBounds(bufferPosition);
                 var x = Math.Floor((bounds.Left + bounds.Right) * 0.5);
