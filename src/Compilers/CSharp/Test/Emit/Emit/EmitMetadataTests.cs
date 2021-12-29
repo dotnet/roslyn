@@ -1293,8 +1293,7 @@ class C : B<string>
             {
                 if (property is SourcePropertySymbol sourceProperty)
                 {
-                    Assert.True(sourceProperty.IsAutoProperty);
-                    Assert.NotNull(sourceProperty.GetMethod);
+                    Assert.True(sourceProperty.IsAutoPropertyWithGetAccessor);
                 }
             }
             else

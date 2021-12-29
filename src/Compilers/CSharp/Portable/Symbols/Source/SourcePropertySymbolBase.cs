@@ -823,8 +823,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckInitializer(IsAutoProperty, ContainingType.IsInterface, IsStatic, Location, diagnostics);
             }
 
-            if (IsAutoProperty && GetMethod is not null)
+            if (IsAutoPropertyWithGetAccessor)
             {
+                Debug.Assert(GetMethod is object);
+
                 if (!IsStatic && SetMethod is { IsInitOnly: false })
                 {
                     if (ContainingType.IsReadOnly)
@@ -1190,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => IsAutoProperty && GetMethod is not null // PROTOTYPE(semi-auto-props): Adjust this and add tests.
+            => IsAutoPropertyWithGetAccessor // PROTOTYPE(semi-auto-props): Adjust this and add tests.
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 
@@ -1641,7 +1643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
             }
-            else if (this.IsAutoProperty && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
+            else if (this.IsAutoPropertyWithGetAccessor && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
             }
