@@ -9,7 +9,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -346,33 +345,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static int compareTypeParameters(TypeParameterSymbol x, TypeParameterSymbol y)
             {
-                var xContainer = x.ContainingSymbol!;
-                var yContainer = y.ContainingSymbol!;
-                if (xContainer.Equals(yContainer))
+                var xOwner = x.ContainingSymbol!;
+                var yOwner = y.ContainingSymbol!;
+                if (xOwner.Equals(yOwner))
                 {
                     return x.Ordinal - y.Ordinal;
                 }
-                else if (isContainedIn(xContainer, yContainer))
+                else if (isContainedIn(xOwner, yOwner))
                 {
                     return 1;
                 }
                 else
                 {
-                    Debug.Assert(isContainedIn(yContainer, xContainer));
+                    Debug.Assert(isContainedIn(yOwner, xOwner));
                     return -1;
                 }
             }
 
-            static bool isContainedIn(Symbol x, Symbol y)
+            static bool isContainedIn(Symbol symbol, Symbol container)
             {
-                var container = y.ContainingSymbol;
-                while (container is { })
+                var other = symbol.ContainingSymbol;
+                while (other is { })
                 {
-                    if (x.Equals(container))
+                    if (other.Equals(container))
                     {
                         return true;
                     }
-                    container = container.ContainingSymbol;
+                    other = other.ContainingSymbol;
                 }
                 return false;
             }
