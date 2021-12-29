@@ -224,6 +224,36 @@ goo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestCase6()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var v =
+            $""""""
+           |goo
+            """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestCase7()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var v =
+            $""""""
+            |goo
+             """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
         public async Task TestWithHoles1()
         {
             await TestAsync(@"class C
