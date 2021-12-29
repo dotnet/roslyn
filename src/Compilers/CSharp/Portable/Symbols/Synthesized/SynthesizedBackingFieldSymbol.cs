@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -19,22 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedBackingFieldSymbol : FieldSymbolWithAttributesAndModifiers
     {
-        [Flags]
-        private enum Flags
-        {
-            HasInitializer = 1 << 0,
-            IsCreatedForFieldKeyword = 1 << 1,
-            IsEarlyConstructed = 1 << 2,
-        }
-
         private readonly SourcePropertySymbolBase _property;
         private readonly string _name;
-        private readonly Flags _backingFieldFlags;
-
-        internal bool HasInitializer => (_backingFieldFlags & Flags.HasInitializer) != 0;
-        internal bool IsCreatedForFieldKeyword => (_backingFieldFlags & Flags.IsCreatedForFieldKeyword) != 0;
-        internal bool IsEarlyConstructed => (_backingFieldFlags & Flags.IsEarlyConstructed) != 0;
-
+        internal bool HasInitializer { get; }
+        internal bool IsCreatedForFieldKeyword { get; }
+        internal bool IsEarlyConstructed { get; }
         protected override DeclarationModifiers Modifiers { get; }
 
         public SynthesizedBackingFieldSymbol(
@@ -55,21 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (isStatic ? DeclarationModifiers.Static : DeclarationModifiers.None);
 
             _property = property;
-            if (hasInitializer)
-            {
-                _backingFieldFlags |= Flags.HasInitializer;
-            }
-
-            if (isCreatedForfieldKeyword)
-            {
-                _backingFieldFlags |= Flags.IsCreatedForFieldKeyword;
-            }
-
-
-            if (isEarlyConstructed)
-            {
-                _backingFieldFlags |= Flags.IsEarlyConstructed;
-            }
+            HasInitializer = hasInitializer;
+            IsCreatedForFieldKeyword = isCreatedForfieldKeyword;
+            IsEarlyConstructed = isEarlyConstructed;
 
             // If it's not early constructed, it must have been created for field keyword.
             Debug.Assert(IsEarlyConstructed || IsCreatedForFieldKeyword);
