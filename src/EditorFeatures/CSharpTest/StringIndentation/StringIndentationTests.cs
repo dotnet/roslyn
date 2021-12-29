@@ -21,7 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringIndentation
     {
         private static async Task TestAsync(string contents)
         {
-            using var workspace = TestWorkspace.CreateCSharp(contents.Replace("|", " "));
+            using var workspace = TestWorkspace.CreateWorkspace(
+                TestWorkspace.CreateWorkspaceElement(LanguageNames.CSharp,
+                    files: new[] { contents.Replace("|", " ") },
+                    isMarkup: false));
             var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
             var root = await document.GetRequiredSyntaxRootAsync(default);
 
@@ -249,6 +252,81 @@ goo
             $""""""
             |goo
              """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestCase8()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var v =
+            $""""""""
+            |goo
+             """""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestCase9()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var v =
+             """"""""
+            |goo
+             """""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestCase10()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var v =
+             $$""""""""
+            |goo
+             """""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestCase11()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var v =
+            $$""""""""
+            |goo
+             """""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestCase12()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var v =
+           $$""""""""
+            |goo
+             """""""";
     }
 }");
         }
