@@ -15,7 +15,8 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
 {
-    internal abstract class AbstractAdornmentManagerProvider<TTag> : IWpfTextViewCreationListener
+    internal abstract class AbstractAdornmentManagerProvider<TTag> :
+        IWpfTextViewCreationListener
         where TTag : BrushTag
     {
         protected readonly IThreadingContext ThreadingContext;
