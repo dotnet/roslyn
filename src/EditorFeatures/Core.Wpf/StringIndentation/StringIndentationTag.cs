@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Text.Formatting;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
 {
     /// <summary>
-    /// Tag that specifies line separator.
+    /// Tag that specifies how a string's content is indented.
     /// </summary>
     internal class StringIndentationTag : GraphicsTag
     {

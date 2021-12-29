@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.StringIndentation
 {
@@ -106,12 +107,12 @@ namespace Microsoft.CodeAnalysis.StringIndentation
         /// </code>
         /// 
         /// </summary>
-        public readonly ImmutableArray<TextSpan> HoleSpans;
+        public readonly ImmutableArray<TextSpan> OrderedHoleSpans;
 
         public StringIndentationRegion(TextSpan indentSpan, ImmutableArray<TextSpan> holeSpans = default)
         {
             IndentSpan = indentSpan;
-            HoleSpans = holeSpans.NullToEmpty();
+            OrderedHoleSpans = holeSpans.NullToEmpty().Sort();
         }
     }
 }
