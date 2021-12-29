@@ -667,6 +667,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.SingleLineRawStringLiteralExpression:
+                case SyntaxKind.MultiLineRawStringLiteralExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:
@@ -5880,6 +5882,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cv = ConstantValue.Create(value, specialType);
                 type = GetSpecialType(specialType, diagnostics, node);
             }
+
+            if (node.Kind() is SyntaxKind.SingleLineRawStringLiteralExpression or SyntaxKind.MultiLineRawStringLiteralExpression)
+                MessageID.IDS_FeatureRawStringLiterals.CheckFeatureAvailability(diagnostics, node, node.Location);
 
             return new BoundLiteral(node, cv, type);
         }
