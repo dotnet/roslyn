@@ -756,6 +756,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         private TestServices? _testServices;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref=""AbstractIdeIntegrationTest""/> class.
+        /// </summary>
         protected AbstractIdeIntegrationTest()
         {{
             Assert.True(Application.Current.Dispatcher.CheckAccess());
@@ -766,6 +769,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             _cleanupCancellationTokenSource = new CancellationTokenSource();
         }}
 
+        /// <summary>
+        /// Gets the <see cref=""Threading.JoinableTaskContext""/> context for use in integration tests.
+        /// </summary>
         [NotNull]
         protected JoinableTaskContext? JoinableTaskContext
         {{
@@ -810,9 +816,15 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }}
         }}
 
+        /// <summary>
+        /// Gets the <see cref=""Threading.JoinableTaskFactory""/> for use in integration tests.
+        /// </summary>
         protected JoinableTaskFactory JoinableTaskFactory
             => _joinableTaskFactory ?? throw new InvalidOperationException();
 
+        /// <summary>
+        /// Gets a cancellation token for use in integration tests to avoid CI timeouts.
+        /// </summary>
         protected CancellationToken HangMitigatingCancellationToken
             => _hangMitigatingCancellationTokenSource.Token;
 
@@ -824,6 +836,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         private CancellationToken CleanupCancellationToken
             => _cleanupCancellationTokenSource.Token;
 
+        /// <inheritdoc/>
         public virtual async Task InitializeAsync()
         {{
             TestServices = await CreateTestServicesAsync();
@@ -944,6 +957,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     using global::Xunit;
     using Microsoft.VisualStudio.Threading;
 
+    /// <summary>
+    /// Provides access to helpers for common integration test functionality.
+    /// </summary>
     public sealed class TestServices
     {{
         private TestServices(JoinableTaskFactory joinableTaskFactory)
@@ -953,6 +969,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {string.Join("\r\n", initializers.Select(initializer => "            " + initializer))}
         }}
 
+        /// <summary>
+        /// Gets the <see cref=""Threading.JoinableTaskFactory""/> for use in integration tests.
+        /// </summary>
         public JoinableTaskFactory JoinableTaskFactory {{ get; }}
 
 {string.Join("\r\n", properties.Select(property => "        " + property))}

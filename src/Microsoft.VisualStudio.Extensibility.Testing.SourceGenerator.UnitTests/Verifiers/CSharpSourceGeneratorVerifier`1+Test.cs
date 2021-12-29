@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
         {
             public Test()
             {
+                CompilerDiagnostics = CompilerDiagnostics.Warnings;
             }
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.Default;
@@ -28,9 +29,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
 
             protected override CompilationOptions CreateCompilationOptions()
             {
-                var compilationOptions = base.CreateCompilationOptions();
-                return compilationOptions.WithSpecificDiagnosticOptions(
-                    compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
+                var compilationOptions = (CSharpCompilationOptions)base.CreateCompilationOptions();
+                return compilationOptions.WithWarningLevel(99);
             }
 
             protected override ParseOptions CreateParseOptions()
