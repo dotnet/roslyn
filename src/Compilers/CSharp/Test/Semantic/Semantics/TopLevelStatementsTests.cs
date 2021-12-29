@@ -9587,5 +9587,25 @@ var x = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 5)
                 );
         }
+
+        [Fact]
+        [WorkItem(58521, "https://github.com/dotnet/roslyn/issues/58521")]
+        public void Issue58521()
+        {
+            var source = @"
+void F<T>(T t)
+{
+    var f = (ref T x) => 0;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            var tree = compilation.SyntaxTrees[0];
+            var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First(id => id.Identifier.Text == "var");
+            var model = compilation.GetSemanticModel(tree);
+            var anonymousType = model.GetSymbolInfo(identifier).Symbol.GetSymbol<TypeSymbol>();
+
+            model.GetOperation(identifier);
+            Assert.Equal(OperationKind.Literal, model.GetOperation(tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single()).Kind);
+        }
     }
 }
