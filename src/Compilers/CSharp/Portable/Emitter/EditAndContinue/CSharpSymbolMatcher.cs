@@ -543,14 +543,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         else if (sourceType is AnonymousTypeManager.AnonymousDelegateTemplateSymbol delegateTemplate)
                         {
                             Debug.Assert((object)otherContainer == (object)_otherAssembly.GlobalNamespace);
-                            TryFindAnonymousDelegate(delegateTemplate, out var value);
-                            return (NamedTypeSymbol?)value.Type?.GetInternalSymbol();
-                        }
-                        else if (sourceType is SynthesizedDelegateSymbol delegateSymbol)
-                        {
-                            Debug.Assert((object)otherContainer == (object)_otherAssembly.GlobalNamespace);
-                            TryFindSynthesizedDelegate(delegateSymbol, out var value);
-                            return (NamedTypeSymbol?)value.Delegate?.GetInternalSymbol();
+                            if (delegateTemplate.IsParameterizedDelegateType)
+                            {
+                                TryFindSynthesizedDelegate(delegateTemplate, out var value);
+                                return (NamedTypeSymbol?)value.Delegate?.GetInternalSymbol();
+                            }
+                            else
+                            {
+                                TryFindAnonymousDelegate(delegateTemplate, out var value);
+                                return (NamedTypeSymbol?)value.Type?.GetInternalSymbol();
+                            }
                         }
 
                         if (sourceType.IsAnonymousType)
@@ -717,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
             }
 
-            internal bool TryFindSynthesizedDelegate(SynthesizedDelegateSymbol delegateSymbol, out SynthesizedDelegateValue otherDelegateSymbol)
+            internal bool TryFindSynthesizedDelegate(AnonymousTypeManager.AnonymousDelegateTemplateSymbol delegateSymbol, out SynthesizedDelegateValue otherDelegateSymbol)
             {
                 Debug.Assert((object)delegateSymbol.ContainingSymbol == (object)_sourceAssembly.GlobalNamespace);
 
