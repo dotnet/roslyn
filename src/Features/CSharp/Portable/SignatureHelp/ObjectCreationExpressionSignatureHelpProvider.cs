@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -71,14 +73,90 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
-            var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
-            var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList!);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            // get the candidate methods
+            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
+            var methods = ImmutableArray<IMethodSymbol>.Empty;
+            if (type.TypeKind == TypeKind.Delegate)
+            {
+                var invokeMethod = type.DelegateInvokeMethod;
+                if (invokeMethod != null)
+                {
+                    methods = ImmutableArray.Create(invokeMethod);
+                }
+            }
+            else
+            {
+                methods = type.InstanceConstructors
+                    .WhereAsArray(c => c.IsAccessibleWithin(within))
+                    .WhereAsArray(s => s.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
+                    .Sort(semanticModel, objectCreationExpression.SpanStart);
+            }
 
-            // TODO2 need to re-implement
-            throw null;
-            //var (items, selectedItem) = type.TypeKind == TypeKind.Delegate
+            if (!methods.Any())
+            {
+                return null;
+            }
+
+            // try to bind to the actual constructor
+            var currentSymbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol;
+
+            var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var arguments = objectCreationExpression.ArgumentList.Arguments;
+            var parameterIndex = -1;
+            if (currentSymbol is null)
+            {
+                (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, methods, position,
+                    semanticModel, semanticFactsService);
+            }
+            else
+            {
+                // The compiler told us the correct overload, but we need to find out the parameter to highlight given cursor position
+                _ = FindParameterIndexIfCompatibleMethod(arguments, (IMethodSymbol)currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
+            }
+
+            // present items and select
+            ImmutableArray<SignatureHelpItem> items;
+            int? selectedItem;
+            var structuralTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();
+            if (type.TypeKind == TypeKind.Delegate)
+            {
+                var invokeMethod = type.DelegateInvokeMethod;
+
+                var item = CreateItem(
+                    invokeMethod, semanticModel,
+                    objectCreationExpression.SpanStart,
+                    structuralTypeDisplayService,
+                    isVariadic: false,
+                    documentationFactory: null,
+                    prefixParts: GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),
+                    separatorParts: GetSeparatorParts(),
+                    suffixParts: GetDelegateTypePostambleParts(),
+                    parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position));
+
+                items = ImmutableArray.Create<SignatureHelpItem>(item);
+                selectedItem = 0;
+            }
+            else
+            {
+                var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
+
+                items = methods.SelectAsArray(c =>
+                    ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
+
+                selectedItem = TryGetSelectedIndex(methods, currentSymbol);
+            }
+
+            var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
+            return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol?)currentSymbol, parameterIndex, selectedItem, arguments, position);
+
+            //var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
+            //var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
+            //var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList!);
+            //var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            //// TODO2 need to re-implement
+            //throw null;
+            ////var (items, selectedItem) = type.TypeKind == TypeKind.Delegate
             //    ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, structuralTypeDisplayService, type)
             //    : GetNormalTypeConstructors(objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, type, within, options, cancellationToken);
 
