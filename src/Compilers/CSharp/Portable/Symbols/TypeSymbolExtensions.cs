@@ -758,52 +758,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
 
-                        ImmutableArray<TypeWithAnnotations> typesWithAnnotations;
+                        ImmutableArray<TypeWithAnnotations> typeArguments;
 
                         if (current.IsAnonymousType)
                         {
                             var anonymous = (AnonymousTypeManager.AnonymousTypeOrDelegatePublicSymbol)current;
                             var fields = anonymous.TypeDescriptor.Fields;
-                            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
 
-                            foreach (var field in fields)
+                            if (fields.IsEmpty)
                             {
-                                builder.Add(field.TypeWithAnnotations);
+                                return null;
                             }
 
-                            typesWithAnnotations = builder.ToImmutableAndFree();
+                            int i;
+                            for (i = 0; i < fields.Length - 1; i++)
+                            {
+                                // Let's try to avoid early resolution of nullable types
+                                (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(fields[i].TypeWithAnnotations, canDigThroughNullable);
+                                var result = VisitType(
+                                    typeWithAnnotationsOpt: nextTypeWithAnnotations,
+                                    type: nextType,
+                                    typeWithAnnotationsPredicate,
+                                    typePredicate,
+                                    arg,
+                                    canDigThroughNullable,
+                                    useDefaultType,
+                                    visitCustomModifiers);
+                                if (result is object)
+                                {
+                                    return result;
+                                }
+                            }
+
+                            next = fields[i].TypeWithAnnotations;
                         }
                         else
                         {
-                            typesWithAnnotations = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-                        }
+                            typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
 
-                        if (typesWithAnnotations.IsEmpty)
-                        {
-                            return null;
-                        }
-
-                        int i;
-                        for (i = 0; i < typesWithAnnotations.Length - 1; i++)
-                        {
-                            // Let's try to avoid early resolution of nullable types
-                            (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(typesWithAnnotations[i], canDigThroughNullable);
-                            var result = VisitType(
-                                typeWithAnnotationsOpt: nextTypeWithAnnotations,
-                                type: nextType,
-                                typeWithAnnotationsPredicate,
-                                typePredicate,
-                                arg,
-                                canDigThroughNullable,
-                                useDefaultType,
-                                visitCustomModifiers);
-                            if (result is object)
+                            if (typeArguments.IsEmpty)
                             {
-                                return result;
+                                return null;
                             }
-                        }
 
-                        next = typesWithAnnotations[i];
+                            int i;
+                            for (i = 0; i < typeArguments.Length - 1; i++)
+                            {
+                                // Let's try to avoid early resolution of nullable types
+                                (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(typeArguments[i], canDigThroughNullable);
+                                var result = VisitType(
+                                    typeWithAnnotationsOpt: nextTypeWithAnnotations,
+                                    type: nextType,
+                                    typeWithAnnotationsPredicate,
+                                    typePredicate,
+                                    arg,
+                                    canDigThroughNullable,
+                                    useDefaultType,
+                                    visitCustomModifiers);
+                                if (result is object)
+                                {
+                                    return result;
+                                }
+                            }
+
+                            next = typeArguments[i];
+                        }
 
                         break;
 
