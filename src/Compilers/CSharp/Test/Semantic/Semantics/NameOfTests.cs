@@ -1773,7 +1773,6 @@ class C
 }
 class Attr : System.Attribute { public Attr(string s) {} }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyDiagnostics()
                 .VerifyEmitDiagnostics();
         }
 
@@ -1788,7 +1787,6 @@ class C
 }
 class Attr : System.Attribute { public Attr(string s) {} }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyDiagnostics()
                 .VerifyEmitDiagnostics();
         }
 
@@ -1804,7 +1802,6 @@ class C
 }
 class Attr : System.Attribute { public Attr(string s) {} }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyDiagnostics()
                 .VerifyEmitDiagnostics();
         }
 
