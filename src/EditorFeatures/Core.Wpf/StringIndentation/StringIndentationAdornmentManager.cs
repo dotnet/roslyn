@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Windows.Shapes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -109,24 +110,10 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
         private static SnapshotSpan? MapUpToView(ITextView textView, SnapshotSpan span)
         {
             // Must be called from the UI thread.
-            var start = textView.BufferGraph.MapUpToSnapshot(
-                span.Start,
-                PointTrackingMode.Positive,
-                PositionAffinity.Predecessor,
-                textView.TextSnapshot);
+            var start = textView.GetPositionInView(span.Start);
+            var end = textView.GetPositionInView(span.End);
 
-            if (start == null)
-                return null;
-
-            var end = textView.BufferGraph.MapUpToSnapshot(
-                span.End,
-                PointTrackingMode.Negative,
-                PositionAffinity.Successor,
-                textView.TextSnapshot);
-
-            // Range check is required to guard against the end being
-            // mapped before the start, causing a 'negative' span length.
-            if (end == null || end < start)
+            if (start == null || end == null || end < start)
                 return null;
 
             return new SnapshotSpan(start.Value, end.Value);
