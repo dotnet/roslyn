@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     foreach (var customModifier in typeWithAnnotationsOpt.CustomModifiers)
                     {
                         var result = VisitType(
-                            typeWithAnnotationsOpt: default, type: (NamedTypeSymbol)customModifier.Modifier,
+                            typeWithAnnotationsOpt: default, type: ((CSharpCustomModifier)customModifier).ModifierSymbol,
                             typeWithAnnotationsPredicate, typePredicate, arg,
                             canDigThroughNullable, useDefaultType, visitCustomModifiers);
                         if (result is object)
