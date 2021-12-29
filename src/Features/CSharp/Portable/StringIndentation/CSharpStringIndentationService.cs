@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
             SourceText text, SyntaxToken token, ArrayBuilder<StringIndentationRegion> result, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!TryGetIndentSpan(text, (ExpressionSyntax)token.GetRequiredParent(), out var indentSpan))
+            if (!TryGetIndentSpan(text, (ExpressionSyntax)token.GetRequiredParent(), out _, out var indentSpan))
                 return;
 
             result.Add(new StringIndentationRegion(indentSpan));
@@ -76,22 +76,47 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
         private static void ProcessInterpolatedStringExpression(SourceText text, InterpolatedStringExpressionSyntax interpolatedString, ArrayBuilder<StringIndentationRegion> result, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!TryGetIndentSpan(text, interpolatedString, out var indentSpan))
+            if (!TryGetIndentSpan(text, interpolatedString, out var offset, out var indentSpan))
                 return;
 
             using var _ = ArrayBuilder<TextSpan>.GetInstance(out var builder);
 
             foreach (var content in interpolatedString.Contents)
             {
-                if (content is InterpolationSyntax interpolation)
+                if (content is InterpolationSyntax interpolation &&
+                    !IgnoreInterpolation(text, offset, interpolation))
+                {
                     builder.Add(interpolation.Span);
+                }
             }
 
             result.Add(new StringIndentationRegion(indentSpan, builder.ToImmutable()));
         }
 
-        private static bool TryGetIndentSpan(SourceText text, ExpressionSyntax expression, out TextSpan indentSpan)
+        private static bool IgnoreInterpolation(SourceText text, int offset, InterpolationSyntax interpolation)
         {
+            // We can ignore the hole if all the content of it is after the region's indentation level.
+            // In that case, it's fine to draw the line through the hole as it won't intersect any code
+            // (or show up on the right side of the line).
+
+            var holeStartLine = text.Lines.GetLineFromPosition(interpolation.SpanStart).LineNumber;
+            var holeEndLine = text.Lines.GetLineFromPosition(interpolation.Span.End).LineNumber;
+
+            for (var i = holeStartLine; i <= holeEndLine; i++)
+            {
+                var line = text.Lines[i];
+                var currentLineOffset = line.GetFirstNonWhitespaceOffset();
+
+                if (currentLineOffset != null && currentLineOffset < offset)
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static bool TryGetIndentSpan(SourceText text, ExpressionSyntax expression, out int offset, out TextSpan indentSpan)
+        {
+            offset = 0;
             indentSpan = default;
             // Ignore strings with errors as we don't want to draw a line in a bad place that makes things even harder
             // to understand.
@@ -104,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
 
             // We should always have a non-null offset in a multi-line raw string without errors.
             Contract.ThrowIfNull(offsetOpt);
-            var offset = offsetOpt.Value;
+            offset = offsetOpt.Value;
             if (offset == 0)
                 return false;
 

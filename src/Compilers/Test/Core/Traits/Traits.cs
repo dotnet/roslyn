@@ -295,6 +295,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string SourceGenerators = nameof(SourceGenerators);
             public const string SplitComment = nameof(SplitComment);
             public const string SplitStringLiteral = nameof(SplitStringLiteral);
+            public const string StringIndentation = nameof(StringIndentation);
             public const string SuggestionTags = nameof(SuggestionTags);
             public const string SyncNamespaces = nameof(SyncNamespaces);
             public const string TargetTypedCompletion = nameof(TargetTypedCompletion);

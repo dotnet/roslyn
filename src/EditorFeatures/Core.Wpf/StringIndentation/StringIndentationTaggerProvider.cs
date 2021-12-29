@@ -100,45 +100,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
                     region.IndentSpan.ToSnapshotSpan(snapshot),
                     new StringIndentationTag(
                         _editorFormatMap,
-                        GetHoleSpans(snapshot, region))));
+                        region.OrderedHoleSpans.SelectAsArray(s => s.ToSnapshotSpan(snapshot)))));
             }
-        }
-
-        private static ImmutableArray<SnapshotSpan> GetHoleSpans(ITextSnapshot snapshot, StringIndentationRegion region)
-        {
-            using var _ = ArrayBuilder<SnapshotSpan>.GetInstance(out var result);
-
-            foreach (var hole in region.OrderedHoleSpans)
-            {
-                if (!IgnoreHole(snapshot, region, hole))
-                    result.Add(hole.ToSnapshotSpan(snapshot));
-            }
-
-            return result.ToImmutable();
-        }
-
-        private static bool IgnoreHole(ITextSnapshot snapshot, StringIndentationRegion region, TextSpan hole)
-        {
-            // We can ignore the hole if all the content of it is after the region's indentation level.
-            // In that case, it's fine to draw the line through the hole as it won't intersect any code
-            // (or show up on the right side of the line).
-            var lastLine = snapshot.GetLineFromPosition(region.IndentSpan.End);
-            var offsetOpt = lastLine.GetFirstNonWhitespaceOffset();
-            Contract.ThrowIfNull(offsetOpt);
-
-            var holeStartLine = snapshot.GetLineFromPosition(hole.Start).LineNumber;
-            var holeEndLine = snapshot.GetLineFromPosition(hole.End).LineNumber;
-
-            for (var i = holeStartLine; i <= holeEndLine; i++)
-            {
-                var line = snapshot.GetLineFromLineNumber(i);
-                var currentLineOffset = line.GetFirstNonWhitespaceOffset();
-
-                if (currentLineOffset != null && currentLineOffset < offsetOpt)
-                    return false;
-            }
-
-            return true;
         }
     }
 }
