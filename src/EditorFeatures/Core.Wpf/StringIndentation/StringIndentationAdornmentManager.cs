@@ -54,11 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                     if (!TryMapHoleSpans(tagMappingSpan.Tag.OrderedHoleSpans, out var orderedHoleSpans))
                         continue;
 
-                    var blockOpt = VisibleBlock.CreateVisibleBlock(span, orderedHoleSpans, TextView);
-                    if (blockOpt == null)
+                    if (VisibleBlock.CreateVisibleBlock(span, orderedHoleSpans, TextView) is not VisibleBlock block)
                         continue;
 
-                    var block = blockOpt.Value;
                     var tag = tagMappingSpan.Tag;
                     var brush = tag.GetBrush(TextView);
 
