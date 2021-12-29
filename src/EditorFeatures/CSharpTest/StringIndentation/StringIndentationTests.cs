@@ -515,5 +515,146 @@ goo
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestWithNestedHoles2()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var x =
+            $""""""
+            |goo
+            |{
+            |   $""""""
+            |   |bar
+            |   |{
+            |   |   1 + 1
+            |   |}
+            |    """"""
+            |}
+            |baz
+             """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestWithNestedHoles3()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var x =
+            $""""""
+            |goo
+            |{
+            |   $""""""
+            |   |bar
+            |   |{
+            |   1 + 1
+            |    }
+            |    """"""
+            |}
+            |baz
+             """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestWithNestedHoles4()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var x =
+            $""""""
+            |goo
+            |{
+                $""""""
+                |bar
+                |{
+            1 + 1
+                 }
+                 """"""
+             }
+            |baz
+             """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestWithNestedHoles5()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var x =
+            $""""""
+            |goo
+            |{
+        $""""""
+        |bar
+         """"""
+             }
+            |baz
+             """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestWithNestedHoles6()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var x =
+            $""""""
+            |goo
+            |{
+        $""""""
+        |bar
+        |{
+        |   1 + 1
+        |}
+         """"""
+             }
+            |baz
+             """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestWithNestedHoles7()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var x =
+            $""""""
+            |goo
+            |{
+        $""""""
+        |bar
+        |{
+        1 + 1
+         }
+         """"""
+             }
+            |baz
+             """""";
+    }
+}");
+        }
     }
 }
