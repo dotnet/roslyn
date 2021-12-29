@@ -303,15 +303,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     }
 
                     var type = parameter.Type;
-                    if (parameter.IsParams && CanConvert(argument.Expression, ((IArrayTypeSymbol)type).ElementType))
+                    if (parameter.IsParams && HasImplicitConversion(argument.Expression, ((IArrayTypeSymbol)type).ElementType))
                     {
                         return true;
                     }
 
-                    return CanConvert(argument.Expression, type);
+                    return HasImplicitConversion(argument.Expression, type);
                 }
 
-                // We don't have an API to check conversion between type symbols, so we just check ref kind
                 var argumentRefKind = argument.GetRefKind();
                 if (parameterRefKind == RefKind.In && argumentRefKind == RefKind.None)
                 {
@@ -326,10 +325,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return true;
             }
 
-            bool CanConvert(SyntaxNode expression, ITypeSymbol destination)
+            bool HasImplicitConversion(SyntaxNode expression, ITypeSymbol destination)
             {
                 var conversion = semanticFactsService.ClassifyConversion(semanticModel, expression, destination);
-                return conversion.Exists; // TODO2 tweak
+                return conversion.Exists && conversion.IsImplicit;
             }
         }
 
