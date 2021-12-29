@@ -816,8 +816,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ParameterSymbol> parameters,
             ref MemberAnalysisResult memberAnalysisResult,
             int interpolatedStringArgNum,
-            TypeSymbol? receiverType,
-            uint receiverEscapeScope,
+            BoundExpression? receiver,
+            bool requiresInstanceReceiver,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(unconvertedString is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
@@ -924,9 +924,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (argumentIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
-                        Debug.Assert(receiverType is not null);
+                        Debug.Assert(receiver!.Type is not null);
                         refKind = RefKind.None;
-                        placeholderType = receiverType;
+                        placeholderType = receiver.Type;
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                         {
@@ -972,33 +972,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 SyntaxNode placeholderSyntax;
                 uint valSafeToEscapeScope;
+                bool isSuppressed;
 
                 switch (argumentIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
-                        placeholderSyntax = unconvertedString.Syntax;
-                        valSafeToEscapeScope = receiverEscapeScope;
+                        Debug.Assert(receiver != null);
+                        valSafeToEscapeScope = requiresInstanceReceiver
+                            ? receiver.GetRefKind().IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
+                            : Binder.ExternalScope;
+                        isSuppressed = receiver.IsSuppressed;
+                        placeholderSyntax = receiver.Syntax;
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                         placeholderSyntax = unconvertedString.Syntax;
                         valSafeToEscapeScope = Binder.ExternalScope;
+                        isSuppressed = false;
                         break;
                     case >= 0:
                         placeholderSyntax = arguments[argumentIndex].Syntax;
                         valSafeToEscapeScope = GetValEscape(arguments[argumentIndex], LocalScopeDepth);
+                        isSuppressed = arguments[argumentIndex].IsSuppressed;
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(argumentIndex);
                 }
 
                 argumentPlaceholdersBuilder.Add(
-                    new BoundInterpolatedStringArgumentPlaceholder(
+                    (BoundInterpolatedStringArgumentPlaceholder)(new BoundInterpolatedStringArgumentPlaceholder(
                         placeholderSyntax,
                         argumentIndex,
                         valSafeToEscapeScope,
                         placeholderType,
                         hasErrors: argumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter)
-                    { WasCompilerGenerated = true });
+                    { WasCompilerGenerated = true }.WithSuppression(isSuppressed)));
                 // We use the parameter refkind, rather than what the argument was actually passed with, because that will suppress duplicated errors
                 // about arguments being passed with the wrong RefKind. The user will have already gotten an error about mismatched RefKinds or it will
                 // be a place where refkinds are allowed to differ

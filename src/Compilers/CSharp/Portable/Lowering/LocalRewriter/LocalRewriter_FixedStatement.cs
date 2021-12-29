@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement localInit = InstrumentLocalDeclarationIfNecessary(localDecl, localSymbol,
                 factory.Assignment(factory.Local(localSymbol), convertedStringTemp));
 
-            BoundExpression notNullCheck = MakeNullCheck(factory.Syntax, factory.Local(localSymbol), BinaryOperatorKind.NotEqual);
+            BoundExpression notNullCheck = _factory.MakeNullCheck(factory.Syntax, factory.Local(localSymbol), BinaryOperatorKind.NotEqual);
             BoundExpression helperCall;
 
             MethodSymbol offsetMethod;
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression arrayTempInit = factory.AssignmentExpression(factory.Local(pinnedTemp), initializerExpr);
 
             //(pinnedTemp = array) != null
-            BoundExpression notNullCheck = MakeNullCheck(factory.Syntax, arrayTempInit, BinaryOperatorKind.NotEqual);
+            BoundExpression notNullCheck = _factory.MakeNullCheck(factory.Syntax, arrayTempInit, BinaryOperatorKind.NotEqual);
 
             BoundExpression lengthCall;
 

@@ -186,9 +186,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var plusEqualsToken = root.FindTokenOnLeftOfPosition(position);
             var eventHookupExpression = plusEqualsToken.GetAncestor<AssignmentExpressionSyntax>();
+            var typeDecl = eventHookupExpression.GetAncestor<TypeDeclarationSyntax>();
 
             var textToInsert = eventHandlerMethodName + ";";
-            if (!eventHookupExpression.IsInStaticContext())
+            if (!eventHookupExpression.IsInStaticContext() && typeDecl is not null)
             {
                 // This will be simplified later if it's not needed.
                 textToInsert = "this." + textToInsert;
@@ -222,6 +223,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             var root = document.Root;
             var eventHookupExpression = root.GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation).Single().AsToken().GetAncestor<AssignmentExpressionSyntax>();
 
+            var typeDecl = eventHookupExpression.GetAncestor<TypeDeclarationSyntax>();
+
             var generatedMethodSymbol = GetMethodSymbol(document, eventHandlerMethodName, eventHookupExpression, cancellationToken);
 
             if (generatedMethodSymbol == null)
@@ -229,11 +232,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 return null;
             }
 
-            var typeDecl = eventHookupExpression.GetAncestor<TypeDeclarationSyntax>();
+            var container = (SyntaxNode)typeDecl ?? eventHookupExpression.GetAncestor<CompilationUnitSyntax>();
 
-            var typeDeclWithMethodAdded = CodeGenerator.AddMethodDeclaration(typeDecl, generatedMethodSymbol, document.Project.Solution.Workspace, new CodeGenerationOptions(afterThisLocation: eventHookupExpression.GetLocation()));
+            var newContainer = CodeGenerator.AddMethodDeclaration(container, generatedMethodSymbol, document.Project.Solution.Workspace, new CodeGenerationOptions(afterThisLocation: eventHookupExpression.GetLocation()));
 
-            return root.ReplaceNode(typeDecl, typeDeclWithMethodAdded);
+            return root.ReplaceNode(container, newContainer);
         }
 
         private static IMethodSymbol GetMethodSymbol(

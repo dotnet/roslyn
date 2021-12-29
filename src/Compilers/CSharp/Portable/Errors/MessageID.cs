@@ -240,7 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureNewLinesInInterpolations = MessageBase + 12813,
         IDS_FeatureListPattern = MessageBase + 12814,
-        IDS_FeatureRawStringLiterals = MessageBase + 12815,
+        IDS_ParameterNullChecking = MessageBase + 12815,
+        IDS_FeatureRawStringLiterals = MessageBase + 12816,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -355,6 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureGenericAttributes: // semantic check
                 case MessageID.IDS_FeatureNewLinesInInterpolations: // semantic check
                 case MessageID.IDS_FeatureListPattern: // semantic check
+                case MessageID.IDS_ParameterNullChecking: // syntax check
                     return LanguageVersion.Preview;
 
                 // C# 10.0 features.

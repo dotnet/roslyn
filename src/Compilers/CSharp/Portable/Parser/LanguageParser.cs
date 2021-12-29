@@ -4387,14 +4387,30 @@ tryAgain:
 
                 TypeSyntax type;
                 SyntaxToken name;
+                SyntaxToken exclamationExclamation = null;
+                SyntaxToken equals = null;
                 if (this.CurrentToken.Kind != SyntaxKind.ArgListKeyword)
                 {
                     type = this.ParseType(mode: ParseTypeMode.Parameter);
                     name = this.ParseIdentifierToken();
-
-                    // When the user type "int goo[]", give them a useful error
-                    if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken)
+                    if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
                     {
+                        exclamationExclamation = this.EatToken();
+                        if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
+                        {
+                            var exclamationEquals = this.EatToken();
+                            var exclamation2 = SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, null);
+                            exclamationExclamation = MergeTokens(exclamationExclamation, exclamation2, SyntaxKind.ExclamationExclamationToken);
+                            equals = SyntaxFactory.Token(null, SyntaxKind.EqualsToken, exclamationEquals.GetTrailingTrivia());
+                        }
+                        else
+                        {
+                            exclamationExclamation = MergeTokens(exclamationExclamation, this.EatToken(SyntaxKind.ExclamationToken), SyntaxKind.ExclamationExclamationToken);
+                        }
+                    }
+                    else if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken)
+                    {
+                        // When the user type "int goo[]", give them a useful error
                         var open = this.EatToken();
                         var close = this.EatToken();
                         open = this.AddError(open, ErrorCode.ERR_BadArraySyntax);
@@ -4409,16 +4425,24 @@ tryAgain:
                     name = this.EatToken(SyntaxKind.ArgListKeyword);
                 }
 
-                EqualsValueClauseSyntax def = null;
                 if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
                 {
-                    var equals = this.EatToken(SyntaxKind.EqualsToken);
+                    equals = this.EatToken(SyntaxKind.EqualsToken);
+                }
+                if (exclamationExclamation != null)
+                {
+                    exclamationExclamation = (exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
+                        ? ConvertToMissingWithTrailingTrivia(exclamationExclamation, SyntaxKind.ExclamationExclamationToken)
+                        : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
+                }
+                EqualsValueClauseSyntax def = null;
+                if (!(equals is null))
+                {
                     var value = this.ParseExpressionCore();
                     def = _syntaxFactory.EqualsValueClause(equals, value: value);
                     def = CheckFeatureAvailability(def, MessageID.IDS_FeatureOptionalParameter);
                 }
-
-                return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, name, def);
+                return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, name, exclamationExclamation, def);
             }
             finally
             {
@@ -5778,7 +5802,7 @@ tryAgain:
                 case SyntaxKind.ExclamationEqualsToken:
                 case SyntaxKind.BarToken:
                 case SyntaxKind.CaretToken:
-                    // These tokens are from 7.5.4.2 Grammar Ambiguities
+                    // These tokens are from 7.5.4.2 Grammar Ambiguities  
                     return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 
                 case SyntaxKind.AmpersandAmpersandToken: // e.g. `e is A<B> && e`
@@ -11456,11 +11480,8 @@ tryAgain:
             {
                 return false;
             }
-
             //  case 1:  ( x ,
-            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken
-                && (!this.IsInQuery || !IsTokenQueryContextualKeyword(this.PeekToken(1)))
-                && this.PeekToken(2).Kind == SyntaxKind.CommaToken)
+            if (isParenVarCommaSyntax())
             {
                 // Make sure it really looks like a lambda, not just a tuple
                 int curTk = 3;
@@ -11484,11 +11505,22 @@ tryAgain:
             }
 
             //  case 2:  ( x ) =>
-            if (IsTrueIdentifier(this.PeekToken(1))
-                && this.PeekToken(2).Kind == SyntaxKind.CloseParenToken
-                && this.PeekToken(3).Kind == SyntaxKind.EqualsGreaterThanToken)
+            if (IsTrueIdentifier(this.PeekToken(1)))
             {
-                return true;
+                // allow for       a) =>      or     a!!) =>
+                var skipIndex = 2;
+                if (PeekToken(skipIndex).Kind == SyntaxKind.ExclamationToken
+                    && this.PeekToken(skipIndex + 1).Kind == SyntaxKind.ExclamationToken)
+                {
+                    skipIndex += 2;
+                }
+
+                // Must have:     ) => 
+                if (this.PeekToken(skipIndex).Kind == SyntaxKind.CloseParenToken
+                    && this.PeekToken(skipIndex + 1).Kind == SyntaxKind.EqualsGreaterThanToken)
+                {
+                    return true;
+                }
             }
 
             //  case 3:  ( ) =>
@@ -11507,6 +11539,37 @@ tryAgain:
             }
 
             return false;
+
+            bool isParenVarCommaSyntax()
+            {
+                var next = this.PeekToken(1);
+
+                // Ensure next token is a variable
+                if (next.Kind == SyntaxKind.IdentifierToken)
+                {
+                    if (!this.IsInQuery || !IsTokenQueryContextualKeyword(next))
+                    {
+                        // Variable must be directly followed by a comma if not followed by exclamation
+                        var after = this.PeekToken(2);
+                        // ( x , [...]
+                        if (after.Kind == SyntaxKind.CommaToken)
+                        {
+                            return true;
+                        }
+                        // ( x!! , [...]
+                        // https://github.com/dotnet/roslyn/issues/58335: https://github.com/dotnet/roslyn/pull/46520#discussion_r466650228
+                        if (after.Kind == SyntaxKind.ExclamationToken
+                            && this.PeekToken(3).Kind == SyntaxKind.ExclamationToken
+                            && after.GetTrailingTriviaWidth() == 0
+                            && this.PeekToken(3).GetLeadingTriviaWidth() == 0
+                            && this.PeekToken(4).Kind == SyntaxKind.CommaToken)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
         }
 
         private bool ScanExplicitlyTypedLambda(Precedence precedence)
@@ -11567,7 +11630,14 @@ tryAgain:
                         // eat the identifier
                         this.EatToken();
                     }
-
+                    if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken
+                        && this.PeekToken(1).Kind == SyntaxKind.ExclamationToken
+                        && this.CurrentToken.GetTrailingTriviaWidth() == 0
+                        && this.PeekToken(1).GetLeadingTriviaWidth() == 0)
+                    {
+                        this.EatToken();
+                        this.EatToken();
+                    }
                     switch (this.CurrentToken.Kind)
                     {
                         case SyntaxKind.CommaToken:
@@ -11800,6 +11870,32 @@ tryAgain:
             if (precedence > Precedence.Lambda)
             {
                 return false;
+            }
+
+            SyntaxKind token1 = this.PeekToken(1).Kind;
+            if (token1 == SyntaxKind.EqualsGreaterThanToken)
+            {
+                return true;
+            }
+            if (token1 == SyntaxKind.ExclamationToken
+                && this.PeekToken(2).Kind == SyntaxKind.ExclamationToken
+                && this.PeekToken(3).Kind == SyntaxKind.EqualsGreaterThanToken)
+            {
+                return true;
+            }
+
+            // Broken case but error will be added in lambda function (!=>).
+            if (token1 == SyntaxKind.ExclamationEqualsToken && this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken)
+            {
+                return true;
+            }
+
+            // Broken case but error will be added in lambda function (!!=>).
+            if (token1 == SyntaxKind.ExclamationToken
+                && this.PeekToken(2).Kind == SyntaxKind.ExclamationEqualsToken
+                && this.PeekToken(3).Kind == SyntaxKind.GreaterThanToken)
+            {
+                return true;
             }
 
             var resetPoint = this.GetResetPoint();
@@ -12810,14 +12906,52 @@ tryAgain:
                 else
                 {
                     var name = this.ParseIdentifierToken();
-                    var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
-                    arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
+                    SyntaxToken arrow, exclamationExclamation;
+                    // Case x!! =>
+                    if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+                    {
+                        exclamationExclamation = this.EatToken();
+                        if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
+                        {
+                            var exclamationEquals = this.EatToken();
+                            var exclamation2 = SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, null);
+                            exclamationExclamation = MergeTokens(exclamationExclamation, exclamation2, SyntaxKind.ExclamationExclamationToken);
+
+                            var equals = SyntaxFactory.Token(null, SyntaxKind.EqualsToken, exclamationEquals.GetTrailingTrivia());
+                            var greaterThan = this.EatToken(SyntaxKind.GreaterThanToken);
+                            arrow = MergeTokens(equals, greaterThan, SyntaxKind.EqualsGreaterThanToken);
+                        }
+                        else
+                        {
+                            exclamationExclamation = MergeTokens(exclamationExclamation, this.EatToken(SyntaxKind.ExclamationToken), SyntaxKind.ExclamationExclamationToken);
+                            arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
+                        }
+                    }
+                    // Case x=>, x =>
+                    else
+                    {
+                        arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
+                        exclamationExclamation = null;
+                    }
+
+                    if (exclamationExclamation != null)
+                    {
+                        exclamationExclamation = (exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
+                            ? ConvertToMissingWithTrailingTrivia(exclamationExclamation, SyntaxKind.ExclamationExclamationToken)
+                            : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
+                    }
+
+                    if (arrow != null)
+                    {
+                        arrow = (arrow.Kind != SyntaxKind.EqualsGreaterThanToken)
+                            ? ConvertToMissingWithTrailingTrivia(arrow, SyntaxKind.EqualsGreaterThanToken)
+                            : CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
+                    }
 
                     var parameter = _syntaxFactory.Parameter(
                         attributeLists: default, modifiers: default,
-                        type: null, identifier: name, @default: null);
+                        type: null, identifier: name, exclamationExclamationToken: exclamationExclamation, @default: null);
                     var (block, expression) = ParseLambdaBody();
-
                     return _syntaxFactory.SimpleLambdaExpression(
                         attributes, modifiers, parameter, arrow, block, expression);
                 }
@@ -12940,7 +13074,18 @@ tryAgain:
             }
 
             SyntaxToken paramName = this.ParseIdentifierToken();
-            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, paramName, null);
+            SyntaxToken exclamationExclamation = null;
+            if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+            {
+                exclamationExclamation = MergeTokens(this.EatToken(SyntaxKind.ExclamationToken), this.EatToken(SyntaxKind.ExclamationToken), SyntaxKind.ExclamationExclamationToken);
+            }
+            if (exclamationExclamation != null)
+            {
+                exclamationExclamation = (exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
+                    ? ConvertToMissingWithTrailingTrivia(exclamationExclamation, SyntaxKind.ExclamationExclamationToken)
+                    : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
+            }
+            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, paramName, exclamationExclamation, null);
             _pool.Free(modifiers);
             return parameter;
         }
@@ -12984,7 +13129,8 @@ tryAgain:
                 if (peek1.Kind != SyntaxKind.CommaToken &&
                     peek1.Kind != SyntaxKind.CloseParenToken &&
                     peek1.Kind != SyntaxKind.EqualsGreaterThanToken &&
-                    peek1.Kind != SyntaxKind.OpenBraceToken)
+                    peek1.Kind != SyntaxKind.OpenBraceToken &&
+                    peek1.Kind != SyntaxKind.ExclamationToken)
                 {
                     return true;
                 }
@@ -13486,6 +13632,21 @@ tryAgain:
             node = this.AddError(node, ErrorCode.ERR_UnexpectedToken, trailingTrash[0].ToString());
             node = this.AddTrailingSkippedSyntax(node, trailingTrash.Node);
             return node;
+        }
+
+        private SyntaxToken MergeTokens(SyntaxToken s1, SyntaxToken s2, SyntaxKind kind)
+        {
+            if (s1.GetTrailingTriviaWidth() == 0 && s2.GetLeadingTriviaWidth() == 0)
+            {
+                s1 = SyntaxFactory.Token(s1.GetLeadingTrivia(), kind, s2.GetTrailingTrivia());
+            }
+            else
+            {
+                s2 = this.AddError(s2, ErrorCode.ERR_InvalidExprTerm, s2.Text);
+                s1 = AddTrailingSkippedSyntax(s1, s2);
+            }
+
+            return s1;
         }
     }
 }
