@@ -494,5 +494,26 @@ goo
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        public async Task TestWithNestedHoles1()
+        {
+            await TestAsync(@"class C
+{
+    void M()
+    {
+        var x =
+            $""""""
+            |goo
+            |{
+            |   $""""""
+            |   |bar
+            |    """"""
+            |}
+            |baz
+             """""";
+    }
+}");
+        }
     }
 }
