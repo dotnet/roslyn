@@ -30,6 +30,7 @@
     <RoslynDiagnosticsNugetPackageVersion>3.3.3-beta1.21105.3</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>6.0.0-rc1.21366.2</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.1-beta1.21480.3</MicrosoftCodeAnalysisTestingVersion>
+    <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.110-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.0.0-3.final</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.10.230</VisualStudioEditorPackagesVersion>
@@ -141,7 +142,8 @@
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.36</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
     <MicrosoftVisualStudioEditorVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioEditorVersion>
-    <MicrosoftVisualStudioExtensibilityTestingXunitVersion>0.1.90-beta</MicrosoftVisualStudioExtensibilityTestingXunitVersion>
+    <MicrosoftVisualStudioExtensibiltyTestingSourceGeneratorVersion>$(MicrosoftVisualStudioExtensibilityTestingVersion)</MicrosoftVisualStudioExtensibiltyTestingSourceGeneratorVersion>
+    <MicrosoftVisualStudioExtensibilityTestingXunitVersion>$(MicrosoftVisualStudioExtensibilityTestingVersion)</MicrosoftVisualStudioExtensibilityTestingXunitVersion>
     <MicrosoftVisualStudioGraphModelVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioGraphModelVersion>
     <MicrosoftVisualStudioImageCatalogVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImageCatalogVersion>
     <MicrosoftVisualStudioImagingVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImagingVersion>

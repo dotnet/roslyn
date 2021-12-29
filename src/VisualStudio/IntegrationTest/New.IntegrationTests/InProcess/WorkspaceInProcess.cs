@@ -7,18 +7,15 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Threading;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal class WorkspaceInProcess : InProcComponent
+    [TestService]
+    internal partial class WorkspaceInProcess
     {
-        public WorkspaceInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         internal static void EnableAsynchronousOperationTracking()
         {
             AsynchronousOperationListenerProvider.Enable(true);

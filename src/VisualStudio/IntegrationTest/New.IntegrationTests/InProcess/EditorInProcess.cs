@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -40,13 +41,9 @@ using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal class EditorInProcess : InProcComponent
+    [TestService]
+    internal partial class EditorInProcess
     {
-        public EditorInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         public async Task<IWpfTextView> GetActiveTextViewAsync(CancellationToken cancellationToken)
             => (await GetActiveTextViewHostAsync(cancellationToken)).TextView;
 

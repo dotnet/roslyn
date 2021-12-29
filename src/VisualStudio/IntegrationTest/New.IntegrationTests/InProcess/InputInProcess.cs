@@ -4,20 +4,28 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal class InputInProcess : InProcComponent
+    [TestService]
+    internal partial class InputInProcess
     {
-        public InputInProcess(TestServices testServices)
-            : base(testServices)
-        {
-            SendKeys = new(testServices);
-        }
+        private SendKeysImpl? _lazySendKeys;
 
-        private SendKeysImpl SendKeys { get; }
+        private SendKeysImpl SendKeys
+        {
+            get
+            {
+                return LazyInitialization.EnsureInitialized(
+                    ref _lazySendKeys,
+                    static testServices => new SendKeysImpl(testServices),
+                    TestServices);
+            }
+        }
 
         internal async Task SendAsync(params object[] keys)
         {
