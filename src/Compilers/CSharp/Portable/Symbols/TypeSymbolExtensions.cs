@@ -758,8 +758,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
 
-                        ImmutableArray<TypeWithAnnotations> typeArguments;
-
                         if (current.IsAnonymousType)
                         {
                             var anonymous = (AnonymousTypeManager.AnonymousTypeOrDelegatePublicSymbol)current;
@@ -794,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else
                         {
-                            typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                            var typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
 
                             if (typeArguments.IsEmpty)
                             {
