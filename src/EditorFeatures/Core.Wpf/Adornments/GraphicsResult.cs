@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using System.Windows;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
@@ -19,9 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         }
 
         public void Dispose()
-        {
-            _dispose?.Invoke();
-            _dispose = null;
-        }
+            => Interlocked.Exchange(ref _dispose, null)?.Invoke();
     }
 }
