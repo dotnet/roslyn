@@ -1958,7 +1958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool hasErrors = false;
                 if (!IsInsideNameof || (EnclosingNameofArgument != node && !IsFeatureAvailable(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof)))
                 {
-                    var diagnosticsTemp = IsInsideNameof ? new DiagnosticBag() : diagnostics;
+                    var diagnosticsTemp = IsInsideNameof ? BindingDiagnosticBag.Discarded : diagnostics;
                     if (InFieldInitializer && !currentType.IsScriptClass)
                     {
                         //can't access "this" in field initializers
