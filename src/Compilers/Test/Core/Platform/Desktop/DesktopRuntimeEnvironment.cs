@@ -297,10 +297,10 @@ namespace Roslyn.Test.Utilities.Desktop
             return GetEmitData().AllModuleData;
         }
 
-#if NET461
+#if NET472
         private class Resolver : ILVerify.ResolverBase
         {
-            private Dictionary<string, ImmutableArray<byte>> imagesByName = new Dictionary<string, ImmutableArray<byte>>();
+            private readonly Dictionary<string, ImmutableArray<byte>> imagesByName = new Dictionary<string, ImmutableArray<byte>>();
 
             internal Resolver(EmitData emitData)
             {
@@ -309,16 +309,16 @@ namespace Roslyn.Test.Utilities.Desktop
                     string name = module.SimpleName;
 
                     var image = name == "mscorlib"
-                        ? TestResources.NetFX.v4_6_1038_0.mscorlib.AsImmutable()
+                        ? ImmutableArray<byte>.Empty // TODO2 TestResources.NetFX.v4_6_1038_0.mscorlib.AsImmutable()
                         : module.Image;
 
                     imagesByName.Add(name, image);
                 }
             }
 
-            protected override PEReader ResolveCore(AssemblyName name)
+            protected override PEReader ResolveCore(string name)
             {
-                if (imagesByName.TryGetValue(name.Name, out var image))
+                if (imagesByName.TryGetValue(name, out var image))
                 {
                     return new PEReader(image);
                 }
@@ -337,7 +337,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
             var emitData = GetEmitData();
 
-#if NET461
+#if NET472
             // IL Verify
             if ((verification & (Verification.PassesIlVerify | Verification.FailsIlVerify)) != 0)
             {
@@ -352,16 +352,16 @@ namespace Roslyn.Test.Utilities.Desktop
                     // auto-detect which module is the "corlib"
                     foreach (var module in emitData.AllModuleData)
                     {
-                        var name = new AssemblyName(module.SimpleName);
+                        var name = module.SimpleName;
                         var metadataReader = resolver.Resolve(name).GetMetadataReader();
                         if (metadataReader.AssemblyReferences.Count == 0)
                         {
-                            verifier.SetSystemModuleName(name);
+                            verifier.SetSystemModuleName(new AssemblyName(name));
                         }
                     }
                 }
 
-                var result = verifier.Verify(resolver.Resolve(new AssemblyName(emitData.MainModule.FullName)));
+                var result = verifier.Verify(resolver.Resolve(emitData.MainModule.FullName));
                 if (result.Count() > 0)
                 {
                     if ((verification & Verification.PassesIlVerify) != 0)
