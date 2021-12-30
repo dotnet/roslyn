@@ -66,6 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
         private static void ProcessMultiLineRawStringLiteralToken(
             SourceText text, SyntaxToken token, ArrayBuilder<StringIndentationRegion> result, CancellationToken cancellationToken)
         {
+            // Ignore strings with errors as we don't want to draw a line in a bad place that makes things even harder
+            // to understand.
+            if (token.ContainsDiagnostics && token.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                return;
+
             cancellationToken.ThrowIfCancellationRequested();
             if (!TryGetIndentSpan(text, (ExpressionSyntax)token.GetRequiredParent(), out _, out var indentSpan))
                 return;
@@ -75,6 +80,18 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
 
         private static void ProcessInterpolatedStringExpression(SourceText text, InterpolatedStringExpressionSyntax interpolatedString, ArrayBuilder<StringIndentationRegion> result, CancellationToken cancellationToken)
         {
+            // Ignore strings with errors as we don't want to draw a line in a bad place that makes things even harder
+            // to understand.
+            if (interpolatedString.ContainsDiagnostics)
+            {
+                var errors = interpolatedString.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
+                foreach (var error in errors)
+                {
+                    if (!IsInHole(interpolatedString, error.Location.SourceSpan))
+                        return;
+                }
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
             if (!TryGetIndentSpan(text, interpolatedString, out var offset, out var indentSpan))
                 return;
@@ -91,6 +108,17 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
             }
 
             result.Add(new StringIndentationRegion(indentSpan, builder.ToImmutable()));
+        }
+
+        private static bool IsInHole(InterpolatedStringExpressionSyntax interpolatedString, TextSpan sourceSpan)
+        {
+            foreach (var content in interpolatedString.Contents)
+            {
+                if (content is InterpolationSyntax && content.Span.Contains(sourceSpan))
+                    return true;
+            }
+
+            return false;
         }
 
         private static bool IgnoreInterpolation(SourceText text, int offset, InterpolationSyntax interpolation)
@@ -116,12 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
 
         private static bool TryGetIndentSpan(SourceText text, ExpressionSyntax expression, out int offset, out TextSpan indentSpan)
         {
-            offset = 0;
             indentSpan = default;
-            // Ignore strings with errors as we don't want to draw a line in a bad place that makes things even harder
-            // to understand.
-            if (expression.ContainsDiagnostics && expression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
-                return false;
 
             // get the last line of the literal to determine the indentation string.
             var lastLine = text.Lines.GetLineFromPosition(expression.Span.End);
