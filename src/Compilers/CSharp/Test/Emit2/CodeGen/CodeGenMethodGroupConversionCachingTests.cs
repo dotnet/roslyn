@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -31,10 +32,8 @@ class C
     static void Target() { Console.WriteLine(""FAIL""); }
     static void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
 }";
-        static void containerValidator(ModuleSymbol module)
-            => Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-
-        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        Assert.Empty(verifier.TestData.Module!.GetAllSynthesizedMembers());
     }
 
     [Fact]
@@ -54,11 +53,8 @@ class C
     void Target() { Console.WriteLine(""FAIL""); }
     void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
 }";
-        static void containerValidator(ModuleSymbol module)
-        {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        Assert.Empty(verifier.TestData.Module!.GetAllSynthesizedMembers());
     }
 
     [Fact]
@@ -82,11 +78,8 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        Assert.Empty(verifier.TestData.Module!.GetAllSynthesizedMembers());
     }
 
     [Fact]
@@ -110,11 +103,8 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        Assert.Empty(verifier.TestData.Module!.GetAllSynthesizedMembers());
     }
 
     [Fact]
@@ -133,11 +123,8 @@ class C
     static int Target(int x) => 0;
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        Assert.DoesNotContain(verifier.TestData.Module!.GetAllSynthesizedMembers(), s => s.Key.Name.Contains("<>O"));
     }
 
     [Fact]
@@ -156,11 +143,8 @@ class C
     static int Target(int x) => 0;
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        Assert.DoesNotContain(verifier.TestData.Module!.GetAllSynthesizedMembers(), s => s.Key.Name.Contains("<>O"));
     }
 
     [Fact]
@@ -174,11 +158,8 @@ class C
     static void Target() { }
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        Assert.Empty(verifier.TestData.Module!.GetAllSynthesizedMembers());
     }
 
     [Fact]
@@ -197,11 +178,8 @@ struct C
     }
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            Assert.Null(module.GlobalNamespace.GetMember<NamedTypeSymbol>("<>O"));
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        Assert.Empty(verifier.TestData.Module!.GetAllSynthesizedMembers());
     }
 
     [Fact]
@@ -2515,27 +2493,8 @@ class D
     public static void Target<V>() { }
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>O");
-            Assert.NotNull(container); Debug.Assert(container is { });
-            Assert.Equal(0, container.Arity);
-
-            var members = container.GetMembers();
-            Assert.Equal(1, members.Length);
-
-            var field = members[0] as FieldSymbol;
-            Assert.NotNull(field); Debug.Assert(field is { });
-            Assert.Equal("<0>__Target", field.Name);
-
-            var fieldType = field.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
-            Assert.True(fieldType.IsDelegateType());
-            Assert.Equal("System", fieldType.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType.Name);
-            Assert.Equal(0, fieldType.Arity);
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        verifier.VerifySynthesizedFields("C<T>.<>O", "System.Action <0>__Target");
     }
 
     [Fact]
@@ -2550,28 +2509,8 @@ class C<T>
     static V Target<V>() { return default(V); }
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>O");
-            Assert.NotNull(container); Debug.Assert(container is { });
-            Assert.Equal(0, container.Arity);
-
-            var members = container.GetMembers();
-            Assert.Equal(1, members.Length);
-
-            var field = members[0] as FieldSymbol;
-            Assert.NotNull(field); Debug.Assert(field is { });
-            Assert.Equal("<0>__Target", field.Name);
-
-            var fieldType = field.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
-            Assert.True(fieldType.IsDelegateType());
-            Assert.Equal("System", fieldType.ContainingNamespace.Name);
-            Assert.Equal("Func", fieldType.Name);
-            Assert.Equal(1, fieldType.Arity);
-            Assert.Equal(module.GlobalNamespace.GetTypeMember("C").TypeParameters[0], fieldType.TypeArguments()[0]);
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        verifier.VerifySynthesizedFields("C<T>.<>O", "System.Func<T> <0>__Target");
     }
 
     [Fact]
@@ -2587,23 +2526,8 @@ class C<T, V>
     static T Target() { return default(T); }
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>O");
-            Assert.NotNull(container); Debug.Assert(container is { });
-            Assert.Equal(0, container.Arity);
-
-            var members = container.GetMembers();
-            Assert.Equal(1, members.Length);
-
-            var field = members[0] as FieldSymbol;
-            Assert.NotNull(field); Debug.Assert(field is { });
-            Assert.Equal("<0>__Target", field.Name);
-
-            var fieldType = field.Type as NamedTypeSymbol;
-            Assert.Equal(module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.MyFunc"), fieldType);
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        verifier.VerifySynthesizedFields("C<T, V>.<>O", "C<T, V>.MyFunc <0>__Target");
     }
 
     [Fact]
@@ -2624,27 +2548,8 @@ class D
     public static void Target<B>() { }
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Test>O__0_0");
-            Assert.NotNull(container); Debug.Assert(container is { });
-            Assert.True(container.IsGenericType);
-
-            var members = container.GetMembers();
-            Assert.Equal(1, members.Length);
-
-            var field = members[0] as FieldSymbol;
-            Assert.NotNull(field); Debug.Assert(field is { });
-            Assert.Equal("<0>__Target", field.Name);
-
-            var fieldType = field.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
-            Assert.True(fieldType.IsDelegateType());
-            Assert.Equal("System", fieldType.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType.Name);
-            Assert.Equal(0, fieldType.Arity);
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        verifier.VerifySynthesizedFields("C.<Test>O__0_0<V>", "System.Action <0>__Target");
     }
 
     [Fact]
@@ -2665,30 +2570,8 @@ class D<B>
     public static B Target<H>(H h) => default(B);
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            var testClass = module.GlobalNamespace.GetTypeMember("C");
-            var container = testClass.GetTypeMember("<Test>O__0_0");
-            Assert.NotNull(container); Debug.Assert(container is { });
-            Assert.Equal(1, container.Arity);
-
-            var members = container.GetMembers();
-            Assert.Equal(1, members.Length);
-
-            var field = members[0] as FieldSymbol;
-            Assert.NotNull(field); Debug.Assert(field is { });
-            Assert.Equal("<0>__Target", field.Name);
-
-            var fieldType = field.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
-            Assert.True(fieldType.IsDelegateType());
-            Assert.Equal("System", fieldType.ContainingNamespace.Name);
-            Assert.Equal("Func", fieldType.Name);
-            Assert.Equal(2, fieldType.Arity);
-            Assert.Equal(testClass.TypeParameters[0], fieldType.TypeArguments()[0]);
-            Assert.Equal(container.TypeParameters[0], fieldType.TypeArguments()[1]);
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        verifier.VerifySynthesizedFields("C<T>.<Test>O__0_0<V>", "System.Func<T, V> <0>__Target");
     }
 
     [Fact]
@@ -2711,25 +2594,8 @@ static class D
     public static B Target<B>(this int num) => default(B);
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Test>O__2_0");
-            Assert.NotNull(container); Debug.Assert(container is { });
-            Assert.Equal(1, container.Arity);
-
-            var members = container.GetMembers();
-            Assert.Equal(1, members.Length);
-
-            var field = members[0] as FieldSymbol;
-            Assert.NotNull(field); Debug.Assert(field is { });
-            Assert.Equal("<0>__Target", field.Name);
-
-            var fieldType = field.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType); Debug.Assert(fieldType is { });
-            Assert.True(fieldType.IsDelegateType());
-            Assert.Equal(module.GlobalNamespace.GetMember<NamedTypeSymbol>("C.MyFunc"), fieldType);
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        verifier.VerifySynthesizedFields("C<A, T>.<Test>O__2_0<V>", "C<A, T>.MyFunc <0>__Target");
     }
 
     [Fact]
@@ -2798,107 +2664,17 @@ static class E
     public static void Target5<N>(this N n) { }
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            var A = module.GlobalNamespace.GetTypeMember("A");
-            var B = A.GetTypeMember("B");
-            var T = A.TypeParameters[0];
-            var V = B.TypeParameters[0];
-
-            var container = B.GetTypeMember("<>O");
-            Assert.NotNull(container); Debug.Assert(container is { });
-            Assert.Equal(0, container.Arity);
-
-            var members = container.GetMembers();
-            Assert.Equal(7, members.Length);
-
-            var field0 = members[0] as FieldSymbol;
-            Assert.NotNull(field0); Debug.Assert(field0 is { });
-            Assert.Equal("<0>__Target0", field0.Name);
-
-            var fieldType0 = field0.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType0); Debug.Assert(fieldType0 is { });
-            Assert.True(fieldType0.IsDelegateType());
-            Assert.Equal("System", fieldType0.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType0.Name);
-            Assert.Equal(1, fieldType0.Arity);
-            Assert.Equal(T, fieldType0.TypeArguments()[0]);
-
-            var field1 = members[1] as FieldSymbol;
-            Assert.NotNull(field1); Debug.Assert(field1 is { });
-            Assert.Equal("<1>__Target1", field1.Name);
-
-            var fieldType1 = field1.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType1); Debug.Assert(fieldType1 is { });
-            Assert.True(fieldType1.IsDelegateType());
-            Assert.Equal("System", fieldType1.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType1.Name);
-            Assert.Equal(1, fieldType1.Arity);
-            Assert.Equal(T, fieldType1.TypeArguments()[0]);
-
-            var field2 = members[2] as FieldSymbol;
-            Assert.NotNull(field2); Debug.Assert(field2 is { });
-            Assert.Equal("<2>__Target2", field2.Name);
-
-            var fieldType2 = field2.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType2); Debug.Assert(fieldType2 is { });
-            Assert.True(fieldType2.IsDelegateType());
-            Assert.Equal("System", fieldType2.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType2.Name);
-            Assert.Equal(1, fieldType2.Arity);
-            Assert.Equal(T, fieldType2.TypeArguments()[0]);
-
-            var field3 = members[3] as FieldSymbol;
-            Assert.NotNull(field3); Debug.Assert(field3 is { });
-            Assert.Equal("<3>__Target3", field3.Name);
-
-            var fieldType3 = field3.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType3); Debug.Assert(fieldType3 is { });
-            Assert.True(fieldType3.IsDelegateType());
-            Assert.Equal("System", fieldType3.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType3.Name);
-            Assert.Equal(2, fieldType3.Arity);
-            Assert.Equal(T, fieldType3.TypeArguments()[0]);
-            Assert.Equal(V, fieldType3.TypeArguments()[1]);
-
-            var field4 = members[4] as FieldSymbol;
-            Assert.NotNull(field4); Debug.Assert(field4 is { });
-            Assert.Equal("<4>__Target4", field4.Name);
-
-            var fieldType4 = field4.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType4); Debug.Assert(fieldType4 is { });
-            Assert.True(fieldType4.IsDelegateType());
-            Assert.Equal("System", fieldType4.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType4.Name);
-            Assert.Equal(2, fieldType4.Arity);
-            Assert.Equal(T, fieldType4.TypeArguments()[0]);
-            Assert.Equal(V, fieldType4.TypeArguments()[1]);
-
-            var field5 = members[5] as FieldSymbol;
-            Assert.NotNull(field5); Debug.Assert(field5 is { });
-            Assert.Equal("<5>__Target5", field5.Name);
-
-            var fieldType5 = field5.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType5); Debug.Assert(fieldType5 is { });
-            Assert.True(fieldType5.IsDelegateType());
-            Assert.Equal("System", fieldType5.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType5.Name);
-            Assert.Equal(1, fieldType5.Arity);
-            Assert.Equal(T, fieldType5.TypeArguments()[0]);
-
-            var field6 = members[6] as FieldSymbol;
-            Assert.NotNull(field6); Debug.Assert(field6 is { });
-            Assert.Equal("<6>__Target5", field6.Name);
-
-            var fieldType6 = field6.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType6); Debug.Assert(fieldType6 is { });
-            Assert.True(fieldType6.IsDelegateType());
-            Assert.Equal("System", fieldType6.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType6.Name);
-            Assert.Equal(1, fieldType6.Arity);
-            Assert.Equal(V, fieldType6.TypeArguments()[0]);
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        verifier.VerifySynthesizedFields(
+            "A<T>.B<V>.<>O"
+            , "System.Action<T> <0>__Target0"
+            , "System.Action<T> <1>__Target1"
+            , "System.Action<T> <2>__Target2"
+            , "System.Action<T, V> <3>__Target3"
+            , "System.Action<T, V> <4>__Target4"
+            , "System.Action<T> <5>__Target5"
+            , "System.Action<V> <6>__Target5"
+        );
     }
 
     [Fact]
@@ -2929,66 +2705,14 @@ static class E
     public static void Target3<V>(this C c) { }
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            var testClass = module.GlobalNamespace.GetTypeMember("C");
-            var container = testClass.GetTypeMember("<Test>O__0_0");
-            Assert.NotNull(container); Debug.Assert(container is { });
-
-            Assert.Equal(1, container.Arity);
-            var T = container.TypeParameters[0];
-
-            var members = container.GetMembers();
-            Assert.Equal(4, members.Length);
-
-
-            var field0 = members[0] as FieldSymbol;
-            Assert.NotNull(field0); Debug.Assert(field0 is { });
-            Assert.Equal("<0>__Target0", field0.Name);
-
-            var fieldType0 = field0.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType0); Debug.Assert(fieldType0 is { });
-            Assert.True(fieldType0.IsDelegateType());
-            Assert.Equal("System", fieldType0.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType0.Name);
-            Assert.Equal(0, fieldType0.Arity);
-
-            var field1 = members[1] as FieldSymbol;
-            Assert.NotNull(field1); Debug.Assert(field1 is { });
-            Assert.Equal("<1>__Target1", field1.Name);
-
-            var fieldType1 = field1.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType1); Debug.Assert(fieldType1 is { });
-            Assert.True(fieldType1.IsDelegateType());
-            Assert.Equal("System", fieldType1.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType1.Name);
-            Assert.Equal(1, fieldType1.Arity);
-            Assert.Equal(T, fieldType1.TypeArguments()[0]);
-
-            var field2 = members[2] as FieldSymbol;
-            Assert.NotNull(field2); Debug.Assert(field2 is { });
-            Assert.Equal("<2>__Target2", field2.Name);
-
-            var fieldType2 = field2.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType2); Debug.Assert(fieldType2 is { });
-            Assert.True(fieldType2.IsDelegateType());
-            Assert.Equal("System", fieldType2.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType2.Name);
-            Assert.Equal(0, fieldType2.Arity);
-
-            var field3 = members[3] as FieldSymbol;
-            Assert.NotNull(field3); Debug.Assert(field3 is { });
-            Assert.Equal("<3>__Target3", field3.Name);
-
-            var fieldType3 = field3.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType3); Debug.Assert(fieldType3 is { });
-            Assert.True(fieldType3.IsDelegateType());
-            Assert.Equal("System", fieldType3.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType3.Name);
-            Assert.Equal(1, fieldType3.Arity);
-            Assert.Equal(testClass, fieldType3.TypeArguments()[0]);
-        }
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        verifier.VerifySynthesizedFields(
+            "C.<Test>O__0_0<T>"
+            , "System.Action <0>__Target0"
+            , "System.Action<T> <1>__Target1"
+            , "System.Action <2>__Target2"
+            , "System.Action<C> <3>__Target3"
+        );
     }
 
     [Fact]
@@ -3019,68 +2743,14 @@ static class E
     public static void Target3<T>(this C c) { }
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            var testClass = module.GlobalNamespace.GetTypeMember("E");
-            var container = testClass.GetTypeMember("<Test>O__0_0");
-            Assert.NotNull(container); Debug.Assert(container is { });
-
-            Assert.Equal(1, container.Arity);
-            var T = container.TypeParameters[0];
-            var C = module.GlobalNamespace.GetTypeMember("C");
-
-            var members = container.GetMembers();
-            Assert.Equal(4, members.Length);
-
-
-            var field0 = members[0] as FieldSymbol;
-            Assert.NotNull(field0); Debug.Assert(field0 is { });
-            Assert.Equal("<0>__Target0", field0.Name);
-
-            var fieldType0 = field0.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType0); Debug.Assert(fieldType0 is { });
-            Assert.True(fieldType0.IsDelegateType());
-            Assert.Equal("System", fieldType0.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType0.Name);
-            Assert.Equal(0, fieldType0.Arity);
-
-            var field1 = members[1] as FieldSymbol;
-            Assert.NotNull(field1); Debug.Assert(field1 is { });
-            Assert.Equal("<1>__Target1", field1.Name);
-
-            var fieldType1 = field1.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType1); Debug.Assert(fieldType1 is { });
-            Assert.True(fieldType1.IsDelegateType());
-            Assert.Equal("System", fieldType1.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType1.Name);
-            Assert.Equal(1, fieldType1.Arity);
-            Assert.Equal(T, fieldType1.TypeArguments()[0]);
-
-            var field2 = members[2] as FieldSymbol;
-            Assert.NotNull(field2); Debug.Assert(field2 is { });
-            Assert.Equal("<2>__Target2", field2.Name);
-
-            var fieldType2 = field2.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType2); Debug.Assert(fieldType2 is { });
-            Assert.True(fieldType2.IsDelegateType());
-            Assert.Equal("System", fieldType2.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType2.Name);
-            Assert.Equal(0, fieldType2.Arity);
-
-            var field3 = members[3] as FieldSymbol;
-            Assert.NotNull(field3); Debug.Assert(field3 is { });
-            Assert.Equal("<3>__Target3", field3.Name);
-
-            var fieldType3 = field3.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType3); Debug.Assert(fieldType3 is { });
-            Assert.True(fieldType3.IsDelegateType());
-            Assert.Equal("System", fieldType3.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType3.Name);
-            Assert.Equal(1, fieldType3.Arity);
-            Assert.Equal(C, fieldType3.TypeArguments()[0]);
-        }
-
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        verifier.VerifySynthesizedFields(
+            "E.<Test>O__0_0<T>"
+            , "System.Action <0>__Target0"
+            , "System.Action<T> <1>__Target1"
+            , "System.Action <2>__Target2"
+            , "System.Action<C> <3>__Target3"
+        );
     }
 
     [Fact]
@@ -3118,30 +2788,11 @@ static class E
     }
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            var testClass = module.GlobalNamespace.GetTypeMember("E");
-            var container = testClass.GetTypeMember("<Test>O__0_0");
-            Assert.NotNull(container); Debug.Assert(container is { });
-
-            Assert.Equal(1, container.Arity);
-
-            var members = container.GetMembers();
-            Assert.Equal(1, members.Length);
-
-            var field0 = members[0] as FieldSymbol;
-            Assert.NotNull(field0); Debug.Assert(field0 is { });
-            Assert.Equal("<0>__Target", field0.Name);
-
-            var fieldType0 = field0.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType0); Debug.Assert(fieldType0 is { });
-            Assert.True(fieldType0.IsDelegateType());
-            Assert.Equal("System", fieldType0.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType0.Name);
-            Assert.Equal(1, fieldType0.Arity);
-        }
-
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        verifier.VerifySynthesizedFields(
+            "E.<Test>O__0_0<T>"
+            , "System.Action<T> <0>__Target"
+        );
     }
 
     [Fact]
@@ -3178,41 +2829,12 @@ static class E
     }
 }
 ";
-        static void containerValidator(ModuleSymbol module)
-        {
-            var testClass = module.GlobalNamespace.GetTypeMember("E");
-            var container = testClass.GetTypeMember("<Owner>O__0_0");
-            Assert.NotNull(container); Debug.Assert(container is { });
-
-            Assert.Equal(2, container.Arity);
-
-            var members = container.GetMembers();
-            Assert.Equal(2, members.Length);
-
-            var field0 = members[0] as FieldSymbol;
-            Assert.NotNull(field0); Debug.Assert(field0 is { });
-            Assert.Equal("<0>__LF2", field0.Name);
-
-            var fieldType0 = field0.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType0); Debug.Assert(fieldType0 is { });
-            Assert.True(fieldType0.IsDelegateType());
-            Assert.Equal("System", fieldType0.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType0.Name);
-            Assert.Equal(0, fieldType0.Arity);
-
-            var field1 = members[1] as FieldSymbol;
-            Assert.NotNull(field1); Debug.Assert(field1 is { });
-            Assert.Equal("<1>__LF2", field1.Name);
-
-            var fieldType1 = field1.Type as NamedTypeSymbol;
-            Assert.NotNull(fieldType1); Debug.Assert(fieldType1 is { });
-            Assert.True(fieldType1.IsDelegateType());
-            Assert.Equal("System", fieldType1.ContainingNamespace.Name);
-            Assert.Equal("Action", fieldType1.Name);
-            Assert.Equal(0, fieldType1.Arity);
-        }
-
-        CompileAndVerify(source, symbolValidator: containerValidator);
+        var verifier = CompileAndVerify(source);
+        verifier.VerifySynthesizedFields(
+            "E.<Owner>O__0_0<T, G>"
+            , "System.Action <0>__LF2"
+            , "System.Action <1>__LF2"
+        );
     }
 
     [Fact]
@@ -5377,8 +4999,30 @@ class Test
     static string Method() => ""PASS"";
 }
 ";
+        static void containerValidator(ModuleSymbol module)
+        {
+            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test.<M>O__1_0");
+            var field = Assert.Single(container.GetMembers()) as FieldSymbol;
+            Assert.NotNull(field); Debug.Assert(field is { });
+
+            var typeParameters = new List<TypeParameterSymbol>();
+            field.Type.VisitType(static (typeSymbol, typeParameters, _) =>
+            {
+                if (typeSymbol is TypeParameterSymbol typeParameter)
+                {
+                    typeParameters.Add(typeParameter);
+                }
+
+                return false;
+            },
+            typeParameters, visitCustomModifiers: true);
+
+            var typeParameter = Assert.Single(typeParameters);
+            Assert.Equal("G", typeParameter.Name);
+            Assert.Equal("<M>O__1_0", typeParameter.ContainingSymbol.Name);
+        }
         var compilation = CreateCompilationWithIL(source, ilSource, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(compilation, expectedOutput: PASS);
+        var verifier = CompileAndVerify(compilation, expectedOutput: PASS, symbolValidator: containerValidator);
         verifier.VerifyIL("Test.M<G>", @"
 {
   // Code size       42 (0x2a)
