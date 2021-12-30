@@ -4920,17 +4920,6 @@ class Test
 
 
 	// Methods
-	.method public hidebysig 
-		instance string Method () cil managed 
-	{
-		// Method begins at RVA 0x2118
-		// Code size 6 (0x6)
-		.maxstack 8
-
-		IL_0000: ldstr ""PASS""
-		IL_0005: ret
-	} // end of method C1`1::Method
-
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
