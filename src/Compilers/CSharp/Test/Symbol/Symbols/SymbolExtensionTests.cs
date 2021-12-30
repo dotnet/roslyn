@@ -275,8 +275,6 @@ class Test
             {
                 typeParameters.Free();
             }
-
-            //CompileAndVerify(compilation, expectedOutput: @"Method");
         }
 
         private void HasNameQualifierCore(string[] namespaceNames, NamedTypeSymbol type, string expectedName)
