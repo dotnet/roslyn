@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
 
@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (symbol.ContainingSymbol is IMethodSymbol method)
                 {
-                    if (method.MethodKind == MethodKind.EventAdd ||
-                        method.MethodKind == MethodKind.EventRemove ||
-                        method.MethodKind == MethodKind.PropertySet)
+                    if (method.MethodKind is MethodKind.EventAdd or
+                        MethodKind.EventRemove or
+                        MethodKind.PropertySet)
                     {
                         // the name is value in C#, and Value in VB
-                        return symbol.Name == "value" || symbol.Name == "Value";
+                        return symbol.Name is "value" or "Value";
                     }
                 }
             }

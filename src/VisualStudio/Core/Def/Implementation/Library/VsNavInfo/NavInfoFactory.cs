@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -13,14 +17,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         internal AbstractLibraryService LibraryService { get; }
 
         public NavInfoFactory(AbstractLibraryService libraryService)
-        {
-            LibraryService = libraryService;
-        }
+            => LibraryService = libraryService;
 
         public IVsNavInfo CreateForProject(Project project)
-        {
-            return new NavInfo(this, libraryName: GetLibraryName(project));
-        }
+            => new NavInfo(this, libraryName: GetLibraryName(project));
 
         public IVsNavInfo CreateForReference(MetadataReference reference)
         {
@@ -47,10 +47,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                     return CreateForType(typeSymbol, project, compilation, useExpandedHierarchy);
             }
 
-            if (symbol.Kind == SymbolKind.Event ||
-                symbol.Kind == SymbolKind.Field ||
-                symbol.Kind == SymbolKind.Method ||
-                symbol.Kind == SymbolKind.Property)
+            if (symbol.Kind is SymbolKind.Event or
+                SymbolKind.Field or
+                SymbolKind.Method or
+                SymbolKind.Property)
             {
                 return CreateForMember(symbol, project, compilation, useExpandedHierarchy);
             }
@@ -59,9 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         }
 
         public IVsNavInfo CreateForAssembly(IAssemblySymbol assemblySymbol)
-        {
-            return new NavInfo(this, libraryName: assemblySymbol.Identity.GetDisplayName());
-        }
+            => new NavInfo(this, libraryName: assemblySymbol.Identity.GetDisplayName());
 
         public IVsNavInfo CreateForNamespace(INamespaceSymbol namespaceSymbol, Project project, Compilation compilation, bool useExpandedHierarchy = false)
         {
@@ -97,10 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
             typeSymbol = typeSymbol.OriginalDefinition;
 
-            if (typeSymbol.TypeKind == TypeKind.Error ||
-                typeSymbol.TypeKind == TypeKind.Unknown ||
-                typeSymbol.TypeKind == TypeKind.Dynamic ||
-                typeSymbol.TypeKind == TypeKind.TypeParameter)
+            if (typeSymbol.TypeKind is TypeKind.Error or
+                TypeKind.Unknown or
+                TypeKind.Dynamic or
+                TypeKind.TypeParameter)
             {
                 return null;
             }
@@ -168,9 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         }
 
         public IVsNavInfo Create(string libraryName, string referenceOwnerName, string namespaceName, string className, string memberName)
-        {
-            return new NavInfo(this, libraryName, referenceOwnerName, namespaceName, className, memberName);
-        }
+            => new NavInfo(this, libraryName, referenceOwnerName, namespaceName, className, memberName);
 
         /// <summary>
         /// Returns a display name for the given project, walking its parent IVsHierarchy chain and
@@ -180,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         {
             var result = project.Name;
 
-            if (!(project.Solution.Workspace is VisualStudioWorkspace workspace))
+            if (project.Solution.Workspace is not VisualStudioWorkspace workspace)
             {
                 return result;
             }
@@ -201,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                 var builder = SharedPools.Default<StringBuilder>().AllocateAndClear();
                 builder.Append(result);
 
-                while (parentHierarchy != null && !(parentHierarchy is IVsSolution))
+                while (parentHierarchy is not null and not IVsSolution)
                 {
                     if (parentHierarchy.TryGetName(out var parentName))
                     {

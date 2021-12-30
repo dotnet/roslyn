@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 
@@ -9,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ITypeSymbol PointedAtType { get; }
 
         public CodeGenerationPointerTypeSymbol(ITypeSymbol pointedAtType)
-            : base(null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, NullableAnnotation.None)
+            : base(null, null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, NullableAnnotation.None)
         {
             this.PointedAtType = pointedAtType;
         }
@@ -25,14 +29,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override SymbolKind Kind => SymbolKind.PointerType;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitPointerType(this);
-        }
+            => visitor.VisitPointerType(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitPointerType(this);
-        }
+            => visitor.VisitPointerType(this);
 
         public ImmutableArray<CustomModifier> CustomModifiers
         {

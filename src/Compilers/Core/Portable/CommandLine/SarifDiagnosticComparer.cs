@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        public bool Equals(DiagnosticDescriptor x, DiagnosticDescriptor y)
+        public bool Equals(DiagnosticDescriptor? x, DiagnosticDescriptor? y)
         {
             if (ReferenceEquals(x, y))
             {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
                 && x.Id == y.Id
                 && x.IsEnabledByDefault == y.IsEnabledByDefault
                 && x.Title!.Equals(y.Title)
-                && x.CustomTags.SequenceEqual(y.CustomTags));
+                && x.ImmutableCustomTags.SequenceEqual(y.ImmutableCustomTags));
         }
 
         public int GetHashCode(DiagnosticDescriptor obj)
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
                 Hash.Combine(obj.Id!.GetHashCode(),
                 Hash.Combine(obj.IsEnabledByDefault.GetHashCode(),
                 Hash.Combine(obj.Title!.GetHashCode(),
-                Hash.CombineValues(obj.CustomTags))))))));
+                Hash.CombineValues(obj.ImmutableCustomTags))))))));
         }
     }
 }

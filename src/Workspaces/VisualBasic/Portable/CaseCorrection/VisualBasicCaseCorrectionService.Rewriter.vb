@@ -1,7 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -9,7 +10,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
-    Friend Partial Class VisualBasicCaseCorrectionService
+    Partial Friend Class VisualBasicCaseCorrectionService
         Private Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 
@@ -112,6 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                                         If param Is parameterSyntax Then
                                             Exit For
                                         End If
+
                                         ordinal = ordinal + 1
                                     Next
 
@@ -122,6 +124,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                                     ' Compiler will anyways generate an error for this case.
                                     Return CaseCorrectIdentifierIfNamesDiffer(token, newToken, otherPartParam, namesMustBeEqualIgnoringCase:=True)
                                 End If
+                            End If
+                        Else
+                            ' Named tuple expression
+                            Dim nameColonEquals = TryCast(token.Parent?.Parent, NameColonEqualsSyntax)
+                            If nameColonEquals IsNot Nothing AndAlso TypeOf nameColonEquals.Parent?.Parent Is TupleExpressionSyntax Then
+                                Return newToken
                             End If
                         End If
                     End If
@@ -254,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                 Return token
             End Function
 
-            Private Function VisitNumericLiteral(token As SyntaxToken) As SyntaxToken
+            Private Shared Function VisitNumericLiteral(token As SyntaxToken) As SyntaxToken
                 If Not token.IsMissing Then
 
                     ' For any numeric literal, we simply case correct any letters to uppercase.
@@ -275,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                 Return token
             End Function
 
-            Private Function VisitCharacterLiteral(token As SyntaxToken) As SyntaxToken
+            Private Shared Function VisitCharacterLiteral(token As SyntaxToken) As SyntaxToken
                 If Not token.IsMissing Then
 
                     ' For character literals, we case correct the type character to "c".

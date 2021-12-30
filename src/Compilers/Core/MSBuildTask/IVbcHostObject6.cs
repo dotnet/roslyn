@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     [Guid("10617623-DD4E-4E81-B4C3-46F55DC76E52")]
     public interface IVbcHostObject6 : IVbcHostObject5
     {
-        bool SetErrorLog(string errorLogFile);
+        bool SetErrorLog(string? errorLogFile);
         bool SetReportAnalyzer(bool reportAnalyzerInDiagnosticOutput);
     }
 }

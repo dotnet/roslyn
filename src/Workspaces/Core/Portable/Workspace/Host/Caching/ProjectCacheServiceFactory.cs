@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Composition;
@@ -11,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal class ProjectCacheServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ProjectCacheServiceFactory()
         {
         }
@@ -26,16 +31,10 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly IProjectCacheHostService _hostService;
 
             public Service(IProjectCacheHostService hostService)
-            {
-                _hostService = hostService;
-            }
+                => _hostService = hostService;
 
             public IDisposable EnableCaching(ProjectId key)
-            {
-                return _hostService != null
-                    ? _hostService.EnableCaching(key)
-                    : null;
-            }
+                => _hostService?.EnableCaching(key);
         }
     }
 }

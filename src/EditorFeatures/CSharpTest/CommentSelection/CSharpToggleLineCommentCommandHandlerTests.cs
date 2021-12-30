@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -52,7 +56,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
+        //var[||] i = 1;
     }
 }";
 
@@ -77,7 +81,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
+[||]        //var i = 1;
     }
 }";
 
@@ -102,7 +106,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
+        [|//var i = 1;|]
     }
 }";
 
@@ -127,7 +131,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
+        //var [|i = 1;|]
     }
 }";
 
@@ -181,7 +185,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1; // A comment.|]
+        //var i = 1; // A [|comment|].
     }
 }";
 
@@ -206,7 +210,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1; // A comment.|]
+        //var i = 1; [|// A comment.|]
     }
 }";
 
@@ -231,7 +235,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1; // A comment.|]
+        [|//var i = 1; // A comment.|]
     }
 }";
 
@@ -256,7 +260,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1; // A comment.|]
+        //var [||]i = 1; // A comment.
     }
 }";
 
@@ -281,7 +285,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1; // A comment.|]
+        //var i = 1; // A [||]comment.
     }
 }";
 
@@ -306,7 +310,7 @@ class C
 {
     void M()
     {
-[|        //string s = '\\';|]
+        [|//string s = '\\';|]
     }
 }";
 
@@ -332,7 +336,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;
+        [|//var i = 1;
         //var j = 2;|]
     }
 }";
@@ -392,7 +396,7 @@ class C
 {
     void M()
     {
-[|        ////var i = 1;
+        [|////var i = 1;
         //var j = 2;|]
     }
 }";
@@ -419,7 +423,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1; // A comment.
+        [|//var i = 1; // A comment.
         //var j = 2;|]
     }
 }";
@@ -475,8 +479,8 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
-[|        //var j = 2;|]
+        //var [||]i = 1;
+        //var [||]j = 2;
     }
 }";
 
@@ -502,8 +506,8 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
-[|        //var j = 2;|]
+        [|//var i = 1;|]
+        [|//var j = 2;|]
     }
 }";
 
@@ -519,7 +523,7 @@ class C
 {
     void M()
     {
-        [|//var i = 1;|]
+        [|//var i = |]1;
         [|var j = 2;|]
     }
 }";
@@ -529,8 +533,8 @@ class C
 {
     void M()
     {
-[|        ////var i = 1;|]
-[|        //var j = 2;|]
+        [|////var i = |]1;
+        [|//var j = 2;|]
     }
 }";
 
@@ -555,7 +559,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
+        [|//var i = 1;|]
     }
 }";
 
@@ -580,7 +584,7 @@ class C
 {
     void M()
     {
-[|        var i = 1;|]
+        var[||] i = 1;
     }
 }";
 
@@ -605,7 +609,7 @@ class C
 {
     void M()
     {
-[|        var i = 1;|]
+    [||]    var i = 1;
     }
 }";
 
@@ -630,7 +634,7 @@ class C
 {
     void M()
     {
-[|        var i = 1; // A comment.|]
+        var i = 1; // A [||]comment.
     }
 }";
 
@@ -655,7 +659,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
+        //var[||] i = 1;
     }
 }";
 
@@ -680,7 +684,7 @@ class C
 {
     void M()
     {
-[|        var i = 1;|]
+        [|var i = 1;|]
     }
 }";
 
@@ -705,7 +709,7 @@ class C
 {
     void M()
     {
-[|        var i = 1;|]
+        var [|i = 1;|]
     }
 }";
 
@@ -759,7 +763,7 @@ class C
 {
     void M()
     {
-[|        string s = '\\';|]
+        [|string s = '\\';|]
     }
 }";
 
@@ -785,7 +789,7 @@ class C
 {
     void M()
     {
-[|        var i = 1;
+        [|var i = 1;
         var j = 2;|]
     }
 }";
@@ -845,7 +849,7 @@ class C
 {
     void M()
     {
-[|        var i = 1; // A comment.
+        [|var i = 1; // A comment.
         var j = 2;|]
     }
 }";
@@ -902,9 +906,9 @@ class C
 {
     void M()
     {
-[|        var i = 1;|]
+        var [||]i = 1;
 [||]
-[|        var j = 2;|]
+        var [||]j = 2;
     }
 }";
 
@@ -931,9 +935,9 @@ class C
 {
     void M()
     {
-[|        var i = 1;|]
+        [|var i = 1;|]
 [||]
-[|        var j = 2;|]
+        [|var j = 2;|]
     }
 }";
 
@@ -958,7 +962,7 @@ class C
 {
     void M()
     {
-[|        var i = 1;|]
+        [|var i = 1;|]
     }
 }";
 
@@ -986,7 +990,7 @@ class C
 {
     void M()
     {
-[|        ////var i = 1;
+        [|////var i = 1;
 
         //var j = 2;|]
     }
@@ -996,13 +1000,12 @@ class C
 {
     void M()
     {
-[|        //var i = 1;
+        [|//var i = 1;
 
         var j = 2;|]
     }
 }"
         };
-
 
             ToggleCommentMultiple(markup, expected);
         }
@@ -1016,7 +1019,7 @@ class C
 {
     void M()
     {
-        [|//var i = 1;|]
+        [|//var i = |]1;
 [||]
         [|var j = 2;|]
     }
@@ -1028,9 +1031,9 @@ class C
 {
     void M()
     {
-[|        ////var i = 1;|]
+        [|////var i = |]1;
 [||]
-[|        //var j = 2;|]
+        [|//var j = 2;|]
     }
 }",
 @"
@@ -1038,13 +1041,12 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
+        [|//var i = |]1;
 [||]
-[|        var j = 2;|]
+        [|var j = 2;|]
     }
 }"
         };
-
 
             ToggleCommentMultiple(markup, expected);
         }
@@ -1055,7 +1057,7 @@ class C
                 .First(export => typeof(ToggleLineCommentCommandHandler).Equals(export.GetType()));
         }
 
-        internal override TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider)
-            => TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
+        internal override TestWorkspace GetWorkspace(string markup, TestComposition composition)
+            => TestWorkspace.CreateCSharp(markup, composition: composition);
     }
 }

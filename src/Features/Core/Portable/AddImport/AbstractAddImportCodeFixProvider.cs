@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -11,7 +16,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider
     {
-        private const int MaxResults = 3;
+        private const int MaxResults = 5;
 
         private readonly IPackageInstallerService _packageInstallerService;
         private readonly ISymbolSearchService _symbolSearchService;
@@ -26,6 +31,14 @@ namespace Microsoft.CodeAnalysis.AddImport
             _packageInstallerService = packageInstallerService;
             _symbolSearchService = symbolSearchService;
         }
+
+        /// <summary>
+        /// Add-using gets special privileges as being the most used code-action, along with being a core
+        /// 'smart tag' feature in VS prior to us even having 'light bulbs'.  We want them to be computed
+        /// first, ahead of everything else, and the main results should show up at the top of the list.
+        /// </summary>
+        private protected override CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.High;
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
@@ -55,7 +68,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var installerService = GetPackageInstallerService(document);
             var packageSources = searchNuGetPackages && symbolSearchService != null && installerService?.IsEnabled(document.Project.Id) == true
-                ? installerService.GetPackageSources()
+                ? installerService.TryGetPackageSources()
                 : ImmutableArray<PackageSource>.Empty;
 
             var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(

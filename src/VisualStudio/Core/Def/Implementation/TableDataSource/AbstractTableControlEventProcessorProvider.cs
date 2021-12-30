@@ -1,7 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using Microsoft.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -9,23 +11,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         where TItem : TableItem
     {
         public ITableControlEventProcessor GetAssociatedEventProcessor(IWpfTableControl tableControl)
-        {
-            return CreateEventProcessor();
-        }
+            => CreateEventProcessor();
 
         protected virtual EventProcessor CreateEventProcessor()
-        {
-            return new EventProcessor();
-        }
+            => new();
 
         protected class EventProcessor : TableControlEventProcessorBase
         {
-            protected static AbstractTableEntriesSnapshot<TItem> GetEntriesSnapshot(ITableEntryHandle entryHandle)
-            {
-                return GetEntriesSnapshot(entryHandle, out var index);
-            }
+            protected static AbstractTableEntriesSnapshot<TItem>? GetEntriesSnapshot(ITableEntryHandle entryHandle)
+                => GetEntriesSnapshot(entryHandle, out _);
 
-            protected static AbstractTableEntriesSnapshot<TItem> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
+            protected static AbstractTableEntriesSnapshot<TItem>? GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
             {
                 if (!entryHandle.TryGetSnapshot(out var snapshot, out index))
                 {
@@ -48,7 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // we might fail to navigate if we don't see the document in our solution anymore.
                 // that can happen if error is staled build error or user used #line pragma in C#
                 // to point to some random file in error or more.
-                e.Handled = roslynSnapshot.TryNavigateTo(index, e.IsPreview);
+
+                // TODO: Use a threaded-wait-dialog here so we can cancel navigation.
+                e.Handled = roslynSnapshot.TryNavigateTo(index, e.IsPreview, e.ShouldActivate, CancellationToken.None);
             }
         }
     }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Windows;
@@ -13,7 +17,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
-    internal partial class DebuggerTextView : IWpfTextView, IDebuggerTextView, ITextView2
+    internal partial class DebuggerTextView : IWpfTextView, IDebuggerTextView2, ITextView2
     {
         /// <summary>
         /// The actual debugger view of the watch or immediate window that we're wrapping
@@ -219,10 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         public ITextDataModel TextDataModel
         {
-            get
-            {
-                throw new NotSupportedException();
-            }
+            get { return _innerTextView.TextDataModel; }
         }
 
         public ITextBuffer TextBuffer
@@ -315,49 +316,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         public void Close()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public void DisplayTextLineContainingBufferPosition(SnapshotPoint bufferPosition, double verticalDistance, ViewRelativePosition relativeTo, double? viewportWidthOverride, double? viewportHeightOverride)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public void DisplayTextLineContainingBufferPosition(SnapshotPoint bufferPosition, double verticalDistance, ViewRelativePosition relativeTo)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public SnapshotSpan GetTextElementSpan(SnapshotPoint point)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public ITextViewLine GetTextViewLineContainingBufferPosition(SnapshotPoint bufferPosition)
-        {
-            return _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
-        }
+            => _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
 
         public void QueueSpaceReservationStackRefresh()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public IAdornmentLayer GetAdornmentLayer(string name)
-        {
-            return _innerTextView.GetAdornmentLayer(name);
-        }
+            => _innerTextView.GetAdornmentLayer(name);
 
         public ISpaceReservationManager GetSpaceReservationManager(string name)
-        {
-            return _innerTextView.GetSpaceReservationManager(name);
-        }
+            => _innerTextView.GetSpaceReservationManager(name);
 
         IWpfTextViewLine IWpfTextView.GetTextViewLineContainingBufferPosition(SnapshotPoint bufferPosition)
-        {
-            return _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
-        }
+            => _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
 
         public void Cleanup()
         {

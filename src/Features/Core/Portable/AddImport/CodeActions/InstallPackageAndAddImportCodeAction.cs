@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -46,13 +50,12 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 // Make a SolutionChangeAction.  This way we can let it generate the diff
                 // preview appropriately.
-                var solutionChangeAction = new SolutionChangeAction(
-                    "", c => GetUpdatedSolutionAsync(c));
+                var solutionChangeAction = new SolutionChangeAction("", c => GetUpdatedSolutionAsync(c), "");
 
-                var result = ArrayBuilder<CodeActionOperation>.GetInstance();
+                using var _ = ArrayBuilder<CodeActionOperation>.GetInstance(out var result);
                 result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false));
                 result.Add(_installOperation);
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             private async Task<Solution> GetUpdatedSolutionAsync(CancellationToken cancellationToken)
@@ -110,7 +113,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             internal override bool ApplyDuringTests => _installPackageOperation.ApplyDuringTests;
             public override string Title => _installPackageOperation.Title;
 
-            internal override bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+            internal override async Task<bool> TryApplyAsync(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
             {
                 var newSolution = workspace.CurrentSolution.WithDocumentText(
                     _changedDocumentId, _newText);
@@ -118,7 +121,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // First make the changes to add the import to the document.
                 if (workspace.TryApplyChanges(newSolution, progressTracker))
                 {
-                    if (_installPackageOperation.TryApply(workspace, progressTracker, cancellationToken))
+                    if (await _installPackageOperation.TryApplyAsync(workspace, progressTracker, cancellationToken).ConfigureAwait(true))
                     {
                         return true;
                     }

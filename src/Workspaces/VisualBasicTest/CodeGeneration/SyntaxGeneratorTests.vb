@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Editing
@@ -13,9 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
     Public Class SyntaxGeneratorTests
         Private _g As SyntaxGenerator
 
-        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System})
+        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestMetadata.Net451.mscorlib, TestMetadata.Net451.System})
 
-        Private _ienumerableInt As INamedTypeSymbol
+        Private ReadOnly _ienumerableInt As INamedTypeSymbol
 
         Public Sub New()
             Me._ienumerableInt = _emptyCompilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_emptyCompilation.GetSpecialType(SpecialType.System_Int32))
@@ -31,24 +33,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
             End Get
         End Property
 
-        Public Function Compile(code As String) As Compilation
-            Return VisualBasicCompilation.Create("test").AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
+        Public Shared Function Compile(code As String) As Compilation
+            Return VisualBasicCompilation.Create("test").AddReferences(TestMetadata.Net451.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
         End Function
 
-        Private Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
+        Private Shared Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim normalized = type.NormalizeWhitespace().ToFullString()
             Dim fixedExpectations = expectedText.Replace(vbCrLf, vbLf).Replace(vbLf, vbCrLf)
             Assert.Equal(fixedExpectations, normalized)
         End Sub
 
-        Private Sub VerifySyntaxRaw(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
+        Private Shared Sub VerifySyntaxRaw(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim text = type.ToFullString()
             Assert.Equal(expectedText, text)
         End Sub
 
-        Private Function ParseCompilationUnit(text As String) As CompilationUnitSyntax
+        Private Shared Function ParseCompilationUnit(text As String) As CompilationUnitSyntax
             Dim fixedText = text.Replace(vbLf, vbCrLf)
             Return SyntaxFactory.ParseCompilationUnit(fixedText)
         End Function
@@ -196,14 +198,14 @@ End Class
             VerifySyntax(Of AttributeListSyntax)(Generator.Attribute(GetAttributeData("
 Imports System
 Public Class MyAttribute
-  Inherits Attribute 
+  Inherits Attribute
   Public Property Value As Integer
 End Class
 ", "<MyAttribute(Value := 123)>")), "<Global.MyAttribute(Value:=123)>")
 
         End Sub
 
-        Private Function GetAttributeData(decl As String, use As String) As AttributeData
+        Private Shared Function GetAttributeData(decl As String, use As String) As AttributeData
             Dim code = decl & vbCrLf & use & vbCrLf & "Public Class C " & vbCrLf & "End Class" & vbCrLf
             Dim compilation = Compile(code)
             Dim typeC = DirectCast(compilation.GlobalNamespace.GetMembers("C").First, INamedTypeSymbol)
@@ -551,8 +553,6 @@ End If")
 
         <Fact>
         Public Sub TestSwitchStatements()
-            Dim x = 10
-
             VerifySyntax(Of SelectBlockSyntax)(
                 Generator.SwitchStatement(Generator.IdentifierName("x"),
                     Generator.SwitchSection(Generator.IdentifierName("y"),
@@ -787,7 +787,7 @@ End Sub")
         End Sub
 
         <Fact, WorkItem(31720, "https://github.com/dotnet/roslyn/issues/31720")>
-        Sub TestGetAttributeOnMethodBodies()
+        Public Sub TestGetAttributeOnMethodBodies()
             Dim compilation = Compile("
 Imports System
 <AttributeUsage(System.AttributeTargets.All)>
@@ -1648,7 +1648,6 @@ End Namespace")
 End Namespace")
         End Sub
 
-
         <Fact>
         Public Sub TestCompilationUnits()
             VerifySyntax(Of CompilationUnitSyntax)(
@@ -1748,7 +1747,7 @@ End Property")
     End Set
 End Property")
 
-            ' convert private method to public 
+            ' convert private method to public
             Dim pim = Generator.AsPrivateInterfaceImplementation(
                     Generator.MethodDeclaration("m", returnType:=Generator.IdentifierName("t")),
                     Generator.IdentifierName("i"))
@@ -2203,10 +2202,10 @@ Class C
   Custom Event MyEvent As MyDelegate
       AddHandler(ByVal value As MyDelegate)
       End AddHandler
- 
+
       RemoveHandler(ByVal value As MyDelegate)
       End RemoveHandler
- 
+
       RaiseEvent(ByVal message As String)
       End RaiseEvent
   End Event
@@ -2272,6 +2271,26 @@ End Class ' end")
     Event PropertyChanged As Global.System.ComponentModel.PropertyChangedEventHandler
 
 End Interface")
+        End Sub
+
+        <Fact>
+        Public Sub TestEnumDeclarationFromSymbol()
+            VerifySyntax(Of EnumBlockSyntax)(Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.DateTimeKind")),
+"Public Enum DateTimeKind
+    Unspecified = 0
+    Utc = 1
+    Local = 2
+End Enum")
+        End Sub
+
+        <Fact>
+        Public Sub TestEnumWithUnderlyingTypeFromSymbol()
+            VerifySyntax(Of EnumBlockSyntax)(Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
+"Public Enum SecurityRuleSet As Byte
+    None = CByte(0)
+    Level1 = CByte(1)
+    Level2 = CByte(2)
+End Enum")
         End Sub
 #End Region
 
@@ -2532,6 +2551,18 @@ End Class
             Assert.Equal(DeclarationModifiers.None, Generator.GetModifiers(Generator.WithModifiers(Generator.LocalDeclarationStatement(Generator.IdentifierName("t"), "loc"), DeclarationModifiers.Abstract)))
             Assert.Equal(DeclarationModifiers.None, Generator.GetModifiers(Generator.WithModifiers(Generator.Attribute("a"), DeclarationModifiers.Abstract)))
             Assert.Equal(DeclarationModifiers.None, Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.TypeParameter("tp"), DeclarationModifiers.Abstract)))
+        End Sub
+
+        <Fact>
+        Public Sub TestWithModifiers_Sealed()
+            Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
+            Dim classBlockWithModifiers = Generator.WithModifiers(classBlock, DeclarationModifiers.Sealed)
+            VerifySyntax(Of ClassBlockSyntax)(classBlockWithModifiers, "NotInheritable Class C
+End Class")
+
+            Dim classStatement = classBlock.ClassStatement
+            Dim classStatementWithModifiers = Generator.WithModifiers(classStatement, DeclarationModifiers.Sealed)
+            VerifySyntax(Of ClassStatementSyntax)(classStatementWithModifiers, "NotInheritable Class C")
         End Sub
 
         <Fact>
@@ -2967,11 +2998,6 @@ End Get")
 
         Private Sub TestRemoveAllMembers(declaration As SyntaxNode)
             Assert.Equal(0, Generator.GetMembers(Generator.RemoveNodes(declaration, Generator.GetMembers(declaration))).Count)
-        End Sub
-
-        Private Sub TestRemoveMember(declaration As SyntaxNode, name As String, remainingNames As String())
-            Dim newDecl = Generator.RemoveNode(declaration, Generator.GetMembers(declaration).First(Function(m) Generator.GetName(m) = name))
-            AssertMemberNamesEqual(remainingNames, newDecl)
         End Sub
 
         <Fact>
@@ -3440,7 +3466,7 @@ Public Class C
     Public Shared Z, Y, Z As Integer
 End Class")
 
-            ' Removing 
+            ' Removing
             VerifySyntax(Of ClassBlockSyntax)(
                 Generator.RemoveNode(declC, declX),
 "' Comment

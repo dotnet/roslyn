@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -254,17 +254,16 @@ namespace Roslyn.Utilities
 
         internal static int GetCaseInsensitiveFNVHashCode(string text)
         {
-            return GetCaseInsensitiveFNVHashCode(text, 0, text.Length);
+            return GetCaseInsensitiveFNVHashCode(text.AsSpan(0, text.Length));
         }
 
-        internal static int GetCaseInsensitiveFNVHashCode(string text, int start, int length)
+        internal static int GetCaseInsensitiveFNVHashCode(ReadOnlySpan<char> data)
         {
             int hashCode = Hash.FnvOffsetBias;
-            int end = start + length;
 
-            for (int i = start; i < end; i++)
+            for (int i = 0; i < data.Length; i++)
             {
-                hashCode = unchecked((hashCode ^ CaseInsensitiveComparison.ToLower(text[i])) * Hash.FnvPrime);
+                hashCode = unchecked((hashCode ^ CaseInsensitiveComparison.ToLower(data[i])) * Hash.FnvPrime);
             }
 
             return hashCode;

@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -28,16 +28,20 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Returns an existing open stream or null if no stream has been open.
             /// </summary>
-            public abstract Stream Stream { get; }
+            public abstract Stream? Stream { get; }
 
             /// <summary>
             /// This method will be called once during Emit at the time the Compilation needs 
             /// to create a stream for writing. It will not be called in the case of
             /// user errors in code. Shall not be called when <see cref="Stream"/> returns non-null.
             /// </summary>
-            public abstract Stream CreateStream(DiagnosticBag diagnostics);
+            protected abstract Stream? CreateStream(DiagnosticBag diagnostics);
 
-            public Stream GetOrCreateStream(DiagnosticBag diagnostics)
+            /// <summary>
+            /// Returns a <see cref="Stream"/>. If one cannot be gotten or created then a diagnostic will 
+            /// be added to <paramref name="diagnostics"/>
+            /// </summary>
+            public Stream? GetOrCreateStream(DiagnosticBag diagnostics)
             {
                 return Stream ?? CreateStream(diagnostics);
             }
@@ -55,7 +59,7 @@ namespace Microsoft.CodeAnalysis
 
             public override Stream Stream => _stream;
 
-            public override Stream CreateStream(DiagnosticBag diagnostics)
+            protected override Stream CreateStream(DiagnosticBag diagnostics)
             {
                 throw ExceptionUtilities.Unreachable;
             }

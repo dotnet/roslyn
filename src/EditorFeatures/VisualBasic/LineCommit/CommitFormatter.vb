@@ -1,25 +1,25 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Indentation
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     <Export(GetType(ICommitFormatter))>
     Friend Class CommitFormatter
         Implements ICommitFormatter
-
-        Private ReadOnly _indentationManagerService As IIndentationManagerService
 
         Private Shared ReadOnly s_codeCleanupPredicate As Func(Of ICodeCleanupProvider, Boolean) =
             Function(p)
@@ -27,9 +27,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                        p.Name <> PredefinedCodeCleanupProviderNames.Format
             End Function
 
+        Private ReadOnly _globalOptions As IGlobalOptionService
+
         <ImportingConstructor>
-        Public Sub New(indentationManagerService As IIndentationManagerService)
-            _indentationManagerService = indentationManagerService
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New(globalOptions As IGlobalOptionService)
+            _globalOptions = globalOptions
         End Sub
 
         Public Sub CommitRegion(spanToFormat As SnapshotSpan,
@@ -48,28 +51,33 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 spanToFormat = spanToFormat.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
                 dirtyRegion = dirtyRegion.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
 
-                Dim document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+                ' Use frozen partial semantics here.  We're operating on the UI thread, and we don't want to block the
+                ' user indefinitely while getting full semantics for this projects (which can require building all
+                ' projects we depend on).
+                Dim document = currentSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken)
                 If document Is Nothing Then
                     Return
                 End If
 
-                Dim documentOptions = document.GetDocumentOptionsWithInferredIndentationAsync(isExplicitFormat, _indentationManagerService, cancellationToken).WaitAndGetResult(cancellationToken)
-                If Not (isExplicitFormat OrElse documentOptions.GetOption(FeatureOnOffOptions.PrettyListing)) Then
+                If Not (isExplicitFormat OrElse _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
                     Return
                 End If
 
                 Dim textSpanToFormat = spanToFormat.Span.ToTextSpan()
-                If AbortForDiagnostics(document, textSpanToFormat, cancellationToken) Then
+                If AbortForDiagnostics(document, cancellationToken) Then
                     Return
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
+                Dim inferredIndentationService = document.Project.Solution.Workspace.Services.GetRequiredService(Of IInferredIndentationService)()
+                Dim documentOptions = inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                                                 document,
                                                 documentOptions,
                                                 spanToFormat,
                                                 baseSnapshot, baseTree,
-                                                dirtyRegion, document.GetSyntaxTreeSynchronously(cancellationToken),
+                                                dirtyRegion,
+                                                document.GetSyntaxTreeSynchronously(cancellationToken),
                                                 cancellationToken)
 
                 Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
@@ -105,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Using
         End Sub
 
-        Private Function AbortForDiagnostics(document As Document, textSpanToFormat As TextSpan, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function AbortForDiagnostics(document As Document, cancellationToken As CancellationToken) As Boolean
             Const UnterminatedStringId = "BC30648"
 
             Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
@@ -119,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return diagnostics.Any()
         End Function
 
-        Private Function GetCommitFormattingCleanupProvider(
+        Private Shared Function GetCommitFormattingCleanupProvider(
             document As Document,
             documentOptions As DocumentOptionSet,
             spanToFormat As SnapshotSpan,
@@ -139,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                  Function(r, spans, w, c) Format(r, spans, w, documentOptions, rules, c))
         End Function
 
-        Private Async Function FormatAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Async Function FormatAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
@@ -152,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return Await Formatter.FormatAsync(document, spans, options, rules, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Function Format(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
+        Private Shared Function Format(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
@@ -170,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return Formatter.Format(root, spans, workspace, options, rules, cancellationToken)
         End Function
 
-        Private Function GetFormattingRules(
+        Private Shared Function GetFormattingRules(
             document As Document,
             documentOptions As DocumentOptionSet,
             spanToFormat As SnapshotSpan,
@@ -232,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return Formatter.GetDefaultFormattingRules(document)
         End Function
 
-        Private Function GetNumberOfIndentOperations(document As Document,
+        Private Shared Function GetNumberOfIndentOperations(document As Document,
                                                      documentOptions As DocumentOptionSet,
                                                      SyntaxTree As SyntaxTree,
                                                      Span As SnapshotSpan,
@@ -247,11 +255,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
             Dim node = token.Parent
 
+            Dim optionService = document.Project.Solution.Workspace.Services.GetRequiredService(Of IOptionService)()
+            Dim options = documentOptions.AsAnalyzerConfigOptions(optionService, node?.Language)
+
             ' collect all indent operation
             Dim operations = New List(Of IndentBlockOperation)()
             While node IsNot Nothing
                 operations.AddRange(FormattingOperations.GetIndentBlockOperations(
-                                    Formatter.GetDefaultFormattingRules(document), node, optionSet:=documentOptions))
+                                    Formatter.GetDefaultFormattingRules(document), node, options))
                 node = node.Parent
             End While
 
@@ -262,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private Class NoAnchorFormatterRule
             Inherits CompatAbstractFormattingRule
 
-            Public Overrides Sub AddAnchorIndentationOperationsSlow(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAnchorIndentationOperationAction)
+            Public Overrides Sub AddAnchorIndentationOperationsSlow(list As List(Of AnchorIndentationOperation), node As SyntaxNode, ByRef nextOperation As NextAnchorIndentationOperationAction)
                 ' no anchor/relative formatting
                 Return
             End Sub

@@ -1,4 +1,10 @@
-﻿using System.Linq;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -48,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.Equal(4, options.GetOption(FormattingOptions.IndentationSize));
         }
 
-        private TestWorkspace CreateWithLines(params string[] lines)
+        private static TestWorkspace CreateWithLines(params string[] lines)
         {
             var workspace = TestWorkspace.CreateCSharp(string.Join("\r\n", lines), openDocuments: true);
             var editorOptionsFactoryService = workspace.ExportProvider.GetExportedValue<IEditorOptionsFactoryService>();

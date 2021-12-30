@@ -1,14 +1,14 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.MetadataAsSource
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
@@ -19,9 +19,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
         Inherits AbstractMetadataAsSourceService
 
         Private ReadOnly _memberSeparationRule As AbstractFormattingRule = New FormattingRule()
+        Public Shared ReadOnly Instance As New VisualBasicMetadataAsSourceService()
 
-        Public Sub New(languageServices As HostLanguageServices)
-            MyBase.New(languageServices.GetService(Of ICodeGenerationService)())
+        Private Sub New()
         End Sub
 
         Protected Overrides Async Function AddAssemblyInfoRegionAsync(document As Document, symbolCompilation As Compilation, symbol As ISymbol, cancellationToken As CancellationToken) As Task(Of Document)
@@ -50,7 +50,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
             Return document.WithSyntaxRoot(newRoot)
         End Function
 
-        Protected Overrides Async Function ConvertDocCommentsToRegularComments(document As Document, docCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As Task(Of Document)
+        Protected Overrides Function AddNullableRegionsAsync(document As Document, cancellationToken As CancellationToken) As Task(Of Document)
+            ' VB has no equivalent to #nullable enable
+            Return Task.FromResult(document)
+        End Function
+
+        Protected Overrides Async Function ConvertDocCommentsToRegularCommentsAsync(document As Document, docCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As Task(Of Document)
             Dim syntaxRoot = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim newSyntaxRoot = DocCommentConverter.ConvertToRegularComments(syntaxRoot, docCommentFormattingService, cancellationToken)
@@ -106,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
                 Return FormattingOperations.CreateAdjustNewLinesOperation(GetNumberOfLines(triviaList) + 1, AdjustNewLinesOption.ForceLines)
             End Function
 
-            Public Overrides Sub AddAnchorIndentationOperationsSlow(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAnchorIndentationOperationAction)
+            Public Overrides Sub AddAnchorIndentationOperationsSlow(list As List(Of AnchorIndentationOperation), node As SyntaxNode, ByRef nextOperation As NextAnchorIndentationOperationAction)
                 Return
             End Sub
 
@@ -114,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
                 Return c = vbCr OrElse c = vbLf OrElse SyntaxFacts.IsNewLine(c)
             End Function
 
-            Private Function ValidTopLevelDeclaration(node As DeclarationStatementSyntax) As Boolean
+            Private Shared Function ValidTopLevelDeclaration(node As DeclarationStatementSyntax) As Boolean
                 Select Case node.Kind
                     Case SyntaxKind.SubStatement,
                          SyntaxKind.FunctionStatement,

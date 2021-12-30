@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -6,17 +10,21 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
+using static Microsoft.CodeAnalysis.Formatting.FormattingOptions2;
+using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
@@ -29,18 +37,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         /// this known test infrastructure issure. This bug does not represent a product
         /// failure.
         /// </summary>
-        private void TestWorker(
+        private static void TestWorker(
             string inputMarkup,
             string expectedOutputMarkup,
             Action callback,
             bool verifyUndo = true,
-            IndentStyle indentStyle = IndentStyle.Smart)
+            IndentStyle indentStyle = IndentStyle.Smart,
+            bool useTabs = false)
         {
             using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
-            workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+
+            // TODO: set SmartIndent to textView.Options (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1412138)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp, indentStyle)));
+
+            if (useTabs && expectedOutputMarkup != null)
+            {
+                Assert.Contains("\t", expectedOutputMarkup);
+            }
 
             var document = workspace.Documents.Single();
             var view = document.GetTextView();
+
+            view.Options.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
+            view.Options.SetOptionValue(DefaultOptions.TabSizeOptionId, 4);
 
             var originalSnapshot = view.TextBuffer.CurrentSnapshot;
             var originalSelections = document.SelectedSpans;
@@ -50,12 +70,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             {
                 snapshotSpans.Add(selection.ToSnapshotSpan(originalSnapshot));
             }
+
             view.SetMultiSelection(snapshotSpans);
 
             var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
-            var commandHandler = new SplitStringLiteralCommandHandler(
-                undoHistoryRegistry,
-                workspace.GetService<IEditorOperationsFactoryService>());
+            var commandHandler = workspace.ExportProvider.GetCommandHandler<SplitStringLiteralCommandHandler>(nameof(SplitStringLiteralCommandHandler));
 
             if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create()))
             {
@@ -89,9 +108,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         /// this known test infrastructure issure. This bug does not represent a product
         /// failure.
         /// </summary>
-        private void TestHandled(
+        private static void TestHandled(
             string inputMarkup, string expectedOutputMarkup,
-            bool verifyUndo = true, IndentStyle indentStyle = IndentStyle.Smart)
+            bool verifyUndo = true, IndentStyle indentStyle = IndentStyle.Smart,
+            bool useTabs = false)
         {
             TestWorker(
                 inputMarkup, expectedOutputMarkup,
@@ -99,10 +119,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 {
                     Assert.True(false, "Should not reach here.");
                 },
-                verifyUndo, indentStyle);
+                verifyUndo, indentStyle, useTabs);
         }
 
-        private void TestNotHandled(string inputMarkup)
+        private static void TestNotHandled(string inputMarkup)
         {
             var notHandled = false;
             TestWorker(
@@ -831,6 +851,54 @@ $""[||]"";
             $""[||]ello {location}!"";
     }
 }");
+        }
+
+        [WorkItem(40277, "https://github.com/dotnet/roslyn/issues/40277")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestInStringWithKeepTabsEnabled1()
+        {
+            TestHandled(
+@"class C
+{
+	void M()
+	{
+		var s = ""Hello [||]world"";
+	}
+}",
+@"class C
+{
+	void M()
+	{
+		var s = ""Hello "" +
+			""[||]world"";
+	}
+}",
+            useTabs: true);
+        }
+
+        [WorkItem(40277, "https://github.com/dotnet/roslyn/issues/40277")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestInStringWithKeepTabsEnabled2()
+        {
+            TestHandled(
+@"class C
+{
+	void M()
+	{
+		var s = ""Hello "" +
+			""there [||]world"";
+	}
+}",
+@"class C
+{
+	void M()
+	{
+		var s = ""Hello "" +
+			""there "" +
+			""[||]world"";
+	}
+}",
+            useTabs: true);
         }
     }
 }

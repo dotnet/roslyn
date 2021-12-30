@@ -91,7 +91,8 @@ Invocation of methods annotated with the following attributes will also affect f
 - conditional post-conditions: `[MaybeNullWhen(bool)]` and `[NotNullWhen(bool)]`
 - `[DoesNotReturnIf(bool)]` (e.g. `[DoesNotReturnIf(false)]` for `Debug.Assert`) and `[DoesNotReturn]`
 - `[NotNullIfNotNull(string)]`
-See https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md
+ - member post-conditions: `[MemberNotNull(params string[])]` and `[MemberNotNullWhen(bool, params string[])]`
+See https://github.com/dotnet/csharplang/blob/main/meetings/2019/LDM-2019-05-15.md
 
 The `Interlocked.CompareExchange` methods have special handling in flow analysis instead of being annotated due to the complexity of their nullability semantics. The affected overloads include:
 - `static object? System.Threading.Interlocked.CompareExchange(ref object? location, object? value, object? comparand)`
@@ -99,7 +100,25 @@ The `Interlocked.CompareExchange` methods have special handling in flow analysis
 
 When simple pre- and post-condition attributes are applied to a property, and an allowed input state is assigned to the property, the property's state is updated to be an allowed output state. For instance an `[AllowNull] string` property can be assigned `null` and still return not-null values.
 
-The use of any member returning `[MaybeNull]T` for an unconstrained type parameter `T` produces a warning, just like `default(T)` (see below). For instance, `listT.FirstOrDefault();` would produce a warning.
+
+Enforcing nullability attributes within method bodies:
+- An input parameter marked with `[AllowNull]` is initialized with a maybe-null (or maybe-default) state.
+- An input parameter marked with `[DisallowNull]` is initialized with a not-null state.
+- A parameter marked with `[MaybeNull]` or `[MaybeNullWhen]` can be assigned a maybe-null value, without warning. Same for return values. Same for a nullable parameter marked with `[NotNullWhen]` (the attribute is ignored).
+- A parameter marked with `[NotNull]` will produce a warning when assigned a maybe-null value. Same for return values.
+- The state of a parameter marked with `[MaybeNullWhen]`/`[NotNullWhen]` is checked upon exiting the method instead.
+- A method marked with `[DoesNotReturn]` will produce a warning if it returns or exits normally.
+
+Note: we don't validate the internal consistency of auto-properties, so it is possible to misuse attributes on auto-props as on fields. For example: `[AllowNull, NotNull] public TOpen P { get; set; }`.
+
+Enforcing nullability attributes when overriding and implementing:
+In addition to checking the types in overrides/implementations are compatible with overridden/implemented members, we also check that the nullability attributes are compatible.
+- For input parameters (by-value and `in`), we check that the widest allowed value by the overridden/implemented parameter can be assigned to the overriding/implementing parameter.
+- For output parameters (`out` and return values), we check that the widest produced value by the overriding/implementing parameter can be assigned to the overridden/implemented parameter.
+- For `ref` parameters and return values, we check both.
+- We check that the post-condition contract `[NotNull]`/`[MaybeNull]` on input parameters is enforced by overriding/implementing members.
+- We check that overrides/implementations have the `[DoesNotReturn]` attribute if the overridden/implemented member has it.
+- We check that members used in `[MemberNotNull(...)]` or `[MemberNotNullWhen(...)]` are not null upon exit, by assuming they had maybe-null state on entry.
 
 ## `default`
 If `T` is a reference type, `default(T)` is `T?`.
@@ -146,11 +165,11 @@ Nullablilty follows from assignment above. Assigning `?` to `!` is a W warning.
 ```c#
 string notNull = maybeNull; // assigns ?, warning
 ```
-Nullability of `var` declarations is determined from flow analysis.
+The nullability of `var` declarations is the nullable version of the inferred type.
 ```c#
 var s = maybeNull; // s is ?, no warning
 if (maybeNull == null) return;
-var t = maybeNull; // t is !
+var t = maybeNull; // t is ? too
 ```
 
 ### Suppression operator (`!`)
@@ -184,7 +203,7 @@ var z = (IEnumerable<object?>)x; // no warning
 
 ### Method type inference
 
-We modify the spec rule for [Fixing](https://github.com/dotnet/csharplang/blob/master/spec/expressions.md#fixing "Fixing") to take account of types that may be equivalent (i.e. have an identity conversion) yet may not be identical in the set of bounds. The existing spec says (third bullet)
+We modify the spec rule for [Fixing](https://github.com/dotnet/csharplang/blob/main/spec/expressions.md#fixing "Fixing") to take account of types that may be equivalent (i.e. have an identity conversion) yet may not be identical in the set of bounds. The existing spec says (third bullet)
 
 > If among the remaining candidate types `Uj` there is a unique type `V` from which there is an implicit conversion to all the other candidate types, then `Xi` is fixed to `V`.
 
@@ -278,7 +297,7 @@ This is not yet reflected in the language specification for nullable reference t
 ## Type parameters
 A `class?` constraint is allowed, which, like class, requires the type argument to be a reference type, but allows it to be nullable.
 [Nullable strawman](https://github.com/dotnet/csharplang/issues/790)
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 
 Explicit `object` (or `System.Object`) constraints of any nullability are disallowed. However, type substitution can lead to
 `object!` or `object~` constraints to appear among the constraint types, when their nullability is significant by comparison to
@@ -288,16 +307,16 @@ An unconstrained (here it means - no type constraints, and no `class`, `struct`,
 equivalent to one constrained by `object?` when it is declared in a context where nullable annotations are enabled. If annotations are disabled,
 the type parameter is essentially equivalent to one constrained by `object~`. The context is determined at the identifier that declares the type
 parameter within a type parameter list.
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 Note, the `object`/`System.Object` constraint is represented in metadata as any other type constraint, the type is System.Object.
 
 An explicit `notnull` constraint is allowed, which requires the type to be non-nullable (value or reference type).
-[5/15/19](https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md)
+[5/15/19](https://github.com/dotnet/csharplang/blob/main/meetings/2019/LDM-2019-05-15.md)
 The rules to determine when it is a named type constraint or a special `notnull` constraint are similar to rules for `unmanaged`. Similarly, it is valid only
 at the first position in constraints list.
 
 A warning is reported for nullable type argument for type parameter with `class` constraint or non-nullable reference type or interface type constraint.
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 ```c#
 static void F1<T>() where T : class { }
 static void F2<T>() where T : Stream { }
@@ -307,7 +326,7 @@ F2<Stream?>(); // warning
 F3<Stream?>(); // warning
 ```
 Type parameter constraints may include nullable reference type and interface types.
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 ```c#
 static void F2<T> where T : Stream? { }
 static void F3<T>() where T : IDisposable? { }
@@ -315,7 +334,7 @@ F2<Stream?>(); // ok
 F3<Stream?>(); // ok
 ```
 A warning is reported for inconsistent top-level nullability of constraint types.
-[4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+[4/25/18](https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-04-25.md)
 ```c#
 static void F4<T> where T : class, Stream? { } // warning
 static void F5<T> where T : Stream?, IDisposable { } // warning

@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -14,8 +15,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal abstract partial class VisualStudioBaseDiagnosticListTable : AbstractTable
     {
-        private static readonly string[] s_columns = new string[]
+        protected VisualStudioBaseDiagnosticListTable(Workspace workspace, ITableManagerProvider provider)
+            : base(workspace, provider, StandardTables.ErrorsTable)
         {
+        }
+
+        internal override ImmutableArray<string> Columns { get; } = ImmutableArray.Create(
             StandardTableColumnDefinitions.ErrorSeverity,
             StandardTableColumnDefinitions.ErrorCode,
             StandardTableColumnDefinitions.Text,
@@ -27,15 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StandardTableColumnDefinitions.BuildTool,
             StandardTableColumnDefinitions.ErrorSource,
             StandardTableColumnDefinitions.DetailsExpander,
-            StandardTableColumnDefinitions.SuppressionState
-        };
-
-        protected VisualStudioBaseDiagnosticListTable(Workspace workspace, ITableManagerProvider provider) :
-            base(workspace, provider, StandardTables.ErrorsTable)
-        {
-        }
-
-        internal override IReadOnlyCollection<string> Columns => s_columns;
+            StandardTableColumnDefinitions.SuppressionState);
 
         public static __VSERRORCATEGORY GetErrorCategory(DiagnosticSeverity severity)
         {
@@ -45,33 +42,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 DiagnosticSeverity.Error => __VSERRORCATEGORY.EC_ERROR,
                 DiagnosticSeverity.Warning => __VSERRORCATEGORY.EC_WARNING,
                 DiagnosticSeverity.Info => __VSERRORCATEGORY.EC_MESSAGE,
-                _ => Contract.FailWithReturn<__VSERRORCATEGORY>(),
+                _ => throw ExceptionUtilities.UnexpectedValue(severity)
             };
         }
 
         protected abstract class DiagnosticTableEntriesSource : AbstractTableEntriesSource<DiagnosticTableItem>
         {
             public abstract string BuildTool { get; }
+            [MemberNotNullWhen(true, nameof(TrackingDocumentId))]
             public abstract bool SupportSpanTracking { get; }
-            public abstract DocumentId TrackingDocumentId { get; }
+            public abstract DocumentId? TrackingDocumentId { get; }
         }
 
         protected class AggregatedKey
         {
             public readonly ImmutableArray<DocumentId> DocumentIds;
             public readonly DiagnosticAnalyzer Analyzer;
-            public readonly int Kind;
+            public readonly AnalysisKind Kind;
 
-            public AggregatedKey(ImmutableArray<DocumentId> documentIds, DiagnosticAnalyzer analyzer, int kind)
+            public AggregatedKey(ImmutableArray<DocumentId> documentIds, DiagnosticAnalyzer analyzer, AnalysisKind kind)
             {
                 DocumentIds = documentIds;
                 Analyzer = analyzer;
                 Kind = kind;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
-                if (!(obj is AggregatedKey other))
+                if (obj is not AggregatedKey other)
                 {
                     return false;
                 }
@@ -80,9 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             public override int GetHashCode()
-            {
-                return Hash.Combine(Analyzer.GetHashCode(), Hash.Combine(DocumentIds.GetHashCode(), Kind));
-            }
+                => Hash.Combine(Analyzer.GetHashCode(), Hash.Combine(DocumentIds.GetHashCode(), (int)Kind));
         }
     }
 }

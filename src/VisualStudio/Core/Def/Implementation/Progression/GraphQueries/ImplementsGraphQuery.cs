@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -21,17 +26,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in context.InputNodes)
                 {
-                    var symbol = graphBuilder.GetSymbol(node);
+                    var symbol = graphBuilder.GetSymbol(node, cancellationToken);
                     if (symbol is INamedTypeSymbol namedType)
                     {
-                        var implementedSymbols = namedType.AllInterfaces;
+                        var implementedSymbols = ImmutableArray<ISymbol>.CastUp(namedType.AllInterfaces);
 
-                        await AddImplementedSymbolsAsync(graphBuilder, node, implementedSymbols).ConfigureAwait(false);
+                        await AddImplementedSymbolsAsync(graphBuilder, node, implementedSymbols, cancellationToken).ConfigureAwait(false);
                     }
-                    else if (symbol is IMethodSymbol || symbol is IPropertySymbol || symbol is IEventSymbol)
+                    else if (symbol is IMethodSymbol or
+                             IPropertySymbol or
+                             IEventSymbol)
                     {
-                        var implements = await SymbolFinder.FindImplementedInterfaceMembersAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-                        await AddImplementedSymbolsAsync(graphBuilder, node, implements).ConfigureAwait(false);
+                        var implements = await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        await AddImplementedSymbolsAsync(graphBuilder, node, implements, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
@@ -39,12 +46,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        private static async Task AddImplementedSymbolsAsync(GraphBuilder graphBuilder, GraphNode node, IEnumerable<ISymbol> implementedSymbols)
+        private static async Task AddImplementedSymbolsAsync(
+            GraphBuilder graphBuilder, GraphNode node, ImmutableArray<ISymbol> implementedSymbols, CancellationToken cancellationToken)
         {
             foreach (var interfaceType in implementedSymbols)
             {
-                var interfaceTypeNode = await graphBuilder.AddNodeForSymbolAsync(interfaceType, relatedNode: node).ConfigureAwait(false);
-                graphBuilder.AddLink(node, CodeLinkCategories.Implements, interfaceTypeNode);
+                var interfaceTypeNode = await graphBuilder.AddNodeAsync(
+                    interfaceType, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                graphBuilder.AddLink(node, CodeLinkCategories.Implements, interfaceTypeNode, cancellationToken);
             }
         }
     }

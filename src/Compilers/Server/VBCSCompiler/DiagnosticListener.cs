@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.IO.Pipes;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,12 +16,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Called when the server updates the keep alive value.
         /// </summary>
-        void UpdateKeepAlive(TimeSpan timeSpan);
-
-        /// <summary>
-        /// Called each time the server listens for new connections.
-        /// </summary>
-        void ConnectionListening();
+        void UpdateKeepAlive(TimeSpan keepAlive);
 
         /// <summary>
         /// Called when a connection to the server occurs.
@@ -26,9 +24,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         void ConnectionReceived();
 
         /// <summary>
-        /// Called when a connection has finished processing and notes the <paramref name="reason"/>
+        /// Called when a connection has finished processing.
         /// </summary>
-        void ConnectionCompleted(CompletionReason reason);
+        void ConnectionCompleted(CompletionData completionData);
 
         /// <summary>
         /// Called when the server is shutting down because the keep alive timeout was reached.
@@ -38,11 +36,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
     internal sealed class EmptyDiagnosticListener : IDiagnosticListener
     {
-        public void UpdateKeepAlive(TimeSpan timeSpan)
-        {
-        }
-
-        public void ConnectionListening()
+        public void UpdateKeepAlive(TimeSpan keepAlive)
         {
         }
 
@@ -50,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
         }
 
-        public void ConnectionCompleted(CompletionReason reason)
+        public void ConnectionCompleted(CompletionData completionData)
         {
         }
 

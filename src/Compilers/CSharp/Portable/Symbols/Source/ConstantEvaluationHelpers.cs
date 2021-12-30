@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -156,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(graph.Count > 0);
 
             PooledHashSet<SourceFieldSymbolWithSyntaxReference> lastUpdated = null;
+            ArrayBuilder<SourceFieldSymbolWithSyntaxReference> fieldsInvolvedInCycles = null;
 
             while (graph.Count > 0)
             {
@@ -214,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // in cycles. Break the first cycle found. (Note some fields may have
                     // dependencies but are not strictly part of any cycle. For instance,
                     // B and C in: "enum E { A = A | B, B = C, C = D, D = D }").
-                    var field = GetStartOfFirstCycle(graph);
+                    var field = GetStartOfFirstCycle(graph, ref fieldsInvolvedInCycles);
 
                     // Break the dependencies.
                     var node = graph[field];
@@ -229,128 +234,70 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     node = graph[field];
-                    node.Dependencies = ImmutableHashSet<SourceFieldSymbolWithSyntaxReference>.Empty;
-                    if (node.DependedOnBy.Count == 0)
+                    var updated = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
+
+                    // Remove the field from the Dependencies
+                    // of each field that depends on it.
+                    foreach (var dependedOnBy in node.DependedOnBy)
                     {
-                        graph.Remove(field);
+                        var n = graph[dependedOnBy];
+                        n.Dependencies = n.Dependencies.Remove(field);
+                        graph[dependedOnBy] = n;
+                        updated.Add(dependedOnBy);
                     }
-                    else
-                    {
-                        graph[field] = node;
-                    }
+
+                    graph.Remove(field);
 
                     CheckGraph(graph);
 
                     // Add the start of the cycle to the ordered list.
                     order.Add(new FieldInfo(field, startsCycle: true));
 
-                    // Need to search the entire graph the next time
-                    // through the loop so lastUpdated is not set.
+                    lastUpdated = updated;
                 }
 
                 set.Free();
             }
 
             lastUpdated?.Free();
+            fieldsInvolvedInCycles?.Free();
         }
 
         private static SourceFieldSymbolWithSyntaxReference GetStartOfFirstCycle(
-            Dictionary<SourceFieldSymbolWithSyntaxReference, Node<SourceFieldSymbolWithSyntaxReference>> graph)
+            Dictionary<SourceFieldSymbolWithSyntaxReference, Node<SourceFieldSymbolWithSyntaxReference>> graph,
+            ref ArrayBuilder<SourceFieldSymbolWithSyntaxReference> fieldsInvolvedInCycles)
         {
             Debug.Assert(graph.Count > 0);
 
-            var compilations = PooledDictionary<Compilation, int>.GetInstance();
-            OrderCompilations(graph, compilations);
-            var comparer = new SourceLocationComparer(compilations);
-
-            // Sort the fields by lexical order.
-            var fields = ArrayBuilder<SourceFieldSymbolWithSyntaxReference>.GetInstance();
-            fields.AddRange(graph.Keys);
-            fields.Sort(comparer);
-
-            var field = GetMemberOfCycle(graph);
-            fields.Clear();
-
-            GetAllReachable(graph, fields, field);
-            fields.Sort(comparer);
-
-            // Return the first field lexically in the cycle.
-            field = fields[0];
-            fields.Free();
-            compilations.Free();
-            return field;
-        }
-
-        /// <summary>
-        /// Return an ordering of the compilations referenced in the graph.
-        /// The actual ordering is not important, but we need some ordering
-        /// to compare source locations across different compilations.
-        /// </summary>
-        private static void OrderCompilations(
-            Dictionary<SourceFieldSymbolWithSyntaxReference, Node<SourceFieldSymbolWithSyntaxReference>> fields,
-            Dictionary<Compilation, int> compilations)
-        {
-            Debug.Assert(fields.Count > 0);
-            Debug.Assert(compilations.Count == 0);
-
-            // Note this order will not be consistent across multiple threads
-            // that are evaluating different graphs that start at a different
-            // field but overlap. But that should not matter since we need
-            // to sort fields within a cycle consistently across threads but
-            // not necessarily across cycles, and all fields in a cycle must
-            // be within the same compilation.
-            foreach (var field in fields.Keys)
+            if (fieldsInvolvedInCycles is null)
             {
-                var compilation = field.DeclaringCompilation;
-                if (!compilations.ContainsKey(compilation))
-                {
-                    compilations.Add(compilation, compilations.Count);
-                }
+                fieldsInvolvedInCycles = ArrayBuilder<SourceFieldSymbolWithSyntaxReference>.GetInstance(graph.Count);
+                // We sort fields that belong to the same compilation by location to process cycles in deterministic order.
+                // Relative order between compilations is not important, cycles do not cross compilation boundaries. 
+                fieldsInvolvedInCycles.AddRange(graph.Keys.GroupBy(static f => f.DeclaringCompilation).
+                    SelectMany(static g => g.OrderByDescending((f1, f2) => g.Key.CompareSourceLocations(f1.ErrorLocation, f2.ErrorLocation))));
             }
-
-            Debug.Assert(compilations.Count > 0);
-        }
-
-        /// <summary>
-        /// Return one member from one cycle in the graph.
-        /// (There must be at least one cycle. In fact, there
-        /// shouldn't be any fields without dependencies.)
-        /// </summary>
-        private static SourceFieldSymbolWithSyntaxReference GetMemberOfCycle(Dictionary<SourceFieldSymbolWithSyntaxReference, Node<SourceFieldSymbolWithSyntaxReference>> graph)
-        {
-            Debug.Assert(graph.Count > 0);
-            Debug.Assert(graph.Values.All(n => n.Dependencies.Count > 0)); // No fields without dependencies.
-
-            var set = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
-            var field = graph.First().Key;
 
             while (true)
             {
-                var node = graph[field];
-                var dependencies = node.Dependencies;
-                field = dependencies.First();
-                if (set.Contains(field))
-                {
-                    break;
-                }
-                set.Add(field);
-            }
+                SourceFieldSymbolWithSyntaxReference field = fieldsInvolvedInCycles.Pop();
 
-            set.Free();
-            return field;
+                if (graph.ContainsKey(field) && IsPartOfCycle(graph, field))
+                {
+                    return field;
+                }
+            }
         }
 
-        private static void GetAllReachable(
+        private static bool IsPartOfCycle(
             Dictionary<SourceFieldSymbolWithSyntaxReference, Node<SourceFieldSymbolWithSyntaxReference>> graph,
-            ArrayBuilder<SourceFieldSymbolWithSyntaxReference> fields,
             SourceFieldSymbolWithSyntaxReference field)
         {
-            Debug.Assert(fields.Count == 0);
-
             var set = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
             var stack = ArrayBuilder<SourceFieldSymbolWithSyntaxReference>.GetInstance();
 
-            set.Add(field);
+            SourceFieldSymbolWithSyntaxReference stopAt = field;
+            bool result = false;
             stack.Push(field);
 
             while (stack.Count > 0)
@@ -358,19 +305,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 field = stack.Pop();
                 var node = graph[field];
 
+                if (node.Dependencies.Contains(stopAt))
+                {
+                    result = true;
+                    break;
+                }
+
                 foreach (var dependency in node.Dependencies)
                 {
-                    if (!set.Contains(dependency))
+                    if (set.Add(dependency))
                     {
-                        set.Add(dependency);
                         stack.Push(dependency);
                     }
                 }
             }
 
-            fields.AddRange(set);
             stack.Free();
             set.Free();
+            return result;
         }
 
         [Conditional("DEBUG")]
@@ -412,29 +364,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Debug.Assert(graph.Values.Sum(n => n.DependedOnBy.Count) == graph.Values.Sum(n => n.Dependencies.Count));
-        }
-
-        private sealed class SourceLocationComparer : IComparer<SourceFieldSymbolWithSyntaxReference>
-        {
-            private readonly Dictionary<Compilation, int> _compilationOrdering;
-
-            internal SourceLocationComparer(Dictionary<Compilation, int> compilationOrdering)
-            {
-                _compilationOrdering = compilationOrdering;
-            }
-
-            public int Compare(SourceFieldSymbolWithSyntaxReference x, SourceFieldSymbolWithSyntaxReference y)
-            {
-                var xComp = x.DeclaringCompilation;
-                var yComp = y.DeclaringCompilation;
-                var result = _compilationOrdering[xComp] - _compilationOrdering[yComp];
-                if (result == 0)
-                {
-                    Debug.Assert(xComp == yComp);
-                    result = xComp.CompareSourceLocations(x.ErrorLocation, y.ErrorLocation);
-                }
-                return result;
-            }
         }
     }
 }

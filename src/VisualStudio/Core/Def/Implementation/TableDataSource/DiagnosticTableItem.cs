@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private DiagnosticTableItem(
             Workspace workspace,
             DiagnosticData data,
-            string projectName,
+            string? projectName,
             Guid projectGuid,
             string[] projectNames,
             Guid[] projectGuids)
@@ -35,21 +37,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public override TableItem WithAggregatedData(string[] projectNames, Guid[] projectGuids)
             => new DiagnosticTableItem(Workspace, Data, projectName: null, projectGuid: Guid.Empty, projectNames, projectGuids);
 
-        public override DocumentId DocumentId
+        public override DocumentId? DocumentId
             => Data.DocumentId;
 
-        public override ProjectId ProjectId
+        public override ProjectId? ProjectId
             => Data.ProjectId;
 
         public override LinePosition GetOriginalPosition()
-            => new LinePosition(Data.DataLocation?.OriginalStartLine ?? 0, Data.DataLocation?.OriginalStartColumn ?? 0);
+            => new(Data.DataLocation?.OriginalStartLine ?? 0, Data.DataLocation?.OriginalStartColumn ?? 0);
 
-        public override string GetOriginalFilePath()
+        public override string? GetOriginalFilePath()
             => Data.DataLocation?.OriginalFilePath;
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
-            if (!(other is DiagnosticTableItem otherDiagnosticItem))
+            if (other is not DiagnosticTableItem otherDiagnosticItem)
             {
                 return false;
             }
@@ -76,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// </summary>
         internal sealed class GroupingComparer : IEqualityComparer<DiagnosticData>, IEqualityComparer<DiagnosticTableItem>
         {
-            public static readonly GroupingComparer Instance = new GroupingComparer();
+            public static readonly GroupingComparer Instance = new();
 
             public bool Equals(DiagnosticData left, DiagnosticData right)
             {

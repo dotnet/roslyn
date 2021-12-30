@@ -1,7 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.PasteTracking
@@ -19,32 +23,29 @@ Namespace Microsoft.CodeAnalysis.AddMissingImports
             Return New VisualBasicAddMissingImportsRefactoringProvider(pasteTrackingService)
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
-            Dim Workspace = TestWorkspace.CreateVisualBasic(initialMarkup)
-
+        Protected Overrides Sub InitializeWorkspace(workspace As TestWorkspace, parameters As TestParameters)
             ' Treat the span being tested as the pasted span
-            Dim hostDocument = Workspace.Documents.First()
+            Dim hostDocument = workspace.Documents.First()
             Dim pastedTextSpan = hostDocument.SelectedSpans.FirstOrDefault()
 
             If Not pastedTextSpan.IsEmpty Then
-                Dim PasteTrackingService = Workspace.ExportProvider.GetExportedValue(Of PasteTrackingService)()
+                Dim PasteTrackingService = workspace.ExportProvider.GetExportedValue(Of PasteTrackingService)()
 
                 ' This tests the paste tracking service's resiliancy to failing when multiple pasted spans are
                 ' registered consecutively And that the last registered span wins.
                 PasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextBuffer(), Nothing)
                 PasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextBuffer(), pastedTextSpan)
             End If
-
-            Return Workspace
-        End Function
+        End Sub
 
         Private Overloads Function TestInRegularAndScriptAsync(
             initialMarkup As String, expectedMarkup As String,
             placeSystemNamespaceFirst As Boolean, separateImportDirectiveGroups As Boolean) As Task
 
-            Dim options = OptionsSet(
-                SingleOption(GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst),
-                SingleOption(GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups))
+            Dim options = New OptionsCollection(GetLanguage()) From {
+                {GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst},
+                {GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups}
+                }
 
             Return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options:=options)
         End Function
@@ -184,12 +185,8 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst:=False, separateImportDirectiveGroups:=False)
         End Function
 
-        <WpfFact>
+        <WpfFact, WorkItem(42221, "https://github.com/dotnet/roslyn/pull/42221")>
         Public Async Function AddMissingImports_AddImportsUngrouped_SeparateImportGroupsPasteContainsMultipleMissingImports() As Task '
-            ' The current fixes for AddImport diagnostics do not consider whether imports should be grouped.
-            ' This test documents this behavior and is a reminder that when the behavior changes 
-            ' AddMissingImports is also affected and should be considered.
-
             Dim code = "
 Imports System
 
@@ -212,6 +209,7 @@ End Namespace
             Dim expected = "
 Imports A
 Imports B
+
 Imports System
 
 Class C
@@ -460,7 +458,7 @@ End Namespace
         End Function
 
         <WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")>
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46291")>
         Public Async Function AddMissingImports_Extension_Await() As Task
             Dim code = "
 Imports System.Runtime.CompilerServices
@@ -526,7 +524,7 @@ End Namespace
         End Function
 
         <WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")>
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46291")>
         Public Async Function AddMissingImports_Extension_Await_Overload() As Task
             Dim code = "
 Imports System.Runtime.CompilerServices

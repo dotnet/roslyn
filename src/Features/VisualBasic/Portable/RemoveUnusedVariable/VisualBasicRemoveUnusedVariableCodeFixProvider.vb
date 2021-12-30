@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -15,9 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
         Inherits AbstractRemoveUnusedVariableCodeFixProvider(Of
             LocalDeclarationStatementSyntax, ModifiedIdentifierSyntax, VariableDeclaratorSyntax)
 
-        Private Const BC42024 As String = NameOf(BC42024)
+        Public Const BC42024 As String = NameOf(BC42024)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -40,6 +44,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
 
         Protected Overrides Function GetVariables(localDeclarationStatement As LocalDeclarationStatementSyntax) As SeparatedSyntaxList(Of SyntaxNode)
             Return localDeclarationStatement.Declarators
+        End Function
+
+        Protected Overrides Function ShouldOfferFixForLocalDeclaration(syntaxFactsService As ISyntaxFactsService, node As SyntaxNode) As Boolean
+            Return True
         End Function
     End Class
 End Namespace

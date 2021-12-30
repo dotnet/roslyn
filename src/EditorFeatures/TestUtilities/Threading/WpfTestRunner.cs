@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -32,9 +36,7 @@ namespace Roslyn.Test.Utilities
         public WpfTestSharedData SharedData { get; }
 
         static WpfTestRunner()
-        {
-            _passedTests = TestInfo.GetPassedTestsInfo();
-        }
+            => _passedTests = TestInfo.GetPassedTestsInfo();
 
         public WpfTestRunner(
             WpfTestSharedData sharedData,
@@ -98,7 +100,7 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         internal static void RequireWpfFact(string reason)
         {
-            if (!(TestExportJoinableTaskContext.GetEffectiveSynchronizationContext() is DispatcherSynchronizationContext))
+            if (TestExportJoinableTaskContext.GetEffectiveSynchronizationContext() is not DispatcherSynchronizationContext)
             {
                 throw new InvalidOperationException($"This test requires {nameof(WpfFactAttribute)} because '{reason}' but is missing {nameof(WpfFactAttribute)}. Either the attribute should be changed, or the reason it needs an STA thread audited.");
             }

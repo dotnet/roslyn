@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Globalization;
@@ -74,7 +78,7 @@ namespace Microsoft.CodeAnalysis
         /// explicit interface implementations. For other methods, visibility and the value of
         /// <paramref name="importOptions"/> are considered.
         /// </summary>
-        public static bool ShouldImportMethod(this PEModule module, MethodDefinitionHandle methodDef, MetadataImportOptions importOptions)
+        public static bool ShouldImportMethod(this PEModule module, TypeDefinitionHandle typeDef, MethodDefinitionHandle methodDef, MetadataImportOptions importOptions)
         {
             try
             {
@@ -83,27 +87,11 @@ namespace Microsoft.CodeAnalysis
                 // If the method is virtual, it must be accessible, although
                 // it may be an explicit (private) interface implementation.
                 // Otherwise, we need to check the accessibility.
-                if ((flags & MethodAttributes.Virtual) == 0)
+                if ((flags & MethodAttributes.Virtual) == 0 && !acceptBasedOnAccessibility(importOptions, flags) &&
+                    ((flags & MethodAttributes.Static) == 0 || !isMethodImpl(typeDef, methodDef)))
                 {
-                    switch (flags & MethodAttributes.MemberAccessMask)
-                    {
-                        case MethodAttributes.Private:
-                        case MethodAttributes.PrivateScope:
-                            if (importOptions != MetadataImportOptions.All)
-                            {
-                                return false;
-                            }
 
-                            break;
-
-                        case MethodAttributes.Assembly:
-                            if (importOptions == MetadataImportOptions.Public)
-                            {
-                                return false;
-                            }
-
-                            break;
-                    }
+                    return false;
                 }
             }
             catch (BadImageFormatException)
@@ -122,6 +110,45 @@ namespace Microsoft.CodeAnalysis
             catch (BadImageFormatException)
             {
                 return true;
+            }
+
+            static bool acceptBasedOnAccessibility(MetadataImportOptions importOptions, MethodAttributes flags)
+            {
+                switch (flags & MethodAttributes.MemberAccessMask)
+                {
+                    case MethodAttributes.Private:
+                    case MethodAttributes.PrivateScope:
+                        if (importOptions != MetadataImportOptions.All)
+                        {
+                            return false;
+                        }
+
+                        break;
+
+                    case MethodAttributes.Assembly:
+                        if (importOptions == MetadataImportOptions.Public)
+                        {
+                            return false;
+                        }
+
+                        break;
+                }
+
+                return true;
+            }
+
+            bool isMethodImpl(TypeDefinitionHandle typeDef, MethodDefinitionHandle methodDef)
+            {
+                foreach (var methodImpl in module.GetMethodImplementationsOrThrow(typeDef))
+                {
+                    module.GetMethodImplPropsOrThrow(methodImpl, out EntityHandle body, out _);
+                    if (body == methodDef)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
 

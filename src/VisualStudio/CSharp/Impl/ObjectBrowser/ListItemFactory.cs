@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser;
@@ -8,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
     internal class ListItemFactory : AbstractListItemFactory
     {
         private static readonly SymbolDisplayFormat s_memberDisplayFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
                 memberOptions: SymbolDisplayMemberOptions.IncludeExplicitInterface | SymbolDisplayMemberOptions.IncludeParameters,
@@ -16,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         private static readonly SymbolDisplayFormat s_memberWithContainingTypeDisplayFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface | SymbolDisplayMemberOptions.IncludeParameters,
@@ -24,13 +28,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         protected override string GetMemberDisplayString(ISymbol memberSymbol)
-        {
-            return memberSymbol.ToDisplayString(s_memberDisplayFormat);
-        }
+            => memberSymbol.ToDisplayString(s_memberDisplayFormat);
 
         protected override string GetMemberAndTypeDisplayString(ISymbol memberSymbol)
-        {
-            return memberSymbol.ToDisplayString(s_memberWithContainingTypeDisplayFormat);
-        }
+            => memberSymbol.ToDisplayString(s_memberWithContainingTypeDisplayFormat);
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.CompilerServices;
@@ -48,17 +50,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             /// </summary>
             /// <param name="underlyingContext">The fallback synchronization context to use for scheduling operations
             /// posted to this synchronization context.</param>
-            public DenyExecutionSynchronizationContext(SynchronizationContext underlyingContext)
+            public DenyExecutionSynchronizationContext(SynchronizationContext? underlyingContext)
                 : this(underlyingContext, mainThread: null, failedTransfer: null)
             {
             }
 
-            private DenyExecutionSynchronizationContext(SynchronizationContext underlyingContext, Thread mainThread, StrongBox<ExceptionDispatchInfo> failedTransfer)
+            private DenyExecutionSynchronizationContext(SynchronizationContext? underlyingContext, Thread? mainThread, StrongBox<ExceptionDispatchInfo>? failedTransfer)
             {
                 UnderlyingContext = underlyingContext ?? new SynchronizationContext();
                 MainThread = mainThread ?? new Thread(MainThreadStart);
                 _failedTransfer = failedTransfer ?? new StrongBox<ExceptionDispatchInfo>();
             }
+
+            internal event EventHandler? InvalidSwitch;
 
             private SynchronizationContext UnderlyingContext
             {
@@ -94,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _failedTransfer.Value.Throw();
             }
 
-            public override void Post(SendOrPostCallback d, object state)
+            public override void Post(SendOrPostCallback d, object? state)
             {
                 try
                 {
@@ -106,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 catch (InvalidOperationException e)
                 {
                     _failedTransfer.Value = ExceptionDispatchInfo.Capture(e);
+                    InvalidSwitch?.Invoke(this, EventArgs.Empty);
                 }
 
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
@@ -113,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
             }
 
-            public override void Send(SendOrPostCallback d, object state)
+            public override void Send(SendOrPostCallback d, object? state)
             {
                 try
                 {
@@ -125,6 +130,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 catch (InvalidOperationException e)
                 {
                     _failedTransfer.Value = ExceptionDispatchInfo.Capture(e);
+                    InvalidSwitch?.Invoke(this, EventArgs.Empty);
                 }
 
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
@@ -133,15 +139,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             public override SynchronizationContext CreateCopy()
-            {
-                return new DenyExecutionSynchronizationContext(UnderlyingContext.CreateCopy(), MainThread, _failedTransfer);
-            }
+                => new DenyExecutionSynchronizationContext(UnderlyingContext.CreateCopy(), MainThread, _failedTransfer);
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            private void ThrowFailedTransferExceptionForCapture()
-            {
-                throw new InvalidOperationException($"Code cannot switch to the main thread without configuring the {nameof(IThreadingContext)}.");
-            }
+            private static void ThrowFailedTransferExceptionForCapture()
+                => throw new InvalidOperationException($"Code cannot switch to the main thread without configuring the {nameof(IThreadingContext)}.");
         }
     }
 }

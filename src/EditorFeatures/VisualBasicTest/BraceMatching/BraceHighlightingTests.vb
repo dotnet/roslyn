@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -6,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
@@ -16,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
     <[UseExportProvider]>
     Public Class BraceHighlightingTests
 
-        Private Function Enumerable(Of t)(ParamArray array() As t) As IEnumerable(Of t)
+        Private Shared Function Enumerable(Of t)(ParamArray array() As t) As IEnumerable(Of t)
             Return array
         End Function
 
@@ -26,13 +29,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             Dim producer = New BraceHighlightingViewTaggerProvider(
                 workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                 workspace.GetService(Of IBraceMatchingService),
-                workspace.GetService(Of IForegroundNotificationService),
+                workspace.GetService(Of IGlobalOptionService),
                 AsynchronousOperationListenerProvider.NullProvider)
 
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()
             Dim context = New TaggerContext(Of BraceHighlightTag)(
                 doc, buffer.CurrentSnapshot, New SnapshotPoint(buffer.CurrentSnapshot, position))
-            Await producer.ProduceTagsAsync_ForTestingPurposesOnly(context)
+            Await producer.GetTestAccessor().ProduceTagsAsync(context)
             Return context.tagSpans
         End Function
 
@@ -70,7 +73,6 @@ End Module")
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(32, 33), Span.FromBounds(45, 46))))
             End Using
         End Function
-
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Async Function TestNestedTouchingItems() As Tasks.Task

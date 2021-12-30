@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
@@ -12,8 +14,10 @@ Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -32,6 +36,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
     <UseExportProvider>
     Public Class DocumentService_IntegrationTests
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestFindUsageIntegration() As System.Threading.Tasks.Task
             Dim input =
@@ -52,16 +60,15 @@ class {|Definition:C1|}
     </Project>
 </Workspace>
 
+            ' TODO: Use VisualStudioTestComposition or move the feature down to EditorFeatures and avoid dependency on IServiceProvider.
+            ' https://github.com/dotnet/roslyn/issues/46279
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(GetType(MockServiceProvider))
 
-            Dim exportProvider = ExportProviderCache _
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic() _
-                .WithParts(GetType(MockServiceProvider))) _
-                .CreateExportProvider()
-
-            Using workspace = TestWorkspace.Create(input, exportProvider:=exportProvider, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = TestWorkspace.Create(input, composition:=composition, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
                 Dim presenter = New StreamingFindUsagesPresenter(workspace, workspace.ExportProvider.AsExportProvider())
-                Dim context = presenter.StartSearch("test", supportsReferences:=True)
+                Dim tuple = presenter.StartSearch("test", supportsReferences:=True)
+                Dim context = tuple.context
 
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -70,7 +77,7 @@ class {|Definition:C1|}
                 Assert.NotNull(startDocument)
 
                 Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
-                Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context)
+                Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context, CancellationToken.None)
 
                 Dim definitionDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Definition"))
                 Dim definitionText = Await workspace.CurrentSolution.GetDocument(definitionDocument.Id).GetTextAsync()
@@ -137,6 +144,7 @@ class {|Definition:C1|}
                 Dim root = Await startDocument.GetSyntaxRootAsync()
                 Dim node = root.FindNode(originalDocument.AnnotatedSpans("Original").First()).AncestorsAndSelf().OfType(Of ClassDeclarationSyntax).First()
                 Dim results = Await codelensService.FindReferenceLocationsAsync(workspace.CurrentSolution, startDocument.Id, node, CancellationToken.None)
+                Assert.True(results.HasValue)
 
                 Dim definitionDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Definition"))
                 Dim definitionText = Await workspace.CurrentSolution.GetDocument(definitionDocument.Id).GetTextAsync()
@@ -146,7 +154,7 @@ class {|Definition:C1|}
 
                 Dim actual = New List(Of (String, LinePosition, String))
 
-                For Each result In results
+                For Each result In results.Value
                     actual.Add((result.FilePath, New LinePosition(result.LineNumber, result.ColumnNumber), result.ReferenceLineText))
                 Next
 
@@ -155,8 +163,10 @@ class {|Definition:C1|}
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestDocumentOperationCanApplyChange() As System.Threading.Tasks.Task
+        <InlineData(True)>
+        <InlineData(False)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDocumentOperationCanApplyChange(ignoreUnchangeableDocuments As Boolean) As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -166,7 +176,7 @@ class C { }
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance, ignoreUnchangeableDocumentsWhenApplyingChanges:=ignoreUnchangeableDocuments)
 
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
@@ -179,8 +189,19 @@ class C { }
                 ' confirm apply changes are not supported
                 Assert.False(document.CanApplyChange())
 
+                Assert.Equal(ignoreUnchangeableDocuments, workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges)
+
                 ' see whether changes can be applied to the solution
-                Assert.Throws(Of NotSupportedException)(Sub() workspace.TryApplyChanges(newDocument.Project.Solution))
+                If ignoreUnchangeableDocuments Then
+                    Assert.True(workspace.TryApplyChanges(newDocument.Project.Solution))
+
+                    ' Changes should not be made if Workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges is true
+                    Dim currentDocument = workspace.CurrentSolution.GetDocument(document.Id)
+                    Assert.True(currentDocument.GetTextSynchronously(CancellationToken.None).ContentEquals(document.GetTextSynchronously(CancellationToken.None)))
+                Else
+                    ' should throw if Workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges is false
+                    Assert.Throws(Of NotSupportedException)(Sub() workspace.TryApplyChanges(newDocument.Project.Solution))
+                End If
             End Using
         End Function
 
@@ -195,7 +216,9 @@ class { }
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = TestWorkspace.Create(input, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+                Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
@@ -204,7 +227,8 @@ class { }
                 ' confirm there are errors
                 Assert.True(model.GetDiagnostics().Any())
 
-                Dim diagnosticService = New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
+                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
 
                 ' confirm diagnostic support is off for the document
                 Assert.False(document.SupportsDiagnostics())
@@ -240,6 +264,8 @@ class { }
 
                 Public Shared ReadOnly Instance As SpanMapper = New SpanMapper()
 
+                Public ReadOnly Property SupportsMappingImportDirectives As Boolean = False Implements ISpanMappingService.SupportsMappingImportDirectives
+
                 Public Async Function MapSpansAsync(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of MappedSpanResult)) Implements ISpanMappingService.MapSpansAsync
                     Dim testWorkspace = DirectCast(document.Project.Solution.Workspace, TestWorkspace)
                     Dim testDocument = testWorkspace.GetTestDocument(document.Id)
@@ -264,6 +290,12 @@ class { }
                     Next
 
                     Return results.ToImmutableArray()
+                End Function
+
+                Public Function GetMappedTextChangesAsync(oldDocument As Document, newDocument As Document, cancellationToken As CancellationToken) _
+                    As Task(Of ImmutableArray(Of (mappedFilePath As String, mappedTextChange As Microsoft.CodeAnalysis.Text.TextChange))) _
+                    Implements ISpanMappingService.GetMappedTextChangesAsync
+                    Throw New NotImplementedException()
                 End Function
             End Class
 
@@ -319,6 +351,7 @@ class { }
             Implements SVsServiceProvider
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 
@@ -377,15 +410,13 @@ class { }
             Public Sub AddCommandTarget(target As IOleCommandTarget, ByRef [next] As IOleCommandTarget) Implements IFindAllReferencesWindow.AddCommandTarget
                 Throw New NotImplementedException()
             End Sub
+#End Region
 
             Public Sub SetProgress(progress As Double) Implements IFindAllReferencesWindow.SetProgress
-                Throw New NotImplementedException()
             End Sub
 
             Public Sub SetProgress(completed As Integer, maximum As Integer) Implements IFindAllReferencesWindow.SetProgress
-                Throw New NotImplementedException()
             End Sub
-#End Region
         End Class
 
         Private Class TableDataSink

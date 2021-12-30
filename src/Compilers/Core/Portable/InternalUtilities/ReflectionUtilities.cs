@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -115,34 +115,34 @@ namespace Roslyn.Utilities
             return (T)methodInfo.CreateDelegate(typeof(T));
         }
 
-        [return: MaybeNull]
-        public static T InvokeConstructor<T>(this ConstructorInfo? constructorInfo, params object[] args)
+        public static T? InvokeConstructor<T>(this ConstructorInfo? constructorInfo, params object?[] args)
         {
             if (constructorInfo == null)
             {
-                return default!;
+                return default;
             }
 
             try
             {
-                return (T)constructorInfo.Invoke(args);
+                return (T?)constructorInfo.Invoke(args);
             }
             catch (TargetInvocationException e)
             {
+                Debug.Assert(e.InnerException is object);
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
                 Debug.Assert(false, "Unreachable");
-                return default!;
+                return default;
             }
         }
 
-        public static object? InvokeConstructor(this ConstructorInfo constructorInfo, params object[] args)
+        public static object? InvokeConstructor(this ConstructorInfo constructorInfo, params object?[] args)
         {
             return constructorInfo.InvokeConstructor<object?>(args);
         }
 
-        public static T Invoke<T>(this MethodInfo methodInfo, object obj, params object[] args)
+        public static T? Invoke<T>(this MethodInfo methodInfo, object obj, params object?[] args)
         {
-            return (T)methodInfo.Invoke(obj, args);
+            return (T?)methodInfo.Invoke(obj, args);
         }
     }
 }

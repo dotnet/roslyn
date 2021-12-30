@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -13,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
     internal class CSharpCompilationOptionsChangingService : ICompilationOptionsChangingService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCompilationOptionsChangingService()
         {
         }
@@ -22,16 +26,32 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
             var oldCSharpOptions = (CSharpCompilationOptions)oldOptions;
             var newCSharpOptions = (CSharpCompilationOptions)newOptions;
 
-            // Currently, only changes to AllowUnsafe of compilation options are supported.
-            return oldCSharpOptions.WithAllowUnsafe(newCSharpOptions.AllowUnsafe) == newOptions;
+            // Currently, only changes to AllowUnsafe and Nullable of compilation options are supported.
+            return oldCSharpOptions.WithAllowUnsafe(newCSharpOptions.AllowUnsafe).WithNullableContextOptions(newCSharpOptions.NullableContextOptions) == newOptions;
         }
 
-        public void Apply(CompilationOptions options, ProjectPropertyStorage storage)
+        public void Apply(CompilationOptions oldOptions, CompilationOptions newOptions, ProjectPropertyStorage storage)
         {
-            var csharpOptions = (CSharpCompilationOptions)options;
+            var oldCSharpOptions = (CSharpCompilationOptions)oldOptions;
+            var newCSharpOptions = (CSharpCompilationOptions)newOptions;
 
-            storage.SetProperty("AllowUnsafeBlocks", nameof(ProjectConfigurationProperties3.AllowUnsafeBlocks),
-                csharpOptions.AllowUnsafe);
+            if (newCSharpOptions.AllowUnsafe != oldCSharpOptions.AllowUnsafe)
+            {
+                storage.SetProperty("AllowUnsafeBlocks", nameof(ProjectConfigurationProperties3.AllowUnsafeBlocks),
+                    newCSharpOptions.AllowUnsafe);
+            }
+
+            if (newCSharpOptions.NullableContextOptions != oldCSharpOptions.NullableContextOptions)
+            {
+                var projectSetting = newCSharpOptions.NullableContextOptions switch
+                {
+                    NullableContextOptions.Enable => "enable",
+                    NullableContextOptions.Warnings => "warnings",
+                    NullableContextOptions.Annotations => "annotations",
+                    _ => "disable",
+                };
+                storage.SetProperty("Nullable", "Nullable", projectSetting);
+            }
         }
     }
 }

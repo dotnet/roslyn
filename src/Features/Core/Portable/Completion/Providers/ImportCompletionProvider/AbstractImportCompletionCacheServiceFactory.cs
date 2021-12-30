@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
     internal abstract class AbstractImportCompletionCacheServiceFactory<TProjectCacheEntry, TMetadataCacheEntry> : IWorkspaceServiceFactory
     {
         private readonly ConcurrentDictionary<string, TMetadataCacheEntry> _peItemsCache
-            = new ConcurrentDictionary<string, TMetadataCacheEntry>();
+            = new();
 
         private readonly ConcurrentDictionary<ProjectId, TProjectCacheEntry> _projectItemsCache
-            = new ConcurrentDictionary<ProjectId, TProjectCacheEntry>();
+            = new();
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             return new ImportCompletionCacheService(_peItemsCache, _projectItemsCache);
         }
 
-        private void OnCacheFlushRequested(object sender, EventArgs e)
+        private void OnCacheFlushRequested(object? sender, EventArgs e)
         {
             _peItemsCache.Clear();
             _projectItemsCache.Clear();

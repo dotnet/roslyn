@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +13,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -19,10 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
     public class WinMdDumpTest : CSharpTestBase
     {
         private readonly MetadataReference _windowsRef = MetadataReference.CreateFromImage(TestResources.WinRt.Windows.AsImmutableOrNull());
-        private readonly MetadataReference _systemRuntimeRef = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Runtime.AsImmutableOrNull());
-        private readonly MetadataReference _systemObjectModelRef = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_ObjectModel.AsImmutableOrNull());
-        private readonly MetadataReference _windowsRuntimeUIXamlRef = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml.AsImmutableOrNull());
-        private readonly MetadataReference _interopServicesWindowsRuntimeRef = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Runtime_InteropServices_WindowsRuntime.AsImmutableOrNull());
+        private readonly MetadataReference _systemRuntimeRef = MetadataReference.CreateFromImage(TestMetadata.ResourcesNet451.SystemRuntime.AsImmutableOrNull());
+        private readonly MetadataReference _systemObjectModelRef = MetadataReference.CreateFromImage(TestMetadata.ResourcesNet451.SystemObjectModel.AsImmutableOrNull());
+        private readonly MetadataReference _windowsRuntimeUIXamlRef = MetadataReference.CreateFromImage(ProprietaryTestResources.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml.AsImmutableOrNull());
+        private readonly MetadataReference _interopServicesWindowsRuntimeRef = MetadataReference.CreateFromImage(TestMetadata.ResourcesNet451.SystemRuntimeInteropServicesWindowsRuntime.AsImmutableOrNull());
 
         private void AppendMembers(StringBuilder result, NamespaceOrTypeSymbol container, string indent)
         {

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -18,8 +22,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpFindReferences(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpFindReferences))
+        public CSharpFindReferences(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpFindReferences))
         {
         }
 
@@ -31,7 +35,7 @@ class Program
 {
 }$$
 ");
-            var project = new ProjectUtils.Project(ProjectName); ;
+            var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, "File2.cs");
             VisualStudio.SolutionExplorer.OpenFile(project, "File2.cs");
 
@@ -70,6 +74,11 @@ class SomeOtherClass
                         Assert.Equal(expected: 24, actual: reference.Column);
                     }
                 });
+
+            VisualStudio.FindReferencesWindow.NavigateTo(activeWindowCaption, results[0], isPreview: false, shouldActivate: true);
+            // Assert we are in the right file now
+            Assert.Equal("Class1.cs", VisualStudio.Shell.GetActiveWindowCaption());
+            Assert.Equal("Program", VisualStudio.Editor.GetLineTextAfterCaret());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]

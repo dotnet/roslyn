@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Text;
 
@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Debugging
         }
 
         internal static BreakpointResolutionResult CreateSpanResult(Document document, TextSpan textSpan, string? locationNameOpt = null)
-            => new BreakpointResolutionResult(document, textSpan, locationNameOpt, isLineBreakpoint: false);
+            => new(document, textSpan, locationNameOpt, isLineBreakpoint: false);
 
         internal static BreakpointResolutionResult CreateLineResult(Document document, string? locationNameOpt = null)
-            => new BreakpointResolutionResult(document, new TextSpan(), locationNameOpt, isLineBreakpoint: true);
+            => new(document, new TextSpan(), locationNameOpt, isLineBreakpoint: true);
     }
 }

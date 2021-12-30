@@ -1,12 +1,15 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.SimplifyThisOrMe
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
@@ -18,16 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
             MeExpressionSyntax,
             MemberAccessExpressionSyntax)
 
-        Public Sub New()
-            MyBase.New(ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression))
-        End Sub
-
         Protected Overrides Function GetLanguageName() As String
             Return LanguageNames.VisualBasic
         End Function
 
-        Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
-            Return VisualBasicSyntaxFactsService.Instance
+        Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
+            Return VisualBasicSyntaxFacts.Instance
         End Function
 
         Protected Overrides Function CanSimplifyTypeNameExpression(
@@ -36,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
                 cancellationToken As CancellationToken) As Boolean
 
             Dim replacementSyntax As ExpressionSyntax = Nothing
-            Return memberAccess.TryReduceOrSimplifyExplicitName(model, replacementSyntax, issueSpan, optionSet, cancellationToken)
+            Return ExpressionSimplifier.Instance.TrySimplify(memberAccess, model, optionSet, replacementSyntax, issueSpan, cancellationToken)
         End Function
     End Class
 End Namespace

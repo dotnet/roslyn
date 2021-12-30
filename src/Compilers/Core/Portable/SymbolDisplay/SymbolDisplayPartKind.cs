@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis
 {
@@ -76,11 +78,15 @@ namespace Microsoft.CodeAnalysis
         ExtensionMethodName = 29,
         /// <summary>The name of a field or local constant.</summary>
         ConstantName = 30,
+        /// <summary>The name of a record class.</summary>
+        RecordClassName = 31,
+        /// <summary>The name of a record struct.</summary>
+        RecordStructName = 32,
     }
 
     internal static class InternalSymbolDisplayPartKind
     {
-        private const SymbolDisplayPartKind @base = SymbolDisplayPartKind.ConstantName + 1;
+        private const SymbolDisplayPartKind @base = SymbolDisplayPartKind.RecordStructName + 1;
         public const SymbolDisplayPartKind Arity = @base + 0;
         public const SymbolDisplayPartKind Other = @base + 1;
     }
@@ -89,7 +95,7 @@ namespace Microsoft.CodeAnalysis
     {
         internal static bool IsValid(this SymbolDisplayPartKind value)
         {
-            return (value >= SymbolDisplayPartKind.AliasName && value <= SymbolDisplayPartKind.ConstantName) ||
+            return (value >= SymbolDisplayPartKind.AliasName && value <= SymbolDisplayPartKind.RecordStructName) ||
                 (value >= InternalSymbolDisplayPartKind.Arity && value <= InternalSymbolDisplayPartKind.Other);
         }
     }

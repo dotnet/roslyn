@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------------------------------------
 ' Contains hand-written Partial class extensions to certain of the syntax nodes (other that the 
@@ -12,14 +14,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-    Public Partial Class DocumentationCommentTriviaSyntax
+    Partial Public Class DocumentationCommentTriviaSyntax
         Friend Function GetInteriorXml() As String
             ' NOTE: is only used in parse tests
             Return DirectCast(Me.Green, InternalSyntax.DocumentationCommentTriviaSyntax).GetInteriorXml
         End Function
     End Class
 
-    Public Partial Class DirectiveTriviaSyntax
+    Partial Public Class DirectiveTriviaSyntax
         Private Shared ReadOnly s_hasDirectivesFunction As Func(Of SyntaxToken, Boolean) = Function(n) n.ContainsDirectives
 
         Public Function GetNextDirective(Optional predicate As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As DirectiveTriviaSyntax
@@ -87,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Property
     End Class
 
-    Public Partial Class MethodBaseSyntax
+    Partial Public Class MethodBaseSyntax
 
         Friend ReadOnly Property AsClauseInternal As AsClauseSyntax
             Get

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -19,27 +23,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 return QueryVisualStudio2014Status(ref pguidCmdGroup, commandCount, prgCmds, commandText);
             }
-            else if (pguidCmdGroup == VSConstants.GUID_AppCommand)
-            {
-                return QueryAppCommandStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-            }
             else
             {
                 return NextCommandTarget.QueryStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-            }
-        }
-
-        private int QueryAppCommandStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            switch ((VSConstants.AppCommandCmdID)prgCmds[0].cmdID)
-            {
-                case VSConstants.AppCommandCmdID.BrowserBackward:
-                case VSConstants.AppCommandCmdID.BrowserForward:
-                    prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
-                    return VSConstants.S_OK;
-
-                default:
-                    return NextCommandTarget.QueryStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
             }
         }
 

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -20,9 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim visitedLockExpression = VisitExpressionNode(node.LockExpression)
 
             Dim objectType = GetSpecialType(SpecialType.System_Object)
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Dim conversionKind = Conversions.ClassifyConversion(visitedLockExpression.Type, objectType, useSiteDiagnostics).Key
-            _diagnostics.Add(node, useSiteDiagnostics)
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo()
+            Dim conversionKind = Conversions.ClassifyConversion(visitedLockExpression.Type, objectType, useSiteInfo).Key
+            _diagnostics.Add(node, useSiteInfo)
 
             ' when passing this boundlocal to Monitor.Enter and Monitor.Exit we need to pass a local of type object, because the parameter
             ' are of type object. We also do not want to have this conversion being shown in the semantic model, which is why we add it 

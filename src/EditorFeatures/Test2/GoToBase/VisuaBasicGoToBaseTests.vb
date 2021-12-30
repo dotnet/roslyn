@@ -1,12 +1,14 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
     <[UseExportProvider]>
     Public Class VisualBasicGoToBaseTests
         Inherits GoToBaseTestsBase
-        Private Overloads Async Function TestAsync(source As String, Optional shouldSucceed As Boolean = True,
+        Private Overloads Shared Async Function TestAsync(source As String, Optional shouldSucceed As Boolean = True,
                                                    Optional metadataDefinitions As String() = Nothing) As Task
-            Await TestAsync(source, LanguageNames.VisualBasic, shouldSucceed, metadataDefinitions)
+            Await GoToBaseTestsBase.TestAsync(source, LanguageNames.VisualBasic, shouldSucceed, metadataDefinitions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -189,7 +191,7 @@ interface I
     sub [|M|]()
 end interface")
         End Function
-        Public Async Function TestWithOneMethodImplementation_02() As Task
+        Public Shared Async Function TestWithOneMethodImplementation_02() As Task
             Await TestAsync(
 "class C
     implements I
@@ -202,7 +204,7 @@ interface I
     sub [|M|]()
 end interface")
         End Function
-        Public Async Function TestWithOneMethodImplementation_03() As Task
+        Public Shared Async Function TestWithOneMethodImplementation_03() As Task
             Await TestAsync(
 "class C
     implements I

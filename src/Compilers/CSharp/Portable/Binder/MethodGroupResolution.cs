@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -17,15 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly Symbol OtherSymbol;
         public readonly OverloadResolutionResult<MethodSymbol> OverloadResolutionResult;
         public readonly AnalyzedArguments AnalyzedArguments;
-        public readonly ImmutableArray<Diagnostic> Diagnostics;
+        public readonly ImmutableBindingDiagnostic<AssemblySymbol> Diagnostics;
         public readonly LookupResultKind ResultKind;
 
-        public MethodGroupResolution(MethodGroup methodGroup, ImmutableArray<Diagnostic> diagnostics)
+        public MethodGroupResolution(MethodGroup methodGroup, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
             : this(methodGroup, otherSymbol: null, overloadResolutionResult: null, analyzedArguments: null, methodGroup.ResultKind, diagnostics)
         {
         }
 
-        public MethodGroupResolution(Symbol otherSymbol, LookupResultKind resultKind, ImmutableArray<Diagnostic> diagnostics)
+        public MethodGroupResolution(Symbol otherSymbol, LookupResultKind resultKind, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
             : this(methodGroup: null, otherSymbol, overloadResolutionResult: null, analyzedArguments: null, resultKind, diagnostics)
         {
         }
@@ -36,14 +40,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolutionResult<MethodSymbol> overloadResolutionResult,
             AnalyzedArguments analyzedArguments,
             LookupResultKind resultKind,
-            ImmutableArray<Diagnostic> diagnostics)
+            ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
         {
             Debug.Assert((methodGroup == null) || (methodGroup.Methods.Count > 0));
             Debug.Assert((methodGroup == null) || ((object)otherSymbol == null));
             // Methods should be represented in the method group.
             Debug.Assert(((object)otherSymbol == null) || (otherSymbol.Kind != SymbolKind.Method));
             Debug.Assert(resultKind != LookupResultKind.Ambiguous); // HasAnyApplicableMethod is expecting Viable methods.
-            Debug.Assert(!diagnostics.IsDefault);
+            Debug.Assert(!diagnostics.Diagnostics.IsDefault);
+            Debug.Assert(!diagnostics.Dependencies.IsDefault);
 
             this.MethodGroup = methodGroup;
             this.OtherSymbol = otherSymbol;
@@ -60,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool HasAnyErrors
         {
-            get { return this.Diagnostics.HasAnyErrors(); }
+            get { return this.Diagnostics.Diagnostics.HasAnyErrors(); }
         }
 
         public bool HasAnyApplicableMethod

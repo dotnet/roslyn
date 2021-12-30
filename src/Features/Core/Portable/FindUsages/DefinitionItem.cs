@@ -1,7 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
@@ -19,6 +26,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// </summary>
     internal abstract partial class DefinitionItem
     {
+        /// <summary>
+        /// The definition item corresponding to the initial symbol the user was trying to find. This item should get
+        /// prominent placement in the final UI for the user.
+        /// </summary>
+        internal const string Primary = nameof(Primary);
+
         // Existing behavior is to do up to two lookups for 3rd party navigation for FAR.  One
         // for the symbol itself and one for a 'fallback' symbol.  For example, if we're FARing
         // on a constructor, then the fallback symbol will be the actual type that the constructor
@@ -106,8 +119,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableDictionary<string, string> properties,
-            bool displayIfNoReferences) :
-            this(
+            bool displayIfNoReferences)
+            : this(
                 tags,
                 displayParts,
                 nameDisplayParts,
@@ -145,8 +158,24 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
         }
 
-        public abstract bool CanNavigateTo(Workspace workspace);
-        public abstract bool TryNavigateTo(Workspace workspace, bool isPreview);
+        [Obsolete("Override CanNavigateToAsync instead", error: false)]
+        public abstract bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken);
+        [Obsolete("Override TryNavigateToAsync instead", error: false)]
+        public abstract bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken);
+
+        public virtual Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return Task.FromResult(CanNavigateTo(workspace, cancellationToken));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        public virtual Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return Task.FromResult(TryNavigateTo(workspace, showInPreviewTab, activateTab, cancellationToken));
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
@@ -190,7 +219,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableArray<TaggedText> nameDisplayParts = default,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableDictionary<string, string> displayableProperties = default,
+            ImmutableDictionary<string, string> displayableProperties = null,
             bool displayIfNoReferences = true)
         {
             if (sourceSpans.Length == 0)
@@ -211,7 +240,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> nameDisplayParts,
-            Project project,
+            Solution solution,
             ISymbol symbol,
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
@@ -220,9 +249,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             var symbolKey = symbol.GetSymbolKey().ToString();
 
+            var projectId = solution.GetOriginatingProjectId(symbol);
+            Contract.ThrowIfNull(projectId);
+
             properties = properties.Add(MetadataSymbolKey, symbolKey)
-                                   .Add(MetadataSymbolOriginatingProjectIdGuid, project.Id.Id.ToString())
-                                   .Add(MetadataSymbolOriginatingProjectIdDebugName, project.Id.DebugName);
+                                   .Add(MetadataSymbolOriginatingProjectIdGuid, projectId.Id.ToString())
+                                   .Add(MetadataSymbolOriginatingProjectIdDebugName, projectId.DebugName);
 
             var originationParts = GetOriginationParts(symbol);
             return new DefaultDefinitionItem(

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Syntax
     {
         internal class WithManyWeakChildren : SyntaxList
         {
-            private readonly ArrayElement<WeakReference<SyntaxNode>>[] _children;
+            private readonly ArrayElement<WeakReference<SyntaxNode>?>[] _children;
 
             // We calculate and store the positions of all children here. This way, getting the position
             // of all children is O(N) [N being the list size], otherwise it is O(N^2) because getting
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Syntax
                 : base(green, parent, position)
             {
                 int count = green.SlotCount;
-                _children = new ArrayElement<WeakReference<SyntaxNode>>[count];
+                _children = new ArrayElement<WeakReference<SyntaxNode>?>[count];
 
                 var childOffsets = new int[count];
 
@@ -45,9 +47,9 @@ namespace Microsoft.CodeAnalysis.Syntax
                 return GetWeakRedElement(ref _children[index].Value, index);
             }
 
-            internal override SyntaxNode GetCachedSlot(int index)
+            internal override SyntaxNode? GetCachedSlot(int index)
             {
-                SyntaxNode value = null;
+                SyntaxNode? value = null;
                 _children[index].Value?.TryGetTarget(out value);
                 return value;
             }

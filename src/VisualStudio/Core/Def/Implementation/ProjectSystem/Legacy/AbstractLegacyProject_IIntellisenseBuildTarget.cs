@@ -1,18 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.IO;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Internal.Log;
+#nullable disable
+
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 {
     internal partial class AbstractLegacyProject : IIntellisenseBuildTarget
     {
+        void IIntellisenseBuildTarget.SetIntellisenseBuildResult(bool succeeded, string reason)
+        {
+        }
+
+#if false
         private static readonly object s_diagnosticKey = new object();
 
         void IIntellisenseBuildTarget.SetIntellisenseBuildResult(bool succeeded, string reason)
@@ -73,5 +75,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
             return string.Join(Environment.NewLine, logFileDescription, string.Empty, ServicesVSResources.Additional_information_colon, reason);
         }
+#endif
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Text
 Imports Microsoft.CodeAnalysis
@@ -171,6 +173,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         If methodStatement.TypeParameterList IsNot Nothing Then
                             AppendArity(builder, methodStatement.TypeParameterList.Parameters.Count)
                         End If
+
                         AppendParameterList(builder, methodStatement.ParameterList)
 
                     Case SyntaxKind.FunctionStatement,
@@ -181,6 +184,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         If methodStatement.TypeParameterList IsNot Nothing Then
                             AppendArity(builder, methodStatement.TypeParameterList.Parameters.Count)
                         End If
+
                         AppendParameterList(builder, methodStatement.ParameterList)
 
                     Case SyntaxKind.DeclareFunctionStatement,
@@ -202,6 +206,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                             builder.Append("_"c)
                             AppendTypeName(builder, DirectCast(operatorStatement.AsClause, SimpleAsClauseSyntax).Type)
                         End If
+
                         AppendParameterList(builder, operatorStatement.ParameterList)
 
                     Case SyntaxKind.ConstructorBlock

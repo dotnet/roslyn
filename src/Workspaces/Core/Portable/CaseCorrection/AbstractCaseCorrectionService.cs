@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -32,16 +32,14 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
                 throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
             }
 
-            var semanticModel = await document.GetSemanticModelForSpanAsync(spans.Collapse(), cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(spans.Collapse(), cancellationToken).ConfigureAwait(false);
 
             var newRoot = CaseCorrect(semanticModel, root, spans, document.Project.Solution.Workspace, cancellationToken);
             return (root == newRoot) ? document : document.WithSyntaxRoot(newRoot);
         }
 
         public SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
-        {
-            return CaseCorrect(semanticModel: null, root, spans, workspace, cancellationToken);
-        }
+            => CaseCorrect(semanticModel: null, root, spans, workspace, cancellationToken);
 
         private SyntaxNode CaseCorrect(SemanticModel? semanticModel, SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
         {

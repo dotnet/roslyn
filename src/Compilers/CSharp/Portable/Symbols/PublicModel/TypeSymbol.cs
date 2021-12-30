@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
@@ -109,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                 : null;
         }
 
-        bool ITypeSymbol.IsUnmanagedType => !UnderlyingTypeSymbol.IsManagedType;
+        bool ITypeSymbol.IsUnmanagedType => !UnderlyingTypeSymbol.IsManagedTypeNoUseSiteDiagnostics;
 
         bool ITypeSymbol.IsReferenceType
         {
@@ -136,6 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         }
 
         bool ITypeSymbol.IsTupleType => UnderlyingTypeSymbol.IsTupleType;
+
+        bool ITypeSymbol.IsNativeIntegerType => UnderlyingTypeSymbol.IsNativeIntegerType;
 
         string ITypeSymbol.ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format)
         {
@@ -164,5 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool ITypeSymbol.IsRefLikeType => UnderlyingTypeSymbol.IsRefLikeType;
 
         bool ITypeSymbol.IsReadOnly => UnderlyingTypeSymbol.IsReadOnly;
+
+        bool ITypeSymbol.IsRecord => UnderlyingTypeSymbol.IsRecord || UnderlyingTypeSymbol.IsRecordStruct;
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,8 +22,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog => VisualStudio.ExtractInterfaceDialog;
 
-        public CSharpExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpExtractInterfaceDialog))
+        public CSharpExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpExtractInterfaceDialog))
         {
         }
 
@@ -164,7 +168,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            var project = new ProjectUtils.Project(ProjectName);
+            _ = new ProjectUtils.Project(ProjectName);
             VisualStudio.Editor.Verify.TextContains(@"interface IC
 {
     void M();
@@ -236,7 +240,7 @@ class C : IC
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            var project = new ProjectUtils.Project(ProjectName);
+            _ = new ProjectUtils.Project(ProjectName);
             VisualStudio.Editor.Verify.TextContains(@"namespace A
 {
     interface IC
@@ -272,7 +276,7 @@ class C : IC
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            var project = new ProjectUtils.Project(ProjectName);
+            _ = new ProjectUtils.Project(ProjectName);
             VisualStudio.Editor.Verify.TextContains(@"interface IC
 {
     bool M();

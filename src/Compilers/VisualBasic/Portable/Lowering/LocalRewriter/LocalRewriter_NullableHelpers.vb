@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -170,6 +172,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim conversion = DirectCast(expr, BoundConversion)
                     If IsConversionFromUnderlyingToNullable(conversion) Then
                         Return conversion.Operand
+                    End If
+
+                Case Else
+                    Debug.Assert(Not HasValue(expr))
+
+                    If Not _inExpressionLambda AndAlso expr.Type.IsNullableOfBoolean() Then
+
+                        Dim whenNotNull As BoundExpression = Nothing
+                        Dim whenNull As BoundExpression = Nothing
+                        If IsConditionalAccess(expr, whenNotNull, whenNull) AndAlso HasNoValue(whenNull) Then
+                            Debug.Assert(Not HasNoValue(whenNotNull))
+                            Return UpdateConditionalAccess(expr,
+                                                           NullableValueOrDefault(whenNotNull),
+                                                           New BoundLiteral(expr.Syntax, ConstantValue.False, expr.Type.GetNullableUnderlyingType()))
+                        End If
                     End If
             End Select
 

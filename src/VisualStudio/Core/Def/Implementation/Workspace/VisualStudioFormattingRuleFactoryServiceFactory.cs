@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -22,26 +26,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal sealed class VisualStudioFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioFormattingRuleFactoryServiceFactory()
         {
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new Factory();
-        }
+            => new Factory();
 
         private sealed class Factory : IHostDependentFormattingRuleFactoryService
         {
             public bool ShouldUseBaseIndentation(Document document)
-            {
-                return IsContainedDocument(document);
-            }
+                => IsContainedDocument(document);
 
             public bool ShouldNotFormatOrCommitOnPaste(Document document)
-            {
-                return IsContainedDocument(document);
-            }
+                => IsContainedDocument(document);
 
             private bool IsContainedDocument(Document document)
             {
@@ -51,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public AbstractFormattingRule CreateRule(Document document, int position)
             {
-                if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
+                if (document.Project.Solution.Workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace)
                 {
                     return NoOpFormattingRule.Instance;
                 }
@@ -63,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 var textContainer = document.GetTextSynchronously(CancellationToken.None).Container;
-                if (!(textContainer.TryGetTextBuffer() is IProjectionBuffer buffer))
+                if (textContainer.TryGetTextBuffer() is not IProjectionBuffer)
                 {
                     return NoOpFormattingRule.Instance;
                 }
@@ -102,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     }
                 }
 
-                FatalError.ReportWithoutCrash(
+                FatalError.ReportAndCatch(
                     new InvalidOperationException($"Can't find an intersection. Visible spans count: {spans.Count}"));
 
                 return NoOpFormattingRule.Instance;
@@ -110,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public IEnumerable<TextChange> FilterFormattedChanges(Document document, TextSpan span, IList<TextChange> changes)
             {
-                if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
+                if (document.Project.Solution.Workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace)
                 {
                     return changes;
                 }

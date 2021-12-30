@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -258,6 +258,8 @@ namespace Microsoft.CodeAnalysis
             // PERF: don't make a defensive copy - callers are internal and won't modify the bag.
             return _lazyBag ?? SpecializedCollections.EmptyEnumerable<Diagnostic>();
         }
+
+        internal int Count => _lazyBag?.Count ?? 0;
 
         public override string ToString()
         {

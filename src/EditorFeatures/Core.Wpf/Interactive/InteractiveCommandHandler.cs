@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
@@ -27,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         protected InteractiveCommandHandler(
             IContentTypeRegistryService contentTypeRegistryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            IWaitIndicator waitIndicator)
+            IEditorOperationsFactoryService editorOperationsFactoryService)
         {
             _contentTypeRegistryService = contentTypeRegistryService;
             _editorOptionsFactoryService = editorOptionsFactoryService;
@@ -50,14 +53,12 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         }
 
         CommandState ICommandHandler<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args)
-        {
-            return CommandState.Available;
-        }
+            => CommandState.Available;
 
         bool ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, CommandExecutionContext context)
         {
             var window = OpenInteractiveWindow(focus: false);
-            using (context.OperationContext.AddScope(allowCancellation: true, InteractiveEditorFeaturesResources.Executing_selection_in_Interactive_Window))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesWpfResources.Executing_selection_in_Interactive_Window))
             {
                 var submission = GetSelectedText(args, context.OperationContext.UserCancellationToken);
                 if (!string.IsNullOrWhiteSpace(submission))
@@ -70,9 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         }
 
         CommandState ICommandHandler<CopyToInteractiveCommandArgs>.GetCommandState(CopyToInteractiveCommandArgs args)
-        {
-            return CommandState.Available;
-        }
+            => CommandState.Available;
 
         bool ICommandHandler<CopyToInteractiveCommandArgs>.ExecuteCommand(CopyToInteractiveCommandArgs args, CommandExecutionContext context)
         {
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             using (var edit = buffer.CreateEdit())
             using (var waitScope = context.OperationContext.AddScope(allowCancellation: true,
-                InteractiveEditorFeaturesResources.Copying_selection_to_Interactive_Window))
+                EditorFeaturesWpfResources.Copying_selection_to_Interactive_Window))
             {
                 var text = GetSelectedText(args, context.OperationContext.UserCancellationToken);
 

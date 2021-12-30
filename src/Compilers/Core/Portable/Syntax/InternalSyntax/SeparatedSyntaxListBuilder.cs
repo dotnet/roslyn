@@ -1,12 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
+    // The null-suppression uses in this type are covered under the following issue to
+    // better design this type around a null _builder
+    // https://github.com/dotnet/roslyn/issues/40858
     internal struct SeparatedSyntaxListBuilder<TNode> where TNode : GreenNode
     {
-        private readonly SyntaxListBuilder _builder;
+        private readonly SyntaxListBuilder? _builder;
 
         public SeparatedSyntaxListBuilder(int size)
             : this(new SyntaxListBuilder(size))
@@ -35,63 +40,63 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             get
             {
-                return _builder.Count;
+                return _builder!.Count;
             }
         }
 
-        public GreenNode this[int index]
+        public GreenNode? this[int index]
         {
             get
             {
-                return _builder[index];
+                return _builder![index];
             }
 
             set
             {
-                _builder[index] = value;
+                _builder![index] = value;
             }
         }
 
         public void Clear()
         {
-            _builder.Clear();
+            _builder!.Clear();
         }
 
         public void RemoveLast()
         {
-            this._builder.RemoveLast();
+            _builder!.RemoveLast();
         }
 
         public SeparatedSyntaxListBuilder<TNode> Add(TNode node)
         {
-            _builder.Add(node);
+            _builder!.Add(node);
             return this;
         }
 
         public void AddSeparator(GreenNode separatorToken)
         {
-            _builder.Add(separatorToken);
+            _builder!.Add(separatorToken);
         }
 
         public void AddRange(TNode[] items, int offset, int length)
         {
-            _builder.AddRange(items, offset, length);
+            _builder!.AddRange(items, offset, length);
         }
 
         public void AddRange(in SeparatedSyntaxList<TNode> nodes)
         {
-            _builder.AddRange(nodes.GetWithSeparators());
+            _builder!.AddRange(nodes.GetWithSeparators());
         }
 
         public void AddRange(in SeparatedSyntaxList<TNode> nodes, int count)
         {
             var list = nodes.GetWithSeparators();
-            this._builder.AddRange(list, this.Count, Math.Min(count * 2, list.Count));
+            _builder!.AddRange(list, this.Count, Math.Min(count * 2, list.Count));
         }
 
         public bool Any(int kind)
         {
-            return _builder.Any(kind);
+            return _builder!.Any(kind);
         }
 
         public SeparatedSyntaxList<TNode> ToList()
@@ -110,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         /// In order to avoid creating a separate pool of SeparatedSyntaxListBuilders, we expose
         /// our underlying SyntaxListBuilder to SyntaxListPool.
         /// </remarks>
-        internal SyntaxListBuilder UnderlyingBuilder
+        internal SyntaxListBuilder? UnderlyingBuilder
         {
             get { return _builder; }
         }
@@ -120,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return builder.ToList();
         }
 
-        public static implicit operator SyntaxListBuilder(in SeparatedSyntaxListBuilder<TNode> builder)
+        public static implicit operator SyntaxListBuilder?(in SeparatedSyntaxListBuilder<TNode> builder)
         {
             return builder._builder;
         }

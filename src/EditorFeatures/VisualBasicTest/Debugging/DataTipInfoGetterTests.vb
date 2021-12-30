@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -16,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
     <[UseExportProvider]>
     Public Class DataTipInfoGetterTests
 
-        Private Async Function TestNoDataTipAsync(input As XElement) As Task
+        Private Shared Async Function TestNoDataTipAsync(input As XElement) As Task
             Dim parsedInput As String = Nothing
             Dim expectedPosition As Integer
             MarkupTestFile.GetPosition(input.NormalizedValue, parsedInput, expectedPosition)
@@ -28,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
                                       End Function)
         End Function
 
-        Private Async Function TestAsync(input As XElement, Optional expectedText As String = Nothing) As Task
+        Private Shared Async Function TestAsync(input As XElement, Optional expectedText As String = Nothing) As Task
             Dim parsedInput As String = Nothing
             Dim expectedPosition As Integer
             Dim textSpan As TextSpan
@@ -45,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
                                       End Function)
         End Function
 
-        Private Async Function TestSpanGetterAsync(parsedInput As String, position As Integer, continuation As Func(Of Document, Integer, Task)) As Task
+        Private Shared Async Function TestSpanGetterAsync(parsedInput As String, position As Integer, continuation As Func(Of Document, Integer, Task)) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(parsedInput)
                 Dim debugInfo = New VisualBasicLanguageDebugInfoService()
                 Await continuation(workspace.CurrentSolution.Projects.First.Documents.First, position)

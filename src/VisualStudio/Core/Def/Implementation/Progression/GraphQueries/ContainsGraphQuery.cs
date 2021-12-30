@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -29,30 +33,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var symbol = graphBuilder.GetSymbol(node);
-
+                    var symbol = graphBuilder.GetSymbol(node, cancellationToken);
                     if (symbol != null)
                     {
                         foreach (var newSymbol in SymbolContainment.GetContainedSymbols(symbol))
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            var newNode = await graphBuilder.AddNodeForSymbolAsync(newSymbol, relatedNode: node).ConfigureAwait(false);
-                            graphBuilder.AddLink(node, GraphCommonSchema.Contains, newNode);
+                            var newNode = await graphBuilder.AddNodeAsync(
+                                newSymbol, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                            graphBuilder.AddLink(node, GraphCommonSchema.Contains, newNode, cancellationToken);
                         }
                     }
                     else if (node.HasCategory(CodeNodeCategories.File))
                     {
-                        var document = graphBuilder.GetContextDocument(node);
-
+                        var document = graphBuilder.GetContextDocument(node, cancellationToken);
                         if (document != null)
                         {
                             foreach (var newSymbol in await SymbolContainment.GetContainedSymbolsAsync(document, cancellationToken).ConfigureAwait(false))
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
 
-                                var newNode = await graphBuilder.AddNodeForSymbolAsync(newSymbol, relatedNode: node).ConfigureAwait(false);
-                                graphBuilder.AddLink(node, GraphCommonSchema.Contains, newNode);
+                                var newNode = await graphBuilder.AddNodeAsync(
+                                    newSymbol, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                                graphBuilder.AddLink(node, GraphCommonSchema.Contains, newNode, cancellationToken);
                             }
                         }
                     }

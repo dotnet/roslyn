@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -18,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
     [UseExportProvider]
     public class DataTipInfoGetterTests
     {
-        private async Task TestAsync(string markup, string expectedText = null)
+        private static async Task TestAsync(string markup, string expectedText = null)
         {
             await TestSpanGetterAsync(markup, async (document, position, expectedSpan) =>
             {
@@ -29,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             });
         }
 
-        private async Task TestNoDataTipAsync(string markup)
+        private static async Task TestNoDataTipAsync(string markup)
         {
             await TestSpanGetterAsync(markup, async (document, position, expectedSpan) =>
             {
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             });
         }
 
-        private async Task TestSpanGetterAsync(string markup, Func<Document, int, TextSpan?, Task> continuation)
+        private static async Task TestSpanGetterAsync(string markup, Func<Document, int, TextSpan?, Task> continuation)
         {
             using var workspace = TestWorkspace.CreateCSharp(markup);
             var testHostDocument = workspace.Documents.Single();

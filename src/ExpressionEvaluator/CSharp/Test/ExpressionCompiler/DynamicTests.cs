@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -56,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (dynamic V_0) //d
+  .locals init (object V_0) //d
   IL_0000:  ldloc.0
   IL_0001:  ret
 }");
@@ -872,7 +876,7 @@ public class Outer<T, U>
                         DkmClrAliasKind.Variable,
                         "d2",
                         "d2",
-                        typeof(Dictionary<Dictionary<dynamic, Dictionary<object[], dynamic[]>>, object>).AssemblyQualifiedName,
+                        typeof(Dictionary<Dictionary<object, Dictionary<object[], object[]>>, object>).AssemblyQualifiedName,
                         MakeCustomTypeInfo(false, false, true, false, false, false, false, true, false)));
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
@@ -950,7 +954,7 @@ public class Outer<T, U>
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (dynamic V_0) //d
+  .locals init (object V_0) //d
   IL_0000:  ldloc.0
   IL_0001:  ret
 }");
@@ -986,7 +990,7 @@ class C
 {
   // Code size       77 (0x4d)
   .maxstack  9
-  .locals init (dynamic V_0) //d
+  .locals init (object V_0) //d
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0037
   IL_0007:  ldc.i4.0
@@ -1017,7 +1021,7 @@ class C
         }
 
         [WorkItem(1160855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1160855")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
         public void AwaitDynamic()
         {
             var source = @"

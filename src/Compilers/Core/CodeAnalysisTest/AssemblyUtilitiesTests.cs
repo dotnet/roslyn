@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -7,25 +11,32 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [Collection(AssemblyLoadTestFixtureCollection.Name)]
     public class AssemblyUtilitiesTests : TestBase
     {
+        private readonly AssemblyLoadTestFixture _testFixture;
+
+        public AssemblyUtilitiesTests(AssemblyLoadTestFixture testFixture)
+        {
+            _testFixture = testFixture;
+        }
+
         [Fact]
         public void FindAssemblySet_SingleAssembly()
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-
+            var alphaDll = directory.CopyFile(_testFixture.Alpha.Path);
             var results = AssemblyUtilities.FindAssemblySet(alphaDll.Path);
 
-            Assert.Equal(expected: 1, actual: results.Length);
-            Assert.Equal(expected: alphaDll.Path, actual: results[0]);
+            AssertEx.SetEqual(new[] { alphaDll.Path }, results);
         }
 
         [Fact]
@@ -33,13 +44,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            var betaDll = directory.CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Beta);
-
+            var alphaDll = directory.CopyFile(_testFixture.Alpha.Path);
+            var betaDll = directory.CopyFile(_testFixture.Beta.Path);
             var results = AssemblyUtilities.FindAssemblySet(alphaDll.Path);
 
-            Assert.Equal(expected: 1, actual: results.Length);
-            Assert.Equal(expected: alphaDll.Path, actual: results[0]);
+            AssertEx.SetEqual(new[] { alphaDll.Path }, results);
         }
 
         [Fact]
@@ -47,43 +56,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
+            var alphaDll = directory.CopyFile(_testFixture.Alpha.Path);
+            var gammaDll = directory.CopyFile(_testFixture.Gamma.Path);
 
             var results = AssemblyUtilities.FindAssemblySet(alphaDll.Path);
 
-            Assert.Equal(expected: 2, actual: results.Length);
-            Assert.Contains(alphaDll.Path, results, StringComparer.OrdinalIgnoreCase);
-            Assert.Contains(gammaDll.Path, results, StringComparer.OrdinalIgnoreCase);
+            AssertEx.SetEqual(new[] { alphaDll.Path, gammaDll.Path }, results, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
         public void FindAssemblySet_TransitiveDependencies()
         {
-            var directory = Temp.CreateDirectory();
+            var results = AssemblyUtilities.FindAssemblySet(_testFixture.Alpha.Path);
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
-            var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta);
-
-            var results = AssemblyUtilities.FindAssemblySet(alphaDll.Path);
-
-            Assert.Equal(expected: 3, actual: results.Length);
-            Assert.Contains(alphaDll.Path, results, StringComparer.OrdinalIgnoreCase);
-            Assert.Contains(gammaDll.Path, results, StringComparer.OrdinalIgnoreCase);
-            Assert.Contains(deltaDll.Path, results, StringComparer.OrdinalIgnoreCase);
+            AssertEx.SetEqual(new[]
+            {
+                _testFixture.Alpha.Path,
+                _testFixture.Gamma.Path,
+                _testFixture.Delta1.Path
+            }, results, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
         public void ReadMVid()
         {
-            var directory = Temp.CreateDirectory();
+            var assembly = Assembly.Load(File.ReadAllBytes(_testFixture.Alpha.Path));
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-
-            var assembly = Assembly.Load(File.ReadAllBytes(alphaDll.Path));
-
-            var result = AssemblyUtilities.ReadMvid(alphaDll.Path);
+            var result = AssemblyUtilities.ReadMvid(_testFixture.Alpha.Path);
 
             Assert.Equal(expected: assembly.ManifestModule.ModuleVersionId, actual: result);
         }
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
 
-            Assert.Equal(expected: 0, actual: results.Length);
+            Assert.Empty(results);
         }
 
         [Fact]
@@ -110,7 +109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
 
-            Assert.Equal(expected: 0, actual: results.Length);
+            Assert.Empty(results);
         }
 
         [Fact]
@@ -123,8 +122,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
 
-            Assert.Equal(expected: 1, actual: results.Length);
-            Assert.Equal(expected: satelliteFile.Path, actual: results[0], comparer: StringComparer.OrdinalIgnoreCase);
+            AssertEx.SetEqual(new[] { satelliteFile.Path }, results, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -137,8 +135,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
 
-            Assert.Equal(expected: 1, actual: results.Length);
-            Assert.Equal(expected: satelliteFile.Path, actual: results[0], comparer: StringComparer.OrdinalIgnoreCase);
+            AssertEx.SetEqual(new[] { satelliteFile.Path }, results, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -152,9 +149,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
 
-            Assert.Equal(expected: 2, actual: results.Length);
-            Assert.Contains(satelliteFileDE.Path, results, StringComparer.OrdinalIgnoreCase);
-            Assert.Contains(satelliteFileFR.Path, results, StringComparer.OrdinalIgnoreCase);
+            AssertEx.SetEqual(new[] { satelliteFileDE.Path, satelliteFileFR.Path }, results, StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -171,43 +166,26 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void IdentifyMissingDependencies_OnlyMscorlibMissing()
+        public void IdentifyMissingDependencies_OnlyNetstandardMissing()
         {
-            var directory = Temp.CreateDirectory();
-
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
-            var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta);
-
-            var results = AssemblyUtilities.IdentifyMissingDependencies(alphaDll.Path, new[] { alphaDll.Path, gammaDll.Path, deltaDll.Path });
+            var results = AssemblyUtilities.IdentifyMissingDependencies(_testFixture.Alpha.Path, new[] { _testFixture.Alpha.Path, _testFixture.Gamma.Path, _testFixture.Delta1.Path });
 
             Assert.Equal(expected: 1, actual: results.Length);
-            Assert.Equal(expected: "mscorlib", actual: results[0].Name);
+            Assert.Equal(expected: "netstandard", actual: results[0].Name);
         }
 
         [Fact]
         public void IdentifyMissingDependencies_MultipleMissing()
         {
-            var directory = Temp.CreateDirectory();
+            var results = AssemblyUtilities.IdentifyMissingDependencies(_testFixture.Alpha.Path, new[] { _testFixture.Alpha.Path }).Select(identity => identity.Name);
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-
-            var results = AssemblyUtilities.IdentifyMissingDependencies(alphaDll.Path, new[] { alphaDll.Path }).Select(identity => identity.Name);
-
-            Assert.Equal(expected: 2, actual: results.Count());
-            Assert.Contains("mscorlib", results);
-            Assert.Contains("Gamma", results);
+            AssertEx.SetEqual(new[] { "netstandard", "Gamma" }, results);
         }
 
         [Fact]
         public void GetAssemblyIdentity()
         {
-            var directory = Temp.CreateDirectory();
-
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-
-            var result = AssemblyUtilities.GetAssemblyIdentity(alphaDll.Path);
-
+            var result = AssemblyUtilities.GetAssemblyIdentity(_testFixture.Alpha.Path);
             Assert.Equal(expected: "Alpha", actual: result.Name);
         }
     }

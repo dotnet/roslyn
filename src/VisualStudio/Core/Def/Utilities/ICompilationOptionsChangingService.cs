@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
@@ -9,6 +11,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
     {
         bool CanApplyChange(CompilationOptions oldOptions, CompilationOptions newOptions);
 
-        void Apply(CompilationOptions options, ProjectPropertyStorage storage);
+        void Apply(CompilationOptions oldOptions, CompilationOptions newOptions, ProjectPropertyStorage storage);
     }
 }

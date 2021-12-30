@@ -392,9 +392,14 @@
   </data>
   <data name="CompilerAnalyzerFailure" xml:space="preserve">
     <value>Analyzer Failure</value>
+    <comment>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</comment>
   </data>
   <data name="CompilerAnalyzerThrows" xml:space="preserve">
-    <value>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</value>
+    <value>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</value>
   </data>
   <data name="CompilerAnalyzerThrowsDescription" xml:space="preserve">
     <value>Analyzer '{0}' threw the following exception:
@@ -439,9 +444,6 @@
   </data>
   <data name="ArgumentElementCannotBeNull" xml:space="preserve">
     <value>Argument cannot have a null element.</value>
-  </data>
-  <data name="AsyncAnalyzerActionCannotBeRegistered" xml:space="preserve">
-    <value>Analyzer attempted to register an 'async' action, which is not supported.</value>
   </data>
   <data name="UnsupportedDiagnosticReported" xml:space="preserve">
     <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
@@ -550,6 +552,9 @@
   </data>
   <data name="InvalidTree" xml:space="preserve">
     <value>Syntax tree doesn't belong to the underlying 'Compilation'.</value>
+  </data>
+  <data name="InvalidAdditionalFile" xml:space="preserve">
+    <value>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</value>
   </data>
   <data name="ResourceStreamEndedUnexpectedly" xml:space="preserve">
     <value>Resource stream ended at {0} bytes, expected {1} bytes.</value>
@@ -677,5 +682,44 @@
   </data>
   <data name="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging" xml:space="preserve">
     <value>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</value>
+  </data>
+  <data name="DisableAnalyzerDiagnosticsMessage" xml:space="preserve">
+    <value>Suppress the following diagnostics to disable this analyzer: {0}</value>
+    <comment>{0}: Comma-separated list of diagnostic IDs</comment>
+  </data>
+  <data name="Single_type_per_generator_0" xml:space="preserve">
+    <value>Only a single {0} can be registered per generator.</value>
+    <comment>{0}: type name</comment>
+  </data>
+  <data name="WRN_MultipleGlobalAnalyzerKeys" xml:space="preserve">
+    <value>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</value>
+  </data>
+  <data name="WRN_MultipleGlobalAnalyzerKeys_Title" xml:space="preserve">
+    <value>Multiple global analyzer config files set the same key. It has been unset.</value>
+  </data>
+  <data name="HintNameUniquePerGenerator" xml:space="preserve">
+    <value>The hintName '{0}' of the added source file must be unique within a generator.</value>
+    <comment>{0}: the provided hintname</comment>
+  </data>
+  <data name="HintNameInvalidChar" xml:space="preserve">
+    <value>The hintName '{0}' contains an invalid character '{1}' at position {2}.</value>
+    <comment>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</comment>
+  </data>
+  <data name="SourceTextRequiresEncoding" xml:space="preserve">
+    <value>The SourceText with hintName '{0}' must have an explicit encoding set.</value>
+    <comment>'SourceText' is not localizable. {0}: the provided hintname</comment>
+  </data>
+  <data name="AssemblyReferencesNetFramework" xml:space="preserve">
+    <value>The assembly containing type '{0}' references .NET Framework, which is not supported.</value>
+  </data>
+  <data name="WRN_InvalidGlobalSectionName" xml:space="preserve">
+    <value>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</value>
+    <comment>{0}: invalid section name, {1} path to global config</comment>
+  </data>
+  <data name="WRN_InvalidGlobalSectionName_Title" xml:space="preserve">
+    <value>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</value>
+  </data>
+  <data name="ChangesMustBeWithinBoundsOfSourceText" xml:space="preserve">
+    <value>Changes must be within bounds of SourceText</value>
   </data>
 </root>

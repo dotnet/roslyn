@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Runtime.InteropServices;
@@ -17,7 +21,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
         /// <summary>
         /// Standard constructor for the tool window.
         /// </summary>
-        public DiagnosticsWindow(object context)
+        public DiagnosticsWindow(object _)
             : base(null)
         {
             // Set the window title reading it from the resources.

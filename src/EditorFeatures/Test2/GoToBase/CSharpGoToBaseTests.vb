@@ -1,12 +1,14 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
     <[UseExportProvider]>
     Public Class CSharpGoToBaseTests
         Inherits GoToBaseTestsBase
-        Private Overloads Async Function TestAsync(source As String, Optional shouldSucceed As Boolean = True,
+        Private Overloads Shared Async Function TestAsync(source As String, Optional shouldSucceed As Boolean = True,
                                                    Optional metadataDefinitions As String() = Nothing) As Task
-            Await TestAsync(source, LanguageNames.CSharp, shouldSucceed, metadataDefinitions)
+            Await GoToBaseTestsBase.TestAsync(source, LanguageNames.CSharp, shouldSucceed, metadataDefinitions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>

@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -14,17 +14,25 @@ namespace Microsoft.CodeAnalysis
     public sealed class SymbolEqualityComparer : IEqualityComparer<ISymbol?>
     {
         /// <summary>
-        /// Compares two <see cref="ISymbol"/> instances based on the default comparison rules, equivalent to calling <see cref="IEquatable{ISymbol}.Equals(ISymbol)"/>
+        /// Compares two <see cref="ISymbol"/> instances based on the default comparison rules, equivalent to calling <see cref="IEquatable{ISymbol}.Equals(ISymbol)"/>.
         /// </summary>
-        public readonly static SymbolEqualityComparer Default = new SymbolEqualityComparer(TypeCompareKind.AllNullableIgnoreOptions);
+        /// <remarks>
+        /// Comparing <c>string</c> and <c>string?</c> will return equal. Use <see cref="IncludeNullability"/> if you don't want them to be considered equal.
+        /// </remarks>
+        public static readonly SymbolEqualityComparer Default = new SymbolEqualityComparer(TypeCompareKind.AllNullableIgnoreOptions);
 
         /// <summary>
-        /// Compares  two <see cref="ISymbol"/> instances, considering their nullability
+        /// Compares  two <see cref="ISymbol"/> instances, considering that a reference type and the same nullable reference type are not equal.
         /// </summary>
-        public readonly static SymbolEqualityComparer IncludeNullability = new SymbolEqualityComparer(TypeCompareKind.ConsiderEverything2); //TODO: should this be explicitly *not* compare everything
+        /// <remarks>
+        /// Comparing <c>string</c> and <c>string?</c> will not return equal. Use <see cref="Default"/> if you want them to be considered equal.
+        /// </remarks>
+        public static readonly SymbolEqualityComparer IncludeNullability = new SymbolEqualityComparer(TypeCompareKind.ConsiderEverything2); //TODO: should this be explicitly *not* compare everything
 
         // Internal only comparisons:
-        internal readonly static SymbolEqualityComparer ConsiderEverything = new SymbolEqualityComparer(TypeCompareKind.ConsiderEverything);
+        internal static readonly SymbolEqualityComparer ConsiderEverything = new SymbolEqualityComparer(TypeCompareKind.ConsiderEverything);
+        internal static readonly SymbolEqualityComparer IgnoreAll = new SymbolEqualityComparer(TypeCompareKind.AllIgnoreOptions);
+        internal static readonly SymbolEqualityComparer CLRSignature = new SymbolEqualityComparer(TypeCompareKind.CLRSignatureCompareOptions);
 
         internal TypeCompareKind CompareKind { get; }
 

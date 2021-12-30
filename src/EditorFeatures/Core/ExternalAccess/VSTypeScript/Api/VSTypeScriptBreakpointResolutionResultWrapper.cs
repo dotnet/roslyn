@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public bool IsLineBreakpoint => UnderlyingObject.IsLineBreakpoint;
 
         public static VSTypeScriptBreakpointResolutionResultWrapper CreateSpanResult(Document document, TextSpan textSpan, string? locationNameOpt = null)
-            => new VSTypeScriptBreakpointResolutionResultWrapper(BreakpointResolutionResult.CreateSpanResult(document, textSpan, locationNameOpt));
+            => new(BreakpointResolutionResult.CreateSpanResult(document, textSpan, locationNameOpt));
 
         public static VSTypeScriptBreakpointResolutionResultWrapper CreateLineResult(Document document, string? locationNameOpt = null)
-            => new VSTypeScriptBreakpointResolutionResultWrapper(BreakpointResolutionResult.CreateLineResult(document, locationNameOpt));
+            => new(BreakpointResolutionResult.CreateLineResult(document, locationNameOpt));
     }
 }

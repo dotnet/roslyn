@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (type.TypeKind == TypeKind.Enum)
                 {
                     var enumType = (INamedTypeSymbol)type;
-                    return (ExpressionSyntax)CSharpFlagsEnumGenerator.Instance.CreateEnumConstantValue(enumType, value);
+                    return (ExpressionSyntax)CSharpFlagsEnumGenerator.Instance.TryCreateEnumConstantValue(enumType, value);
                 }
                 else if (type.IsNullable())
                 {
@@ -116,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static string DetermineSuffix(ITypeSymbol type, object value)
         {
-            if (value is float f)
+            if (value is float)
             {
                 var stringValue = ((IFormattable)value).ToString("R", CultureInfo.InvariantCulture);
 
@@ -156,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var scale = d.GetScale();
 
                 var isNotDecimal = !IsSpecialType(type, SpecialType.System_Decimal);
-                var isOutOfRange = d < long.MinValue || d > long.MaxValue;
+                var isOutOfRange = d is < long.MinValue or > long.MaxValue;
                 var scaleIsNotZero = scale != 0;
 
                 if (isNotDecimal || isOutOfRange || scaleIsNotZero)
@@ -271,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return negative
                 ? SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, literal)
-                : (ExpressionSyntax)literal;
+                : literal;
         }
 
         private static ExpressionSyntax GenerateFieldReference<T>(ITypeSymbol type, T value, IEnumerable<KeyValuePair<T, string>> constants)
@@ -281,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (constant.Key.Equals(value))
                 {
                     var memberAccess = GenerateMemberAccess("System", typeof(T).Name);
-                    if (type != null && !(type is IErrorTypeSymbol))
+                    if (type is not null and not IErrorTypeSymbol)
                     {
                         memberAccess = memberAccess.WithAdditionalAnnotations(SpecialTypeAnnotation.Create(type.SpecialType));
                     }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 extern alias PDB;
 
@@ -178,7 +182,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return result;
         }
 
-        static internal CompileResult CompileExpression(
+        internal static CompileResult CompileExpression(
             this EvaluationContextBase evaluationContext,
             string expr,
             DkmEvaluationFlags compilationFlags,
@@ -209,7 +213,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         /// <returns>
         /// Result containing generated assembly, type and method names, and any format specifiers.
         /// </returns>
-        static internal CompileResult CompileExpression(
+        internal static CompileResult CompileExpression(
             this EvaluationContextBase evaluationContext,
             string expr,
             DkmEvaluationFlags compilationFlags,
@@ -370,8 +374,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             int methodToken,
             string qualifiedName,
             string expectedIL,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             var parts = qualifiedName.Split('.');
             if (parts.Length != 2)
@@ -495,29 +499,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return ModuleInstance.Create(peBytes, SymReaderFactory.CreateReader(pdbBytes), includeLocalSignatures: true);
         }
 
-        internal static AssemblyIdentity GetAssemblyIdentity(this MetadataReference reference)
-        {
-            using (var moduleMetadata = GetManifestModuleMetadata(reference))
-            {
-                return moduleMetadata.MetadataReader.ReadAssemblyIdentityOrThrow();
-            }
-        }
-
-        internal static Guid GetModuleVersionId(this MetadataReference reference)
-        {
-            using (var moduleMetadata = GetManifestModuleMetadata(reference))
-            {
-                return moduleMetadata.MetadataReader.GetModuleVersionIdOrThrow();
-            }
-        }
-
-        private static ModuleMetadata GetManifestModuleMetadata(MetadataReference reference)
-        {
-            // make a copy to avoid disposing shared reference metadata:
-            var metadata = ((MetadataImageReference)reference).GetMetadata();
-            return (metadata as AssemblyMetadata)?.GetModules()[0] ?? (ModuleMetadata)metadata;
-        }
-
         internal static void VerifyLocal<TMethodSymbol>(
             this CompilationTestData testData,
             string typeName,
@@ -550,7 +531,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                     expectedValueSourceLine: expectedValueSourceLine);
             }
 
-            Assert.Equal(((Cci.IMethodDefinition)methodData.Method).CallingConvention, expectedGeneric ? Cci.CallingConvention.Generic : Cci.CallingConvention.Default);
+            Assert.Equal(((Cci.IMethodDefinition)methodData.Method.GetCciAdapter()).CallingConvention, expectedGeneric ? Cci.CallingConvention.Generic : Cci.CallingConvention.Default);
         }
 
         internal static void VerifyResolutionRequests(EEMetadataReferenceResolver resolver, (AssemblyIdentity, AssemblyIdentity, int)[] expectedRequests)
@@ -784,7 +765,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return methodName;
         }
 
-        internal unsafe static ModuleMetadata ToModuleMetadata(this PEMemoryBlock metadata, bool ignoreAssemblyRefs)
+        internal static unsafe ModuleMetadata ToModuleMetadata(this PEMemoryBlock metadata, bool ignoreAssemblyRefs)
         {
             return ModuleMetadata.CreateFromMetadata(
                 (IntPtr)metadata.Pointer,
@@ -793,7 +774,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 ignoreAssemblyRefs: ignoreAssemblyRefs);
         }
 
-        internal unsafe static MetadataReader ToMetadataReader(this PEMemoryBlock metadata)
+        internal static unsafe MetadataReader ToMetadataReader(this PEMemoryBlock metadata)
         {
             return new MetadataReader(metadata.Pointer, metadata.Length, MetadataReaderOptions.None);
         }
@@ -836,7 +817,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                         comp.MessageProvider,
                         () => peStream,
                         () => pdbStream,
-                        null, null,
+                        nativePdbWriterOpt: null,
+                        pdbPathOpt: null,
                         metadataOnly: true,
                         isDeterministic: false,
                         emitTestCoverageData: false,

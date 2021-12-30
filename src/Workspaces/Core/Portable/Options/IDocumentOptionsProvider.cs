@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// This is passed to <see cref="IOptionService.RegisterDocumentOptionsProvider(IDocumentOptionsProvider)"/> to activate it
     /// for a workspace. This instance then lives around for the lifetime of the workspace.
     /// </remarks>
-    interface IDocumentOptionsProvider
+    internal interface IDocumentOptionsProvider
     {
         /// <summary>
         /// Fetches a <see cref="IDocumentOptions"/> for the given document. Any asynchronous work (looking for config files, etc.)

@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -29,18 +29,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SourceLocation(in SyntaxToken token)
-            : this(token.SyntaxTree, token.Span)
+            : this(token.SyntaxTree!, token.Span)
         {
         }
 
         public SourceLocation(in SyntaxNodeOrToken nodeOrToken)
-            : this(nodeOrToken.SyntaxTree, nodeOrToken.Span)
+            : this(nodeOrToken.SyntaxTree!, nodeOrToken.Span)
         {
+            Debug.Assert(nodeOrToken.SyntaxTree is object);
         }
 
         public SourceLocation(in SyntaxTrivia trivia)
-            : this(trivia.SyntaxTree, trivia.Span)
+            : this(trivia.SyntaxTree!, trivia.Span)
         {
+            Debug.Assert(trivia.SyntaxTree is object);
         }
 
         public SourceLocation(SyntaxReference syntaxRef)

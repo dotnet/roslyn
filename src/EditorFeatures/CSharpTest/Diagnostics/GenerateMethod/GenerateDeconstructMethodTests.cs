@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -7,11 +11,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateDeconstructMethod
 {
     public class GenerateDeconstructMethodTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public GenerateDeconstructMethodTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateDeconstructMethodCodeFixProvider());
 
@@ -29,6 +39,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateDec
 @"using System;
 
 class Class
+{
+    private void Deconstruct(out int x, out int y)
+    {
+        throw new NotImplementedException();
+    }
+
+    void Method()
+    {
+        (int x, int y) = this;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestDeconstructionDeclaration_Simple_Record()
+        {
+            await TestInRegularAndScriptAsync(
+@"record R
+{
+    void Method()
+    {
+        (int x, int y) = [|this|];
+    }
+}",
+@"using System;
+
+record R
 {
     private void Deconstruct(out int x, out int y)
     {
@@ -125,13 +162,11 @@ class Class
         (var x, var y) = [|this|];
     }
 }",
-@"using System;
-
-class Class
+@"class Class
 {
     private void Deconstruct(out object x, out object y)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     void Method()

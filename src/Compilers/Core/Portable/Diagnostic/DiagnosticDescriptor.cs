@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
@@ -60,6 +62,15 @@ namespace Microsoft.CodeAnalysis
         /// Custom tags for the diagnostic.
         /// </summary>
         public IEnumerable<string> CustomTags { get; }
+
+        internal ImmutableArray<string> ImmutableCustomTags
+        {
+            get
+            {
+                Debug.Assert(CustomTags is ImmutableArray<string>);
+                return (ImmutableArray<string>)CustomTags;
+            }
+        }
 
         /// <summary>
         /// Create a DiagnosticDescriptor, which provides description about a <see cref="Diagnostic"/>.
@@ -138,6 +149,8 @@ namespace Microsoft.CodeAnalysis
             string? helpLinkUri,
             ImmutableArray<string> customTags)
         {
+            Debug.Assert(!customTags.IsDefault);
+
             if (string.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentException(CodeAnalysisResources.DiagnosticIdCantBeNullOrWhitespace, nameof(id));
@@ -171,6 +184,11 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(DiagnosticDescriptor? other)
         {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return
                 other != null &&
                 this.Category == other.Category &&
@@ -213,7 +231,7 @@ namespace Microsoft.CodeAnalysis
 
             // Create a dummy diagnostic to compute the effective diagnostic severity for given compilation options
             // TODO: Once https://github.com/dotnet/roslyn/issues/3650 is fixed, we can avoid creating a no-location diagnostic here.
-            var effectiveDiagnostic = compilationOptions.FilterDiagnostic(Diagnostic.Create(this, Location.None));
+            var effectiveDiagnostic = compilationOptions.FilterDiagnostic(Diagnostic.Create(this, Location.None), CancellationToken.None);
             return effectiveDiagnostic != null ? MapSeverityToReport(effectiveDiagnostic.Severity) : ReportDiagnostic.Suppress;
         }
 
@@ -241,7 +259,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool IsNotConfigurable()
         {
-            return AnalyzerManager.HasNotConfigurableTag(this.CustomTags);
+            return AnalyzerManager.HasNotConfigurableTag(ImmutableCustomTags);
+        }
+
+        /// <summary>
+        /// Returns true if diagnostic descriptor is a built-in compiler diagnostic or is not configurable.
+        /// </summary>
+        internal bool IsCompilerOrNotConfigurable()
+        {
+            return AnalyzerManager.HasCompilerOrNotConfigurableTag(ImmutableCustomTags);
         }
     }
 }

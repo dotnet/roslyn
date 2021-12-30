@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 
@@ -11,12 +12,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private class OptionChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
         {
             private readonly IOption _option;
-            private IOptionService _optionService;
+            private IOptionService? _optionService;
 
-            public OptionChangedEventSource(ITextBuffer subjectBuffer, IOption option, TaggerDelay delay) : base(subjectBuffer, delay)
-            {
-                _option = option;
-            }
+            public OptionChangedEventSource(ITextBuffer subjectBuffer, IOption option) : base(subjectBuffer)
+                => _option = option;
 
             protected override void ConnectToWorkspace(Workspace workspace)
             {
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 }
             }
 
-            private void OnOptionChanged(object sender, OptionChangedEventArgs e)
+            private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
             {
                 if (e.Option == _option)
                 {

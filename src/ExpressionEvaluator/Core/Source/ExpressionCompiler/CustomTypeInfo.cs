@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
@@ -13,9 +15,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         internal static readonly Guid PayloadTypeId = new Guid("108766CE-DF68-46EE-B761-0DCB7AC805F1");
 
-        internal static DkmClrCustomTypeInfo Create(
-            ReadOnlyCollection<byte> dynamicFlags,
-            ReadOnlyCollection<string> tupleElementNames)
+        internal static DkmClrCustomTypeInfo? Create(
+            ReadOnlyCollection<byte>? dynamicFlags,
+            ReadOnlyCollection<string?>? tupleElementNames)
         {
             var payload = Encode(dynamicFlags, tupleElementNames);
             return (payload == null) ? null : DkmClrCustomTypeInfo.Create(PayloadTypeId, payload);
@@ -24,9 +26,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// <summary>
         /// Return a copy of the custom type info without tuple element names.
         /// </summary>
-        internal static DkmClrCustomTypeInfo WithNoTupleElementNames(this DkmClrCustomTypeInfo typeInfo)
+        internal static DkmClrCustomTypeInfo? WithNoTupleElementNames(this DkmClrCustomTypeInfo typeInfo)
         {
-            if ((typeInfo == null) || (typeInfo.Payload == null) || typeInfo.PayloadTypeId != PayloadTypeId)
+            if (typeInfo == null || typeInfo.Payload == null || typeInfo.PayloadTypeId != PayloadTypeId)
             {
                 return typeInfo;
             }
@@ -46,20 +48,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// There are no changes to tuple element names since this is used for walking
         /// into an array element type only which does not affect tuple element names.
         /// </summary>
-        internal static DkmClrCustomTypeInfo SkipOne(DkmClrCustomTypeInfo customInfo)
+        internal static DkmClrCustomTypeInfo? SkipOne(DkmClrCustomTypeInfo customInfo)
         {
             if (customInfo == null)
             {
                 return customInfo;
             }
 
-            ReadOnlyCollection<byte> dynamicFlags;
-            ReadOnlyCollection<string> tupleElementNames;
-            CustomTypeInfo.Decode(
+            Decode(
                 customInfo.PayloadTypeId,
                 customInfo.Payload,
-                out dynamicFlags,
-                out tupleElementNames);
+                out var dynamicFlags,
+                out var tupleElementNames);
 
             if (dynamicFlags == null)
             {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return Create(DynamicFlagsCustomTypeInfo.SkipOne(dynamicFlags), tupleElementNames);
         }
 
-        internal static string GetTupleElementNameIfAny(ReadOnlyCollection<string> tupleElementNames, int index)
+        internal static string? GetTupleElementNameIfAny(ReadOnlyCollection<string> tupleElementNames, int index)
         {
             return tupleElementNames != null && index < tupleElementNames.Count ?
                 tupleElementNames[index] :
@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         // Encode in payload as a sequence of bytes {count}{dynamicFlags}{tupleNames}
         // where {count} is a byte of the number of bytes in {dynamicFlags} (max: 8*256 bits)
         // and {tupleNames} is a UTF8 encoded string of the names each preceded by '|'.
-        internal static ReadOnlyCollection<byte> Encode(
-            ReadOnlyCollection<byte> dynamicFlags,
-            ReadOnlyCollection<string> tupleElementNames)
+        internal static ReadOnlyCollection<byte>? Encode(
+            ReadOnlyCollection<byte>? dynamicFlags,
+            ReadOnlyCollection<string?>? tupleElementNames)
         {
-            if ((dynamicFlags == null) && (tupleElementNames == null))
+            if (dynamicFlags == null && tupleElementNames == null)
             {
                 return null;
             }
@@ -118,13 +118,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static void Decode(
             Guid payloadTypeId,
             ReadOnlyCollection<byte> payload,
-            out ReadOnlyCollection<byte> dynamicFlags,
-            out ReadOnlyCollection<string> tupleElementNames)
+            out ReadOnlyCollection<byte>? dynamicFlags,
+            out ReadOnlyCollection<string?>? tupleElementNames)
         {
             dynamicFlags = null;
             tupleElementNames = null;
 
-            if ((payload == null) || (payloadTypeId != PayloadTypeId))
+            if (payload == null || payloadTypeId != PayloadTypeId)
             {
                 return;
             }
@@ -144,13 +144,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private const char NameSeparator = '|';
 
-        private static ReadOnlyCollection<byte> EncodeNames(ReadOnlyCollection<string> names)
+        private static ReadOnlyCollection<byte> EncodeNames(ReadOnlyCollection<string?> names)
         {
             var str = JoinNames(names);
             return new ReadOnlyCollection<byte>(Encoding.UTF8.GetBytes(str));
         }
 
-        private static ReadOnlyCollection<string> DecodeNames(ReadOnlyCollection<byte> bytes, int start)
+        private static ReadOnlyCollection<string?> DecodeNames(ReadOnlyCollection<byte> bytes, int start)
         {
             int length = bytes.Count - start;
             var array = CopyBytes(bytes, start, length);
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return SplitNames(str);
         }
 
-        private static string JoinNames(ReadOnlyCollection<string> names)
+        private static string JoinNames(ReadOnlyCollection<string?> names)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
@@ -173,14 +173,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return pooledBuilder.ToStringAndFree();
         }
 
-        private static ReadOnlyCollection<string> SplitNames(string str)
+        private static ReadOnlyCollection<string?> SplitNames(string str)
         {
-            Debug.Assert(str != null);
             Debug.Assert(str.Length > 0);
             Debug.Assert(str[0] == NameSeparator);
-            var builder = ArrayBuilder<string>.GetInstance();
+
+            var builder = ArrayBuilder<string?>.GetInstance();
             int offset = 1;
-            int n = str.Length;
             while (true)
             {
                 int next = str.IndexOf(NameSeparator, offset);
@@ -190,9 +189,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     break;
                 }
+
                 offset = next + 1;
             }
-            return new ReadOnlyCollection<string>(builder.ToArrayAndFree());
+
+            return new ReadOnlyCollection<string?>(builder.ToArrayAndFree());
         }
 
         private static byte[] CopyBytes(ReadOnlyCollection<byte> bytes, int start, int length)

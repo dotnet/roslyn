@@ -1,14 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal class SyntaxListPool
     {
-        private ArrayElement<SyntaxListBuilder>[] _freeList = new ArrayElement<SyntaxListBuilder>[10];
+        private ArrayElement<SyntaxListBuilder?>[] _freeList = new ArrayElement<SyntaxListBuilder?>[10];
         private int _freeIndex;
 
 #if DEBUG
@@ -25,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             if (_freeIndex > 0)
             {
                 _freeIndex--;
-                item = _freeList[_freeIndex].Value;
+                item = _freeList[_freeIndex].Value!;
                 _freeList[_freeIndex].Value = null;
             }
             else
@@ -52,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal void Free<TNode>(in SeparatedSyntaxListBuilder<TNode> item) where TNode : GreenNode
         {
+            RoslynDebug.Assert(item.UnderlyingBuilder is object);
             Free(item.UnderlyingBuilder);
         }
 
@@ -73,12 +77,20 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         private void Grow()
         {
-            var tmp = new ArrayElement<SyntaxListBuilder>[_freeList.Length * 2];
+            var tmp = new ArrayElement<SyntaxListBuilder?>[_freeList.Length * 2];
             Array.Copy(_freeList, tmp, _freeList.Length);
             _freeList = tmp;
         }
 
         public SyntaxList<TNode> ToListAndFree<TNode>(SyntaxListBuilder<TNode> item)
+            where TNode : GreenNode
+        {
+            var list = item.ToList();
+            Free(item);
+            return list;
+        }
+
+        public SeparatedSyntaxList<TNode> ToListAndFree<TNode>(in SeparatedSyntaxListBuilder<TNode> item)
             where TNode : GreenNode
         {
             var list = item.ToList();

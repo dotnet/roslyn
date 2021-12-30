@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -299,7 +301,7 @@ End Namespace
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb", name:="F1", includeReducedExtensionMethods:=True)
 
             Assert.Equal(2, actual_lookupSymbols.Count)
-            Dim sortedMethodGroup = actual_lookupSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = actual_lookupSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Function C1.F1() As System.Int32", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Function C1.F1(x As System.Int32) As System.Int32", sortedMethodGroup(1).ToTestDisplayString())
         End Sub
@@ -408,7 +410,7 @@ End Namespace
             actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb", name:="Test1", container:=c1, includeReducedExtensionMethods:=True)
 
             Assert.Equal(8, actual_lookupSymbols.Count)
-            Dim sortedMethodGroup = actual_lookupSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = actual_lookupSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Dim expected() As String = {"Sub NS1.NS2.Module1.C1.Test1(Of T1)()",
                                         "Sub NS1.NS2.Module1.C1.Test1(Of T1, T2)()",
                                         "Sub NS1.NS2.Module1.C1.Test1(Of T1, T2, T3)()",
@@ -529,7 +531,7 @@ End Namespace
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb", name:="Test1", includeReducedExtensionMethods:=True)
 
             Assert.Equal(8, actual_lookupSymbols.Count)
-            Dim sortedMethodGroup = actual_lookupSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = actual_lookupSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Dim expected() As String = {"Sub NS1.NS2.Module1.C1.Test1(Of T1)()",
                                         "Sub NS1.NS2.Module1.C1.Test1(Of T1, T2)()",
                                         "Sub NS1.NS2.Module1.C1.Test1(Of T1, T2, T3)()",
@@ -656,7 +658,7 @@ End Namespace
             actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb", name:="Test1", container:=c1, includeReducedExtensionMethods:=True)
 
             Assert.Equal(8, actual_lookupSymbols.Count)
-            Dim sortedMethodGroup = actual_lookupSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = actual_lookupSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Dim expected() As String = {"Sub NS1.NS2.Module1.C1.Test1(Of T1)()",
                                         "Sub NS1.NS2.Module1.C1.Test1(Of T1, T2)()",
                                         "Sub NS1.NS2.Module1.C1.Test1(Of T1, T2, T3)()",
@@ -782,7 +784,7 @@ End Namespace
             actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb", name:="Test1", container:=t, includeReducedExtensionMethods:=True)
 
             Assert.Equal(8, actual_lookupSymbols.Count)
-            Dim sortedMethodGroup = actual_lookupSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = actual_lookupSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Dim expected() As String = {"Sub T.Test1(Of T1)()",
                                         "Sub T.Test1(Of T1, T2)()",
                                         "Sub T.Test1(Of T1, T2, T3)()",
@@ -1420,7 +1422,7 @@ Module E
     End Sub
 End Module
 ]]></file>
-</compilation>, {SystemCoreRef})
+</compilation>, {TestMetadata.Net40.SystemCore})
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30456: 'F' is not a member of 'B'.
         _b.F()

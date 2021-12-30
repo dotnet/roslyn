@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -6,9 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InvertConditional
 {
@@ -29,30 +31,29 @@ namespace Microsoft.CodeAnalysis.InvertConditional
             }
 
             context.RegisterRefactoring(new MyCodeAction(
-                FeaturesResources.Invert_conditional,
                 c => InvertConditionalAsync(document, span, c)),
                 conditional.Span);
         }
 
-        private static async Task<TConditionalExpressionSyntax> FindConditionalAsync(
+        private static async Task<TConditionalExpressionSyntax?> FindConditionalAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
             => await document.TryGetRelevantNodeAsync<TConditionalExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
 
-        private async Task<Document> InvertConditionalAsync(
+        private static async Task<Document> InvertConditionalAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var conditional = await FindConditionalAsync(document, span, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(conditional);
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            syntaxFacts.GetPartsOfConditionalExpression(conditional,
+            editor.Generator.SyntaxFacts.GetPartsOfConditionalExpression(conditional,
                 out var condition, out var whenTrue, out var whenFalse);
 
-            editor.ReplaceNode(condition, editor.Generator.Negate(condition, semanticModel, cancellationToken));
+            editor.ReplaceNode(condition, editor.Generator.Negate(editor.Generator.SyntaxGeneratorInternal, condition, semanticModel, cancellationToken));
             editor.ReplaceNode(whenTrue, whenFalse.WithTriviaFrom(whenTrue));
             editor.ReplaceNode(whenFalse, whenTrue.WithTriviaFrom(whenFalse));
 
@@ -61,8 +62,8 @@ namespace Microsoft.CodeAnalysis.InvertConditional
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Invert_conditional, createChangedDocument, nameof(FeaturesResources.Invert_conditional))
             {
             }
         }

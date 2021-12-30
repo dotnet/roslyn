@@ -1,16 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -19,31 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [UseExportProvider]
     public class TypeImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public TypeImportCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        internal override Type GetCompletionProviderType()
+            => typeof(TypeImportCompletionProvider);
+
+        public TypeImportCompletionProviderTests()
         {
-        }
-
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new TypeImportCompletionProvider();
-        }
-
-        private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
-
-        private bool IsExpandedCompletion { get; set; } = true;
-
-        protected override void SetWorkspaceOptions(TestWorkspace workspace)
-        {
-            workspace.Options = workspace.Options
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
-        }
-
-        protected override ExportProvider GetExportProvider()
-        {
-            return ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)))
-                .CreateExportProvider();
+            ShowImportCompletionItemsOptionValue = true;
+            IsExpandedCompletion = true;
         }
 
         #region "Option tests"
@@ -51,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OptionSetToNull_ExpEnabled()
         {
-            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, true);
+            TypeImportCompletionFeatureFlag = true;
 
             ShowImportCompletionItemsOptionValue = null;
 
@@ -83,8 +67,7 @@ class Bar
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OptionSetToFalse(bool isExperimentEnabled)
         {
-            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, isExperimentEnabled);
-
+            TypeImportCompletionFeatureFlag = isExperimentEnabled;
             ShowImportCompletionItemsOptionValue = false;
             IsExpandedCompletion = false;
 
@@ -102,8 +85,7 @@ class Bar
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OptionSetToTrue(bool isExperimentEnabled)
         {
-            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, isExperimentEnabled);
-
+            TypeImportCompletionFeatureFlag = isExperimentEnabled;
             ShowImportCompletionItemsOptionValue = true;
 
             var markup = @"
@@ -120,6 +102,7 @@ class Bar
         #region "CompletionItem tests"
 
         [InlineData("class", (int)Glyph.ClassPublic)]
+        [InlineData("record", (int)Glyph.ClassPublic)]
         [InlineData("struct", (int)Glyph.StructurePublic)]
         [InlineData("enum", (int)Glyph.EnumPublic)]
         [InlineData("interface", (int)Glyph.InterfacePublic)]
@@ -147,12 +130,37 @@ namespace Baz
                 inlineDescription: "Foo");
         }
 
+        [InlineData("class", (int)Glyph.ClassPublic)]
+        [InlineData("record", (int)Glyph.ClassPublic)]
+        [InlineData("struct", (int)Glyph.StructurePublic)]
+        [InlineData("enum", (int)Glyph.EnumPublic)]
+        [InlineData("interface", (int)Glyph.InterfacePublic)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Show_TopLevelStatement_NoImport_InProject(string typeKind, int glyph)
+        {
+            var file1 = $@"
+namespace Foo
+{{
+    public {typeKind} Bar
+    {{}}
+}}";
+            var file2 = @"
+$$
+";
+            await VerifyTypeImportItemExistsAsync(
+                CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp),
+                "Bar",
+                glyph: glyph,
+                inlineDescription: "Foo");
+        }
+
         [InlineData("class")]
+        [InlineData("record")]
         [InlineData("struct")]
         [InlineData("enum")]
         [InlineData("interface")]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task DoNotShow_TopLevel_SmaeNamespace_InProject(string typeKind)
+        public async Task DoNotShow_TopLevel_SameNamespace_InProject(string typeKind)
         {
             var file1 = $@"
 namespace Foo
@@ -175,6 +183,7 @@ namespace Foo
         }
 
         [InlineData("class", (int)Glyph.ClassPublic)]
+        [InlineData("record", (int)Glyph.ClassPublic)]
         [InlineData("struct", (int)Glyph.StructurePublic)]
         [InlineData("interface", (int)Glyph.InterfacePublic)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -207,6 +216,7 @@ namespace Baz
         }
 
         [InlineData("class")]
+        [InlineData("record")]
         [InlineData("struct")]
         [InlineData("enum")]
         [InlineData("interface")]
@@ -236,6 +246,7 @@ namespace Baz
         }
 
         [InlineData("class")]
+        [InlineData("record")]
         [InlineData("struct")]
         [InlineData("enum")]
         [InlineData("interface")]
@@ -273,6 +284,9 @@ namespace Foo
 {{
     public class Bar
     {{}}
+
+    public record Bar2
+    {{}}
 }}";
             var file2 = @"
 namespace Baz
@@ -284,6 +298,7 @@ namespace Baz
 }";
             var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar2", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -295,6 +310,9 @@ namespace Baz
 namespace Foo
 {{
     public class Bar
+    {{}}
+
+    public record Bar2
     {{}}
 }}";
             var file2 = @"
@@ -308,6 +326,7 @@ namespace Baz
 }";
             var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar2", inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -320,6 +339,9 @@ namespace Foo
 {{
     internal class Bar
     {{}}
+
+    internal record Bar2
+    {{}}
 }}";
             var file2 = @"
 namespace Baz
@@ -331,6 +353,7 @@ namespace Baz
 }";
             var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar2", inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -721,9 +744,139 @@ namespace NS
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Baz");
         }
 
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestNoCompletionItemWhenThereIsAlias(bool isProjectReference)
+        {
+            var file1 = @"
+using AliasFoo1 = Foo1.Foo2.Foo3.Foo4;
+using AliasFoo2 = Foo1.Foo2.Foo3.Foo4.Foo6;
+
+namespace Bar
+{
+    using AliasFoo3 = Foo1.Foo2.Foo3.Foo5;
+    using AliasFoo4 = Foo1.Foo2.Foo3.Foo5.Foo7;
+    public class CC
+    {
+        public static void Main()
+        {    
+            F$$
+        }
+    }
+}";
+            var file2 = @"
+namespace Foo1
+{
+    namespace Foo2
+    {
+        namespace Foo3
+        {
+            public class Foo4
+            {
+                public class Foo6
+                {
+                }
+            }
+
+            public class Foo5
+            {
+                public class Foo7
+                {
+                }
+            }
+        }
+    }
+}";
+
+            var markup = GetMarkupWithReference(file1, file2, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Foo4", "Foo1.Foo2.Foo3");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Foo6", "Foo1.Foo2.Foo3");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Foo5", "Foo1.Foo2.Foo3");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Foo7", "Foo1.Foo2.Foo3");
+        }
+
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestAttributesAlias(bool isProjectReference)
+        {
+            var file1 = @"
+using myAlias = Foo.BarAttribute;
+using myAlia2 = Foo.BarAttributeDifferentEnding;
+
+namespace Foo2
+{
+    public class Main
+    {
+        $$
+    }
+}";
+
+            var file2 = @"
+namespace Foo
+{
+    public class BarAttribute: System.Attribute
+    {
+    }
+
+    public class BarAttributeDifferentEnding: System.Attribute
+    {
+    }
+}";
+
+            var markup = GetMarkupWithReference(file1, file2, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "BarAttribute", "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "BarAttributeDifferentEnding", "Foo");
+        }
+
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestGenericsAliasHasNoEffect(bool isProjectReference)
+        {
+            var file1 = @"
+using AliasFoo1 = Foo1.Foo2.Foo3.Foo4<int>;
+
+namespace Bar
+{
+    using AliasFoo2 = Foo1.Foo2.Foo3.Foo5<string>;
+    public class CC
+    {
+        public static void Main()
+        {    
+            F$$
+        }
+    }
+}";
+            var file2 = @"
+namespace Foo1
+{
+    namespace Foo2
+    {
+        namespace Foo3
+        {
+            public class Foo4<T>
+            {
+            }
+
+            public class Foo5<U>
+            {
+            }
+        }
+    }
+}";
+
+            var markup = GetMarkupWithReference(file1, file2, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
+            await VerifyTypeImportItemExistsAsync(markup, "Foo4", (int)Glyph.ClassPublic, "Foo1.Foo2.Foo3", displayTextSuffix: "<>");
+            await VerifyTypeImportItemExistsAsync(markup, "Foo5", (int)Glyph.ClassPublic, "Foo1.Foo2.Foo3", displayTextSuffix: "<>");
+        }
+
         #endregion
 
         #region "Commit Change Tests"
+
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -759,6 +912,55 @@ namespace Baz
             await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Commit_TopLevelStatement_NoImport_InProject(SourceCodeKind kind)
+        {
+            var file1 = $@"
+namespace Foo
+{{
+    public class Bar
+    {{
+    }}
+}}";
+
+            var file2 = @"
+$$
+";
+            var expectedCodeAfterCommit = @"using Foo;
+Bar$$
+";
+            var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+            await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind: kind);
+        }
+
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Commit_TopLevelStatement_UnrelatedImport_InProject(SourceCodeKind kind)
+        {
+            var file1 = $@"
+namespace Foo
+{{
+    public class Bar
+    {{
+    }}
+}}";
+
+            var file2 = @"
+using System;
+
+$$
+";
+            var expectedCodeAfterCommit = @"
+using System;
+using Foo;
+Bar$$
+";
+            var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+            await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind: kind);
+        }
 
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
@@ -777,7 +979,8 @@ namespace Baz
     {
         $$
     }
-}"; var expectedCodeAfterCommit = @"
+}";
+            var expectedCodeAfterCommit = @"
 using Foo.Bar;
 
 namespace Baz
@@ -819,7 +1022,7 @@ class Bar
         #endregion
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task DoNotShow_TopLevel_Public_NoImport_InNonGLobalAliasedMetadataReference()
+        public async Task DoNotShow_TopLevel_Public_NoImport_InNonGlobalAliasedMetadataReference()
         {
             var file1 = $@"
 namespace Foo
@@ -877,7 +1080,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = CreateMarkupForProjecWithAliasedProjectReference(file2, "alias1", file1, LanguageNames.CSharp, LanguageNames.CSharp);
+            var markup = CreateMarkupForProjectWithAliasedProjectReference(file2, "alias1", file1, LanguageNames.CSharp, LanguageNames.CSharp);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
@@ -925,7 +1128,7 @@ namespace Test
 }";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
 
-            await VerifyTypeImportItemExistsAsync(markup, "My", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyAttribute");
+            await VerifyTypeImportItemExistsAsync(markup, "My", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyAttribute", flags: CompletionItemFlags.Expanded);
             await VerifyTypeImportItemIsAbsentAsync(markup, "MyAttributeWithoutSuffix", inlineDescription: "Foo");  // We intentionally ignore attribute types without proper suffix for perf reason
             await VerifyTypeImportItemIsAbsentAsync(markup, "MyAttribute", inlineDescription: "Foo");
             await VerifyTypeImportItemIsAbsentAsync(markup, "MyClass", inlineDescription: "Foo");
@@ -950,7 +1153,7 @@ namespace Test
     class Program { }
 }";
 
-            string expectedCodeAfterCommit = @"
+            var expectedCodeAfterCommit = @"
 using Foo;
 
 namespace Test
@@ -985,10 +1188,10 @@ namespace Test
 }";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
 
-            await VerifyTypeImportItemExistsAsync(markup, "MyAttribute", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyAttribute");
-            await VerifyTypeImportItemExistsAsync(markup, "MyAttributeWithoutSuffix", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyAttributeWithoutSuffix");
+            await VerifyTypeImportItemExistsAsync(markup, "MyAttribute", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyAttribute", flags: CompletionItemFlags.CachedAndExpanded);
+            await VerifyTypeImportItemExistsAsync(markup, "MyAttributeWithoutSuffix", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyAttributeWithoutSuffix", flags: CompletionItemFlags.CachedAndExpanded);
             await VerifyTypeImportItemIsAbsentAsync(markup, "My", inlineDescription: "Foo");
-            await VerifyTypeImportItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyClass");
+            await VerifyTypeImportItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyClass", flags: CompletionItemFlags.CachedAndExpanded);
         }
 
         [InlineData(SourceCodeKind.Regular)]
@@ -1012,7 +1215,7 @@ namespace Test
     }
 }";
 
-            string expectedCodeAfterCommit = @"
+            var expectedCodeAfterCommit = @"
 using Foo;
 
 namespace Test
@@ -1046,7 +1249,7 @@ namespace Test
 }";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
 
-            await VerifyTypeImportItemExistsAsync(markup, "Myattribute", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.Myattribute");
+            await VerifyTypeImportItemExistsAsync(markup, "Myattribute", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.Myattribute", flags: CompletionItemFlags.CachedAndExpanded);
             await VerifyTypeImportItemIsAbsentAsync(markup, "My", inlineDescription: "Foo");
             await VerifyTypeImportItemIsAbsentAsync(markup, "MyClass", inlineDescription: "Foo");
         }
@@ -1071,7 +1274,7 @@ namespace Test
     class Program { }
 }";
 
-            string expectedCodeAfterCommit = @"
+            var expectedCodeAfterCommit = @"
 using Foo;
 
 namespace Test
@@ -1106,9 +1309,9 @@ namespace Test
 }";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
 
-            await VerifyTypeImportItemExistsAsync(markup, "Myattribute", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.Myattribute");
+            await VerifyTypeImportItemExistsAsync(markup, "Myattribute", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.Myattribute", flags: CompletionItemFlags.Expanded);
             await VerifyTypeImportItemIsAbsentAsync(markup, "My", inlineDescription: "Foo");
-            await VerifyTypeImportItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyClass");
+            await VerifyTypeImportItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyClass", flags: CompletionItemFlags.CachedAndExpanded);
         }
 
         [InlineData(SourceCodeKind.Regular)]
@@ -1133,7 +1336,7 @@ namespace Test
     }
 }";
 
-            string expectedCodeAfterCommit = @"
+            var expectedCodeAfterCommit = @"
 using Foo;
 
 namespace Test
@@ -1169,9 +1372,9 @@ namespace Test
     }
 }";
 
-            var markup = CreateMarkupForProjecWithProjectReference(file2, file1, LanguageNames.CSharp, LanguageNames.VisualBasic);
+            var markup = CreateMarkupForProjectWithProjectReference(file2, file1, LanguageNames.CSharp, LanguageNames.VisualBasic);
 
-            await VerifyTypeImportItemExistsAsync(markup, "Myattribute", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.Myattribute");
+            await VerifyTypeImportItemExistsAsync(markup, "Myattribute", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.Myattribute", flags: CompletionItemFlags.Expanded);
             await VerifyTypeImportItemIsAbsentAsync(markup, "My", inlineDescription: "Foo");
             await VerifyTypeImportItemIsAbsentAsync(markup, "MyVBClass", inlineDescription: "Foo");
         }
@@ -1295,7 +1498,7 @@ namespace Baz
         private static void AssertRelativeOrder(List<string> expectedTypesInRelativeOrder, ImmutableArray<CompletionItem> allCompletionItems)
         {
             var hashset = new HashSet<string>(expectedTypesInRelativeOrder);
-            var actualTypesInRelativeOrder = allCompletionItems.Where(item => hashset.Contains(item.DisplayText)).Select(item => item.DisplayText).ToImmutableArray();
+            var actualTypesInRelativeOrder = allCompletionItems.SelectAsArray(item => hashset.Contains(item.DisplayText), item => item.DisplayText);
 
             Assert.Equal(expectedTypesInRelativeOrder.Count, actualTypesInRelativeOrder.Length);
             for (var i = 0; i < expectedTypesInRelativeOrder.Count; ++i)
@@ -1304,15 +1507,279 @@ namespace Baz
             }
         }
 
-        private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestBrowsableAwaysFromReferences(bool isProjectReference)
         {
-            return VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        $$
+    }
+}";
+
+            var refDoc = @"
+namespace Foo
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
+    public class Goo
+    {
+    }
+}";
+
+            var markup = isProjectReference switch
+            {
+                true => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                false => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp)
+            };
+
+            await VerifyTypeImportItemExistsAsync(
+                    markup,
+                    "Goo",
+                    glyph: (int)Glyph.ClassPublic,
+                    inlineDescription: "Foo");
         }
 
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestBrowsableNeverFromReferences(bool isProjectReference)
+        {
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        $$
+    }
+}";
+
+            var refDoc = @"
+namespace Foo
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+    public class Goo
+    {
+    }
+}";
+
+            var (markup, shouldContainItem) = isProjectReference switch
+            {
+                true => (CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
+                false => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), false),
+            };
+
+            if (shouldContainItem)
+            {
+                await VerifyTypeImportItemExistsAsync(
+                        markup,
+                        "Goo",
+                        glyph: (int)Glyph.ClassPublic,
+                        inlineDescription: "Foo");
+            }
+            else
+            {
+                await VerifyTypeImportItemIsAbsentAsync(
+                        markup,
+                        "Goo",
+                        inlineDescription: "Foo");
+            }
+        }
+
+        [InlineData(true, true)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(false, false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestBrowsableAdvancedFromReferences(bool isProjectReference, bool hideAdvancedMembers)
+        {
+            HideAdvancedMembers = hideAdvancedMembers;
+
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        $$
+    }
+}";
+
+            var refDoc = @"
+namespace Foo
+{
+    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    public class Goo
+    {
+    }
+}";
+
+            var (markup, shouldContainItem) = isProjectReference switch
+            {
+                true => (CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
+                false => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), !hideAdvancedMembers),
+            };
+
+            if (shouldContainItem)
+            {
+                await VerifyTypeImportItemExistsAsync(
+                        markup,
+                        "Goo",
+                        glyph: (int)Glyph.ClassPublic,
+                        inlineDescription: "Foo");
+            }
+            else
+            {
+                await VerifyTypeImportItemIsAbsentAsync(
+                        markup,
+                        "Goo",
+                        inlineDescription: "Foo");
+            }
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task TestCommitWithCustomizedCommitCharForParameterlessConstructor(char commitChar)
+        {
+            var markup = @"
+namespace AA
+{
+    public class C
+    {
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new $$
+        }
+    }
+}";
+
+            var expected = $@"
+using AA;
+
+namespace AA
+{{
+    public class C
+    {{
+    }}
+}}
+
+namespace BB
+{{
+    public class B
+    {{
+        public void M()
+        {{
+            var c = new C(){commitChar}
+        }}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "C", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task TestCommitWithCustomizedCommitCharUnderNonObjectCreationContext(char commitChar)
+        {
+            var markup = @"
+namespace AA
+{
+    public class C
+    {
+    }
+}
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            $$
+        }
+    }
+}";
+
+            var expected = $@"
+using AA;
+
+namespace AA
+{{
+    public class C
+    {{
+    }}
+}}
+namespace BB
+{{
+    public class B
+    {{
+        public void M()
+        {{
+            C{commitChar}
+        }}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "C", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(54493, "https://github.com/dotnet/roslyn/issues/54493")]
+        public async Task CommitInLocalFunctionContext(SourceCodeKind kind)
+        {
+            var markup = @"
+namespace Foo
+{
+    public class MyClass { }
+}
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            static $$
+        }
+    }
+}";
+
+            var expectedCodeAfterCommit = @"
+using Foo;
+
+namespace Foo
+{
+    public class MyClass { }
+}
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            static MyClass
+        }
+    }
+}";
+
+            await VerifyProviderCommitAsync(markup, "MyClass", expectedCodeAfterCommit, commitChar: null, sourceCodeKind: kind);
+        }
+
+        private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)
+            => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, flags: flags);
 
         private Task VerifyTypeImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
-        {
-            return VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
-        }
+            => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
     }
 }

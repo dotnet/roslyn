@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if !NETCOREAPP
 using System.Runtime.CompilerServices;
-
-#nullable enable
-
 namespace System
 {
     /// <summary>Represent a type can be used to index a collection either from the start or the end.</summary>
@@ -140,3 +138,4 @@ namespace System
         }
     }
 }
+#endif

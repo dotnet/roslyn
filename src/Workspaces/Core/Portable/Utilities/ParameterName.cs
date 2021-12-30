@@ -1,4 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Utilities;
@@ -56,18 +62,12 @@ namespace Microsoft.CodeAnalysis.Utilities
         }
 
         public override bool Equals(object obj)
-        {
-            return Equals((ParameterName)obj);
-        }
+            => Equals((ParameterName)obj);
 
         public bool Equals(ParameterName other)
-        {
-            return NameBasedOnArgument.Equals(other.NameBasedOnArgument);
-        }
+            => NameBasedOnArgument.Equals(other.NameBasedOnArgument);
 
         public override int GetHashCode()
-        {
-            return NameBasedOnArgument.GetHashCode();
-        }
+            => NameBasedOnArgument.GetHashCode();
     }
 }

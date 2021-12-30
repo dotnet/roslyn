@@ -1,58 +1,62 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class ElseIfKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseIfNotInMethodBodyTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "ElseIf")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseIfInMultiLineIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then
+        Public Sub ElseIfNotInMethodBodyTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "ElseIf")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub ElseIfInMultiLineIfTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then
 |
 End If</MethodBody>, "ElseIf")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseIfInMultiLineElseIf1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then
+        Public Sub ElseIfInMultiLineElseIf1Test()
+            VerifyRecommendationsContain(<MethodBody>If True Then
 ElseIf True Then
 |
 End If</MethodBody>, "ElseIf")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseIfInMultiLineElseIf2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then
+        Public Sub ElseIfInMultiLineElseIf2Test()
+            VerifyRecommendationsContain(<MethodBody>If True Then
 Else If True Then
 |
 End If</MethodBody>, "ElseIf")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseIfNotInMultiLineElseTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>If True Then
+        Public Sub ElseIfNotInMultiLineElseTest()
+            VerifyRecommendationsMissing(<MethodBody>If True Then
 Else 
 |
 End If</MethodBody>, "ElseIf")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseIfNotInSingleLineIf1Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>If True Then |</MethodBody>, "ElseIf")
-        End Function
+        Public Sub ElseIfNotInSingleLineIf1Test()
+            VerifyRecommendationsMissing(<MethodBody>If True Then |</MethodBody>, "ElseIf")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseIfNotInSingleLineIf2Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>If True Then Stop Else |</MethodBody>, "ElseIf")
-        End Function
+        Public Sub ElseIfNotInSingleLineIf2Test()
+            VerifyRecommendationsMissing(<MethodBody>If True Then Stop Else |</MethodBody>, "ElseIf")
+        End Sub
     End Class
 End Namespace

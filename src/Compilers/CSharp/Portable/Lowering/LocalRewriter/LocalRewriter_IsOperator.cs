@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenTargetType = (BoundTypeExpression)VisitTypeExpression(node.TargetType);
             TypeSymbol rewrittenType = VisitType(node.Type);
 
-            return MakeIsOperator(node, node.Syntax, rewrittenOperand, rewrittenTargetType, node.Conversion, rewrittenType);
+            return MakeIsOperator(node, node.Syntax, rewrittenOperand, rewrittenTargetType, node.ConversionKind, rewrittenType);
         }
 
         private BoundExpression MakeIsOperator(
@@ -24,13 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             BoundTypeExpression rewrittenTargetType,
-            Conversion conversion,
+            ConversionKind conversionKind,
             TypeSymbol rewrittenType)
         {
             if (rewrittenOperand.Kind == BoundKind.MethodGroup)
             {
                 var methodGroup = (BoundMethodGroup)rewrittenOperand;
-                BoundExpression receiver = methodGroup.ReceiverOpt;
+                BoundExpression? receiver = methodGroup.ReceiverOpt;
                 if (receiver != null && receiver.Kind != BoundKind.ThisReference)
                 {
                     // possible side-effect
@@ -45,28 +47,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operandType = rewrittenOperand.Type;
             var targetType = rewrittenTargetType.Type;
 
-            Debug.Assert((object)operandType != null || rewrittenOperand.ConstantValue.IsNull);
-            Debug.Assert((object)targetType != null);
+            Debug.Assert(operandType is { } || rewrittenOperand.ConstantValue!.IsNull);
+            Debug.Assert(targetType is { });
 
             // TODO: Handle dynamic operand type and target type
 
             if (!_inExpressionLambda)
             {
-                ConstantValue constantValue = Binder.GetIsOperatorConstantResult(operandType, targetType, conversion.Kind, rewrittenOperand.ConstantValue);
+                ConstantValue constantValue = Binder.GetIsOperatorConstantResult(operandType, targetType, conversionKind, rewrittenOperand.ConstantValue);
 
                 if (constantValue != null)
                 {
                     return RewriteConstantIsOperator(syntax, rewrittenOperand, constantValue, rewrittenType);
                 }
-                else if (conversion.IsImplicit)
+                else if (conversionKind.IsImplicitConversion())
                 {
                     // operand is a reference type with bound identity or implicit conversion
                     // We can replace the "is" instruction with a null check
-                    return MakeNullCheck(syntax, rewrittenOperand, BinaryOperatorKind.NotEqual);
+                    return _factory.MakeNullCheck(syntax, rewrittenOperand, BinaryOperatorKind.NotEqual);
                 }
             }
 
-            return oldNode.Update(rewrittenOperand, rewrittenTargetType, conversion, rewrittenType);
+            return oldNode.Update(rewrittenOperand, rewrittenTargetType, conversionKind, rewrittenType);
         }
 
         private BoundExpression RewriteConstantIsOperator(

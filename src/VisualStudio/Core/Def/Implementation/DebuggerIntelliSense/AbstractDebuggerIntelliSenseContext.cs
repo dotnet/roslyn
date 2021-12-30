@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Runtime.InteropServices;
@@ -113,9 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         internal bool TryInitialize()
-        {
-            return this.TrySetContext(_isImmediateWindow);
-        }
+            => this.TrySetContext(_isImmediateWindow);
 
         private bool TrySetContext(
             bool isImmediateWindow)
@@ -138,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             var viewSnapshot = _textView.TextSnapshot;
             _immediateWindowContext = null;
             var debuggerMappedSpan = isImmediateWindow
-                ? CreateImmediateWindowProjectionMapping(document, out _immediateWindowContext)
+                ? CreateImmediateWindowProjectionMapping(out _immediateWindowContext)
                 : viewSnapshot.CreateFullTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
             // Wrap the original ContextBuffer in a projection buffer that we can make read-only
@@ -201,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             _textView.TextBuffer.ChangeContentType(contentType, null);
         }
 
-        private ITrackingSpan CreateImmediateWindowProjectionMapping(Document document, out ImmediateWindowContext immediateWindowContext)
+        private ITrackingSpan CreateImmediateWindowProjectionMapping(out ImmediateWindowContext immediateWindowContext)
         {
             var caretLine = _textView.Caret.ContainingTextViewLine.Extent;
             var currentLineIndex = _textView.TextSnapshot.GetLineNumberFromPosition(caretLine.Start.Position);
@@ -231,9 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         private void TextBuffer_PostChanged(object sender, EventArgs e)
-        {
-            SetupImmediateWindowProjectionBuffer();
-        }
+            => SetupImmediateWindowProjectionBuffer();
 
         /// <summary>
         /// If there's a ? mark, we want to skip the ? mark itself, and include the text that follows it
@@ -272,12 +272,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         private bool IsImmediateWindow(IVsUIShell shellService, IVsTextView textView)
         {
             Marshal.ThrowExceptionForHR(shellService.GetToolWindowEnum(out var windowEnum));
-            Marshal.ThrowExceptionForHR(textView.GetBuffer(out var buffer));
+            Marshal.ThrowExceptionForHR(textView.GetBuffer(out _));
 
             var frame = new IVsWindowFrame[1];
             var immediateWindowGuid = Guid.Parse(ToolWindowGuids80.ImmediateWindow);
 
-            while (windowEnum.Next(1, frame, out var value) == VSConstants.S_OK)
+            while (windowEnum.Next(1, frame, out _) == VSConstants.S_OK)
             {
                 Marshal.ThrowExceptionForHR(frame[0].GetGuidProperty((int)__VSFPROPID.VSFPROPID_GuidPersistenceSlot, out var toolWindowGuid));
                 if (toolWindowGuid == immediateWindowGuid)

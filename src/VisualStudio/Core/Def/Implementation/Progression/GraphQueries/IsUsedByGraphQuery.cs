@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -7,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.GraphModel;
-using Microsoft.VisualStudio.GraphModel.CodeSchema;
 using Microsoft.VisualStudio.GraphModel.Schemas;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
@@ -22,21 +23,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in context.InputNodes)
                 {
-                    var symbol = graphBuilder.GetSymbol(node);
+                    var symbol = graphBuilder.GetSymbol(node, cancellationToken);
                     var references = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
                     foreach (var reference in references)
                     {
                         var referencedSymbol = reference.Definition;
-                        var projectId = graphBuilder.GetContextProject(node).Id;
+                        var projectId = graphBuilder.GetContextProject(node, cancellationToken).Id;
 
                         var allLocations = referencedSymbol.Locations.Concat(reference.Locations.Select(r => r.Location))
                                                                      .Where(l => l != null && l.IsInSource);
 
                         foreach (var location in allLocations)
                         {
-                            var locationNode = GetLocationNode(referencedSymbol, location, context, projectId, cancellationToken);
-                            graphBuilder.AddLink(node, CodeLinkCategories.SourceReferences, locationNode);
+                            var locationNode = GetLocationNode(location, context, projectId, cancellationToken);
+                            if (locationNode != null)
+                                graphBuilder.AddLink(node, CodeLinkCategories.SourceReferences, locationNode, cancellationToken);
                         }
                     }
                 }
@@ -45,21 +47,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        internal GraphNode GetLocationNode(ISymbol symbol, Location location, IGraphContext context, ProjectId projectId, CancellationToken cancellationToken)
+        private static GraphNode? GetLocationNode(Location location, IGraphContext context, ProjectId projectId, CancellationToken cancellationToken)
         {
             var span = location.GetLineSpan();
+            if (location.SourceTree == null)
+                return null;
+
             var lineText = location.SourceTree.GetText(cancellationToken).Lines[span.StartLinePosition.Line].ToString();
             var filePath = location.SourceTree.FilePath;
-            var sourceLocation = new SourceLocation(filePath,
-                                        new Position(span.StartLinePosition.Line, span.StartLinePosition.Character),
-                                        new Position(span.EndLinePosition.Line, span.EndLinePosition.Character));
+            var sourceLocation = GraphBuilder.TryCreateSourceLocation(filePath, span.Span);
+            if (sourceLocation == null)
+                return null;
+
             var label = string.Format("{0} ({1}, {2}): {3}",
                                         System.IO.Path.GetFileName(filePath),
                                         span.StartLinePosition.Line + 1,
                                         span.StartLinePosition.Character + 1,
                                         lineText.TrimStart());
-            var locationNode = context.Graph.Nodes.GetOrCreate(sourceLocation.CreateGraphNodeId(), label, CodeNodeCategories.SourceLocation);
-            locationNode[CodeNodeProperties.SourceLocation] = sourceLocation;
+            var locationNode = context.Graph.Nodes.GetOrCreate(sourceLocation.Value.CreateGraphNodeId(), label, CodeNodeCategories.SourceLocation);
+            locationNode[CodeNodeProperties.SourceLocation] = sourceLocation.Value;
             locationNode[RoslynGraphProperties.ContextProjectId] = projectId;
             locationNode[DgmlNodeProperties.Icon] = IconHelper.GetIconName("Reference", Accessibility.NotApplicable);
 

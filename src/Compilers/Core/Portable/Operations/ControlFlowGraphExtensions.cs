@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -23,14 +25,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentNullException(nameof(localFunction));
             }
 
+            ControlFlowGraph? currentGraph = controlFlowGraph;
             do
             {
-                if (controlFlowGraph.TryGetLocalFunctionControlFlowGraph(localFunction, cancellationToken, out ControlFlowGraph localFunctionControlFlowGraph))
+                if (currentGraph.TryGetLocalFunctionControlFlowGraph(localFunction, cancellationToken, out ControlFlowGraph? localFunctionControlFlowGraph))
                 {
                     return localFunctionControlFlowGraph;
                 }
             }
-            while ((controlFlowGraph = controlFlowGraph.Parent) != null);
+            while ((currentGraph = currentGraph.Parent) != null);
 
             throw new ArgumentOutOfRangeException(nameof(localFunction));
         }
@@ -51,14 +54,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentNullException(nameof(anonymousFunction));
             }
 
+            ControlFlowGraph? currentGraph = controlFlowGraph;
             do
             {
-                if (controlFlowGraph.TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, cancellationToken, out ControlFlowGraph localFunctionControlFlowGraph))
+                if (currentGraph.TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, cancellationToken, out ControlFlowGraph? localFunctionControlFlowGraph))
                 {
                     return localFunctionControlFlowGraph;
                 }
             }
-            while ((controlFlowGraph = controlFlowGraph.Parent) != null);
+            while ((currentGraph = currentGraph.Parent) != null);
 
             throw new ArgumentOutOfRangeException(nameof(anonymousFunction));
         }

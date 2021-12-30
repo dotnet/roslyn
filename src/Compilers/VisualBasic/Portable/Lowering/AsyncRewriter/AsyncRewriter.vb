@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -29,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        slotAllocatorOpt As VariableSlotAllocator,
                        asyncKind As AsyncMethodKind,
                        compilationState As TypeCompilationState,
-                       diagnostics As DiagnosticBag)
+                       diagnostics As BindingDiagnosticBag)
 
             MyBase.New(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
 
@@ -71,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  methodOrdinal As Integer,
                                                  slotAllocatorOpt As VariableSlotAllocator,
                                                  compilationState As TypeCompilationState,
-                                                 diagnostics As DiagnosticBag,
+                                                 diagnostics As BindingDiagnosticBag,
                                                  <Out> ByRef stateMachineType As AsyncStateMachine) As BoundBlock
 
             If body.HasErrors Then
@@ -302,7 +304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            Dim bag = DiagnosticBag.GetInstance()
+            Dim bag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=Me.Diagnostics.AccumulatesDependencies)
 
             EnsureSpecialType(SpecialType.System_Object, bag)
             EnsureSpecialType(SpecialType.System_Void, bag)
@@ -459,7 +461,7 @@ lCaptureRValue:
                                     Me.F.StateMachineField(
                                         expression.Type,
                                         Me.Method,
-                                        StringConstants.StateMachineExpressionCapturePrefix & Me._lastExpressionCaptureNumber,
+                                        GeneratedNameConstants.StateMachineExpressionCapturePrefix & Me._lastExpressionCaptureNumber,
                                         Accessibility.Friend),
                                     expression)
             End Select
@@ -540,9 +542,9 @@ lCaptureRValue:
             Dim group As BoundMethodGroup = Nothing
             Dim result = LookupResult.GetInstance()
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Me._binder.LookupMember(result, type, methodName, arity:=0, options:=_lookupOptions, useSiteDiagnostics:=useSiteDiagnostics)
-            Me.Diagnostics.Add(Me.F.Syntax, useSiteDiagnostics)
+            Dim useSiteInfo = Me._binder.GetNewCompoundUseSiteInfo(Me.Diagnostics)
+            Me._binder.LookupMember(result, type, methodName, arity:=0, options:=_lookupOptions, useSiteInfo:=useSiteInfo)
+            Me.Diagnostics.Add(Me.F.Syntax, useSiteInfo)
 
             If result.IsGood Then
                 Debug.Assert(result.Symbols.Count > 0)
@@ -599,9 +601,9 @@ lCaptureRValue:
             Dim group As BoundPropertyGroup = Nothing
             Dim result = LookupResult.GetInstance()
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Me._binder.LookupMember(result, type, propertyName, arity:=0, options:=_lookupOptions, useSiteDiagnostics:=useSiteDiagnostics)
-            Me.Diagnostics.Add(Me.F.Syntax, useSiteDiagnostics)
+            Dim useSiteInfo = Me._binder.GetNewCompoundUseSiteInfo(Me.Diagnostics)
+            Me._binder.LookupMember(result, type, propertyName, arity:=0, options:=_lookupOptions, useSiteInfo:=useSiteInfo)
+            Me.Diagnostics.Add(Me.F.Syntax, useSiteInfo)
 
             If result.IsGood Then
                 Debug.Assert(result.Symbols.Count > 0)

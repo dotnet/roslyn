@@ -1,32 +1,33 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.TodoComments;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal sealed class TodoTableItem : TableItem
     {
-        public readonly TodoItem Data;
+        public readonly TodoCommentData Data;
 
         private TodoTableItem(
             Workspace workspace,
-            TodoItem data,
-            string projectName,
+            TodoCommentData data,
+            string? projectName,
             Guid projectGuid,
             string[] projectNames,
             Guid[] projectGuids)
             : base(workspace, projectName, projectGuid, projectNames, projectGuids)
         {
-            Contract.ThrowIfNull(data);
             Data = data;
         }
 
-        public static TodoTableItem Create(Workspace workspace, TodoItem data)
+        public static TodoTableItem Create(Workspace workspace, TodoCommentData data)
         {
             GetProjectNameAndGuid(workspace, data.DocumentId.ProjectId, out var projectName, out var projectGuid);
             return new TodoTableItem(workspace, data, projectName, projectGuid, projectNames: Array.Empty<string>(), projectGuids: Array.Empty<Guid>());
@@ -42,14 +43,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => Data.DocumentId.ProjectId;
 
         public override LinePosition GetOriginalPosition()
-            => new LinePosition(Data.OriginalLine, Data.OriginalColumn);
+            => new(Data.OriginalLine, Data.OriginalColumn);
 
-        public override string GetOriginalFilePath()
+        public override string? GetOriginalFilePath()
             => Data.OriginalFilePath;
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
-            if (!(other is TodoTableItem otherTodoItem))
+            if (other is not TodoTableItem otherTodoItem)
             {
                 return false;
             }
@@ -64,29 +65,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// We want to avoid displaying diagnostic multuple times when it is reported from 
         /// multi-targeted projects and/or files linked to multiple projects.
         /// </summary>
-        internal sealed class GroupingComparer : IEqualityComparer<TodoItem>, IEqualityComparer<TodoTableItem>
+        internal sealed class GroupingComparer : IEqualityComparer<TodoCommentData>, IEqualityComparer<TodoTableItem>
         {
-            public static readonly GroupingComparer Instance = new GroupingComparer();
+            public static readonly GroupingComparer Instance = new();
 
-            public bool Equals(TodoItem left, TodoItem right)
+            public bool Equals(TodoCommentData left, TodoCommentData right)
             {
-                if (ReferenceEquals(left, right))
-                {
-                    return true;
-                }
-
-                if (left is null || right is null)
-                {
-                    return false;
-                }
-
                 // We don't need to compare OriginalFilePath since TODO items are only aggregated within a single file.
                 return
                     left.OriginalLine == right.OriginalLine &&
                     left.OriginalColumn == right.OriginalColumn;
             }
 
-            public int GetHashCode(TodoItem data)
+            public int GetHashCode(TodoCommentData data)
                 => Hash.Combine(data.OriginalLine, data.OriginalColumn);
 
             public bool Equals(TodoTableItem left, TodoTableItem right)

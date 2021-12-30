@@ -1,4 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+extern alias InteractiveHost;
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +17,10 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Roslyn.Test.Utilities;
 using Xunit;
+using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
@@ -38,7 +48,7 @@ namespace ResetInteractiveTestsDocument
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public async Task TestResetREPLWithProjectContext()
         {
-            using var workspace = TestWorkspace.Create(WorkspaceXmlStr, exportProvider: InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider());
+            using var workspace = TestWorkspace.Create(WorkspaceXmlStr, composition: EditorTestCompositions.InteractiveWindow);
 
             var project = workspace.CurrentSolution.Projects.FirstOrDefault(p => p.AssemblyName == "ResetInteractiveTestsAssembly");
             var document = project.Documents.FirstOrDefault(d => d.FilePath == "ResetInteractiveTestsDocument");
@@ -65,19 +75,19 @@ namespace ResetInteractiveTestsDocument
             expectedReferences ??= new List<string>();
             expectedUsings ??= new List<string>();
 
-            var testHost = new InteractiveWindowTestHost(workspace.ExportProvider);
+            var testHost = new InteractiveWindowTestHost(workspace.ExportProvider.GetExportedValue<IInteractiveWindowFactoryService>());
             var executedSubmissionCalls = new List<string>();
 
             void executeSubmission(object _, string code) => executedSubmissionCalls.Add(code);
             testHost.Evaluator.OnExecute += executeSubmission;
 
-            var waitIndicator = workspace.GetService<IWaitIndicator>();
+            var uiThreadOperationExecutor = workspace.GetService<IUIThreadOperationExecutor>();
             var editorOptionsFactoryService = workspace.GetService<IEditorOptionsFactoryService>();
             var editorOptions = editorOptionsFactoryService.GetOptions(testHost.Window.CurrentLanguageBuffer);
             var newLineCharacter = editorOptions.GetNewLineCharacter();
 
             var resetInteractive = new TestResetInteractive(
-                waitIndicator,
+                uiThreadOperationExecutor,
                 editorOptionsFactoryService,
                 CreateReplReferenceCommand,
                 CreateImport,
@@ -89,10 +99,10 @@ namespace ResetInteractiveTestsDocument
                 ProjectNamespaces = ImmutableArray.Create("System", "ResetInteractiveTestsDocument", "VisualBasicResetInteractiveTestsDocument"),
                 NamespacesToImport = ImmutableArray.Create("System", "ResetInteractiveTestsDocument"),
                 ProjectDirectory = "pj",
-                Is64Bit = true,
+                Platform = InteractiveHostPlatform.Desktop64,
             };
 
-            await resetInteractive.Execute(testHost.Window, "Interactive C#");
+            await resetInteractive.ExecuteAsync(testHost.Window, "Interactive C#");
 
             // Validate that the project was rebuilt.
             Assert.Equal(1, resetInteractive.BuildProjectCount);
@@ -100,7 +110,7 @@ namespace ResetInteractiveTestsDocument
 
             if (buildSucceeds)
             {
-                Assert.True(testHost.Evaluator.ResetOptions.Is64Bit);
+                Assert.Equal(InteractiveHostPlatform.Desktop64, testHost.Evaluator.ResetOptions.Platform);
             }
             else
             {
@@ -112,6 +122,7 @@ namespace ResetInteractiveTestsDocument
             {
                 expectedSubmissions.AddRange(expectedReferences.Select(r => r + newLineCharacter));
             }
+
             if (expectedUsings.Any())
             {
                 expectedSubmissions.Add(string.Join(newLineCharacter, expectedUsings) + newLineCharacter);

@@ -1,10 +1,14 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.OrganizeImports
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
     <ExportLanguageService(GetType(IOrganizeImportsService), LanguageNames.VisualBasic), [Shared]>
@@ -12,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
         Implements IOrganizeImportsService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -22,8 +27,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
 
             Dim placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst)
             Dim separateGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups)
+            Dim newLineTrivia = VisualBasicSyntaxGeneratorInternal.Instance.EndOfLine(options.GetOption(FormattingOptions2.NewLine))
 
-            Dim rewriter = New Rewriter(placeSystemNamespaceFirst, separateGroups)
+            Dim rewriter = New Rewriter(placeSystemNamespaceFirst, separateGroups, newLineTrivia)
             Dim newRoot = rewriter.Visit(root)
             Return document.WithSyntaxRoot(newRoot)
         End Function

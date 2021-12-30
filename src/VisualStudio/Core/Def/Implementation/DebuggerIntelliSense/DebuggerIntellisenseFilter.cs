@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
@@ -105,8 +109,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             _context.DebuggerTextLines.GetStateFlags(out var bufferFlags);
             _context.DebuggerTextLines.SetStateFlags((uint)((BUFFERSTATEFLAGS)bufferFlags & ~BUFFERSTATEFLAGS.BSF_USER_READONLY));
 
-            var result = VSConstants.S_OK;
-
             // If the caret is outside our projection, defer to the next command target.
             var caretPosition = _context.DebuggerTextView.GetCaretPoint(_context.Buffer);
             if (caretPosition == null)
@@ -114,6 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                 return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             }
 
+            int result;
             switch ((VSConstants.VSStd2KCmdID)commandId)
             {
                 // If we see a RETURN, and we're in the immediate window, we'll want to rebuild
@@ -158,9 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         protected override ITextView ConvertTextView()
-        {
-            return _context.DebuggerTextView;
-        }
+            => _context.DebuggerTextView;
 
         internal void SetContext(AbstractDebuggerIntelliSenseContext context)
         {

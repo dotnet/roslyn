@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
@@ -15,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly TypeSymbol RightType;
         public readonly TypeSymbol ReturnType;
         public readonly MethodSymbol Method;
+        public readonly TypeSymbol ConstrainedToTypeOpt;
         public readonly BinaryOperatorKind Kind;
 
         /// <summary>
@@ -24,13 +29,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public int? Priority;
 
-        public BinaryOperatorSignature(BinaryOperatorKind kind, TypeSymbol leftType, TypeSymbol rightType, TypeSymbol returnType, MethodSymbol method = null)
+        public BinaryOperatorSignature(BinaryOperatorKind kind, TypeSymbol leftType, TypeSymbol rightType, TypeSymbol returnType)
+        {
+            this.Kind = kind;
+            this.LeftType = leftType;
+            this.RightType = rightType;
+            this.ReturnType = returnType;
+            this.Method = null;
+            this.ConstrainedToTypeOpt = null;
+            this.Priority = null;
+        }
+
+        public BinaryOperatorSignature(BinaryOperatorKind kind, TypeSymbol leftType, TypeSymbol rightType, TypeSymbol returnType, MethodSymbol method, TypeSymbol constrainedToTypeOpt)
         {
             this.Kind = kind;
             this.LeftType = leftType;
             this.RightType = rightType;
             this.ReturnType = returnType;
             this.Method = method;
+            this.ConstrainedToTypeOpt = constrainedToTypeOpt;
             this.Priority = null;
         }
 

@@ -1,49 +1,55 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
+    <Trait(Traits.Feature, Traits.Features.Classification)>
     Public Class SemanticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Protected Overrides Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions) As Task(Of ImmutableArray(Of ClassifiedSpan))
-            Using workspace = TestWorkspace.CreateVisualBasic(code)
+        Protected Overrides Async Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions, testHost As TestHost) As Task(Of ImmutableArray(Of ClassifiedSpan))
+            Using workspace = CreateWorkspace(code, testHost)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
-                Return GetSemanticClassificationsAsync(document, span)
+                Return Await GetSemanticClassificationsAsync(document, span)
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestTypeName1() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestTypeName1(testHost As TestHost) As Task
             Await TestInMethodAsync(
                 className:="C(Of T)",
                 methodName:="M",
                 code:="Dim x As New C(Of Integer)()",
+                testHost,
                 [Class]("C"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestImportsType() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestImportsType(testHost As TestHost) As Task
             Await TestAsync("Imports System.Console",
-            [Namespace]("System"),
-            [Class]("Console"))
+                testHost,
+                [Namespace]("System"),
+                [Class]("Console"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestImportsAlias() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestImportsAlias(testHost As TestHost) As Task
             Await TestAsync("Imports M = System.Math",
+                testHost,
                 [Class]("M"),
                 [Namespace]("System"),
                 [Class]("Math"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestMSCorlibTypes() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestMSCorlibTypes(testHost As TestHost) As Task
             Dim code =
 "Imports System
 Module Program
@@ -53,33 +59,36 @@ Module Program
 End Module"
 
             Await TestAsync(code,
+                testHost,
                 [Namespace]("System"),
                 [Class]("Console"),
                 Method("WriteLine"),
                 [Static]("WriteLine"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestConstructedGenericWithInvalidTypeArg() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestConstructedGenericWithInvalidTypeArg(testHost As TestHost) As Task
             Await TestInMethodAsync(
                 className:="C(Of T)",
                 methodName:="M",
                 code:="Dim x As New C(Of UnknownType)()",
+                testHost:=testHost,
                 [Class]("C"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestMethodCall() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestMethodCall(testHost As TestHost) As Task
             Await TestInMethodAsync(
                 className:="Program",
                 methodName:="M",
                 code:="Program.Main()",
+                testHost:=testHost,
                 [Class]("Program"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Theory, CombinatorialData>
         <WorkItem(538647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538647")>
-        Public Async Function TestRegression4315_VariableNamesClassifiedAsType() As Task
+        Public Async Function TestRegression4315_VariableNamesClassifiedAsType(testHost As TestHost) As Task
             Dim code =
 "Module M
     Sub S()
@@ -87,12 +96,12 @@ End Module"
     End Sub
 End Module"
 
-            Await TestAsync(code)
+            Await TestAsync(code, testHost)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Theory, CombinatorialData>
         <WorkItem(541267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541267")>
-        Public Async Function TestRegression7925_TypeParameterCantCastToMethod() As Task
+        Public Async Function TestRegression7925_TypeParameterCantCastToMethod(testHost As TestHost) As Task
             Dim code =
 "Class C
     Sub GenericMethod(Of T1)(i As T1)
@@ -100,12 +109,13 @@ End Module"
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 TypeParameter("T1"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Theory, CombinatorialData>
         <WorkItem(541610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541610")>
-        Public Async Function TestRegression8394_AliasesShouldBeClassified1() As Task
+        Public Async Function TestRegression8394_AliasesShouldBeClassified1(testHost As TestHost) As Task
             Dim code =
 "Imports S = System.String
 Class T
@@ -113,15 +123,16 @@ Class T
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 [Class]("S"),
                 [Namespace]("System"),
                 [Class]("String"),
                 [Class]("S"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Theory, CombinatorialData>
         <WorkItem(541610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541610")>
-        Public Async Function TestRegression8394_AliasesShouldBeClassified2() As Task
+        Public Async Function TestRegression8394_AliasesShouldBeClassified2(testHost As TestHost) As Task
             Dim code =
 "Imports D = System.IDisposable
 Class T
@@ -129,14 +140,15 @@ Class T
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 [Interface]("D"),
                 [Namespace]("System"),
                 [Interface]("IDisposable"),
                 [Interface]("D"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestConstructorNew1() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestConstructorNew1(testHost As TestHost) As Task
             Dim code =
 "Class C
     Sub New
@@ -149,11 +161,12 @@ End Class"
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 Keyword("New"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestConstructorNew2() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestConstructorNew2(testHost As TestHost) As Task
             Dim code =
 "Class B
     Sub New()
@@ -167,12 +180,13 @@ Class C
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 [Class]("B"),
                 Keyword("New"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestConstructorNew3() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestConstructorNew3(testHost As TestHost) As Task
             Dim code =
 "Class C
     Sub New
@@ -185,11 +199,12 @@ End Class"
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 Keyword("New"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestConstructorNew4() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestConstructorNew4(testHost As TestHost) As Task
             Dim code =
 "Class C
     Sub New
@@ -204,11 +219,12 @@ End Class"
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 Keyword("New"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestAlias() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestAlias(testHost As TestHost) As Task
             Dim code =
 "Imports E = System.Exception
 Class C
@@ -216,6 +232,7 @@ Class C
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 [Class]("E"),
                 [Namespace]("System"),
                 [Class]("Exception"),
@@ -223,85 +240,94 @@ End Class"
         End Function
 
         <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestOptimisticallyColorFromInDeclaration() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestOptimisticallyColorFromInDeclaration(testHost As TestHost) As Task
             Await TestInExpressionAsync("From ",
+                testHost,
                 Keyword("From"))
         End Function
 
         <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestOptimisticallyColorFromInAssignment() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestOptimisticallyColorFromInAssignment(testHost As TestHost) As Task
             Dim code =
 "Dim q = 3
 q = From"
 
             Await TestInMethodAsync(code,
+                testHost,
                 Local("q"),
                 Keyword("From"))
         End Function
 
         <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestDontColorThingsOtherThanFromInDeclaration() As Task
-            Await TestInExpressionAsync("Fro ")
+        <Theory, CombinatorialData>
+        Public Async Function TestDontColorThingsOtherThanFromInDeclaration(testHost As TestHost) As Task
+            Await TestInExpressionAsync("Fro ", testHost)
         End Function
 
         <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestDontColorThingsOtherThanFromInAssignment() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestDontColorThingsOtherThanFromInAssignment(testHost As TestHost) As Task
             Dim code =
 "Dim q = 3
 q = Fro "
 
             Await TestInMethodAsync(code,
+                testHost,
                 Local("q"))
         End Function
 
         <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestDontColorFromWhenBoundInDeclaration() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestDontColorFromWhenBoundInDeclaration(testHost As TestHost) As Task
             Dim code =
 "Dim From = 3
 Dim q = From"
 
             Await TestInMethodAsync(code,
+                testHost,
                 Local("From"))
         End Function
 
+        <Theory, CombinatorialData>
         <WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestDontColorFromWhenBoundInAssignment() As Task
+        Public Async Function TestDontColorFromWhenBoundInAssignment(testHost As TestHost) As Task
             Dim code =
 "Dim From = 3
 Dim q = 3
 q = From"
 
             Await TestInMethodAsync(code,
+                testHost,
                 Local("q"),
                 Local("From"))
         End Function
 
-        <Fact, WorkItem(10507, "DevDiv_Projects/Roslyn"), Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestArraysInGetType() As Task
+        <Theory, CombinatorialData>
+        <WorkItem(10507, "DevDiv_Projects/Roslyn")>
+        Public Async Function TestArraysInGetType(testHost As TestHost) As Task
             Await TestInMethodAsync("GetType(System.Exception()",
+                testHost,
                 [Namespace]("System"),
                 [Class]("Exception"))
             Await TestInMethodAsync("GetType(System.Exception(,)",
+                testHost,
                 [Namespace]("System"),
                 [Class]("Exception"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestNewOfInterface() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestNewOfInterface(testHost As TestHost) As Task
             Await TestInMethodAsync("Dim a = New System.IDisposable()",
+                testHost,
                 [Namespace]("System"),
                 [Interface]("IDisposable"))
         End Function
 
         <WorkItem(543404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543404")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestNewOfClassWithNoPublicConstructors() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestNewOfClassWithNoPublicConstructors(testHost As TestHost) As Task
             Dim code =
 "Public Class C1
     Private Sub New()
@@ -314,12 +340,13 @@ Module Program
 End Module"
 
             Await TestAsync(code,
+                testHost,
                 [Class]("C1"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestAsyncKeyword1() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestAsyncKeyword1(testHost As TestHost) As Task
             Dim code =
 "Class C
     Sub M()
@@ -328,12 +355,13 @@ End Module"
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 Keyword("Async"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestAsyncKeyword2() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestAsyncKeyword2(testHost As TestHost) As Task
             Dim code =
 "Class C
     Sub M()
@@ -342,12 +370,13 @@ End Class"
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 Keyword("Async"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestAsyncKeyword3() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestAsyncKeyword3(testHost As TestHost) As Task
             Dim code =
 "Class C
     Sub M()
@@ -356,58 +385,61 @@ End Class"
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 Keyword("Async"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestAsyncKeyword4() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestAsyncKeyword4(testHost As TestHost) As Task
             Dim code =
 "Class C
     Async
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 Keyword("Async"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestAsyncKeyword5() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestAsyncKeyword5(testHost As TestHost) As Task
             Dim code =
 "Class C
     Private Async
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 Keyword("Async"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestAsyncKeyword6() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestAsyncKeyword6(testHost As TestHost) As Task
             Dim code =
 "Class C
     Private Async As
 End Class"
 
-            Await TestAsync(code)
+            Await TestAsync(code, testHost)
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestAsyncKeyword7() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestAsyncKeyword7(testHost As TestHost) As Task
             Dim code =
 "Class C
     Private Async =
 End Class"
 
-            Await TestAsync(code)
+            Await TestAsync(code, testHost)
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestIteratorKeyword1() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestIteratorKeyword1(testHost As TestHost) As Task
             Dim code =
 "Class C
     Sub M()
@@ -416,12 +448,13 @@ End Class"
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 Keyword("Iterator"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestIteratorKeyword2() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestIteratorKeyword2(testHost As TestHost) As Task
             Dim code =
 "Class C
     Sub M()
@@ -430,12 +463,13 @@ End Class"
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 Keyword("Iterator"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestIteratorKeyword3() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestIteratorKeyword3(testHost As TestHost) As Task
             Dim code =
 "Class C
     Sub M()
@@ -444,57 +478,60 @@ End Class"
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 Keyword("Iterator"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestIteratorKeyword4() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestIteratorKeyword4(testHost As TestHost) As Task
             Dim code =
 "Class C
     Iterator
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 Keyword("Iterator"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestIteratorKeyword5() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestIteratorKeyword5(testHost As TestHost) As Task
             Dim code =
 "Class C
     Private Iterator
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 Keyword("Iterator"))
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestIteratorKeyword6() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestIteratorKeyword6(testHost As TestHost) As Task
             Dim code =
 "Class C
     Private Iterator As
 End Class"
 
-            Await TestAsync(code)
+            Await TestAsync(code, testHost)
         End Function
 
         <WorkItem(578145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578145")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestIteratorKeyword7() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestIteratorKeyword7(testHost As TestHost) As Task
             Dim code =
 "Class C
     Private Iterator =
 End Class"
 
-            Await TestAsync(code)
+            Await TestAsync(code, testHost)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestMyNamespace() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestMyNamespace(testHost As TestHost) As Task
             Dim code =
 "Class C
     Sub M()
@@ -503,19 +540,21 @@ End Class"
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 Keyword("My"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestAwaitInNonAsyncFunction1() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestAwaitInNonAsyncFunction1(testHost As TestHost) As Task
             Dim code = "dim m = Await"
 
             Await TestInMethodAsync(code,
+                testHost,
                 Keyword("Await"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestAwaitInNonAsyncFunction2() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestAwaitInNonAsyncFunction2(testHost As TestHost) As Task
             Dim code =
 "sub await()
 end sub
@@ -525,12 +564,13 @@ sub test()
 end sub"
 
             Await TestInClassAsync(code,
+                testHost,
                 Method("Await"))
         End Function
 
+        <Theory, CombinatorialData>
         <WorkItem(21524, "https://github.com/dotnet/roslyn/issues/21524")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestAttribute() As Task
+        Public Async Function TestAttribute(testHost As TestHost) As Task
             Dim code =
 "Imports System
 
@@ -539,11 +579,12 @@ Class Program
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 [Namespace]("System"), [Class]("AttributeUsage"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestRegex1() As Task
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestRegex1(testHost As TestHost) As Task
             Await TestAsync(
 "
 imports System.Text.RegularExpressions
@@ -554,7 +595,8 @@ class Program
         var r = ""$(\b\G\z)|(?<name>sub){0,5}?^""
     end sub
 end class",
-[Namespace]("System"),
+                testHost,
+                [Namespace]("System"),
 [Namespace]("Text"),
 [Namespace]("RegularExpressions"),
 Regex.Anchor("$"),
@@ -583,61 +625,66 @@ Regex.Quantifier("?"),
 Regex.Anchor("^"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestConstField() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestConstField(testHost As TestHost) As Task
             Dim code =
 "Const Number = 42
 Dim x As Integer = Number"
 
             Await TestInClassAsync(code,
+                testHost,
                 Constant("Number"),
                 [Static]("Number"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestConstLocal() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestConstLocal(testHost As TestHost) As Task
             Dim code =
 "Const Number = 42
 Dim x As Integer = Number"
 
             Await TestInMethodAsync(code,
+                testHost,
                 Constant("Number"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestModifiedIdentifiersInLocals() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestModifiedIdentifiersInLocals(testHost As TestHost) As Task
             Dim code =
 "Dim x$ = ""23""
 x$ = ""19"""
 
             Await TestInMethodAsync(code,
+                testHost,
                 Local("x$"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestModifiedIdentifiersInFields() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestModifiedIdentifiersInFields(testHost As TestHost) As Task
             Dim code =
 "Const x$ = ""23""
 Dim y$ = x$"
 
             Await TestInClassAsync(code,
+                testHost,
                 Constant("x$"),
                 [Static]("x$"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestFunctionNamesWithTypeCharacters() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestFunctionNamesWithTypeCharacters(testHost As TestHost) As Task
             Dim code =
 "Function x%()
     x% = 42
 End Function"
 
             Await TestInClassAsync(code,
+                testHost,
                 Local("x%"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestExtensionMethod() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestExtensionMethod(testHost As TestHost) As Task
             Dim code = "
 Imports System.Runtime.CompilerServices
 
@@ -657,6 +704,7 @@ Class C
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 [Namespace]("System"),
                 [Namespace]("Runtime"),
                 [Namespace]("CompilerServices"),
@@ -673,8 +721,8 @@ End Class"
                 Local("x"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestSimpleEvent() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestSimpleEvent(testHost As TestHost) As Task
             Dim code = "
 Event E(x As Integer)
 
@@ -683,11 +731,12 @@ Sub M()
 End Sub"
 
             Await TestInClassAsync(code,
+                testHost,
                 [Event]("E"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestOperators() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestOperators(testHost As TestHost) As Task
             Dim code = "
 Public Shared Operator Not(t As Test) As Test
     Return New Test()
@@ -696,62 +745,69 @@ Public Shared Operator +(t1 As Test, t2 As Test) As Integer
     Return 1
 End Operator"
 
-            Await TestInClassAsync(code)
+            Await TestInClassAsync(code, testHost)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestStringEscape1() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestStringEscape1(testHost As TestHost) As Task
             Await TestInMethodAsync("dim goo = ""goo""""bar""",
+                testHost,
                 Escape(""""""))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestStringEscape2() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestStringEscape2(testHost As TestHost) As Task
             Await TestInMethodAsync("dim goo = $""goo{{1}}bar""",
+                testHost,
                 Escape("{{"),
                 Escape("}}"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestStringEscape3() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestStringEscape3(testHost As TestHost) As Task
             Await TestInMethodAsync("dim goo = $""goo""""{{1}}""""bar""",
+                testHost,
                 Escape(""""""),
                 Escape("{{"),
                 Escape("}}"),
                 Escape(""""""))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestStringEscape4() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestStringEscape4(testHost As TestHost) As Task
             Await TestInMethodAsync("dim goo = $""goo""""{1}""""bar""",
+                testHost,
                 Escape(""""""),
                 Escape(""""""))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestStringEscape5() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestStringEscape5(testHost As TestHost) As Task
             Await TestInMethodAsync("dim goo = $""{{goo{1}bar}}""",
+                testHost,
                 Escape("{{"),
                 Escape("}}"))
         End Function
 
         <WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestDirectiveStringLiteral() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestDirectiveStringLiteral(testHost As TestHost) As Task
             Await TestAsync("#region ""goo""""bar""",
+                testHost,
                 Escape(""""""))
         End Function
 
         <WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestFormatSpecifierInInterpolation() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestFormatSpecifierInInterpolation(testHost As TestHost) As Task
             Await TestInMethodAsync("dim goo = $""goo{{1:0000}}bar""",
+                testHost,
                 Escape("{{"),
                 Escape("}}"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestLabelName() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestLabelName(testHost As TestHost) As Task
             Dim code = "
 Sub M()
 E:
@@ -759,12 +815,13 @@ E:
 End Sub"
 
             Await TestInClassAsync(code,
+                testHost,
                 [Label]("E"))
         End Function
 
         <WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestOperatorOverloads_BinaryExpression() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestOperatorOverloads_BinaryExpression(testHost As TestHost) As Task
             Dim code =
 "Class C
     Public Sub M(a As C)
@@ -778,6 +835,7 @@ End Sub"
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 [Class]("C"),
                 Parameter("a"),
                 OverloadedOperators.Plus,
@@ -788,8 +846,8 @@ End Class"
         End Function
 
         <WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestOperatorOverloads_UnaryExpression() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestOperatorOverloads_UnaryExpression(testHost As TestHost) As Task
             Dim code =
 "Class C
     Public Sub M()
@@ -803,14 +861,15 @@ End Class"
 End Class"
 
             Await TestAsync(code,
+                testHost,
                 OverloadedOperators.Minus,
                 [Class]("C"),
                 [Class]("C"),
                 [Class]("C"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Async Function TestCatchStatement() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestCatchStatement(testHost As TestHost) As Task
             Dim code =
 "Try
 
@@ -819,6 +878,7 @@ Catch ex As Exception
 End Try"
 
             Await TestInMethodAsync(code,
+                testHost,
                 Local("ex"),
                 [Class]("Exception"),
                 Local("ex"))

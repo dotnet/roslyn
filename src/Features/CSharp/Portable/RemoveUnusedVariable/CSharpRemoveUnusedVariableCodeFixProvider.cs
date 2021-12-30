@@ -1,8 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -18,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
         public const string CS0219 = nameof(CS0219);
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpRemoveUnusedVariableCodeFixProvider()
         {
         }
@@ -55,12 +62,27 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
                     editor.ReplaceNode(node, ((AssignmentExpressionSyntax)node).Right);
                     return;
                 default:
-                    RemoveNode(editor, node, syntaxFacts);
+                    RemoveNode(editor, node.IsParentKind(SyntaxKind.GlobalStatement) ? node.Parent : node, syntaxFacts);
                     return;
             }
         }
 
         protected override SeparatedSyntaxList<SyntaxNode> GetVariables(LocalDeclarationStatementSyntax localDeclarationStatement)
             => localDeclarationStatement.Declaration.Variables;
+
+        protected override bool ShouldOfferFixForLocalDeclaration(ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            var localDeclaration = node.Parent?.Parent as LocalDeclarationStatementSyntax;
+
+            // If the fix location is not for a local declaration then we can allow it (eg, when inside a for
+            // or catch).
+            if (localDeclaration is null)
+                return true;
+
+            // Local declarations must be parented by an executable block, or global statement, otherwise
+            // removing them would be invalid (and more than likely crash the fixer)
+            return localDeclaration.Parent is GlobalStatementSyntax ||
+                syntaxFacts.IsExecutableBlock(localDeclaration.Parent);
+        }
     }
 }

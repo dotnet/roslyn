@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Composition;
@@ -12,9 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     [Shared]
     internal partial class VisualStudioProjectCacheHostServiceFactory : IWorkspaceServiceFactory
     {
-        private const int ImplicitCacheTimeoutInMS = 10000;
+        private static readonly TimeSpan ImplicitCacheTimeout = TimeSpan.FromMilliseconds(10000);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioProjectCacheHostServiceFactory()
         {
         }
@@ -37,12 +42,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                 return new ProjectCacheService(workspaceServices.Workspace);
             }
 
-            var projectCacheService = new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
+            var projectCacheService = new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeout);
 
             // Also clear the cache when the solution is cleared or removed.
             workspaceServices.Workspace.WorkspaceChanged += (s, e) =>
             {
-                if (e.Kind == WorkspaceChangeKind.SolutionCleared || e.Kind == WorkspaceChangeKind.SolutionRemoved)
+                if (e.Kind is WorkspaceChangeKind.SolutionCleared or WorkspaceChangeKind.SolutionRemoved)
                 {
                     projectCacheService.ClearImplicitCache();
                 }
@@ -54,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         private static IWorkspaceService GetVisualStudioProjectCache(HostWorkspaceServices workspaceServices)
         {
             // We will finish setting this up in VisualStudioWorkspaceImpl.DeferredInitializationState
-            return new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
+            return new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeout);
         }
 
         internal static void ConnectProjectCacheServiceToDocumentTracking(HostWorkspaceServices workspaceServices, ProjectCacheService projectCacheService)
         {
-            var documentTrackingService = workspaceServices.GetService<IDocumentTrackingService>();
+            var documentTrackingService = workspaceServices.GetRequiredService<IDocumentTrackingService>();
 
             // Subscribe to events so that we can cache items from the active document's project
             var manager = new ActiveProjectCacheManager(documentTrackingService, projectCacheService);
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             // Also clear the cache when the solution is cleared or removed.
             workspaceServices.Workspace.WorkspaceChanged += (s, e) =>
             {
-                if (e.Kind == WorkspaceChangeKind.SolutionCleared || e.Kind == WorkspaceChangeKind.SolutionRemoved)
+                if (e.Kind is WorkspaceChangeKind.SolutionCleared or WorkspaceChangeKind.SolutionRemoved)
                 {
                     manager.Clear();
                 }
@@ -83,23 +88,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
         private class ActiveProjectCacheManager
         {
-            private readonly IDocumentTrackingService _documentTrackingService;
             private readonly ProjectCacheService _projectCacheService;
-            private readonly object _guard = new object();
+            private readonly object _guard = new();
 
             private ProjectId _mostRecentActiveProjectId;
             private IDisposable _mostRecentCache;
 
             public ActiveProjectCacheManager(IDocumentTrackingService documentTrackingService, ProjectCacheService projectCacheService)
             {
-                _documentTrackingService = documentTrackingService;
                 _projectCacheService = projectCacheService;
 
-                if (documentTrackingService != null)
-                {
-                    documentTrackingService.ActiveDocumentChanged += UpdateCache;
-                    UpdateCache(null, documentTrackingService.TryGetActiveDocument());
-                }
+                documentTrackingService.ActiveDocumentChanged += UpdateCache;
+                UpdateCache(null, documentTrackingService.TryGetActiveDocument());
             }
 
             private void UpdateCache(object sender, DocumentId activeDocument)

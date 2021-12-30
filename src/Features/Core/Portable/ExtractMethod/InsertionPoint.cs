@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     internal class InsertionPoint
     {
         private readonly SyntaxAnnotation _annotation;
-        private readonly Lazy<SyntaxNode> _context;
+        private readonly Lazy<SyntaxNode?> _context;
 
         public static async Task<InsertionPoint> CreateAsync(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
         {
@@ -35,29 +37,21 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public SemanticDocument SemanticDocument { get; }
 
         public SyntaxNode GetRoot()
-        {
-            return SemanticDocument.Root;
-        }
+            => SemanticDocument.Root;
 
-        public SyntaxNode GetContext()
-        {
-            return _context.Value;
-        }
+        public SyntaxNode? GetContext()
+            => _context.Value;
 
         public InsertionPoint With(SemanticDocument document)
-        {
-            return new InsertionPoint(document, _annotation);
-        }
+            => new(document, _annotation);
 
-        private Lazy<SyntaxNode> CreateLazyContextNode()
-        {
-            return new Lazy<SyntaxNode>(ComputeContextNode, isThreadSafe: true);
-        }
+        private Lazy<SyntaxNode?> CreateLazyContextNode()
+            => new(ComputeContextNode, isThreadSafe: true);
 
-        private SyntaxNode ComputeContextNode()
+        private SyntaxNode? ComputeContextNode()
         {
             var root = SemanticDocument.Root;
-            return root.GetAnnotatedNodesAndTokens(_annotation).Single().AsNode();
+            return root.GetAnnotatedNodesAndTokens(_annotation).SingleOrDefault().AsNode();
         }
     }
 }

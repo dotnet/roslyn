@@ -1,4 +1,10 @@
-﻿using System.Linq;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -765,12 +771,6 @@ namespace ConsoleApp1
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        private async Task VerifyNoType(string markup)
-        {
-            var result = await GetResultsAsync(markup);
-            Assert.Null(result.Type);
-        }
-
         private async Task VerifyTypeName(string markup, string typeName)
         {
             var result = await GetResultsAsync(markup);
@@ -804,7 +804,7 @@ namespace ConsoleApp1
         private async Task<NameDeclarationInfo> GetResultsAsync(string markup)
         {
             var (document, position) = ApplyChangesToFixture(markup);
-            var result = await NameDeclarationInfo.GetDeclarationInfo(document, position, CancellationToken.None);
+            var result = await NameDeclarationInfo.GetDeclarationInfoAsync(document, position, CancellationToken.None);
             return result;
         }
 

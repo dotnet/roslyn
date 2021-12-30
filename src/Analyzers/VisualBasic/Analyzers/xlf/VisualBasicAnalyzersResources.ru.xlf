@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ru" original="../VisualBasicAnalyzersResources.resx">
+    <body>
+      <trans-unit id="GetType_can_be_converted_to_NameOf">
+        <source>'GetType' can be converted to 'NameOf'</source>
+        <target state="translated">"GetType" можно преобразовать в "NameOf".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="If_statement_can_be_simplified">
+        <source>'If' statement can be simplified</source>
+        <target state="translated">Оператор if можно упростить</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Imports_statement_is_unnecessary">
+        <source>Imports statement is unnecessary.</source>
+        <target state="translated">Оператор Imports не нужен.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Object_creation_can_be_simplified">
+        <source>Object creation can be simplified</source>
+        <target state="translated">Создание объектов можно упростить</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_ByVal">
+        <source>'ByVal' keyword is unnecessary and can be removed.</source>
+        <target state="translated">Ключевое слово "ByVal" является необязательным и может быть удалено.</target>
+        <note>{locked: ByVal}This is a Visual Basic keyword and should not be localized or have its casing changed</note>
+      </trans-unit>
+      <trans-unit id="Use_IsNot_Nothing_check">
+        <source>Use 'IsNot Nothing' check</source>
+        <target state="translated">Использовать флажок "IsNot Nothing"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_IsNot_expression">
+        <source>Use 'IsNot' expression</source>
+        <target state="translated">Использовать выражение IsNot</target>
+        <note>{locked: IsNot}This is a Visual Basic keyword and should not be localized or have its casing changed</note>
+      </trans-unit>
+      <trans-unit id="Use_Is_Nothing_check">
+        <source>Use 'Is Nothing' check</source>
+        <target state="translated">Использовать флажок "Is Nothing"</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

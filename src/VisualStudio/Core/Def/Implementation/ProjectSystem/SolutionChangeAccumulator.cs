@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
@@ -17,19 +20,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <see cref="WorkspaceChangeKind.SolutionChanged"/> if we can't give a more precise type.
         /// </summary>
         private WorkspaceChangeKind? _workspaceChangeKind;
+        private readonly List<DocumentId> _documentIdsRemoved = new();
 
         public SolutionChangeAccumulator(Solution startingSolution)
-        {
-            Solution = startingSolution;
-        }
+            => Solution = startingSolution;
 
         public Solution Solution { get; private set; }
+        public IEnumerable<DocumentId> DocumentIdsRemoved => _documentIdsRemoved;
 
         public bool HasChange => _workspaceChangeKind.HasValue;
-        public WorkspaceChangeKind WorkspaceChangeKind => _workspaceChangeKind.Value;
+        public WorkspaceChangeKind WorkspaceChangeKind => _workspaceChangeKind!.Value;
 
-        public ProjectId WorkspaceChangeProjectId { get; private set; }
-        public DocumentId WorkspaceChangeDocumentId { get; private set; }
+        public ProjectId? WorkspaceChangeProjectId { get; private set; }
+        public DocumentId? WorkspaceChangeDocumentId { get; private set; }
 
         public void UpdateSolutionForDocumentAction(Solution newSolution, WorkspaceChangeKind changeKind, IEnumerable<DocumentId> documentIds)
         {
@@ -71,6 +74,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// The same as <see cref="UpdateSolutionForDocumentAction(Solution, WorkspaceChangeKind, IEnumerable{DocumentId})" /> but also records
+        /// the removed documents into <see cref="DocumentIdsRemoved"/>.
+        /// </summary>
+        public void UpdateSolutionForRemovedDocumentAction(Solution solution, WorkspaceChangeKind removeDocumentChangeKind, IEnumerable<DocumentId> documentIdsRemoved)
+        {
+            UpdateSolutionForDocumentAction(solution, removeDocumentChangeKind, documentIdsRemoved);
+
+            _documentIdsRemoved.AddRange(documentIdsRemoved);
         }
 
         /// <summary>

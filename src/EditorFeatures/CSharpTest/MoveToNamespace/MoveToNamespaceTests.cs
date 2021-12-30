@@ -1,15 +1,20 @@
-﻿// Copyright(c) Microsoft.All Rights Reserved.Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.MoveToNamespace;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -18,25 +23,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
     [UseExportProvider]
     public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
     {
-        private static readonly IExportProviderFactory ExportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestMoveToNamespaceOptionsService)));
+        private static readonly TestComposition s_compositionWithoutOptions = FeaturesTestCompositions.Features
+            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
+            .AddParts(
+                typeof(MockDiagnosticUpdateSourceRegistrationService),
+                typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => CreateWorkspaceFromFile(initialMarkup, parameters, ExportProviderFactory);
+        private static readonly TestComposition s_composition = s_compositionWithoutOptions.AddParts(
+            typeof(TestMoveToNamespaceOptionsService));
 
-        protected TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters, IExportProviderFactory exportProviderFactory)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, exportProvider: exportProviderFactory.CreateExportProvider());
+        protected override TestComposition GetComposition() => s_composition;
 
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
-        protected override string GetLanguage() => LanguageNames.CSharp;
+        protected internal override string GetLanguage() => LanguageNames.CSharp;
 
         public static IEnumerable<object[]> SupportedKeywords => new[]
         {
-            new []{"class" },
-            new []{"enum" },
-            new []{"interface"}
+            new[] { "class" },
+            new[] { "enum" },
+            new[] { "interface"}
         };
 
         [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
@@ -1111,10 +1117,7 @@ class MyClass
 }
 }";
 
-            var exportProviderWithoutOptionsService = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(typeof(IMoveToNamespaceOptionsService)));
-
-            using var workspace = CreateWorkspaceFromFile(code, new TestParameters(), exportProviderWithoutOptionsService);
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithoutOptions);
             using var testState = new TestState(workspace);
             Assert.Null(testState.TestMoveToNamespaceOptionsService);
 
@@ -1226,5 +1229,67 @@ partial class MyClass
 {
 }",
     expectedSuccess: false);
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(39234, "https://github.com/dotnet/roslyn/issues/39234")]
+        public async Task TestMultiTargetingProject()
+        {
+            // Create two projects with same project file path and single linked document to simulate a multi-targeting project.
+            var input = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" FilePath=""SharedProj.csproj"">
+        <Document FilePath=""CurrentDocument.cs"">
+namespace A
+{
+    public class Class1
+    {
+    }
+
+    public class Class2[||]
+    {
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" FilePath=""SharedProj.csproj"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
+    </Project>
+</Workspace>";
+
+            var expected =
+@"namespace A
+{
+    public class Class1
+    {
+    }
+}
+
+namespace B
+{
+    public class Class2
+    {
+    }
+}";
+            using var workspace = TestWorkspace.Create(System.Xml.Linq.XElement.Parse(input), composition: s_composition, openDocuments: false);
+
+            // Set the target namespace to "B"
+            var testDocument = workspace.Projects.Single(p => p.Name == "Proj1").Documents.Single();
+            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var movenamespaceService = document.GetLanguageService<IMoveToNamespaceService>();
+            var moveToNamespaceOptions = new MoveToNamespaceOptionsResult("B");
+            ((TestMoveToNamespaceOptionsService)movenamespaceService.OptionsService).SetOptions(moveToNamespaceOptions);
+
+            var (_, action) = await GetCodeActionsAsync(workspace, default);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
+            var result = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
+
+            // Make sure both linked documents are changed.
+            foreach (var id in workspace.Documents.Select(d => d.Id))
+            {
+                var changedDocument = result.Item2.GetDocument(id);
+                var changedRoot = await changedDocument.GetSyntaxRootAsync();
+                var actualText = changedRoot.ToFullString();
+                Assert.Equal(expected, actualText);
+            }
+        }
     }
 }

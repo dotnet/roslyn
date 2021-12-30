@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
 Imports Microsoft.VisualStudio.Core.Imaging
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text.Adornments
@@ -10,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Inherits AbstractIntellisenseQuickInfoBuilderTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Sub NoImplicitInheritedQuickInfoForType()
+        Public Async Function NoImplicitInheritedQuickInfoForType() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -45,11 +48,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"))))
 
-            AssertEqualAdornments(expected, container)
-        End Sub
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Sub ExplicitInheritedQuickInfoForType()
+        Public Async Function ExplicitInheritedQuickInfoForType() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -89,11 +92,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "This is the base class."))))
 
-            AssertEqualAdornments(expected, container)
-        End Sub
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Sub ExplicitInheritedQuickInfoForSummary1()
+        Public Async Function ExplicitInheritedQuickInfoForSummary1() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -135,11 +138,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "This is the base class."))))
 
-            AssertEqualAdornments(expected, container)
-        End Sub
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Sub ExplicitInheritedQuickInfoForSummary2()
+        Public Async Function ExplicitInheritedQuickInfoForSummary2() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -189,11 +192,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "This is the base class. This is not the base class."))))
 
-            AssertEqualAdornments(expected, container)
-        End Sub
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Sub InheritedQuickInfoForParameterButNotSummary1()
+        Public Async Function InheritedQuickInfoForParameterButNotSummary1() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -247,11 +250,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "Override summary."))))
 
-            AssertEqualAdornments(expected, container)
-        End Sub
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Sub InheritedQuickInfoForParameterButNotSummary2()
+        Public Async Function InheritedQuickInfoForParameterButNotSummary2() As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -302,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "A parameter."))))
 
-            AssertEqualAdornments(expected, container)
-        End Sub
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
     End Class
 End Namespace

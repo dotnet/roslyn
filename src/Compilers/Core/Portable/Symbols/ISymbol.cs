@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -58,7 +58,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         string MetadataName { get; }
 
+        /// <summary>
+        /// Gets the metadata token associated with this symbol, or 0 if the symbol is not loaded from metadata.
+        /// </summary>
+        int MetadataToken { get; }
+
 #nullable disable // Skipped for now https://github.com/dotnet/roslyn/issues/39166
+#pragma warning disable RS0041 // uses oblivious reference types
         /// <summary>
         /// Gets the <see cref="ISymbol"/> for the immediately containing symbol.
         /// </summary>
@@ -88,6 +94,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         INamespaceSymbol ContainingNamespace { get; }
 #nullable enable
+#pragma warning restore RS0041 // uses oblivious reference types
 
         /// <summary>
         /// Gets a value indicating whether the symbol is the original definition. Returns false
@@ -127,7 +134,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns true if this symbol was automatically created by the compiler, and does not have
-        /// an explicit corresponding source code declaration. 
+        /// an explicit corresponding source code declaration.
         /// </summary> 
         /// <remarks>
         /// This is intended for symbols that are ordinary symbols in the language sense, and may be
@@ -145,6 +152,9 @@ namespace Microsoft.CodeAnalysis
         /// <item><description>The parameters on indexer accessor methods (not on the indexer itself).</description></item>
         /// <item><description>Methods in anonymous types.</description></item>
         /// </list>
+        /// </para>
+        /// <para>
+        /// The class and entry point method for top-level statements are not considered as implicitly declared.
         /// </para>
         /// </remarks>
         bool IsImplicitlyDeclared { get; }
@@ -200,7 +210,7 @@ namespace Microsoft.CodeAnalysis
         ISymbol OriginalDefinition { get; }
 
         void Accept(SymbolVisitor visitor);
-        TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
+        TResult? Accept<TResult>(SymbolVisitor<TResult> visitor);
 
         /// <summary>
         /// Returns the Documentation Comment ID for the symbol, or null if the symbol doesn't
@@ -215,7 +225,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="expandIncludes">Optionally, expand &lt;include&gt; elements.  No impact on non-source documentation comments.</param>
         /// <param name="cancellationToken">Token allowing cancellation of request.</param>
         /// <returns>The XML that would be written to the documentation file for the symbol.</returns>
-        string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
+        string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Converts the symbol to a string representation.

@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// <summary>
         /// The annotation normally used on nodes to request case correction.
         /// </summary>
-        public static readonly SyntaxAnnotation Annotation = new SyntaxAnnotation();
+        public static readonly SyntaxAnnotation Annotation = new();
 
         /// <summary>
         /// Case corrects all names found in the provided document.
@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// </summary>
         public static async Task<Document> CaseCorrectAsync(Document document, TextSpan span, CancellationToken cancellationToken = default)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return await CaseCorrectAsync(document, ImmutableArray.Create(span), cancellationToken).ConfigureAwait(false);
         }
 

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -160,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
         ///       Extract Method does not proceed further and is done.
         /// False: the user proceeded to a best effort scenario.
         /// </returns>
-        private bool TryNotifyFailureToUser(Document document, ExtractMethodResult result, IUIThreadOperationContext waitContext)
+        private static bool TryNotifyFailureToUser(Document document, ExtractMethodResult result, IUIThreadOperationContext waitContext)
         {
             // We are about to show a modal UI dialog so we should take over the command execution
             // wait context. That means the command system won't attempt to show its own wait dialog 
@@ -173,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             // see whether we will allow best effort extraction and if it is possible.
             if (!solution.Options.GetOption(ExtractMethodOptions.AllowBestEffort, project.Language) ||
                 !result.Status.HasBestEffort() ||
-                result.Document == null)
+                result.DocumentWithoutFinalFormatting == null)
             {
                 if (notificationService != null)
                 {
@@ -240,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             using var undoTransaction = _undoManager.GetTextBufferUndoManager(subjectBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method");
 
             // apply extract method code to buffer
-            var document = extractMethodResult.Document;
+            var (document, _) = extractMethodResult.GetFormattedDocumentAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             document.Project.Solution.Workspace.ApplyDocumentChanges(document, cancellationToken);
 
             // apply changes

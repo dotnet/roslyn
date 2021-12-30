@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -13,7 +13,7 @@ namespace Roslyn.Utilities
     {
         // TODO (DevDiv 1117307): Replace with CultureInfo.CurrentUICulture.set when available.
         private const string currentUICultureName = "CurrentUICulture";
-        private readonly static Action<CultureInfo>? s_setCurrentUICulture;
+        private static readonly Action<CultureInfo>? s_setCurrentUICulture;
 
         private static bool TryGetCurrentUICultureSetter([NotNullWhen(returnValue: true)] out Action<CultureInfo>? setter)
         {
@@ -61,7 +61,7 @@ namespace Roslyn.Utilities
             try
             {
                 var type = typeof(object).GetTypeInfo().Assembly.GetType(threadTypeName);
-                if ((object)type == null)
+                if (type is null)
                 {
                     setter = null;
                     return false;

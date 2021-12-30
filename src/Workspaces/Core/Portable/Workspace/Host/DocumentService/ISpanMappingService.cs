@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,6 +23,16 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal interface ISpanMappingService : IDocumentService
     {
+        /// <summary>
+        /// Whether this span mapping service can handle mapping import directives added to a document.
+        /// </summary>
+        bool SupportsMappingImportDirectives { get; }
+
+        Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
+            Document oldDocument,
+            Document newDocument,
+            CancellationToken cancellationToken);
+
         /// <summary>
         /// Map spans in the document to more appropriate locations
         /// 

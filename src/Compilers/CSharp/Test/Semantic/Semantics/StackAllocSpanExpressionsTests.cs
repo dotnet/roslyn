@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -85,7 +89,7 @@ unsafe class Test
             Assert.Equal("obj5", obj5.Identifier.Text);
 
             var obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
-            Assert.Null(obj5Value.Type);
+            Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj5Value.Type).PointedAtType.SpecialType);
             Assert.Equal(SpecialType.System_Double, ((IPointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
             Assert.Equal(ConversionKind.NoConversion, obj5Value.ImplicitConversion.Kind);
         }
@@ -160,7 +164,7 @@ unsafe class Test
             Assert.Equal("obj5", obj5.Identifier.Text);
 
             var obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
-            Assert.Null(obj5Value.Type);
+            Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj5Value.Type).PointedAtType.SpecialType);
             Assert.Equal(SpecialType.System_Double, ((IPointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
             Assert.Equal(ConversionKind.NoConversion, obj5Value.ImplicitConversion.Kind);
         }
@@ -464,7 +468,7 @@ unsafe public class Test
     }
 }
 ";
-            CreateCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (6,15): error CS0283: The type 'int*' cannot be declared const
                 //         const int* p = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15));

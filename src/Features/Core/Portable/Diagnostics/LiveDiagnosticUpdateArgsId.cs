@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Utilities;
 
@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly string _analyzerPackageName;
 
         public readonly object ProjectOrDocumentId;
-        public readonly int Kind;
+        public readonly AnalysisKind Kind;
 
-        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object projectOrDocumentId, int kind, string analyzerPackageName)
+        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object projectOrDocumentId, AnalysisKind kind, string analyzerPackageName)
             : base(analyzer)
         {
             Contract.ThrowIfNull(projectOrDocumentId);
@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override string BuildTool => _analyzerPackageName;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            if (!(obj is LiveDiagnosticUpdateArgsId other))
+            if (obj is not LiveDiagnosticUpdateArgsId other)
             {
                 return false;
             }
@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(ProjectOrDocumentId, Hash.Combine(Kind, base.GetHashCode()));
-        }
+            => Hash.Combine(ProjectOrDocumentId, Hash.Combine((int)Kind, base.GetHashCode()));
     }
 }

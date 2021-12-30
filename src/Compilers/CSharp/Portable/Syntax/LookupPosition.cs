@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -18,21 +20,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// A position is considered to be inside a block if it is on or after
         /// the open brace and strictly before the close brace.
         /// </summary>
-        internal static bool IsInBlock(int position, BlockSyntax blockOpt)
+        internal static bool IsInBlock(int position, BlockSyntax? blockOpt)
         {
             return blockOpt != null && IsBeforeToken(position, blockOpt, blockOpt.CloseBraceToken);
         }
 
         internal static bool IsInExpressionBody(
             int position,
-            ArrowExpressionClauseSyntax expressionBodyOpt,
+            ArrowExpressionClauseSyntax? expressionBodyOpt,
             SyntaxToken semicolonToken)
         {
             return expressionBodyOpt != null
                 && IsBeforeToken(position, expressionBodyOpt, semicolonToken);
         }
 
-        private static bool IsInBody(int position, BlockSyntax blockOpt, ArrowExpressionClauseSyntax exprOpt, SyntaxToken semiOpt)
+        private static bool IsInBody(int position, BlockSyntax? blockOpt, ArrowExpressionClauseSyntax? exprOpt, SyntaxToken semiOpt)
         {
             return IsInExpressionBody(position, exprOpt, semiOpt)
                 || IsInBlock(position, blockOpt);
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// </summary>
         internal static bool IsInBody(int position,
             PropertyDeclarationSyntax property)
-            => IsInBody(position, default(BlockSyntax), property.GetExpressionBodySyntax(), property.SemicolonToken);
+            => IsInBody(position, blockOpt: null, property.GetExpressionBodySyntax(), property.SemicolonToken);
 
         /// <summary>
         /// A position is inside a property body only if it is inside an expression body.
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// </summary>
         internal static bool IsInBody(int position,
             IndexerDeclarationSyntax indexer)
-            => IsInBody(position, default(BlockSyntax), indexer.GetExpressionBodySyntax(), indexer.SemicolonToken);
+            => IsInBody(position, blockOpt: null, indexer.GetExpressionBodySyntax(), indexer.SemicolonToken);
 
         /// <summary>
         /// A position is inside an accessor body if it is inside the block or expression
@@ -118,6 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return IsBeforeToken(position, parameterList, parameterList.CloseParenToken);
         }
 
+        internal static bool IsInParameterList(int position, ParameterListSyntax parameterList)
+            => parameterList != null && IsBeforeToken(position, parameterList, parameterList.CloseParenToken);
+
         internal static bool IsInMethodDeclaration(int position, BaseMethodDeclarationSyntax methodDecl)
         {
             Debug.Assert(methodDecl != null);
@@ -162,6 +167,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return IsBetweenTokens(position, namespaceDecl.NamespaceKeyword, namespaceDecl.CloseBraceToken);
         }
 
+        internal static bool IsInNamespaceDeclaration(int position, FileScopedNamespaceDeclarationSyntax namespaceDecl)
+        {
+            Debug.Assert(namespaceDecl != null);
+
+            return position >= namespaceDecl.SpanStart;
+        }
+
         internal static bool IsInConstructorParameterScope(int position, ConstructorDeclarationSyntax constructorDecl)
         {
             Debug.Assert(constructorDecl != null);
@@ -180,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return initializerOpt == null ?
                 IsInBody(position, constructorDecl) :
                 IsBetweenTokens(position, initializerOpt.ColonToken,
-                                constructorDecl.SemicolonToken.Kind() == SyntaxKind.None ? constructorDecl.Body.CloseBraceToken : constructorDecl.SemicolonToken);
+                                constructorDecl.SemicolonToken.Kind() == SyntaxKind.None ? constructorDecl.Body!.CloseBraceToken : constructorDecl.SemicolonToken);
         }
 
         internal static bool IsInMethodTypeParameterScope(int position, MethodDeclarationSyntax methodDecl)
@@ -365,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return ((GotoStatementSyntax)statement).SemicolonToken;
                 case SyntaxKind.IfStatement:
                     IfStatementSyntax ifStmt = (IfStatementSyntax)statement;
-                    ElseClauseSyntax elseOpt = ifStmt.Else;
+                    ElseClauseSyntax? elseOpt = ifStmt.Else;
                     return GetFirstExcludedToken(elseOpt == null ? ifStmt.Statement : elseOpt.Statement);
                 case SyntaxKind.LabeledStatement:
                     return GetFirstExcludedToken(((LabeledStatementSyntax)statement).Statement);
@@ -380,13 +392,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.TryStatement:
                     TryStatementSyntax tryStmt = (TryStatementSyntax)statement;
 
-                    FinallyClauseSyntax finallyClause = tryStmt.Finally;
+                    FinallyClauseSyntax? finallyClause = tryStmt.Finally;
                     if (finallyClause != null)
                     {
                         return finallyClause.Block.CloseBraceToken;
                     }
 
-                    CatchClauseSyntax lastCatch = tryStmt.Catches.LastOrDefault();
+                    CatchClauseSyntax? lastCatch = tryStmt.Catches.LastOrDefault();
                     if (lastCatch != null)
                     {
                         return lastCatch.Block.CloseBraceToken;

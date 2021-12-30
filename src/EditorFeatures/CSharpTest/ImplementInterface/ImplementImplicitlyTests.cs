@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -7,11 +11,12 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
-    public partial class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
+    public class ImplementImplicitlyTests : AbstractCSharpCodeActionTest
     {
         private const int SingleMember = 0;
         private const int SameInterface = 1;
@@ -201,6 +206,24 @@ class C : IGoo
 
     private void Goo1() { }
 }", index: SingleMember);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(48027, "https://github.com/dotnet/roslyn/issues/48027")]
+        public async Task TestSingleMemberAndContainingTypeHasNoInterface()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Collections;
+
+class C
+{
+    IEnumerator IEnumerable.[||]GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
     }
 }

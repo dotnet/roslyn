@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1125,6 +1129,58 @@ class Test
   IL_0022:  call       ""void System.Console.WriteLine(int)""
   IL_0027:  ret
 }
+");
+        }
+
+        [Fact]
+        public void IndexerOverrideNotAllAccessors_DefaultParameterValues()
+        {
+            var text = @"
+using System;
+
+class Base
+{
+    public virtual int this[int x, int y = 1]
+    {
+        get
+        {
+            Console.WriteLine(""Base.get y: "" + y);
+            return y;
+        }
+        set { Console.WriteLine(""Base.set y: "" + y); }
+    }
+}
+
+class Override : Base
+{
+    public override int this[int x, int y = 2]
+    {
+        set { Console.WriteLine(""Override.set y: "" + y); }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Base b = new Base();
+        _ = b[0];
+        b[0] = 0;
+
+        Override o = new Override();
+        _ = o[0];
+        o[0] = 0;
+        o[0] += 0;
+    }
+}
+";
+            CompileAndVerify(text, expectedOutput:
+@"Base.get y: 1
+Base.set y: 1
+Base.get y: 1
+Override.set y: 2
+Base.get y: 1
+Override.set y: 1
 ");
         }
 

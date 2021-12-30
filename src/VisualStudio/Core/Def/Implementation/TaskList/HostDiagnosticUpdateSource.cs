@@ -1,11 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
@@ -16,13 +20,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     [Export(typeof(HostDiagnosticUpdateSource))]
     internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateSource
     {
-        private readonly Lazy<VisualStudioWorkspaceImpl> _workspace;
+        private readonly Lazy<VisualStudioWorkspace> _workspace;
 
-        private readonly object _gate = new object();
-        private readonly Dictionary<ProjectId, HashSet<object>> _diagnosticMap = new Dictionary<ProjectId, HashSet<object>>();
+        private readonly object _gate = new();
+        private readonly Dictionary<ProjectId, HashSet<object>> _diagnosticMap = new();
 
         [ImportingConstructor]
-        public HostDiagnosticUpdateSource(Lazy<VisualStudioWorkspaceImpl> workspace, IDiagnosticUpdateSourceRegistrationService registrationService)
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public HostDiagnosticUpdateSource(Lazy<VisualStudioWorkspace> workspace, IDiagnosticUpdateSourceRegistrationService registrationService)
         {
             _workspace = workspace;
 

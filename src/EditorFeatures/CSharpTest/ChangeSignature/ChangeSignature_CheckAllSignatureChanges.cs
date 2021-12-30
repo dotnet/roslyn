@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,8 +15,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task TestAllSignatureChanges_1This_3Regular_2Default_1Params()
+        [Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+#pragma warning disable xUnit1019
+        // There is a bug in xUnit analyzer might generate false alarm, temporary disable it
+        // https://github.com/xunit/xunit/issues/1968
+        [MemberData(nameof(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), new[] { 1, 3, 2, 1 }, MemberType = typeof(AbstractChangeSignatureTests))]
+#pragma warning restore xUnit1019
+        public async Task TestAllSignatureChanges_1This_3Regular_2Default_1Params(int totalParameters, int[] signature)
         {
             var markup = @"
 static class Ext
@@ -55,12 +64,23 @@ static class Ext
         M(p: new[] { 5 }, y: ""four"", x: 3, c: true, b: ""two"", a: 1, o: t);
     }
 }";
-            var signaturePartCounts = new[] { 1, 3, 2, 1 };
-            await TestAllSignatureChangesAsync(LanguageNames.CSharp, markup, signaturePartCounts);
+
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp,
+                markup,
+                expectedSuccess: true,
+                updatedSignature: signature,
+                totalParameters: totalParameters,
+                verifyNoDiagnostics: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task TestAllSignatureChanges_OnDelegate_3Regular()
+        [Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+#pragma warning disable xUnit1019
+        // There is a bug in xUnit analyzer might generate false alarm, temporary disable it
+        // https://github.com/xunit/xunit/issues/1968
+        [MemberData(nameof(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), new[] { 0, 3, 0, 0 }, MemberType = typeof(AbstractChangeSignatureTests))]
+#pragma warning restore xUnit1019
+        public async Task TestAllSignatureChanges_OnDelegate_3Regular(int totalParameters, int[] signature)
         {
             var markup = @"
 using System;
@@ -149,8 +169,15 @@ class C
     /// <param name=""c""></param>
     void Goo5(int a, string b, bool c) { }
 }";
-            var signaturePartCounts = new[] { 0, 3, 0, 0 };
-            await TestAllSignatureChangesAsync(LanguageNames.CSharp, markup, signaturePartCounts, new CSharpParseOptions(LanguageVersion.CSharp7));
+
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp,
+                markup,
+                expectedSuccess: true,
+                updatedSignature: signature,
+                totalParameters: totalParameters,
+                verifyNoDiagnostics: true,
+                parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
         }
     }
 }

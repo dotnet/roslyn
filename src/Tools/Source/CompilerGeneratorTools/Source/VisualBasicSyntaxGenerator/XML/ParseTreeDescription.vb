@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------------------------------------
 ' Defines the in-memory format of the parse tree description. Many of the structures also 
@@ -141,7 +143,6 @@ Public Class ParseTree
         ReportError(referencingElement, "{0} is not a valid field type. You should add a node-kind entry in the syntax.xml.", enumString)
         Return Nothing
     End Function
-
 
     Public Function ParseOneNodeKind(typeString As String, referencingNode As XNode) As ParseNodeKind
         If (NodeKinds.ContainsKey(typeString)) Then
@@ -481,7 +482,6 @@ Public Class ParseNodeField
         End Get
     End Property
 
-
 End Class
 
 ' Defines a child node with a node structure. A child can be a single child
@@ -605,7 +605,6 @@ Public Class ParseNodeChild
         End Get
     End Property
 
-
     ' Gets the child type. Could return a NodeKind, List(NodeKind) containing the allowable node kinds of the child.
     Public ReadOnly Property ChildKind() As Object
         Get
@@ -689,7 +688,6 @@ Public Class ParseEnumerator
             Return Convert.ToInt64(ValueString, 16)
         End Get
     End Property
-
 
 End Class
 

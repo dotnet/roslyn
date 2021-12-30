@@ -1,11 +1,19 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using System;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -2062,6 +2070,38 @@ NamedOptional();
             VerifyOutputInMain(source, "3 2", "System");
         }
 
+        [Fact, WorkItem(51518, "https://github.com/dotnet/roslyn/issues/51518")]
+        public void OptionalParameterCodeGen()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        LocalFunc();
+        void LocalFunc(int a = 2) { }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedSignatures: new SignatureDescription[]
+            {
+                Signature("C", "Main", ".method public hidebysig static System.Void Main() cil managed"),
+                Signature("C", "<Main>g__LocalFunc|0_0", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] assembly hidebysig static System.Void <Main>g__LocalFunc|0_0([opt] System.Int32 a = 2) cil managed")
+            });
+        }
+
+        [Fact, WorkItem(53478, "https://github.com/dotnet/roslyn/issues/53478")]
+        public void OptionalParameterCodeGen_Reflection()
+        {
+            VerifyOutputInMain(@"void TestAction(int i = 5) { }
+
+        var d = (Action<int>)TestAction;
+        var p2 = d.Method.GetParameters();
+        Console.WriteLine(p2[0].HasDefaultValue);
+        Console.WriteLine(p2[0].DefaultValue);", @"True
+5", new[] { "System" });
+        }
 
         [Fact]
         [CompilerTrait(CompilerFeature.Dynamic)]
@@ -4468,11 +4508,11 @@ Console.WriteLine(AwaitAwait().Result);
             var source = @"
 using System;
 
-struct async
+struct @async
 {
     public override string ToString() => ""2"";
 }
-struct await
+struct @await
 {
     public override string ToString() => ""2"";
 }
@@ -5153,6 +5193,905 @@ class Program
   IL_003e:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void LocalFunctionAttribute()
+        {
+            var source = @"
+class A : System.Attribute { }
+
+class C
+{
+    public void M()
+    {
+        [A]
+        void local1()
+        {
+        }
+
+        [return: A]
+        void local2()
+        {
+        }
+
+        void local3([A] int i)
+        {
+        }
+
+        void local4<[A] T>()
+        {
+        }
+    }
+}
+";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9,
+                symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal(
+                    expected: new[] { "CompilerGeneratedAttribute", "A" },
+                    actual: GetAttributeNames(attrs1));
+
+                var localFn2 = cClass.GetMethod("<M>g__local2|0_1");
+                var attrs2 = localFn2.GetReturnTypeAttributes();
+                Assert.Equal("A", attrs2.Single().AttributeClass.Name);
+
+                var localFn3 = cClass.GetMethod("<M>g__local3|0_2");
+                var attrs3 = localFn3.GetParameters().Single().GetAttributes();
+                Assert.Equal("A", attrs3.Single().AttributeClass.Name);
+
+                var localFn4 = cClass.GetMethod("<M>g__local4|0_3");
+                var attrs4 = localFn4.TypeParameters.Single().GetAttributes();
+                Assert.Equal("A", attrs4.Single().AttributeClass.Name);
+            }
+        }
+
+        [Fact]
+        public void LocalFunctionAttribute_Complex()
+        {
+            var source = @"
+class A1 : System.Attribute { }
+class A2 : System.Attribute { internal A2(int i, string s) { } }
+class A3 : System.Attribute { internal A3(params int[] values) { } }
+
+class C
+{
+    public void M()
+    {
+        [A1, A2(1, ""hello"")]
+        [A3(1, 2, 3, 4, 5)]
+        void local1()
+        {
+        }
+    }
+}
+";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9,
+                symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs = localFn1.GetAttributes();
+                Assert.Equal(
+                    expected: new[] { "CompilerGeneratedAttribute", "A1", "A2", "A3" },
+                    actual: GetAttributeNames(attrs));
+
+                Assert.Empty(attrs[0].ConstructorArguments);
+                Assert.Empty(attrs[1].ConstructorArguments);
+                Assert.Equal(new object[] { 1, "hello" }, attrs[2].ConstructorArguments.Select(a => a.Value));
+
+                var attr3Args = attrs[3].ConstructorArguments.Single().Values;
+                Assert.Equal(new object[] { 1, 2, 3, 4, 5 }, attr3Args.Select(a => a.Value));
+            }
+        }
+
+        [Fact]
+        public void LocalFunctionAttributeArgument()
+        {
+            var source = @"
+class A : System.Attribute { internal A(int i) { } }
+
+class C
+{
+    public void M()
+    {
+        [A(42)]
+        void local1()
+        {
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9,
+                symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal(
+                    expected: new[] { "CompilerGeneratedAttribute", "A" },
+                    actual: GetAttributeNames(attrs1));
+
+                var arg = attrs1[1].ConstructorArguments.Single();
+                Assert.Equal(42, arg.Value);
+            }
+        }
+
+        [Fact]
+        public void LocalFunction_EmitNullableAttribute()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    public void M()
+    {
+        string? local1(string? s) => s;
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9,
+                symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                AssertEx.Equal(new[] { "NullableContextAttribute", "CompilerGeneratedAttribute" }, attrs1.Select(a => a.AttributeClass.Name));
+
+                Assert.Empty(localFn1.GetReturnTypeAttributes());
+                Assert.Equal(NullableAnnotation.Annotated, localFn1.ReturnTypeWithAnnotations.NullableAnnotation);
+
+                var param = localFn1.Parameters.Single();
+                Assert.Empty(param.GetAttributes());
+                Assert.Equal(NullableAnnotation.Annotated, param.TypeWithAnnotations.NullableAnnotation);
+            }
+        }
+
+        [Fact]
+        public void LocalFunctionDynamicAttribute()
+        {
+            var source = @"
+class C
+{
+    public void M()
+    {
+        dynamic local1(dynamic d) => d;
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9,
+                symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal("CompilerGeneratedAttribute", attrs1.Single().AttributeClass.Name);
+
+                Assert.Equal("DynamicAttribute", localFn1.GetReturnTypeAttributes().Single().AttributeClass.Name);
+
+                var param = localFn1.Parameters.Single();
+                Assert.Equal("DynamicAttribute", param.GetAttributes().Single().AttributeClass.Name);
+            }
+        }
+
+        [Fact]
+        public void LocalFunctionParamsArray_NoParamArrayAttribute()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321
+        void local1(params int[] arr) { }
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9,
+                symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal("CompilerGeneratedAttribute", attrs1.Single().AttributeClass.Name);
+
+                Assert.Empty(localFn1.GetReturnTypeAttributes());
+
+                var param = localFn1.Parameters.Single();
+                Assert.Empty(param.GetAttributes());
+            }
+        }
+
+        [Fact]
+        public void LocalFunction_ConditionalAttributeDisallowed()
+        {
+            var source = @"
+using System.Diagnostics;
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+        [Conditional(""DEBUG"")] // 1
+        void local1() { }
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,10): error CS8764: Local function 'local1()' must be 'static' in order to use the Conditional attribute
+                //         [Conditional("DEBUG")] // 1
+                Diagnostic(ErrorCode.ERR_ConditionalOnLocalFunction, @"Conditional(""DEBUG"")").WithArguments("local1()").WithLocation(9, 10));
+        }
+
+        [Fact]
+        public void StaticLocalFunction_ConditionalAttribute_Errors()
+        {
+            var source = @"
+using System.Diagnostics;
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+        [Conditional(""hello world"")] // 1
+        static void local1() { }
+
+        [Conditional(""DEBUG"")] // 2
+        static int local2()
+        {
+            return 42;
+        }
+
+        [Conditional(""DEBUG"")] // 3
+        static void local3(out string s)
+        {
+            s = ""hello"";
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,22): error CS0633: The argument to the 'Conditional' attribute must be a valid identifier
+                //         [Conditional("hello world")] // 1
+                Diagnostic(ErrorCode.ERR_BadArgumentToAttribute, @"""hello world""").WithArguments("Conditional").WithLocation(9, 22),
+                // (12,10): error CS0578: The Conditional attribute is not valid on 'local2()' because its return type is not void
+                //         [Conditional("DEBUG")] // 2
+                Diagnostic(ErrorCode.ERR_ConditionalMustReturnVoid, @"Conditional(""DEBUG"")").WithArguments("local2()").WithLocation(12, 10),
+                // (18,10): error CS0685: Conditional member 'local3(out string)' cannot have an out parameter
+                //         [Conditional("DEBUG")] // 3
+                Diagnostic(ErrorCode.ERR_ConditionalWithOutParam, @"Conditional(""DEBUG"")").WithArguments("local3(out string)").WithLocation(18, 10));
+        }
+
+        [Fact]
+        public void StaticLocalFunction_ConditionalAttribute()
+        {
+            var source = @"
+using System.Diagnostics;
+using System;
+
+class C
+{
+    static void Main()
+    {
+        local1();
+
+        [Conditional(""DEBUG"")]
+        static void local1()
+        {
+            Console.Write(""hello"");
+        }
+    }
+}
+";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9.WithPreprocessorSymbols("DEBUG"),
+                symbolValidator: validate,
+                expectedOutput: "hello");
+
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9,
+                symbolValidator: validate,
+                expectedOutput: "");
+
+            static void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<Main>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal(new[] { "CompilerGeneratedAttribute", "ConditionalAttribute" }, GetAttributeNames(attrs1));
+            }
+        }
+
+        [Fact]
+        public void StaticLocalFunction_ConditionalAttribute_NoUnreferencedWarning()
+        {
+            var source = @"
+using System.Diagnostics;
+using System;
+
+class C
+{
+    static void Main()
+    {
+        local1();
+
+        [Conditional(""DEBUG"")]
+        static void local1()
+        {
+            Console.Write(""hello"");
+        }
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular9.WithPreprocessorSymbols("DEBUG")).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void StaticLocalFunction_IfDirective_Unreferenced()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+#if DEBUG
+        local1();
+#endif
+        static void local1()
+        {
+            Console.Write(""hello"");
+        }
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (11,21): warning CS8321: The local function 'local1' is declared but never used
+                //         static void local1() // 1
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(11, 21));
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular9.WithPreprocessorSymbols("DEBUG")).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_AttributeMarkedConditional()
+        {
+            var source = @"
+using System.Diagnostics;
+using System;
+
+[Conditional(""DEBUG"")]
+class Attr : Attribute { }
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321
+        [Attr]
+        [return: Attr]
+        T local1<[Attr] T>([Attr] T t) => t;
+    }
+}
+";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9.WithPreprocessorSymbols("DEBUG"),
+                symbolValidator: validate1);
+
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9,
+                symbolValidator: validate2);
+
+            static void validate1(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal(new[] { "CompilerGeneratedAttribute", "Attr" }, GetAttributeNames(attrs1));
+                Assert.Equal(new[] { "Attr" }, GetAttributeNames(localFn1.GetReturnTypeAttributes()));
+                Assert.Equal(new[] { "Attr" }, GetAttributeNames(localFn1.TypeParameters.Single().GetAttributes()));
+                Assert.Equal(new[] { "Attr" }, GetAttributeNames(localFn1.Parameters.Single().GetAttributes()));
+            }
+
+            static void validate2(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(attrs1));
+                Assert.Empty(localFn1.GetReturnTypeAttributes());
+                Assert.Empty(localFn1.TypeParameters.Single().GetAttributes());
+                Assert.Empty(localFn1.Parameters.Single().GetAttributes());
+            }
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void LocalFunctionAttribute_TypeIL()
+        {
+            var source = @"
+class A : System.Attribute { internal A(int i) { } }
+
+class C
+{
+    public void M()
+    {
+        [A(42)]
+        void local1()
+        {
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9);
+
+            verifier.VerifyTypeIL("C", @"
+    .class private auto ansi beforefieldinit C
+    	extends [mscorlib]System.Object
+    {
+    	// Methods
+    	.method public hidebysig 
+    		instance void M () cil managed 
+    	{
+    		// Method begins at RVA 0x205a
+    		// Code size 3 (0x3)
+    		.maxstack 8
+    		IL_0000: nop
+    		IL_0001: nop
+    		IL_0002: ret
+    	} // end of method C::M
+    	.method public hidebysig specialname rtspecialname 
+    		instance void .ctor () cil managed 
+    	{
+    		// Method begins at RVA 0x205e
+    		// Code size 8 (0x8)
+    		.maxstack 8
+    		IL_0000: ldarg.0
+    		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+    		IL_0006: nop
+    		IL_0007: ret
+    	} // end of method C::.ctor
+    	.method assembly hidebysig static 
+    		void '<M>g__local1|0_0' () cil managed 
+    	{
+    		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    			01 00 00 00
+    		)
+    		.custom instance void A::.ctor(int32) = (
+    			01 00 2a 00 00 00 00 00
+    		)
+    		// Method begins at RVA 0x2067
+    		// Code size 2 (0x2)
+    		.maxstack 8
+    		IL_0000: nop
+    		IL_0001: ret
+    	} // end of method C::'<M>g__local1|0_0'
+    } // end of class C");
+        }
+
+        [Fact]
+        public void ExternLocalFunction()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+class C
+{
+    public void M()
+    {
+        local1();
+
+        [DllImport(""something.dll"")]
+        static extern void local1();
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9,
+                symbolValidator: validate,
+                verify: Verification.Skipped);
+
+            var comp = verifier.Compilation;
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+            var localFunction = semanticModel
+                .GetDeclaredSymbol(syntaxTree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single())
+                .GetSymbol<LocalFunctionSymbol>();
+
+            Assert.Equal(new[] { "DllImportAttribute" }, GetAttributeNames(localFunction.GetAttributes()));
+            validateLocalFunction(localFunction);
+
+            void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+
+                var attrs1 = localFn1.GetAttributes().As<CSharpAttributeData>();
+                Assert.Equal(
+                    expected: new[] { "CompilerGeneratedAttribute" },
+                    actual: GetAttributeNames(attrs1));
+
+                validateLocalFunction(localFn1);
+            }
+
+            static void validateLocalFunction(MethodSymbol localFunction)
+            {
+                Assert.True(localFunction.IsExtern);
+
+                var importData = localFunction.GetDllImportData();
+                Assert.NotNull(importData);
+                Assert.Equal("something.dll", importData.ModuleName);
+                Assert.Equal("local1", importData.EntryPointName);
+                Assert.Equal(CharSet.None, importData.CharacterSet);
+                Assert.False(importData.SetLastError);
+                Assert.False(importData.ExactSpelling);
+                Assert.Equal(MethodImplAttributes.PreserveSig, localFunction.ImplementationAttributes);
+                Assert.Equal(CallingConvention.Winapi, importData.CallingConvention);
+                Assert.Null(importData.BestFitMapping);
+                Assert.Null(importData.ThrowOnUnmappableCharacter);
+            }
+        }
+
+        [Fact]
+        public void ExternLocalFunction_ComplexDllImport()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+class C
+{
+    public void M()
+    {
+        local1();
+
+        [DllImport(
+            ""something.dll"",
+            EntryPoint = ""a"",
+            CharSet = CharSet.Ansi,
+            SetLastError = true,
+            ExactSpelling = true,
+            PreserveSig = false,
+            CallingConvention = CallingConvention.Cdecl,
+            BestFitMapping = false,
+            ThrowOnUnmappableChar = true)]
+        static extern void local1();
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9,
+                symbolValidator: validate,
+                verify: Verification.Skipped);
+
+            var comp = verifier.Compilation;
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+            var localFunction = semanticModel
+                .GetDeclaredSymbol(syntaxTree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single())
+                .GetSymbol<LocalFunctionSymbol>();
+
+            Assert.Equal(new[] { "DllImportAttribute" }, GetAttributeNames(localFunction.GetAttributes()));
+            validateLocalFunction(localFunction);
+
+            void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes().As<CSharpAttributeData>();
+
+                Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(attrs1));
+                validateLocalFunction(localFn1);
+            }
+
+            static void validateLocalFunction(MethodSymbol localFunction)
+            {
+                Assert.True(localFunction.IsExtern);
+
+                var importData = localFunction.GetDllImportData();
+                Assert.NotNull(importData);
+                Assert.Equal("something.dll", importData.ModuleName);
+                Assert.Equal("a", importData.EntryPointName);
+                Assert.Equal(CharSet.Ansi, importData.CharacterSet);
+                Assert.True(importData.SetLastError);
+                Assert.True(importData.ExactSpelling);
+                Assert.Equal(MethodImplAttributes.IL, localFunction.ImplementationAttributes);
+                Assert.Equal(CallingConvention.Cdecl, importData.CallingConvention);
+                Assert.False(importData.BestFitMapping);
+                Assert.True(importData.ThrowOnUnmappableCharacter);
+            }
+        }
+
+        [Fact]
+        public void LocalFunction_MethodImpl()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+
+        [MethodImpl(MethodImplOptions.ForwardRef)]
+        static void forwardRef()  { System.Console.WriteLine(0); }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void noInlining() { System.Console.WriteLine(1); }
+
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+        static void noOptimization() { System.Console.WriteLine(2); }
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        static void synchronized() { System.Console.WriteLine(3); }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        extern static void internalCallStatic();
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9,
+                assemblyValidator: validateAssembly,
+                verify: Verification.Skipped);
+
+            var comp = verifier.Compilation;
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var localFunctions = syntaxTree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToList();
+
+            checkImplAttributes(localFunctions[0], MethodImplAttributes.ForwardRef);
+            checkImplAttributes(localFunctions[1], MethodImplAttributes.NoInlining);
+            checkImplAttributes(localFunctions[2], MethodImplAttributes.NoOptimization);
+            checkImplAttributes(localFunctions[3], MethodImplAttributes.Synchronized);
+            checkImplAttributes(localFunctions[4], MethodImplAttributes.InternalCall);
+
+            void checkImplAttributes(LocalFunctionStatementSyntax localFunctionStatement, MethodImplAttributes expectedFlags)
+            {
+                var localFunction = semanticModel.GetDeclaredSymbol(localFunctionStatement).GetSymbol<LocalFunctionSymbol>();
+                Assert.Equal(expectedFlags, localFunction.ImplementationAttributes);
+            }
+
+            void validateAssembly(PEAssembly assembly)
+            {
+                var peReader = assembly.GetMetadataReader();
+
+                foreach (var methodHandle in peReader.MethodDefinitions)
+                {
+                    var methodDef = peReader.GetMethodDefinition(methodHandle);
+                    var actualFlags = methodDef.ImplAttributes;
+
+                    var methodName = peReader.GetString(methodDef.Name);
+                    var expectedFlags = methodName switch
+                    {
+                        "<M>g__forwardRef|0_0" => MethodImplAttributes.ForwardRef,
+                        "<M>g__noInlining|0_1" => MethodImplAttributes.NoInlining,
+                        "<M>g__noOptimization|0_2" => MethodImplAttributes.NoOptimization,
+                        "<M>g__synchronized|0_3" => MethodImplAttributes.Synchronized,
+                        "<M>g__internalCallStatic|0_4" => MethodImplAttributes.InternalCall,
+                        ".ctor" => MethodImplAttributes.IL,
+                        "M" => MethodImplAttributes.IL,
+                        _ => throw TestExceptionUtilities.UnexpectedValue(methodName)
+                    };
+
+                    Assert.Equal(expectedFlags, actualFlags);
+                }
+            }
+        }
+
+        [Fact]
+        public void LocalFunction_SpecialName()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+        [SpecialName]
+        void local1() { }
+    }
+}
+";
+
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9,
+                symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                Assert.True(localFn1.HasSpecialName);
+            }
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_01()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local2(Local3()));	
+            static string Local2(dynamic n) => n.ToString();
+        }
+
+        static int Local3() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_02()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local2(Local3<object>()));	
+            static string Local2(dynamic n) => n.ToString();
+        }
+
+        static int Local3<S>() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_03()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local2<object>(Local3<object>()));	
+            static string Local2<U>(dynamic n) => n.ToString();
+        }
+
+        static int Local3<S>() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_04()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local1<object>(Local3<object>()));	
+            static string Local1<U>(dynamic n) => n.ToString();
+        }
+
+        static int Local3<S>() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_05()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local2<object>(Local3<object>()));	
+            static string Local2<U>(dynamic n) => n.ToString();
+        }
+
+        static int Local2<S>() => (int)(dynamic)4;
+        static int Local3<S>() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)

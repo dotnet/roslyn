@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -4702,6 +4704,31 @@ End Class
                 SymbolDisplayPartKind.Punctuation)
         End Sub
 
+        <Fact()>
+        Public Sub TupleCollapseTupleTypes()
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
+                <compilation>
+                    <file name="a.vb">
+Class C
+    Private f As (Integer, String)
+End Class
+                    </file>
+                </compilation>, references:={TestMetadata.Net40.SystemCore})
+
+            Dim format = New SymbolDisplayFormat(memberOptions:=SymbolDisplayMemberOptions.IncludeType, miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.CollapseTupleTypes)
+
+            Dim symbol = FindSymbol("C.f")(comp.GlobalNamespace)
+            Dim description = VisualBasic.SymbolDisplay.ToDisplayParts(symbol, format)
+
+            Assert.Equal(SymbolDisplayPartKind.FieldName, description(0).Kind)
+            Assert.Equal(SymbolDisplayPartKind.Space, description(1).Kind)
+            Assert.Equal(SymbolDisplayPartKind.Keyword, description(2).Kind)
+            Assert.Equal(SymbolDisplayPartKind.Space, description(3).Kind)
+            Assert.Equal(SymbolDisplayPartKind.StructName, description(4).Kind)
+
+            Assert.True(DirectCast(description(4).Symbol, ITypeSymbol).IsTupleType)
+        End Sub
+
         <WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")>
         <Fact()>
         Public Sub TupleWith1Arity()
@@ -5177,6 +5204,72 @@ End Class")
             Verify(description, "A.B", SymbolDisplayPartKind.AliasName, SymbolDisplayPartKind.Operator, SymbolDisplayPartKind.ClassName)
         End Sub
 
+        <Fact()>
+        Public Sub AnonymousDelegateType()
+            Dim source =
+"Class Program
+    Shared Sub Main()
+        Dim f = Function(ByRef x as Integer) x.ToString()
+    End Sub
+End Class"
+            Dim comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim declarator = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().Single()
+            Dim type = DirectCast(model.GetDeclaredSymbol(declarator.Names(0)), ILocalSymbol).Type
+
+            Verify(
+                type.ToDisplayParts(),
+                "Function <generated method>(ByRef x As Integer) As String",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword)
+
+            Dim format = New SymbolDisplayFormat(
+                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle:=SymbolDisplayDelegateStyle.NameAndSignature,
+                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance Or SymbolDisplayGenericsOptions.IncludeTypeConstraints,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeName Or SymbolDisplayParameterOptions.IncludeParamsRefOut,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
+                kindOptions:=SymbolDisplayKindOptions.IncludeNamespaceKeyword Or SymbolDisplayKindOptions.IncludeTypeKeyword)
+
+            Verify(
+                type.ToDisplayParts(format),
+                "AnonymousType Function <generated method>(ByRef x As Integer) As String",
+                SymbolDisplayPartKind.AnonymousTypeIndicator,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword)
+        End Sub
+
 #Region "Helpers"
 
         Private Shared Sub TestSymbolDescription(
@@ -5230,7 +5323,7 @@ End Class")
             expectedText As String,
             ParamArray kinds As SymbolDisplayPartKind())
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(text, references:={SystemCoreRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(text, references:={TestMetadata.Net40.SystemCore})
 
             ' symbol:
             Dim symbol = findSymbol(comp.GlobalNamespace)

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
@@ -69,9 +73,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             public void Clear()
-            {
-                Array.Clear(_nodes, 0, _nodes.Length);
-            }
+                => Array.Clear(_nodes, 0, _nodes.Length);
 
             private struct Node
             {
@@ -91,9 +93,9 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly ProjectCacheService _owner;
             private readonly SemaphoreSlim _gate;
 
-            public ImplicitCacheMonitor(ProjectCacheService owner, int backOffTimeSpanInMS)
+            public ImplicitCacheMonitor(ProjectCacheService owner, TimeSpan backOffTimeSpan)
                 : base(AsynchronousOperationListenerProvider.NullListener,
-                       backOffTimeSpanInMS,
+                       backOffTimeSpan,
                        CancellationToken.None)
             {
                 _owner = owner;
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             protected override Task ExecuteAsync()
             {
-                _owner.ClearExpiredImplicitCache(DateTime.UtcNow - TimeSpan.FromMilliseconds(BackOffTimeSpanInMS));
+                _owner.ClearExpiredImplicitCache(DateTime.UtcNow - BackOffTimeSpan);
 
                 return Task.CompletedTask;
             }

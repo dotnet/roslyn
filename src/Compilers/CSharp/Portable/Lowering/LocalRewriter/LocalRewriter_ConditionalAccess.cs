@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -10,7 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
         {
-            return RewriteConditionalAccess(node, used: true);
+            // Never returns null when used is true.
+            return RewriteConditionalAccess(node, used: true)!;
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
@@ -20,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // null when currently enclosing conditional access node
         // is not supposed to be lowered.
-        private BoundExpression _currentConditionalAccessTarget;
+        private BoundExpression? _currentConditionalAccessTarget;
         private int _currentConditionalAccessID;
 
         private enum ConditionalAccessLoweringKind
@@ -32,11 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // IL gen can generate more compact code for certain conditional accesses 
         // by utilizing stack dup/pop instructions 
-        internal BoundExpression RewriteConditionalAccess(BoundConditionalAccess node, bool used)
+        internal BoundExpression? RewriteConditionalAccess(BoundConditionalAccess node, bool used)
         {
             Debug.Assert(!_inExpressionLambda);
+            Debug.Assert(node.AccessExpression.Type is { });
 
             var loweredReceiver = this.VisitExpression(node.Receiver);
+            Debug.Assert(loweredReceiver.Type is { });
             var receiverType = loweredReceiver.Type;
 
             // Check trivial case
@@ -72,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var previousConditionalAccessTarget = _currentConditionalAccessTarget;
             var currentConditionalAccessID = ++_currentConditionalAccessID;
 
-            LocalSymbol temp = null;
+            LocalSymbol? temp = null;
 
             switch (loweringKind)
             {
@@ -97,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(loweringKind);
             }
 
-            BoundExpression loweredAccessExpression;
+            BoundExpression? loweredAccessExpression;
 
             if (used)
             {
@@ -113,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(loweredAccessExpression != null);
+            Debug.Assert(loweredAccessExpression.Type is { });
             _currentConditionalAccessTarget = previousConditionalAccessTarget;
 
             TypeSymbol type = this.VisitType(node.Type);
@@ -142,6 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (loweringKind)
             {
                 case ConditionalAccessLoweringKind.LoweredConditionalAccess:
+                    Debug.Assert(loweredReceiver.Type is { });
                     result = new BoundLoweredConditionalAccess(
                         node.Syntax,
                         loweredReceiver,
@@ -157,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConditionalAccessLoweringKind.ConditionalCaptureReceiverByVal:
                     // capture the receiver into a temp
+                    Debug.Assert(temp is { });
                     loweredReceiver = _factory.MakeSequence(
                                             _factory.AssignmentExpression(_factory.Local(temp), loweredReceiver),
                                             _factory.Local(temp));
@@ -197,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
         {
             var newtarget = _currentConditionalAccessTarget;
+            Debug.Assert(newtarget is { Type: { } });
 
             if (newtarget.Type.IsNullableType())
             {

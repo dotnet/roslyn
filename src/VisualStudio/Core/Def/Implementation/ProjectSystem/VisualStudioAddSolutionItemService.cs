@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private const string SolutionItemsFolderName = "Solution Items";
 
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly IThreadingContext _threadingContext;
         private readonly ConcurrentDictionary<string, FileChangeTracker> _fileChangeTrackers;
 
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var tracker = new FileChangeTracker(_fileChangeService, filePath, _VSFILECHANGEFLAGS.VSFILECHG_Add);
                 tracker.UpdatedOnDisk += OnFileAdded;
-                tracker.StartFileChangeListeningAsync();
+                _ = tracker.StartFileChangeListeningAsync();
                 return tracker;
             }
         }

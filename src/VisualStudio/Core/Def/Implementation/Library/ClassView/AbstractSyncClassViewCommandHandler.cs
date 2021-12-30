@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -7,7 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -102,21 +106,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
                 return true;
             }
 
-            var navigationTool = _serviceProvider.GetService<SVsClassView, IVsNavigationTool>();
+            var navigationTool = IServiceProviderExtensions.GetService<SVsClassView, IVsNavigationTool>(_serviceProvider);
             navigationTool.NavigateToNavInfo(navInfo);
             return true;
         }
 
         private static bool IsValidSymbolToSynchronize(ISymbol symbol) =>
-            symbol.Kind == SymbolKind.Event ||
-            symbol.Kind == SymbolKind.Field ||
-            symbol.Kind == SymbolKind.Method ||
-            symbol.Kind == SymbolKind.NamedType ||
-            symbol.Kind == SymbolKind.Property;
+            symbol.Kind is SymbolKind.Event or
+            SymbolKind.Field or
+            SymbolKind.Method or
+            SymbolKind.NamedType or
+            SymbolKind.Property;
 
         public CommandState GetCommandState(SyncClassViewCommandArgs args)
-        {
-            return Commanding.CommandState.Unspecified;
-        }
+            => Commanding.CommandState.Available;
     }
 }

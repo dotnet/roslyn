@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <RootNamespace></RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
     <IsShipping>false</IsShipping>
@@ -12,16 +12,7 @@
     <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Analyzers\FaultyAnalyzer.cs" />
-    <EmbeddedResource Include="Analyzers\FaultyAnalyzer.dll" />
-    <Content Include="AssemblyLoadTests\Alpha.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Alpha.dll" />
-    <Content Include="AssemblyLoadTests\Beta.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Beta.dll" />
-    <Content Include="AssemblyLoadTests\Delta.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Delta.dll" />
-    <Content Include="AssemblyLoadTests\Gamma.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Gamma.dll" />
+    <EmbeddedResource Include="ExpressionCompiler\*.*" LogicalName="ExpressionCompiler.%(FileName)%(Extension)" />
     <EmbeddedResource Include="DiagnosticTests\badresfile.res" />
     <Content Include="DiagnosticTests\ErrTestLib01.cs" />
     <EmbeddedResource Include="DiagnosticTests\ErrTestLib01.dll" />
@@ -99,9 +90,6 @@
     <EmbeddedResource Include="SymbolsTests\CustomModifiers\GenericMethodWithModifiers.dll" />
     <Content Include="SymbolsTests\NoPia\ParametersWithoutNames.cs" />
     <EmbeddedResource Include="PerfTests\CSPerfTest.cs" />
-    <Content Include="Resources\License.txt" />
-    <Content Include="Resources\nativeCOFFResources.obj" />
-    <Content Include="Resources\Regress40025DLL.dll" />
     <Content Include="SymbolsTests\BigVisitor.cs" />
     <EmbeddedResource Include="SymbolsTests\BigVisitor.dll" />
     <EmbeddedResource Include="SymbolsTests\CorLibrary\FakeMsCorLib.dll" />
@@ -371,7 +359,6 @@
     <Content Include="WinRt\WinMDPrefixing.cs" />
     <EmbeddedResource Include="WinRt\WinMDPrefixing.ildump" />
     <EmbeddedResource Include="WinRt\WinMDPrefixing.winmd" />
-    <Content Include="project.json" />
     <Content Include="SymbolsTests\netModule\hash_module.cs" />
     <EmbeddedResource Include="SymbolsTests\NoPia\MissingPIAAttributes.dll" />
     <Content Include="WinRt\WImpl.il" />
@@ -391,7 +378,5 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="SymbolsTests\nativeCOFFResources.obj" />
-  </ItemGroup>
-  <ItemGroup>
   </ItemGroup>
 </Project>

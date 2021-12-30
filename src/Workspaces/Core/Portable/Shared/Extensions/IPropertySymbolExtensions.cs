@@ -1,13 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -41,9 +40,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IPropertySymbol RemoveInaccessibleAttributesAndAttributesOfTypes(
             this IPropertySymbol property, ISymbol accessibleWithin, params INamedTypeSymbol[] attributesToRemove)
         {
-            bool shouldRemoveAttribute(AttributeData a) =>
-                attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
-
             var someParameterHasAttribute = property.Parameters
                 .Any(p => p.GetAttributes().Any(shouldRemoveAttribute));
             if (!someParameterHasAttribute)
@@ -68,6 +64,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.GetMethod,
                 property.SetMethod,
                 property.IsIndexer);
+
+            bool shouldRemoveAttribute(AttributeData a) =>
+                attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) ||
+                a.AttributeClass?.IsAccessibleWithin(accessibleWithin) == false;
         }
 
         public static bool IsWritableInConstructor(this IPropertySymbol property)

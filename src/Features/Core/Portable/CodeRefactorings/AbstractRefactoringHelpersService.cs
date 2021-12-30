@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +21,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         where TArgumentSyntax : SyntaxNode
         where TExpressionStatementSyntax : SyntaxNode
     {
+        protected abstract IHeaderFacts HeaderFacts { get; }
+
+        public abstract bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
+
         public async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
             Document document, TextSpan selectionRaw,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
@@ -35,8 +40,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return ImmutableArray<TSyntaxNode>.Empty;
             }
 
-            var syntaxFacts = document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
-            var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpan(document, selectionRaw, cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var headerFacts = document.GetRequiredLanguageService<IHeaderFactsService>();
+            var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpanAsync(document, selectionRaw, cancellationToken).ConfigureAwait(false);
 
             // If user selected only whitespace we don't want to return anything. We could do following:
             //  1) Consider token that owns (as its trivia) the whitespace.
@@ -96,15 +102,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 // as long as it is on the first line of such expression (arbitrary heuristic).
 
                 // First we need to get tokens we might potentially be touching, tokenToRightOrIn and tokenToLeft.
-                var (tokenToRightOrIn, tokenToLeft, location) = await GetTokensToRightOrInToLeftAndUpdatedLocation(
+                var (tokenToRightOrIn, tokenToLeft, location) = await GetTokensToRightOrInToLeftAndUpdatedLocationAsync(
                     document, root, selectionTrimmed, cancellationToken).ConfigureAwait(false);
-
 
                 // In addition to per-node extr also check if current location (if selection is empty) is in a header of higher level
                 // desired node once. We do that only for locations because otherwise `[|int|] A { get; set; }) would trigger all refactorings for 
                 // Property Decl. 
                 // We cannot check this any sooner because the above code could've changed current location.
-                AddNonHiddenCorrectTypeNodes(ExtractNodesInHeader(root, location, syntaxFacts), relevantNodesBuilder, cancellationToken);
+                AddNonHiddenCorrectTypeNodes(ExtractNodesInHeader(root, location, headerFacts), relevantNodesBuilder, cancellationToken);
 
                 // Add Nodes for touching tokens as described above.
                 AddNodesForTokenToRightOrIn(syntaxFacts, root, relevantNodesBuilder, location, tokenToRightOrIn, cancellationToken);
@@ -116,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 {
                     // Reason to treat Arguments (and potentially others) as Expression-like: 
                     // https://github.com/dotnet/roslyn/pull/37295#issuecomment-516145904
-                    await AddNodesDeepIn(document, location, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
+                    await AddNodesDeepInAsync(document, location, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -141,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private async Task<(SyntaxToken tokenToRightOrIn, SyntaxToken tokenToLeft, int location)> GetTokensToRightOrInToLeftAndUpdatedLocation(
+        private static async Task<(SyntaxToken tokenToRightOrIn, SyntaxToken tokenToLeft, int location)> GetTokensToRightOrInToLeftAndUpdatedLocationAsync(
             Document document,
             SyntaxNode root,
             TextSpan selectionTrimmed,
@@ -177,17 +182,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                // assume non-trivia token can't span multiple lines
-                var tokenLine = sourceText.Lines.GetLineFromPosition(tokenOnLocation.Span.Start);
-                var locationLine = sourceText.Lines.GetLineFromPosition(location);
-
-                // Change location to nearest token only if the token is off by one line or less
-                if (Math.Abs(tokenLine.LineNumber - locationLine.LineNumber) <= 1)
+                if (IsAcceptableLineDistanceAway(sourceText, tokenOnLocation, location))
                 {
-                    // Note: being a line below a tokenOnLocation is impossible in current model as whitespace 
-                    // trailing trivia ends on new line. Which is fine because if you're a line _after_ some node
-                    // you usually don't want refactorings for what's above you.
-
                     // tokenOnLocation: token in whose trivia location is at
                     if (tokenOnLocation.Span.Start >= location)
                     {
@@ -203,6 +199,35 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             return (tokenToRightOrIn, tokenToLeft, location);
+
+            static bool IsAcceptableLineDistanceAway(
+                SourceText sourceText, SyntaxToken tokenOnLocation, int location)
+            {
+                // assume non-trivia token can't span multiple lines
+                var tokenLine = sourceText.Lines.GetLineFromPosition(tokenOnLocation.Span.Start);
+                var locationLine = sourceText.Lines.GetLineFromPosition(location);
+
+                // Change location to nearest token only if the token is off by one line or less
+                var lineDistance = tokenLine.LineNumber - locationLine.LineNumber;
+                if (lineDistance is not 0 and not 1)
+                    return false;
+
+                // Note: being a line below a tokenOnLocation is impossible in current model as whitespace 
+                // trailing trivia ends on new line. Which is fine because if you're a line _after_ some node
+                // you usually don't want refactorings for what's above you.
+
+                if (lineDistance == 1)
+                {
+                    // position is one line above the node of interest.  This is fine if that
+                    // line is blank.  Otherwise, if it isn't (i.e. it contains comments,
+                    // directives, or other trivia), then it's not likely the user is selecting
+                    // this entry.
+                    return locationLine.IsEmptyOrWhitespace();
+                }
+
+                // On hte same line.  This position is acceptable.
+                return true;
+            }
         }
 
         private void AddNodesForTokenToLeft<TSyntaxNode>(ISyntaxFactsService syntaxFacts, ArrayBuilder<TSyntaxNode> relevantNodesBuilder, int location, SyntaxToken tokenToLeft, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
@@ -210,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // there could be multiple (n) tokens to the left if first n-1 are Empty -> iterate over all of them
             while (tokenToLeft != default)
             {
-                var leftNode = tokenToLeft.Parent;
+                var leftNode = tokenToLeft.Parent!;
                 do
                 {
                     // Consider either a Node that is:
@@ -236,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             if (tokenToRightOrIn != default)
             {
-                var rightNode = tokenToRightOrIn.Parent;
+                var rightNode = tokenToRightOrIn.Parent!;
                 do
                 {
                     // Consider either a Node that is:
@@ -259,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     // - On the left edge of the node sans AttributeLists (& as everywhere comments)
                     if (rightNode.Span.Start != location)
                     {
-                        var rightNodeSpanWithoutAttributes = GetSpanWithoutAttributes(rightNode, root, syntaxFacts);
+                        var rightNodeSpanWithoutAttributes = syntaxFacts.GetSpanWithoutAttributes(root, rightNode);
                         if (rightNodeSpanWithoutAttributes.Start != location)
                         {
                             break;
@@ -284,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     // if user selected only its attributes.
 
                     // Selection contains only AttributeLists -> don't consider current Node
-                    var spanWithoutAttributes = GetSpanWithoutAttributes(nonHiddenExtractedNode, root, syntaxFacts);
+                    var spanWithoutAttributes = syntaxFacts.GetSpanWithoutAttributes(root, nonHiddenExtractedNode);
                     if (!selectionTrimmed.IntersectsWith(spanWithoutAttributes))
                     {
                         break;
@@ -327,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // `var a = b;` | `var a = b`;
             if (syntaxFacts.IsLocalDeclarationStatement(node) || syntaxFacts.IsLocalDeclarationStatement(node.Parent))
             {
-                var localDeclarationStatement = syntaxFacts.IsLocalDeclarationStatement(node) ? node : node.Parent;
+                var localDeclarationStatement = syntaxFacts.IsLocalDeclarationStatement(node) ? node : node.Parent!;
 
                 // Check if there's only one variable being declared, otherwise following transformation
                 // would go through which isn't reasonable since we can't say the first one specifically
@@ -396,57 +421,41 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// Extractor function that checks and retrieves all nodes current location is in a header.
         /// </summary>
-        protected virtual IEnumerable<SyntaxNode> ExtractNodesInHeader(SyntaxNode root, int location, ISyntaxFactsService syntaxFacts)
+        protected virtual IEnumerable<SyntaxNode> ExtractNodesInHeader(SyntaxNode root, int location, IHeaderFactsService headerFacts)
         {
             // Header: [Test] `public int a` { get; set; }
-            if (syntaxFacts.IsOnPropertyDeclarationHeader(root, location, out var propertyDeclaration))
-            {
+            if (headerFacts.IsOnPropertyDeclarationHeader(root, location, out var propertyDeclaration))
                 yield return propertyDeclaration;
-            }
 
             // Header: public C([Test]`int a = 42`) {}
-            if (syntaxFacts.IsOnParameterHeader(root, location, out var parameter))
-            {
+            if (headerFacts.IsOnParameterHeader(root, location, out var parameter))
                 yield return parameter;
-            }
 
             // Header: `public I.C([Test]int a = 42)` {}
-            if (syntaxFacts.IsOnMethodHeader(root, location, out var method))
-            {
+            if (headerFacts.IsOnMethodHeader(root, location, out var method))
                 yield return method;
-            }
 
             // Header: `static C([Test]int a = 42)` {}
-            if (syntaxFacts.IsOnLocalFunctionHeader(root, location, out var localFunction))
-            {
+            if (headerFacts.IsOnLocalFunctionHeader(root, location, out var localFunction))
                 yield return localFunction;
-            }
 
             // Header: `var a = `3,` b = `5,` c = `7 + 3``;
-            if (syntaxFacts.IsOnLocalDeclarationHeader(root, location, out var localDeclaration))
-            {
+            if (headerFacts.IsOnLocalDeclarationHeader(root, location, out var localDeclaration))
                 yield return localDeclaration;
-            }
 
             // Header: `if(...)`{ };
-            if (syntaxFacts.IsOnIfStatementHeader(root, location, out var ifStatement))
-            {
+            if (headerFacts.IsOnIfStatementHeader(root, location, out var ifStatement))
                 yield return ifStatement;
-            }
 
             // Header: `foreach (var a in b)` { }
-            if (syntaxFacts.IsOnForeachHeader(root, location, out var foreachStatement))
-            {
+            if (headerFacts.IsOnForeachHeader(root, location, out var foreachStatement))
                 yield return foreachStatement;
-            }
 
-            if (syntaxFacts.IsOnTypeHeader(root, location, out var typeDeclaration))
-            {
+            if (headerFacts.IsOnTypeHeader(root, location, out var typeDeclaration))
                 yield return typeDeclaration;
-            }
         }
 
-        protected virtual async Task AddNodesDeepIn<TSyntaxNode>(
+        protected virtual async Task AddNodesDeepInAsync<TSyntaxNode>(
             Document document, int position,
             ArrayBuilder<TSyntaxNode> relevantNodesBuilder,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
@@ -482,37 +491,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         return;
                     }
                 }
+
                 ancestor = ancestor.Parent;
             }
         }
 
-        private static TextSpan GetSpanWithoutAttributes(SyntaxNode node, SyntaxNode root, ISyntaxFactsService syntaxFacts)
-        {
-            // Span without AttributeLists
-            // - No AttributeLists -> original .Span
-            // - Some AttributeLists -> (first non-trivia/comment Token.Span.Begin, original.Span.End)
-            //   - We need to be mindful about comments due to:
-            //      // [Test1]
-            //      //Comment1
-            //      [||]object Property1 { get; set; }
-            //     the comment node being part of the next token's (`object`) leading trivia and not the AttributeList's node.
-            // - In case only attribute is written we need to be careful to not to use next (unrelated) token as beginning current the node.
-            var attributeList = syntaxFacts.GetAttributeLists(node);
-            if (attributeList.Any())
-            {
-                var endOfAttributeLists = attributeList.Last().Span.End;
-                var afterAttributesToken = root.FindTokenOnRightOfPosition(endOfAttributeLists);
-
-                var endOfNode = node.Span.End;
-                var startOfNodeWithoutAttributes = Math.Min(afterAttributesToken.Span.Start, endOfNode);
-
-                return TextSpan.FromBounds(startOfNodeWithoutAttributes, endOfNode);
-            }
-
-            return node.Span;
-        }
-
-        void AddNonHiddenCorrectTypeNodes<TSyntaxNode>(IEnumerable<SyntaxNode> nodes, ArrayBuilder<TSyntaxNode> resultBuilder, CancellationToken cancellationToken)
+        private static void AddNonHiddenCorrectTypeNodes<TSyntaxNode>(IEnumerable<SyntaxNode> nodes, ArrayBuilder<TSyntaxNode> resultBuilder, CancellationToken cancellationToken)
             where TSyntaxNode : SyntaxNode
         {
             var correctTypeNonHiddenNodes = nodes.OfType<TSyntaxNode>().Where(n => !n.OverlapsHiddenPosition(cancellationToken));
@@ -521,5 +505,32 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 resultBuilder.Add(nodeToBeAdded);
             }
         }
+
+        public bool IsOnTypeHeader(SyntaxNode root, int position, bool fullHeader, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
+            => HeaderFacts.IsOnTypeHeader(root, position, fullHeader, out typeDeclaration);
+
+        public bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? propertyDeclaration)
+            => HeaderFacts.IsOnPropertyDeclarationHeader(root, position, out propertyDeclaration);
+
+        public bool IsOnParameterHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? parameter)
+            => HeaderFacts.IsOnParameterHeader(root, position, out parameter);
+
+        public bool IsOnMethodHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? method)
+            => HeaderFacts.IsOnMethodHeader(root, position, out method);
+
+        public bool IsOnLocalFunctionHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? localFunction)
+            => HeaderFacts.IsOnLocalFunctionHeader(root, position, out localFunction);
+
+        public bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? localDeclaration)
+            => HeaderFacts.IsOnLocalDeclarationHeader(root, position, out localDeclaration);
+
+        public bool IsOnIfStatementHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? ifStatement)
+            => HeaderFacts.IsOnIfStatementHeader(root, position, out ifStatement);
+
+        public bool IsOnWhileStatementHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? whileStatement)
+            => HeaderFacts.IsOnWhileStatementHeader(root, position, out whileStatement);
+
+        public bool IsOnForeachHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? foreachStatement)
+            => HeaderFacts.IsOnForeachHeader(root, position, out foreachStatement);
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -28,14 +30,18 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         protected override HistogramCounter CreateCounter()
-        {
-            return new HistogramCounter(_bucketSize, _maxBucketValue, _bucketCount);
-        }
+            => new(_bucketSize, _maxBucketValue, _bucketCount);
 
         public void IncreaseCount(object key, decimal value)
         {
             var counter = GetCounter(key);
             counter.IncreaseCount(value);
+        }
+
+        public HistogramCounter? GetValue(object key)
+        {
+            TryGetCounter(key, out var counter);
+            return counter;
         }
 
         internal sealed class HistogramCounter

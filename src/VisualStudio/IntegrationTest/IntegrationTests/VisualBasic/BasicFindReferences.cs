@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -18,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicFindReferences(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicFindReferences))
+        public BasicFindReferences(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicFindReferences))
         {
         }
 
@@ -107,6 +109,11 @@ End Class
                         Assert.Equal(expected: 34, actual: reference.Column);
                     }
                 });
+
+            VisualStudio.FindReferencesWindow.NavigateTo(activeWindowCaption, results[0], isPreview: false, shouldActivate: true);
+            // Assert we are in the right file now
+            Assert.Equal("Class1.vb", VisualStudio.Shell.GetActiveWindowCaption());
+            Assert.Equal("Alpha As Int32", VisualStudio.Editor.GetLineTextAfterCaret());
         }
     }
 }

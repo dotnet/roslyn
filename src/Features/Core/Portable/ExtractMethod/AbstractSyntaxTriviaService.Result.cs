@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return root.ReplaceTokens(map.Keys, (o, n) => map[o]);
             }
 
-            private Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
+            private static Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
                 Dictionary<TriviaLocation, PreviousNextTokenPair> tokenPairs,
                 Dictionary<TriviaLocation, LeadingTrailingTriviaPair> triviaPairs)
             {
@@ -108,15 +112,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                                             location => location,
                                             location => resolver(root, location, _annotations[location]));
 
-                // check variable assumption. ordering of two pairs can't be changed
                 Contract.ThrowIfFalse(
-                    tokens[TriviaLocation.BeforeBeginningOfSpan].RawKind == 0 /* && don't care */ ||
-                    /* don't care && */ tokens[TriviaLocation.AfterEndOfSpan].RawKind == 0 ||
-                    tokens[TriviaLocation.BeforeBeginningOfSpan].Span.End <= tokens[TriviaLocation.AfterEndOfSpan].SpanStart);
-
-                Contract.ThrowIfFalse(
-                    tokens[TriviaLocation.AfterBeginningOfSpan].RawKind == 0 /* && don't care */ ||
-                    /* don't care && */ tokens[TriviaLocation.BeforeEndOfSpan].RawKind == 0 ||
+                    tokens[TriviaLocation.AfterBeginningOfSpan].RawKind == 0 /* don't care */ ||
+                    tokens[TriviaLocation.BeforeEndOfSpan].RawKind == 0 /* don't care */  ||
                     tokens[TriviaLocation.AfterBeginningOfSpan] == tokens[TriviaLocation.BeforeEndOfSpan] ||
                     tokens[TriviaLocation.AfterBeginningOfSpan].GetPreviousToken(includeZeroWidth: true) == tokens[TriviaLocation.BeforeEndOfSpan] ||
                     tokens[TriviaLocation.AfterBeginningOfSpan].Span.End <= tokens[TriviaLocation.BeforeEndOfSpan].SpanStart);
@@ -157,7 +155,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return GetTrailingAndLeadingTrivia(trivia);
             }
 
-            private IEnumerable<Tuple<PreviousNextTokenPair, LeadingTrailingTriviaPair>> CreateUniqueTokenTriviaPairs(
+            private static IEnumerable<Tuple<PreviousNextTokenPair, LeadingTrailingTriviaPair>> CreateUniqueTokenTriviaPairs(
                 Dictionary<TriviaLocation, PreviousNextTokenPair> tokenPairs,
                 Dictionary<TriviaLocation, LeadingTrailingTriviaPair> triviaPairs)
             {
@@ -214,7 +212,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return map;
             }
 
-            private Dictionary<TriviaLocation, PreviousNextTokenPair> CreatePreviousNextTokenPairs(
+            private static Dictionary<TriviaLocation, PreviousNextTokenPair> CreatePreviousNextTokenPairs(
                 Dictionary<TriviaLocation, SyntaxToken> tokens)
             {
                 var tokenPairs = new Dictionary<TriviaLocation, PreviousNextTokenPair>();
@@ -246,7 +244,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return tokenPairs;
             }
 
-            private IEnumerable<SyntaxTrivia> CreateTriviaListFromTo(
+            private static IEnumerable<SyntaxTrivia> CreateTriviaListFromTo(
                 List<SyntaxTrivia> list,
                 int startIndex,
                 int endIndex)

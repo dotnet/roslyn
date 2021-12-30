@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -25,7 +27,7 @@ End Class
             Dim expected =
 <code>
 Class A
-[|    'Function M()
+    [|'Function M()
     '    Dim a = 1
 
     'End Function|]
@@ -49,7 +51,7 @@ End Class
             Dim expected =
 <code>
 Class A
-[|    Function M()
+    [|Function M()
         Dim a = 1
 
     End Function|]
@@ -74,7 +76,7 @@ End Class
             {
 <code>
 Class A
-[|    'Function M()
+    [|'Function M()
     '    Dim a = 1
 
     'End Function|]
@@ -82,7 +84,7 @@ End Class
 </code>.Value,
 <code>
 Class A
-[|    Function M()
+    [|Function M()
         Dim a = 1
 
     End Function|]
@@ -105,7 +107,7 @@ End Class
             ToggleCommentMultiple(markup, expected)
         End Sub
 
-        Private Function ReplaceLineEndings(markup As String) As String
+        Private Shared Function ReplaceLineEndings(markup As String) As String
             ' do this since xml value put only vbLf
             Return markup.Replace(vbLf, vbCrLf)
         End Function
@@ -116,8 +118,8 @@ End Class
                 AbstractCommentSelectionBase(Of ValueTuple))
         End Function
 
-        Friend Overrides Function GetWorkspace(markup As String, exportProvider As ExportProvider) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(markup, exportProvider:=exportProvider)
+        Friend Overrides Function GetWorkspace(markup As String, composition As TestComposition) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(markup, composition:=composition)
         End Function
     End Class
 End Namespace

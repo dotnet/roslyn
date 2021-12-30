@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -24,13 +26,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' A mapping from every local variable to its replacement local variable. Local variables 
         ''' are replaced when their types change due to being inside of a lambda within a generic method.
         ''' </summary>
-        Protected ReadOnly LocalMap As Dictionary(Of LocalSymbol, LocalSymbol) = New Dictionary(Of LocalSymbol, LocalSymbol)()
+        Protected ReadOnly LocalMap As Dictionary(Of LocalSymbol, LocalSymbol) = New Dictionary(Of LocalSymbol, LocalSymbol)(ReferenceEqualityComparer.Instance)
 
         ''' <summary>
         ''' A mapping from every parameter to its replacement parameter. Local variables 
         ''' are replaced when their types change due to being inside of a lambda.
         ''' </summary>
-        Protected ReadOnly ParameterMap As Dictionary(Of ParameterSymbol, ParameterSymbol) = New Dictionary(Of ParameterSymbol, ParameterSymbol)()
+        Protected ReadOnly ParameterMap As Dictionary(Of ParameterSymbol, ParameterSymbol) = New Dictionary(Of ParameterSymbol, ParameterSymbol)(ReferenceEqualityComparer.Instance)
 
         Protected ReadOnly PlaceholderReplacementMap As New Dictionary(Of BoundValuePlaceholderBase, BoundExpression)
 
@@ -56,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Protected ReadOnly CompilationState As TypeCompilationState
 
-        Protected ReadOnly Diagnostics As DiagnosticBag
+        Protected ReadOnly Diagnostics As BindingDiagnosticBag
         Protected ReadOnly SlotAllocatorOpt As VariableSlotAllocator
 
         ''' <summary>
@@ -67,8 +69,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Protected ReadOnly PreserveOriginalLocals As Boolean
 
-        Protected Sub New(slotAllocatorOpt As VariableSlotAllocator, compilationState As TypeCompilationState, diagnostics As DiagnosticBag, preserveOriginalLocals As Boolean)
+        Protected Sub New(slotAllocatorOpt As VariableSlotAllocator, compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, preserveOriginalLocals As Boolean)
             Debug.Assert(compilationState IsNot Nothing)
+            Debug.Assert(diagnostics.AccumulatesDiagnostics)
             Me.CompilationState = compilationState
             Me.Diagnostics = diagnostics
             Me.SlotAllocatorOpt = slotAllocatorOpt
@@ -203,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                VisitFieldSymbol(node.FieldSymbol),
                                node.IsLValue,
                                node.SuppressVirtualCalls,
-                               node.ConstantsInProgressOpt,
+                               constantsInProgressOpt:=Nothing,
                                VisitType(node.Type))
         End Function
 

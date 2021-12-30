@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -319,10 +321,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                             ' here we have loaded a ref to a temp And its boxed value { &T, O }
                         Else
-                            ' we are calling the expression on a copy of the target anyway, 
+                            ' We are calling the expression on a copy of the target anyway, 
                             ' so even if T is a struct, we don't need to make sure we call the expression on the original target.
 
-                            _builder.EmitLocalLoad(receiverTemp)
+                            ' We currently have an address on the stack. Duplicate it, and load the value of the address.
+                            _builder.EmitOpCode(ILOpCode.Dup)
+                            EmitLoadIndirect(receiverType, receiver.Syntax)
                             EmitBox(receiverType, receiver.Syntax)
                         End If
                     Else
@@ -2174,15 +2178,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitMethodInfoExpression(node As BoundMethodInfo, used As Boolean)
+            Dim method As MethodSymbol = node.Method
+
+            If method.IsTupleMethod Then
+                method = method.TupleUnderlyingMethod
+            End If
+
             _builder.EmitOpCode(ILOpCode.Ldtoken)
-            EmitSymbolToken(node.Method, node.Syntax)
+            EmitSymbolToken(method, node.Syntax)
             Dim getMethod As MethodSymbol
-            If Not node.Method.ContainingType.IsGenericType AndAlso Not node.Method.ContainingType.IsAnonymousType Then ' anonymous types are generic under the hood.
+            If Not method.ContainingType.IsGenericType AndAlso Not method.ContainingType.IsAnonymousType Then ' anonymous types are generic under the hood.
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=0) ' argument off, return value on
                 getMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle), MethodSymbol)
             Else
                 _builder.EmitOpCode(ILOpCode.Ldtoken)
-                EmitSymbolToken(node.Method.ContainingType, node.Syntax)
+                EmitSymbolToken(method.ContainingType, node.Syntax)
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=-1) ' 2 arguments off, return value on
                 getMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2), MethodSymbol)
             End If

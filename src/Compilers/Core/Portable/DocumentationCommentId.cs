@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -571,6 +571,13 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append("}");
                     }
                 }
+
+                return true;
+            }
+
+            public override bool VisitDynamicType(IDynamicTypeSymbol symbol)
+            {
+                _builder.Append("System.Object");
 
                 return true;
             }
@@ -1212,7 +1219,7 @@ namespace Microsoft.CodeAnalysis
                                     ITypeSymbol? returnType = ParseTypeSymbol(id, ref index, compilation, methodSymbol);
 
                                     // if return type is specified, then it must match
-                                    if (returnType != null && methodSymbol.ReturnType.Equals(returnType))
+                                    if (returnType != null && methodSymbol.ReturnType.Equals(returnType, SymbolEqualityComparer.CLRSignature))
                                     {
                                         // return type matches
                                         results.Add(methodSymbol);
@@ -1355,7 +1362,7 @@ namespace Microsoft.CodeAnalysis
 
                 var parameterType = parameterInfo.Type;
 
-                return parameterType != null && symbol.Type.Equals(parameterType);
+                return parameterType != null && symbol.Type.Equals(parameterType, SymbolEqualityComparer.CLRSignature);
             }
 
             private static ITypeParameterSymbol GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)

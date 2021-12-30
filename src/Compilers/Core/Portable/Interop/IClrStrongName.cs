@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Runtime.InteropServices;
@@ -110,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Interop
             [In, MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
             [In] IntPtr pbKeyBlob,
             [In, MarshalAs(UnmanagedType.U4)] int cbKeyBlob,
-            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 5)]byte[] ppbSignatureBlob,
+            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 5)] byte[] ppbSignatureBlob,
             [MarshalAs(UnmanagedType.U4)] out int pcbSignatureBlob);
 
         void StrongNameSignatureGenerationEx(

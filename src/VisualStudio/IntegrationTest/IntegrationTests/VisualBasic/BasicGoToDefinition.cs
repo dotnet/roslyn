@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -15,8 +17,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicGoToDefinition(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicGoToDefinition))
+        public BasicGoToDefinition(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicGoToDefinition))
         {
         }
 
@@ -36,7 +38,7 @@ End Class");
     Dim gibberish As SomeClass
 End Class");
             VisualStudio.Editor.PlaceCaret("SomeClass");
-            VisualStudio.Editor.GoToDefinition();
+            VisualStudio.Editor.GoToDefinition("FileDef.vb");
             VisualStudio.Editor.Verify.TextContains(@"Class SomeClass$$", assertCaretPosition: true);
             Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }
@@ -50,13 +52,14 @@ End Class");
 End Class");
             VisualStudio.Workspace.SetFeatureOption(feature: "VisualStudioNavigationOptions", optionName: "NavigateToObjectBrowser", language: LanguageName, valueString: "True");
 
-            VisualStudio.Editor.GoToDefinition();
+            VisualStudio.Editor.GoToDefinition("Object Browser");
             Assert.Equal("Object Browser", VisualStudio.Shell.GetActiveWindowCaption());
 
             VisualStudio.Workspace.SetFeatureOption(feature: "VisualStudioNavigationOptions", optionName: "NavigateToObjectBrowser", language: LanguageName, valueString: "False");
+            VisualStudio.Workspace.SetEnableDecompilationOption(false);
 
             VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.vb");
-            VisualStudio.Editor.GoToDefinition();
+            VisualStudio.Editor.GoToDefinition("Int32 [from metadata]");
             VisualStudio.Editor.Verify.TextContains("Public Structure Int32");
         }
     }

@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -13,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal abstract class DiagnosticQueue
     {
         public abstract bool TryComplete();
-        public abstract bool TryDequeue(out Diagnostic d);
+        public abstract bool TryDequeue([NotNullWhen(returnValue: true)] out Diagnostic? d);
         public abstract void Enqueue(Diagnostic diagnostic);
 
         // Methods specific to CategorizedDiagnosticQueue
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return _queue.TryComplete();
             }
 
-            public override bool TryDequeue(out Diagnostic d)
+            public override bool TryDequeue([NotNullWhen(returnValue: true)] out Diagnostic? d)
             {
                 return _queue.TryDequeue(out d);
             }
@@ -93,16 +97,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private sealed class CategorizedDiagnosticQueue : DiagnosticQueue
         {
             private readonly object _gate = new object();
-            private Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue> _lazyLocalSemanticDiagnostics;
-            private Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue> _lazyLocalSyntaxDiagnostics;
-            private Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue> _lazyNonLocalDiagnostics;
-
-            public CategorizedDiagnosticQueue()
-            {
-                _lazyLocalSemanticDiagnostics = null;
-                _lazyLocalSyntaxDiagnostics = null;
-                _lazyNonLocalDiagnostics = null;
-            }
+            private Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue>? _lazyLocalSemanticDiagnostics;
+            private Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue>? _lazyLocalSyntaxDiagnostics;
+            private Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue>? _lazyNonLocalDiagnostics;
 
             public override void Enqueue(Diagnostic diagnostic)
             {
@@ -111,6 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override void EnqueueLocal(Diagnostic diagnostic, DiagnosticAnalyzer analyzer, bool isSyntaxDiagnostic)
             {
+                Debug.Assert(diagnostic.Location.Kind == LocationKind.SourceFile || diagnostic.Location.Kind == LocationKind.ExternalFile);
                 if (isSyntaxDiagnostic)
                 {
                     EnqueueCore(ref _lazyLocalSyntaxDiagnostics, diagnostic, analyzer);
@@ -126,19 +124,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 EnqueueCore(ref _lazyNonLocalDiagnostics, diagnostic, analyzer);
             }
 
-            private void EnqueueCore(ref Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue> lazyDiagnosticsMap, Diagnostic diagnostic, DiagnosticAnalyzer analyzer)
+            private void EnqueueCore(
+                [NotNull] ref Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue>? lazyDiagnosticsMap,
+                Diagnostic diagnostic,
+                DiagnosticAnalyzer analyzer)
             {
                 lock (_gate)
                 {
-                    lazyDiagnosticsMap = lazyDiagnosticsMap ?? new Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue>();
+                    lazyDiagnosticsMap ??= new Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue>();
                     EnqueueCore_NoLock(lazyDiagnosticsMap, diagnostic, analyzer);
                 }
             }
 
             private static void EnqueueCore_NoLock(Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue> diagnosticsMap, Diagnostic diagnostic, DiagnosticAnalyzer analyzer)
             {
-                SimpleDiagnosticQueue queue;
-                if (diagnosticsMap.TryGetValue(analyzer, out queue))
+                if (diagnosticsMap.TryGetValue(analyzer, out var queue))
                 {
                     queue.Enqueue(diagnostic);
                 }
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            public override bool TryDequeue(out Diagnostic d)
+            public override bool TryDequeue([NotNullWhen(returnValue: true)] out Diagnostic? d)
             {
                 lock (_gate)
                 {
@@ -161,18 +161,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            private bool TryDequeue_NoLock(out Diagnostic d)
+            private bool TryDequeue_NoLock([NotNullWhen(returnValue: true)] out Diagnostic? d)
             {
                 return TryDequeue_NoLock(_lazyLocalSemanticDiagnostics, out d) ||
                     TryDequeue_NoLock(_lazyLocalSyntaxDiagnostics, out d) ||
                     TryDequeue_NoLock(_lazyNonLocalDiagnostics, out d);
             }
 
-            private static bool TryDequeue_NoLock(Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue> lazyDiagnosticsMap, out Diagnostic d)
+            private static bool TryDequeue_NoLock(Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue>? lazyDiagnosticsMap, [NotNullWhen(returnValue: true)] out Diagnostic? d)
             {
-                Diagnostic diag = null;
+                Diagnostic? diag = null;
                 if (lazyDiagnosticsMap != null && lazyDiagnosticsMap.Any(kvp => kvp.Value.TryDequeue(out diag)))
                 {
+                    Debug.Assert(diag != null);
                     d = diag;
                     return true;
                 }
@@ -196,14 +197,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return DequeueDiagnosticsCore(analyzer, _lazyNonLocalDiagnostics);
             }
 
-            private ImmutableArray<Diagnostic> DequeueDiagnosticsCore(DiagnosticAnalyzer analyzer, Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue> diagnosticsMap)
+            private ImmutableArray<Diagnostic> DequeueDiagnosticsCore(DiagnosticAnalyzer analyzer, Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue>? lazyDiagnosticsMap)
             {
-                SimpleDiagnosticQueue queue;
-                if (TryGetDiagnosticsQueue(analyzer, diagnosticsMap, out queue))
+                if (TryGetDiagnosticsQueue(analyzer, lazyDiagnosticsMap, out var queue))
                 {
                     var builder = ImmutableArray.CreateBuilder<Diagnostic>();
-                    Diagnostic d;
-                    while (queue.TryDequeue(out d))
+                    while (queue.TryDequeue(out var d))
                     {
                         builder.Add(d);
                     }
@@ -214,7 +213,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            private bool TryGetDiagnosticsQueue(DiagnosticAnalyzer analyzer, Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue> diagnosticsMap, out SimpleDiagnosticQueue queue)
+            private bool TryGetDiagnosticsQueue(
+                DiagnosticAnalyzer analyzer,
+                Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue>? diagnosticsMap,
+                [NotNullWhen(returnValue: true)] out SimpleDiagnosticQueue? queue)
             {
                 queue = null;
 

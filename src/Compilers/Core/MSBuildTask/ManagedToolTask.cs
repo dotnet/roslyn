@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
+using System.Resources;
 using Microsoft.Build.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -32,6 +35,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// "Native" in this context means "native invocation", and running the executable directly.
         /// </summary>
         protected abstract string PathToNativeTool { get; }
+
+        protected ManagedToolTask(ResourceManager resourceManager)
+            : base(resourceManager)
+        {
+        }
 
         /// <summary>
         /// GenerateCommandLineCommands generates the actual OS-level arguments:

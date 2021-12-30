@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis
             get { return this.Info.AdditionalLocations; }
         }
 
-        internal override IReadOnlyList<string> CustomTags
+        internal override ImmutableArray<string> CustomTags
         {
             get
             {
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis
             return this.Info.GetMessage(formatProvider);
         }
 
-        internal override IReadOnlyList<object>? Arguments
+        internal override IReadOnlyList<object?> Arguments
         {
             get { return this.Info.Arguments; }
         }
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(Diagnostic? obj)
         {
-            if (this == obj)
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }

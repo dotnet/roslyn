@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -20,18 +22,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private class Cache<T> where T : struct
         {
-            public static readonly Cache<T> Instance = new Cache<T>();
+            public static readonly Cache<T> Instance = new();
 
-            private static readonly Func<T, object> s_boxer = v => (object)v;
+            private static readonly Func<T, object> s_boxer = v => v;
 
             // this will be never released, must be used only for fixed size set
             private readonly ConcurrentDictionary<T, object> _map =
-                new ConcurrentDictionary<T, object>(concurrencyLevel: 2, capacity: 5);
+                new(concurrencyLevel: 2, capacity: 5);
 
             public object GetOrCreate(T value)
-            {
-                return _map.GetOrAdd(value, s_boxer);
-            }
+                => _map.GetOrAdd(value, s_boxer);
         }
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Globalization;
@@ -31,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
 
             return hierarchy.IsCapabilityMatch("CPS")
                 ? new BuildPropertyStorage((IVsBuildPropertyStorage)hierarchy)
-                : new PerConfigurationPropertyStorage(project.ConfigurationManager) as ProjectPropertyStorage;
+                : new PerConfigurationPropertyStorage(project.ConfigurationManager);
         }
 
         public abstract void SetProperty(string buildPropertyName, string configurationPropertyName, string value);
@@ -44,12 +48,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
             private readonly IVsBuildPropertyStorage _propertyStorage;
 
             public BuildPropertyStorage(IVsBuildPropertyStorage propertyStorage)
-                => this._propertyStorage = propertyStorage;
+                => _propertyStorage = propertyStorage;
 
             public override void SetProperty(string buildPropertyName, string configurationPropertyName, string value)
-            {
-                _propertyStorage.SetPropertyValue(buildPropertyName, null, (uint)_PersistStorageType.PST_PROJECT_FILE, value);
-            }
+                => _propertyStorage.SetPropertyValue(buildPropertyName, null, (uint)_PersistStorageType.PST_PROJECT_FILE, value);
         }
 
         private sealed class PerConfigurationPropertyStorage : ProjectPropertyStorage
@@ -57,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
             private readonly ConfigurationManager _configurationManager;
 
             public PerConfigurationPropertyStorage(ConfigurationManager configurationManager)
-                => this._configurationManager = configurationManager;
+                => _configurationManager = configurationManager;
 
             public override void SetProperty(string buildPropertyName, string configurationPropertyName, string value)
             {

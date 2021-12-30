@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,9 +17,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(PassInCapturedVariablesAsArgumentsCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.PassInCapturedVariables), Shared]
     internal sealed class PassInCapturedVariablesAsArgumentsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public PassInCapturedVariablesAsArgumentsCodeFixProvider()
+        {
+        }
+
         //  "CS8421: A static local function can't contain a reference to <variable>."
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8421");
 
@@ -34,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 (document, localFunction, captures) =>
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(c => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(
+                        new MyCodeAction(c => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(
                             document,
                             localFunction,
                             captures,
@@ -50,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             => WrapFixAsync(
                 document,
                 diagnostics,
-                (d, localFunction, captures) => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(
+                (d, localFunction, captures) => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(
                         d,
                         localFunction,
                         captures,
@@ -71,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             // Even when the language version doesn't support staic local function, the compiler will still
             // generate this error. So we need to check to make sure we don't provide incorrect fix.
-            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(root.SyntaxTree))
+            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(((CSharpParseOptions)root.SyntaxTree.Options).LanguageVersion))
             {
                 return;
             }
@@ -92,18 +99,17 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             foreach (var localFunction in localFunctions)
             {
-
-                if (MakeLocalFunctionStaticHelper.TryGetCaputuredSymbolsAndCheckApplicability(localFunction, semanticModel, out var captures))
+                if (MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStaticByRefactoringCaptures(localFunction, semanticModel, out var captures))
                 {
                     await fixer(document, localFunction, captures).ConfigureAwait(false);
                 }
             }
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Pass_in_captured_variables_as_arguments, createChangedDocument, CSharpFeaturesResources.Pass_in_captured_variables_as_arguments)
+                : base(CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments, createChangedDocument, CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments)
             {
             }
         }

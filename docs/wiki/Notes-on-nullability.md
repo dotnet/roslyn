@@ -1,0 +1,1 @@
+Moved to https://github.com/dotnet/roslyn/blob/features/NullableReferenceTypes/docs/features/nullable-reference-types.md

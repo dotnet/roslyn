@@ -1,13 +1,15 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.ExceptionServices
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
-Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.Mocks
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
     <[UseExportProvider]>
@@ -36,17 +38,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
 
         <HandleProcessCorruptedStateExceptions()>
         Friend Function CreateLibraryManager(definition As XElement) As TestState
-            Dim workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Dim workspace = TestWorkspace.Create(definition, composition:=CodeModelTestHelpers.Composition)
             Dim result As TestState = Nothing
 
             Try
-                Dim vsWorkspace = New MockVisualStudioWorkspace(workspace)
+                Dim vsWorkspace = New MockVisualStudioWorkspace(workspace.ExportProvider)
+                vsWorkspace.SetWorkspace(workspace)
                 Dim mockComponentModel = New MockComponentModel(workspace.ExportProvider)
                 mockComponentModel.ProvideService(Of VisualStudioWorkspace)(vsWorkspace)
-                Dim mockServiceProvider = New MockServiceProvider(mockComponentModel)
+                Dim mockServiceProvider = workspace.ExportProvider.GetExportedValue(Of MockServiceProvider)
                 Dim libraryManager = CreateLibraryManager(mockServiceProvider, mockComponentModel, vsWorkspace)
 
-                result = New TestState(workspace, libraryManager)
+                result = New TestState(workspace, vsWorkspace, libraryManager)
             Finally
                 If result Is Nothing Then
                     workspace.Dispose()

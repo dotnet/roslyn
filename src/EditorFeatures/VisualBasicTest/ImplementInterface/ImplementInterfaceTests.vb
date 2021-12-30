@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -464,7 +466,7 @@ NotInheritable Class X : Implements IComparer
     Private x As X
 
     Public Function Compare(x As Object, y As Object) As Integer Implements IComparer.Compare
-        Return Me.x.Compare(x, y)
+        Return DirectCast(Me.x, IComparer).Compare(x, y)
     End Function
 End Class",
 index:=1)
@@ -485,7 +487,7 @@ NotInheritable Class X : Implements IComparer
     Private a As X
 
     Public Function Compare(x As Object, y As Object) As Integer Implements IComparer.Compare
-        Return a.Compare(x, y)
+        Return DirectCast(a, IComparer).Compare(x, y)
     End Function
 End Class",
 index:=1)
@@ -537,8 +539,6 @@ End Class
 </File>
             Await TestAsync(source, expected, index:=1)
         End Function
-
-
 
         <WorkItem(540355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540355")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -965,16 +965,16 @@ Class A
 
     Public ReadOnly Property Count As Integer Implements IReadOnlyCollection(Of Integer).Count
         Get
-            Return DirectCast(field, IReadOnlyList(Of Integer)).Count
+            Return DirectCast(field, IReadOnlyCollection(Of Integer)).Count
         End Get
     End Property
 
     Public Function GetEnumerator() As IEnumerator(Of Integer) Implements IEnumerable(Of Integer).GetEnumerator
-        Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
+        Return DirectCast(field, IEnumerable(Of Integer)).GetEnumerator()
     End Function
 
     Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
-        Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
+        Return field.GetEnumerator()
     End Function
 End Class",
 index:=1)
@@ -1002,18 +1002,18 @@ Class A
 
     Public ReadOnly Property Count As Integer Implements IReadOnlyCollection(Of Integer).Count
         Get
-            Return DirectCast(field, IReadOnlyList(Of Integer)).Count
+            Return DirectCast(field, IReadOnlyCollection(Of Integer)).Count
         End Get
     End Property
 
     Private Property field As Integer()
 
     Public Function GetEnumerator() As IEnumerator(Of Integer) Implements IEnumerable(Of Integer).GetEnumerator
-        Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
+        Return DirectCast(field, IEnumerable(Of Integer)).GetEnumerator()
     End Function
 
     Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
-        Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
+        Return field.GetEnumerator()
     End Function
 End Class",
 index:=1)
@@ -1181,7 +1181,6 @@ Class B
 End Class",
 index:=1)
         End Function
-
 
         <WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -3811,8 +3810,32 @@ End Class
 $"Imports System
 Class Program
     Implements IDisposable
-{DisposePattern("Overridable ")}
 
+    Private disposedValue As Boolean
+{DisposePattern("Overridable ")}
+End Class
+",
+index:=1)
+        End Function
+
+        <WorkItem(9760, "https://github.com/dotnet/roslyn/issues/9760")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Async Function TestImplementInterfaceForIDisposable_WithExistingDisposedValueField() As Task
+            Await TestInRegularAndScriptAsync(
+<Text>Imports System
+Class Program
+    Implements [|IDisposable|]
+
+    Private disposedValue As Integer
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf),
+$"Imports System
+Class Program
+    Implements IDisposable
+
+    Private disposedValue As Integer
+    Private disposedValue1 As Boolean
+{DisposePattern("Overridable ", disposeField:="disposedValue1")}
 End Class
 ",
 index:=1)
@@ -3877,8 +3900,9 @@ End Class
 $"Imports System
 Public NotInheritable Class Program
     Implements IDisposable
-{DisposePattern("")}
 
+    Private disposedValue As Boolean
+{DisposePattern("", disposeMethodAccessibility:="Private")}
 End Class
 ",
 index:=1)
@@ -4055,6 +4079,8 @@ End Class
 Class C : Implements [|IDisposable|]",
 $"Imports System
 Class C : Implements IDisposable
+
+    Private disposedValue As Boolean
 {DisposePattern("Overridable ")}
 End Class
 ", index:=1)
@@ -4105,6 +4131,9 @@ Class C : Implements [|System.IDisposable|]
 End Class",
 $"Imports System
 Class C : Implements System.IDisposable
+
+    Private disposedValue As Boolean
+
     Class IDisposable
     End Class
 {DisposePattern("Overridable ", simplifySystem:=False)}
@@ -4118,7 +4147,9 @@ End Class", index:=1)
 "Class C : Implements [|System.IDisposable|]
 ",
 $"Class C : Implements System.IDisposable
-{DisposePattern("Overridable ", simplifySystem:=False)}
+
+    Private disposedValue As Boolean
+{DisposePattern("Overridable ", simplifySystem:=False, gcPrefix:="System.")}
 End Class
 ", index:=1)
         End Function
@@ -4164,6 +4195,8 @@ Interface I : Inherits IDisposable
     Sub F()
 End Interface
 Class C : Implements I
+
+    Private disposedValue As Boolean
 
     Public Sub F() Implements I.F
         Throw New NotImplementedException()
@@ -4227,7 +4260,7 @@ Class _
 End Class
 
 Partial Class C
-    Implements IDisposable
+    Implements System.IDisposable
 End Class",
 $"Imports System
 Imports System.Collections.Generic
@@ -4241,6 +4274,8 @@ Class _
     C
     Implements I(Of System.Exception, System.AggregateException)
 
+    Private disposedValue As Boolean
+
     Public Function M(a As Dictionary(Of Exception, List(Of AggregateException)), b As Exception, c As AggregateException) As List(Of AggregateException) Implements I(Of Exception, AggregateException).M
         Throw New NotImplementedException()
     End Function
@@ -4253,41 +4288,34 @@ Class _
         Throw New NotImplementedException()
     End Function
 
-#Region ""IDisposable Support""
-    Private disposedValue As Boolean ' { FeaturesResources.To_detect_redundant_calls }
-
-    ' IDisposable
     Protected Overridable Sub Dispose(disposing As Boolean)
         If Not disposedValue Then
             If disposing Then
                 ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
             End If
 
-            ' { VBFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below }
+            ' { FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer}
             ' { FeaturesResources.TODO_colon_set_large_fields_to_null }
+            disposedValue = True
         End If
-        disposedValue = True
     End Sub
 
-    ' { VBFeaturesResources.TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources }
-    'Protected Overrides Sub Finalize()
-    '    ' { VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above }
-    '    Dispose(False)
-    '    MyBase.Finalize()
-    'End Sub
+    ' ' { String.Format(FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources, "Dispose(disposing As Boolean)") }
+    ' Protected Overrides Sub Finalize()
+    '     ' { String.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(disposing As Boolean)") }
+    '     Dispose(disposing:=False)
+    '     MyBase.Finalize()
+    ' End Sub
 
-    ' {VBFeaturesResources.This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern }
     Public Sub Dispose() Implements IDisposable.Dispose
-        ' { VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above }
-        Dispose(True)
-        ' { VBFeaturesResources.TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above }
-        ' GC.SuppressFinalize(Me)
+        ' { String.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(disposing As Boolean)") }
+        Dispose(disposing:=True)
+        GC.SuppressFinalize(Me)
     End Sub
-#End Region
 End Class
 
 Partial Class C
-    Implements IDisposable
+    Implements System.IDisposable
 End Class",
  index:=1)
         End Function
@@ -4301,7 +4329,7 @@ End Class
 
 Partial Class C
     Implements [|I(Of System.Exception, System.AggregateException)|]
-    Implements IDisposable
+    Implements System.IDisposable
 End Class
 
 Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of Integer)
@@ -4316,7 +4344,9 @@ End Class
 
 Partial Class C
     Implements I(Of System.Exception, System.AggregateException)
-    Implements IDisposable
+    Implements System.IDisposable
+
+    Private disposedValue As Boolean
 
     Public Function M(a As Dictionary(Of Exception, List(Of AggregateException)), b As Exception, c As AggregateException) As List(Of AggregateException) Implements I(Of Exception, AggregateException).M
         Throw New NotImplementedException()
@@ -4330,37 +4360,30 @@ Partial Class C
         Throw New NotImplementedException()
     End Function
 
-#Region ""IDisposable Support""
-    Private disposedValue As Boolean ' { FeaturesResources.To_detect_redundant_calls }
-
-    ' IDisposable
     Protected Overridable Sub Dispose(disposing As Boolean)
         If Not disposedValue Then
             If disposing Then
                 ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
             End If
 
-            ' { VBFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below }
+            ' { FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer }
             ' { FeaturesResources.TODO_colon_set_large_fields_to_null }
+            disposedValue = True
         End If
-        disposedValue = True
     End Sub
 
-    ' { VBFeaturesResources.TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources }
-    'Protected Overrides Sub Finalize()
-    '    ' { VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above }
-    '    Dispose(False)
-    '    MyBase.Finalize()
-    'End Sub
+    ' ' { String.Format(FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources, "Dispose(disposing As Boolean)") }
+    ' Protected Overrides Sub Finalize()
+    '     ' { String.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(disposing As Boolean)")}
+    '     Dispose(disposing:=False)
+    '     MyBase.Finalize()
+    ' End Sub
 
-    ' { VBFeaturesResources.This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern }
     Public Sub Dispose() Implements IDisposable.Dispose
-        ' { VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above }
-        Dispose(True)
-        ' { VBFeaturesResources.TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above }
-        ' GC.SuppressFinalize(Me)
+        ' { String.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(disposing As Boolean)") }
+        Dispose(disposing:=True)
+        GC.SuppressFinalize(Me)
     End Sub
-#End Region
 End Class
 
 Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of Integer)
@@ -4370,39 +4393,37 @@ End Interface",
  index:=1)
         End Function
 
-        Private Shared Function DisposePattern(disposeMethodModifiers As String, Optional simplifySystem As Boolean = True) As String
+        Private Shared Function DisposePattern(
+                disposeMethodModifiers As String,
+                Optional simplifySystem As Boolean = True,
+                Optional disposeField As String = "disposedValue",
+                Optional gcPrefix As String = "",
+                Optional disposeMethodAccessibility As String = "Protected") As String
             Dim code = $"
-#Region ""IDisposable Support""
-    Private disposedValue As Boolean ' {FeaturesResources.To_detect_redundant_calls}
-
-    ' IDisposable
-    Protected {disposeMethodModifiers}Sub Dispose(disposing As Boolean)
-        If Not disposedValue Then
+    {disposeMethodAccessibility} {disposeMethodModifiers}Sub Dispose(disposing As Boolean)
+        If Not {disposeField} Then
             If disposing Then
                 ' {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             End If
 
-            ' {VBFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below}
+            ' {FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer}
             ' {FeaturesResources.TODO_colon_set_large_fields_to_null}
+            {disposeField} = True
         End If
-        disposedValue = True
     End Sub
 
-    ' {VBFeaturesResources.TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources}
-    'Protected Overrides Sub Finalize()
-    '    ' {VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above}
-    '    Dispose(False)
-    '    MyBase.Finalize()
-    'End Sub
+    ' ' {String.Format(FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources, "Dispose(disposing As Boolean)")}
+    ' Protected Overrides Sub Finalize()
+    '     ' {String.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(disposing As Boolean)")}
+    '     Dispose(disposing:=False)
+    '     MyBase.Finalize()
+    ' End Sub
 
-    ' {VBFeaturesResources.This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern}
     Public Sub Dispose() Implements System.IDisposable.Dispose
-        ' {VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above}
-        Dispose(True)
-        ' {VBFeaturesResources.TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above}
-        ' GC.SuppressFinalize(Me)
-    End Sub
-#End Region"
+        ' {String.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(disposing As Boolean)")}
+        Dispose(disposing:=True)
+        {gcPrefix}GC.SuppressFinalize(Me)
+    End Sub"
 
             ' some tests count on "System." being simplified out
             If simplifySystem Then
@@ -4452,7 +4473,6 @@ Public Class Holder
 End Class")
         End Function
 
-
         <WorkItem(2785, "https://github.com/dotnet/roslyn/issues/2785")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementInterfaceThroughStaticMemberInGenericClass() As Task
@@ -4481,13 +4501,13 @@ Class Program(Of T)
 
     Public ReadOnly Property Count As Integer Implements ICollection(Of Object).Count
         Get
-            Return DirectCast(innerList, IList(Of Object)).Count
+            Return DirectCast(innerList, ICollection(Of Object)).Count
         End Get
     End Property
 
     Public ReadOnly Property IsReadOnly As Boolean Implements ICollection(Of Object).IsReadOnly
         Get
-            Return DirectCast(innerList, IList(Of Object)).IsReadOnly
+            Return DirectCast(innerList, ICollection(Of Object)).IsReadOnly
         End Get
     End Property
 
@@ -4500,15 +4520,15 @@ Class Program(Of T)
     End Sub
 
     Public Sub Add(item As Object) Implements ICollection(Of Object).Add
-        DirectCast(innerList, IList(Of Object)).Add(item)
+        DirectCast(innerList, ICollection(Of Object)).Add(item)
     End Sub
 
     Public Sub Clear() Implements ICollection(Of Object).Clear
-        DirectCast(innerList, IList(Of Object)).Clear()
+        DirectCast(innerList, ICollection(Of Object)).Clear()
     End Sub
 
     Public Sub CopyTo(array() As Object, arrayIndex As Integer) Implements ICollection(Of Object).CopyTo
-        DirectCast(innerList, IList(Of Object)).CopyTo(array, arrayIndex)
+        DirectCast(innerList, ICollection(Of Object)).CopyTo(array, arrayIndex)
     End Sub
 
     Public Function IndexOf(item As Object) As Integer Implements IList(Of Object).IndexOf
@@ -4516,19 +4536,19 @@ Class Program(Of T)
     End Function
 
     Public Function Contains(item As Object) As Boolean Implements ICollection(Of Object).Contains
-        Return DirectCast(innerList, IList(Of Object)).Contains(item)
+        Return DirectCast(innerList, ICollection(Of Object)).Contains(item)
     End Function
 
     Public Function Remove(item As Object) As Boolean Implements ICollection(Of Object).Remove
-        Return DirectCast(innerList, IList(Of Object)).Remove(item)
+        Return DirectCast(innerList, ICollection(Of Object)).Remove(item)
     End Function
 
     Public Function GetEnumerator() As IEnumerator(Of Object) Implements IEnumerable(Of Object).GetEnumerator
-        Return DirectCast(innerList, IList(Of Object)).GetEnumerator()
+        Return DirectCast(innerList, IEnumerable(Of Object)).GetEnumerator()
     End Function
 
     Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
-        Return DirectCast(innerList, IList(Of Object)).GetEnumerator()
+        Return DirectCast(innerList, IEnumerable).GetEnumerator()
     End Function
 End Class",
 index:=1)
@@ -4627,7 +4647,7 @@ class Class
         End Set
     End Property
 end class", parameters:=New TestParameters(options:=[Option](
-    ImplementTypeOptions.PropertyGenerationBehavior,
+    ImplementTypeOptions.Metadata.PropertyGenerationBehavior,
     ImplementTypePropertyGenerationBehavior.PreferAutoProperties)))
         End Function
     End Class

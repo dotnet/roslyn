@@ -1,10 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
@@ -15,7 +18,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             MyBase.New(context, filterOutOfScopeLocals, cancellationToken)
         End Sub
 
-        Public Overrides Function GetSymbols() As ImmutableArray(Of ISymbol)
+        Public Overrides Function GetRecommendedSymbols() As RecommendedSymbols
+            Return New RecommendedSymbols(GetSymbols())
+        End Function
+
+        Private Overloads Function GetSymbols() As ImmutableArray(Of ISymbol)
             If _context.SyntaxTree.IsInNonUserCode(_context.Position, _cancellationToken) OrElse
                _context.SyntaxTree.IsInSkippedText(_context.Position, _cancellationToken) Then
                 Return ImmutableArray(Of ISymbol).Empty
@@ -50,6 +57,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Return ImmutableArray(Of ISymbol).Empty
+        End Function
+
+        Public Overrides Function TryGetExplicitTypeOfLambdaParameter(lambdaSyntax As SyntaxNode, ordinalInLambda As Integer, <NotNullWhen(True)> ByRef explicitLambdaParameterType As ITypeSymbol) As Boolean
+            Dim lambdaExpressionSyntax = DirectCast(lambdaSyntax, LambdaExpressionSyntax)
+            Dim parameters = lambdaExpressionSyntax.SubOrFunctionHeader.ParameterList.Parameters
+            If parameters.Count > ordinalInLambda Then
+                Dim parameterSyntax = parameters(ordinalInLambda)
+                If parameterSyntax.AsClause IsNot Nothing Then
+                    explicitLambdaParameterType = _context.SemanticModel.GetTypeInfo(parameterSyntax.AsClause.Type, _cancellationToken).Type
+                    Return explicitLambdaParameterType IsNot Nothing
+                End If
+            End If
+
+            Return False
         End Function
 
         Private Function IsWritableFieldOrLocal(symbol As ISymbol) As Boolean
@@ -116,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             ' "Func(Of" tends to get in the way of typing "Function". Exclude System.Func from expression
             ' contexts, except within GetType
             If Not _context.TargetToken.IsKind(SyntaxKind.OpenParenToken) OrElse
-                    Not _context.TargetToken.Parent.IsKind(SyntaxKind.GetTypeExpression) Then
+               Not _context.TargetToken.Parent.IsKind(SyntaxKind.GetTypeExpression) Then
                 symbols = symbols.WhereAsArray(Function(s) Not IsInEligibleDelegate(s))
             End If
 
@@ -124,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Return symbols.WhereAsArray(Function(s) FilterEventsAndGeneratedSymbols(Nothing, s))
         End Function
 
-        Private Function IsInEligibleDelegate(s As ISymbol) As Boolean
+        Private Shared Function IsInEligibleDelegate(s As ISymbol) As Boolean
             If s.IsDelegateType() Then
                 Dim typeSymbol = DirectCast(s, ITypeSymbol)
                 Return typeSymbol.SpecialType <> SpecialType.System_Delegate
@@ -186,21 +207,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Dim useBaseReferenceAccessibility = False
             Dim inNameOfExpression = node.IsParentKind(SyntaxKind.NameOfExpression)
 
-            Dim container = DirectCast(leftHandTypeInfo.Type, INamespaceOrTypeSymbol)
+            Dim container As ISymbol = leftHandTypeInfo.Type
             If container Is Nothing AndAlso TypeOf (leftHandTypeInfo.ConvertedType) Is IArrayTypeSymbol Then
-                container = DirectCast(leftHandTypeInfo.ConvertedType, INamespaceOrTypeSymbol)
+                container = leftHandTypeInfo.ConvertedType
             End If
+
             If container.IsErrorType() AndAlso leftHandSymbolInfo.Symbol IsNot Nothing Then
                 ' TODO remove this when 531549 which causes leftHandTypeInfo to be an error type is fixed
                 container = leftHandSymbolInfo.Symbol.GetSymbolType()
             End If
 
             Dim couldBeMergedNamespace = False
-            Dim symbols As ImmutableArray(Of ISymbol) = Nothing
 
             If leftHandSymbolInfo.Symbol IsNot Nothing Then
-
                 Dim firstSymbol = leftHandSymbolInfo.Symbol
+
+                If firstSymbol.Kind = SymbolKind.Alias Then
+                    firstSymbol = DirectCast(firstSymbol, IAliasSymbol).Target
+                End If
 
                 Select Case firstSymbol.Kind
                     Case SymbolKind.TypeParameter
@@ -210,25 +234,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                         excludeInstance = True
                         excludeShared = False
                         container = DirectCast(firstSymbol, INamespaceOrTypeSymbol)
-                    Case SymbolKind.Alias
-                        excludeInstance = True
+                End Select
+
+                If firstSymbol.Kind = SymbolKind.Parameter Then
+                    Dim parameter = DirectCast(firstSymbol, IParameterSymbol)
+
+                    If parameter.IsMe Then
                         excludeShared = False
-                        container = DirectCast(firstSymbol, IAliasSymbol).Target
-                    Case SymbolKind.Parameter
-                        Dim parameter = DirectCast(firstSymbol, IParameterSymbol)
-
-                        If parameter.IsMe Then
-                            excludeShared = False
-                        End If
-
-                        symbols = GetSymbols(parameter, node.SpanStart)
-
                         ' case:
                         '    MyBase.
-                        If parameter.IsMe AndAlso Not Equals(parameter.Type, container) Then
-                            useBaseReferenceAccessibility = True
-                        End If
-                End Select
+                        useBaseReferenceAccessibility = Not parameter.Type.Equals(container)
+                    End If
+
+                    container = parameter
+                End If
 
                 ' Check for color color
                 Dim speculativeTypeBinding = _context.SemanticModel.GetSpeculativeTypeInfo(_context.Position, leftExpression, SpeculativeBindingOption.BindAsTypeOrNamespace)
@@ -242,10 +261,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                     excludeInstance = False
                 End If
 
-                If container Is Nothing OrElse container.IsType AndAlso DirectCast(container, ITypeSymbol).TypeKind = TypeKind.Enum Then
+                If container Is Nothing OrElse TryCast(container, ITypeSymbol)?.TypeKind = TypeKind.Enum Then
                     excludeShared = False ' need to allow shared members for enums
                 End If
-
             Else
                 couldBeMergedNamespace = ContainsNamespaceCandidateSymbols(leftHandSymbolInfo)
             End If
@@ -259,12 +277,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
             Debug.Assert(Not excludeInstance OrElse Not useBaseReferenceAccessibility)
 
-            If _context.TargetToken.GetPreviousToken().IsKind(SyntaxKind.QuestionToken) Then
-                Dim type = TryCast(container, INamedTypeSymbol)
-                If type?.ConstructedFrom.SpecialType = SpecialType.System_Nullable_T Then
-                    container = type.GetTypeArguments().First()
-                End If
-            End If
+            ' On null conditional access, members of T for a Nullable(Of T) should be recommended
+            Dim unwrapNullable = _context.TargetToken.GetPreviousToken().IsKind(SyntaxKind.QuestionToken)
 
             ' No completion on types/namespace after conditional access
             If leftExpression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression) AndAlso
@@ -273,16 +287,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Dim position = node.SpanStart
-            If symbols.IsDefault Then
-                If couldBeMergedNamespace Then
-                    symbols = leftHandSymbolInfo.CandidateSymbols _
+            Dim symbols As ImmutableArray(Of ISymbol)
+            If couldBeMergedNamespace Then
+                symbols = leftHandSymbolInfo.CandidateSymbols _
                     .OfType(Of INamespaceSymbol) _
                     .SelectMany(Function(n) LookupSymbolsInContainer(n, position, excludeInstance)) _
                     .ToImmutableArray()
-                Else
-                    symbols = GetSymbols(
-                        container, position:=position, excludeInstance:=excludeInstance, useBaseReferenceAccessibility:=useBaseReferenceAccessibility)
-                End If
+            Else
+                symbols = GetMemberSymbols(container, position, excludeInstance, useBaseReferenceAccessibility, unwrapNullable)
             End If
 
             If excludeShared Then
@@ -324,11 +336,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         ''' <summary>
-        ''' In MemberAccessExpression Contexts, filter out event symbols, except inside AddRemoveHandler Statements
+        ''' In MemberAccessExpression Contexts, filter out event symbols (except for NameOf context), except inside AddRemoveHandler Statements
         ''' Also, filter out any implicitly declared members generated by event declaration or property declaration
         ''' </summary>
-        Private Shared Function FilterEventsAndGeneratedSymbols(node As MemberAccessExpressionSyntax, s As ISymbol) As Boolean
-            If s.Kind = SymbolKind.Event Then
+        Private Function FilterEventsAndGeneratedSymbols(node As MemberAccessExpressionSyntax, s As ISymbol) As Boolean
+            If s.Kind = SymbolKind.Event AndAlso Not _context.IsNameOfContext Then
                 Return node IsNot Nothing AndAlso node.GetAncestor(Of AddRemoveHandlerStatementSyntax) IsNot Nothing
             ElseIf s.Kind = SymbolKind.Field AndAlso s.IsImplicitlyDeclared Then
                 Dim associatedSymbol = DirectCast(s, IFieldSymbol).AssociatedSymbol
@@ -338,6 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             ElseIf s.Kind = SymbolKind.NamedType AndAlso s.IsImplicitlyDeclared Then
                 Return Not TypeOf DirectCast(s, INamedTypeSymbol).AssociatedSymbol Is IEventSymbol
             End If
+
             Return True
         End Function
 

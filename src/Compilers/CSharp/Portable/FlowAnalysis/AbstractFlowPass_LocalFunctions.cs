@@ -1,10 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-
-#nullable enable
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -32,16 +31,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public TLocalState StateFromTop;
 
-            public AbstractLocalFunctionState(TLocalState unreachableState)
+            public AbstractLocalFunctionState(TLocalState stateFromBottom, TLocalState stateFromTop)
             {
-                StateFromBottom = unreachableState.Clone();
-                StateFromTop = unreachableState.Clone();
+                StateFromBottom = stateFromBottom;
+                StateFromTop = stateFromTop;
             }
 
             public bool Visited = false;
         }
 
-        protected abstract TLocalFunctionState CreateLocalFunctionState();
+        protected abstract TLocalFunctionState CreateLocalFunctionState(LocalFunctionSymbol symbol);
 
         private SmallDictionary<LocalFunctionSymbol, TLocalFunctionState>? _localFuncVarUsages = null;
 
@@ -49,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _localFuncVarUsages ??= new SmallDictionary<LocalFunctionSymbol, TLocalFunctionState>();
 
-            if (!_localFuncVarUsages.TryGetValue(localFunc, out TLocalFunctionState usages))
+            if (!_localFuncVarUsages.TryGetValue(localFunc, out TLocalFunctionState? usages))
             {
-                usages = CreateLocalFunctionState();
+                usages = CreateLocalFunctionState(localFunc);
                 _localFuncVarUsages[localFunc] = usages;
             }
             return usages;
@@ -59,6 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
         {
+            if (localFunc.Symbol.IsExtern)
+            {
+                // an extern local function is not permitted to have a body and thus shouldn't be flow analyzed
+                return null;
+            }
+
             var oldSymbol = this.CurrentSymbol;
             var localFuncSymbol = localFunc.Symbol;
             this.CurrentSymbol = localFuncSymbol;
@@ -153,7 +158,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TLocalFunctionState currentState,
             ref TLocalState stateAtReturn)
         {
-            bool anyChanged = Join(ref currentState.StateFromTop, ref stateAtReturn);
+            bool anyChanged = LocalFunctionEnd(savedState, currentState, ref stateAtReturn);
+            anyChanged |= Join(ref currentState.StateFromTop, ref stateAtReturn);
 
             if (NonMonotonicState.HasValue)
             {
@@ -164,10 +170,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Meet(ref value, ref stateAtReturn);
                 anyChanged |= Join(ref currentState.StateFromBottom, ref value);
             }
-
-            // N.B. Do NOT shortcut this operation. LocalFunctionEnd may have important
-            // side effects to the local function state
-            anyChanged |= LocalFunctionEnd(savedState, currentState, ref stateAtReturn);
             return anyChanged;
         }
 

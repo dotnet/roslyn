@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -203,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddAnonymousTypeName(symbol)
                 Return
 
-            ElseIf (symbol.IsTupleType) Then
+            ElseIf symbol.IsTupleType Then
                 ' If top level tuple uses non-default names, there is no way to preserve them
                 ' unless we use tuple syntax for the type. So, we give them priority.
                 If HasNonDefaultTupleElements(symbol) OrElse CanUseTupleTypeName(symbol) Then
@@ -328,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="tupleSymbol"></param>
         ''' <returns></returns>
         Private Shared Function CanUseTupleTypeName(tupleSymbol As INamedTypeSymbol) As Boolean
-            Dim currentUnderlying As INamedTypeSymbol = tupleSymbol.TupleUnderlyingType
+            Dim currentUnderlying As INamedTypeSymbol = GetTupleUnderlyingTypeOrSelf(tupleSymbol)
 
             If currentUnderlying.Arity = 1 Then
                 Return False
@@ -342,18 +344,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End If
 
-                currentUnderlying = tupleSymbol.TupleUnderlyingType
+                currentUnderlying = GetTupleUnderlyingTypeOrSelf(tupleSymbol)
             End While
 
             Return True
         End Function
 
+        Private Shared Function GetTupleUnderlyingTypeOrSelf(tupleSymbol As INamedTypeSymbol) As INamedTypeSymbol
+            Return If(tupleSymbol.TupleUnderlyingType, tupleSymbol)
+        End Function
+
         Private Shared Function HasNonDefaultTupleElements(tupleSymbol As INamedTypeSymbol) As Boolean
-            Return tupleSymbol.TupleElements.Any(Function(e) Not e.IsDefaultTupleElement)
+            Return tupleSymbol.TupleElements.Any(Function(e) e.IsExplicitlyNamedTupleElement)
         End Function
 
         Private Sub AddTupleTypeName(symbol As INamedTypeSymbol)
             Debug.Assert(symbol.IsTupleType)
+
+            If Me.format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.CollapseTupleTypes) Then
+                builder.Add(CreatePart(SymbolDisplayPartKind.StructName, symbol, "<tuple>", noEscaping:=True))
+                Return
+            End If
 
             Dim elements As ImmutableArray(Of IFieldSymbol) = symbol.TupleElements
 
@@ -367,8 +378,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddSpace()
                 End If
 
-                If Not element.IsImplicitlyDeclared Then
-                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name, noEscaping:=False))
+                If element.IsExplicitlyNamedTupleElement Then
+                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, element, element.Name, noEscaping:=False))
                     AddSpace()
                     AddKeyword(SyntaxKind.AsKeyword)
                     AddSpace()

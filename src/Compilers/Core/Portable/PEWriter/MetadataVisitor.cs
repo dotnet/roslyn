@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -465,6 +465,18 @@ namespace Microsoft.Cci
             this.Visit(pointerTypeReference.GetTargetType(Context));
         }
 
+        public virtual void Visit(IFunctionPointerTypeReference functionPointerTypeReference)
+        {
+            this.Visit(functionPointerTypeReference.Signature.RefCustomModifiers);
+            this.Visit(functionPointerTypeReference.Signature.ReturnValueCustomModifiers);
+            this.Visit(functionPointerTypeReference.Signature.GetType(Context));
+
+            foreach (var param in functionPointerTypeReference.Signature.GetParameters(Context))
+            {
+                this.Visit(param);
+            }
+        }
+
         public void Visit(IEnumerable<IPropertyDefinition> properties)
         {
             foreach (IPropertyDefinition property in properties)
@@ -621,6 +633,13 @@ namespace Microsoft.Cci
             if (pointerTypeReference != null)
             {
                 this.Visit(pointerTypeReference);
+                return;
+            }
+
+            IFunctionPointerTypeReference? functionPointerTypeReference = typeReference as IFunctionPointerTypeReference;
+            if (functionPointerTypeReference != null)
+            {
+                this.Visit(functionPointerTypeReference);
                 return;
             }
 

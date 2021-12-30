@@ -1,34 +1,31 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    [ExportWorkspaceService(typeof(ITemporaryStorageService)), Shared]
     internal sealed class TrivialTemporaryStorageService : ITemporaryStorageService
     {
-        [ImportingConstructor]
-        public TrivialTemporaryStorageService()
+        public static readonly TrivialTemporaryStorageService Instance = new();
+
+        private TrivialTemporaryStorageService()
         {
         }
 
         public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default)
-        {
-            return new StreamStorage();
-        }
+            => new StreamStorage();
 
         public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default)
-        {
-            return new TextStorage();
-        }
+            => new TextStorage();
 
         private sealed class StreamStorage : ITemporaryStreamStorage
         {
@@ -72,7 +69,11 @@ namespace Microsoft.CodeAnalysis
             public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
             {
                 var newStream = new MemoryStream();
+#if NETCOREAPP
+                await stream.CopyToAsync(newStream, cancellationToken).ConfigureAwait(false);
+# else
                 await stream.CopyToAsync(newStream).ConfigureAwait(false);
+#endif
                 _stream = newStream;
             }
         }
@@ -82,19 +83,13 @@ namespace Microsoft.CodeAnalysis
             private SourceText _sourceText;
 
             public void Dispose()
-            {
-                _sourceText = null;
-            }
+                => _sourceText = null;
 
             public SourceText ReadText(CancellationToken cancellationToken = default)
-            {
-                return _sourceText;
-            }
+                => _sourceText;
 
             public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default)
-            {
-                return Task.FromResult(ReadText(cancellationToken));
-            }
+                => Task.FromResult(ReadText(cancellationToken));
 
             public void WriteText(SourceText text, CancellationToken cancellationToken = default)
             {

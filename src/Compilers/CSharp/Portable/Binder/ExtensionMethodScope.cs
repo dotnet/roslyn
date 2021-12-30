@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -10,12 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal struct ExtensionMethodScope
     {
         public readonly Binder Binder;
-        public readonly bool SearchUsingsNotNamespace;
 
-        public ExtensionMethodScope(Binder binder, bool searchUsingsNotNamespace)
+        public ExtensionMethodScope(Binder binder)
         {
             this.Binder = binder;
-            this.SearchUsingsNotNamespace = searchUsingsNotNamespace;
         }
     }
 
@@ -66,17 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var binder = _current.Binder;
-                if (!_current.SearchUsingsNotNamespace)
-                {
-                    // Return a scope for the same Binder that was previously exposed
-                    // for the namespace, this time exposed for the usings.
-                    _current = new ExtensionMethodScope(binder, searchUsingsNotNamespace: true);
-                }
-                else
-                {
-                    // Return a scope for the next Binder that supports extension methods.
-                    _current = GetNextScope(binder.Next);
-                }
+                // Return a scope for the next Binder that supports extension methods.
+                _current = GetNextScope(binder.Next);
             }
 
             return (_current.Binder != null);
@@ -88,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (scope.SupportsExtensionMethods)
                 {
-                    return new ExtensionMethodScope(scope, searchUsingsNotNamespace: false);
+                    return new ExtensionMethodScope(scope);
                 }
             }
 

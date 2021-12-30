@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -774,7 +778,8 @@ class F : E
             CompileAndVerify(source: source, expectedOutput: output);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39959")]
+        [WorkItem(39959, "https://github.com/dotnet/roslyn/issues/39959")]
         public void TestIntPtrUserDefinedConversions()
         {
             // IntPtr and UIntPtr violate the rules of user-defined conversions for 
@@ -1145,6 +1150,7 @@ unsafe class P
             // All of the cases above should pass semantic analysis:
             var comp = CreateCompilation(source1 + source2 + source3 + source4 + source5, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
 
             // However, we have not yet implemented lowering and code generation for decimal,
             // lifted operators, nullable conversions and unsafe code so only generate code for
@@ -1532,7 +1538,7 @@ class InArgument<T>
     public static implicit operator InArgument<T>(T t) { return default(InArgument<T>); }
 }
 
-public struct start
+public struct @start
 {
     static public void Main()
     {
@@ -1640,6 +1646,267 @@ class C<T>
                 // (9,16): error CS0030: Cannot convert type 'void' to 'C<object>'
                 //         return (C<object>) M1();
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<object>) M1()").WithArguments("void", "C<object>").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedConversion_InvalidTypeArgument01()
+        {
+            var code = @"
+int? i = null;
+C c = i;
+
+class C
+{
+    public static implicit operator C(long l) => throw null;
+}
+
+namespace System
+{
+    public class Object {}
+    public class String {}
+    public class Exception {}
+    public class ValueType : Object {}
+    public struct Void {}
+    public struct Int32 {}
+    public struct Nullable<T> where T : struct {}
+    public ref struct Int64 {}
+}
+";
+
+            var comp = CreateEmptyCompilation(code);
+            comp.VerifyDiagnostics(
+                // (3,7): error CS0266: Cannot implicitly convert type 'int?' to 'C'. An explicit conversion exists (are you missing a cast?)
+                // C c = i;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i").WithArguments("int?", "C").WithLocation(3, 7)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedConversion_InvalidTypeArgument02()
+        {
+            var code = @"
+C c = null;
+M(c);
+
+void M(long? i) => throw null;
+
+class C
+{
+    public static implicit operator int(C c) => throw null;
+}
+
+namespace System
+{
+    public class Object {}
+    public class String {}
+    public class Exception {}
+    public class ValueType : Object {}
+    public struct Void {}
+    public ref struct Int32 {}
+    public struct Nullable<T> where T : struct { public Nullable(T value) {} }
+    public struct Int64 {}
+    public class Attribute {}
+}
+";
+
+            var comp = CreateEmptyCompilation(code);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+
+            // Note that no int? is being created.
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  call       ""int C.op_Implicit(C)""
+  IL_0006:  conv.i8
+  IL_0007:  newobj     ""long?..ctor(long)""
+  IL_000c:  call       ""void Program.<<Main>$>g__M|0_0(long?)""
+  IL_0011:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedConversion_InvalidTypeArgument03()
+        {
+            var code = @"
+int? i = null;
+C c = (C)i;
+
+class C
+{
+    public static explicit operator C(long l) => throw null;
+}
+
+namespace System
+{
+    public class Object {}
+    public class String {}
+    public class Exception {}
+    public class ValueType : Object {}
+    public struct Void {}
+    public struct Int32 {}
+    public struct Nullable<T> where T : struct { public T Value { get => throw null; } }
+    public ref struct Int64 {}
+    public class Attribute {}
+}
+";
+
+            var comp = CreateEmptyCompilation(code);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (int? V_0) //i
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""int?""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""int int?.Value.get""
+  IL_000f:  conv.i8
+  IL_0010:  call       ""C C.op_Explicit(long)""
+  IL_0015:  pop
+  IL_0016:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedConversion_InvalidTypeArgument04()
+        {
+            var code = @"
+C c = null;
+M((long?)c);
+
+void M(long? i) => throw null;
+
+class C
+{
+    public static explicit operator int(C c) => throw null;
+}
+
+namespace System
+{
+    public class Object {}
+    public class String {}
+    public class Exception {}
+    public class ValueType : Object {}
+    public struct Void {}
+    public ref struct Int32 {}
+    public struct Nullable<T> where T : struct { public Nullable(T value) {} }
+    public struct Int64 {}
+    public class Attribute {}
+}
+";
+
+            var comp = CreateEmptyCompilation(code);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+
+            // Note that no int? is being created.
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  call       ""int C.op_Explicit(C)""
+  IL_0006:  conv.i8
+  IL_0007:  newobj     ""long?..ctor(long)""
+  IL_000c:  call       ""void Program.<<Main>$>g__M|0_0(long?)""
+  IL_0011:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedConversion_InvalidTypeArgument05()
+        {
+            var code = @"
+unsafe
+{
+    S? s = null;
+    void* f = s;
+    System.Console.WriteLine((int)f);
+}
+
+public struct S
+{
+    public static unsafe implicit operator void*(S v) => throw null;
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Skipped);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  1
+  .locals init (S? V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S?""
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       ""bool S?.HasValue.get""
+  IL_0011:  brtrue.s   IL_0017
+  IL_0013:  ldc.i4.0
+  IL_0014:  conv.u
+  IL_0015:  br.s       IL_0023
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""S S?.GetValueOrDefault()""
+  IL_001e:  call       ""void* S.op_Implicit(S)""
+  IL_0023:  conv.i4
+  IL_0024:  call       ""void System.Console.WriteLine(int)""
+  IL_0029:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedConversion_InvalidTypeArgument06()
+        {
+            var code = @"
+unsafe
+{
+    S? s = null;
+    void* f = (void*)s;
+    System.Console.WriteLine((int)f);
+}
+
+public struct S
+{
+    public static unsafe explicit operator void*(S v) => throw null;
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Skipped);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  1
+  .locals init (S? V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S?""
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       ""bool S?.HasValue.get""
+  IL_0011:  brtrue.s   IL_0017
+  IL_0013:  ldc.i4.0
+  IL_0014:  conv.u
+  IL_0015:  br.s       IL_0023
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""S S?.GetValueOrDefault()""
+  IL_001e:  call       ""void* S.op_Explicit(S)""
+  IL_0023:  conv.i4
+  IL_0024:  call       ""void System.Console.WriteLine(int)""
+  IL_0029:  ret
+}
+");
         }
     }
 }

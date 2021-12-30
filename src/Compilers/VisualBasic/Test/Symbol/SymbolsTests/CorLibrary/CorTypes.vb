@@ -1,7 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports Basic.Reference.Assemblies
 Imports CompilationCreationTestHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
@@ -31,18 +35,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
         <Fact()>
         Public Sub PresentCorLib()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.NetCoreApp30.SystemRuntimeRef})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetCoreApp.SystemRuntime})
             Dim msCorLibRef As MetadataOrSourceAssemblySymbol = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
+
+            Dim knownMissingTypes As HashSet(Of Integer) = New HashSet(Of Integer)
 
             For i As Integer = 1 To SpecialType.Count
                 Dim t = msCorLibRef.GetSpecialType(CType(i, SpecialType))
                 Assert.Equal(CType(i, SpecialType), t.SpecialType)
                 Assert.Same(msCorLibRef, t.ContainingAssembly)
+                If knownMissingTypes.Contains(i) Then
+                    ' not present on dotnet core 3.1
+                    Assert.Equal(TypeKind.Error, t.TypeKind)
+                Else
+                    Assert.NotEqual(TypeKind.Error, t.TypeKind)
+                End If
             Next
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences({MetadataReference.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Runtime)})
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences({MetadataReference.CreateFromImage(Net50.Resources.SystemRuntime)})
             msCorLibRef = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
             Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
 
@@ -68,8 +80,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
                 Next
             End While
 
-            Assert.Equal(count, CType(SpecialType.Count, Integer))
-            Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
+            Assert.Equal(count + knownMissingTypes.Count, CType(SpecialType.Count, Integer))
+            Assert.Equal(knownMissingTypes.Any(), msCorLibRef.KeepLookingForDeclaredSpecialTypes)
         End Sub
 
         <Fact()>
@@ -164,7 +176,7 @@ End Namespace
 
             Dim c1 = VisualBasicCompilation.Create("Test1",
                 syntaxTrees:={VisualBasicSyntaxTree.ParseText(source1.Value)},
-                references:={TestReferences.NetFx.v4_0_21006.mscorlib})
+                references:={TestMetadata.Net40.mscorlib})
 
             Assert.Null(c1.GetTypeByMetadataName("DoesntExist"))
             Assert.Null(c1.GetTypeByMetadataName("DoesntExist`1"))
@@ -179,14 +191,14 @@ End Namespace
             Dim c2 = VisualBasicCompilation.Create("Test2",
                         syntaxTrees:={VisualBasicSyntaxTree.ParseText(source2.Value)},
                         references:={New VisualBasicCompilationReference(c1),
-                                        TestReferences.NetFx.v4_0_21006.mscorlib})
+                                        TestMetadata.Net40.mscorlib})
 
             Dim c2TestClass As NamedTypeSymbol = c2.GetTypeByMetadataName("System.TestClass")
             Assert.Same(c2.Assembly, c2TestClass.ContainingAssembly)
 
             Dim c3 = VisualBasicCompilation.Create("Test3",
                         references:={New VisualBasicCompilationReference(c2),
-                                    TestReferences.NetFx.v4_0_21006.mscorlib})
+                                    TestMetadata.Net40.mscorlib})
 
             Dim c3TestClass As NamedTypeSymbol = c3.GetTypeByMetadataName("System.TestClass")
             Assert.NotSame(c2TestClass, c3TestClass)
@@ -196,7 +208,7 @@ End Namespace
 
             Dim c4 = VisualBasicCompilation.Create("Test4",
                         references:={New VisualBasicCompilationReference(c1), New VisualBasicCompilationReference(c2),
-                                    TestReferences.NetFx.v4_0_21006.mscorlib})
+                                    TestMetadata.Net40.mscorlib})
 
             Dim c4TestClass As NamedTypeSymbol = c4.GetTypeByMetadataName("System.TestClass")
             Assert.Null(c4TestClass)

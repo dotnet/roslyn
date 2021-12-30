@@ -1,14 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
-using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -17,10 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
 {
     public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTests : AbstractSuppressionDiagnosticTest
     {
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
-
-        protected override string GetLanguage() => LanguageNames.CSharp;
+        protected internal override string GetLanguage() => LanguageNames.CSharp;
 
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
@@ -75,7 +74,7 @@ public class Class1
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 
 # IDE0059: Unnecessary assignment of a value
-csharp_style_unused_value_assignment_preference = discard_variable:error
+dotnet_diagnostic.IDE0059.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -105,6 +104,7 @@ public class Class1
 
 # IDE0059: Unnecessary assignment of a value
 csharp_style_unused_value_assignment_preference = discard_variable:warning
+dotnet_diagnostic.IDE0059.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -128,6 +128,7 @@ public class Class1
 
 # IDE0059: Unnecessary assignment of a value
 csharp_style_unused_value_assignment_preference = discard_variable:error
+dotnet_diagnostic.IDE0059.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -157,6 +158,7 @@ public class Class1
 
 # IDE0059: Unnecessary assignment of a value
 csharp_style_unused_value_assignment_preference = discard_variable:warning
+dotnet_diagnostic.IDE0059.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -180,6 +182,7 @@ public class Class1
 
 # IDE0059: Unnecessary assignment of a value
 csharp_style_unused_value_assignment_preference = discard_variable:error
+dotnet_diagnostic.IDE0059.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -233,7 +236,7 @@ public class Class1
 csharp_style_expression_bodied_methods = false:silent
 
 # IDE0059: Unnecessary assignment of a value
-csharp_style_unused_value_assignment_preference = discard_variable:error
+dotnet_diagnostic.IDE0059.severity = error
 
 [*.{vb,cs}]
 dotnet_style_qualification_for_field = false:silent
@@ -293,7 +296,7 @@ dotnet_style_qualification_for_field = false:silent
 csharp_style_expression_bodied_methods = false:silent
 
 # IDE0059: Unnecessary assignment of a value
-csharp_style_unused_value_assignment_preference = discard_variable:error
+dotnet_diagnostic.IDE0059.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";

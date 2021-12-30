@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -148,46 +150,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return new ArgumentException(string.Format(CultureInfo.CurrentCulture, errorString, args));
         }
 
-        internal static string TryGetAssemblyPath(Assembly assembly)
+        internal static string? TryGetAssemblyPath(Assembly assembly)
         {
-            if ((bool?)typeof(Assembly).GetTypeInfo()
-                .GetDeclaredProperty("GlobalAssemblyCache")
-                ?.GetMethod.Invoke(assembly, parameters: null) == true)
+#if NETFRAMEWORK
+            if (assembly.GlobalAssemblyCache)
             {
                 return null;
             }
 
-            var codebase = (string)typeof(Assembly)
-                .GetTypeInfo()
-                .GetDeclaredProperty("CodeBase")
-                ?.GetMethod.Invoke(assembly, parameters: null);
-
-            if (codebase != null)
+            if (assembly.CodeBase is { } codebase)
             {
                 var uri = new Uri(codebase);
-                if (uri.IsFile)
-                {
-                    return uri.LocalPath;
-                }
-                else
-                {
-                    var callingAssembly = (Assembly)typeof(Assembly)
-                        .GetTypeInfo()
-                        .GetDeclaredMethod("GetCallingAssembly")
-                        ?.Invoke(null, null);
-
-                    var location = (string)typeof(Assembly).GetTypeInfo()
-                        .GetDeclaredProperty("Location")
-                        ?.GetMethod.Invoke(assembly, parameters: null);
-
-                    if (location != null)
-                    {
-                        return location;
-                    }
-                }
+                return uri.IsFile ? uri.LocalPath : assembly.Location;
             }
 
             return null;
+#else
+            return assembly.Location;
+#endif
         }
 
         /// <summary>
@@ -200,8 +180,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
 
             return RuntimeHostInfo.IsDesktopRuntime
-                ? Path.Combine(assemblyDirectory, toolName)
-                : Path.Combine(assemblyDirectory, "bincore", toolName);
+                ? Path.Combine(assemblyDirectory!, toolName)
+                : Path.Combine(assemblyDirectory!, "bincore", toolName);
         }
     }
 }

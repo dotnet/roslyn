@@ -1,5 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -25,19 +31,58 @@ namespace Microsoft.CodeAnalysis.AddImport
             private bool ShouldAddProjectReference()
                 => FixData.ProjectReferenceToAdd != null && FixData.ProjectReferenceToAdd != OriginalDocument.Project.Id;
 
-            internal override bool PerformFinalApplicabilityCheck
-                => ShouldAddProjectReference();
-
-            internal override bool IsApplicable(Workspace workspace)
-                => ShouldAddProjectReference() &&
-                   workspace.CanAddProjectReference(
-                    OriginalDocument.Project.Id, FixData.ProjectReferenceToAdd);
-
-            protected override Project UpdateProject(Project project)
+            protected override Task<CodeActionOperation?> UpdateProjectAsync(Project project, bool isPreview, CancellationToken cancellationToken)
             {
-                return ShouldAddProjectReference()
-                    ? project.AddProjectReference(new ProjectReference(FixData.ProjectReferenceToAdd))
-                    : project;
+                if (!ShouldAddProjectReference())
+                {
+                    return SpecializedTasks.Null<CodeActionOperation>();
+                }
+
+                var projectWithAddedReference = project.AddProjectReference(new ProjectReference(FixData.ProjectReferenceToAdd));
+                var applyOperation = new ApplyChangesOperation(projectWithAddedReference.Solution);
+                if (isPreview)
+                {
+                    return Task.FromResult<CodeActionOperation?>(applyOperation);
+                }
+
+                return Task.FromResult<CodeActionOperation?>(new AddProjectReferenceCodeActionOperation(OriginalDocument.Project.Id, FixData.ProjectReferenceToAdd, applyOperation));
+            }
+
+            private sealed class AddProjectReferenceCodeActionOperation : CodeActionOperation
+            {
+                private readonly ProjectId _referencingProject;
+                private readonly ProjectId _referencedProject;
+                private readonly ApplyChangesOperation _applyOperation;
+
+                public AddProjectReferenceCodeActionOperation(ProjectId referencingProject, ProjectId referencedProject, ApplyChangesOperation applyOperation)
+                {
+                    _referencingProject = referencingProject;
+                    _referencedProject = referencedProject;
+                    _applyOperation = applyOperation;
+                }
+
+                internal override bool ApplyDuringTests => true;
+
+                public override void Apply(Workspace workspace, CancellationToken cancellationToken)
+                {
+                    if (!CanApply(workspace))
+                        return;
+
+                    _applyOperation.Apply(workspace, cancellationToken);
+                }
+
+                internal override Task<bool> TryApplyAsync(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                {
+                    if (!CanApply(workspace))
+                        return SpecializedTasks.False;
+
+                    return _applyOperation.TryApplyAsync(workspace, progressTracker, cancellationToken);
+                }
+
+                private bool CanApply(Workspace workspace)
+                {
+                    return workspace.CanAddProjectReference(_referencingProject, _referencedProject);
+                }
             }
         }
     }

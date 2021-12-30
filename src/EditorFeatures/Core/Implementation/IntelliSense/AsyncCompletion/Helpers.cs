@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text;
 using EditorAsyncCompletion = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -98,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         {
                             return true;
                         }
+
                         continue;
 
                     case CharacterSetModificationKind.Remove:
@@ -105,6 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         {
                             return false;
                         }
+
                         continue;
 
                     case CharacterSetModificationKind.Replace:
@@ -135,37 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         // Tab, Enter and Null (call invoke commit) are always commit characters. 
         internal static bool IsStandardCommitCharacter(char c)
-            => c == '\t' || c == '\n' || c == '\0';
-
-        internal static bool TryGetInitialTriggerLocation(EditorAsyncCompletion.IAsyncCompletionSession session, out SnapshotPoint initialTriggerLocation)
-        {
-            if (session is EditorAsyncCompletion.IAsyncCompletionSessionOperations sessionOperations)
-            {
-                initialTriggerLocation = sessionOperations.InitialTriggerLocation;
-                return true;
-            }
-
-            initialTriggerLocation = default;
-            return false;
-        }
-
-        internal static bool TryGetInitialTriggerLocation(VSCompletionItem item, out SnapshotPoint initialTriggerLocation)
-        {
-            if (item.Properties.TryGetProperty(CompletionSource.TriggerLocation, out initialTriggerLocation))
-            {
-                return true;
-            }
-
-            initialTriggerLocation = default;
-            return false;
-        }
-
-        // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
-        // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.
-        // We check both the display text and the display text prefix to account for IntelliCode item providers
-        // that may be using the prefix to include the ★.
-        internal static bool IsPreferredItem(this RoslynCompletionItem completionItem)
-            => completionItem.DisplayText.StartsWith("★") || completionItem.DisplayTextPrefix.StartsWith("★");
+            => c is '\t' or '\n' or '\0';
 
         // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
         // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.

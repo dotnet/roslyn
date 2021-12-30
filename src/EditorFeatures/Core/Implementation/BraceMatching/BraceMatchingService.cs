@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -17,13 +21,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         private readonly ImmutableArray<Lazy<IBraceMatcher, LanguageMetadata>> _braceMatchers;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public BraceMatchingService(
             [ImportMany] IEnumerable<Lazy<IBraceMatcher, LanguageMetadata>> braceMatchers)
         {
             _braceMatchers = braceMatchers.ToImmutableArray();
         }
 
-        public async Task<BraceMatchingResult?> GetMatchingBracesAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<BraceMatchingResult?> GetMatchingBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             if (position < 0 || position > text.Length)
@@ -35,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             foreach (var matcher in matchers)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var braces = await matcher.Value.FindBracesAsync(document, position, cancellationToken).ConfigureAwait(false);
+                var braces = await matcher.Value.FindBracesAsync(document, position, options, cancellationToken).ConfigureAwait(false);
                 if (braces.HasValue)
                 {
                     return braces;

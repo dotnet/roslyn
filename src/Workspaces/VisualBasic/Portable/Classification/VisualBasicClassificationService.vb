@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
@@ -13,14 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         Inherits AbstractClassificationService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
-            Dim temp = ArrayBuilder(Of ClassifiedSpan).GetInstance()
-            ClassificationHelpers.AddLexicalClassifications(text, textSpan, temp, cancellationToken)
-            AddRange(temp, result)
-            temp.Free()
+        Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken)
         End Sub
 
         Public Overrides Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan

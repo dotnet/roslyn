@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -17,8 +19,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(threadingContext As IThreadingContext, glyphService As IGlyphService, serviceProvider As SVsServiceProvider, workspaceProvider As IProgressionPrimaryWorkspaceProvider, listenerProvider As IAsynchronousOperationListenerProvider)
-            MyBase.New(threadingContext, glyphService, serviceProvider, workspaceProvider.PrimaryWorkspace, listenerProvider)
+        Public Sub New(threadingContext As IThreadingContext, glyphService As IGlyphService, serviceProvider As SVsServiceProvider, workspace As VisualStudioWorkspace, listenerProvider As IAsynchronousOperationListenerProvider)
+            MyBase.New(threadingContext, glyphService, serviceProvider, workspace, listenerProvider)
         End Sub
     End Class
 End Namespace

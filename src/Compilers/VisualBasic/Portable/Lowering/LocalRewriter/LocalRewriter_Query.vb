@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -89,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim parameterName As String = parameter.Name
                     Dim isReservedName As Boolean = parameterName.StartsWith("$"c, StringComparison.Ordinal)
 
-                    If isReservedName AndAlso String.Equals(parameterName, StringConstants.ItAnonymous, StringComparison.Ordinal) Then
+                    If isReservedName AndAlso String.Equals(parameterName, GeneratedNameConstants.ItAnonymous, StringComparison.Ordinal) Then
                         ' This parameter represents "nameless" range variable, there are no references to it.
                         Continue For
                     End If
@@ -170,9 +172,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Shared Function IsCompoundVariableName(name As String) As Boolean
-            Return name.Equals(StringConstants.It, StringComparison.Ordinal) OrElse
-                   name.Equals(StringConstants.It1, StringComparison.Ordinal) OrElse
-                   name.Equals(StringConstants.It2, StringComparison.Ordinal)
+            Return name.Equals(GeneratedNameConstants.It, StringComparison.Ordinal) OrElse
+                   name.Equals(GeneratedNameConstants.It1, StringComparison.Ordinal) OrElse
+                   name.Equals(GeneratedNameConstants.It2, StringComparison.Ordinal)
         End Function
 
         Friend Shared Function CreateReturnStatementForQueryLambdaBody(
@@ -202,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As BoundLambda = New BoundLambda(originalNode.Syntax,
                                    originalNode.LambdaSymbol,
                                    lambdaBody,
-                                   ImmutableArray(Of Diagnostic).Empty,
+                                   ImmutableBindingDiagnostic(Of AssemblySymbol).Empty,
                                    Nothing,
                                    ConversionKind.DelegateRelaxationLevelNone,
                                    MethodConversionKind.Identity)

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -17,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static readonly OverriddenOrHiddenMembersResult Empty =
             new OverriddenOrHiddenMembersResult(
                 ImmutableArray<Symbol>.Empty,
-                ImmutableArray<Symbol>.Empty,
                 ImmutableArray<Symbol>.Empty);
 
         private readonly ImmutableArray<Symbol> _overriddenMembers;
@@ -26,31 +29,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<Symbol> _hiddenMembers;
         public ImmutableArray<Symbol> HiddenMembers { get { return _hiddenMembers; } }
 
-        private readonly ImmutableArray<Symbol> _runtimeOverriddenMembers;
-        public ImmutableArray<Symbol> RuntimeOverriddenMembers { get { return _runtimeOverriddenMembers; } }
-
         private OverriddenOrHiddenMembersResult(
             ImmutableArray<Symbol> overriddenMembers,
-            ImmutableArray<Symbol> hiddenMembers,
-            ImmutableArray<Symbol> runtimeOverriddenMembers)
+            ImmutableArray<Symbol> hiddenMembers)
         {
             _overriddenMembers = overriddenMembers;
             _hiddenMembers = hiddenMembers;
-            _runtimeOverriddenMembers = runtimeOverriddenMembers;
         }
 
         public static OverriddenOrHiddenMembersResult Create(
             ImmutableArray<Symbol> overriddenMembers,
-            ImmutableArray<Symbol> hiddenMembers,
-            ImmutableArray<Symbol> runtimeOverriddenMembers)
+            ImmutableArray<Symbol> hiddenMembers)
         {
-            if (overriddenMembers.IsEmpty && hiddenMembers.IsEmpty && runtimeOverriddenMembers.IsEmpty)
+            if (overriddenMembers.IsEmpty && hiddenMembers.IsEmpty)
             {
                 return Empty;
             }
             else
             {
-                return new OverriddenOrHiddenMembersResult(overriddenMembers, hiddenMembers, runtimeOverriddenMembers);
+                return new OverriddenOrHiddenMembersResult(overriddenMembers, hiddenMembers);
             }
         }
 
