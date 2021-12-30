@@ -315,13 +315,13 @@ public static class ProgramExtension
 
                 state.SendTypeChars("(")
                 Await state.AssertSignatureHelpSession()
-                Assert.Equal({"(extension) void Program.F(string name)", "(extension) void Program.F(int i, int j)"},
+                Assert.Equal({$"({CSharpFeaturesResources.extension}) void Program.F(string name)", $"({CSharpFeaturesResources.extension}) void Program.F(int i, int j)"},
                              state.GetSignatureHelpItems().Select(Function(i) i.ToString()))
-                Await state.AssertSelectedSignatureHelpItem("(extension) void Program.F(string name)")
+                Await state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.extension}) void Program.F(string name)")
 
                 state.SendTypeChars("1")
                 Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("(extension) void Program.F(int i, int j)")
+                Await state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.extension}) void Program.F(int i, int j)")
             End Using
         End Function
 
