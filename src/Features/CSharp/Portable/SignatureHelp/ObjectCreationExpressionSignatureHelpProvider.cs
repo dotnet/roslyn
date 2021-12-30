@@ -107,8 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             int parameterIndex;
             if (currentSymbol is null)
             {
-                (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, methods, position,
-                    semanticModel, semanticFactsService);
+                (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, methods, position, semanticModel, semanticFactsService);
             }
             else
             {

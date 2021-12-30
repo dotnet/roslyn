@@ -73,15 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var structuralTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();
-            var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
             var invokedType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type;
-
             ImmutableArray<IMethodSymbol> methods;
             IMethodSymbol? currentSymbol;
-
             if (invokedType is INamedTypeSymbol expressionType && expressionType.TypeKind == TypeKind.Delegate)
             {
                 var invokeMethod = GetDelegateInvokeMethod(invocationExpression, semanticModel, within, expressionType, cancellationToken);
@@ -125,8 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             int parameterIndex;
             if (currentSymbol is null)
             {
-                (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, methods, position,
-                    semanticModel, semanticFactsService);
+                (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, methods, position, semanticModel, semanticFactsService);
             }
             else
             {
@@ -146,6 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (invokedType is INamedTypeSymbol { TypeKind: TypeKind.Delegate }
                 || invokedType is IFunctionPointerTypeSymbol)
             {
+                var structuralTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();
+                var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
+
                 items = GetDelegateOrFunctionPointerInvokeItems(invocationExpression, currentSymbol!,
                     semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, out selectedItem, cancellationToken);
             }
@@ -155,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     methods, document, invocationExpression, semanticModel, currentSymbol is null ? default : new SymbolInfo(currentSymbol), cancellationToken).ConfigureAwait(false);
             }
 
+            var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
             return MakeSignatureHelpItems(items, textSpan, currentSymbol, parameterIndex, selectedItem, arguments, position);
         }
     }
