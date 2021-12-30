@@ -83,7 +83,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             // If replacementText is invalid, we won't rename the file.
             DefaultRenameFileFlag = _isReplacementTextValid
-                && (_session.OptionSet.GetOption(RenameOptions.RenameFile) || AllowFileRename);
+                && AllowFileRename
+                && _session.OptionSet.GetOption(RenameOptions.RenameFile);
         }
 
         private void OnReplacementsComputed(object sender, IInlineRenameReplacementInfo result)

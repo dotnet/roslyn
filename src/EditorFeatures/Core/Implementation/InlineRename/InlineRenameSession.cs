@@ -338,6 +338,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 _optionSet = _optionSet.WithChangedOption(renameOption, newValue);
 
+                // As the options get refreshed, make sure they are applied to the solution in case 
+                // they are saved in local storage
+                var solutionOptions = _workspace.CurrentSolution.Options.WithChangedOption(renameOption, newValue);
+                _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(solutionOptions));
+
                 var cancellationToken = _cancellationTokenSource.Token;
 
                 UpdateReferenceLocationsTask(ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
