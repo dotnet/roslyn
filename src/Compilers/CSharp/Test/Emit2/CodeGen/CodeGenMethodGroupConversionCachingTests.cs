@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
@@ -5147,4 +5148,259 @@ System.Action");
 }");
     }
 
+    [Fact]
+    public void CustomModifiers_Method()
+    {
+        var ilSource = @"
+.class public auto ansi beforefieldinit C1`1<T>
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        string Method () cil managed 
+    {
+        // Method begins at RVA 0x2050
+        // Code size 6 (0x6)
+        .maxstack 8
+
+        IL_0000: ldstr ""PASS""
+        IL_0005: ret
+    } // end of method C1`1::Method
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2057
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C1`1::.ctor
+
+} // end of class C1`1
+
+.class public auto ansi beforefieldinit C2`1<T>
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2057
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C2`1::.ctor
+
+} // end of class C2`1
+
+.class public auto ansi beforefieldinit C3`1<T>
+    extends class C1`1<int32 modopt(class C2`1<!T>)>
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x205f
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void class C1`1<int32>::.ctor()
+        IL_0006: ret
+    } // end of method C3`1::.ctor
+
+} // end of class C3`1
+";
+        var source = @"
+class Test
+{
+    static void Main()
+    {
+        M<int>();
+    }
+
+    static void M<G>()
+    {
+        System.Func<string> x = C3<G>.Method;
+        System.Console.WriteLine(x());
+    }
+}
+";
+        var compilation = CreateCompilationWithIL(source, ilSource, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(compilation, expectedOutput: PASS);
+        verifier.VerifyIL("Test.M<G>", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<string> Test.<M>O__1_0<G>.<0>__Method""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""string C1<int>.Method()""
+  IL_0010:  newobj     ""System.Func<string>..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""System.Func<string> Test.<M>O__1_0<G>.<0>__Method""
+  IL_001b:  callvirt   ""string System.Func<string>.Invoke()""
+  IL_0020:  call       ""void System.Console.WriteLine(string)""
+  IL_0025:  ret
+}
+");
+    }
+
+    [Fact]
+    public void CustomModifiers_Delegate()
+    {
+        var ilSource = @"
+.class public auto ansi beforefieldinit C1`1<T>
+	extends [mscorlib]System.Object
+{
+	// Nested Types
+	.class nested public auto ansi sealed F<T>
+		extends [mscorlib]System.MulticastDelegate
+	{
+		// Methods
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor (
+				object 'object',
+				native int 'method'
+			) runtime managed 
+		{
+		} // end of method F::.ctor
+
+		.method public hidebysig newslot virtual 
+			instance string Invoke () runtime managed 
+		{
+		} // end of method F::Invoke
+
+		.method public hidebysig newslot virtual 
+			instance class [mscorlib]System.IAsyncResult BeginInvoke (
+				class [mscorlib]System.AsyncCallback callback,
+				object 'object'
+			) runtime managed 
+		{
+		} // end of method F::BeginInvoke
+
+		.method public hidebysig newslot virtual 
+			instance string EndInvoke (
+				class [mscorlib]System.IAsyncResult result
+			) runtime managed 
+		{
+		} // end of method F::EndInvoke
+
+	} // end of class F
+
+
+	// Methods
+	.method public hidebysig 
+		instance string Method () cil managed 
+	{
+		// Method begins at RVA 0x2118
+		// Code size 6 (0x6)
+		.maxstack 8
+
+		IL_0000: ldstr ""PASS""
+		IL_0005: ret
+	} // end of method C1`1::Method
+
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x211f
+		// Code size 8 (0x8)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: nop
+		IL_0007: ret
+	} // end of method C1`1::.ctor
+
+} // end of class C1`1
+
+.class public auto ansi beforefieldinit C2`1<T>
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2057
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C2`1::.ctor
+
+} // end of class C2`1
+
+.class public auto ansi beforefieldinit C3`1<T>
+    extends class C1`1<int32 modopt(class C2`1<!T>)>
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x205f
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void class C1`1<int32>::.ctor()
+        IL_0006: ret
+    } // end of method C3`1::.ctor
+
+} // end of class C3`1
+";
+        var source = @"
+class Test
+{
+    static void Main()
+    {
+        M<int>();
+    }
+
+    static void M<G>()
+    {
+        C3<G>.F x = Method;
+        System.Console.WriteLine(x());
+    }
+
+    static string Method() => ""PASS"";
+}
+";
+        var compilation = CreateCompilationWithIL(source, ilSource, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(compilation, expectedOutput: PASS);
+        verifier.VerifyIL("Test.M<G>", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  2
+  .locals init (C1<int>.F V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C1<int>.F Test.<M>O__1_0<G>.<0>__Method""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_001c
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  ldftn      ""string Test.Method()""
+  IL_0011:  newobj     ""C1<int>.F..ctor(object, System.IntPtr)""
+  IL_0016:  dup
+  IL_0017:  stsfld     ""C1<int>.F Test.<M>O__1_0<G>.<0>__Method""
+  IL_001c:  stloc.0
+  IL_001d:  ldloc.0
+  IL_001e:  callvirt   ""string C1<int>.F.Invoke()""
+  IL_0023:  call       ""void System.Console.WriteLine(string)""
+  IL_0028:  nop
+  IL_0029:  ret
+}
+");
+    }
 }
