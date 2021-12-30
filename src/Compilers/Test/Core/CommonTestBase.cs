@@ -35,10 +35,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         FailsPeVerify = 1 << 2,
         FailsIlVerify = 1 << 3,
 
+        TypeLoadFailed = 1 << 4,
+        UnexpectedTypeOnStack = 1 << 5,
+        UnableToResolveToken = 1 << 6,
+        TypeDevNotNil = 1 << 7,
+        ClassLayout = 1 << 8,
+        BadName = 1 << 9,
+        MissingManifest = 1 << 10,
+
         Passes = PassesPeVerify | PassesIlVerify,
         Fails = FailsPeVerify | FailsIlVerify,
 
-        FailsIlVerify_IVT = PassesPeVerify | FailsIlVerify, // ILVerify is case-sensitive in IVT 
+        FailsIlVerify_IVT = PassesPeVerify | FailsIlVerify, // ILVerify is case-sensitive in IVT
         // TODO2 can we add FailsIlVerify here too and rename?
         FullNames = PassesPeVerify, // ILVerify uses simple names instead of full names
         FailsIlVerify_TypedReference = PassesPeVerify | FailsIlVerify, // ILVerify doesn't support TypedReference
@@ -49,14 +57,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         FailsIlVerify_RuntimeArgumentHandle = PassesPeVerify | FailsIlVerify, // ILVerify reports: RuntimeArgumentHandle not supported in .NET Core
         FailsIlVerify_LeaveIntoTry = PassesPeVerify | FailsIlVerify, // ILVerify reports: Leave into try block.
 
-        FailsPeVerify_TypeLoadFailed = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain type load failed
-        FailsPeVerify_UnexpectedTypeOnStack = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: Unexpected type on the stack.
-        FailsPeVerify_UnableToResolveToken = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about "unable to resolve token"
-        FailsPeVerify_TypeDevNotNil = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: TypeDef for Object class extends token=0x01000005 which is not nil.
-        FailsPeVerify_ClassLayout = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: ClassLayout has parent TypeDef token=0x0200000f marked AutoLayout.
-        FailsPeVerify_BadName = FailsPeVerify | PassesIlVerify, // PEVerify complains about: Assembly name contains leading spaces or path or extension.
+        FailsPeVerify_TypeLoadFailed = FailsPeVerify | PassesIlVerify | TypeLoadFailed, // ILVerify doesn't complain type load failed
+        FailsPeVerify_UnexpectedTypeOnStack = FailsPeVerify | PassesIlVerify | UnexpectedTypeOnStack, // ILVerify doesn't complain about: Unexpected type on the stack.
+        FailsPeVerify_UnableToResolveToken = FailsPeVerify | PassesIlVerify | UnableToResolveToken, // ILVerify doesn't complain about "unable to resolve token"
+        FailsPeVerify_TypeDevNotNil = FailsPeVerify | PassesIlVerify | TypeDevNotNil, // ILVerify doesn't complain about: TypeDef for Object class extends token=0x01000005 which is not nil.
+        FailsPeVerify_ClassLayout = FailsPeVerify | PassesIlVerify | ClassLayout, // ILVerify doesn't complain about: ClassLayout has parent TypeDef token=0x0200000f marked AutoLayout.
+        FailsPeVerify_BadName = FailsPeVerify | PassesIlVerify | BadName, // PEVerify complains about: Assembly name contains leading spaces or path or extension.
         FailsPeVerify_BadFormat = FailsPeVerify | PassesIlVerify, // PEVerify complains about: An attempt was made to load a program with an incorrect format.
-        FailsPeVerify_MissingManifest = Verification.FailsPeVerify | Verification.PassesIlVerify, // PEVerify complains about: The module  was expected to contain an assembly manifest.
+        FailsPeVerify_MissingManifest = FailsPeVerify | PassesIlVerify | MissingManifest, // PEVerify complains about: The module  was expected to contain an assembly manifest.
     }
 
     /// <summary>
@@ -185,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (assemblyValidator != null || symbolValidator != null)
             {
                 // We're dual-purposing emitters here.  In this context, it
-                // tells the validator the version of Emit that is calling it. 
+                // tells the validator the version of Emit that is calling it.
                 RunValidators(verifier, assemblyValidator, symbolValidator);
             }
 
@@ -647,7 +655,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // all operations from spine should belong to the operation tree set
                 VerifyOperationTreeSpine(semanticModel, set, child.Syntax);
 
-                // operation tree's node must be part of root of semantic model which is 
+                // operation tree's node must be part of root of semantic model which is
                 // owner of operation's lifetime
                 Assert.True(semanticModel.Root.FullSpan.Contains(child.Syntax.FullSpan));
             }

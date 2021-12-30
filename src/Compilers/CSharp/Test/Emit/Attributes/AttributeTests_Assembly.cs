@@ -298,6 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
             var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
 
+            // TODO2
             // PEVerify:
             // Warning: Invalid locale string.
             CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: m =>

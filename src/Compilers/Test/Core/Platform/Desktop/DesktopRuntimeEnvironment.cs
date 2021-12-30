@@ -392,8 +392,42 @@ namespace Roslyn.Test.Utilities.Desktop
                 {
                     throw new Exception("Verification failed", ex);
                 }
+                if ((verification & Verification.TypeLoadFailed) != 0
+                    && !ex.Message.Contains("Type load failed."))
+                {
+                    throw new Exception("Expected: Type load failed.", ex);
+                }
+                if ((verification & Verification.UnexpectedTypeOnStack) != 0
+                    && !ex.Message.Contains("Unexpected type on the stack."))
+                {
+                    throw new Exception("Expected: Unexpected type on the stack.", ex);
+                }
+                if ((verification & Verification.UnableToResolveToken) != 0
+                    && !ex.Message.Contains("Unable to resolve token."))
+                {
+                    throw new Exception("Expected: Unable to resolve token.", ex);
+                }
+                if ((verification & Verification.TypeDevNotNil) != 0
+                    && !ex.Message.Contains("which is not nil."))
+                {
+                    throw new Exception("Expected: [...] which is not nil.", ex);
+                }
+                if ((verification & Verification.ClassLayout) != 0
+                    && !ex.Message.Contains("marked AutoLayout."))
+                {
+                    throw new Exception("Expected: [...] marked AutoLayout.", ex);
+                }
+                if ((verification & Verification.BadName) != 0
+                    && !ex.Message.Contains("Assembly name contains leading spaces or path or extension."))
+                {
+                    throw new Exception("Expected: Assembly name contains leading spaces or path or extension.", ex);
+                }
+                if ((verification & Verification.MissingManifest) != 0
+                    && !ex.Message.Contains("was expected to contain an assembly manifest."))
+                {
+                    throw new Exception("Expected: was expected to contain an assembly manifest.", ex);
+                }
             }
-
         }
 
         public string[] VerifyModules(string[] modulesToVerify)
