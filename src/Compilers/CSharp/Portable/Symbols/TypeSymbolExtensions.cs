@@ -722,6 +722,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
+                if (typeWithAnnotationsOpt.HasType)
+                {
+                    foreach (var customModifier in typeWithAnnotationsOpt.CustomModifiers)
+                    {
+                        var modifier = customModifier.Modifier.GetSymbol<NamedTypeSymbol>();
+                        var result = VisitType(default, modifier, typeWithAnnotationsPredicate, typePredicate, arg, canDigThroughNullable, useDefaultType);
+                        if (result is object)
+                        {
+                            return result;
+                        }
+                    }
+                }
+
                 TypeWithAnnotations next;
 
                 switch (current.TypeKind)

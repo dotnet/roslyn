@@ -278,8 +278,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var referenced = PooledHashSet<TypeParameterSymbol>.GetInstance();
             foreach (var field in typeDescr.Fields)
             {
-                field.Type.VisitType(
-                    (type, referenced, _) =>
+                field.TypeWithAnnotations.VisitType(
+                    type: null,
+                    typeWithAnnotationsPredicate: null,
+                    typePredicate: (type, referenced, _) =>
                     {
                         if (type is TypeParameterSymbol typeParameter)
                         {
@@ -287,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         return false;
                     },
-                    referenced);
+                    arg: referenced);
             }
 
             ImmutableArray<TypeParameterSymbol> typeParameters;

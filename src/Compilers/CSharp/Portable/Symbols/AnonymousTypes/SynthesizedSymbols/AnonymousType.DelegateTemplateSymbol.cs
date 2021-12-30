@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             private readonly ImmutableArray<Symbol> _members;
 
+            /// <summary>
+            /// True if the parameter types and return type of the delegate are all type parameters.
+            /// </summary>
             internal readonly bool IsParameterizedDelegateType;
 
             internal AnonymousDelegateTemplateSymbol(
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol? voidReturnTypeOpt,
                 int parameterCount,
                 RefKindVector refKinds)
-                : base(manager, Location.None)
+                : base(manager, Location.None) // Location is not needed since NameAndIndex is set explicitly below.
             {
                 Debug.Assert(refKinds.IsNull || parameterCount == refKinds.Capacity - (voidReturnTypeOpt is { } ? 0 : 1));
 
@@ -122,9 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var parameterRefKinds = ArrayBuilder<RefKind>.GetInstance(parameterCount);
                     for (int i = 0; i < parameterCount; i++)
                     {
-                        var parameterOrReturn = fields[i];
-                        parameterTypes.Add(typeMap.SubstituteType(parameterOrReturn.Type));
-                        parameterRefKinds.Add(parameterOrReturn.RefKind);
+                        var parameter = fields[i];
+                        parameterTypes.Add(typeMap.SubstituteType(parameter.Type));
+                        parameterRefKinds.Add(parameter.RefKind);
                     }
 
                     var returnParameter = fields[^1];

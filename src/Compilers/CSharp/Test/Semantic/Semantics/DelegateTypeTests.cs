@@ -9303,6 +9303,55 @@ struct A<T>
         }
 
         [Fact]
+        public void SynthesizedDelegateTypes_35()
+        {
+            var sourceA =
+@".class public A`1<T>
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public static void F1(int32* modopt(class A`1<!T>) i) { ret }
+  .method public static int32* F2<U>(!T modopt(class A`1<!!U>) t) { ldnull throw }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"using System;
+class B1<T> : A<T>
+{
+    unsafe public static Delegate F()
+    {
+        return F1;
+    }
+}
+class B2 : A<string>
+{
+    unsafe public static Delegate F<T>()
+    {
+        return F2<T>;
+    }
+}
+class Program
+{
+    unsafe static void Main()
+    {
+        var d1 = B1<double>.F();
+        Report(d1);
+        var d2 = B2.F<double>();
+        Report(d2);
+    }
+    static void Report(Delegate d)
+    {
+        var t = d.GetType();
+        Console.WriteLine(t);
+    }
+}";
+            CompileAndVerify(sourceB, references: new[] { refA }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"<>f__AnonymousDelegate0`1[System.Double]
+<>f__AnonymousDelegate1`1[System.Double]
+");
+        }
+
+        [Fact]
         public void SynthesizedDelegateTypes_Constraints_01()
         {
             var source =
