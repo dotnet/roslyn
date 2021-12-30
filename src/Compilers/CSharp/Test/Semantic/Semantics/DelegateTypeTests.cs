@@ -1949,17 +1949,19 @@ class Program
 @"using System;
 unsafe class Program
 {
-    static int* F() => throw null;
+    static int* F() => (int*)0;
     static void Main()
     {
-        Delegate d1 = F;
-        Delegate d2 = (int x, int* y) => { };
+        var d1 = F;
+        var d2 = (int x, int* y) => { };
+        d1.Invoke();
+        d2.Invoke(1, (int*)2);
         Report(d1);
         Report(d2);
     }
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe, expectedOutput:
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
 @"<>f__AnonymousDelegate0
 <>f__AnonymousDelegate1
 ");
@@ -8400,6 +8402,10 @@ class Program
         var d2 = (int* p) => { };
         var d3 = delegate*<void> () => default;
         var d4 = (delegate*<void> d) => { };
+        d1.Invoke();
+        d2.Invoke((int*)2);
+        d3.Invoke();
+        d4.Invoke((delegate*<void>)4);
         Report(d1);
         Report(d2);
         Report(d3);
@@ -8459,11 +8465,13 @@ ref struct S<T> { }
 class Program
 {
     static void F1(int x, S<int> y) { }
-    static S<T> F2<T>() => throw null;
+    static S<T> F2<T>() => default;
     static void Main()
     {
         var d1 = F1;
         var d2 = F2<object>;
+        d1.Invoke(0, default);
+        d2.Invoke();
         Report(d1);
         Report(d2);
     }
@@ -8903,11 +8911,21 @@ class Program
 {
     static void Main()
     {
-        Report(A.F1());
-        Report(A.F2<int>());
-        Report(B<string>.F3());
-        Report(A.F2<string>());
-        Report(B<int>.F3());
+        Delegate d1 = A.F1();
+        Delegate d2 = A.F2<int>();
+        Delegate d3 = B<string>.F3();
+        Delegate d4 = A.F2<string>();
+        Delegate d5 = B<int>.F3();
+        d1.DynamicInvoke();
+        d2.DynamicInvoke();
+        d3.DynamicInvoke();
+        d4.DynamicInvoke();
+        d5.DynamicInvoke();
+        Report(d1);
+        Report(d2);
+        Report(d3);
+        Report(d4);
+        Report(d5);
     }
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }
@@ -8996,10 +9014,19 @@ class A
     internal unsafe static void M()
     {
         int* x = (int*)42;
-        A.Report((int y) => x);
-        A.Report((ref int y) => x);
-        A.Report((out int y) => { y = 0; return x; });
-        A.Report((in int y) => x);
+        var d1 = (int y) => x;
+        var d2 = (ref int y) => x;
+        var d3 = (out int y) => { y = 0; return x; };
+        var d4 = (in int y) => x;
+        int i = 42;
+        d1.Invoke(i);
+        d2.Invoke(ref i);
+        d3.Invoke(out i);
+        d4.Invoke(in i);
+        A.Report(d1);
+        A.Report(d2);
+        A.Report(d3);
+        A.Report(d4);
     }
 }";
             var sourceC =
@@ -9008,10 +9035,19 @@ class A
     internal unsafe static void M()
     {
         int* p = (int*)42;
-        A.Report((in int i) => p);
-        A.Report((out int i) => { i = 0; return p; });
-        A.Report((ref int i) => p);
-        A.Report((int i) => p);
+        var d1 = (in int i) => p;
+        var d2 = (out int i) => { i = 0; return p; };
+        var d3 = (ref int i) => p;
+        var d4 = (int i) => p;
+        int i = 42;
+        d1.Invoke(in i);
+        d2.Invoke(out i);
+        d3.Invoke(ref i);
+        d4.Invoke(i);
+        A.Report(d1);
+        A.Report(d2);
+        A.Report(d3);
+        A.Report(d4);
     }
 }";
             CompileAndVerify(new[] { sourceA, sourceB, sourceC }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:

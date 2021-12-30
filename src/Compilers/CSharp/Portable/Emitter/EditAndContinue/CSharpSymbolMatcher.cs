@@ -708,14 +708,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     return type.DelegateInvokeMethod is { } invokeMethod &&
                         otherType.DelegateInvokeMethod is { } otherInvokeMethod &&
-                        invokeMethod.Parameters.SequenceEqual(otherInvokeMethod.Parameters, (x, y) => isCorrespondingType(x.Type, y.Type)) &&
-                        isCorrespondingType(invokeMethod.ReturnType, otherInvokeMethod.ReturnType);
+                        invokeMethod.Parameters.SequenceEqual(otherInvokeMethod.Parameters, (x, y) => isCorrespondingType(x.TypeWithAnnotations, y.TypeWithAnnotations)) &&
+                        isCorrespondingType(invokeMethod.ReturnTypeWithAnnotations, otherInvokeMethod.ReturnTypeWithAnnotations);
                 }
 
-                bool isCorrespondingType(TypeSymbol type, TypeSymbol expectedType)
+                bool isCorrespondingType(TypeWithAnnotations type, TypeWithAnnotations expectedType)
                 {
-                    return this.Visit(type) is TypeSymbol otherType &&
-                        otherType.Equals(expectedType, TypeCompareKind.AllIgnoreOptions);
+                    var otherType = type.WithTypeAndModifiers((TypeSymbol?)this.Visit(type.Type), this.VisitCustomModifiers(type.CustomModifiers));
+                    return otherType.Equals(expectedType, TypeCompareKind.CLRSignatureCompareOptions);
                 }
             }
 

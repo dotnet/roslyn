@@ -508,6 +508,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (delegates.Count > 0 || synthesizedDelegates.Count > 0)
             {
                 ReportMissingOrErroneousSymbolsForDelegates(diagnostics);
+                foreach (var synthesizedDelegate in delegates)
+                {
+                    compiler.Visit(synthesizedDelegate, null);
+                }
                 foreach (var synthesizedDelegate in synthesizedDelegates)
                 {
                     compiler.Visit(synthesizedDelegate, null);
