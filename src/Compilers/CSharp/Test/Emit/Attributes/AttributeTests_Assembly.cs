@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AssemblyAttributeTests : CSharpTestBase
     {
-        private readonly string _netModuleName = GetUniqueName() + ".netmodule";
-
         [Fact]
         public void VersionAttribute()
         {
@@ -300,8 +298,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
             var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE(verification) Can't verify with invalid culture
-            CompileAndVerify(comp, verify: Verification.Skipped, symbolValidator: m =>
+            // PEVerify:
+            // Warning: Invalid locale string.
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: m =>
             {
                 var utf8 = new System.Text.UTF8Encoding(false, false);
                 Assert.Equal(utf8.GetString(utf8.GetBytes("\uD800")), m.ContainingAssembly.Identity.CultureName);
@@ -545,7 +544,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
             CompileAndVerify(compilation,
-                verify: Verification.PassesPeVerify | Verification.FailsIlVerify, // PROTOTYPE(verification): Unable to resolve token
+                verify: Verification.Passes,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -575,7 +574,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
             CompileAndVerify(compilation,
-                verify: Verification.PassesPeVerify | Verification.FailsIlVerify, // PROTOTYPE(verification): Unable to resolve token
+                verify: Verification.Passes,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -605,7 +604,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
             CompileAndVerify(compilation,
-                verify: Verification.PassesPeVerify | Verification.FailsIlVerify, // PROTOTYPE(verification): Unable to resolve token
+                verify: Verification.Passes,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -635,7 +634,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
             CompileAndVerify(compilation,
-                verify: Verification.PassesPeVerify | Verification.FailsIlVerify, // PROTOTYPE(verification): Unable to resolve token
+                verify: Verification.Passes,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -766,7 +765,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module_Comp.EmitToImageReference() });
 
             CompileAndVerify(compilation,
-                verify: Verification.PassesPeVerify | Verification.FailsIlVerify, // PROTOTYPE(verification): Unable to resolve token
+                verify: Verification.Passes,
                 validator: (peAssembly) =>
                 {
                     var peReader = peAssembly.ManifestModule.GetMetadataReader();

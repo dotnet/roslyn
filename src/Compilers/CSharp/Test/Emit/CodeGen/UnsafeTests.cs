@@ -10146,8 +10146,11 @@ No overflow from (S15*)0 + sizeof(S15)
 No overflow from (S15*)0 + sizeof(S16)
 No overflow from (S16*)0 + sizeof(S15)";
             }
-            // PROTOTYPE(verification)
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.FailsPeVerify | Verification.PassesIlVerify);
+            // PEVerify:
+            // [ : C+<>c__DisplayClass0_0::<Main>b__0][mdToken=0x6000005][offset 0x00000012][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
+            // [ : C+<> c__DisplayClass0_0::< Main > b__1][mdToken= 0x6000006][offset 0x00000012][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
+            // [ : C +<> c__DisplayClass0_0::< Main > b__2][mdToken = 0x6000007][offset 0x00000012][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.FailsPeVerify_UnexpectedTypeOnStack);
         }
 
         [Fact]

@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     [Flags]
     public enum Verification
     {
+        // TODO2 simplify flags? Do we really need a Skipped?
+        // TODO2 tighten verification for cases below
         Skipped = 0,
 
         PassesPeVerify = 1 << 0,
@@ -36,23 +38,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Passes = PassesPeVerify | PassesIlVerify,
         Fails = FailsPeVerify | FailsIlVerify,
 
-        IVT = PassesPeVerify | FailsIlVerify, // ILVerify is case-sensitive in IVT 
+        FailsIlVerify_IVT = PassesPeVerify | FailsIlVerify, // ILVerify is case-sensitive in IVT 
+        // TODO2 can we add FailsIlVerify here too and rename?
         FullNames = PassesPeVerify, // ILVerify uses simple names instead of full names
-        TypedReference = PassesPeVerify | FailsIlVerify, // ILVerify doesn't support TypedReference
-        InvalidProgramVararg = PassesPeVerify | FailsIlVerify, // ILVerify complains about InvalidProgramVararg
-        ClassLoadGeneral = PassesPeVerify | FailsIlVerify, // ILVerify complains about ClassLoadGeneral
-        NotImplemented = PassesPeVerify | FailsIlVerify, // ILVerify has some un-implemented cases in EcmaModule.GetType
-        NoPia = PassesPeVerify | FailsIlVerify, // ILVerify doesn't do NoPia unification
-        RuntimeArgumentHandle = PassesPeVerify | FailsIlVerify, // ILVerify reports: RuntimeArgumentHandle not supported in .NET Core
-        LeaveIntoTry = PassesPeVerify | FailsIlVerify, // ILVerify reports: Leave into try block.
+        FailsIlVerify_TypedReference = PassesPeVerify | FailsIlVerify, // ILVerify doesn't support TypedReference
+        FailsIlVerify_InvalidProgramVararg = PassesPeVerify | FailsIlVerify, // ILVerify complains about InvalidProgramVararg
+        FailsIlVerify_ClassLoadGeneral = PassesPeVerify | FailsIlVerify, // ILVerify complains about ClassLoadGeneral
+        FailsIlVerify_NotImplemented = PassesPeVerify | FailsIlVerify, // ILVerify has some un-implemented cases in EcmaModule.GetType
+        FailsIlVerify_NoPia = PassesPeVerify | FailsIlVerify, // ILVerify doesn't do NoPia unification
+        FailsIlVerify_RuntimeArgumentHandle = PassesPeVerify | FailsIlVerify, // ILVerify reports: RuntimeArgumentHandle not supported in .NET Core
+        FailsIlVerify_LeaveIntoTry = PassesPeVerify | FailsIlVerify, // ILVerify reports: Leave into try block.
 
-        TypeLoadFailed = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain type load failed
-        UnexpectedTypeOnStack = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: Unexpected type on the stack.
-        UnableToResolveToken = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about "unable to resolve token"
-        TypeDevNotNil = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: TypeDef for Object class extends token=0x01000005 which is not nil.
-        ClassLayout = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: ClassLayout has parent TypeDef token=0x0200000f marked AutoLayout.
-        BadName = FailsPeVerify | PassesIlVerify, // PEVerify complains about: Assembly name contains leading spaces or path or extension.
-        BadFormat = FailsPeVerify | PassesIlVerify, // PEVerify complains about: An attempt was made to load a program with an incorrect format.
+        FailsPeVerify_TypeLoadFailed = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain type load failed
+        FailsPeVerify_UnexpectedTypeOnStack = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: Unexpected type on the stack.
+        FailsPeVerify_UnableToResolveToken = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about "unable to resolve token"
+        FailsPeVerify_TypeDevNotNil = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: TypeDef for Object class extends token=0x01000005 which is not nil.
+        FailsPeVerify_ClassLayout = FailsPeVerify | PassesIlVerify, // ILVerify doesn't complain about: ClassLayout has parent TypeDef token=0x0200000f marked AutoLayout.
+        FailsPeVerify_BadName = FailsPeVerify | PassesIlVerify, // PEVerify complains about: Assembly name contains leading spaces or path or extension.
+        FailsPeVerify_BadFormat = FailsPeVerify | PassesIlVerify, // PEVerify complains about: An attempt was made to load a program with an incorrect format.
+        FailsPeVerify_MissingManifest = Verification.FailsPeVerify | Verification.PassesIlVerify, // PEVerify complains about: The module  was expected to contain an assembly manifest.
     }
 
     /// <summary>

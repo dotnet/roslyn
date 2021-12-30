@@ -77,8 +77,7 @@ class Program
         Console.WriteLine((((DoubleAndStruct)args[0]).y).x);
     }
 }";
-            // PROTOTYPE(verification) Unexpected type on the stack.
-            var result = CompileAndVerify(source, verify: Verification.PassesPeVerify | Verification.FailsIlVerify, options: TestOptions.DebugDll);
+            var result = CompileAndVerify(source, verify: Verification.Passes, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -165,8 +164,7 @@ class Program
         Console.WriteLine(((((OuterStruct)args[0]).z).y).x);
     }
 }";
-            // PROTOTYPE(verification) Unexpected type on the stack.
-            var result = CompileAndVerify(source, verify: Verification.PassesPeVerify | Verification.FailsIlVerify, options: TestOptions.DebugDll);
+            var result = CompileAndVerify(source, verify: Verification.Passes, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -4361,7 +4359,7 @@ public class Program
         Callee3<T>(default(T), default(T));
     }
 }
-", verify: Verification.TypeDevNotNil, options: TestOptions.ReleaseExe);
+", verify: Verification.FailsPeVerify_TypeDevNotNil, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size      297 (0x129)
@@ -4494,7 +4492,7 @@ public class Program
         Callee3<string>();
     }
 }
-", verify: Verification.TypeDevNotNil, options: TestOptions.ReleaseExe);
+", verify: Verification.FailsPeVerify_TypeDevNotNil, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size       34 (0x22)
@@ -5261,7 +5259,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
         }
     }";
 
-            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.UnexpectedTypeOnStack);
+            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.FailsPeVerify_UnexpectedTypeOnStack);
 
             var expectedIL = @"
 {
@@ -5282,7 +5280,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
             compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
 
             // expect the same IL in the compat case since direct references are required and must be emitted with "readonly.", even though unverifiable
-            compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.UnexpectedTypeOnStack, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.FailsPeVerify_UnexpectedTypeOnStack, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
         }
@@ -10460,7 +10458,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Goo").WithArguments("Test.Goo()"));
 
             // NOTE: the resulting IL is unverifiable, but not an error for compat reasons
-            CompileAndVerify(comp, verify: Verification.TypeLoadFailed).VerifyIL("Test.Main",
+            CompileAndVerify(comp, verify: Verification.FailsPeVerify_TypeLoadFailed).VerifyIL("Test.Main",
                 @"
 {
   // Code size       11 (0xb)
@@ -13329,7 +13327,7 @@ class A
 ";
             var compilation = CompileAndVerify(
                 source,
-                verify: Verification.InvalidProgramVararg,
+                verify: Verification.FailsIlVerify_InvalidProgramVararg,
                 expectedOutput: @"Inside - TestVarArgs::ctor (__arglist)
 Inside - TestVarArgs::ctor (__arglist)
 System.Int32

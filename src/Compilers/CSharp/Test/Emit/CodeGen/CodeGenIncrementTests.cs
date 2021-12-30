@@ -1034,7 +1034,7 @@ public class Test
     }
 }
 ";
-            base.CompileAndVerify(source, verify: Verification.TypedReference, expectedOutput: "12").
+            base.CompileAndVerify(source, verify: Verification.FailsIlVerify_TypedReference, expectedOutput: "12").
                 VerifyIL("Test.Main",
 @"
 {

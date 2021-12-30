@@ -215,10 +215,10 @@ class Structs
             };
 
             CompileAndVerify(verifiable, assemblyValidator: validator);
-            CompileAndVerify(unverifiable, assemblyValidator: validator, verify: Verification.ClassLayout);
+            CompileAndVerify(unverifiable, assemblyValidator: validator, verify: Verification.FailsPeVerify_ClassLayout);
 
             // CLR limitation on type size, not a RefEmit bug:
-            CompileAndVerify(unloadable, assemblyValidator: validator, verify: Verification.ClassLayout);
+            CompileAndVerify(unloadable, assemblyValidator: validator, verify: Verification.FailsPeVerify_ClassLayout);
         }
 
         [Fact]
@@ -336,7 +336,7 @@ public class C : B
 }
 ";
             // type C can't be loaded
-            CompileAndVerify(source, verify: Verification.TypeLoadFailed);
+            CompileAndVerify(source, verify: Verification.FailsPeVerify_TypeLoadFailed);
         }
 
         [Fact]

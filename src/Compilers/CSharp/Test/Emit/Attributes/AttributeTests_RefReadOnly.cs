@@ -1152,9 +1152,7 @@ public class Test
 {
     public void M(in int x) { }
 }";
-
-            // PROTOTYPE(verification)
-            CompileAndVerify(code, verify: Verification.FailsPeVerify | Verification.PassesIlVerify, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.FailsPeVerify_MissingManifest, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
 

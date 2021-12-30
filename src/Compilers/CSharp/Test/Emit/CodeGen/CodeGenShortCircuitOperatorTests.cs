@@ -5233,8 +5233,7 @@ class C
     public ref struct RefLike{}
 }
 ";
-            // PROTOTYPE(verification) Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            var verifier = CompileAndVerify(source, verify: Verification.PassesPeVerify | Verification.FailsIlVerify, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
+            var verifier = CompileAndVerify(source, verify: Verification.Passes, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
 M
 ---
 ---");

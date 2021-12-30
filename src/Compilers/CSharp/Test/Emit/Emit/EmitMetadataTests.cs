@@ -206,7 +206,7 @@ public class Test : Class2
 {
 }
 ";
-            CompileAndVerifyWithMscorlib40(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, verify: Verification.NotImplemented, assemblyValidator: (assembly) =>
+            CompileAndVerifyWithMscorlib40(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, verify: Verification.FailsIlVerify_NotImplemented, assemblyValidator: (assembly) =>
             {
                 var refs2 = assembly.Modules[0].ReferencedAssemblies.Select(r => r.Name);
                 Assert.Equal(2, refs2.Count());

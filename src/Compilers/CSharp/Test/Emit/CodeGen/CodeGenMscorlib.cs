@@ -745,8 +745,11 @@ namespace System
             //           it is entirely possible that Enum.GetHashCode and int.GetHashCode 
             //           have different implementations
 
-            // PROTOTYPE(verification) Internal.TypeSystem.TypeSystemException + TypeLoadException : [TEMPORARY EXCEPTION MESSAGE] ClassLoadGeneral: System.String, 699fa24e-4ae5-4965-b7a7-166da051a9a9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-            CompileAndVerify(comp, verify: Verification.FailsPeVerify).
+            // PEVerify:
+            // Error: Token 0x02000009 following ELEMENT_TYPE_CLASS (_VALUETYPE) in signature is a ValueType (Class,respectively).
+            // Error: Token 0x02000009 following ELEMENT_TYPE_CLASS(_VALUETYPE) in signature is a ValueType (Class, respectively).
+            // Type load failed.
+            CompileAndVerify(comp, verify: Verification.FailsPeVerify_TypeLoadFailed).
                 VerifyIL("program.Main()",
 @"
 {
@@ -873,8 +876,8 @@ namespace System
             //           but see the bug see VSW #396011, JIT needs references when loading
             //           fields of certain clr-ambiguous structs (only possible when building mscorlib)
 
-            // PROTOTYPE(verification) Internal.TypeSystem.TypeSystemException+TypeLoadException : [TEMPORARY EXCEPTION MESSAGE] ClassLoadGeneral: System.String, cb9df1f8-9e67-4084-a523-059b000cf4b6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-            CompileAndVerify(comp, verify: Verification.FailsPeVerify).
+            // PEVerify: Type load failed.
+            CompileAndVerify(comp, verify: Verification.FailsPeVerify_TypeLoadFailed).
                 VerifyIL("System.IntPtr..ctor(int)", @"
 {
   // Code size       10 (0xa)

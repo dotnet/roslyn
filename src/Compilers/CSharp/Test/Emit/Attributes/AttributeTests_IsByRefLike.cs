@@ -430,8 +430,7 @@ public class Test
 {
     public ref struct S1{}
 }";
-            // PROTOTYPE(verification)
-            CompileAndVerify(code, verify: Verification.FailsPeVerify | Verification.PassesIlVerify, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.FailsPeVerify_MissingManifest, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
 

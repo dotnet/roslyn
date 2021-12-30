@@ -954,8 +954,7 @@ public class Test
             }
             else
             {
-                // PROTOTYPE(verification)
-                CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Skipped, symbolValidator: module =>
+                CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.FailsPeVerify_MissingManifest : Verification.Passes, symbolValidator: module =>
                 {
                     var assemblyAttributes = module.ContainingAssembly.GetAttributes();
                     Assert.Equal(0, assemblyAttributes.Length);
