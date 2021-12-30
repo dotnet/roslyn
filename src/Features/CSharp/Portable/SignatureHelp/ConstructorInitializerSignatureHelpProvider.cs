@@ -98,11 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            // figure out the best candidate (if any)
-            var currentSymbol = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken).Symbol;
+            // guess the best candidate if needed and determine parameter index
+            var currentSymbol = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken).Symbol as IMethodSymbol;
             var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
             var arguments = constructorInitializer.ArgumentList.Arguments;
-            var parameterIndex = -1;
+            int parameterIndex;
             if (currentSymbol is null)
             {
                 (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, accessibleConstructors, position,
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             else
             {
                 // The compiler told us the correct overload, but we need to find out the parameter to highlight given cursor position
-                _ = FindParameterIndexIfCompatibleMethod(arguments, (IMethodSymbol)currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
+                _ = FindParameterIndexIfCompatibleMethod(arguments, currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
             }
 
             // present items and select
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var items = accessibleConstructors.SelectAsArray(m => Convert(m, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
             var selectedItem = TryGetSelectedIndex(accessibleConstructors, currentSymbol);
 
-            return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol?)currentSymbol, parameterIndex, selectedItem, arguments, position);
+            return MakeSignatureHelpItems(items, textSpan, currentSymbol, parameterIndex, selectedItem, arguments, position);
         }
 
         private static SignatureHelpItem Convert(

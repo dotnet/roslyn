@@ -2002,9 +2002,9 @@ class Program
         [InlineData(",$$", 1)]
         [InlineData(",$$,", 1)]
         [InlineData(",,$$", 2)]
-        [InlineData("i2: 1, $$,", 1)] // Note: best parameter index would be 0
-        [InlineData("i2: 1, i1: $$,", 1)] // Note: best parameter index would be 0
-        [InlineData("i2: 1, $$, i1: 2", 1)] // Note: best parameter index would be 2
+        [InlineData("i2: 1, $$,", 0)]
+        [InlineData("i2: 1, i1: $$,", 0)]
+        [InlineData("i2: 1, $$, i1: 2", 2)]
         [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
         public async Task PickCorrectOverload_NamesAndEmptyPositions_Delegate(string arguments, int expectedParameterIndex)

@@ -79,32 +79,36 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
             var invokedType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type;
 
+            ImmutableArray<IMethodSymbol> methods;
+            IMethodSymbol? currentSymbol;
+
             if (invokedType is INamedTypeSymbol expressionType && expressionType.TypeKind == TypeKind.Delegate)
             {
-                var items = GetDelegateInvokeItems(invocationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService,
-                    within, expressionType, out var selectedItem, cancellationToken);
+                var invokeMethod = GetDelegateInvokeMethod(invocationExpression, semanticModel, within, expressionType, cancellationToken);
 
-                return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
+                if (invokeMethod is null)
+                {
+                    return null;
+                }
+
+                currentSymbol = invokeMethod;
+                methods = ImmutableArray.Create(invokeMethod);
             }
             else if (invokedType is IFunctionPointerTypeSymbol functionPointerType)
             {
-                var items = GetFunctionPointerInvokeItems(invocationExpression, semanticModel, structuralTypeDisplayService,
-                    documentationCommentFormattingService, functionPointerType, out var selectedItem, cancellationToken);
-
-                return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
+                var signature = functionPointerType.Signature;
+                currentSymbol = signature;
+                methods = ImmutableArray.Create(signature);
             }
             else
             {
-
                 // get the candidate methods
                 var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
-                IList<SignatureHelpItem> items;
-                int? selectedItem;
-                var methods = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken)
+                methods = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken)
                                                .OfType<IMethodSymbol>()
                                                .ToImmutableArray()
                                                .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
-
+                methods = GetAccessibleMethods(invocationExpression, semanticModel, within, methods, cancellationToken);
                 methods = methods.Sort(semanticModel, invocationExpression.SpanStart);
 
                 if (!methods.Any())
@@ -112,56 +116,46 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     return null;
                 }
 
-                // figure out the best candidate (if any)
-                var currentSymbol = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol;
-                var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
-                var arguments = invocationExpression.ArgumentList.Arguments;
-                var parameterIndex = -1;
-                if (currentSymbol is null)
-                {
-                    (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, methods, position,
-                        semanticModel, semanticFactsService);
-                }
-                else
-                {
-                    // The compiler told us the correct overload, but we need to find out the parameter to highlight given cursor position
-                    _ = FindParameterIndexIfCompatibleMethod(arguments, (IMethodSymbol)currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
-                }
-
-                // if the symbol could be bound, replace that item in the symbol list
-                if (currentSymbol is IMethodSymbol matchedMethodSymbol && matchedMethodSymbol.IsGenericMethod)
-                {
-                    methods = methods.SelectAsArray(m => Equals(matchedMethodSymbol.OriginalDefinition, m) ? matchedMethodSymbol : m);
-                }
-
-                // present items and select
-                var accessibleMethods = GetAccessibleMethods(invocationExpression, semanticModel, within, methods, cancellationToken);
-                if (!accessibleMethods.Any())
-                {
-                    return null;
-                }
-
-                (items, selectedItem) = await GetMethodGroupItemsAndSelectionAsync(
-                    accessibleMethods, document, invocationExpression, semanticModel, currentSymbol is null ? default : new SymbolInfo(currentSymbol), cancellationToken).ConfigureAwait(false);
-                return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol?)currentSymbol, parameterIndex, selectedItem, arguments, position);
+                currentSymbol = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol as IMethodSymbol;
             }
-        }
 
-        private SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
-        {
-            if (TryGetInvocationExpression(
-                    root,
-                    position,
-                    syntaxFacts,
-                    SignatureHelpTriggerReason.InvokeSignatureHelpCommand,
-                    cancellationToken,
-                    out var expression) &&
-                currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
+            // guess the best candidate if needed and determine parameter index
+            var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var arguments = invocationExpression.ArgumentList.Arguments;
+            int parameterIndex;
+            if (currentSymbol is null)
             {
-                return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);
+                (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, methods, position,
+                    semanticModel, semanticFactsService);
+            }
+            else
+            {
+                // The compiler told us the correct overload, but we need to find out the parameter to highlight given cursor position
+                _ = FindParameterIndexIfCompatibleMethod(arguments, currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
             }
 
-            return null;
+            // if the symbol could be bound, replace that item in the symbol list
+            if (currentSymbol?.IsGenericMethod == true)
+            {
+                methods = methods.SelectAsArray(m => Equals(currentSymbol.OriginalDefinition, m) ? currentSymbol : m);
+            }
+
+            // present items and select
+            IList<SignatureHelpItem> items;
+            int? selectedItem;
+            if (invokedType is INamedTypeSymbol { TypeKind: TypeKind.Delegate }
+                || invokedType is IFunctionPointerTypeSymbol)
+            {
+                items = GetDelegateOrFunctionPointerInvokeItems(invocationExpression, currentSymbol!,
+                    semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, out selectedItem, cancellationToken);
+            }
+            else
+            {
+                (items, selectedItem) = await GetMethodGroupItemsAndSelectionAsync(
+                    methods, document, invocationExpression, semanticModel, currentSymbol is null ? default : new SymbolInfo(currentSymbol), cancellationToken).ConfigureAwait(false);
+            }
+
+            return MakeSignatureHelpItems(items, textSpan, currentSymbol, parameterIndex, selectedItem, arguments, position);
         }
     }
 }

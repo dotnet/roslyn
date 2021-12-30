@@ -80,10 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (type.TypeKind == TypeKind.Delegate)
             {
                 var invokeMethod = type.DelegateInvokeMethod;
-                if (invokeMethod != null)
+                if (invokeMethod is null)
                 {
-                    methods = ImmutableArray.Create(invokeMethod);
+                    return null;
                 }
+
+                methods = ImmutableArray.Create(invokeMethod);
             }
             else
             {
@@ -91,18 +93,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     .WhereAsArray(c => c.IsAccessibleWithin(within))
                     .WhereAsArray(s => s.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
                     .Sort(semanticModel, objectCreationExpression.SpanStart);
+
+                if (!methods.Any())
+                {
+                    return null;
+                }
             }
 
-            if (!methods.Any())
-            {
-                return null;
-            }
-
-            // figure out the best candidate (if any)
-            var currentSymbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol;
+            // guess the best candidate if needed and determine parameter index
+            var currentSymbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol as IMethodSymbol;
             var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
             var arguments = objectCreationExpression.ArgumentList.Arguments;
-            var parameterIndex = -1;
+            int parameterIndex;
             if (currentSymbol is null)
             {
                 (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, methods, position,
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             else
             {
                 // The compiler told us the correct overload, but we need to find out the parameter to highlight given cursor position
-                _ = FindParameterIndexIfCompatibleMethod(arguments, (IMethodSymbol)currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
+                _ = FindParameterIndexIfCompatibleMethod(arguments, currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
             }
 
             // present items and select
@@ -136,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
-            return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol?)currentSymbol, parameterIndex, selectedItem, arguments, position);
+            return MakeSignatureHelpItems(items, textSpan, currentSymbol, parameterIndex, selectedItem, arguments, position);
         }
     }
 }

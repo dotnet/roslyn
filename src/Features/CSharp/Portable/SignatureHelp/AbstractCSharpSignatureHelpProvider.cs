@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         /// <summary>
         /// If the symbol could not be bound, we could be dealing with a partial invocation, we'll try to find a possible overload.
         /// </summary>
-        protected static (ISymbol? symbol, int parameterIndex) GuessCurrentSymbolAndParameter(
+        protected static (IMethodSymbol? symbol, int parameterIndex) GuessCurrentSymbolAndParameter(
             SeparatedSyntaxList<ArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodGroup, int position,
             SemanticModel semanticModel, ISemanticFactsService semanticFactsService)
         {
