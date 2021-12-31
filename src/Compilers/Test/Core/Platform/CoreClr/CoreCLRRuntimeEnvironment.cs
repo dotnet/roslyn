@@ -116,13 +116,15 @@ namespace Roslyn.Test.Utilities.CoreClr
             {
                 foreach (var module in emitData.AllModuleData)
                 {
-                    string name = module.SimpleName;
+                    string name = module.FullName;
 
-                    var image = name == "mscorlib"
-                        ? ImmutableArray<byte>.Empty // TODO2 TestResources.NetFX.v4_6_1038_0.mscorlib.AsImmutable()
-                        : module.Image;
+                    //var image = name == "mscorlib"
+                    //    ? ImmutableArray<byte>.Empty // TODO2 TestResources.NetFX.v4_6_1038_0.mscorlib.AsImmutable()
+                    //    : module.Image;
+                    var image = module.Image;
 
                     imagesByName.Add(name, image);
+                    imagesByName.Add(module.SimpleName, image);
                 }
             }
 
@@ -149,9 +151,10 @@ namespace Roslyn.Test.Utilities.CoreClr
             {
                 var resolver = new Resolver(emitData);
                 var verifier = new ILVerify.Verifier(resolver);
-                if (emitData.AllModuleData.Any(m => m.SimpleName == "mscorlib"))
+                var mscorlibModules = emitData.AllModuleData.Where(m => m.SimpleName == "mscorlib").ToArray();
+                if (mscorlibModules.Length == 1)
                 {
-                    verifier.SetSystemModuleName(new AssemblyName("mscorlib"));
+                    verifier.SetSystemModuleName(new AssemblyName(mscorlibModules[0].FullName));
                 }
                 else
                 {
