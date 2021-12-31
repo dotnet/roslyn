@@ -194,11 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasGetAccessor)
             {
-                _getMethod = CreateGetAccessorSymbol(diagnostics);
+                _getMethod = CreateGetAccessorSymbol(bodyShouldBeSynthesizedForSemicolonOnly: isAutoProperty, diagnostics);
             }
             if (hasSetAccessor)
             {
-                _setMethod = CreateSetAccessorSymbol(diagnostics);
+                _setMethod = CreateSetAccessorSymbol(bodyShouldBeSynthesizedForSemicolonOnly: isAutoProperty, diagnostics);
             }
         }
 
@@ -643,13 +643,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The method is called at the end of <see cref="SourcePropertySymbolBase"/> constructor.
         /// The implementation may depend only on information available from the <see cref="SourcePropertySymbolBase"/> type.
         /// </summary>
-        protected abstract SourcePropertyAccessorSymbol CreateGetAccessorSymbol(BindingDiagnosticBag diagnostics);
+        protected abstract SourcePropertyAccessorSymbol CreateGetAccessorSymbol(
+            bool bodyShouldBeSynthesizedForSemicolonOnly,
+            BindingDiagnosticBag diagnostics);
 
         /// <summary>
         /// The method is called at the end of <see cref="SourcePropertySymbolBase"/> constructor.
         /// The implementation may depend only on information available from the <see cref="SourcePropertySymbolBase"/> type.
         /// </summary>
-        protected abstract SourcePropertyAccessorSymbol CreateSetAccessorSymbol(BindingDiagnosticBag diagnostics);
+        protected abstract SourcePropertyAccessorSymbol CreateSetAccessorSymbol(
+            bool bodyShouldBeSynthesizedForSemicolonOnly,
+            BindingDiagnosticBag diagnostics);
 
         public sealed override MethodSymbol? GetMethod
         {
@@ -686,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsExplicitInterfaceImplementation
             => (_propertyFlags & Flags.IsExplicitInterfaceImplementation) != 0;
 
-        internal bool HasGetAccessor => (_propertyFlags & Flags.HasGetAccessor) != 0;
+        private bool HasGetAccessor => (_propertyFlags & Flags.HasGetAccessor) != 0;
 
         private bool HasSetAccessor => (_propertyFlags & Flags.HasSetAccessor) != 0;
 

@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override Location TypeLocation
             => ContainingType.Locations[0];
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool bodyShouldBeSynthesizedForSemicolonOnly, BindingDiagnosticBag diagnostics)
         {
-            return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
+            return new GetAccessorSymbol(
                 ContainingType,
                 this,
                 _modifiers,
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool bodyShouldBeSynthesizedForSemicolonOnly, BindingDiagnosticBag diagnostics)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -136,6 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        modifiers: new SyntaxTokenList(),
                        MethodKind.PropertyGet,
                        usesInit: false,
+                       bodyShouldBeSynthesized: false,
                        isNullableAnalysisEnabled: false,
                        diagnostics)
             {

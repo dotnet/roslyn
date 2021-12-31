@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Construct a body for an auto-property accessor (updating or returning the backing field).
+        /// Construct a body for an auto-property accessor (updating or returning the backing field). This can return null on error scenarios.
         /// </summary>
         internal static BoundBlock ConstructAutoPropertyAccessorBody(SourceMemberMethodSymbol accessor)
         {
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (field is null)
             {
                 // This happens for public int { set; } where we produce ERR_AutoPropertyMustHaveGetAccessor
-                Debug.Assert(!property.HasGetAccessor);
+                Debug.Assert(property.GetMethod is null);
                 return null;
             }
 

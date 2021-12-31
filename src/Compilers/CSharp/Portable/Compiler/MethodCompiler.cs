@@ -1869,7 +1869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (sourceMethod is SourcePropertyAccessorSymbol { AccessorBodyShouldBeSynthesized: true })
+                    if (sourceMethod is SourcePropertyAccessorSymbol { BodyShouldBeSynthesized: true })
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
