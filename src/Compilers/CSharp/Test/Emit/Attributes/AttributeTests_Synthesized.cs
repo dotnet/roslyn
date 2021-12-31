@@ -694,7 +694,7 @@ record R;
 
                 var ctor = record.GetMembers(WellKnownMemberNames.InstanceConstructorName);
                 Assert.Equal(2, ctor.Length);
-                Assert.Equal(1, ctor[0].GetParameters()); // copy constructor
+                Assert.Equal(1, ctor[0].GetParameters().Length); // copy constructor
                 validateCompilerGeneratedAttribute(ctor[0]); // should have attribute.
                 Assert.Empty(ctor[1].GetParameters()); // parameterless constructor
                 Assert.Empty(ctor[1].GetAttributes()); // shouldn't have attribute.
