@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isGetMethod = (syntax.Kind() == SyntaxKind.GetAccessorDeclaration);
             var methodKind = isGetMethod ? MethodKind.PropertyGet : MethodKind.PropertySet;
 
-            bool hasBody = syntax.Body is object;
+            bool hasBlockBody = syntax.Body is object;
             bool hasExpressionBody = syntax.ExpressionBody is object;
             bool isNullableAnalysisEnabled = containingType.DeclaringCompilation.IsNullableAnalysisEnabledIn(syntax);
             CheckForBlockAndExpressionBody(syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 propertyModifiers,
                 syntax.Keyword.GetLocation(),
                 syntax,
-                hasBody,
+                hasBlockBody,
                 hasExpressionBody,
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                 syntax.Modifiers,
                 methodKind,
                 syntax.Keyword.IsKind(SyntaxKind.InitKeyword),
-                bodyShouldBeSynthesized: bodyShouldBeSynthesizedForSemicolonOnly && !hasBody && !hasExpressionBody,
+                bodyShouldBeSynthesized: bodyShouldBeSynthesizedForSemicolonOnly && !hasBlockBody && !hasExpressionBody,
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 diagnostics);
         }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 propertyModifiers,
                 location,
                 syntax,
-                hasBody: false,
+                hasBlockBody: false,
                 hasExpressionBody: false,
                 isIterator: false,
                 modifiers: new SyntaxTokenList(),
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers propertyModifiers,
             Location location,
             CSharpSyntaxNode syntax,
-            bool hasBody,
+            bool hasBlockBody,
             bool hasExpressionBody,
             bool isIterator,
             SyntaxTokenList modifiers,
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _bodyShouldBeSynthesized = bodyShouldBeSynthesized;
             _containsFieldKeyword = property.IsIndexer ? false : NodeContainsFieldKeyword(getAccessorSyntax(syntax));
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
-            _isExpressionBodied = !hasBody && hasExpressionBody;
+            _isExpressionBodied = !hasBlockBody && hasExpressionBody;
             _usesInit = usesInit;
             if (_usesInit)
             {
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(modifiers, property.IsExplicitInterfaceImplementation, hasBody || hasExpressionBody, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(modifiers, property.IsExplicitInterfaceImplementation, hasBlockBody || hasExpressionBody, location, diagnostics, out modifierErrors);
 
             // Include some modifiers from the containing property, but not the accessibility modifiers.
             declarationModifiers |= GetAccessorModifiers(propertyModifiers) & ~DeclarationModifiers.AccessibilityMask;
@@ -222,9 +222,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: property.IsExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0);
 
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: hasBody || hasExpressionBody || _bodyShouldBeSynthesized, diagnostics);
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: hasBlockBody || hasExpressionBody || _bodyShouldBeSynthesized, diagnostics);
 
-            if (hasBody || hasExpressionBody)
+            if (hasBlockBody || hasExpressionBody)
             {
                 CheckModifiersForBody(location, diagnostics);
             }
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!modifierErrors)
             {
-                this.CheckModifiers(location, isBodyMissing: !hasBody && !hasExpressionBody && !_bodyShouldBeSynthesized, diagnostics);
+                this.CheckModifiers(location, isBodyMissing: !hasBlockBody && !hasExpressionBody && !_bodyShouldBeSynthesized, diagnostics);
             }
 
             static CSharpSyntaxNode? getAccessorSyntax(CSharpSyntaxNode node)

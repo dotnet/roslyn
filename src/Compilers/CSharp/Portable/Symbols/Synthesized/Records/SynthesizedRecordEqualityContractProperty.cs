@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        propertyModifiers,
                        location,
                        syntax,
-                       hasBody: true,
+                       hasBlockBody: true,
                        hasExpressionBody: false,
                        isIterator: false,
                        modifiers: new SyntaxTokenList(),
