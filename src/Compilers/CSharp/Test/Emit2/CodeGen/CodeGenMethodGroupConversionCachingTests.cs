@@ -1721,7 +1721,7 @@ class E<V>
         {
             var testClass = module.GlobalNamespace.GetTypeMember("D");
             var container = testClass.GetTypeMember("<Test>O__1_0");
-            Assert.NotNull(container); Debug.Assert(container is { });
+            AssertEx.NotNull(container);
 
             var typeParameters = container.TypeParameters;
             Assert.Equal(1, container.TypeParameters.Length);
@@ -1782,7 +1782,7 @@ class E<V>
             var globalNs = module.GlobalNamespace;
             var mainClass = globalNs.GetTypeMember("C");
             var container = globalNs.GetMember<NamedTypeSymbol>("D.<Test>O__1_0");
-            Assert.NotNull(container); Debug.Assert(container is { });
+            AssertEx.NotNull(container);
 
             var typeParameters = container.TypeParameters;
             Assert.Equal(1, container.TypeParameters.Length);
@@ -1839,13 +1839,13 @@ class E
         static void containerValidator(ModuleSymbol module)
         {
             var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D.<Test>O__0_0");
-            Assert.NotNull(container); Debug.Assert(container is { });
+            AssertEx.NotNull(container);
 
             var typeParameters = container.TypeParameters;
             Assert.Equal(1, container.TypeParameters.Length);
 
             var m = typeParameters[0];
-            Assert.NotNull(m); Debug.Assert(m is { });
+            AssertEx.NotNull(m);
             Assert.True(m.IsValueType);
         }
         CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS).VerifyIL("D.Test<M>", @"
@@ -4992,7 +4992,7 @@ class Test
         {
             var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test.<M>O__1_0");
             var field = Assert.Single(container.GetMembers()) as FieldSymbol;
-            Assert.NotNull(field); Debug.Assert(field is { });
+            AssertEx.NotNull(field);
 
             var typeParameters = new List<TypeParameterSymbol>();
             field.Type.VisitType(static (typeSymbol, typeParameters, _) =>
