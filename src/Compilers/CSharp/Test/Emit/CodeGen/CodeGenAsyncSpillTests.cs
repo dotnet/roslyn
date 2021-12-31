@@ -2479,7 +2479,7 @@ class Driver
 2
 0
 ";
-            CompileAndVerify(source, expectedOutput: expected, verify: Verification.FailsIlVerify_RuntimeArgumentHandle);
+            CompileAndVerify(source, expectedOutput: expected, verify: Verification.Passes);
         }
 
         [Fact]

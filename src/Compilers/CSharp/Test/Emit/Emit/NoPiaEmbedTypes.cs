@@ -5407,7 +5407,7 @@ class Test
                 {
                     var app_compilation = CreateCompilation(App_cs, new[] { NetImpl_ref, IEvent_ref, CSharpRef }, options: TestOptions.ReleaseExe, assemblyName: "App");
 
-                    CompileAndVerify(app_compilation, verify: Verification.FailsIlVerify_NoPia, symbolValidator: IEvent_ref.Properties.EmbedInteropTypes ? metadataValidator : null,
+                    CompileAndVerify(app_compilation, verify: Verification.Passes, symbolValidator: IEvent_ref.Properties.EmbedInteropTypes ? metadataValidator : null,
                         expectedOutput: @"E01
 E02");
                 }

@@ -179,7 +179,7 @@ namespace Roslyn.Test.Utilities.CoreClr
                     {
                         throw new Exception("IL Verify failed: \r\n" + message);
                     }
-                    if ((verification & Verification.BadName) != 0
+                    if ((verification & Verification.TypedReference) != 0
                         && !message.Contains("TypedReference not supported in .NET Core"))
                     {
                         throw new Exception("Expected: TypedReference not supported in .NET Core");
