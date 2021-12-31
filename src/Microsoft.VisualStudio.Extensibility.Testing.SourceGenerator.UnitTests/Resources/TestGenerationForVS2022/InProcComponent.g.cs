@@ -11,9 +11,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     using System.Windows;
     using System.Windows.Threading;
     using global::Xunit;
-    using global::Xunit.Harness;
     using global::Xunit.Threading;
-    using Microsoft;
     using Microsoft.VisualStudio.ComponentModelHost;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;

@@ -7,7 +7,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.VisualStudio.Text.Editor;
     using Microsoft.VisualStudio.TextManager.Interop;
     using Microsoft.VisualStudio.Threading;
 

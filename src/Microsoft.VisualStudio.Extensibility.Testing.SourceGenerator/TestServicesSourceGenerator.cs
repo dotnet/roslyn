@@ -24,7 +24,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.VisualStudio.Text.Editor;
     using Microsoft.VisualStudio.TextManager.Interop;
     using Microsoft.VisualStudio.Threading;
 
@@ -118,13 +117,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft;
     using Microsoft.VisualStudio;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
@@ -192,14 +186,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
-    using Microsoft;
     using Microsoft.VisualStudio;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
@@ -646,12 +635,37 @@ namespace Microsoft.VisualStudio
                 referenceDataModel,
                 static (context, referenceDataModel) =>
                 {
-                    string aliases;
+                    var usings = new List<string>
+                    {
+                        "System",
+                        "System.Threading",
+                        "System.Threading.Tasks",
+                        "System.Windows",
+                        "System.Windows.Threading",
+                        "global::Xunit",
+                    };
+
+                    if (!referenceDataModel.HasSAsyncServiceProvider)
+                    {
+                        usings.Add("global::Xunit.Harness");
+                    }
+
+                    usings.Add("global::Xunit.Threading");
+                    usings.Add("Microsoft.VisualStudio.ComponentModelHost");
+                    usings.Add("Microsoft.VisualStudio.Shell");
+
+                    if (referenceDataModel.HasSAsyncServiceProvider)
+                    {
+                        usings.Add("Microsoft.VisualStudio.Shell.Interop");
+                    }
+
+                    usings.Add("Microsoft.VisualStudio.Threading");
+
                     string getServiceImpl;
                     if (referenceDataModel.HasSAsyncServiceProvider)
                     {
-                        aliases = @"    using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
-    using Task = System.Threading.Tasks.Task;";
+                        usings.Add("IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider");
+                        usings.Add("Task = System.Threading.Tasks.Task");
                         getServiceImpl = @"            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var serviceProvider = (IAsyncServiceProvider?)await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SAsyncServiceProvider)).WithCancellation(cancellationToken);
@@ -663,7 +677,7 @@ namespace Microsoft.VisualStudio
                     }
                     else
                     {
-                        aliases = @"    using Task = System.Threading.Tasks.Task;";
+                        usings.Add("Task = System.Threading.Tasks.Task");
                         getServiceImpl = @"            await TaskScheduler.Default;
 
             var @interface = await GetServiceCoreAsync(JoinableTaskFactory, cancellationToken).WithCancellation(cancellationToken);
@@ -686,20 +700,7 @@ namespace Microsoft.VisualStudio
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {{
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using System.Windows;
-    using System.Windows.Threading;
-    using global::Xunit;
-    using global::Xunit.Harness;
-    using global::Xunit.Threading;
-    using Microsoft;
-    using Microsoft.VisualStudio.ComponentModelHost;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.Threading;
-{aliases}
+{string.Join(Environment.NewLine, usings.Select(u => $"    using {u};"))}
 
     internal abstract class InProcComponent : IAsyncLifetime
     {{
@@ -765,7 +766,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     string shellInProcessEnumerateWindowsImpl;
                     if (referenceDataModel.HasAsyncEnumerable)
                     {
-                        shellInProcessEnumerateWindowsImpl = @"        public async IAsyncEnumerable<IVsWindowFrame> EnumerateWindowsAsync(__WindowFrameTypeFlags windowFrameTypeFlags, [EnumeratorCancellation] CancellationToken cancellationToken)
+                        shellInProcessEnumerateWindowsImpl = @"    using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
+    using Microsoft.VisualStudio;
+    using Microsoft.VisualStudio.Shell;
+    using Microsoft.VisualStudio.Shell.Interop;
+    using Microsoft.VisualStudio.Threading;
+
+    internal partial class ShellInProcess
+    {
+        public async IAsyncEnumerable<IVsWindowFrame> EnumerateWindowsAsync(__WindowFrameTypeFlags windowFrameTypeFlags, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var uiShell = await GetRequiredGlobalServiceAsync<SVsUIShell, IVsUIShell4>(cancellationToken);
@@ -785,11 +796,24 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     yield return frameBuffer[i];
                 }
             }
-        }";
+        }
+    }";
                     }
                     else
                     {
-                        shellInProcessEnumerateWindowsImpl = @"        public async Task<ReadOnlyCollection<IVsWindowFrame>> EnumerateWindowsAsync(__WindowFrameTypeFlags windowFrameTypeFlags, CancellationToken cancellationToken)
+                        shellInProcessEnumerateWindowsImpl = @"    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.VisualStudio;
+    using Microsoft.VisualStudio.Shell;
+    using Microsoft.VisualStudio.Shell.Interop;
+    using Microsoft.VisualStudio.Threading;
+
+    internal partial class ShellInProcess
+    {
+        public async Task<ReadOnlyCollection<IVsWindowFrame>> EnumerateWindowsAsync(__WindowFrameTypeFlags windowFrameTypeFlags, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var uiShell = await GetRequiredGlobalServiceAsync<SVsUIShell, IVsUIShell4>(cancellationToken);
@@ -809,7 +833,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             return result.AsReadOnly();
-        }";
+        }
+    }";
                     }
 
                     var shellInProcessEnumerateWindowsSource = $@"// Copyright (c) Microsoft. All rights reserved.
@@ -819,24 +844,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {{
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.CompilerServices;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Microsoft;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.Threading;
-
-    internal partial class ShellInProcess
-    {{
 {shellInProcessEnumerateWindowsImpl}
-    }}
 }}
 ";
                     context.AddSource($"ShellInProcess_EnumerateWindowsAsync{SourceSuffix}", shellInProcessEnumerateWindowsSource);
@@ -849,6 +857,41 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     {
                         context.AddSource($"SolutionExplorerInProcess.SolutionEvents_IDisposable{SourceSuffix}", SolutionExplorerInProcessSolutionEventsDisposeSource);
                     }
+
+                    var usings2 = new List<string>
+                    {
+                        "System",
+                        "System.Diagnostics.CodeAnalysis",
+                        "System.Threading",
+                        "System.Threading.Tasks",
+                        "System.Windows",
+                    };
+
+                    if (referenceDataModel.HasJoinableTaskFactoryWithPriority)
+                    {
+                        usings2.Add("System.Windows.Threading");
+                    }
+
+                    usings2.Add("global::Xunit");
+
+                    if (!referenceDataModel.HasThreadHelperJoinableTaskContext)
+                    {
+                        usings2.Add("global::Xunit.Harness");
+                    }
+
+                    usings2.Add("global::Xunit.Sdk");
+
+                    if (referenceDataModel.HasThreadHelperJoinableTaskContext)
+                    {
+                        usings2.Add("Microsoft.VisualStudio.Shell");
+                    }
+                    else
+                    {
+                        usings2.Add("Microsoft.VisualStudio.Shell.Interop");
+                    }
+
+                    usings2.Add("Microsoft.VisualStudio.Threading");
+                    usings2.Add("Task = System.Threading.Tasks.Task");
 
                     string joinableTaskContextInitializer;
                     if (referenceDataModel.HasThreadHelperJoinableTaskContext)
@@ -882,19 +925,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {{
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using System.Windows;
-    using System.Windows.Threading;
-    using global::Xunit;
-    using global::Xunit.Harness;
-    using global::Xunit.Sdk;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.Threading;
-    using Task = System.Threading.Tasks.Task;
+{string.Join(Environment.NewLine, usings2.Select(u => $"    using {u};"))}
 
     /// <summary>
     /// Provides a base class for Visual Studio integration tests.
@@ -1093,15 +1124,23 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     var namespaceName = service.ImplementingTypeName.Substring("global::".Length, service.ImplementingTypeName.LastIndexOf('.') - "global::".Length);
                     var typeName = service.ImplementingTypeName.Substring(service.ImplementingTypeName.LastIndexOf('.') + 1);
                     var baseTypeName = service.BaseTypeName ?? "global::Microsoft.VisualStudio.Extensibility.Testing.InProcComponent";
+                    var usings = string.Empty;
+                    if (namespaceName != "Microsoft.VisualStudio.Extensibility.Testing"
+                        && !namespaceName.StartsWith("Microsoft.VisualStudio.Extensibility.Testing."))
+                    {
+                        usings = @"
+    using Microsoft.VisualStudio.Extensibility.Testing;
+
+";
+                    }
+
                     var partialService = $@"// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
 #nullable enable
 
 namespace {namespaceName}
-{{
-    using Microsoft.VisualStudio.Extensibility.Testing;
-
+{{{usings}
     {accessibility} partial class {typeName} : {baseTypeName}
     {{
         public {typeName}(TestServices testServices)
@@ -1144,9 +1183,6 @@ namespace {namespaceName}
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {{
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
     using System.Threading.Tasks;
     using global::Xunit;
     using Microsoft.VisualStudio.Threading;

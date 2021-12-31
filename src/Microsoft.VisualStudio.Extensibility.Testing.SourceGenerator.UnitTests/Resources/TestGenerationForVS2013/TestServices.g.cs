@@ -5,9 +5,6 @@
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
     using System.Threading.Tasks;
     using global::Xunit;
     using Microsoft.VisualStudio.Threading;

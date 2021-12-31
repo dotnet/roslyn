@@ -12,10 +12,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     using System.Windows;
     using System.Windows.Threading;
     using global::Xunit;
-    using global::Xunit.Harness;
     using global::Xunit.Sdk;
     using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
     using Microsoft.VisualStudio.Threading;
     using Task = System.Threading.Tasks.Task;
 

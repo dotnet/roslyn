@@ -5,8 +5,6 @@
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
-    using Microsoft.VisualStudio.Extensibility.Testing;
-
     internal partial class EditorInProcess : global::Microsoft.VisualStudio.Extensibility.Testing.InProcComponent
     {
         public EditorInProcess(TestServices testServices)
