@@ -2682,7 +2682,9 @@ class D
 }
 ";
         var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("C<T>.<>O", "System.Action <0>__Target");
+        verifier.VerifySynthesizedFields("C<T>.<>O", ContainerFinder("C.<>O"), arity: 0
+            , "System.Action <0>__Target"
+        );
     }
 
     [Fact]
@@ -2698,7 +2700,9 @@ class C<T>
 }
 ";
         var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("C<T>.<>O", "System.Func<T> <0>__Target");
+        verifier.VerifySynthesizedFields("C<T>.<>O", ContainerFinder("C.<>O"), arity: 0
+            , "System.Func<T> <0>__Target"
+        );
     }
 
     [Fact]
@@ -2715,7 +2719,9 @@ class C<T, V>
 }
 ";
         var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("C<T, V>.<>O", "C<T, V>.MyFunc <0>__Target");
+        verifier.VerifySynthesizedFields("C<T, V>.<>O", ContainerFinder("C.<>O"), arity: 0
+            , "C<T, V>.MyFunc <0>__Target"
+        );
     }
 
     [Fact]
@@ -2737,7 +2743,9 @@ class D
 }
 ";
         var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("C.<Test>O__0_0<V>", "System.Action <0>__Target");
+        verifier.VerifySynthesizedFields("C.<Test>O__0_0<V>", ContainerFinder("C.<Test>O__0_0"), arity: 1
+            , "System.Action <0>__Target"
+        );
     }
 
     [Fact]
@@ -2759,7 +2767,9 @@ class D<B>
 }
 ";
         var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("C<T>.<Test>O__0_0<V>", "System.Func<T, V> <0>__Target");
+        verifier.VerifySynthesizedFields("C<T>.<Test>O__0_0<V>", ContainerFinder("C.<Test>O__0_0"), arity: 1
+            , "System.Func<T, V> <0>__Target"
+        );
     }
 
     [Fact]
@@ -2783,7 +2793,9 @@ static class D
 }
 ";
         var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("C<A, T>.<Test>O__2_0<V>", "C<A, T>.MyFunc <0>__Target");
+        verifier.VerifySynthesizedFields("C<A, T>.<Test>O__2_0<V>", ContainerFinder("C.<Test>O__2_0"), arity: 1
+            , "C<A, T>.MyFunc <0>__Target"
+        );
     }
 
     [Fact]
@@ -2853,8 +2865,7 @@ static class E
 }
 ";
         var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields(
-            "A<T>.B<V>.<>O"
+        verifier.VerifySynthesizedFields("A<T>.B<V>.<>O", ContainerFinder("A.B.<>O"), arity: 0
             , "System.Action<T> <0>__Target0"
             , "System.Action<T> <1>__Target1"
             , "System.Action<T> <2>__Target2"
@@ -2894,8 +2905,7 @@ static class E
 }
 ";
         var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields(
-            "C.<Test>O__0_0<T>"
+        verifier.VerifySynthesizedFields("C.<Test>O__0_0<T>", ContainerFinder("C.<Test>O__0_0"), arity: 1
             , "System.Action <0>__Target0"
             , "System.Action<T> <1>__Target1"
             , "System.Action <2>__Target2"
@@ -2932,8 +2942,7 @@ static class E
 }
 ";
         var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields(
-            "E.<Test>O__0_0<T>"
+        verifier.VerifySynthesizedFields("E.<Test>O__0_0<T>", ContainerFinder("E.<Test>O__0_0"), arity: 1
             , "System.Action <0>__Target0"
             , "System.Action<T> <1>__Target1"
             , "System.Action <2>__Target2"
@@ -2977,8 +2986,7 @@ static class E
 }
 ";
         var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields(
-            "E.<Test>O__0_0<T>"
+        verifier.VerifySynthesizedFields("E.<Test>O__0_0<T>", ContainerFinder("E.<Test>O__0_0"), arity: 1
             , "System.Action<T> <0>__Target"
         );
     }
@@ -3018,8 +3026,7 @@ static class E
 }
 ";
         var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields(
-            "E.<Owner>O__0_0<T, G>"
+        verifier.VerifySynthesizedFields("E.<Owner>O__0_0<T, G>", ContainerFinder("E.<Owner>O__0_0"), arity: 2
             , "System.Action <0>__LF2"
             , "System.Action <1>__LF2"
         );
@@ -5224,4 +5231,6 @@ class Test
 }
 ");
     }
+
+    private static Func<IModuleSymbol, INamedTypeSymbol> ContainerFinder(string name) => module => module.GlobalNamespace.GetMember<INamedTypeSymbol>(name);
 }
