@@ -1724,7 +1724,7 @@ class C
             var reader0 = peModule0.Module.MetadataReader;
             var decoder0 = new MetadataDecoder(peModule0);
 
-            var synthesizedDelegates0 = PEDeltaAssemblyBuilder.GetSynthesizedDelegateMapFromMetadata(reader0, decoder0);
+            var synthesizedDelegates0 = PEDeltaAssemblyBuilder.GetAnonymousDelegateMapFromMetadata(reader0, decoder0);
             Assert.Contains(new SynthesizedDelegateKey("<>F{00000004}`3"), synthesizedDelegates0);
             Assert.Contains(new SynthesizedDelegateKey("<>A{00000003}`2"), synthesizedDelegates0);
             Assert.Contains(new SynthesizedDelegateKey("<>A{00000000,00000001}`33"), synthesizedDelegates0);
@@ -1750,7 +1750,7 @@ class C
             Assert.Equal("<>9__0_1", field2.Name);
             Assert.Equal("<>9__0_2", field3.Name);
 
-            var matcher = new CSharpSymbolMatcher(null, null, synthesizedDelegates0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+            var matcher = new CSharpSymbolMatcher(null, synthesizedDelegates0, null, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
 
             var mappedField1 = (Cci.IFieldDefinition)matcher.MapDefinition(field1);
             var mappedField2 = (Cci.IFieldDefinition)matcher.MapDefinition(field2);

@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public CSharpSymbolMatcher(
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
-            IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegateMap,
-            IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> synthesizedDelegates,
+            IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates,
+            IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegatesWithFixedTypes,
             SourceAssemblySymbol sourceAssembly,
             EmitContext sourceContext,
             SourceAssemblySymbol otherAssembly,
@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherSynthesizedMembersOpt)
         {
             _defs = new MatchDefsToSource(sourceContext, otherContext);
-            _symbols = new MatchSymbols(anonymousTypeMap, anonymousDelegateMap, synthesizedDelegates, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt, new DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)));
+            _symbols = new MatchSymbols(anonymousTypeMap, anonymousDelegates, anonymousDelegatesWithFixedTypes, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt, new DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)));
         }
 
         public CSharpSymbolMatcher(
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
-            IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegateMap,
-            IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> synthesizedDelegates,
+            IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates,
+            IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegatesWithFixedTypes,
             SourceAssemblySymbol sourceAssembly,
             EmitContext sourceContext,
             PEAssemblySymbol otherAssembly)
@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             _symbols = new MatchSymbols(
                 anonymousTypeMap,
-                anonymousDelegateMap,
-                synthesizedDelegates,
+                anonymousDelegates,
+                anonymousDelegatesWithFixedTypes,
                 sourceAssembly,
                 otherAssembly,
                 otherSynthesizedMembers: null,
@@ -279,8 +279,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private sealed class MatchSymbols : CSharpSymbolVisitor<Symbol?>
         {
             private readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> _anonymousTypeMap;
-            private readonly IReadOnlyDictionary<string, AnonymousTypeValue> _anonymousDelegateMap;
-            private readonly IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> _synthesizedDelegates;
+            private readonly IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> _anonymousDelegates;
+            private readonly IReadOnlyDictionary<string, AnonymousTypeValue> _anonymousDelegatesWithFixedTypes;
             private readonly SourceAssemblySymbol _sourceAssembly;
 
             // metadata or source assembly:
@@ -305,16 +305,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public MatchSymbols(
                 IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
-                IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegateMap,
-                IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> synthesizedDelegates,
+                IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates,
+                IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegatesWithFixedTypes,
                 SourceAssemblySymbol sourceAssembly,
                 AssemblySymbol otherAssembly,
                 ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? otherSynthesizedMembers,
                 DeepTranslator? deepTranslator)
             {
                 _anonymousTypeMap = anonymousTypeMap;
-                _anonymousDelegateMap = anonymousDelegateMap;
-                _synthesizedDelegates = synthesizedDelegates;
+                _anonymousDelegates = anonymousDelegates;
+                _anonymousDelegatesWithFixedTypes = anonymousDelegatesWithFixedTypes;
                 _sourceAssembly = sourceAssembly;
                 _otherAssembly = otherAssembly;
                 _otherSynthesizedMembers = otherSynthesizedMembers;
@@ -543,15 +543,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         else if (sourceType is AnonymousTypeManager.AnonymousDelegateTemplateSymbol delegateTemplate)
                         {
                             Debug.Assert((object)otherContainer == (object)_otherAssembly.GlobalNamespace);
-                            if (delegateTemplate.IsParameterizedDelegateType)
+                            if (delegateTemplate.HasFixedTypes)
                             {
-                                TryFindSynthesizedDelegate(delegateTemplate, out var value);
-                                return (NamedTypeSymbol?)value.Delegate?.GetInternalSymbol();
+                                TryFindAnonymousDelegateWithFixedType(delegateTemplate, out var value);
+                                return (NamedTypeSymbol?)value.Type?.GetInternalSymbol();
                             }
                             else
                             {
                                 TryFindAnonymousDelegate(delegateTemplate, out var value);
-                                return (NamedTypeSymbol?)value.Type?.GetInternalSymbol();
+                                return (NamedTypeSymbol?)value.Delegate?.GetInternalSymbol();
                             }
                         }
 
@@ -676,17 +676,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return _anonymousTypeMap.TryGetValue(type.GetAnonymousTypeKey(), out otherType);
             }
 
-            internal bool TryFindAnonymousDelegate(AnonymousTypeManager.AnonymousDelegateTemplateSymbol type, out AnonymousTypeValue otherType)
+            internal bool TryFindAnonymousDelegate(AnonymousTypeManager.AnonymousDelegateTemplateSymbol delegateSymbol, out SynthesizedDelegateValue otherDelegateSymbol)
+            {
+                Debug.Assert((object)delegateSymbol.ContainingSymbol == (object)_sourceAssembly.GlobalNamespace);
+
+                var key = new SynthesizedDelegateKey(delegateSymbol.MetadataName);
+                return _anonymousDelegates.TryGetValue(key, out otherDelegateSymbol);
+            }
+
+            internal bool TryFindAnonymousDelegateWithFixedType(AnonymousTypeManager.AnonymousDelegateTemplateSymbol type, out AnonymousTypeValue otherType)
             {
                 Debug.Assert((object)type.ContainingSymbol == (object)_sourceAssembly.GlobalNamespace);
 
-                // Anonymous delegates are indexed by name, and the names are <>f__AnonymousDelegate0, 1, ... .
+                // Anonymous delegates with fixed types are indexed by name, and the names are <>f__AnonymousDelegate0, 1, ... .
                 // Within a compilation, the index in the name is determined by source order, but the actual signature
                 // of the delegate type may change between generations. For instance, the signature of a lambda
                 // expression may have been changed explicitly, or another lambda expression may have been inserted
                 // ahead of this one in source order. Therefore, we need to verify the signatures of the delegate types
                 // are equivalent - by comparing the Invoke() method signatures.
-                if (_anonymousDelegateMap.TryGetValue(type.Name, out otherType) &&
+                if (_anonymousDelegatesWithFixedTypes.TryGetValue(type.Name, out otherType) &&
                     otherType.Type.GetInternalSymbol() is NamedTypeSymbol otherDelegateType &&
                     isCorrespondingAnonymousDelegate(type, otherDelegateType))
                 {
@@ -717,14 +725,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var otherType = type.WithTypeAndModifiers((TypeSymbol?)this.Visit(type.Type), this.VisitCustomModifiers(type.CustomModifiers));
                     return otherType.Equals(expectedType, TypeCompareKind.CLRSignatureCompareOptions);
                 }
-            }
-
-            internal bool TryFindSynthesizedDelegate(AnonymousTypeManager.AnonymousDelegateTemplateSymbol delegateSymbol, out SynthesizedDelegateValue otherDelegateSymbol)
-            {
-                Debug.Assert((object)delegateSymbol.ContainingSymbol == (object)_sourceAssembly.GlobalNamespace);
-
-                var key = new SynthesizedDelegateKey(delegateSymbol.MetadataName);
-                return _synthesizedDelegates.TryGetValue(key, out otherDelegateSymbol);
             }
 
             private Symbol? VisitNamedTypeMember<T>(T member, Func<T, T, bool> predicate)

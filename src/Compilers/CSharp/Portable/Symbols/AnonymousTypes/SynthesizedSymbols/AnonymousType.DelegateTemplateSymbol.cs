@@ -18,9 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly ImmutableArray<Symbol> _members;
 
             /// <summary>
-            /// True if the parameter types and return type of the delegate are all type parameters.
+            /// True if any of the delegate parameter types or return type are
+            /// fixed types rather than type parameters.
             /// </summary>
-            internal readonly bool IsParameterizedDelegateType;
+            internal readonly bool HasFixedTypes;
 
             internal AnonymousDelegateTemplateSymbol(
                 AnonymousTypeManager manager,
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(refKinds.IsNull || parameterCount == refKinds.Capacity - (voidReturnTypeOpt is { } ? 0 : 1));
 
-                IsParameterizedDelegateType = true;
+                HasFixedTypes = false;
                 TypeParameters = createTypeParameters(this, parameterCount, returnsVoid: voidReturnTypeOpt is { });
                 NameAndIndex = new NameAndIndex(name, index: 0);
 
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(SmallestLocation != null);
                 Debug.Assert(SmallestLocation != Location.None);
 
-                IsParameterizedDelegateType = false;
+                HasFixedTypes = true;
 
                 TypeMap typeMap;
                 int typeParameterCount = typeParametersToSubstitute.Length;
