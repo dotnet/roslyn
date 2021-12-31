@@ -7613,7 +7613,7 @@ class C
         }
 
         [Fact]
-        void InvokeVarForLvalueInParens()
+        public void InvokeVarForLvalueInParens()
         {
             var source = @"
 class Program
