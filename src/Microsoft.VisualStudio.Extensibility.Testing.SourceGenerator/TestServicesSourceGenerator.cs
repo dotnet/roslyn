@@ -15,6 +15,101 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator
     {
         private const string SourceSuffix = ".g.cs";
 
+        private const string IVsTextManagerExtensionsSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Text.Editor;
+    using Microsoft.VisualStudio.TextManager.Interop;
+    using Microsoft.VisualStudio.Threading;
+
+    internal static partial class IVsTextManagerExtensions
+    {
+        public static Task<IVsTextView> GetActiveViewAsync(this IVsTextManager textManager, JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken)
+            => textManager.GetActiveViewAsync(joinableTaskFactory, mustHaveFocus: true, buffer: null, cancellationToken);
+
+        public static async Task<IVsTextView> GetActiveViewAsync(this IVsTextManager textManager, JoinableTaskFactory joinableTaskFactory, bool mustHaveFocus, IVsTextBuffer? buffer, CancellationToken cancellationToken)
+        {
+            await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            ErrorHandler.ThrowOnFailure(textManager.GetActiveView(fMustHaveFocus: mustHaveFocus ? 1 : 0, pBuffer: buffer, ppView: out var vsTextView));
+
+            return vsTextView;
+        }
+    }
+}
+";
+
+        private const string IVsTextViewExtensionsSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Editor;
+    using Microsoft.VisualStudio.Text.Editor;
+    using Microsoft.VisualStudio.TextManager.Interop;
+    using Microsoft.VisualStudio.Threading;
+
+    internal static partial class IVsTextViewExtensions
+    {
+        public static async Task<IWpfTextViewHost> GetTextViewHostAsync(this IVsTextView textView, JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken)
+        {
+            await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            ErrorHandler.ThrowOnFailure(((IVsUserData)textView).GetData(DefGuidList.guidIWpfTextViewHost, out var wpfTextViewHost));
+            return (IWpfTextViewHost)wpfTextViewHost;
+        }
+    }
+}
+";
+
+        private const string EditorInProcessSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Text.Editor;
+    using Microsoft.VisualStudio.TextManager.Interop;
+
+    [TestService]
+    internal partial class EditorInProcess
+    {
+        public async Task<IWpfTextView> GetActiveTextViewAsync(CancellationToken cancellationToken)
+            => (await GetActiveTextViewHostAsync(cancellationToken)).TextView;
+
+        private async Task<IWpfTextViewHost> GetActiveTextViewHostAsync(CancellationToken cancellationToken)
+        {
+            var activeVsTextView = await GetActiveVsTextViewAsync(cancellationToken);
+            return await activeVsTextView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);
+        }
+
+        private async Task<IVsTextView> GetActiveVsTextViewAsync(CancellationToken cancellationToken)
+        {
+            // The active text view might not have finished composing yet, waiting for the application to 'idle'
+            // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text
+            // view.
+            await WaitForApplicationIdleAsync(cancellationToken);
+
+            var vsTextManager = await GetRequiredGlobalServiceAsync<SVsTextManager, IVsTextManager>(cancellationToken);
+            return await vsTextManager.GetActiveViewAsync(JoinableTaskFactory, cancellationToken);
+        }
+    }
+}
+";
+
         private const string ShellInProcessSource = @"// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
@@ -468,6 +563,9 @@ namespace Microsoft.VisualStudio
         {
             context.RegisterPostInitializationOutput(context =>
             {
+                context.AddSource($"IVsTextViewExtensions{SourceSuffix}", IVsTextViewExtensionsSource);
+                context.AddSource($"IVsTextManagerExtensions{SourceSuffix}", IVsTextManagerExtensionsSource);
+                context.AddSource($"EditorInProcess1{SourceSuffix}", EditorInProcessSource);
                 context.AddSource($"SolutionExplorerInProcess1{SourceSuffix}", SolutionExplorerInProcessSource);
                 context.AddSource($"ShellInProcess1{SourceSuffix}", ShellInProcessSource);
                 context.AddSource($"WorkspaceInProcess1{SourceSuffix}", WorkspaceInProcessSource);
