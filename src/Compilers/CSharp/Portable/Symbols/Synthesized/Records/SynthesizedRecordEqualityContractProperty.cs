@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed class GetAccessorSymbol : SourcePropertyAccessorSymbol
+        private sealed class GetAccessorSymbol : SourcePropertyAccessorSymbol
         {
             internal GetAccessorSymbol(
                 NamedTypeSymbol containingType,
