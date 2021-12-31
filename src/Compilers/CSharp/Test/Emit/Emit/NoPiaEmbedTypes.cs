@@ -1665,12 +1665,12 @@ class UsePia4
 }
 ";
 
-            var verifier = CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.FailsIlVerify_InvalidProgramVararg);
+            var verifier = CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.Passes);
 
             verifier.VerifyIL("UsePia4.M5", expected_M5);
             verifier.VerifyIL("UsePia4.M6", expected_M6);
 
-            verifier = CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.FailsIlVerify_InvalidProgramVararg);
+            verifier = CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.Passes);
 
             verifier.VerifyIL("UsePia4.M5", expected_M5);
             verifier.VerifyIL("UsePia4.M6", expected_M6);

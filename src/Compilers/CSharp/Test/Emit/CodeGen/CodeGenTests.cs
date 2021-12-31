@@ -13322,12 +13322,11 @@ class A
             }
         }
     }
-
 }
 ";
             var compilation = CompileAndVerify(
                 source,
-                verify: Verification.FailsIlVerify_InvalidProgramVararg,
+                verify: Verification.Passes,
                 expectedOutput: @"Inside - TestVarArgs::ctor (__arglist)
 Inside - TestVarArgs::ctor (__arglist)
 System.Int32

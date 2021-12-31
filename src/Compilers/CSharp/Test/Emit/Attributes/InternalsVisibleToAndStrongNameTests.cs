@@ -2722,13 +2722,11 @@ class B
         System.Console.Write(A.I);
     }
 }";
-            // TODO2 DesktopRuntimeEnvironment could not load ILVerification
-            // System.IO.FileLoadException : Could not load file or assembly 'ILVerification, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null' or one of its dependencies. A strongly-named assembly is required. (Exception from HRESULT: 0x80131044)
             var ca = CreateCompilation(sourceA, options: TestOptions.ReleaseDll, assemblyName: "ClassLibrary2", parseOptions: parseOptions);
             CompileAndVerify(ca);
 
             var cb = CreateCompilation(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca) }, parseOptions: parseOptions);
-            CompileAndVerify(cb, expectedOutput: "42", verify: Verification.FailsIlVerify_IVT).Diagnostics.Verify();
+            CompileAndVerify(cb, expectedOutput: "42", verify: Verification.Passes).Diagnostics.Verify();
         }
 
         [WorkItem(1095618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095618")]

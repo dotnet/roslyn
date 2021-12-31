@@ -1281,7 +1281,7 @@ public class D
 }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "11", verify: Verification.FailsIlVerify_InvalidProgramVararg);
+            var compilation = CompileAndVerify(source, expectedOutput: "11", verify: Verification.Passes);
 
             compilation.VerifyIL("D.Main",
 @"

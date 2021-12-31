@@ -123,8 +123,9 @@ namespace Roslyn.Test.Utilities.CoreClr
                     //    : module.Image;
                     var image = module.Image;
 
+                    // TODO2 figure out why we need both the simple name and full name
                     imagesByName.Add(name, image);
-                    imagesByName.Add(module.SimpleName, image);
+                    imagesByName.TryAdd(module.SimpleName, image);
                 }
             }
 
@@ -173,9 +174,20 @@ namespace Roslyn.Test.Utilities.CoreClr
                 var result = verifier.Verify(resolver.Resolve(emitData.MainModule.FullName));
                 if (result.Count() > 0)
                 {
+                    string message = string.Join("\r\n", result.Select(r => r.Message));
                     if ((verification & Verification.PassesIlVerify) != 0)
                     {
-                        throw new Exception("IL Verify failed: \r\n" + string.Join("\r\n", result.Select(r => r.Message)));
+                        throw new Exception("IL Verify failed: \r\n" + message);
+                    }
+                    if ((verification & Verification.BadName) != 0
+                        && !message.Contains("TypedReference not supported in .NET Core"))
+                    {
+                        throw new Exception("Expected: TypedReference not supported in .NET Core");
+                    }
+                    if ((verification & Verification.NotImplemented) != 0
+                        && !message.Contains("The method or operation is not implemented."))
+                    {
+                        throw new Exception("Expected: The method or operation is not implemented.");
                     }
                 }
                 else if ((verification & Verification.FailsIlVerify) != 0)

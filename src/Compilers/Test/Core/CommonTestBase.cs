@@ -35,6 +35,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         FailsPeVerify = 1 << 2,
         FailsIlVerify = 1 << 3,
 
+        TypedReference = 1 << 12,
+        NotImplemented = 1 << 13,
+
         TypeLoadFailed = 1 << 4,
         UnexpectedTypeOnStack = 1 << 5,
         UnableToResolveToken = 1 << 6,
@@ -46,13 +49,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Passes = PassesPeVerify | PassesIlVerify,
         Fails = FailsPeVerify | FailsIlVerify,
 
-        FailsIlVerify_IVT = PassesPeVerify | FailsIlVerify, // ILVerify is case-sensitive in IVT
         // TODO2 can we add FailsIlVerify here too and rename?
         FullNames = PassesPeVerify, // ILVerify uses simple names instead of full names
-        FailsIlVerify_TypedReference = PassesPeVerify | FailsIlVerify, // ILVerify doesn't support TypedReference
-        FailsIlVerify_InvalidProgramVararg = PassesPeVerify | FailsIlVerify, // ILVerify complains about InvalidProgramVararg
-        FailsIlVerify_ClassLoadGeneral = PassesPeVerify | FailsIlVerify, // ILVerify complains about ClassLoadGeneral
-        FailsIlVerify_NotImplemented = PassesPeVerify | FailsIlVerify, // ILVerify has some un-implemented cases in EcmaModule.GetType
+        FailsIlVerify_TypedReference = PassesPeVerify | FailsIlVerify | TypedReference, // ILVerify doesn't support TypedReference
+        //FailsIlVerify_InvalidProgramVararg = PassesPeVerify | FailsIlVerify | InvalidProgramVararg, // ILVerify complains about InvalidProgramVararg
+        //FailsIlVerify_ClassLoadGeneral = PassesPeVerify | FailsIlVerify, // ILVerify complains about ClassLoadGeneral
+        FailsIlVerify_NotImplemented = PassesPeVerify | FailsIlVerify | NotImplemented, // ILVerify has some un-implemented cases in EcmaModule.GetType
         FailsIlVerify_NoPia = PassesPeVerify | FailsIlVerify, // ILVerify doesn't do NoPia unification
         FailsIlVerify_RuntimeArgumentHandle = PassesPeVerify | FailsIlVerify, // ILVerify reports: RuntimeArgumentHandle not supported in .NET Core
         FailsIlVerify_LeaveIntoTry = PassesPeVerify | FailsIlVerify, // ILVerify reports: Leave into try block.
