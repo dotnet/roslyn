@@ -12564,7 +12564,8 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, options: TestOptions.DebugModule.WithAllowUnsafe(true), verify: Verification.Fails);
+            // TODO2 Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
+            var comp = CompileAndVerify(source, options: TestOptions.DebugModule.WithAllowUnsafe(true), verify: Verification.FailsPeVerify_MissingManifest);
 
             Assert.False(comp.HasLocalsInit("C.M"));
         }

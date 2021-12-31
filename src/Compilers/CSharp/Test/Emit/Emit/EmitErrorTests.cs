@@ -110,6 +110,7 @@ public class B
     }
 }
 ";
+            // TODO2 ILVerify null ref
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
@@ -142,6 +143,7 @@ public class B
     }
 }
 ";
+            // TODO2 ILVerify null ref
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
@@ -179,6 +181,7 @@ public class B
 }
 ";
 
+            // TODO2 ILVerify null ref
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },

@@ -5812,7 +5812,7 @@ unsafe class C
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPeVerify_UnexpectedTypeOnStack).VerifyIL("C.M", @"
 {
   // Code size       79 (0x4f)
   .maxstack  1
@@ -5902,7 +5902,7 @@ unsafe class C
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPeVerify_UnexpectedTypeOnStack).VerifyIL("C.M", @"
 {
   // Code size       79 (0x4f)
   .maxstack  1
@@ -6499,7 +6499,7 @@ unsafe class C
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "1234", verify: Verification.Fails).VerifyIL("C.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "1234", verify: Verification.FailsPeVerify_UnexpectedTypeOnStack).VerifyIL("C.Main", @"
 {
   // Code size      120 (0x78)
   .maxstack  5
@@ -9784,7 +9784,7 @@ unsafe class C
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPeVerify_UnexpectedTypeOnStack).VerifyIL("C.M", @"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -10854,7 +10854,7 @@ unsafe struct S1
 
 ";
 
-            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Fails);
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.FailsPeVerify_UnexpectedTypeOnStack);
         }
 
         [Fact, WorkItem(748530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748530")]
@@ -11370,7 +11370,10 @@ public static class Program
        return types.Length;
    }
 }";
-            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.Fails);
+            // PEVerify:
+            // [ : Program::Main][mdToken= 0x6000001][offset 0x00000001] Unmanaged pointers are not a verifiable type.
+            // [ : Program::Main][mdToken = 0x6000001][offset 0x00000001] Unable to resolve token.
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.FailsPeVerify_UnableToResolveToken);
             comp.VerifyIL("Program.Main", @"
 {
   // Code size       17 (0x11)

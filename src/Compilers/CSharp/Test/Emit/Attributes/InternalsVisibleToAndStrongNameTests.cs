@@ -2671,6 +2671,7 @@ internal class B
                 references: new[] { new CSharpCompilationReference(ca) },
                 parseOptions: parseOptions);
 
+            // TODO2 Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
             CompileAndVerify(cb, verify: Verification.Fails).Diagnostics.Verify();
         }
 

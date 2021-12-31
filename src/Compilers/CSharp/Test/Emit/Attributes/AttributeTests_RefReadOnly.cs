@@ -1152,6 +1152,7 @@ public class Test
 {
     public void M(in int x) { }
 }";
+            // TODO2 Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
             CompileAndVerify(code, verify: Verification.FailsPeVerify_MissingManifest, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);

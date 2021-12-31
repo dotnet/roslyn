@@ -954,6 +954,7 @@ public class Test
             }
             else
             {
+                // TODO2 Internal.TypeSystem.TypeSystemException+TypeLoadException : Failed to load type 'System.String' from assembly
                 CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.FailsPeVerify_MissingManifest : Verification.Passes, symbolValidator: module =>
                 {
                     var assemblyAttributes = module.ContainingAssembly.GetAttributes();

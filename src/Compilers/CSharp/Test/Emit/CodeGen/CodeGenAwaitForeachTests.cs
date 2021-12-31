@@ -6161,6 +6161,7 @@ public static class Extensions
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
+            // TODO2 Unexpected type on the stack.
             CompileAndVerify(comp, expectedOutput: "123");
         }
 

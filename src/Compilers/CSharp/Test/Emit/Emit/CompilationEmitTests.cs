@@ -4309,6 +4309,7 @@ public class Test
             string source2 = @"public class B: A {}";
             var comp = CreateCompilation(source1, options: TestOptions.ReleaseModule);
             var metadataRef = ModuleMetadata.CreateFromStream(comp.EmitToStream()).GetReference();
+            // TODO2 Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
             CompileAndVerify(source2, references: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: Verification.Fails);
         }
 
@@ -4724,6 +4725,7 @@ public interface IUsePlatform
         {
             var comp = CreateEmptyCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, options: TestOptions.DebugDll);
             // modules not supported in ref emit
+            // TODO2 ILVerify: Internal.IL.VerifierException : No system module specified
             CompileAndVerify(comp, verify: Verification.FailsPeVerify_BadFormat);
             Assert.NotSame(comp.Assembly.CorLibrary, comp.Assembly);
             comp.GetSpecialType(SpecialType.System_Int32);
@@ -5229,6 +5231,7 @@ public class DerivingClass<T> : BaseClass<T>
             var modRef = CreateCompilation("public class A { }", options: TestOptions.ReleaseModule, assemblyName: "refMod").EmitToImageReference();
             var comp = CreateCompilation("public class B : A { }", references: new[] { modRef }, assemblyName: "sourceMod");
 
+            // TODO2 ILVerify: Assembly or module not found: refMod
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var b = module.GlobalNamespace.GetTypeMember("B");

@@ -544,6 +544,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
+            // TODO2 ILVerify: Assembly or module not found: hash_module
             CompileAndVerify(compilation,
                 verify: Verification.Passes,
                 manifestResources: hash_resources,

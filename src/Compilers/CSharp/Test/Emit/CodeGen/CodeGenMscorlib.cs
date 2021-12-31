@@ -749,6 +749,7 @@ namespace System
             // Error: Token 0x02000009 following ELEMENT_TYPE_CLASS (_VALUETYPE) in signature is a ValueType (Class,respectively).
             // Error: Token 0x02000009 following ELEMENT_TYPE_CLASS(_VALUETYPE) in signature is a ValueType (Class, respectively).
             // Type load failed.
+            // TODO2 ILVerify: Internal.TypeSystem.TypeSystemException+TypeLoadException : Failed to load type 'System.String' from assembly ... 
             CompileAndVerify(comp, verify: Verification.FailsPeVerify_TypeLoadFailed).
                 VerifyIL("program.Main()",
 @"
@@ -877,6 +878,7 @@ namespace System
             //           fields of certain clr-ambiguous structs (only possible when building mscorlib)
 
             // PEVerify: Type load failed.
+            // TODO2 ILVerify: Internal.TypeSystem.TypeSystemException+TypeLoadException : Failed to load type 'System.String' from assembly ... 
             CompileAndVerify(comp, verify: Verification.FailsPeVerify_TypeLoadFailed).
                 VerifyIL("System.IntPtr..ctor(int)", @"
 {

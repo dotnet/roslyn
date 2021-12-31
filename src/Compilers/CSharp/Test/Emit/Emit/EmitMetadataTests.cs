@@ -224,6 +224,7 @@ public class Test : Class2
         [Fact()]
         public void Bug687434()
         {
+            // TODO2 Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
             CompileAndVerify(
                 "public class C { }",
                 verify: Verification.Fails,
@@ -242,6 +243,7 @@ public class Test : Class1
 }
 ";
             // modules not supported in ref emit
+            // TODO2 ILVerify: Assembly or module not found: netModule1
             CompileAndVerify(source, new[] { netModule1, netModule2 }, assemblyValidator: (assembly) =>
             {
                 Assert.Equal(3, assembly.Modules.Length);

@@ -430,6 +430,7 @@ public class Test
 {
     public ref struct S1{}
 }";
+            // TODO2 Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
             CompileAndVerify(code, verify: Verification.FailsPeVerify_MissingManifest, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");

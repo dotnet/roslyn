@@ -255,6 +255,8 @@ public class Test
     public void M<T>() where T : unmanaged { }
 }
 ";
+            // TODO2 AssemblyTable.NumberOfRows on the MetadataReader is 0 (so IsAssembly is false)
+            // TODO2 Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
             CompileAndVerify(text, verify: Verification.FailsPeVerify_MissingManifest, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M").TypeParameters.Single();
@@ -280,6 +282,7 @@ public class Test<T> where T : unmanaged
 {
 }
 ";
+            // TODO2 Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
             CompileAndVerify(text, verify: Verification.FailsPeVerify_MissingManifest, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test`1").TypeParameters.Single();
@@ -312,6 +315,7 @@ public class Test
 }
 ";
 
+            // TODO2 Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
             CompileAndVerify(
                 source: text,
                 verify: Verification.Fails,
@@ -341,6 +345,7 @@ namespace System.Runtime.CompilerServices
 public delegate void D<T>() where T : unmanaged;
 ";
 
+            // TODO2 Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
             CompileAndVerify(
                 source: text,
                 verify: Verification.Fails,
