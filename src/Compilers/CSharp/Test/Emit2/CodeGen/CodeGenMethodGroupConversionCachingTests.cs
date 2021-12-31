@@ -261,17 +261,54 @@ class C
 ";
         var verifier = CompileAndVerify(source);
         Assert.DoesNotContain(verifier.TestData.Module!.GetAllSynthesizedMembers(), s => s.Key.Name.Contains("<>O"));
-        verifier.VerifyIL("C.Main", @"
+        verifier.VerifyIL("C.<>c.<Main>b__0_0", @"
 {
-  // Code size       29 (0x1d)
-  .maxstack  2
-  IL_0000:  ldsfld     ""System.Func<int, System.Linq.Expressions.Expression<System.Func<int, System.Func<int, int>>>> C.<>c.<>9__0_0""
-  IL_0005:  brtrue.s   IL_001c
-  IL_0007:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_000c:  ldftn      ""System.Linq.Expressions.Expression<System.Func<int, System.Func<int, int>>> C.<>c.<Main>b__0_0(int)""
-  IL_0012:  newobj     ""System.Func<int, System.Linq.Expressions.Expression<System.Func<int, System.Func<int, int>>>>..ctor(object, System.IntPtr)""
-  IL_0017:  stsfld     ""System.Func<int, System.Linq.Expressions.Expression<System.Func<int, System.Func<int, int>>>> C.<>c.<>9__0_0""
-  IL_001c:  ret
+  // Code size      155 (0x9b)
+  .maxstack  7
+  .locals init (System.Linq.Expressions.ParameterExpression V_0)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""y""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0014:  stloc.0
+  IL_0015:  ldtoken    ""int C.Target(int)""
+  IL_001a:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_001f:  castclass  ""System.Reflection.MethodInfo""
+  IL_0024:  ldtoken    ""System.Reflection.MethodInfo""
+  IL_0029:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_002e:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_0033:  ldtoken    ""System.Delegate System.Reflection.MethodInfo.CreateDelegate(System.Type, object)""
+  IL_0038:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_003d:  castclass  ""System.Reflection.MethodInfo""
+  IL_0042:  ldc.i4.2
+  IL_0043:  newarr     ""System.Linq.Expressions.Expression""
+  IL_0048:  dup
+  IL_0049:  ldc.i4.0
+  IL_004a:  ldtoken    ""System.Func<int, int>""
+  IL_004f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0054:  ldtoken    ""System.Type""
+  IL_0059:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_005e:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_0063:  stelem.ref
+  IL_0064:  dup
+  IL_0065:  ldc.i4.1
+  IL_0066:  ldnull
+  IL_0067:  ldtoken    ""object""
+  IL_006c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0071:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_0076:  stelem.ref
+  IL_0077:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+  IL_007c:  ldtoken    ""System.Func<int, int>""
+  IL_0081:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0086:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_008b:  ldc.i4.1
+  IL_008c:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0091:  dup
+  IL_0092:  ldc.i4.0
+  IL_0093:  ldloc.0
+  IL_0094:  stelem.ref
+  IL_0095:  call       ""System.Linq.Expressions.Expression<System.Func<int, System.Func<int, int>>> System.Linq.Expressions.Expression.Lambda<System.Func<int, System.Func<int, int>>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_009a:  ret
 }
 ");
     }
