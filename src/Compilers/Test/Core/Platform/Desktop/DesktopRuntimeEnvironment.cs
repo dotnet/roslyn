@@ -297,37 +297,6 @@ namespace Roslyn.Test.Utilities.Desktop
             return GetEmitData().AllModuleData;
         }
 
-#if NET472
-        private class Resolver : ILVerify.ResolverBase
-        {
-            private readonly Dictionary<string, ImmutableArray<byte>> imagesByName = new Dictionary<string, ImmutableArray<byte>>();
-
-            internal Resolver(EmitData emitData)
-            {
-                foreach (var module in emitData.AllModuleData)
-                {
-                    string name = module.SimpleName;
-
-                    var image = name == "mscorlib"
-                        ? ImmutableArray<byte>.Empty // TODO2 TestResources.NetFX.v4_6_1038_0.mscorlib.AsImmutable()
-                        : module.Image;
-
-                    imagesByName.Add(name, image);
-                }
-            }
-
-            protected override PEReader ResolveCore(string name)
-            {
-                if (imagesByName.TryGetValue(name, out var image))
-                {
-                    return new PEReader(image);
-                }
-
-                return null;
-            }
-        }
-#endif
-
         public void Verify(Verification verification)
         {
             if (verification == Verification.Skipped)
@@ -336,45 +305,6 @@ namespace Roslyn.Test.Utilities.Desktop
             }
 
             var emitData = GetEmitData();
-
-#if NET472
-            // IL Verify
-            if ((verification & (Verification.PassesIlVerify | Verification.FailsIlVerify)) != 0)
-            {
-                var resolver = new Resolver(emitData);
-                var verifier = new ILVerify.Verifier(resolver);
-                if (emitData.AllModuleData.Any(m => m.SimpleName == "mscorlib"))
-                {
-                    verifier.SetSystemModuleName(new AssemblyName("mscorlib"));
-                }
-                else
-                {
-                    // auto-detect which module is the "corlib"
-                    foreach (var module in emitData.AllModuleData)
-                    {
-                        var name = module.SimpleName;
-                        var metadataReader = resolver.Resolve(name).GetMetadataReader();
-                        if (metadataReader.AssemblyReferences.Count == 0)
-                        {
-                            verifier.SetSystemModuleName(new AssemblyName(name));
-                        }
-                    }
-                }
-
-                var result = verifier.Verify(resolver.Resolve(emitData.MainModule.FullName));
-                if (result.Count() > 0)
-                {
-                    if ((verification & Verification.PassesIlVerify) != 0)
-                    {
-                        throw new Exception("IL Verify failed: \r\n" + string.Join("\r\n", result.Select(r => r.Message)));
-                    }
-                }
-                else if ((verification & Verification.FailsIlVerify) != 0)
-                {
-                    throw new Exception("IL Verify succeeded unexpectedly");
-                }
-            }
-#endif
 
             // PE Verify
             try
