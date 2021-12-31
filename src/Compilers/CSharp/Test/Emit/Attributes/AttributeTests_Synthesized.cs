@@ -652,6 +652,64 @@ internal class C1<T1>
             Assert.Equal(new[] { "Attr" }, GetAttributeNames(typeParam.GetAttributes()));
         }
 
+        [Fact]
+        [WorkItem(46439, "https://github.com/dotnet/roslyn/issues/46439")]
+        public void RecordSynthesizedMembers()
+        {
+            string source = @"
+record R;
+";
+            CompileAndVerify(source, symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var record = module.GlobalNamespace.GetTypeMember("R");
+                Assert.Equal(12, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
+
+                var equalityContractGetter = record.GetMember("get_EqualityContract");
+                validateCompilerGeneratedAttribute(equalityContractGetter);
+
+                var toString = record.GetMember(WellKnownMemberNames.ObjectToString);
+                validateCompilerGeneratedAttribute(toString);
+
+                var printMembers = record.GetMember(WellKnownMemberNames.PrintMembersMethodName);
+                validateCompilerGeneratedAttribute(printMembers);
+
+                var op_Equality = record.GetMember(WellKnownMemberNames.EqualityOperatorName);
+                validateCompilerGeneratedAttribute(op_Equality);
+
+                var op_Inequality = record.GetMember(WellKnownMemberNames.InequalityOperatorName);
+                validateCompilerGeneratedAttribute(op_Inequality);
+
+                var getHashCode = record.GetMember(WellKnownMemberNames.ObjectGetHashCode);
+                validateCompilerGeneratedAttribute(getHashCode);
+
+                var equals = record.GetMembers(WellKnownMemberNames.ObjectEquals);
+                Assert.Equal(2, equals.Length);
+                validateCompilerGeneratedAttribute(equals[0]);
+                validateCompilerGeneratedAttribute(equals[1]);
+
+                var clone = record.GetMember(WellKnownMemberNames.CloneMethodName);
+                validateCompilerGeneratedAttribute(clone);
+
+                var ctor = record.GetMembers(WellKnownMemberNames.InstanceConstructorName);
+                Assert.Equal(2, ctor.Length);
+                Assert.Equal(1, ctor[0].GetParameters()); // copy constructor
+                validateCompilerGeneratedAttribute(ctor[0]); // should have attribute.
+                Assert.Empty(ctor[1].GetParameters()); // parameterless constructor
+                Assert.Empty(ctor[1].GetAttributes()); // shouldn't have attribute.
+
+                var equalityContract = record.GetMember("EqualityContract");
+                validateCompilerGeneratedAttribute(equalityContract);
+            }
+
+            void validateCompilerGeneratedAttribute(Symbol symbol)
+            {
+                var attributeNames = GetAttributeNames(symbol.GetAttributes());
+                Assert.Contains("CompilerGeneratedAttribute", attributeNames);
+            }
+        }
+
         #endregion
 
         #region CompilationRelaxationsAttribute, RuntimeCompatibilityAttribute, DebuggableAttribute

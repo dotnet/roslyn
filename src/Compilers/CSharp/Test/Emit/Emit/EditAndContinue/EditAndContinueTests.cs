@@ -12485,7 +12485,8 @@ namespace N
                 Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default), // R.PrintMembers
-                Row(3, TableIndex.Param, EditAndContinueOperation.Default));
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
                 Handle(20, TableIndex.TypeRef),
