@@ -218,13 +218,16 @@ namespace System.Diagnostics.CodeAnalysis
                     {
                         ReadGeneratedSource("SolutionExplorerInProcess1.g.cs"),
                         ReadGeneratedSource("ShellInProcess1.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
                         ReadGeneratedSource("TestServiceAttribute.g.cs"),
                         ReadGeneratedSource("InProcComponent.g.cs"),
                         ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IAsyncDisposable.g.cs"),
                         ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess.WaitForProjectSystemAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.g.cs"),
                         ReadGeneratedSource("ShellInProcess.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess.g.cs"),
                         ReadGeneratedSource("TestServices.g.cs"),
                     },
                 },
@@ -232,7 +235,7 @@ namespace System.Diagnostics.CodeAnalysis
         }
 
         [Fact]
-        public async Task TestGenerationForVS2019()
+        public async Task TestGenerationForVS2019_16_0()
         {
             await new VerifyCS.Test
             {
@@ -254,13 +257,56 @@ namespace System.Diagnostics.CodeAnalysis
                     {
                         ReadGeneratedSource("SolutionExplorerInProcess1.g.cs"),
                         ReadGeneratedSource("ShellInProcess1.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
                         ReadGeneratedSource("TestServiceAttribute.g.cs"),
                         ReadGeneratedSource("InProcComponent.g.cs"),
                         ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
                         ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess.WaitForProjectSystemAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.g.cs"),
                         ReadGeneratedSource("ShellInProcess.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess.g.cs"),
+                        ReadGeneratedSource("TestServices.g.cs"),
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestGenerationForVS2019_16_1()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default
+                        .AddPackages(ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.VisualStudio.SDK", "16.0.206"),
+                            new PackageIdentity("Microsoft.VisualStudio.Shell.Framework", "16.1.28917.181"),
+                            new PackageIdentity("xunit", "2.4.1"))),
+                    AdditionalReferences =
+                    {
+                        ExtensibilityTestingLegacyLibrary,
+                    },
+                    Sources =
+                    {
+                        ("Nullable.cs", NullableAttributesSource),
+                    },
+                    GeneratedSources =
+                    {
+                        ReadGeneratedSource("SolutionExplorerInProcess1.g.cs"),
+                        ReadGeneratedSource("ShellInProcess1.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
+                        ReadGeneratedSource("TestServiceAttribute.g.cs"),
+                        ReadGeneratedSource("InProcComponent.g.cs"),
+                        ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
+                        ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
+                        ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess.WaitForProjectSystemAsync.g.cs"),
+                        ReadGeneratedSource("SolutionExplorerInProcess.g.cs"),
+                        ReadGeneratedSource("ShellInProcess.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess.g.cs"),
                         ReadGeneratedSource("TestServices.g.cs"),
                     },
                 },
@@ -290,13 +336,16 @@ namespace System.Diagnostics.CodeAnalysis
                     {
                         ReadGeneratedSource("SolutionExplorerInProcess1.g.cs"),
                         ReadGeneratedSource("ShellInProcess1.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
                         ReadGeneratedSource("TestServiceAttribute.g.cs"),
                         ReadGeneratedSource("InProcComponent.g.cs"),
                         ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
                         ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess.WaitForProjectSystemAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.g.cs"),
                         ReadGeneratedSource("ShellInProcess.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess.g.cs"),
                         ReadGeneratedSource("TestServices.g.cs"),
                     },
                 },
@@ -332,13 +381,16 @@ namespace System.Diagnostics.CodeAnalysis
                     {
                         ReadGeneratedSource("SolutionExplorerInProcess1.g.cs"),
                         ReadGeneratedSource("ShellInProcess1.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
                         ReadGeneratedSource("TestServiceAttribute.g.cs"),
                         ReadGeneratedSource("InProcComponent.g.cs"),
                         ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
                         ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess.WaitForProjectSystemAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.g.cs"),
                         ReadGeneratedSource("ShellInProcess.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess.g.cs"),
                         ReadGeneratedSource("TestServices.g.cs"),
                     },
                 },
@@ -370,13 +422,16 @@ namespace System.Diagnostics.CodeAnalysis
                     {
                         ReadGeneratedSource("SolutionExplorerInProcess1.g.cs"),
                         ReadGeneratedSource("ShellInProcess1.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
                         ReadGeneratedSource("TestServiceAttribute.g.cs"),
                         ReadGeneratedSource("InProcComponent.g.cs"),
                         ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
                         ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess.WaitForProjectSystemAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.g.cs"),
                         ReadGeneratedSource("ShellInProcess.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess.g.cs"),
                         ReadGeneratedSource("TestServices.g.cs"),
                     },
                 },
@@ -412,13 +467,16 @@ namespace System.Diagnostics.CodeAnalysis
                     {
                         ReadGeneratedSource("SolutionExplorerInProcess1.g.cs"),
                         ReadGeneratedSource("ShellInProcess1.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
                         ReadGeneratedSource("TestServiceAttribute.g.cs"),
                         ReadGeneratedSource("InProcComponent.g.cs"),
                         ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
                         ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess.WaitForProjectSystemAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.g.cs"),
                         ReadGeneratedSource("ShellInProcess.g.cs"),
+                        ReadGeneratedSource("WorkspaceInProcess.g.cs"),
                         ReadGeneratedSource("TestServices.g.cs"),
                     },
                 },

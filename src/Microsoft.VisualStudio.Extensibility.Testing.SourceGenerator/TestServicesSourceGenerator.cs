@@ -231,6 +231,20 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 }
 ";
 
+        private const string WorkspaceInProcessSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    [TestService]
+    internal partial class WorkspaceInProcess
+    {
+    }
+}
+";
+
         private const string SolutionExplorerInProcessSolutionEventsDisposeSource = @"// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
@@ -301,6 +315,69 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 ErrorHandler.ThrowOnFailure(_solution.UnadviseSolutionEvents(_cookie));
             }
         }
+    }
+}
+";
+
+        private const string WorkspaceInProcessWaitForProjectSystemSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System.Threading;
+    using Microsoft.VisualStudio.OperationProgress;
+    using Microsoft.VisualStudio.Threading;
+    using Task = System.Threading.Tasks.Task;
+
+    internal partial class WorkspaceInProcess
+    {
+        public async Task WaitForProjectSystemAsync(CancellationToken cancellationToken)
+        {
+            var operationProgressStatus = await GetRequiredGlobalServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(cancellationToken);
+            var stageStatus = operationProgressStatus.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
+            await stageStatus.WaitForCompletionAsync().WithCancellation(cancellationToken);
+        }
+    }
+}
+";
+
+        private const string WorkspaceInProcessWaitForProjectSystemPartialSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System;
+    using System.Threading;
+    using Task = System.Threading.Tasks.Task;
+
+    internal partial class WorkspaceInProcess
+    {
+        public Task WaitForProjectSystemAsync(CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException(""Visual Studio 2019 version 16.0 includes SVsOperationProgress, but does not include IVsOperationProgressStatusService. Update Microsoft.VisualStudio.Shell.Framework to 16.1 or newer to support waiting for project system."");
+        }
+    }
+}
+";
+
+        private const string WorkspaceInProcessWaitForProjectSystemLegacySource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System.Threading;
+    using Task = System.Threading.Tasks.Task;
+
+    internal partial class WorkspaceInProcess
+    {
+        public Task WaitForProjectSystemAsync(CancellationToken cancellationToken)
+            => Task.CompletedTask;
     }
 }
 ";
@@ -393,6 +470,7 @@ namespace Microsoft.VisualStudio
             {
                 context.AddSource($"SolutionExplorerInProcess1{SourceSuffix}", SolutionExplorerInProcessSource);
                 context.AddSource($"ShellInProcess1{SourceSuffix}", ShellInProcessSource);
+                context.AddSource($"WorkspaceInProcess1{SourceSuffix}", WorkspaceInProcessSource);
                 context.AddSource($"TestServiceAttribute{SourceSuffix}", TestServiceAttributeSource);
             });
 
@@ -460,8 +538,10 @@ namespace Microsoft.VisualStudio
                     var hasJoinableTaskFactoryWithPriority = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.Threading.DispatcherExtensions") is not null;
                     var hasAsyncEnumerable = compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerable`1") is not null;
                     var hasErrorHandler = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.ErrorHandler") is not null;
+                    var hasOperationProgress = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.OperationProgress.SVsOperationProgress") is not null;
+                    var hasOperationProgressStatusService = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.OperationProgress.IVsOperationProgressStatusService") is not null;
 
-                    return new ReferenceDataModel(hasSAsyncServiceProvider, hasThreadHelperJoinableTaskContext, canCancelJoinTillEmptyAsync, hasJoinableTaskFactoryWithPriority, hasAsyncEnumerable, hasErrorHandler);
+                    return new ReferenceDataModel(hasSAsyncServiceProvider, hasThreadHelperJoinableTaskContext, canCancelJoinTillEmptyAsync, hasJoinableTaskFactoryWithPriority, hasAsyncEnumerable, hasErrorHandler, hasOperationProgress, hasOperationProgressStatusService);
                 });
 
             context.RegisterSourceOutput(
@@ -884,6 +964,22 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                         context.AddSource($"ErrorHandler{SourceSuffix}", ErrorHandlerSource);
                         context.AddSource($"VSConstants{SourceSuffix}", VSConstantsSource);
                     }
+
+                    if (referenceDataModel.HasOperationProgress)
+                    {
+                        if (referenceDataModel.HasOperationProgressStatusService)
+                        {
+                            context.AddSource($"WorkspaceInProcess.WaitForProjectSystemAsync{SourceSuffix}", WorkspaceInProcessWaitForProjectSystemSource);
+                        }
+                        else
+                        {
+                            context.AddSource($"WorkspaceInProcess.WaitForProjectSystemAsync{SourceSuffix}", WorkspaceInProcessWaitForProjectSystemPartialSource);
+                        }
+                    }
+                    else
+                    {
+                        context.AddSource($"WorkspaceInProcess.WaitForProjectSystemAsync{SourceSuffix}", WorkspaceInProcessWaitForProjectSystemLegacySource);
+                    }
                 });
 
             context.RegisterSourceOutput(
@@ -1018,6 +1114,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             bool CanCancelJoinTillEmptyAsync,
             bool HasJoinableTaskFactoryWithPriority,
             bool HasAsyncEnumerable,
-            bool HasErrorHandler);
+            bool HasErrorHandler,
+            bool HasOperationProgress,
+            bool HasOperationProgressStatusService);
     }
 }

@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             SolutionExplorer = new global::Microsoft.VisualStudio.Extensibility.Testing.SolutionExplorerInProcess(this);
             Shell = new global::Microsoft.VisualStudio.Extensibility.Testing.ShellInProcess(this);
+            Workspace = new global::Microsoft.VisualStudio.Extensibility.Testing.WorkspaceInProcess(this);
         }
 
         /// <summary>
@@ -32,6 +33,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         internal global::Microsoft.VisualStudio.Extensibility.Testing.SolutionExplorerInProcess SolutionExplorer { get; }
         internal global::Microsoft.VisualStudio.Extensibility.Testing.ShellInProcess Shell { get; }
+        internal global::Microsoft.VisualStudio.Extensibility.Testing.WorkspaceInProcess Workspace { get; }
 
         internal static async Task<TestServices> CreateAsync(JoinableTaskFactory joinableTaskFactory)
         {
@@ -44,6 +46,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await ((IAsyncLifetime)SolutionExplorer).InitializeAsync();
             await ((IAsyncLifetime)Shell).InitializeAsync();
+            await ((IAsyncLifetime)Workspace).InitializeAsync();
         }
     }
 }
