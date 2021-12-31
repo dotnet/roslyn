@@ -1702,15 +1702,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ((CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData)?.ForwardedTypes;
             }
 
-            var save_t_forwardedTypesAttributesInProgress = t_forwardedTypesAttributesInProgress;
+            var allocate = t_forwardedTypesAttributesInProgress is null;
+
+            if (allocate)
+            {
+                t_forwardedTypesAttributesInProgress = PooledHashSet<AttributeSyntax>.GetInstance();
+            }
 
             try
             {
-                if (save_t_forwardedTypesAttributesInProgress == null)
-                {
-                    t_forwardedTypesAttributesInProgress = PooledHashSet<AttributeSyntax>.GetInstance();
-                }
-
                 attributesBag = null;
                 LoadAndValidateAttributes(
                     OneOrMany.Create(GetAttributeDeclarations()), ref attributesBag,
@@ -1723,10 +1723,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             finally
             {
-                if (save_t_forwardedTypesAttributesInProgress == null)
+                if (allocate)
                 {
-                    t_forwardedTypesAttributesInProgress.Free();
+                    var tofree = t_forwardedTypesAttributesInProgress;
                     t_forwardedTypesAttributesInProgress = null;
+                    tofree.Free();
                 }
             }
         }
