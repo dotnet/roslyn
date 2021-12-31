@@ -1949,11 +1949,11 @@ class Program
 @"using System;
 unsafe class Program
 {
-    static int* F() => (int*)0;
+    static int* F() { Console.WriteLine(nameof(F)); return (int*)0; }
     static void Main()
     {
         var d1 = F;
-        var d2 = (int x, int* y) => { };
+        var d2 = (int x, int* y) => { Console.WriteLine((x, (int)y)); };
         d1.Invoke();
         d2.Invoke(1, (int*)2);
         Report(d1);
@@ -1962,7 +1962,9 @@ unsafe class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
-@"<>f__AnonymousDelegate0
+@"F
+(1, 2)
+<>f__AnonymousDelegate0
 <>f__AnonymousDelegate1
 ");
         }
@@ -8398,10 +8400,10 @@ class Program
 {
     unsafe static void Main()
     {
-        var d1 = int* () => (int*)42;
-        var d2 = (int* p) => { };
-        var d3 = delegate*<void> () => default;
-        var d4 = (delegate*<void> d) => { };
+        var d1 = int* () => { Console.WriteLine(1); return (int*)42; };
+        var d2 = (int* p) => { Console.WriteLine((int)p); };
+        var d3 = delegate*<void> () => { Console.WriteLine(3); return default; };
+        var d4 = (delegate*<void> d) => { Console.WriteLine((int)d); };
         d1.Invoke();
         d2.Invoke((int*)2);
         d3.Invoke();
@@ -8418,7 +8420,11 @@ class Program
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
-@"<>f__AnonymousDelegate0
+@"1
+2
+3
+4
+<>f__AnonymousDelegate0
 <>f__AnonymousDelegate1
 <>f__AnonymousDelegate2
 <>f__AnonymousDelegate3
@@ -8464,8 +8470,8 @@ class Program
 ref struct S<T> { }
 class Program
 {
-    static void F1(int x, S<int> y) { }
-    static S<T> F2<T>() => default;
+    static void F1(int x, S<int> y) { Console.WriteLine(x); }
+    static S<T> F2<T>() { Console.WriteLine(typeof(T)); return default; }
     static void Main()
     {
         var d1 = F1;
@@ -8482,7 +8488,9 @@ class Program
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
-@"<>f__AnonymousDelegate0
+@"0
+System.Object
+<>f__AnonymousDelegate0
 <>f__AnonymousDelegate1
 ");
         }
@@ -8931,15 +8939,20 @@ class Program
 }
 class A
 {
-    internal unsafe static Delegate F1() => int* () => (int*)1;
-    internal unsafe static Delegate F2<T>() => int* () => (int*)2;
+    internal unsafe static Delegate F1() => int* () => { Console.WriteLine(nameof(F1)); return (int*)1; };
+    internal unsafe static Delegate F2<T>() => int* () => { Console.WriteLine((nameof(F2), typeof(T))); return (int*)2; };
 }
 class B<T>
 {
-    internal unsafe static Delegate F3() => int* () => (int*)3;
+    internal unsafe static Delegate F3() => int* () => { Console.WriteLine((nameof(F3), typeof(T))); return (int*)3; };
 }";
             CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
-@"<>f__AnonymousDelegate0
+@"F1
+(F2, System.Int32)
+(F3, System.String)
+(F2, System.String)
+(F3, System.Int32)
+<>f__AnonymousDelegate0
 <>f__AnonymousDelegate0
 <>f__AnonymousDelegate0
 <>f__AnonymousDelegate0
@@ -9009,15 +9022,16 @@ class A
     internal static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
             var sourceB =
-@"class B
+@"using System;
+class B
 {
     internal unsafe static void M()
     {
         int* x = (int*)42;
-        var d1 = (int y) => x;
-        var d2 = (ref int y) => x;
-        var d3 = (out int y) => { y = 0; return x; };
-        var d4 = (in int y) => x;
+        var d1 = (int y) => { Console.WriteLine((1, y)); return x; };
+        var d2 = (ref int y) => { Console.WriteLine((2, y)); return x; };
+        var d3 = (out int y) => { Console.WriteLine(3); y = 0; return x; };
+        var d4 = (in int y) => { Console.WriteLine((4, y)); return x; };
         int i = 42;
         d1.Invoke(i);
         d2.Invoke(ref i);
@@ -9030,15 +9044,16 @@ class A
     }
 }";
             var sourceC =
-@"class C
+@"using System;
+class C
 {
     internal unsafe static void M()
     {
         int* p = (int*)42;
-        var d1 = (in int i) => p;
-        var d2 = (out int i) => { i = 0; return p; };
-        var d3 = (ref int i) => p;
-        var d4 = (int i) => p;
+        var d1 = (in int i) => { Console.WriteLine((1, i)); return p; };
+        var d2 = (out int i) => { Console.WriteLine(2); i = 0; return p; };
+        var d3 = (ref int i) => { Console.WriteLine((3, i)); return p; };
+        var d4 = (int i) => { Console.WriteLine((4, i)); return p; };
         int i = 42;
         d1.Invoke(in i);
         d2.Invoke(out i);
@@ -9051,10 +9066,18 @@ class A
     }
 }";
             CompileAndVerify(new[] { sourceA, sourceB, sourceC }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
-@"<>f__AnonymousDelegate0
+@"(1, 42)
+(2, 42)
+3
+(4, 0)
+<>f__AnonymousDelegate0
 <>f__AnonymousDelegate1
 <>f__AnonymousDelegate2
 <>f__AnonymousDelegate3
+(1, 42)
+2
+(3, 0)
+(4, 0)
 <>f__AnonymousDelegate3
 <>f__AnonymousDelegate2
 <>f__AnonymousDelegate1
