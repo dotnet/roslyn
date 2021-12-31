@@ -666,7 +666,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Func<TypeSymbol, T, bool, bool>? typePredicate,
             T arg,
             bool canDigThroughNullable = false,
-            bool useDefaultType = false)
+            bool useDefaultType = false,
+            bool visitCustomModifiers = false)
         {
             RoslynDebug.Assert(typeWithAnnotationsOpt.HasType == (type is null));
             RoslynDebug.Assert(canDigThroughNullable == false || useDefaultType == false, "digging through nullable will cause early resolution of nullable types");
@@ -693,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = VisitType(default, containingType, typeWithAnnotationsPredicate, typePredicate, arg, canDigThroughNullable, useDefaultType);
+                                var result = VisitType(default, containingType, typeWithAnnotationsPredicate, typePredicate, arg, canDigThroughNullable, useDefaultType, visitCustomModifiers);
                                 if (result is object)
                                 {
                                     return result;
@@ -722,12 +723,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (typeWithAnnotationsOpt.HasType)
+                if (typeWithAnnotationsOpt.HasType && visitCustomModifiers)
                 {
                     foreach (var customModifier in typeWithAnnotationsOpt.CustomModifiers)
                     {
                         var modifier = ((CSharpCustomModifier)customModifier).ModifierSymbol;
-                        var result = VisitType(default, modifier, typeWithAnnotationsPredicate, typePredicate, arg, canDigThroughNullable, useDefaultType);
+                        var result = VisitType(default, modifier, typeWithAnnotationsPredicate, typePredicate, arg, canDigThroughNullable, useDefaultType, visitCustomModifiers);
                         if (result is object)
                         {
                             return result;
@@ -768,7 +769,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 typePredicate,
                                 arg,
                                 canDigThroughNullable,
-                                useDefaultType);
+                                useDefaultType,
+                                visitCustomModifiers);
                             if (result is object)
                             {
                                 return result;
@@ -788,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case TypeKind.FunctionPointer:
                         {
-                            var result = visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable, out next);
+                            var result = visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable, visitCustomModifiers, out next);
                             if (result is object)
                             {
                                 return result;
@@ -809,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static (TypeWithAnnotations, TypeSymbol?) getNextIterationElements(TypeWithAnnotations type, bool canDigThroughNullable)
                 => canDigThroughNullable ? (default(TypeWithAnnotations), type.NullableUnderlyingTypeOrSelf) : (type, null);
 
-            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable, out TypeWithAnnotations next)
+            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable, bool visitCustomModifiers, out TypeWithAnnotations next)
             {
                 MethodSymbol currentPointer = type.Signature;
                 if (currentPointer.ParameterCount == 0)
@@ -825,7 +827,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     typePredicate,
                     arg,
                     canDigThroughNullable,
-                    useDefaultType);
+                    useDefaultType,
+                    visitCustomModifiers);
                 if (result is object)
                 {
                     next = default;
@@ -843,7 +846,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         typePredicate,
                         arg,
                         canDigThroughNullable,
-                        useDefaultType);
+                        useDefaultType,
+                        visitCustomModifiers);
                     if (result is object)
                     {
                         next = default;

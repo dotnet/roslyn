@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 field.TypeWithAnnotations.VisitType(
                     type: null,
                     typeWithAnnotationsPredicate: null,
-                    typePredicate: (type, referenced, _) =>
+                    typePredicate: static (type, referenced, _) =>
                     {
                         if (type is TypeParameterSymbol typeParameter)
                         {
@@ -289,7 +289,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         return false;
                     },
-                    arg: referenced);
+                    arg: referenced,
+                    visitCustomModifiers: true);
             }
 
             ImmutableArray<TypeParameterSymbol> typeParameters;
