@@ -3818,6 +3818,7 @@ class C
 
             var comp = CreateCompilation(new[] { source, interpolatedStringBuilder },
                 targetFramework: TargetFramework.NetCoreApp);
+            // TODO2 ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:S converted
 value:C");
@@ -9213,6 +9214,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
+            // TODO2 ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
             var verifier = CompileAndVerify(
                 new[] { code, InterpolatedStringHandlerArgumentAttribute, handler },
                 expectedOutput: "1literal:literal",

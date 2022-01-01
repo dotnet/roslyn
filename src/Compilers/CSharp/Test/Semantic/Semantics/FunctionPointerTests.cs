@@ -2646,6 +2646,7 @@ unsafe
         [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInference_ExactInferenceThroughArray_RefKindMatch()
         {
+            // TODO2 ILVerify: Unexpected type on the stack. ImportCalli not implemented
             var verifier = CompileAndVerify(@"
 unsafe
 {

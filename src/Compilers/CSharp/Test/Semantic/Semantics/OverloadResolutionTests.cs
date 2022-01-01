@@ -9037,6 +9037,7 @@ public static class Class
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            // TODO2 ILVerify: Unrecognized arguments for delegate .ctor.
             CompileAndVerify(compilation, expectedOutput:
 @"RemoveDetail
 RemoveDetail
@@ -11292,6 +11293,7 @@ public static class Extensions
         throw new NotImplementedException();
 }";
 
+            // TODO2 ILVerify: Unrecognized arguments for delegate .ctor.
             CompileAndVerify(code, expectedOutput: @"2");
         }
 

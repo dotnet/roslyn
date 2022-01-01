@@ -862,6 +862,7 @@ namespace System.Runtime.CompilerServices
                 );
             var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 );
+            // TODO2 ILVerify: Unrecognized arguments for delegate .ctor.
             CompileAndVerify(compilation, expectedOutput: "2");
         }
 

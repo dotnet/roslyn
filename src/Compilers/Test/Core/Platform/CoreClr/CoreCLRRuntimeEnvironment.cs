@@ -189,6 +189,16 @@ namespace Roslyn.Test.Utilities.CoreClr
                     {
                         throw new Exception("Expected: The method or operation is not implemented.");
                     }
+                    if ((verification & Verification.InitOnly) != 0
+                        && !message.Contains("Cannot change initonly field outside its .ctor."))
+                    {
+                        throw new Exception("Expected: Cannot change initonly field outside its .ctor.");
+                    }
+                    if ((verification & Verification.NotVisible) != 0
+                     && !message.Contains(" is not visible."))
+                    {
+                        throw new Exception("Expected: ... is not visible.");
+                    }
                 }
                 else if ((verification & Verification.FailsIlVerify) != 0)
                 {

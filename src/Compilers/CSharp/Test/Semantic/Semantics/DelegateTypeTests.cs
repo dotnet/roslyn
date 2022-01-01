@@ -1298,6 +1298,7 @@ static class B
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
+                // TODO2 ILVerify: Unrecognized arguments for delegate .ctor.
                 CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
@@ -1392,6 +1393,7 @@ namespace N
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
+                // TODO2 ILVerify: Unrecognized arguments for delegate .ctor.
                 CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
@@ -1767,6 +1769,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            // TODO2 ILVerify: Unrecognized arguments for delegate .ctor.
             CompileAndVerify(comp, expectedOutput: "System.Action<System.Int32>, System.Action");
 
             var tree = comp.SyntaxTrees[0];
@@ -7869,6 +7872,7 @@ static class E
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
+            // TODO2 ILVerify: Unrecognized arguments for delegate .ctor.
             var verifier = CompileAndVerify(comp, expectedOutput: @"(41, 42)");
             verifier.VerifyIL("Program.M1",
 @"{

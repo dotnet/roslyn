@@ -3073,6 +3073,7 @@ namespace System.Collections
 }";
 
             var comp = CreateEmptyCompilation(text, new[] { reference1 });
+            // TODO2 ILVerify succeeds
             CompileAndVerify(comp, verify: Verification.Fails).
             VerifyIL("C.M", @"
 {

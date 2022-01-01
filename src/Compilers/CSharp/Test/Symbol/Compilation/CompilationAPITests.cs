@@ -1024,6 +1024,7 @@ var a = new C2();
 }"
             });
             assembly.VerifyEmitDiagnostics();
+            // TODO2 ILVerify: Assembly or module not found: a2
             CompileAndVerify(assembly);
         }
 

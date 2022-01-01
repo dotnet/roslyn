@@ -3603,6 +3603,7 @@ class Program
     static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
+            // TODO2 ILVerify succeeded
             var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
@@ -3630,6 +3631,7 @@ class Program
     static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
+            // TODO2 ILVerify succeeded
             var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();

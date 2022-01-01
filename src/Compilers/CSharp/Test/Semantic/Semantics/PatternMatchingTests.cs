@@ -6221,7 +6221,7 @@ unsafe public class C {
             var compilation = CreateCompilation(program, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: "ok");
+            var comp = CompileAndVerify(compilation, expectedOutput: "ok", verify: Verification.FailsIlVerify_TypedReference);
         }
 
         [Fact]
@@ -6517,6 +6517,7 @@ False
 False";
             var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
+            // TODO2 ILVerify succeeded
             CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 

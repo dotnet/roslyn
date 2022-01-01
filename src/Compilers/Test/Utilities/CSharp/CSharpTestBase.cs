@@ -839,6 +839,7 @@ namespace System.Runtime.CompilerServices
                 }
             }
 
+            // TODO2 ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
             return CompileAndVerifyCommon(
                 compilation,
                 manifestResources,

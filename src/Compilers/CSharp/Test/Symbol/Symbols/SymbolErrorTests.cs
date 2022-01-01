@@ -6072,6 +6072,7 @@ namespace NS
                     s_mod2.GetReference(),
                 });
 
+            // TODO2 ILVerify: Assembly or module not found: ErrTestMod02
             CompileAndVerify(comp).VerifyDiagnostics();
         }
 

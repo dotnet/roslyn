@@ -772,6 +772,7 @@ unsafe class C
             // default(IntPtr) as "load zero, convert to type", rather than making a stack slot and calling
             // init on it.
 
+            // TODO2 ILVerify succeeded
             var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             c.VerifyIL("C.Main", @"{

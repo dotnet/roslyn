@@ -357,6 +357,12 @@ namespace Roslyn.Test.Utilities.Desktop
                 {
                     throw new Exception("Expected: was expected to contain an assembly manifest.", ex);
                 }
+                if ((verification & Verification.InitOnly) != 0
+                    && !ex.Message.Contains("Cannot change initonly field outside its .ctor."))
+                {
+                    throw new Exception("Expected: Cannot change initonly field outside its .ctor.");
+                }
+
             }
         }
 
