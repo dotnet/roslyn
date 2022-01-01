@@ -243,8 +243,8 @@ public class Test : Class1
 }
 ";
             // modules not supported in ref emit
-            // TODO2 ILVerify: Assembly or module not found: netModule1
-            CompileAndVerify(source, new[] { netModule1, netModule2 }, assemblyValidator: (assembly) =>
+            // ILVerify: Assembly or module not found: netModule1
+            CompileAndVerify(source, new[] { netModule1, netModule2 }, verify: Verification.FailsIlVerify_MissingAssembly, assemblyValidator: (assembly) =>
             {
                 Assert.Equal(3, assembly.Modules.Length);
 

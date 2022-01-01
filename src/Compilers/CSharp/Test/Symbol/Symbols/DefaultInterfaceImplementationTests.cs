@@ -45524,7 +45524,8 @@ public interface ITest33
                 foreach (var reference2 in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
                 {
                     var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Reference }, targetFramework: TargetFramework.StandardLatest);
-                    CompileAndVerify(compilation2, expectedOutput: "Test.M1", verify: Verification.Passes);
+                    // ILVerify: Missing method 'Void UsePia.Test(ITest33)'
+                    CompileAndVerify(compilation2, expectedOutput: "Test.M1", verify: Verification.Skipped);
                 }
             }
         }

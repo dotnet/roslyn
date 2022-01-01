@@ -40,9 +40,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         NotVisible = 1 << 14,
         UnrecognizedArgDelegate = 1 << 15,
         MissingStringType = 1 << 16,
+        MissingAssembly = 1 << 17,
 
         // Both
-        InitOnly = 1 << 17,
+        InitOnly = 1 << 18,
 
         // PEVerify errors
         TypeLoadFailed = 1 << 4,
@@ -56,14 +57,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Passes = PassesPeVerify | PassesIlVerify,
         Fails = FailsPeVerify | FailsIlVerify,
 
-        Fails_InitOnly = FailsPeVerify | FailsIlVerify | InitOnly, // Cannot change initonly field outside its .ctor.
-
+        // ILVerify errors
         FailsIlVerify_TypedReference = PassesPeVerify | FailsIlVerify | TypedReference, // ILVerify doesn't support TypedReference
         FailsIlVerify_NotImplemented = PassesPeVerify | FailsIlVerify | NotImplemented, // ILVerify has some un-implemented cases in EcmaModule.GetType
         FailsIlVerify_NotVisible = PassesPeVerify | FailsIlVerify | NotVisible, // ILVerify: Type|Method|Field is not visible.
         FailsIlVerify_UnrecognizedArgDelegate = PassesPeVerify | FailsIlVerify | UnrecognizedArgDelegate, // ILVerify: Unrecognized arguments for delegate .ctor.
         FailsIlVerify_MissingStringType = PassesPeVerify | FailsIlVerify | MissingStringType, // ILVerify: Internal.TypeSystem.TypeSystemException+TypeLoadException : Failed to load type 'System.String' from assembly ...
+        FailsIlVerify_MissingAssembly = PassesPeVerify | FailsIlVerify | MissingAssembly, // ILVerify: Assembly or module not found: ...
 
+        // Both
+        Fails_InitOnly = FailsPeVerify | FailsIlVerify | InitOnly, // Cannot change initonly field outside its .ctor.
+
+        // PEVerify errors
         FailsPeVerify_TypeLoadFailed = FailsPeVerify | PassesIlVerify | TypeLoadFailed, // ILVerify doesn't complain type load failed
         FailsPeVerify_UnexpectedTypeOnStack = FailsPeVerify | PassesIlVerify | UnexpectedTypeOnStack, // ILVerify doesn't complain about: Unexpected type on the stack.
         FailsPeVerify_UnableToResolveToken = FailsPeVerify | PassesIlVerify | UnableToResolveToken, // ILVerify doesn't complain about "unable to resolve token"

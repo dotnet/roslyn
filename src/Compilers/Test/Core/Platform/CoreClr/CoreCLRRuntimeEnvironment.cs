@@ -194,7 +194,7 @@ namespace Roslyn.Test.Utilities.CoreClr
                     string message = string.Join("\r\n", result.Select(r => r.Message));
                     if ((verification & Verification.PassesIlVerify) != 0)
                     {
-                        throw new Exception("IL Verify failed: \r\n" + message);
+                        throw new Exception("IL Verify failed expectedly: \r\n" + message);
                     }
                     if ((verification & Verification.TypedReference) != 0
                         && !message.Contains("TypedReference not supported in .NET Core"))
@@ -220,6 +220,11 @@ namespace Roslyn.Test.Utilities.CoreClr
                         && !message.Contains("Unrecognized arguments for delegate .ctor."))
                     {
                         throw new Exception("Expected: Unrecognized arguments for delegate .ctor.");
+                    }
+                    if ((verification & Verification.MissingAssembly) != 0
+                        && !message.Contains("Assembly or module not found: "))
+                    {
+                        throw new Exception("Expected: Assembly or module not found: ...");
                     }
                 }
                 else if ((verification & Verification.FailsIlVerify) != 0)
