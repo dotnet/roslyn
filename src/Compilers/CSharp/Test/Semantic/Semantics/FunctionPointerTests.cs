@@ -2646,7 +2646,7 @@ unsafe
         [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInference_ExactInferenceThroughArray_RefKindMatch()
         {
-            // TODO2 ILVerify: Unexpected type on the stack. ImportCalli not implemented
+            // ILVerify: Unexpected type on the stack. ImportCalli not implemented
             var verifier = CompileAndVerify(@"
 unsafe
 {
@@ -2660,7 +2660,7 @@ unsafe
         System.Console.Write(t);
     }
 }
-", expectedOutput: "11", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
+", expectedOutput: "11", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsIlVerify_UnspecifiedError : Verification.Skipped);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {

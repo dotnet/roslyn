@@ -750,7 +750,7 @@ namespace System
             // Error: Token 0x02000009 following ELEMENT_TYPE_CLASS(_VALUETYPE) in signature is a ValueType (Class, respectively).
             // Type load failed.
             // ILVerify: Failed to load type 'System.String' from assembly ... 
-            CompileAndVerify(comp, verify: Verification.FailsPeVerify | Verification.TypeLoadFailed | Verification.FailsIlVerify | Verification.MissingStringType).
+            CompileAndVerify(comp, verify: Verification.FailsPeVerify_TypeLoadFailed | Verification.FailsIlVerify_MissingStringType).
                 VerifyIL("program.Main()",
 @"
 {
@@ -879,7 +879,7 @@ namespace System
 
             // PEVerify: Type load failed.
             // ILVerify: Failed to load type 'System.String' from assembly ... 
-            CompileAndVerify(comp, verify: Verification.FailsPeVerify | Verification.TypeLoadFailed | Verification.FailsIlVerify | Verification.MissingStringType).
+            CompileAndVerify(comp, verify: Verification.FailsPeVerify_TypeLoadFailed | Verification.FailsIlVerify_MissingStringType).
                 VerifyIL("System.IntPtr..ctor(int)", @"
 {
   // Code size       10 (0xa)

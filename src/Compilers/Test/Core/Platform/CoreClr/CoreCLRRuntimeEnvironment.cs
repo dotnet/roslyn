@@ -148,99 +148,131 @@ namespace Roslyn.Test.Utilities.CoreClr
             emitData.RuntimeData.PeverifyRequested = true;
             // TODO(https://github.com/dotnet/coreclr/issues/295): Implement peverify
 
-            // TODO2
             // IL Verify
-            if ((verification & (Verification.PassesIlVerify | Verification.FailsIlVerify)) != 0)
+            if (verification == Verification.Skipped)
             {
-                var resolver = new Resolver(emitData);
-                var verifier = new ILVerify.Verifier(resolver);
-                var mscorlibModules = emitData.AllModuleData.Where(m => m.SimpleName == "mscorlib").ToArray();
-                if (mscorlibModules.Length == 1)
-                {
-                    verifier.SetSystemModuleName(new AssemblyName(mscorlibModules[0].FullName));
-                }
-                else
-                {
-                    // auto-detect which module is the "corlib"
-                    foreach (var module in emitData.AllModuleData)
-                    {
-                        var name = module.SimpleName;
-                        var metadataReader = resolver.Resolve(name).GetMetadataReader();
-                        if (metadataReader.AssemblyReferences.Count == 0)
-                        {
-                            try
-                            {
-                                verifier.SetSystemModuleName(new AssemblyName(name));
-                            }
-                            catch (Exception ex)
-                            {
-                                // ILVerify checks that corlib contains certain types
-                                if ((verification & Verification.MissingStringType) != 0)
-                                {
-                                    if (!ex.Message.Contains("Failed to load type 'System.String' from assembly"))
-                                    {
-                                        throw new Exception("Expected: Failed to load type 'System.String' from assembly ...");
-                                    }
-                                    return;
-                                }
+                return;
+            }
 
-                                throw;
+            var resolver = new Resolver(emitData);
+            var verifier = new ILVerify.Verifier(resolver);
+            var mscorlibModules = emitData.AllModuleData.Where(m => m.SimpleName == "mscorlib").ToArray();
+            if (mscorlibModules.Length == 1)
+            {
+                verifier.SetSystemModuleName(new AssemblyName(mscorlibModules[0].FullName));
+            }
+            else
+            {
+                // auto-detect which module is the "corlib"
+                foreach (var module in emitData.AllModuleData)
+                {
+                    var name = module.SimpleName;
+                    var metadataReader = resolver.Resolve(name).GetMetadataReader();
+                    if (metadataReader.AssemblyReferences.Count == 0)
+                    {
+                        try
+                        {
+                            verifier.SetSystemModuleName(new AssemblyName(name));
+                        }
+                        catch (Exception ex)
+                        {
+                            // ILVerify checks that corlib contains certain types
+                            if ((verification & Verification.FailsIlVerify_MissingStringType) == Verification.FailsIlVerify_MissingStringType)
+                            {
+                                if (!ex.Message.Contains("Failed to load type 'System.String' from assembly"))
+                                {
+                                    throw new Exception("Expected: Failed to load type 'System.String' from assembly ...");
+                                }
+                                return;
                             }
+
+                            throw;
                         }
                     }
                 }
-
-                var result = verifier.Verify(resolver.Resolve(emitData.MainModule.FullName));
-                if (result.Count() > 0)
-                {
-                    string message = printVerificationResult(result);
-                    if ((verification & Verification.PassesIlVerify) != 0)
-                    {
-                        throw new Exception("IL Verify failed unexpectedly: \r\n" + message);
-                    }
-                    if ((verification & Verification.TypedReference) != 0
-                        && !message.Contains("TypedReference not supported in .NET Core"))
-                    {
-                        throw new Exception("Expected: TypedReference not supported in .NET Core");
-                    }
-                    if ((verification & Verification.NotImplemented) != 0
-                        && !message.Contains("The method or operation is not implemented."))
-                    {
-                        throw new Exception("Expected: The method or operation is not implemented.");
-                    }
-                    if ((verification & Verification.InitOnly) != 0
-                        && !message.Contains("Cannot change initonly field outside its .ctor."))
-                    {
-                        throw new Exception("Expected: Cannot change initonly field outside its .ctor.");
-                    }
-                    if ((verification & Verification.NotVisible) != 0
-                        && !message.Contains(" is not visible."))
-                    {
-                        throw new Exception("Expected: ... is not visible.");
-                    }
-                    if ((verification & Verification.UnrecognizedArgDelegate) != 0
-                        && !message.Contains("Unrecognized arguments for delegate .ctor."))
-                    {
-                        throw new Exception("Expected: Unrecognized arguments for delegate .ctor.");
-                    }
-                    if ((verification & Verification.MissingAssembly) != 0
-                        && !message.Contains("Assembly or module not found: "))
-                    {
-                        throw new Exception("Expected: Assembly or module not found: ...");
-                    }
-                    if ((verification & Verification.UnexpectedReadonlyAddressOnStack) != 0
-                        && !(message.Contains("Unexpected type on the stack.")
-                        && message.Contains("Found = readonly address of")
-                        && message.Contains("Expected = address of")))
-                    {
-                        throw new Exception("Expected: Assembly or module not found: ...");
-                    }
-                }
-                else if ((verification & Verification.FailsIlVerify) != 0)
-                {
-                    throw new Exception("IL Verify succeeded unexpectedly");
-                }
             }
+
+            var result = verifier.Verify(resolver.Resolve(emitData.MainModule.FullName));
+            if (result.Count() == 0)
+            {
+                if ((verification & Verification.FailsIlVerify) == 0)
+                {
+                    return;
+                }
+
+                throw new Exception("IL Verify succeeded unexpectedly");
+            }
+
+            string message = printVerificationResult(result);
+            if ((verification & Verification.FailsIlVerify_TypedReference) == Verification.FailsIlVerify_TypedReference
+                && message.Contains("TypedReference not supported in .NET Core"))
+            {
+                return;
+            }
+
+            if ((verification & Verification.FailsIlVerify_NotImplemented) == Verification.FailsIlVerify_NotImplemented
+                && message.Contains("The method or operation is not implemented."))
+            {
+                return;
+            }
+
+            if ((verification & Verification.Fails_InitOnly) == Verification.Fails_InitOnly
+                && message.Contains("Cannot change initonly field outside its .ctor."))
+            {
+                return;
+            }
+
+            if ((verification & Verification.FailsIlVerify_NotVisible) == Verification.FailsIlVerify_NotVisible
+                && message.Contains(" is not visible."))
+            {
+                return;
+            }
+
+            if ((verification & Verification.FailsIlVerify_UnrecognizedArgDelegate) == Verification.FailsIlVerify_UnrecognizedArgDelegate
+                && message.Contains("Unrecognized arguments for delegate .ctor."))
+            {
+                return;
+            }
+
+            if ((verification & Verification.FailsIlVerify_MissingAssembly) == Verification.FailsIlVerify_MissingAssembly
+                && message.Contains("Assembly or module not found: "))
+            {
+                return;
+            }
+
+            if ((verification & Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack) == Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack
+                && message.Contains("Unexpected type on the stack.")
+                && message.Contains("Found = readonly address of")
+                && message.Contains("Expected = address of"))
+            {
+                return;
+            }
+
+            if ((verification & Verification.FailsIlVerify_BadReturnType) == Verification.FailsIlVerify_BadReturnType
+                && message.Contains("Return type is ByRef, TypedReference, ArgHandle, or ArgIterator."))
+            {
+                return;
+            }
+
+            if ((verification & Verification.FailsIlVerify_UnexpectedTypeOnStack) == Verification.FailsIlVerify_UnexpectedTypeOnStack
+                && message.Contains("Unexpected type on the stack."))
+            {
+                return;
+            }
+
+            // TODO2 remove?
+            if ((verification & Verification.FailsIlVerify_ImportCalli) == Verification.FailsIlVerify_ImportCalli
+                && message.Contains("ImportCalli not implemented"))
+            {
+                return;
+            }
+
+            if ((verification & Verification.FailsIlVerify_UnspecifiedError) == Verification.FailsIlVerify_UnspecifiedError)
+            {
+                return;
+            }
+
+            throw new Exception("IL Verify failed unexpectedly: \r\n" + message);
 
             static string printVerificationResult(IEnumerable<ILVerify.VerificationResult> result)
             {

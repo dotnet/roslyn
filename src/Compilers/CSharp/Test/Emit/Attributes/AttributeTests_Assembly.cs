@@ -298,10 +298,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
             var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
 
-            // TODO2
             // PEVerify:
             // Warning: Invalid locale string.
-            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: m =>
+            CompileAndVerify(comp, verify: Verification.FailsPeVerify_UnspecifiedError, symbolValidator: m =>
             {
                 var utf8 = new System.Text.UTF8Encoding(false, false);
                 Assert.Equal(utf8.GetString(utf8.GetBytes("\uD800")), m.ContainingAssembly.Identity.CultureName);
@@ -607,7 +606,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
             CompileAndVerify(compilation,
-                verify: Verification.Passes,
+                verify: Verification.FailsIlVerify_MissingAssembly,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -637,7 +636,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
             CompileAndVerify(compilation,
-                verify: Verification.Passes,
+                verify: Verification.FailsIlVerify_MissingAssembly,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -768,7 +767,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module_Comp.EmitToImageReference() });
 
             CompileAndVerify(compilation,
-                verify: Verification.Passes,
+                verify: Verification.FailsIlVerify_MissingAssembly,
                 validator: (peAssembly) =>
                 {
                     var peReader = peAssembly.ManifestModule.GetMetadataReader();

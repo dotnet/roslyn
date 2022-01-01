@@ -311,58 +311,68 @@ namespace Roslyn.Test.Utilities.Desktop
             {
                 emitData.RuntimeData.PeverifyRequested = true;
                 emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName }, throwOnError: true);
-                if ((verification & Verification.FailsPeVerify) != 0)
+                if ((verification & Verification.FailsPeVerify) == 0)
                 {
-                    throw new Exception("PE Verify succeeded unexpectedly");
+                    return;
                 }
+
+                throw new Exception("PE Verify succeeded unexpectedly");
             }
             catch (RuntimePeVerifyException ex)
             {
-                if ((verification & Verification.PassesPeVerify) != 0)
+                if ((verification & Verification.FailsPeVerify_TypeLoadFailed) == Verification.FailsPeVerify_TypeLoadFailed
+                    && ex.Message.Contains("Type load failed."))
                 {
-                    throw new Exception("Verification failed", ex);
-                }
-                if ((verification & Verification.TypeLoadFailed) != 0
-                    && !ex.Message.Contains("Type load failed."))
-                {
-                    throw new Exception("Expected: Type load failed.", ex);
-                }
-                if ((verification & Verification.UnexpectedTypeOnStack) != 0
-                    && !ex.Message.Contains("Unexpected type on the stack."))
-                {
-                    throw new Exception("Expected: Unexpected type on the stack.", ex);
-                }
-                if ((verification & Verification.UnableToResolveToken) != 0
-                    && !ex.Message.Contains("Unable to resolve token."))
-                {
-                    throw new Exception("Expected: Unable to resolve token.", ex);
-                }
-                if ((verification & Verification.TypeDevNotNil) != 0
-                    && !ex.Message.Contains("which is not nil."))
-                {
-                    throw new Exception("Expected: [...] which is not nil.", ex);
-                }
-                if ((verification & Verification.ClassLayout) != 0
-                    && !ex.Message.Contains("marked AutoLayout."))
-                {
-                    throw new Exception("Expected: [...] marked AutoLayout.", ex);
-                }
-                if ((verification & Verification.BadName) != 0
-                    && !ex.Message.Contains("Assembly name contains leading spaces or path or extension."))
-                {
-                    throw new Exception("Expected: Assembly name contains leading spaces or path or extension.", ex);
-                }
-                if ((verification & Verification.MissingManifest) != 0
-                    && !ex.Message.Contains("was expected to contain an assembly manifest."))
-                {
-                    throw new Exception("Expected: was expected to contain an assembly manifest.", ex);
-                }
-                if ((verification & Verification.InitOnly) != 0
-                    && !ex.Message.Contains("Cannot change initonly field outside its .ctor."))
-                {
-                    throw new Exception("Expected: Cannot change initonly field outside its .ctor.");
+                    return;
                 }
 
+                if ((verification & Verification.FailsPeVerify_UnexpectedTypeOnStack) == Verification.FailsPeVerify_UnexpectedTypeOnStack
+                    && ex.Message.Contains("Unexpected type on the stack."))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.FailsPeVerify_UnableToResolveToken) == Verification.FailsPeVerify_UnableToResolveToken
+                    && ex.Message.Contains("Unable to resolve token."))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.FailsPeVerify_TypeDevNotNil) == Verification.FailsPeVerify_TypeDevNotNil
+                    && ex.Message.Contains("which is not nil."))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.FailsPeVerify_ClassLayout) == Verification.FailsPeVerify_ClassLayout
+                    && ex.Message.Contains("marked AutoLayout."))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.FailsPeVerify_BadName) == Verification.FailsPeVerify_BadName
+                    && ex.Message.Contains("Assembly name contains leading spaces or path or extension."))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.FailsPeVerify_MissingManifest) == Verification.FailsPeVerify_MissingManifest
+                    && ex.Message.Contains("was expected to contain an assembly manifest."))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.Fails_InitOnly) == Verification.Fails_InitOnly
+                    && ex.Message.Contains("Cannot change initonly field outside its .ctor."))
+                {
+                }
+
+                if ((verification & Verification.FailsPeVerify_UnspecifiedError) == Verification.FailsPeVerify_UnspecifiedError)
+                {
+                    return;
+                }
+
+                throw new Exception("Verification failed", ex);
             }
         }
 

@@ -5261,10 +5261,13 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
         }
     }";
 
+            // PEVerify:
+            // [ : Program::GetElementRef[T]][mdToken=0x6000004][offset 0x00000009][found readonly address of ref ][expected address of ref ] Unexpected type on the stack.
+            // [ : Program::GetElementRef[T]][mdToken= 0x6000004][offset 0x00000017][found readonly address of ref ][expected address of ref ] Unexpected type on the stack.
             // ILVerify:
             // Unexpected type on the stack. { Offset = 9, Found = readonly address of 'T', Expected = address of 'T' }
             // Unexpected type on the stack. { Offset = 23, Found = readonly address of 'T', Expected = address of 'T' }
-            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
+            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.FailsPeVerify_UnexpectedTypeOnStack | Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
 
             var expectedIL = @"
 {

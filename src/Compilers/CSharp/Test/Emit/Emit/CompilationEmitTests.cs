@@ -4725,8 +4725,9 @@ public interface IUsePlatform
         {
             var comp = CreateEmptyCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, options: TestOptions.DebugDll);
             // modules not supported in ref emit
-            // TODO2 ILVerify: Internal.IL.VerifierException : No system module specified
-            CompileAndVerify(comp, verify: Verification.FailsPeVerify_BadFormat);
+            // PEVerify: [HRESULT 0x8007000B] - An attempt was made to load a program with an incorrect format.
+            // ILVerify: Internal.IL.VerifierException : No system module specified
+            CompileAndVerify(comp, verify: Verification.FailsPeVerify_UnspecifiedError | Verification.FailsIlVerify_UnspecifiedError);
             Assert.NotSame(comp.Assembly.CorLibrary, comp.Assembly);
             comp.GetSpecialType(SpecialType.System_Int32);
         }

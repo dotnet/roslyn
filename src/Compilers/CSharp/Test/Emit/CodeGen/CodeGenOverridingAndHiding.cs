@@ -2556,7 +2556,7 @@ public class Test
             // from assembly 'Dev10, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
             // is overriding a method that is not visible from that assembly.
 
-            CompileAndVerify(outerCompilation, verify: Verification.FailsPeVerify | Verification.PassesIlVerify).VerifyIL("Test.Main", @"
+            CompileAndVerify(outerCompilation, verify: Verification.FailsPeVerify_UnableToResolveToken).VerifyIL("Test.Main", @"
 {
   // Code size       65 (0x41)
   .maxstack  4

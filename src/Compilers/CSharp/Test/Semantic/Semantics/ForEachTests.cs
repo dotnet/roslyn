@@ -3073,7 +3073,7 @@ namespace System.Collections
 }";
 
             var comp = CreateEmptyCompilation(text, new[] { reference1 });
-            CompileAndVerify(comp, verify: Verification.TypeLoadFailed).
+            CompileAndVerify(comp, verify: Verification.FailsPeVerify_TypeLoadFailed).
             VerifyIL("C.M", @"
 {
   // Code size       28 (0x1c)
