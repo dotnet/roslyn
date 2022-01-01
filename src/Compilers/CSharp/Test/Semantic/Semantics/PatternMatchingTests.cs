@@ -6517,8 +6517,10 @@ False
 False";
             var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            // TODO2 ILVerify succeeded
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
+            // PEVerify:
+            // [ : Program::Main][mdToken=0x6000001][offset 0x00000002] Unmanaged pointers are not a verifiable type.
+            // [ : Program::Main][mdToken= 0x6000001][offset 0x00000002] Unable to resolve token.
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.FailsPeVerify_UnableToResolveToken);
         }
 
         [Fact]

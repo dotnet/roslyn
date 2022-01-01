@@ -1592,7 +1592,7 @@ class Program
 
             compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "3");
+            CompileAndVerify(compilation, verify: Verification.FailsIlVerify_BadReturnType, expectedOutput: "3");
         }
     }
 }

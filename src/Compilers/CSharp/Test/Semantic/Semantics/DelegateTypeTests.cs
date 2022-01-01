@@ -1298,8 +1298,8 @@ static class B
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
-                // TODO2 ILVerify: Unrecognized arguments for delegate .ctor.
-                CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
+                // ILVerify: Unrecognized arguments for delegate .ctor.
+                CompileAndVerify(comp, verify: Verification.FailsIlVerify_UnrecognizedArgDelegate, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -1393,8 +1393,8 @@ namespace N
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
-                // TODO2 ILVerify: Unrecognized arguments for delegate .ctor.
-                CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
+                // ILVerify: Unrecognized arguments for delegate .ctor.
+                CompileAndVerify(comp, verify: Verification.FailsIlVerify_UnrecognizedArgDelegate, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -1769,8 +1769,8 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            // TODO2 ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, expectedOutput: "System.Action<System.Int32>, System.Action");
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsIlVerify_UnrecognizedArgDelegate, expectedOutput: "System.Action<System.Int32>, System.Action");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -7872,8 +7872,8 @@ static class E
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
-            // TODO2 ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(comp, expectedOutput: @"(41, 42)");
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsIlVerify_UnrecognizedArgDelegate, expectedOutput: @"(41, 42)");
             verifier.VerifyIL("Program.M1",
 @"{
   // Code size       20 (0x14)

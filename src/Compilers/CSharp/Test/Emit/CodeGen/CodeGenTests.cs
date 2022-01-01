@@ -77,8 +77,8 @@ class Program
         Console.WriteLine((((DoubleAndStruct)args[0]).y).x);
     }
 }";
-            // TODO2 ILVerify: Unexpected type on the stack.
-            var result = CompileAndVerify(source, verify: Verification.Passes, options: TestOptions.DebugDll);
+            // ILVerify: Unexpected type on the stack. { Offset = 59, Found = readonly address of '[...]DoubleAndStruct', Expected = address of '[...]DoubleAndStruct' }
+            var result = CompileAndVerify(source, verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -165,8 +165,8 @@ class Program
         Console.WriteLine(((((OuterStruct)args[0]).z).y).x);
     }
 }";
-            // TODO2 ILVerify: Unexpected type on the stack.
-            var result = CompileAndVerify(source, verify: Verification.Passes, options: TestOptions.DebugDll);
+            // ILVerify: Unexpected type on the stack. { Offset = 34, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
+            var result = CompileAndVerify(source, verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -5261,8 +5261,10 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
         }
     }";
 
-            // TODO2 ILVerify: Unexpected type on the stack.
-            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.FailsPeVerify_UnexpectedTypeOnStack);
+            // ILVerify:
+            // Unexpected type on the stack. { Offset = 9, Found = readonly address of 'T', Expected = address of 'T' }
+            // Unexpected type on the stack. { Offset = 23, Found = readonly address of 'T', Expected = address of 'T' }
+            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
 
             var expectedIL = @"
 {

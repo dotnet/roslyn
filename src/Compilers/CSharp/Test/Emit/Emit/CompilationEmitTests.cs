@@ -5231,8 +5231,8 @@ public class DerivingClass<T> : BaseClass<T>
             var modRef = CreateCompilation("public class A { }", options: TestOptions.ReleaseModule, assemblyName: "refMod").EmitToImageReference();
             var comp = CreateCompilation("public class B : A { }", references: new[] { modRef }, assemblyName: "sourceMod");
 
-            // TODO2 ILVerify: Assembly or module not found: refMod
-            CompileAndVerify(comp, symbolValidator: module =>
+            // ILVerify: Assembly or module not found: refMod
+            CompileAndVerify(comp, verify: Verification.FailsIlVerify_MissingAssembly, symbolValidator: module =>
             {
                 var b = module.GlobalNamespace.GetTypeMember("B");
                 Assert.Equal("B", b.Name);
