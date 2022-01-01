@@ -276,7 +276,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         internal static CSharpCompilation WithSource(this CSharpCompilation compilation, CSharpTestSource newSource)
         {
-            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newSource.GetSyntaxTrees(TestOptions.Regular));
+            var previousParseOptions = compilation.SyntaxTrees.FirstOrDefault()?.Options as CSharpParseOptions;
+            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newSource.GetSyntaxTrees(previousParseOptions));
         }
 
         internal static CSharpCompilation WithSource(this CSharpCompilation compilation, SyntaxTree newTree)
