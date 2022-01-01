@@ -196,7 +196,7 @@ namespace Roslyn.Test.Utilities.CoreClr
                     string message = printVerificationResult(result);
                     if ((verification & Verification.PassesIlVerify) != 0)
                     {
-                        throw new Exception("IL Verify failed expectedly: \r\n" + message);
+                        throw new Exception("IL Verify failed unexpectedly: \r\n" + message);
                     }
                     if ((verification & Verification.TypedReference) != 0
                         && !message.Contains("TypedReference not supported in .NET Core"))
@@ -230,8 +230,8 @@ namespace Roslyn.Test.Utilities.CoreClr
                     }
                     if ((verification & Verification.UnexpectedReadonlyAddressOnStack) != 0
                         && !(message.Contains("Unexpected type on the stack.")
-                            && message.Contains("Found = readonly address of")
-                            && message.Contains("Expected = address of")))
+                        && message.Contains("Found = readonly address of")
+                        && message.Contains("Expected = address of")))
                     {
                         throw new Exception("Expected: Assembly or module not found: ...");
                     }

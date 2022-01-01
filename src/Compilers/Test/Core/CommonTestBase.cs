@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     [Flags]
     public enum Verification
     {
+        // TODO2 either it's Skipped, Passes, or we list specific failures
         // TODO2 simplify flags? Do we really need a Skipped?
         Skipped = 0,
 

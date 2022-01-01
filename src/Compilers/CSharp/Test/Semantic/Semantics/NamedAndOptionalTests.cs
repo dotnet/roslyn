@@ -772,8 +772,7 @@ unsafe class C
             // default(IntPtr) as "load zero, convert to type", rather than making a stack slot and calling
             // init on it.
 
-            // TODO2 ILVerify succeeded
-            var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPeVerify_UnexpectedTypeOnStack);
 
             c.VerifyIL("C.Main", @"{
   // Code size       13 (0xd)
