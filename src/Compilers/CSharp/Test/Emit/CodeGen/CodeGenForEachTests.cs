@@ -1384,8 +1384,8 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
 }";
-            // TODO2 ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            var compilation = CompileAndVerify(source, verify: Verification.FailsIlVerify_BadReturnType, expectedOutput: @"
 1
 2
 3
@@ -1448,8 +1448,8 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose(params object[] args) { System.Console.WriteLine($""Done with DisposableEnumerator. args was {args}, length {args.Length}""); }
 }";
-            // TODO2 ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            var compilation = CompileAndVerify(source, verify: Verification.FailsIlVerify_BadReturnType, expectedOutput: @"
 1
 2
 3
@@ -1483,8 +1483,8 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose(int arg = 1) { System.Console.WriteLine($""Done with DisposableEnumerator. arg was {arg}""); }
 }";
-            // TODO2 ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            var compilation = CompileAndVerify(source, verify: Verification.FailsIlVerify_BadReturnType, expectedOutput: @"
 1
 2
 3
@@ -1524,8 +1524,8 @@ static class DisposeExtension
 }
 ";
             // extension methods do not contribute to disposal
-            // TODO2 ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            CompileAndVerify(source, expectedOutput: @"123");
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, verify: Verification.FailsIlVerify_BadReturnType, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1565,8 +1565,8 @@ static class DisposeExtension2
 }
 ";
             // extension methods do not contribute to disposal
-            // TODO2 ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            CompileAndVerify(source, expectedOutput: @"123");
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, verify: Verification.FailsIlVerify_BadReturnType, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1602,8 +1602,8 @@ static class DisposeExtension
 }
 ";
             // extension methods do not contribute to disposal
-            // TODO2 ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            CompileAndVerify(source, expectedOutput: @"123");
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, verify: Verification.FailsIlVerify_BadReturnType, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1639,8 +1639,8 @@ static class DisposeExtension
 }
 ";
             // extension methods do not contribute to disposal
-            // TODO2 ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            CompileAndVerify(source, expectedOutput: @"123");
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, verify: Verification.FailsIlVerify_BadReturnType, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1736,8 +1736,8 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
 }";
-            // TODO2 ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular7_3, expectedOutput: @"
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular7_3, verify: Verification.FailsIlVerify_BadReturnType, expectedOutput: @"
 1
 2
 3");
@@ -4733,8 +4733,8 @@ ref struct Enumerator
     public bool MoveNext() => Current++ != 3;
     public void Dispose() { Console.Write(""Disposed""); }
 }";
-            // TODO2 ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"123Disposed")
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, verify: Verification.FailsIlVerify_BadReturnType, expectedOutput: @"123Disposed")
                 .VerifyIL("C.Main", @"
 {
   // Code size       45 (0x2d)

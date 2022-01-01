@@ -18,6 +18,8 @@ using System.Reflection.PortableExecutable;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
+using System.Diagnostics.Tracing;
 
 namespace Roslyn.Test.Utilities.CoreClr
 {
@@ -191,7 +193,7 @@ namespace Roslyn.Test.Utilities.CoreClr
                 var result = verifier.Verify(resolver.Resolve(emitData.MainModule.FullName));
                 if (result.Count() > 0)
                 {
-                    string message = string.Join("\r\n", result.Select(r => r.Message));
+                    string message = printVerificationResult(result);
                     if ((verification & Verification.PassesIlVerify) != 0)
                     {
                         throw new Exception("IL Verify failed expectedly: \r\n" + message);
@@ -226,11 +228,40 @@ namespace Roslyn.Test.Utilities.CoreClr
                     {
                         throw new Exception("Expected: Assembly or module not found: ...");
                     }
+                    if ((verification & Verification.UnexpectedReadonlyAddressOnStack) != 0
+                        && !(message.Contains("Unexpected type on the stack.")
+                            && message.Contains("Found = readonly address of")
+                            && message.Contains("Expected = address of")))
+                    {
+                        throw new Exception("Expected: Assembly or module not found: ...");
+                    }
                 }
                 else if ((verification & Verification.FailsIlVerify) != 0)
                 {
                     throw new Exception("IL Verify succeeded unexpectedly");
                 }
+            }
+
+            static string printVerificationResult(IEnumerable<ILVerify.VerificationResult> result)
+            {
+                return string.Join("\r\n", result.Select(r => r.Message + printErrorArguments(r.ErrorArguments)));
+            }
+
+            static string printErrorArguments(ILVerify.ErrorArgument[] errorArguments)
+            {
+                if (errorArguments is null
+                    || errorArguments.Length == 0)
+                {
+                    return "";
+                }
+
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                var builder = pooledBuilder.Builder;
+                builder.Append(" { ");
+                builder.AppendJoin(", ", errorArguments.Select(a => a.Name + " = " + a.Value.ToString()));
+                builder.Append(" }");
+
+                return pooledBuilder.ToStringAndFree();
             }
         }
 

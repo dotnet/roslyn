@@ -2364,8 +2364,7 @@ class X
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index }, options: TestOptions.ReleaseExe);
         compilation.VerifyEmitDiagnostics();
-        // TODO2 ILVerify: Unexpected type on the stack.
-        CompileAndVerify(compilation, expectedOutput: "123");
+        CompileAndVerify(compilation, expectedOutput: "123", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
     }
 
     [Fact]
@@ -3505,8 +3504,7 @@ public class C
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyDiagnostics();
-        // TODO2 ILVerify: Unexpected type on the stack.
-        CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
     }
 
     [Fact]
@@ -5053,8 +5051,7 @@ public class C
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics();
-        // TODO2 ILVerify: Unexpected type on the stack.
-        var verifier = CompileAndVerify(compilation, expectedOutput: "(item value, rest value)");
+        var verifier = CompileAndVerify(compilation, expectedOutput: "(item value, rest value)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
 
         verifier.VerifyIL("C.M", @"
 {
@@ -5142,8 +5139,7 @@ public class C
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics();
-        // TODO2 ILVerify: Unexpected type on the stack.
-        var verifier = CompileAndVerify(compilation, expectedOutput: "(item value, rest value)");
+        var verifier = CompileAndVerify(compilation, expectedOutput: "(item value, rest value)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
 
         verifier.VerifyIL("C.M", @"
 {
@@ -5232,8 +5228,7 @@ class C
             Console.Write((x, y));
     }
 }";
-        // TODO2 ILVerify: Unexpected type on the stack.
-        CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, expectedOutput: "Index Range (42, 43)");
+        CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, expectedOutput: "Index Range (42, 43)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
     }
 
     [Fact]
@@ -5272,8 +5267,7 @@ if (""abc"" is [var first, ..var rest])
     System.Console.Write((first, rest).ToString());
 }
 ";
-        // TODO2 ILVerify: Unexpected type on the stack.
-        CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, expectedOutput: "(a, bc)");
+        CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, expectedOutput: "(a, bc)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
     }
 
     [Fact]
@@ -7074,8 +7068,7 @@ class C : Base
     }
 }
 ";
-        // TODO2 ILVerify: Unexpected type on the stack.
-        var verifier = CompileAndVerify(new[] { source, TestSources.Index }, options: TestOptions.DebugDll);
+        var verifier = CompileAndVerify(new[] { source, TestSources.Index }, options: TestOptions.DebugDll, verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
         verifier.VerifyIL("C.M", @"
 {
   // Code size      105 (0x69)
@@ -7172,8 +7165,7 @@ class C : Base
     }
 }
 ";
-        // TODO2 ILVerify: Unexpected type on the stack.
-        var verifier = CompileAndVerify(new[] { source, TestSources.Index });
+        var verifier = CompileAndVerify(new[] { source, TestSources.Index }, verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
         verifier.VerifyIL("C.M", @"
 {
   // Code size       78 (0x4e)
@@ -7322,8 +7314,7 @@ public class C
             );
 
         compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
-        // TODO2 ILVerify: Unexpected type on the stack.
-        var verifier = CompileAndVerify(compilation, expectedOutput: "(2, 3)");
+        var verifier = CompileAndVerify(compilation, expectedOutput: "(2, 3)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
         verifier.VerifyDiagnostics();
         // Note: no Index or Range involved
         verifier.VerifyIL("C.M", @"
@@ -7569,8 +7560,7 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // TODO2 ILVerify: Unexpected type on the stack.
-        CompileAndVerify(comp, expectedOutput: "(42, 42)");
+        CompileAndVerify(comp, expectedOutput: "(42, 42)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
     }
 
     [Fact]
@@ -7616,8 +7606,7 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // TODO2 ILVerify: Unexpected type on the stack.
-        CompileAndVerify(comp, expectedOutput: "(42, 42)");
+        CompileAndVerify(comp, expectedOutput: "(42, 42)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
     }
 
     [Fact]
@@ -7631,8 +7620,7 @@ if (""42"" is [var x, var y])
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // TODO2 ILVerify: Unexpected type on the stack.
-        CompileAndVerify(comp, expectedOutput: "(4, 2)");
+        CompileAndVerify(comp, expectedOutput: "(4, 2)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
     }
 
     [Fact]
@@ -7647,8 +7635,7 @@ if (new[] { 4, 2 } is [var x, _])
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // TODO2 ILVerify: Unexpected type on the stack.
-        CompileAndVerify(comp, expectedOutput: "(4, 2)");
+        CompileAndVerify(comp, expectedOutput: "(4, 2)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
     }
 
     [Theory]
@@ -7669,8 +7656,7 @@ if (new[] {data} is {pattern})
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // TODO2 ILVerify: Unexpected type on the stack.
-        CompileAndVerify(comp, expectedOutput: "(4, 4)");
+        CompileAndVerify(comp, expectedOutput: "(4, 4)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
     }
 
     [Fact]
@@ -7691,8 +7677,7 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // TODO2 ILVerify: Unexpected type on the stack.
-        CompileAndVerify(comp, expectedOutput: "(42, 42)");
+        CompileAndVerify(comp, expectedOutput: "(42, 42)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
     }
 
     [Fact]
@@ -7713,8 +7698,7 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // TODO2 ILVerify: Unexpected type on the stack.
-        CompileAndVerify(comp, expectedOutput: "(42, 42)");
+        CompileAndVerify(comp, expectedOutput: "(42, 42)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
     }
 
     [Fact]
@@ -7728,8 +7712,7 @@ if (""0420"" is [_, .. var x, _])
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // TODO2 ILVerify: Unexpected type on the stack.
-        CompileAndVerify(comp, expectedOutput: "42");
+        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
     }
 
     [Fact, WorkItem(57728, "https://github.com/dotnet/roslyn/issues/57728")]
@@ -7750,8 +7733,7 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseExe);
         comp.VerifyEmitDiagnostics();
-        // TODO2 ILVerify: Unexpected type on the stack.
-        var verifier = CompileAndVerify(comp, expectedOutput: "(4, 2, 4, 2)");
+        var verifier = CompileAndVerify(comp, expectedOutput: "(4, 2, 4, 2)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
         // we use Array.Length to get the length, but should be using ldlen
         // Tracked by https://github.com/dotnet/roslyn/issues/57728
         verifier.VerifyIL("C.Main", @"
@@ -7843,8 +7825,7 @@ if (new[] {data} is {pattern})
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         comp.VerifyEmitDiagnostics();
-        // TODO2 ILVerify: Unexpected type on the stack.
-        CompileAndVerify(comp, expectedOutput: "(4, 2, 2, 4, 2, 2)");
+        CompileAndVerify(comp, expectedOutput: "(4, 2, 2, 4, 2, 2)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
     }
 
     [Fact]
@@ -7865,8 +7846,8 @@ class C
 }
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseDll);
-        // TODO2 ILVerify: Unexpected type on the stack.
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of '[...]System.Index', Expected = address of '[...]System.Index' }
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack).VerifyDiagnostics();
 
         verifier.VerifyIL("C.M", @"
 {
@@ -7942,7 +7923,7 @@ class C : Interface
 }
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
-        var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)");
+        var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)", verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
         verifier.VerifyDiagnostics();
     }
 

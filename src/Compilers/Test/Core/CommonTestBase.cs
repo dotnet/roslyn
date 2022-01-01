@@ -41,9 +41,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         UnrecognizedArgDelegate = 1 << 15,
         MissingStringType = 1 << 16,
         MissingAssembly = 1 << 17,
+        UnexpectedReadonlyAddressOnStack = 1 << 18,
+        BadReturnType = 1 << 19,
 
         // Both
-        InitOnly = 1 << 18,
+        InitOnly = 1 << 20,
 
         // PEVerify errors
         TypeLoadFailed = 1 << 4,
@@ -64,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         FailsIlVerify_UnrecognizedArgDelegate = PassesPeVerify | FailsIlVerify | UnrecognizedArgDelegate, // ILVerify: Unrecognized arguments for delegate .ctor.
         FailsIlVerify_MissingStringType = PassesPeVerify | FailsIlVerify | MissingStringType, // ILVerify: Internal.TypeSystem.TypeSystemException+TypeLoadException : Failed to load type 'System.String' from assembly ...
         FailsIlVerify_MissingAssembly = PassesPeVerify | FailsIlVerify | MissingAssembly, // ILVerify: Assembly or module not found: ...
+        FailsIlVerify_UnexpectedReadonlyAddressOnStack = PassesPeVerify | FailsIlVerify | UnexpectedReadonlyAddressOnStack, // ILVerify: Unexpected type on the stack. { Found = readonly address of ..., Expected = address of ... }
+        FailsIlVerify_BadReturnType = PassesPeVerify | FailsIlVerify | BadReturnType, // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
 
         // Both
         Fails_InitOnly = FailsPeVerify | FailsIlVerify | InitOnly, // Cannot change initonly field outside its .ctor.

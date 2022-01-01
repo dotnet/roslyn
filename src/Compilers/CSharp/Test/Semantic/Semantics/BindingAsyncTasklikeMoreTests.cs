@@ -1587,8 +1587,8 @@ class Program
 
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            // TODO2 ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            CompileAndVerify(compilation, expectedOutput: "3");
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(compilation, verify: Verification.FailsIlVerify_BadReturnType, expectedOutput: "3");
 
             compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();

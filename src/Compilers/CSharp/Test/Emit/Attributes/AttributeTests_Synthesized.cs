@@ -954,8 +954,13 @@ public class Test
             }
             else
             {
-                // TODO2 Internal.TypeSystem.TypeSystemException+TypeLoadException : Failed to load type 'System.String' from assembly
-                CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.FailsPeVerify_MissingManifest : Verification.Passes, symbolValidator: module =>
+                // ILVerify: Failed to load type 'System.String' from assembly
+                // TODO2 ILVerify: Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
+                var verify = outputKind.IsNetModule() 
+                    ? Verification.FailsPeVerify_MissingManifest
+                    : Verification.FailsIlVerify_MissingStringType;
+
+                CompileAndVerify(compilation, verify: verify, symbolValidator: module =>
                 {
                     var assemblyAttributes = module.ContainingAssembly.GetAttributes();
                     Assert.Equal(0, assemblyAttributes.Length);
