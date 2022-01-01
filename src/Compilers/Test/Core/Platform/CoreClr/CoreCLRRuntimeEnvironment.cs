@@ -166,7 +166,24 @@ namespace Roslyn.Test.Utilities.CoreClr
                         var metadataReader = resolver.Resolve(name).GetMetadataReader();
                         if (metadataReader.AssemblyReferences.Count == 0)
                         {
-                            verifier.SetSystemModuleName(new AssemblyName(name));
+                            try
+                            {
+                                verifier.SetSystemModuleName(new AssemblyName(name));
+                            }
+                            catch (Exception ex)
+                            {
+                                // ILVerify checks that corlib contains certain types
+                                if ((verification & Verification.MissingStringType) != 0)
+                                {
+                                    if (!ex.Message.Contains("Failed to load type 'System.String' from assembly"))
+                                    {
+                                        throw new Exception("Expected: Failed to load type 'System.String' from assembly ...");
+                                    }
+                                    return;
+                                }
+
+                                throw;
+                            }
                         }
                     }
                 }
@@ -195,9 +212,14 @@ namespace Roslyn.Test.Utilities.CoreClr
                         throw new Exception("Expected: Cannot change initonly field outside its .ctor.");
                     }
                     if ((verification & Verification.NotVisible) != 0
-                     && !message.Contains(" is not visible."))
+                        && !message.Contains(" is not visible."))
                     {
                         throw new Exception("Expected: ... is not visible.");
+                    }
+                    if ((verification & Verification.UnrecognizedArgDelegate) != 0
+                        && !message.Contains("Unrecognized arguments for delegate .ctor."))
+                    {
+                        throw new Exception("Expected: Unrecognized arguments for delegate .ctor.");
                     }
                 }
                 else if ((verification & Verification.FailsIlVerify) != 0)

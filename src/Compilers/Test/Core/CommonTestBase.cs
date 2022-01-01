@@ -38,9 +38,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         TypedReference = 1 << 12,
         NotImplemented = 1 << 13,
         NotVisible = 1 << 14,
+        UnrecognizedArgDelegate = 1 << 15,
+        MissingStringType = 1 << 16,
 
         // Both
-        InitOnly = 1 << 15,
+        InitOnly = 1 << 17,
 
         // PEVerify errors
         TypeLoadFailed = 1 << 4,
@@ -59,6 +61,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         FailsIlVerify_TypedReference = PassesPeVerify | FailsIlVerify | TypedReference, // ILVerify doesn't support TypedReference
         FailsIlVerify_NotImplemented = PassesPeVerify | FailsIlVerify | NotImplemented, // ILVerify has some un-implemented cases in EcmaModule.GetType
         FailsIlVerify_NotVisible = PassesPeVerify | FailsIlVerify | NotVisible, // ILVerify: Type|Method|Field is not visible.
+        FailsIlVerify_UnrecognizedArgDelegate = PassesPeVerify | FailsIlVerify | UnrecognizedArgDelegate, // ILVerify: Unrecognized arguments for delegate .ctor.
+        FailsIlVerify_MissingStringType = PassesPeVerify | FailsIlVerify | MissingStringType, // ILVerify: Internal.TypeSystem.TypeSystemException+TypeLoadException : Failed to load type 'System.String' from assembly ...
 
         FailsPeVerify_TypeLoadFailed = FailsPeVerify | PassesIlVerify | TypeLoadFailed, // ILVerify doesn't complain type load failed
         FailsPeVerify_UnexpectedTypeOnStack = FailsPeVerify | PassesIlVerify | UnexpectedTypeOnStack, // ILVerify doesn't complain about: Unexpected type on the stack.

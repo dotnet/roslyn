@@ -18083,7 +18083,7 @@ set_P6
 get_P5
 set_P6
 ",
-                    verify: VerifyOnMonoOrCoreClr_NotVisible);
+                    verify: VerifyOnMonoOrCoreClr);
 
                 var compilation6 = CreateCompilation(source5, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
