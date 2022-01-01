@@ -154,125 +154,134 @@ namespace Roslyn.Test.Utilities.CoreClr
                 return;
             }
 
-            var resolver = new Resolver(emitData);
-            var verifier = new ILVerify.Verifier(resolver);
-            var mscorlibModules = emitData.AllModuleData.Where(m => m.SimpleName == "mscorlib").ToArray();
-            if (mscorlibModules.Length == 1)
+            try
             {
-                verifier.SetSystemModuleName(new AssemblyName(mscorlibModules[0].FullName));
-            }
-            else
-            {
-                // auto-detect which module is the "corlib"
-                foreach (var module in emitData.AllModuleData)
+                var resolver = new Resolver(emitData);
+                var verifier = new ILVerify.Verifier(resolver);
+                var mscorlibModules = emitData.AllModuleData.Where(m => m.SimpleName == "mscorlib").ToArray();
+                if (mscorlibModules.Length == 1)
                 {
-                    var name = module.SimpleName;
-                    var metadataReader = resolver.Resolve(name).GetMetadataReader();
-                    if (metadataReader.AssemblyReferences.Count == 0)
+                    verifier.SetSystemModuleName(new AssemblyName(mscorlibModules[0].FullName));
+                }
+                else
+                {
+                    // auto-detect which module is the "corlib"
+                    foreach (var module in emitData.AllModuleData)
                     {
-                        try
+                        var name = module.SimpleName;
+                        var metadataReader = resolver.Resolve(name).GetMetadataReader();
+                        if (metadataReader.AssemblyReferences.Count == 0)
                         {
-                            verifier.SetSystemModuleName(new AssemblyName(name));
-                        }
-                        catch (Exception ex)
-                        {
-                            // ILVerify checks that corlib contains certain types
-                            if ((verification & Verification.FailsIlVerify_MissingStringType) == Verification.FailsIlVerify_MissingStringType)
+                            try
                             {
-                                if (!ex.Message.Contains("Failed to load type 'System.String' from assembly"))
-                                {
-                                    throw new Exception("Expected: Failed to load type 'System.String' from assembly ...");
-                                }
-                                return;
+                                verifier.SetSystemModuleName(new AssemblyName(name));
                             }
+                            catch (Exception ex)
+                            {
+                                // ILVerify checks that corlib contains certain types
+                                if ((verification & Verification.FailsIlVerify_MissingStringType) == Verification.FailsIlVerify_MissingStringType
+                                    && ex.Message.Contains("Failed to load type 'System.String' from assembly"))
+                                {
+                                    return;
+                                }
 
-                            throw;
+                                throw;
+                            }
                         }
                     }
                 }
-            }
 
-            var result = verifier.Verify(resolver.Resolve(emitData.MainModule.FullName));
-            if (result.Count() == 0)
-            {
-                if ((verification & Verification.FailsIlVerify) == 0)
+                var result = verifier.Verify(resolver.Resolve(emitData.MainModule.FullName));
+                if (result.Count() == 0)
+                {
+                    if ((verification & Verification.FailsIlVerify) == 0)
+                    {
+                        return;
+                    }
+
+                    throw new Exception("IL Verify succeeded unexpectedly");
+                }
+
+                string message = printVerificationResult(result);
+                if ((verification & Verification.FailsIlVerify_TypedReference) == Verification.FailsIlVerify_TypedReference
+                    && message.Contains("TypedReference not supported in .NET Core"))
                 {
                     return;
                 }
 
-                throw new Exception("IL Verify succeeded unexpectedly");
-            }
+                if ((verification & Verification.FailsIlVerify_NotImplemented) == Verification.FailsIlVerify_NotImplemented
+                    && message.Contains("The method or operation is not implemented."))
+                {
+                    return;
+                }
 
-            string message = printVerificationResult(result);
-            if ((verification & Verification.FailsIlVerify_TypedReference) == Verification.FailsIlVerify_TypedReference
-                && message.Contains("TypedReference not supported in .NET Core"))
+                if ((verification & Verification.Fails_InitOnly) == Verification.Fails_InitOnly
+                    && message.Contains("Cannot change initonly field outside its .ctor."))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.FailsIlVerify_NotVisible) == Verification.FailsIlVerify_NotVisible
+                    && message.Contains(" is not visible."))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.FailsIlVerify_UnrecognizedArgDelegate) == Verification.FailsIlVerify_UnrecognizedArgDelegate
+                    && message.Contains("Unrecognized arguments for delegate .ctor."))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.FailsIlVerify_MissingAssembly) == Verification.FailsIlVerify_MissingAssembly
+                    && message.Contains("Assembly or module not found: "))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack) == Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack
+                    && message.Contains("Unexpected type on the stack.")
+                    && message.Contains("Found = readonly address of")
+                    && message.Contains("Expected = address of"))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.FailsIlVerify_BadReturnType) == Verification.FailsIlVerify_BadReturnType
+                    && message.Contains("Return type is ByRef, TypedReference, ArgHandle, or ArgIterator."))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.FailsIlVerify_UnexpectedTypeOnStack) == Verification.FailsIlVerify_UnexpectedTypeOnStack
+                    && message.Contains("Unexpected type on the stack."))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.FailsIlVerify_ReturnFromCtor) == Verification.FailsIlVerify_ReturnFromCtor
+                    && message.Contains("Return from .ctor when this is uninitialized."))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.FailsIlVerify_UnspecifiedError) == Verification.FailsIlVerify_UnspecifiedError)
+                {
+                    return;
+                }
+
+                throw new Exception("IL Verify failed unexpectedly: \r\n" + message);
+            }
+            catch (Exception ex)
             {
-                return;
-            }
+                if ((verification & Verification.FailsIlVerify_BadImage) == Verification.FailsIlVerify_BadImage
+                    && ex.Message.Contains("The format of a DLL or executable being loaded is invalid"))
+                {
+                    return;
+                }
 
-            if ((verification & Verification.FailsIlVerify_NotImplemented) == Verification.FailsIlVerify_NotImplemented
-                && message.Contains("The method or operation is not implemented."))
-            {
-                return;
+                throw;
             }
-
-            if ((verification & Verification.Fails_InitOnly) == Verification.Fails_InitOnly
-                && message.Contains("Cannot change initonly field outside its .ctor."))
-            {
-                return;
-            }
-
-            if ((verification & Verification.FailsIlVerify_NotVisible) == Verification.FailsIlVerify_NotVisible
-                && message.Contains(" is not visible."))
-            {
-                return;
-            }
-
-            if ((verification & Verification.FailsIlVerify_UnrecognizedArgDelegate) == Verification.FailsIlVerify_UnrecognizedArgDelegate
-                && message.Contains("Unrecognized arguments for delegate .ctor."))
-            {
-                return;
-            }
-
-            if ((verification & Verification.FailsIlVerify_MissingAssembly) == Verification.FailsIlVerify_MissingAssembly
-                && message.Contains("Assembly or module not found: "))
-            {
-                return;
-            }
-
-            if ((verification & Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack) == Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack
-                && message.Contains("Unexpected type on the stack.")
-                && message.Contains("Found = readonly address of")
-                && message.Contains("Expected = address of"))
-            {
-                return;
-            }
-
-            if ((verification & Verification.FailsIlVerify_BadReturnType) == Verification.FailsIlVerify_BadReturnType
-                && message.Contains("Return type is ByRef, TypedReference, ArgHandle, or ArgIterator."))
-            {
-                return;
-            }
-
-            if ((verification & Verification.FailsIlVerify_UnexpectedTypeOnStack) == Verification.FailsIlVerify_UnexpectedTypeOnStack
-                && message.Contains("Unexpected type on the stack."))
-            {
-                return;
-            }
-
-            // TODO2 remove?
-            if ((verification & Verification.FailsIlVerify_ImportCalli) == Verification.FailsIlVerify_ImportCalli
-                && message.Contains("ImportCalli not implemented"))
-            {
-                return;
-            }
-
-            if ((verification & Verification.FailsIlVerify_UnspecifiedError) == Verification.FailsIlVerify_UnspecifiedError)
-            {
-                return;
-            }
-
-            throw new Exception("IL Verify failed unexpectedly: \r\n" + message);
 
             static string printVerificationResult(IEnumerable<ILVerify.VerificationResult> result)
             {

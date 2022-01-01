@@ -5288,7 +5288,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
             compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
 
             // expect the same IL in the compat case since direct references are required and must be emitted with "readonly.", even though unverifiable
-            compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.FailsPeVerify_UnexpectedTypeOnStack, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.FailsPeVerify_UnexpectedTypeOnStack | Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
         }

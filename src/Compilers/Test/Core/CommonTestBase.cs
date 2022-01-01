@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         FailsIlVerify_UnexpectedReadonlyAddressOnStack = FailsIlVerify | 1 << 12, // ILVerify: Unexpected type on the stack. { Found = readonly address of ..., Expected = address of ... }
         FailsIlVerify_BadReturnType = FailsIlVerify | 1 << 13, // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
         FailsIlVerify_UnexpectedTypeOnStack = FailsIlVerify | 1 << 14, // ILVerify: Unexpected type on the stack. { Found = readonly address of ..., Expected = address of ... }
-        FailsIlVerify_ImportCalli = FailsIlVerify | 1 << 25, // ILVerify: ImportCalli not implemented
+        FailsIlVerify_ReturnFromCtor = FailsIlVerify | 1 << 25, // ILVerify: ImportCalli not implemented
+        FailsIlVerify_BadImage = FailsIlVerify | 1 << 26, // ILVerify: The format of a DLL or executable being loaded is invalid
 
         // Both
         Fails_InitOnly = FailsPeVerify | FailsIlVerify | 1 << 15, // Cannot change initonly field outside its .ctor.

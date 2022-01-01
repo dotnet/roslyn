@@ -4309,8 +4309,7 @@ public class Test
             string source2 = @"public class B: A {}";
             var comp = CreateCompilation(source1, options: TestOptions.ReleaseModule);
             var metadataRef = ModuleMetadata.CreateFromStream(comp.EmitToStream()).GetReference();
-            // TODO2 Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
-            CompileAndVerify(source2, references: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: Verification.Fails);
+            CompileAndVerify(source2, references: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: Verification.FailsPeVerify_MissingManifest | Verification.FailsIlVerify_BadImage);
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]

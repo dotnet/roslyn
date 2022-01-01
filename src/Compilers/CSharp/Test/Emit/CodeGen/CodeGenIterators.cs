@@ -2387,8 +2387,7 @@ public class C
 }";
             // The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
             var compilation = CreateEmptyCompilation(new[] { Parse(source), Parse(corlib) });
-            // TODO2 ILVerify: Return from .ctor when this is uninitialized. Unexpected type on the stack.
-            var verifier = CompileAndVerify(compilation, verify: Verification.FailsPeVerify_TypeLoadFailed);
+            var verifier = CompileAndVerify(compilation, verify: Verification.FailsPeVerify_TypeLoadFailed | Verification.FailsIlVerify_ReturnFromCtor);
             verifier.VerifyDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));

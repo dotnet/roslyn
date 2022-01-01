@@ -430,8 +430,7 @@ public class Test
 {
     public ref struct S1{}
 }";
-            // TODO2 Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
-            CompileAndVerify(code, verify: Verification.FailsPeVerify_MissingManifest, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.FailsPeVerify_MissingManifest | Verification.FailsIlVerify_BadImage, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
 
@@ -957,7 +956,7 @@ namespace System
 }";
             var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
 
-            CompileAndVerify(compilation1, verify: Verification.FailsPeVerify_TypeLoadFailed, symbolValidator: module =>
+            CompileAndVerify(compilation1, verify: Verification.FailsPeVerify_TypeLoadFailed | Verification.FailsIlVerify_ReturnFromCtor, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("System.TypedReference");
                 AssertReferencedIsByRefLike(type, hasObsolete: false);

@@ -1152,15 +1152,14 @@ public class Test
 {
     public void M(in int x) { }
 }";
-            // TODO2 Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
-            CompileAndVerify(code, verify: Verification.FailsPeVerify_MissingManifest, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
-            {
-                AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
+            CompileAndVerify(code, verify: Verification.FailsPeVerify_MissingManifest | Verification.FailsIlVerify_BadImage, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+           {
+               AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
 
-                var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M").GetParameters().Single();
-                Assert.Equal(RefKind.In, parameter.RefKind);
-                Assert.Empty(parameter.GetAttributes());
-            });
+               var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M").GetParameters().Single();
+               Assert.Equal(RefKind.In, parameter.RefKind);
+               Assert.Empty(parameter.GetAttributes());
+           });
         }
 
         [Fact]

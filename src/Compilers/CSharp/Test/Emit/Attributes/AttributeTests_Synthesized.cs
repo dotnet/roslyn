@@ -955,9 +955,9 @@ public class Test
             else
             {
                 // ILVerify: Failed to load type 'System.String' from assembly
-                // TODO2 ILVerify: Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
+                // ILVerify: The format of a DLL or executable being loaded is invalid
                 var verify = outputKind.IsNetModule() 
-                    ? Verification.FailsPeVerify_MissingManifest
+                    ? Verification.FailsPeVerify_MissingManifest | Verification.FailsIlVerify_BadImage
                     : Verification.FailsIlVerify_MissingStringType;
 
                 CompileAndVerify(compilation, verify: verify, symbolValidator: module =>

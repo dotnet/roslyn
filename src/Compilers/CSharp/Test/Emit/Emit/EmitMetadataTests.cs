@@ -224,10 +224,9 @@ public class Test : Class2
         [Fact()]
         public void Bug687434()
         {
-            // TODO2 Internal.TypeSystem.TypeSystemException+BadImageFormatException : The format of a DLL or executable being loaded is invalid
             CompileAndVerify(
                 "public class C { }",
-                verify: Verification.Fails,
+                verify: Verification.FailsPeVerify_MissingManifest | Verification.FailsIlVerify_BadImage,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.NetModule));
         }
 
