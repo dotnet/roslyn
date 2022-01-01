@@ -2685,6 +2685,32 @@ class D
         verifier.VerifySynthesizedFields("C<T>.<>O", ContainerFinder("C.<>O"), arity: 0
             , "System.Action <0>__Target"
         );
+        verifier.VerifyIL("C<T>.Test0", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action C<T>.<>O.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void D.Target<T>()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action C<T>.<>O.<0>__Target""
+  IL_0018:  ret
+}
+");
+        verifier.VerifyIL("C<T>.Test1", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action C<T>.<>O.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void D.Target<T>()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action C<T>.<>O.<0>__Target""
+  IL_0018:  ret
+}
+");
     }
 
     [Fact]
@@ -2703,6 +2729,32 @@ class C<T>
         verifier.VerifySynthesizedFields("C<T>.<>O", ContainerFinder("C.<>O"), arity: 0
             , "System.Func<T> <0>__Target"
         );
+        verifier.VerifyIL("C<T>.Test0", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<T> C<T>.<>O.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""T C<T>.Target<T>()""
+  IL_000e:  newobj     ""System.Func<T>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Func<T> C<T>.<>O.<0>__Target""
+  IL_0018:  ret
+}
+");
+        verifier.VerifyIL("C<T>.Test1", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<T> C<T>.<>O.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""T C<T>.Target<T>()""
+  IL_000e:  newobj     ""System.Func<T>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Func<T> C<T>.<>O.<0>__Target""
+  IL_0018:  ret
+}
+");
     }
 
     [Fact]
@@ -2722,6 +2774,32 @@ class C<T, V>
         verifier.VerifySynthesizedFields("C<T, V>.<>O", ContainerFinder("C.<>O"), arity: 0
             , "C<T, V>.MyFunc <0>__Target"
         );
+        verifier.VerifyIL("C<T, V>.Test0", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""C<T, V>.MyFunc C<T, V>.<>O.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""T C<T, V>.Target()""
+  IL_000e:  newobj     ""C<T, V>.MyFunc..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""C<T, V>.MyFunc C<T, V>.<>O.<0>__Target""
+  IL_0018:  ret
+}
+");
+        verifier.VerifyIL("C<T, V>.Test1", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""C<T, V>.MyFunc C<T, V>.<>O.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""T C<T, V>.Target()""
+  IL_000e:  newobj     ""C<T, V>.MyFunc..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""C<T, V>.MyFunc C<T, V>.<>O.<0>__Target""
+  IL_0018:  ret
+}
+");
     }
 
     [Fact]
@@ -2746,6 +2824,25 @@ class D
         verifier.VerifySynthesizedFields("C.<Test>O__0_0<V>", ContainerFinder("C.<Test>O__0_0"), arity: 1
             , "System.Action <0>__Target"
         );
+        verifier.VerifyIL("C.Test<V>", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action C.<Test>O__0_0<V>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void D.Target<V>()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action C.<Test>O__0_0<V>.<0>__Target""
+  IL_0018:  ldsfld     ""System.Action C.<Test>O__0_0<V>.<0>__Target""
+  IL_001d:  brtrue.s   IL_0030
+  IL_001f:  ldnull
+  IL_0020:  ldftn      ""void D.Target<V>()""
+  IL_0026:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_002b:  stsfld     ""System.Action C.<Test>O__0_0<V>.<0>__Target""
+  IL_0030:  ret
+}
+");
     }
 
     [Fact]
@@ -2770,6 +2867,25 @@ class D<B>
         verifier.VerifySynthesizedFields("C<T>.<Test>O__0_0<V>", ContainerFinder("C.<Test>O__0_0"), arity: 1
             , "System.Func<T, V> <0>__Target"
         );
+        verifier.VerifyIL("C<T>.Test<V>", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<T, V> C<T>.<Test>O__0_0<V>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""V D<V>.Target<T>(T)""
+  IL_000e:  newobj     ""System.Func<T, V>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Func<T, V> C<T>.<Test>O__0_0<V>.<0>__Target""
+  IL_0018:  ldsfld     ""System.Func<T, V> C<T>.<Test>O__0_0<V>.<0>__Target""
+  IL_001d:  brtrue.s   IL_0030
+  IL_001f:  ldnull
+  IL_0020:  ldftn      ""V D<V>.Target<T>(T)""
+  IL_0026:  newobj     ""System.Func<T, V>..ctor(object, System.IntPtr)""
+  IL_002b:  stsfld     ""System.Func<T, V> C<T>.<Test>O__0_0<V>.<0>__Target""
+  IL_0030:  ret
+}
+");
     }
 
     [Fact]
@@ -2796,6 +2912,25 @@ static class D
         verifier.VerifySynthesizedFields("C<A, T>.<Test>O__2_0<V>", ContainerFinder("C.<Test>O__2_0"), arity: 1
             , "C<A, T>.MyFunc <0>__Target"
         );
+        verifier.VerifyIL("C<A, T>.Test<V>", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  ldsfld     ""C<A, T>.MyFunc C<A, T>.<Test>O__2_0<V>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""V D.Target<V>(int)""
+  IL_000e:  newobj     ""C<A, T>.MyFunc..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""C<A, T>.MyFunc C<A, T>.<Test>O__2_0<V>.<0>__Target""
+  IL_0018:  ldsfld     ""C<A, T>.MyFunc C<A, T>.<Test>O__2_0<V>.<0>__Target""
+  IL_001d:  brtrue.s   IL_0030
+  IL_001f:  ldnull
+  IL_0020:  ldftn      ""V D.Target<V>(int)""
+  IL_0026:  newobj     ""C<A, T>.MyFunc..ctor(object, System.IntPtr)""
+  IL_002b:  stsfld     ""C<A, T>.MyFunc C<A, T>.<Test>O__2_0<V>.<0>__Target""
+  IL_0030:  ret
+}
+");
     }
 
     [Fact]
@@ -2874,6 +3009,120 @@ static class E
             , "System.Action<T> <5>__Target5"
             , "System.Action<V> <6>__Target5"
         );
+        verifier.VerifyIL("A<T>.B<V>.Test0", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action<T> A<T>.B<V>.<>O.<0>__Target0""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void A<T>.B<V>.Target0(T)""
+  IL_000e:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action<T> A<T>.B<V>.<>O.<0>__Target0""
+  IL_0018:  ldsfld     ""System.Action<T> A<T>.B<V>.<>O.<1>__Target1""
+  IL_001d:  brtrue.s   IL_0030
+  IL_001f:  ldnull
+  IL_0020:  ldftn      ""void A<T>.Target1(T)""
+  IL_0026:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
+  IL_002b:  stsfld     ""System.Action<T> A<T>.B<V>.<>O.<1>__Target1""
+  IL_0030:  ret
+}
+");
+        verifier.VerifyIL("A<T>.B<V>.Test1", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action<T> A<T>.B<V>.<>O.<1>__Target1""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void A<T>.Target1(T)""
+  IL_000e:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action<T> A<T>.B<V>.<>O.<1>__Target1""
+  IL_0018:  ldsfld     ""System.Action<T> A<T>.B<V>.<>O.<2>__Target2""
+  IL_001d:  brtrue.s   IL_0030
+  IL_001f:  ldnull
+  IL_0020:  ldftn      ""void D<T>.Target2(T)""
+  IL_0026:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
+  IL_002b:  stsfld     ""System.Action<T> A<T>.B<V>.<>O.<2>__Target2""
+  IL_0030:  ret
+}
+");
+        verifier.VerifyIL("A<T>.B<V>.Test2", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action<T> A<T>.B<V>.<>O.<2>__Target2""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void D<T>.Target2(T)""
+  IL_000e:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action<T> A<T>.B<V>.<>O.<2>__Target2""
+  IL_0018:  ldsfld     ""System.Action<T, V> A<T>.B<V>.<>O.<3>__Target3""
+  IL_001d:  brtrue.s   IL_0030
+  IL_001f:  ldnull
+  IL_0020:  ldftn      ""void D<T>.Target3<V>(T, V)""
+  IL_0026:  newobj     ""System.Action<T, V>..ctor(object, System.IntPtr)""
+  IL_002b:  stsfld     ""System.Action<T, V> A<T>.B<V>.<>O.<3>__Target3""
+  IL_0030:  ret
+}
+");
+        verifier.VerifyIL("A<T>.B<V>.Test3", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action<T, V> A<T>.B<V>.<>O.<3>__Target3""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void D<T>.Target3<V>(T, V)""
+  IL_000e:  newobj     ""System.Action<T, V>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action<T, V> A<T>.B<V>.<>O.<3>__Target3""
+  IL_0018:  ldsfld     ""System.Action<T, V> A<T>.B<V>.<>O.<4>__Target4""
+  IL_001d:  brtrue.s   IL_0030
+  IL_001f:  ldnull
+  IL_0020:  ldftn      ""void D<T>.E<V>.Target4(T, V)""
+  IL_0026:  newobj     ""System.Action<T, V>..ctor(object, System.IntPtr)""
+  IL_002b:  stsfld     ""System.Action<T, V> A<T>.B<V>.<>O.<4>__Target4""
+  IL_0030:  ret
+}
+");
+        verifier.VerifyIL("A<T>.B<V>.Test4", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action<T, V> A<T>.B<V>.<>O.<4>__Target4""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void D<T>.E<V>.Target4(T, V)""
+  IL_000e:  newobj     ""System.Action<T, V>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action<T, V> A<T>.B<V>.<>O.<4>__Target4""
+  IL_0018:  ldsfld     ""System.Action<T> A<T>.B<V>.<>O.<5>__Target5""
+  IL_001d:  brtrue.s   IL_0030
+  IL_001f:  ldnull
+  IL_0020:  ldftn      ""void E.Target5<T>(T)""
+  IL_0026:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
+  IL_002b:  stsfld     ""System.Action<T> A<T>.B<V>.<>O.<5>__Target5""
+  IL_0030:  ret
+}
+");
+        verifier.VerifyIL("A<T>.B<V>.Test5", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action<T> A<T>.B<V>.<>O.<5>__Target5""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void E.Target5<T>(T)""
+  IL_000e:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action<T> A<T>.B<V>.<>O.<5>__Target5""
+  IL_0018:  ldsfld     ""System.Action<V> A<T>.B<V>.<>O.<6>__Target5""
+  IL_001d:  brtrue.s   IL_0030
+  IL_001f:  ldnull
+  IL_0020:  ldftn      ""void E.Target5<V>(V)""
+  IL_0026:  newobj     ""System.Action<V>..ctor(object, System.IntPtr)""
+  IL_002b:  stsfld     ""System.Action<V> A<T>.B<V>.<>O.<6>__Target5""
+  IL_0030:  ret
+}
+");
     }
 
     [Fact]
@@ -2911,6 +3160,37 @@ static class E
             , "System.Action <2>__Target2"
             , "System.Action<C> <3>__Target3"
         );
+        verifier.VerifyIL("C.Test<T>", @"
+{
+  // Code size       97 (0x61)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action C.<Test>O__0_0<T>.<0>__Target0""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void C.Target0<T>()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action C.<Test>O__0_0<T>.<0>__Target0""
+  IL_0018:  ldsfld     ""System.Action<T> C.<Test>O__0_0<T>.<1>__Target1""
+  IL_001d:  brtrue.s   IL_0030
+  IL_001f:  ldnull
+  IL_0020:  ldftn      ""void C.Target1<T>(T)""
+  IL_0026:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
+  IL_002b:  stsfld     ""System.Action<T> C.<Test>O__0_0<T>.<1>__Target1""
+  IL_0030:  ldsfld     ""System.Action C.<Test>O__0_0<T>.<2>__Target2""
+  IL_0035:  brtrue.s   IL_0048
+  IL_0037:  ldnull
+  IL_0038:  ldftn      ""void C.D<T>.Target2()""
+  IL_003e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0043:  stsfld     ""System.Action C.<Test>O__0_0<T>.<2>__Target2""
+  IL_0048:  ldsfld     ""System.Action<C> C.<Test>O__0_0<T>.<3>__Target3""
+  IL_004d:  brtrue.s   IL_0060
+  IL_004f:  ldnull
+  IL_0050:  ldftn      ""void E.Target3<T>(C)""
+  IL_0056:  newobj     ""System.Action<C>..ctor(object, System.IntPtr)""
+  IL_005b:  stsfld     ""System.Action<C> C.<Test>O__0_0<T>.<3>__Target3""
+  IL_0060:  ret
+}
+");
     }
 
     [Fact]
@@ -2948,6 +3228,37 @@ static class E
             , "System.Action <2>__Target2"
             , "System.Action<C> <3>__Target3"
         );
+        verifier.VerifyIL("E.Test<T>", @"
+{
+  // Code size       97 (0x61)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action E.<Test>O__0_0<T>.<0>__Target0""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void C.Target0<T>()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action E.<Test>O__0_0<T>.<0>__Target0""
+  IL_0018:  ldsfld     ""System.Action<T> E.<Test>O__0_0<T>.<1>__Target1""
+  IL_001d:  brtrue.s   IL_0030
+  IL_001f:  ldnull
+  IL_0020:  ldftn      ""void C.Target1<T>(T)""
+  IL_0026:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
+  IL_002b:  stsfld     ""System.Action<T> E.<Test>O__0_0<T>.<1>__Target1""
+  IL_0030:  ldsfld     ""System.Action E.<Test>O__0_0<T>.<2>__Target2""
+  IL_0035:  brtrue.s   IL_0048
+  IL_0037:  ldnull
+  IL_0038:  ldftn      ""void C.D<T>.Target2()""
+  IL_003e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0043:  stsfld     ""System.Action E.<Test>O__0_0<T>.<2>__Target2""
+  IL_0048:  ldsfld     ""System.Action<C> E.<Test>O__0_0<T>.<3>__Target3""
+  IL_004d:  brtrue.s   IL_0060
+  IL_004f:  ldnull
+  IL_0050:  ldftn      ""void E.Target3<T>(C)""
+  IL_0056:  newobj     ""System.Action<C>..ctor(object, System.IntPtr)""
+  IL_005b:  stsfld     ""System.Action<C> E.<Test>O__0_0<T>.<3>__Target3""
+  IL_0060:  ret
+}
+");
     }
 
     [Fact]
@@ -2989,6 +3300,46 @@ static class E
         verifier.VerifySynthesizedFields("E.<Test>O__0_0<T>", ContainerFinder("E.<Test>O__0_0"), arity: 1
             , "System.Action<T> <0>__Target"
         );
+        verifier.VerifyIL("E.<Test>g__LF3|0_1<T, G>", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action<T> E.<Test>O__0_0<T>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void C.Target<T>(T)""
+  IL_000e:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action<T> E.<Test>O__0_0<T>.<0>__Target""
+  IL_0018:  call       ""void E.<Test>g__LF4|0_3<T, G>()""
+  IL_001d:  ret
+}
+");
+        verifier.VerifyIL("E.<Test>g__LF4|0_3<T, G>", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action<T> E.<Test>O__0_0<T>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void C.Target<T>(T)""
+  IL_000e:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action<T> E.<Test>O__0_0<T>.<0>__Target""
+  IL_0018:  ret
+}
+");
+        verifier.VerifyIL("E.<Test>g__LF5|0_2<T, G>", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action<T> E.<Test>O__0_0<T>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void C.Target<T>(T)""
+  IL_000e:  newobj     ""System.Action<T>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action<T> E.<Test>O__0_0<T>.<0>__Target""
+  IL_0018:  ret
+}
+");
     }
 
     [Fact]
@@ -3005,17 +3356,17 @@ static class E
             void LF1()
             {
                 Action d = LF2;
-                static void LF2() { }
+                static void LF2() { Console.Write(""PA""); }
 
-                LF2();
+                d();
             }
                 
             void LF3()
             {
                 Action d = LF2;
-                static void LF2() { }
+                static void LF2() { Console.Write(""SS""); }
 
-                LF2();
+                d();
             }
 
             LF1(); LF3();
@@ -3023,13 +3374,49 @@ static class E
         
         Owner<int>();
     }
+
+    static void Main(string[] args) { Test<int>(); }
 }
 ";
-        var verifier = CompileAndVerify(source);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
         verifier.VerifySynthesizedFields("E.<Owner>O__0_0<T, G>", ContainerFinder("E.<Owner>O__0_0"), arity: 2
             , "System.Action <0>__LF2"
             , "System.Action <1>__LF2"
         );
+        verifier.VerifyIL("E.<Test>g__LF1|0_1<T, G>", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action E.<Owner>O__0_0<T, G>.<0>__LF2""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""void E.<Test>g__LF2|0_3<T, G>()""
+  IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""System.Action E.<Owner>O__0_0<T, G>.<0>__LF2""
+  IL_001b:  callvirt   ""void System.Action.Invoke()""
+  IL_0020:  ret
+}
+");
+        verifier.VerifyIL("E.<Test>g__LF3|0_2<T, G>", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action E.<Owner>O__0_0<T, G>.<1>__LF2""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""void E.<Test>g__LF2|0_4<T, G>()""
+  IL_0010:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""System.Action E.<Owner>O__0_0<T, G>.<1>__LF2""
+  IL_001b:  callvirt   ""void System.Action.Invoke()""
+  IL_0020:  ret
+}
+");
     }
 
     [Fact]
