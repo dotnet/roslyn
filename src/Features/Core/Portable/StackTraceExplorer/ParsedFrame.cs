@@ -9,5 +9,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         public ParsedFrame()
         {
         }
+
+        public abstract bool IsStackFrame { get; }
     }
 }

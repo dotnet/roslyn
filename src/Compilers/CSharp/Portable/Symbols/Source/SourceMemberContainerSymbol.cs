@@ -449,12 +449,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword))
+            if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) && compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
             {
-                if (compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
-                {
-                    diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location);
-                }
+                diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location);
             }
             else if (IsReservedTypeName(name))
             {
