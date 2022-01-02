@@ -659,7 +659,7 @@ internal class C1<T1>
             string source = @"
 record R;
 ";
-            CompileAndVerify(source, symbolValidator: validate);
+            CompileAndVerify(source, symbolValidator: validate, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             void validate(ModuleSymbol module)
             {
@@ -717,18 +717,18 @@ record R;
             string source = @"
 record struct R;
 ";
-            CompileAndVerify(source, symbolValidator: validate);
+            CompileAndVerify(source, symbolValidator: validate, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             void validate(ModuleSymbol module)
             {
                 var record = module.GlobalNamespace.GetTypeMember("R");
-                Assert.Equal(7, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
+                Assert.Equal(8, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
 
                 var toString = record.GetMember(WellKnownMemberNames.ObjectToString);
                 validateCompilerGeneratedAttribute(toString);
 
-                //var printMembers = record.GetMember(WellKnownMemberNames.PrintMembersMethodName);
-                //validateCompilerGeneratedAttribute(printMembers); // Find a good way to test. GetMember("PrintMembers") returns null because the method is private.
+                var printMembers = record.GetMember(WellKnownMemberNames.PrintMembersMethodName);
+                validateCompilerGeneratedAttribute(printMembers);
 
                 var op_Equality = record.GetMember(WellKnownMemberNames.EqualityOperatorName);
                 validateCompilerGeneratedAttribute(op_Equality);
@@ -767,12 +767,15 @@ namespace System.Runtime.CompilerServices
     public static class IsExternalInit { }
 }
 ";
-            CompileAndVerify(source, symbolValidator: validate);
+            CompileAndVerify(source, symbolValidator: validate, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             void validate(ModuleSymbol module)
             {
                 var record = module.GlobalNamespace.GetTypeMember("R");
-                Assert.Equal(16, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
+                Assert.Equal(17, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
+
+                var p1_backingField = record.GetMember("<P1>k__BackingField");
+                validateCompilerGeneratedAttribute(p1_backingField);
 
                 var equalityContractGetter = record.GetMember("get_EqualityContract");
                 validateCompilerGeneratedAttribute(equalityContractGetter);
@@ -837,12 +840,12 @@ namespace System.Runtime.CompilerServices
             string source = @"
 record struct R(int P1);
 ";
-            CompileAndVerify(source, symbolValidator: validate);
+            CompileAndVerify(source, symbolValidator: validate, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             void validate(ModuleSymbol module)
             {
                 var record = module.GlobalNamespace.GetTypeMember("R");
-                Assert.Equal(13, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
+                Assert.Equal(14, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
 
                 var p1_backingField = record.GetMember("<P1>k__BackingField");
                 validateCompilerGeneratedAttribute(p1_backingField);
@@ -863,8 +866,8 @@ record struct R(int P1);
                 var toString = record.GetMember(WellKnownMemberNames.ObjectToString);
                 validateCompilerGeneratedAttribute(toString);
 
-                //var printMembers = record.GetMember(WellKnownMemberNames.PrintMembersMethodName);
-                //validateCompilerGeneratedAttribute(printMembers); // Find a good way to test. GetMember("PrintMembers") returns null because the method is private.
+                var printMembers = record.GetMember(WellKnownMemberNames.PrintMembersMethodName);
+                validateCompilerGeneratedAttribute(printMembers);
 
                 var op_Equality = record.GetMember(WellKnownMemberNames.EqualityOperatorName);
                 validateCompilerGeneratedAttribute(op_Equality);
