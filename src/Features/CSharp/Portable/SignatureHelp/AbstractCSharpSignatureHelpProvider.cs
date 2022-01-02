@@ -127,10 +127,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         protected static bool FindParameterIndexIfCompatibleMethod(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method, int position,
             SemanticModel semanticModel, ISemanticFactsService semanticFactsService, out int foundParameterIndex)
         {
-            var argumentCount = arguments.Count;
-            var parameters = method.Parameters;
-            var parameterCount = parameters.Length;
-
             // map the arguments to their corresponding parameters
             var argToParamMap = PrepareArgToParamMap(arguments, method);
             if (argToParamMap is null)
@@ -139,60 +135,56 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return false;
             }
 
-            var result = IsCompatibleMethod(out foundParameterIndex);
-            argToParamMap.Free();
-
-            return result;
-
-            bool IsCompatibleMethod(out int found)
+            // verify that the arguments are compatible with their corresponding parameters
+            var argumentCount = arguments.Count;
+            var parameters = method.Parameters;
+            for (var argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
             {
-                // verify that the arguments are compatible with their corresponding parameters
-                for (var argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
+                var parameterIndex = argToParamMap[argumentIndex];
+                if (parameterIndex < 0)
                 {
-                    var parameterIndex = argToParamMap[argumentIndex];
-                    if (parameterIndex < 0)
-                    {
-                        continue;
-                    }
-
-                    var parameter = parameters[parameterIndex];
-                    var argument = arguments[argumentIndex];
-
-                    if (!IsCompatibleArgument(argument, parameter))
-                    {
-                        found = -1;
-                        return false;
-                    }
+                    continue;
                 }
 
-                // find the parameter at the cursor position
-                var argumentIndexToSave = TryGetArgumentIndex(arguments, position);
-                if (argumentIndexToSave >= 0)
+                var parameter = parameters[parameterIndex];
+                var argument = arguments[argumentIndex];
+
+                if (!IsCompatibleArgument(argument, parameter))
                 {
-                    var foundParam = argToParamMap[argumentIndexToSave];
-                    if (foundParam >= 0)
-                    {
-                        found = foundParam;
-                    }
-                    else
-                    {
-                        var firstUnspecified = FirstUnspecifiedParameter();
-                        found = firstUnspecified < 0 ? 0 : firstUnspecified;
-                    }
+                    foundParameterIndex = -1;
+                    argToParamMap.Free();
+                    return false;
+                }
+            }
+
+            // find the parameter at the cursor position
+            var argumentIndexToSave = TryGetArgumentIndex(arguments, position);
+            if (argumentIndexToSave >= 0)
+            {
+                var foundParam = argToParamMap[argumentIndexToSave];
+                if (foundParam >= 0)
+                {
+                    foundParameterIndex = foundParam;
                 }
                 else
                 {
-                    found = argumentIndexToSave >= 0 ? argToParamMap[argumentIndexToSave] : -1;
+                    var firstUnspecified = FirstUnspecifiedParameter(argToParamMap, argumentCount);
+                    foundParameterIndex = firstUnspecified < 0 ? 0 : firstUnspecified;
                 }
-
-                Debug.Assert(found < parameterCount);
-
-                return true;
             }
+            else
+            {
+                foundParameterIndex = argumentIndexToSave >= 0 ? argToParamMap[argumentIndexToSave] : -1;
+            }
+
+            Debug.Assert(foundParameterIndex < parameters.Length);
+
+            argToParamMap.Free();
+            return true;
 
             // If the cursor is pointing at an argument for which we did not find the corresponding
             // parameter, we will highlight the first unspecified parameter.
-            int FirstUnspecifiedParameter()
+            static int FirstUnspecifiedParameter(ArrayBuilder<int> argToParamMap, int argumentCount)
             {
                 var specified = ArrayBuilder<bool>.GetInstance(argumentCount, false);
                 for (var i = 0; i < argumentCount; i++)
