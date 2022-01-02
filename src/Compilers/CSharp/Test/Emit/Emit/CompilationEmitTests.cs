@@ -4726,7 +4726,7 @@ public interface IUsePlatform
             // modules not supported in ref emit
             // PEVerify: [HRESULT 0x8007000B] - An attempt was made to load a program with an incorrect format.
             // ILVerify: Internal.IL.VerifierException : No system module specified
-            CompileAndVerify(comp, verify: Verification.FailsPeVerify_UnspecifiedError | Verification.FailsIlVerify_UnspecifiedError);
+            CompileAndVerify(comp, verify: Verification.Fails);
             Assert.NotSame(comp.Assembly.CorLibrary, comp.Assembly);
             comp.GetSpecialType(SpecialType.System_Int32);
         }

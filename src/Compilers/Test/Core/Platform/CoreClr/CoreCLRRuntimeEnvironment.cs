@@ -119,10 +119,6 @@ namespace Roslyn.Test.Utilities.CoreClr
                 foreach (var module in emitData.AllModuleData)
                 {
                     string name = module.FullName;
-
-                    //var image = name == "mscorlib"
-                    //    ? ImmutableArray<byte>.Empty // TODO2 TestResources.NetFX.v4_6_1038_0.mscorlib.AsImmutable()
-                    //    : module.Image;
                     var image = module.Image;
 
                     // TODO2 figure out why we need both the simple name and full name
@@ -276,6 +272,11 @@ namespace Roslyn.Test.Utilities.CoreClr
             {
                 if ((verification & Verification.FailsIlVerify_BadImage) == Verification.FailsIlVerify_BadImage
                     && ex.Message.Contains("The format of a DLL or executable being loaded is invalid"))
+                {
+                    return;
+                }
+
+                if ((verification & Verification.FailsIlVerify_UnspecifiedError) == Verification.FailsIlVerify_UnspecifiedError)
                 {
                     return;
                 }
