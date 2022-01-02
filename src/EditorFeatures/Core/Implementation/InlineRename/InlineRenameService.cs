@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             return new InlineRenameSessionInfo(ActiveSession);
 
-            static InlineRenameSessionInfo? IsReadOnlyOrCannotNavigateToSpan(IInlineRenameInfo? renameInfo, Document document, CancellationToken cancellationToken)
+            static InlineRenameSessionInfo? IsReadOnlyOrCannotNavigateToSpan(IInlineRenameInfo renameInfo, Document document, CancellationToken cancellationToken)
             {
                 if (renameInfo is IInlineRenameInfo inlineRenameInfo && inlineRenameInfo.DefinitionLocations != default)
                 {
