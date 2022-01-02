@@ -21,7 +21,10 @@ namespace Microsoft.CodeAnalysis
         private readonly IEqualityComparer<T> _comparer;
         private readonly object _filterKey = new object();
 
-        internal SyntaxInputNode(Func<SyntaxNode, CancellationToken, bool> filterFunc, Func<GeneratorSyntaxContext, CancellationToken, T> transformFunc, Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> registerOutputAndNode, IEqualityComparer<T>? comparer = null, string? name = null)
+        internal SyntaxInputNode(
+            Func<SyntaxNode, CancellationToken, bool> filterFunc,
+            Func<GeneratorSyntaxContext, CancellationToken, T> transformFunc,
+            Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> registerOutputAndNode, IEqualityComparer<T>? comparer = null, string? name = null)
         {
             _transformFunc = transformFunc;
             _registerOutputAndNode = registerOutputAndNode;

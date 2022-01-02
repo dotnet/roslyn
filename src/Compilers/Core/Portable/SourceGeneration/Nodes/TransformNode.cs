@@ -3,29 +3,30 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class TransformNode<TInput, TOutput> : IIncrementalGeneratorNode<TOutput>
     {
-        private readonly Func<TInput, CancellationToken, ImmutableArray<TOutput>> _func;
+        private readonly Func<TInput, Compilation, CancellationToken, ImmutableArray<TOutput>> _func;
         private readonly IEqualityComparer<TOutput> _comparer;
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
         private readonly string? _name;
 
-        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, CancellationToken, TOutput> userFunc, IEqualityComparer<TOutput>? comparer = null, string? name = null)
-            : this(sourceNode, userFunc: (i, token) => ImmutableArray.Create(userFunc(i, token)), comparer, name)
+        public TransformNode(
+            IIncrementalGeneratorNode<TInput> sourceNode,
+            Func<TInput, Compilation, CancellationToken, TOutput> userFunc, IEqualityComparer<TOutput>? comparer = null, string? name = null)
+            : this(sourceNode, userFunc: (i, compilation, token) => ImmutableArray.Create(userFunc(i, compilation, token)), comparer, name)
         {
         }
 
-        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, CancellationToken, ImmutableArray<TOutput>> userFunc, IEqualityComparer<TOutput>? comparer = null, string? name = null)
+        public TransformNode(
+            IIncrementalGeneratorNode<TInput> sourceNode,
+            Func<TInput, Compilation, CancellationToken, ImmutableArray<TOutput>> userFunc, IEqualityComparer<TOutput>? comparer = null, string? name = null)
         {
             _sourceNode = sourceNode;
             _func = userFunc;
@@ -37,7 +38,10 @@ namespace Microsoft.CodeAnalysis
 
         public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name) => new TransformNode<TInput, TOutput>(_sourceNode, _func, _comparer, name);
 
-        public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
+        public NodeStateTable<TOutput> UpdateStateTable(
+            DriverStateTable.Builder builder,
+            NodeStateTable<TOutput> previousTable,
+            CancellationToken cancellationToken)
         {
             // grab the source inputs
             var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
@@ -69,7 +73,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var stopwatch = SharedStopwatch.StartNew();
                     // generate the new entries
-                    var newOutputs = _func(entry.Item, cancellationToken);
+                    var newOutputs = _func(entry.Item, builder.Compilation, cancellationToken);
 
                     if (entry.State != EntryState.Modified || !newTable.TryModifyEntries(newOutputs, _comparer, stopwatch.Elapsed, inputs, entry.State))
                     {

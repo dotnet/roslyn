@@ -1503,10 +1503,10 @@ class C { }
             Func<int, CancellationToken, int> timeoutFunc = (input, ct) => { ct.ThrowIfCancellationRequested(); return input; };
             Func<int, CancellationToken, int> otherTimeoutFunc = (input, _) => throw new OperationCanceledException();
 
-            var userFunc = func.WrapUserFunction();
-            var userThrowsFunc = throwsFunc.WrapUserFunction();
-            var userTimeoutFunc = timeoutFunc.WrapUserFunction();
-            var userOtherTimeoutFunc = otherTimeoutFunc.WrapUserFunction();
+            var userFunc = func.WrapUserFunctionWithCompilation();
+            var userThrowsFunc = throwsFunc.WrapUserFunctionWithCompilation();
+            var userTimeoutFunc = timeoutFunc.WrapUserFunctionWithCompilation();
+            var userOtherTimeoutFunc = otherTimeoutFunc.WrapUserFunctionWithCompilation();
 
             // user functions return same values when wrapped
             var result = userFunc(10, CancellationToken.None);

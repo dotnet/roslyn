@@ -22,6 +22,21 @@ namespace Microsoft.CodeAnalysis
 
     internal static class UserFunctionExtensions
     {
+        internal static Func<TInput, Compilation, CancellationToken, TOutput> WrapUserFunctionWithCompilation<TInput, TOutput>(this Func<TInput, CancellationToken, TOutput> userFunction)
+        {
+            return (input, unused, token) =>
+            {
+                try
+                {
+                    return userFunction(input, token);
+                }
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, token))
+                {
+                    throw new UserFunctionException(e);
+                }
+            };
+        }
+
         internal static Func<TInput, CancellationToken, TOutput> WrapUserFunction<TInput, TOutput>(this Func<TInput, CancellationToken, TOutput> userFunction)
         {
             return (input, token) =>
@@ -37,9 +52,29 @@ namespace Microsoft.CodeAnalysis
             };
         }
 
-        internal static Func<TInput, CancellationToken, ImmutableArray<TOutput>> WrapUserFunctionAsImmutableArray<TInput, TOutput>(this Func<TInput, CancellationToken, IEnumerable<TOutput>> userFunction)
+        internal static Func<TInput, Compilation, CancellationToken, TOutput> WrapUserFunction<TInput, TOutput>(this Func<TInput, Compilation, CancellationToken, TOutput> userFunction)
         {
-            return (input, token) => userFunction.WrapUserFunction()(input, token).ToImmutableArray();
+            return (input, compilation, token) =>
+            {
+                try
+                {
+                    return userFunction(input, compilation, token);
+                }
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, token))
+                {
+                    throw new UserFunctionException(e);
+                }
+            };
+        }
+
+        internal static Func<TInput, Compilation, CancellationToken, ImmutableArray<TOutput>> WrapUserFunctionAsImmutableArrayWithCompilation<TInput, TOutput>(this Func<TInput, CancellationToken, IEnumerable<TOutput>> userFunction)
+        {
+            return (input, compilation, token) => userFunction.WrapUserFunctionWithCompilation()(input, compilation, token).ToImmutableArray();
+        }
+
+        internal static Func<TInput, Compilation, CancellationToken, ImmutableArray<TOutput>> WrapUserFunctionAsImmutableArray<TInput, TOutput>(this Func<TInput, Compilation, CancellationToken, IEnumerable<TOutput>> userFunction)
+        {
+            return (input, compilation, token) => userFunction.WrapUserFunction()(input, compilation, token).ToImmutableArray();
         }
 
         internal static Action<TInput> WrapUserAction<TInput>(this Action<TInput> userAction)
