@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var symbol = semanticModel.GetRequiredDeclaredSymbol(matchingTypeDeclaration, cancellationToken);
-                    
+
                     var symbolRenameOptions = new SymbolRenameOptions(
                         RenameOverloads: false,
                         RenameInComments: options.RenameMatchingTypeInComments,
                         RenameInStrings: options.RenameMatchingTypeInStrings,
                         RenameFile: false);
 
-                    solution = await RenameSymbolAsync(solution, symbol, _analysis.NewSymbolName, symbolRenameOptions, cancellationToken).ConfigureAwait(false);
+                    solution = await RenameSymbolAsync(solution, symbol, symbolRenameOptions, _analysis.NewSymbolName, cancellationToken).ConfigureAwait(false);
                 }
 
                 return solution;

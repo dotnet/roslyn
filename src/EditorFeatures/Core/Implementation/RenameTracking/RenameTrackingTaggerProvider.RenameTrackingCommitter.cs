@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 Contract.ThrowIfNull(symbol, "Invoked rename tracking smart tag but cannot find the symbol.");
 
                 var options = new SymbolRenameOptions(RenameOverloads: _stateMachine.TrackingSession.ForceRenameOverloads);
-                var renamedSolution = await Renamer.RenameSymbolAsync(solutionWithOriginalName, symbol, newName, options, cancellationToken).ConfigureAwait(false);
+                var renamedSolution = await Renamer.RenameSymbolAsync(solutionWithOriginalName, symbol, options, newName, cancellationToken).ConfigureAwait(false);
                 return new RenameTrackingSolutionSet(symbol, solutionWithOriginalName, renamedSolution);
             }
 

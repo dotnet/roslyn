@@ -332,7 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             {
                 var newName = newFullyQualifiedName.Substring(newFullyQualifiedName.LastIndexOf('.') + 1);
                 var options = new SymbolRenameOptions();
-                var newSolution = Renamer.RenameSymbolAsync(document.Project.Solution, symbol, newName, options, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+                var newSolution = Renamer.RenameSymbolAsync(document.Project.Solution, symbol, options, newName, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
                 var changedDocuments = newSolution.GetChangedDocuments(document.Project.Solution);
 
                 var undoTitle = string.Format(EditorFeaturesResources.Rename_0_to_1, symbol.Name, newName);

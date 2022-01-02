@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             {
                 // Just rename everything.
                 return await Renamer.RenameSymbolAsync(
-                    solution, field, generatedPropertyName, new SymbolRenameOptions(), cancellationToken).ConfigureAwait(false);
+                    solution, field, new SymbolRenameOptions(), generatedPropertyName, cancellationToken).ConfigureAwait(false);
             }
         }
 

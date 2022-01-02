@@ -35,10 +35,10 @@ namespace Microsoft.CodeAnalysis.Rename
 
         [Obsolete("Use overload taking RenameOptions")]
         public static Task<Solution> RenameSymbolAsync(Solution solution, ISymbol symbol, string newName, OptionSet? optionSet, CancellationToken cancellationToken = default)
-            => RenameSymbolAsync(solution, symbol, newName, GetSymbolRenameOptions(optionSet ?? solution.Options), cancellationToken);
+            => RenameSymbolAsync(solution, symbol, GetSymbolRenameOptions(optionSet ?? solution.Options), newName, cancellationToken);
 
         public static async Task<Solution> RenameSymbolAsync(
-            Solution solution, ISymbol symbol, string newName, SymbolRenameOptions options, CancellationToken cancellationToken = default)
+            Solution solution, ISymbol symbol, SymbolRenameOptions options, string newName, CancellationToken cancellationToken = default)
         {
             if (solution == null)
                 throw new ArgumentNullException(nameof(solution));
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 throw new ArgumentNullException(nameof(symbol));
 
             if (string.IsNullOrEmpty(newName))
-                throw new ArgumentException(nameof(newName));
+                throw new ArgumentException(WorkspacesResources._0_must_be_a_non_null_and_non_empty_string, nameof(newName));
 
             var resolution = await RenameSymbolAsync(solution, symbol, newName, options, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public static async Task<RenameDocumentActionSet> RenameDocumentAsync(
             Document document,
             DocumentRenameOptions options,
-            string? newDocumentName = null,
+            string? newDocumentName,
             IReadOnlyList<string>? newDocumentFolders = null,
             CancellationToken cancellationToken = default)
         {

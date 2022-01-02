@@ -52,7 +52,7 @@ namespace IdeCoreBenchmarks
         [Benchmark]
         public void RenameNodes()
         {
-            _ = Renamer.RenameSymbolAsync(_solution, _symbol, "NewName", new SymbolRenameOptions());
+            _ = Renamer.RenameSymbolAsync(_solution, _symbol, new SymbolRenameOptions(), "NewName");
         }
 
         [IterationCleanup]

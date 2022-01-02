@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _triggerView = textBufferAssociatedViewService.GetAssociatedTextViews(triggerSpan.Snapshot.TextBuffer).FirstOrDefault(v => v.HasAggregateFocus) ??
                 textBufferAssociatedViewService.GetAssociatedTextViews(triggerSpan.Snapshot.TextBuffer).First();
 
-            _options = options with { RenameOverloads = renameInfo.ForceRenameOverloads };
+            _options = options with { RenameOverloads = options.RenameOverloads || renameInfo.ForceRenameOverloads };
             _initialRenameText = triggerSpan.GetText();
             this.ReplacementText = _initialRenameText;
 

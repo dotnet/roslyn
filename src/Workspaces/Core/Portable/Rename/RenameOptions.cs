@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
-    [Obsolete]
+    [Obsolete("Use SymbolRenameOptions or DocumentRenameOptions instead")]
     public static class RenameOptions
     {
         public static Option<bool> RenameOverloads { get; } = new Option<bool>(nameof(RenameOptions), nameof(RenameOverloads), defaultValue: false);

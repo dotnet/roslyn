@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // if no such conflicts exist, proceed with RenameSymbolAsync.
                 var solution = SemanticDocument.Document.Project.Solution;
                 var symbol = State.SemanticDocument.SemanticModel.GetDeclaredSymbol(State.TypeNode, CancellationToken);
-                return await Renamer.RenameSymbolAsync(solution, symbol, FileName, new SymbolRenameOptions(), CancellationToken).ConfigureAwait(false);
+                return await Renamer.RenameSymbolAsync(solution, symbol, new SymbolRenameOptions(), FileName, CancellationToken).ConfigureAwait(false);
             }
         }
     }
