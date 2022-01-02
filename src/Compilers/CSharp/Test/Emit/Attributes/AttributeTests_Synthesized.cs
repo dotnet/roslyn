@@ -767,7 +767,11 @@ namespace System.Runtime.CompilerServices
     public static class IsExternalInit { }
 }
 ";
-            CompileAndVerify(source, symbolValidator: validate, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            // [ : R::set_P1] Cannot change initonly field outside its .ctor.
+            CompileAndVerify(source,
+                symbolValidator: validate,
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
 
             void validate(ModuleSymbol module)
             {
