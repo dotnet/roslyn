@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
             DocumentId documentId,
             TextSpan span,
             ClassificationOptions options,
+            StorageDatabase database,
             bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         _cachedData.Clear();
 
                     // Enqueue this document into our work queue to fully classify and cache.
-                    _workQueue.AddWork(document);
+                    _workQueue.AddWork((document, database));
                 }
 
                 return SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());

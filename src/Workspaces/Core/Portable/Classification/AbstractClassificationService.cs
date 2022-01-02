@@ -56,11 +56,13 @@ namespace Microsoft.CodeAnalysis.Classification
                 if (await TryGetCachedClassificationsAsync(document, textSpan, result, client, isFullyLoaded, cancellationToken).ConfigureAwait(false))
                     return;
 
+                var database = document.Project.Solution.Options.GetPersistentStorageDatabase();
+
                 // Call the project overload.  Semantic classification only needs the current project's information
                 // to classify properly.
                 var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans>(
                    document.Project,
-                   (service, solutionInfo, cancellationToken) => service.GetSemanticClassificationsAsync(solutionInfo, document.Id, textSpan, options, isFullyLoaded, cancellationToken),
+                   (service, solutionInfo, cancellationToken) => service.GetSemanticClassificationsAsync(solutionInfo, document.Id, textSpan, options, database, isFullyLoaded, cancellationToken),
                    cancellationToken).ConfigureAwait(false);
 
                 // if the remote call fails do nothing (error has already been reported)
