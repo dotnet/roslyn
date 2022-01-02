@@ -365,6 +365,7 @@ namespace Roslyn.Test.Utilities.Desktop
                 if ((verification & Verification.Fails_InitOnly) == Verification.Fails_InitOnly
                     && ex.Message.Contains("Cannot change initonly field outside its .ctor."))
                 {
+                    return;
                 }
 
                 if ((verification & Verification.FailsPeVerify_UnspecifiedError) == Verification.FailsPeVerify_UnspecifiedError)
