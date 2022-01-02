@@ -130,7 +130,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var argumentCount = arguments.Count;
             var parameters = method.Parameters;
             var parameterCount = parameters.Length;
-            var argToParamMap = ArrayBuilder<int>.GetInstance(argumentCount, -1);
+
+            // map the arguments to their corresponding parameters
+            var argToParamMap = PrepareArgToParamMap(arguments, method);
+            if (argToParamMap is null)
+            {
+                foundParameterIndex = -1;
+                return false;
+            }
 
             var result = IsCompatibleMethod(out foundParameterIndex);
             argToParamMap.Free();
@@ -139,13 +146,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             bool IsCompatibleMethod(out int found)
             {
-                // map the arguments to their corresponding parameters
-                if (!PrepareArgToParamMap())
-                {
-                    found = -1;
-                    return false;
-                }
-
                 // verify that the arguments are compatible with their corresponding parameters
                 for (var argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
                 {
@@ -188,88 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 Debug.Assert(found < parameterCount);
 
                 return true;
-            }
-
-            // Find the parameter index corresponding to each argument provided 
-            bool PrepareArgToParamMap()
-            {
-                var currentParameterIndex = 0;
-                var seenOutOfPositionArgument = false;
-                var inParams = false;
-
-                for (var argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
-                {
-                    if (argumentIndex >= parameterCount && !inParams)
-                    {
-                        return false;
-                    }
-
-                    var argument = arguments[argumentIndex];
-                    if (HasName(argument, out var name))
-                    {
-                        var namedParameterIndex = parameters.IndexOf(p => p.Name == name);
-                        if (namedParameterIndex < 0)
-                        {
-                            return false;
-                        }
-
-                        if (namedParameterIndex != currentParameterIndex)
-                        {
-                            seenOutOfPositionArgument = true;
-                        }
-
-                        AddArgToParamMapping(argumentIndex, namedParameterIndex);
-                        IncrementParameterIndexIfNeeded();
-                    }
-                    else if (IsEmptyArgument(argument.Expression))
-                    {
-                        if (!seenOutOfPositionArgument)
-                        {
-                            // We count the empty argument as a used position
-                            AddArgToParamMapping(argumentIndex, currentParameterIndex);
-                            IncrementParameterIndexIfNeeded();
-                        }
-                    }
-                    else if (seenOutOfPositionArgument)
-                    {
-                        // Unnamed arguments are not allowed after an out-of-position argument
-                        return false;
-                    }
-                    else
-                    {
-                        AddArgToParamMapping(argumentIndex, currentParameterIndex);
-                        IncrementParameterIndexIfNeeded();
-                    }
-                }
-
-                return true;
-
-                void IncrementParameterIndexIfNeeded()
-                {
-                    if (!seenOutOfPositionArgument && !inParams)
-                    {
-                        currentParameterIndex++;
-                    }
-                }
-
-                void AddArgToParamMapping(int argumentIndex, int parameterIndex)
-                {
-                    Debug.Assert(parameterIndex >= 0);
-                    Debug.Assert(parameterIndex < parameterCount);
-
-                    if (parameters[parameterIndex].IsParams)
-                    {
-                        inParams = true;
-                    }
-
-                    argToParamMap[argumentIndex] = parameterIndex;
-                }
-            }
-
-            bool IsEmptyArgument(ExpressionSyntax expression)
-            {
-                return expression.IsKind(SyntaxKind.IdentifierName) &&
-                    ((IdentifierNameSyntax)expression).Identifier.ValueText.Length == 0;
             }
 
             // If the cursor is pointing at an argument for which we did not find the corresponding
@@ -330,6 +248,97 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 var conversion = semanticFactsService.ClassifyConversion(semanticModel, expression, destination);
                 return conversion.Exists && conversion.IsImplicit;
             }
+        }
+
+        /// <summary>
+        /// Find the parameter index corresponding to each argument provided 
+        /// </summary>
+        private static ArrayBuilder<int>? PrepareArgToParamMap(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method)
+        {
+            var argumentCount = arguments.Count;
+            var argToParamMap = ArrayBuilder<int>.GetInstance(argumentCount, -1);
+            var parameters = method.Parameters;
+            var parameterCount = parameters.Length;
+            var currentParameterIndex = 0;
+            var seenOutOfPositionArgument = false;
+            var inParams = false;
+
+            for (var argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
+            {
+                if (argumentIndex >= parameterCount && !inParams)
+                {
+                    argToParamMap.Free();
+                    return null;
+                }
+
+                var argument = arguments[argumentIndex];
+                if (HasName(argument, out var name))
+                {
+                    var namedParameterIndex = parameters.IndexOf(p => p.Name == name);
+                    if (namedParameterIndex < 0)
+                    {
+                        argToParamMap.Free();
+                        return null;
+                    }
+
+                    if (namedParameterIndex != currentParameterIndex)
+                    {
+                        seenOutOfPositionArgument = true;
+                    }
+
+                    AddArgToParamMapping(argumentIndex, namedParameterIndex);
+                    IncrementParameterIndexIfNeeded();
+                }
+                else if (IsEmptyArgument(argument.Expression))
+                {
+                    if (!seenOutOfPositionArgument)
+                    {
+                        // We count the empty argument as a used position
+                        AddArgToParamMapping(argumentIndex, currentParameterIndex);
+                        IncrementParameterIndexIfNeeded();
+                    }
+                }
+                else if (seenOutOfPositionArgument)
+                {
+                    // Unnamed arguments are not allowed after an out-of-position argument
+                    argToParamMap.Free();
+                    return null;
+                }
+                else
+                {
+                    AddArgToParamMapping(argumentIndex, currentParameterIndex);
+                    IncrementParameterIndexIfNeeded();
+                }
+            }
+
+            return argToParamMap;
+
+            void IncrementParameterIndexIfNeeded()
+            {
+                if (!seenOutOfPositionArgument && !inParams)
+                {
+                    currentParameterIndex++;
+                }
+            }
+
+            void AddArgToParamMapping(int argumentIndex, int parameterIndex)
+            {
+                Debug.Assert(parameterIndex >= 0);
+                Debug.Assert(parameterIndex < parameterCount);
+
+                if (parameters[parameterIndex].IsParams)
+                {
+                    inParams = true;
+                }
+
+                argToParamMap[argumentIndex] = parameterIndex;
+            }
+        }
+
+        private static bool IsEmptyArgument(ExpressionSyntax expression)
+        {
+            return expression.IsKind(SyntaxKind.IdentifierName) &&
+                ((IdentifierNameSyntax)expression).Identifier.ValueText.Length == 0;
         }
 
         /// <summary>
