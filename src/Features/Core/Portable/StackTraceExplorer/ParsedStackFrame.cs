@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 
         public StackFrameCompilationUnit Root => Tree.Root;
 
+        public override bool IsStackFrame => true;
+
         public override string ToString()
         {
             return Tree.Text.CreateString();
