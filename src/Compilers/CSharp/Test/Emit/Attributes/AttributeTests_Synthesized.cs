@@ -710,6 +710,190 @@ record R;
             }
         }
 
+        [Fact]
+        [WorkItem(46439, "https://github.com/dotnet/roslyn/issues/46439")]
+        public void RecordStructSynthesizedMembers()
+        {
+            string source = @"
+record struct R;
+";
+            CompileAndVerify(source, symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var record = module.GlobalNamespace.GetTypeMember("R");
+                Assert.Equal(7, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
+
+                var toString = record.GetMember(WellKnownMemberNames.ObjectToString);
+                validateCompilerGeneratedAttribute(toString);
+
+                //var printMembers = record.GetMember(WellKnownMemberNames.PrintMembersMethodName);
+                //validateCompilerGeneratedAttribute(printMembers); // Find a good way to test. GetMember("PrintMembers") returns null because the method is private.
+
+                var op_Equality = record.GetMember(WellKnownMemberNames.EqualityOperatorName);
+                validateCompilerGeneratedAttribute(op_Equality);
+
+                var op_Inequality = record.GetMember(WellKnownMemberNames.InequalityOperatorName);
+                validateCompilerGeneratedAttribute(op_Inequality);
+
+                var getHashCode = record.GetMember(WellKnownMemberNames.ObjectGetHashCode);
+                validateCompilerGeneratedAttribute(getHashCode);
+
+                var equals = record.GetMembers(WellKnownMemberNames.ObjectEquals);
+                Assert.Equal(2, equals.Length);
+                validateCompilerGeneratedAttribute(equals[0]);
+                validateCompilerGeneratedAttribute(equals[1]);
+
+                var ctor = record.GetMember(WellKnownMemberNames.InstanceConstructorName);
+                Assert.Empty(ctor.GetAttributes());
+            }
+
+            void validateCompilerGeneratedAttribute(Symbol symbol)
+            {
+                var attributeNames = GetAttributeNames(symbol.GetAttributes());
+                Assert.Contains("CompilerGeneratedAttribute", attributeNames);
+            }
+        }
+
+        [Fact]
+        [WorkItem(46439, "https://github.com/dotnet/roslyn/issues/46439")]
+        public void RecordSynthesizedMembers_2()
+        {
+            string source = @"
+record R(int P1);
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}
+";
+            CompileAndVerify(source, symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var record = module.GlobalNamespace.GetTypeMember("R");
+                Assert.Equal(16, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
+
+                var equalityContractGetter = record.GetMember("get_EqualityContract");
+                validateCompilerGeneratedAttribute(equalityContractGetter);
+
+                var get_P1 = record.GetMember("get_P1");
+                validateCompilerGeneratedAttribute(get_P1);
+
+                var set_P1 = record.GetMember("set_P1");
+                validateCompilerGeneratedAttribute(set_P1);
+
+                var toString = record.GetMember(WellKnownMemberNames.ObjectToString);
+                validateCompilerGeneratedAttribute(toString);
+
+                var printMembers = record.GetMember(WellKnownMemberNames.PrintMembersMethodName);
+                validateCompilerGeneratedAttribute(printMembers);
+
+                var op_Equality = record.GetMember(WellKnownMemberNames.EqualityOperatorName);
+                validateCompilerGeneratedAttribute(op_Equality);
+
+                var op_Inequality = record.GetMember(WellKnownMemberNames.InequalityOperatorName);
+                validateCompilerGeneratedAttribute(op_Inequality);
+
+                var getHashCode = record.GetMember(WellKnownMemberNames.ObjectGetHashCode);
+                validateCompilerGeneratedAttribute(getHashCode);
+
+                var equals = record.GetMembers(WellKnownMemberNames.ObjectEquals);
+                Assert.Equal(2, equals.Length);
+                validateCompilerGeneratedAttribute(equals[0]);
+                validateCompilerGeneratedAttribute(equals[1]);
+
+                var clone = record.GetMember(WellKnownMemberNames.CloneMethodName);
+                validateCompilerGeneratedAttribute(clone);
+
+                var ctor = record.GetMembers(WellKnownMemberNames.InstanceConstructorName);
+                Assert.Equal(2, ctor.Length);
+                Assert.Equal("R..ctor(System.Int32 P1)", ctor[0].ToTestDisplayString());
+                Assert.Equal("R..ctor(R original)", ctor[1].ToTestDisplayString());
+                validateCompilerGeneratedAttribute(ctor[1]);
+                Assert.Empty(ctor[0].GetAttributes());
+
+                var deconstruct = record.GetMember(WellKnownMemberNames.DeconstructMethodName);
+                validateCompilerGeneratedAttribute(deconstruct);
+
+                var equalityContract = record.GetMember("EqualityContract");
+                validateCompilerGeneratedAttribute(equalityContract);
+
+                var p1 = record.GetMember("P1");
+                Assert.Empty(p1.GetAttributes());
+            }
+
+            void validateCompilerGeneratedAttribute(Symbol symbol)
+            {
+                var attributeNames = GetAttributeNames(symbol.GetAttributes());
+                Assert.Contains("CompilerGeneratedAttribute", attributeNames);
+            }
+        }
+
+        [Fact]
+        [WorkItem(46439, "https://github.com/dotnet/roslyn/issues/46439")]
+        public void RecordStructSynthesizedMembers_2()
+        {
+            string source = @"
+record struct R(int P1);
+";
+            CompileAndVerify(source, symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var record = module.GlobalNamespace.GetTypeMember("R");
+                Assert.Equal(13, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
+
+                var p1_backingField = record.GetMember("<P1>k__BackingField");
+                validateCompilerGeneratedAttribute(p1_backingField);
+
+                var ctor = record.GetMembers(WellKnownMemberNames.InstanceConstructorName);
+                Assert.Equal(2, ctor.Length);
+                Assert.Equal("R..ctor()", ctor[0].ToTestDisplayString());
+                Assert.Equal("R..ctor(System.Int32 P1)", ctor[1].ToTestDisplayString());
+                Assert.Empty(ctor[0].GetAttributes());
+                Assert.Empty(ctor[1].GetAttributes());
+
+                var get_P1 = record.GetMember("get_P1");
+                validateCompilerGeneratedAttribute(get_P1);
+
+                var set_P1 = record.GetMember("set_P1");
+                validateCompilerGeneratedAttribute(set_P1);
+
+                var toString = record.GetMember(WellKnownMemberNames.ObjectToString);
+                validateCompilerGeneratedAttribute(toString);
+
+                //var printMembers = record.GetMember(WellKnownMemberNames.PrintMembersMethodName);
+                //validateCompilerGeneratedAttribute(printMembers); // Find a good way to test. GetMember("PrintMembers") returns null because the method is private.
+
+                var op_Equality = record.GetMember(WellKnownMemberNames.EqualityOperatorName);
+                validateCompilerGeneratedAttribute(op_Equality);
+
+                var op_Inequality = record.GetMember(WellKnownMemberNames.InequalityOperatorName);
+                validateCompilerGeneratedAttribute(op_Inequality);
+
+                var getHashCode = record.GetMember(WellKnownMemberNames.ObjectGetHashCode);
+                validateCompilerGeneratedAttribute(getHashCode);
+
+                var equals = record.GetMembers(WellKnownMemberNames.ObjectEquals);
+                Assert.Equal(2, equals.Length);
+                validateCompilerGeneratedAttribute(equals[0]);
+                validateCompilerGeneratedAttribute(equals[1]);
+
+                var deconstruct = record.GetMember(WellKnownMemberNames.DeconstructMethodName);
+                validateCompilerGeneratedAttribute(deconstruct);
+
+                var p1 = record.GetMember("P1");
+                Assert.Empty(p1.GetAttributes());
+            }
+
+            void validateCompilerGeneratedAttribute(Symbol symbol)
+            {
+                var attributeNames = GetAttributeNames(symbol.GetAttributes());
+                Assert.Contains("CompilerGeneratedAttribute", attributeNames);
+            }
+        }
+
         #endregion
 
         #region CompilationRelaxationsAttribute, RuntimeCompatibilityAttribute, DebuggableAttribute
