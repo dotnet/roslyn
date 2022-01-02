@@ -2915,6 +2915,7 @@ End Module
         <WorkItem(544461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544461")>
         <Fact()>
         Public Sub ValueExtensionProperty()
+            ' ILVerify: Unexpected type on the stack. { Offset = 117, Found = ref '[mscorlib]System.Collections.Generic.IEnumerable`1<T0>', Expected = ref '[mscorlib]System.Collections.Generic.IEnumerable`1<System.Xml.Linq.XElement>' }
             Dim compilation = CompileAndVerify(
 <compilation>
     <file name="c.vb"><![CDATA[

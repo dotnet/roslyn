@@ -21,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")>
         <Fact()>
         Public Sub Bug776642a()
+            ' ILVerify: Unexpected type on the stack. { Offset = 16, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -51,7 +52,7 @@ Structure OuterStruct
     Public z As DoubleAndStruct
 End Structure
     </file>
-</compilation>).
+</compilation>, verify:=Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack).
             VerifyIL("Program.M",
             <![CDATA[
 {
@@ -130,6 +131,7 @@ End Class
 
         <Fact()>
         Public Sub Bug776642a_ref()
+            ' ILVerify: Unexpected type on the stack. { Offset = 30, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -164,7 +166,7 @@ Structure OuterStruct
     Public z As DoubleAndStruct
 End Structure
     </file>
-</compilation>).
+</compilation>, verify:=Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack).
             VerifyIL("Program.M",
             <![CDATA[
 {

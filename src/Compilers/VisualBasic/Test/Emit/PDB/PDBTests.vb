@@ -691,6 +691,8 @@ End Module
 </file>
 </compilation>
 
+            ' TODO2
+            ' ILVerify: Leave into try block. { Offset = 75 }
             Dim v = CompileAndVerify(CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe))
 
             v.VerifyIL("M1.Main", "
