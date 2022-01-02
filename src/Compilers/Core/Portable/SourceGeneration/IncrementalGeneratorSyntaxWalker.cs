@@ -18,16 +18,13 @@ namespace Microsoft.CodeAnalysis
         private readonly CancellationToken _token;
         private ArrayBuilder<SyntaxNode>? _results;
 
-        internal IncrementalGeneratorSyntaxWalker(
-            Func<SyntaxNode, CancellationToken, bool> filter,
-            CancellationToken token)
+        internal IncrementalGeneratorSyntaxWalker(Func<SyntaxNode, CancellationToken, bool> filter, CancellationToken token)
         {
             _filter = filter;
             _token = token;
         }
 
-        public static ImmutableArray<SyntaxNode> GetFilteredNodes(
-            SyntaxNode root, Func<SyntaxNode, CancellationToken, bool> func, CancellationToken token)
+        public static ImmutableArray<SyntaxNode> GetFilteredNodes(SyntaxNode root, Func<SyntaxNode, CancellationToken, bool> func, CancellationToken token)
         {
             var walker = new IncrementalGeneratorSyntaxWalker(func, token);
             walker.Visit(root);
