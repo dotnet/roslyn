@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -546,6 +544,36 @@ class Bar
 class SpecificThingType
 {
     public SpecificThingType Prop { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [WorkItem(58558, "https://github.com/dotnet/roslyn/issues/58558")]
+        public async Task TestInExpressionTree1()
+        {
+            await TestMissingAsync(
+@"
+using System.Linq.Expressions;
+
+object? o = null;
+Expression<Func<bool>> test = () => [||]o is int && (int)o > 5;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [WorkItem(58558, "https://github.com/dotnet/roslyn/issues/58558")]
+        public async Task TestInExpressionTree2()
+        {
+            await TestMissingAsync(
+@"
+using System.Linq.Expressions;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        Expression<Func<bool>> test = () => [||]o is int && (int)o > 5;
+    }
 }");
         }
     }
