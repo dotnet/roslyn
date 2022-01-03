@@ -16,15 +16,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
     {
         private SendKeysImpl? _lazySendKeys;
 
-        private SendKeysImpl SendKeys
+        private SendKeysImpl SendKeys => _lazySendKeys ?? throw ExceptionUtilities.Unreachable;
+
+        protected override async Task InitializeCoreAsync()
         {
-            get
-            {
-                return LazyInitialization.EnsureInitialized(
-                    ref _lazySendKeys,
-                    static testServices => new SendKeysImpl(testServices),
-                    TestServices);
-            }
+            await base.InitializeCoreAsync();
+            _lazySendKeys = new SendKeysImpl(TestServices);
         }
 
         internal async Task SendAsync(params object[] keys)

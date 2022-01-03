@@ -47,7 +47,7 @@
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator" Version="$(MicrosoftVisualStudioExtensibiltyTestingSourceGeneratorVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator" Version="$(MicrosoftVisualStudioExtensibilityTestingSourceGeneratorVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" Version="$(MicrosoftVisualStudioExtensibilityTestingXunitVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version="$(NuGetSolutionRestoreManagerInteropVersion)" />
