@@ -3425,6 +3425,11 @@ _Default:
             VisualBasicDeclarationComputer.ComputeDeclarationsInNode(Me, node, getSymbol, builder, cancellationToken)
         End Sub
 
+        Friend Overrides Function IsSynthesizedRecordConstructor(symbol As ISymbol) As Boolean
+            ' VB does not support records.
+            Return False
+        End Function
+
         Protected Overrides Function GetTopmostNodeForDiagnosticAnalysis(symbol As ISymbol, declaringSyntax As SyntaxNode) As SyntaxNode
             Select Case symbol.Kind
                 Case SymbolKind.Namespace

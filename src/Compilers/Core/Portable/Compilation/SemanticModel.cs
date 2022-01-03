@@ -875,6 +875,8 @@ namespace Microsoft.CodeAnalysis
 
         internal virtual Func<SyntaxNode, bool>? GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol) => null;
 
+        internal abstract bool IsSynthesizedRecordConstructor(ISymbol symbol);
+
         /// <summary>
         /// Takes a Symbol and syntax for one of its declaring syntax reference and returns the topmost syntax node to be used by syntax analyzer.
         /// </summary>

@@ -2824,15 +2824,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel semanticModel,
             AnalyzerExecutor analyzerExecutor)
         {
-            // Skip syntax nodes when analyzing record declaration constructor to avoid duplicate syntax node callbacks.
-            // We will analyze these nodes while analyzing the record declaration type symbol.
-            if (declaredSymbol is IMethodSymbol method &&
-                method.ContainingType.IsRecord &&
-                method.MethodKind == MethodKind.Constructor)
-            {
-                return ImmutableArray<SyntaxNode>.Empty;
-            }
-
             // Eliminate descendant member declarations within declarations.
             // There will be separate symbols declared for the members.
             HashSet<SyntaxNode>? descendantDeclsToSkip = null;
@@ -2873,17 +2864,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 first = false;
             }
 
+            var isSynthesizedRecordConstructor = semanticModel.IsSynthesizedRecordConstructor(declaredSymbol);
             Func<SyntaxNode, bool>? additionalFilter = semanticModel.GetSyntaxNodesToAnalyzeFilter(declaredNode, declaredSymbol);
 
             bool shouldAddNode(SyntaxNode node) => (descendantDeclsToSkip == null || !descendantDeclsToSkip.Contains(node)) && (additionalFilter is null || additionalFilter(node));
             var nodeBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
             foreach (var node in declaredNode.DescendantNodesAndSelf(descendIntoChildren: shouldAddNode, descendIntoTrivia: true))
             {
-                if (shouldAddNode(node) &&
-                    (!isPartialDeclAnalysis || analysisScope.ShouldAnalyze(node)))
-                {
-                    nodeBuilder.Add(node);
-                }
+                if (!shouldAddNode(node))
+                    continue;
+
+                // Skip node if we are doing partial analysis and the current node is outside the analysis scope.
+                if (isPartialDeclAnalysis && !analysisScope.ShouldAnalyze(node))
+                    continue;
+
+                // Skip the topmost record declaration syntax node when analyzing synthesized record declaration constructor
+                // to avoid duplicate syntax node callbacks.
+                // We will analyze this node when analyzing the record declaration type symbol.
+                if (isSynthesizedRecordConstructor && node == declaredNode)
+                    continue;
+
+                nodeBuilder.Add(node);
             }
 
             return nodeBuilder.ToImmutableAndFree();

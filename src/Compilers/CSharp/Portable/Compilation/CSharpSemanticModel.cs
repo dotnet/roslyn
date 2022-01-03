@@ -5140,6 +5140,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal abstract override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol);
 
+        internal override bool IsSynthesizedRecordConstructor(ISymbol symbol) => symbol is SynthesizedRecordConstructor;
+
         protected internal override SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)
         {
             switch (symbol.Kind)
