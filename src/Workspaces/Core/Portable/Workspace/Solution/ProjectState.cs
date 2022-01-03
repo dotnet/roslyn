@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
             {
                 projectInfoFixed = projectInfoFixed.WithCompilationOptions(
                     projectInfoFixed.CompilationOptions.WithSyntaxTreeOptionsProvider(
-                        new WorkspaceSyntaxTreeOptionsProvider(_lazyAnalyzerConfigSet)));
+                        new ProjectSyntaxTreeOptionsProvider(_lazyAnalyzerConfigSet)));
             }
 
             var parseOptions = projectInfoFixed.ParseOptions;
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis
         public AnalyzerOptions AnalyzerOptions
             => _lazyAnalyzerOptions ??= new AnalyzerOptions(
                 additionalFiles: AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText),
-                optionsProvider: new WorkspaceAnalyzerConfigOptionsProvider(this));
+                optionsProvider: new ProjectAnalyzerConfigOptionsProvider(this));
 
         public async Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsForPathAsync(
             string path,
@@ -289,44 +289,34 @@ namespace Microsoft.CodeAnalysis
             return _lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath);
         }
 
-        internal sealed class WorkspaceAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
+        internal sealed class ProjectAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
         {
             private readonly ProjectState _projectState;
 
-            public WorkspaceAnalyzerConfigOptionsProvider(ProjectState projectState)
+            public ProjectAnalyzerConfigOptionsProvider(ProjectState projectState)
                 => _projectState = projectState;
 
             public override AnalyzerConfigOptions GlobalOptions
-                => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(string.Empty));
+                => GetOptionsForSourcePath(string.Empty);
 
             public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
-                => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(tree.FilePath));
+                => GetOptionsForSourcePath(tree.FilePath);
 
             public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
             {
                 // TODO: correctly find the file path, since it looks like we give this the document's .Name under the covers if we don't have one
-                return new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(textFile.Path));
+                return GetOptionsForSourcePath(textFile.Path);
             }
 
             public AnalyzerConfigOptions GetOptionsForSourcePath(string path)
-                => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(path));
-
-            private sealed class WorkspaceAnalyzerConfigOptions : AnalyzerConfigOptions
-            {
-                private readonly ImmutableDictionary<string, string> _backing;
-
-                public WorkspaceAnalyzerConfigOptions(AnalyzerConfigOptionsResult analyzerConfigOptions)
-                    => _backing = analyzerConfigOptions.AnalyzerOptions;
-
-                public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value) => _backing.TryGetValue(key, out value);
-            }
+                => new AnalyzerConfigOptionsDictionary(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(path).AnalyzerOptions);
         }
 
-        private sealed class WorkspaceSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
+        private sealed class ProjectSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
         {
             private readonly ValueSource<CachingAnalyzerConfigSet> _lazyAnalyzerConfigSet;
 
-            public WorkspaceSyntaxTreeOptionsProvider(ValueSource<CachingAnalyzerConfigSet> lazyAnalyzerConfigSet)
+            public ProjectSyntaxTreeOptionsProvider(ValueSource<CachingAnalyzerConfigSet> lazyAnalyzerConfigSet)
                 => _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
 
             public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
@@ -352,7 +342,7 @@ namespace Microsoft.CodeAnalysis
 
             public override bool Equals(object? obj)
             {
-                return obj is WorkspaceSyntaxTreeOptionsProvider other
+                return obj is ProjectSyntaxTreeOptionsProvider other
                     && _lazyAnalyzerConfigSet == other._lazyAnalyzerConfigSet;
             }
 
@@ -525,7 +515,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            var newProvider = new WorkspaceSyntaxTreeOptionsProvider(_lazyAnalyzerConfigSet);
+            var newProvider = new ProjectSyntaxTreeOptionsProvider(_lazyAnalyzerConfigSet);
 
             return With(projectInfo: ProjectInfo.WithCompilationOptions(options.WithSyntaxTreeOptionsProvider(newProvider))
                        .WithVersion(Version.GetNewerVersion()));
@@ -641,7 +631,7 @@ namespace Microsoft.CodeAnalysis
             // Changing analyzer configs changes compilation options
             if (CompilationOptions != null)
             {
-                var newProvider = new WorkspaceSyntaxTreeOptionsProvider(newAnalyzerConfigSet);
+                var newProvider = new ProjectSyntaxTreeOptionsProvider(newAnalyzerConfigSet);
                 projectInfo = projectInfo
                     .WithCompilationOptions(CompilationOptions.WithSyntaxTreeOptionsProvider(newProvider));
             }
