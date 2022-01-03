@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         {
             context.RegisterCompilationStartAction(context =>
             {
-                var expressionTypeOpt = context.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+                var expressionTypeOpt = context.Compilation.ExpressionOfTType();
                 context.RegisterSyntaxNodeAction(context => SyntaxNodeAction(context, expressionTypeOpt), SyntaxKind.IsExpression);
             });
         }

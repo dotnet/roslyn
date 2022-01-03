@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 getInnermostNodeForTie: true, cancellationToken: cancellationToken);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var expressionTypeOpt = semanticModel.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+            var expressionTypeOpt = semanticModel.Compilation.ExpressionOfTType();
 
             var (matches, localName) = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.Instance.AnalyzeExpression(
                 semanticModel, isExpression, expressionTypeOpt, cancellationToken);
