@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
-namespace Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator
+namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator
 {
     using System;
     using System.Collections.Generic;
@@ -407,7 +407,7 @@ namespace Microsoft.VisualStudio
 
                     return false;
                 },
-                static (context, cancellationToken) =>
+                transform: static (context, cancellationToken) =>
                 {
                     var attribute = (AttributeSyntax)context.Node;
 
@@ -513,6 +513,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Threading;
+    using global::Xunit;
     using global::Xunit.Harness;
     using global::Xunit.Threading;
     using Microsoft;
@@ -522,7 +523,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     using Microsoft.VisualStudio.Threading;
 {aliases}
 
-    internal abstract class InProcComponent
+    internal abstract class InProcComponent : IAsyncLifetime
     {{
         protected InProcComponent(TestServices testServices)
         {{
@@ -532,6 +533,21 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public TestServices TestServices {{ get; }}
 
         protected JoinableTaskFactory JoinableTaskFactory => TestServices.JoinableTaskFactory;
+
+        Task IAsyncLifetime.InitializeAsync()
+        {{
+            return InitializeCoreAsync();
+        }}
+
+        Task IAsyncLifetime.DisposeAsync()
+        {{
+            return Task.CompletedTask;
+        }}
+
+        protected virtual Task InitializeCoreAsync()
+        {{
+            return Task.CompletedTask;
+        }}
 
         protected async Task<TInterface> GetRequiredGlobalServiceAsync<TService, TInterface>(CancellationToken cancellationToken)
             where TService : class
@@ -740,6 +756,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         private TestServices? _testServices;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref=""AbstractIdeIntegrationTest""/> class.
+        /// </summary>
         protected AbstractIdeIntegrationTest()
         {{
             Assert.True(Application.Current.Dispatcher.CheckAccess());
@@ -750,6 +769,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             _cleanupCancellationTokenSource = new CancellationTokenSource();
         }}
 
+        /// <summary>
+        /// Gets the <see cref=""Threading.JoinableTaskContext""/> context for use in integration tests.
+        /// </summary>
         [NotNull]
         protected JoinableTaskContext? JoinableTaskContext
         {{
@@ -794,9 +816,15 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }}
         }}
 
+        /// <summary>
+        /// Gets the <see cref=""Threading.JoinableTaskFactory""/> for use in integration tests.
+        /// </summary>
         protected JoinableTaskFactory JoinableTaskFactory
             => _joinableTaskFactory ?? throw new InvalidOperationException();
 
+        /// <summary>
+        /// Gets a cancellation token for use in integration tests to avoid CI timeouts.
+        /// </summary>
         protected CancellationToken HangMitigatingCancellationToken
             => _hangMitigatingCancellationTokenSource.Token;
 
@@ -808,6 +836,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         private CancellationToken CleanupCancellationToken
             => _cleanupCancellationTokenSource.Token;
 
+        /// <inheritdoc/>
         public virtual async Task InitializeAsync()
         {{
             TestServices = await CreateTestServicesAsync();
@@ -898,6 +927,7 @@ namespace {namespaceName}
                 {
                     var initializers = new List<string>();
                     var properties = new List<string>();
+                    var asyncInitializers = new List<string>();
                     foreach (var service in services)
                     {
                         if (service is null)
@@ -909,6 +939,8 @@ namespace {namespaceName}
 
                         var accessibility = service.Accessibility is Accessibility.Public ? "public" : "internal";
                         properties.Add($"{accessibility} {service.ImplementingTypeName} {service.ServiceName} {{ get; }}");
+
+                        asyncInitializers.Add($"await ((IAsyncLifetime){service.ServiceName}).InitializeAsync();");
                     }
 
                     var testServices = $@"// Copyright (c) Microsoft. All rights reserved.
@@ -922,17 +954,24 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
+    using global::Xunit;
     using Microsoft.VisualStudio.Threading;
 
-    public class TestServices
+    /// <summary>
+    /// Provides access to helpers for common integration test functionality.
+    /// </summary>
+    public sealed class TestServices
     {{
-        protected TestServices(JoinableTaskFactory joinableTaskFactory)
+        private TestServices(JoinableTaskFactory joinableTaskFactory)
         {{
             JoinableTaskFactory = joinableTaskFactory;
 
 {string.Join("\r\n", initializers.Select(initializer => "            " + initializer))}
         }}
 
+        /// <summary>
+        /// Gets the <see cref=""Threading.JoinableTaskFactory""/> for use in integration tests.
+        /// </summary>
         public JoinableTaskFactory JoinableTaskFactory {{ get; }}
 
 {string.Join("\r\n", properties.Select(property => "        " + property))}
@@ -944,9 +983,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return services;
         }}
 
-        protected virtual Task InitializeAsync()
+        private async Task InitializeAsync()
         {{
-            return Task.CompletedTask;
+{string.Join("\r\n", asyncInitializers.Select(initializer => "            " + initializer))}
         }}
     }}
 }}
@@ -967,48 +1006,18 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             };
         }
 
-        private class ServiceDataModel
-        {
-            public ServiceDataModel(Accessibility accessibility, string serviceName, string? baseTypeName, string implementingTypeName)
-            {
-                Accessibility = accessibility;
-                ServiceName = serviceName;
-                BaseTypeName = baseTypeName;
-                ImplementingTypeName = implementingTypeName;
-            }
+        private sealed record ServiceDataModel(
+            Accessibility Accessibility,
+            string ServiceName,
+            string? BaseTypeName,
+            string ImplementingTypeName);
 
-            public Accessibility Accessibility { get; }
-
-            public string ServiceName { get; }
-
-            public string? BaseTypeName { get; }
-
-            public string ImplementingTypeName { get; }
-        }
-
-        private class ReferenceDataModel
-        {
-            public ReferenceDataModel(bool hasSAsyncServiceProvider, bool hasThreadHelperJoinableTaskContext, bool canCancelJoinTillEmptyAsync, bool hasJoinableTaskFactoryWithPriority, bool hasAsyncEnumerable, bool hasErrorHandler)
-            {
-                HasSAsyncServiceProvider = hasSAsyncServiceProvider;
-                HasThreadHelperJoinableTaskContext = hasThreadHelperJoinableTaskContext;
-                CanCancelJoinTillEmptyAsync = canCancelJoinTillEmptyAsync;
-                HasJoinableTaskFactoryWithPriority = hasJoinableTaskFactoryWithPriority;
-                HasAsyncEnumerable = hasAsyncEnumerable;
-                HasErrorHandler = hasErrorHandler;
-            }
-
-            public bool HasSAsyncServiceProvider { get; }
-
-            public bool HasThreadHelperJoinableTaskContext { get; }
-
-            public bool CanCancelJoinTillEmptyAsync { get; }
-
-            public bool HasJoinableTaskFactoryWithPriority { get; }
-
-            public bool HasAsyncEnumerable { get; }
-
-            public bool HasErrorHandler { get; }
-        }
+        private sealed record ReferenceDataModel(
+            bool HasSAsyncServiceProvider,
+            bool HasThreadHelperJoinableTaskContext,
+            bool CanCancelJoinTillEmptyAsync,
+            bool HasJoinableTaskFactoryWithPriority,
+            bool HasAsyncEnumerable,
+            bool HasErrorHandler);
     }
 }

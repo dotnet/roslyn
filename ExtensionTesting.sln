@@ -61,7 +61,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.Vsix
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator", "Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator", "{D2869BF7-27E8-42B9-BF23-8790C0CE08C2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator", "src\Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator\Microsoft.VisualStudio.Extensibilty.Testing.SourceGenerator.csproj", "{25E61E07-E449-4ABB-A197-BD5C8EE3347F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator", "src\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj", "{25E61E07-E449-4ABB-A197-BD5C8EE3347F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests", "src\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests.csproj", "{DA9797F0-F158-42AB-BE2B-922588756941}"
 EndProject
