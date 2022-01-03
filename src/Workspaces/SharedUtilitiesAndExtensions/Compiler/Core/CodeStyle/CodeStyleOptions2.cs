@@ -215,6 +215,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             "dotnet_style_prefer_is_null_check_over_reference_equality_method",
             $"TextEditor.%LANGUAGE%.Specific.{nameof(PreferIsNullCheckOverReferenceEqualityMethod)}");
 
+        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferParameterNullChecking = CreateOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferParameterNullChecking),
+            defaultValue: TrueWithSuggestionEnforcement,
+            "dotnet_style_prefer_parameter_null_checking",
+            $"TextEditor.%LANGUAGE%.Specific.{nameof(PreferParameterNullChecking)}");
+
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferConditionalExpressionOverAssignment = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferConditionalExpressionOverAssignment),
             defaultValue: TrueWithSilentEnforcement,
