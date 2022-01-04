@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 switch (args.Kind)
                 {
                     case WorkspaceChangeKind.SolutionAdded:
-                        EnqueueEvent(args.NewSolution, InvocationReasons.DocumentAdded, eventName);
+                        EnqueueFullSolutionEvent(args.NewSolution, InvocationReasons.DocumentAdded, eventName);
                         break;
 
                     case WorkspaceChangeKind.SolutionChanged:
@@ -273,11 +273,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         break;
 
                     case WorkspaceChangeKind.SolutionRemoved:
-                        EnqueueEvent(args.OldSolution, InvocationReasons.SolutionRemoved, eventName);
+                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.SolutionRemoved, eventName);
                         break;
 
                     case WorkspaceChangeKind.SolutionCleared:
-                        EnqueueEvent(args.OldSolution, InvocationReasons.DocumentRemoved, eventName);
+                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.DocumentRemoved, eventName);
                         break;
 
                     case WorkspaceChangeKind.ProjectAdded:
@@ -369,10 +369,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _shutdownToken);
             }
 
-            private void EnqueueEvent(Solution solution, InvocationReasons invocationReasons, string eventName)
+            private void EnqueueFullSolutionEvent(Solution solution, InvocationReasons invocationReasons, string eventName)
             {
-                _eventProcessingQueue.ScheduleTask(eventName,
-                    () => EnqueueWorkItemForSolutionAsync(solution, invocationReasons), _shutdownToken);
+                _eventProcessingQueue.ScheduleTask(
+                    eventName,
+                    async () =>
+                    {
+                        foreach (var projectId in solution.ProjectIds)
+                        {
+                            await EnqueueWorkItemForProjectAsync(solution, projectId, invocationReasons).ConfigureAwait(false);
+                        }
+                    },
+                    _shutdownToken);
             }
 
             private void EnqueueProjectChangedEvent(Solution oldSolution, Solution newSolution, ProjectId projectId, string eventName)
@@ -573,14 +581,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var project = solution.GetRequiredProject(projectId);
 
                 return EnqueueWorkItemAsync(project, invocationReasons);
-            }
-
-            private async Task EnqueueWorkItemForSolutionAsync(Solution solution, InvocationReasons invocationReasons)
-            {
-                foreach (var projectId in solution.ProjectIds)
-                {
-                    await EnqueueWorkItemForProjectAsync(solution, projectId, invocationReasons).ConfigureAwait(false);
-                }
             }
 
             internal TestAccessor GetTestAccessor()
