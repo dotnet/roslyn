@@ -1200,6 +1200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (constructorArgument.IsNull)
                 {
                     setInterpolatedStringHandlerAttributeError(ref arguments);
+                    // null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
+                    diagnostics.Add(ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt!.Location);
                     return;
                 }
 
