@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     builder.Append(']');
                 }
 
-                return pooledBuilder.ToString();
+                return builder.ToString();
             }
 
             private static string ToDisplayString(IMethodSymbol symbol)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 builder.Append('(');
                 AddParameters(symbol.Parameters, builder);
                 builder.Append(')');
-                return pooledBuilder.ToString();
+                return builder.ToString();
             }
 
             private static void AddParameters(ImmutableArray<IParameterSymbol> parameters, StringBuilder builder)
