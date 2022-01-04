@@ -1701,7 +1701,7 @@ namespace Microsoft.CodeAnalysis
                     return currentPartialSolution;
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1881,7 +1881,7 @@ namespace Microsoft.CodeAnalysis
                 var tracker = this.GetCompilationTracker(projectReference.ProjectId);
                 return GetMetadataReferenceAsync(tracker, fromProject, projectReference, cancellationToken);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1915,7 +1915,7 @@ namespace Microsoft.CodeAnalysis
                         tracker, this, properties, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable;
             }
