@@ -48,15 +48,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
             => BackingParameter.AttributeDeclarationList;
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool bodyShouldBeSynthesizedForSemicolonOnly, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(isAutoPropertyAccessor);
+            Debug.Assert(bodyShouldBeSynthesizedForSemicolonOnly);
             return CreateAccessorSymbol(isGet: true, CSharpSyntaxNode, diagnostics);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool bodyShouldBeSynthesizedForSemicolonOnly, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(isAutoPropertyAccessor);
+            Debug.Assert(bodyShouldBeSynthesizedForSemicolonOnly);
             return CreateAccessorSymbol(isGet: false, CSharpSyntaxNode, diagnostics);
         }
 

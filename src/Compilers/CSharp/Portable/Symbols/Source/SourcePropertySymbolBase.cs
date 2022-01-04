@@ -193,11 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasGetAccessor)
             {
-                _getMethod = CreateGetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
+                _getMethod = CreateGetAccessorSymbol(bodyShouldBeSynthesizedForSemicolonOnly: isAutoProperty, diagnostics);
             }
             if (hasSetAccessor)
             {
-                _setMethod = CreateSetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
+                _setMethod = CreateSetAccessorSymbol(bodyShouldBeSynthesizedForSemicolonOnly: isAutoProperty, diagnostics);
             }
         }
 
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The implementation may depend only on information available from the <see cref="SourcePropertySymbolBase"/> type.
         /// </summary>
         protected abstract SourcePropertyAccessorSymbol CreateGetAccessorSymbol(
-            bool isAutoPropertyAccessor,
+            bool bodyShouldBeSynthesizedForSemicolonOnly,
             BindingDiagnosticBag diagnostics);
 
         /// <summary>
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The implementation may depend only on information available from the <see cref="SourcePropertySymbolBase"/> type.
         /// </summary>
         protected abstract SourcePropertyAccessorSymbol CreateSetAccessorSymbol(
-            bool isAutoPropertyAccessor,
+            bool bodyShouldBeSynthesizedForSemicolonOnly,
             BindingDiagnosticBag diagnostics);
 
         public sealed override MethodSymbol? GetMethod
