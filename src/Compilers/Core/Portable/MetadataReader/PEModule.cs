@@ -1209,6 +1209,7 @@ namespace Microsoft.CodeAnalysis
             }
             else if (TryExtractStringArrayValueFromAttribute(targetAttribute.Handle, out var paramNames))
             {
+                Debug.Assert(!paramNames.IsDefault);
                 return (paramNames.NullToEmpty(), true);
             }
 
@@ -1903,18 +1904,21 @@ namespace Microsoft.CodeAnalysis
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
-                var stringArray = new string?[arrayLen];
-                for (int i = 0; i < arrayLen; i++)
+                if (sig.RemainingBytes >= arrayLen)
                 {
-                    if (!CrackStringInAttributeValue(out stringArray[i], ref sig))
+                    var stringArray = new string?[arrayLen];
+                    for (int i = 0; i < arrayLen; i++)
                     {
-                        value = stringArray.AsImmutableOrNull();
-                        return false;
+                        if (!CrackStringInAttributeValue(out stringArray[i], ref sig))
+                        {
+                            value = stringArray.AsImmutableOrNull();
+                            return false;
+                        }
                     }
-                }
 
-                value = stringArray.AsImmutableOrNull();
-                return true;
+                    value = stringArray.AsImmutableOrNull();
+                    return true;
+                }
             }
 
             value = default;

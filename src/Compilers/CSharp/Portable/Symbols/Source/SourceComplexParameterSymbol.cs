@@ -1197,6 +1197,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attributeIndex == 1)
             {
+                if (constructorArgument.IsNull)
+                {
+                    setInterpolatedStringHandlerAttributeError(ref arguments);
+                    return;
+                }
+
                 bool hadError = false;
                 parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(constructorArgument.Values.Length);
                 var ordinalsBuilder = ArrayBuilder<int>.GetInstance(constructorArgument.Values.Length);
