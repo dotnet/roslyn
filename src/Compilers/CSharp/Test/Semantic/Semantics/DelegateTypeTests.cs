@@ -9411,6 +9411,106 @@ class Program
         }
 
         [Fact]
+        public void SynthesizedDelegateTypes_36()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(S<int>.F1<string>());
+        Report(S<int>.F2<string>());
+        Report(S<int>.F3<string>());
+        Report(S<int>.F4<string>());
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+struct S<T>
+{
+    internal unsafe static Delegate F1<U>()
+    {
+        var d1 = (ref int x) => (ref int y) => { Console.WriteLine((y, typeof(T), typeof(U))); return default(T); };
+        int x = 1;
+        int y = 2;
+        d1.Invoke(ref x).Invoke(ref y);
+        return d1;
+    }
+    internal unsafe static Delegate F2<U>()
+    {
+        var d1 = (ref int x) => (int* y) => { Console.WriteLine(((int)y, typeof(T), typeof(U))); return default(T); };
+        int x = 3;
+        int* y = (int*)4;
+        d1.Invoke(ref x).Invoke(y);
+        return d1;
+    }
+    internal unsafe static Delegate F3<U>()
+    {
+        var d1 = (int* x) => (ref int y) => { Console.WriteLine(((int)x, y, typeof(T), typeof(U))); return default(U); };
+        int* x = (int*)5;
+        int y = 6;
+        d1.Invoke(x).Invoke(ref y);
+        return d1;
+    }
+    internal unsafe static Delegate F4<U>()
+    {
+        var d1 = (int* x) => (int* y) => { Console.WriteLine(((int)x, (int)y, typeof(T), typeof(U))); return default(U); };
+        int* x = (int*)7;
+        int* y = (int*)8;
+        d1.Invoke(x).Invoke(y);
+        return d1;
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(2, System.Int32, System.String)
+<>F{00000001}`2[System.Int32,<>F{00000001}`2[System.Int32,System.Int32]]
+(4, System.Int32, System.String)
+<>F{00000001}`2[System.Int32,<>f__AnonymousDelegate0`1[System.Int32]]
+(5, 6, System.Int32, System.String)
+<>f__AnonymousDelegate1`1[System.String]
+(7, 8, System.Int32, System.String)
+<>f__AnonymousDelegate2`1[System.String]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_37()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(S<int>.F1<string>());
+        Report(S<int>.F2<string>());
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+struct S<T>
+{
+    internal unsafe static Delegate F1<U>()
+    {
+        var d = (int* x) => { Console.WriteLine(((int)x, typeof(T), typeof(U))); return new { A = default(T) }; };
+        d.Invoke((int*)1);
+        return d;
+    }
+    internal unsafe static Delegate F2<U>()
+    {
+        var d = (int* x) => { Console.WriteLine(((int)x, typeof(T), typeof(U))); return new { B = default(U) }; };
+        d.Invoke((int*)2);
+        return d;
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(1, System.Int32, System.String)
+<>f__AnonymousDelegate0`1[System.Int32]
+(2, System.Int32, System.String)
+<>f__AnonymousDelegate1`1[System.String]
+");
+        }
+
+        [Fact]
         public void SynthesizedDelegateTypes_Constraints_01()
         {
             var source =
