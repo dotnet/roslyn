@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     case WorkspaceChangeKind.ProjectAdded:
                         Contract.ThrowIfNull(args.ProjectId);
-                        EnqueueEvent(args.NewSolution, args.ProjectId, InvocationReasons.DocumentAdded, eventName);
+                        EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, InvocationReasons.DocumentAdded, eventName);
                         break;
 
                     case WorkspaceChangeKind.ProjectChanged:
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     case WorkspaceChangeKind.ProjectRemoved:
                         Contract.ThrowIfNull(args.ProjectId);
-                        EnqueueEvent(args.OldSolution, args.ProjectId, InvocationReasons.DocumentRemoved, eventName);
+                        EnqueueFullProjectEvent(args.OldSolution, args.ProjectId, InvocationReasons.DocumentRemoved, eventName);
                         break;
 
                     case WorkspaceChangeKind.DocumentAdded:
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                         // If an additional file or .editorconfig has changed we need to reanalyze the entire project.
                         Contract.ThrowIfNull(args.ProjectId);
-                        EnqueueEvent(args.NewSolution, args.ProjectId, InvocationReasons.AdditionalDocumentChanged, eventName);
+                        EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, InvocationReasons.AdditionalDocumentChanged, eventName);
                         break;
 
                     default:
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // TODO: Async version for GetXXX methods?
                         foreach (var addedProject in solutionChanges.GetAddedProjects())
                         {
-                            await EnqueueWorkItemAsync(addedProject, InvocationReasons.DocumentAdded).ConfigureAwait(false);
+                            await EnqueueFullProjectWorkItemAsync(addedProject, InvocationReasons.DocumentAdded).ConfigureAwait(false);
                         }
 
                         foreach (var projectChanges in solutionChanges.GetProjectChanges())
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         foreach (var removedProject in solutionChanges.GetRemovedProjects())
                         {
-                            await EnqueueWorkItemAsync(removedProject, InvocationReasons.DocumentRemoved).ConfigureAwait(false);
+                            await EnqueueFullProjectWorkItemAsync(removedProject, InvocationReasons.DocumentRemoved).ConfigureAwait(false);
                         }
                     },
                     _shutdownToken);
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         foreach (var projectId in solution.ProjectIds)
                         {
-                            await EnqueueWorkItemForProjectAsync(solution, projectId, invocationReasons).ConfigureAwait(false);
+                            await EnqueueFullProjectWorkItemAsync(solution.GetRequiredProject(projectId), invocationReasons).ConfigureAwait(false);
                         }
                     },
                     _shutdownToken);
@@ -397,10 +397,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _shutdownToken);
             }
 
-            private void EnqueueEvent(Solution solution, ProjectId projectId, InvocationReasons invocationReasons, string eventName)
+            private void EnqueueFullProjectEvent(Solution solution, ProjectId projectId, InvocationReasons invocationReasons, string eventName)
             {
                 _eventProcessingQueue.ScheduleTask(eventName,
-                    () => EnqueueWorkItemForProjectAsync(solution, projectId, invocationReasons), _shutdownToken);
+                    () => EnqueueFullProjectWorkItemAsync(solution.GetRequiredProject(projectId), invocationReasons), _shutdownToken);
             }
 
             private void EnqueueFullDocumentEvent(Solution solution, DocumentId documentId, InvocationReasons invocationReasons, string eventName)
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 return new SyntaxPath(changedMember);
             }
 
-            private async Task EnqueueWorkItemAsync(Project project, InvocationReasons invocationReasons)
+            private async Task EnqueueFullProjectWorkItemAsync(Project project, InvocationReasons invocationReasons)
             {
                 foreach (var documentId in project.DocumentIds)
                     await EnqueueWorkItemAsync(project, documentId, document: null, invocationReasons).ConfigureAwait(false);
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 if (!projectConfigurationChange.IsEmpty)
                 {
-                    await EnqueueWorkItemAsync(projectChanges.NewProject, projectConfigurationChange).ConfigureAwait(false);
+                    await EnqueueFullProjectWorkItemAsync(projectChanges.NewProject, projectConfigurationChange).ConfigureAwait(false);
                 }
             }
 
@@ -574,13 +574,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     if (differenceResult != null)
                         await EnqueueWorkItemAsync(newDocument.Project, newDocument.Id, newDocument, differenceResult.ChangeType, differenceResult.ChangedMember).ConfigureAwait(false);
                 }
-            }
-
-            private Task EnqueueWorkItemForProjectAsync(Solution solution, ProjectId projectId, InvocationReasons invocationReasons)
-            {
-                var project = solution.GetRequiredProject(projectId);
-
-                return EnqueueWorkItemAsync(project, invocationReasons);
             }
 
             internal TestAccessor GetTestAccessor()
