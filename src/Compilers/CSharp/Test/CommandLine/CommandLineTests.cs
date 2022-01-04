@@ -11639,6 +11639,14 @@ class C
         }
 
         [Fact]
+        public void WhitespaceInDefine()
+        {
+            var parsedArgs = DefaultParse(new[] { "/define:\" a\"", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal("a", parsedArgs.ParseOptions.PreprocessorSymbols.Single());
+        }
+
+        [Fact]
         public void CompilingCodeWithInvalidLanguageVersionShouldProvideDiagnostics()
         {
             var parsedArgs = DefaultParse(new[] { "/langversion:1000", "a.cs" }, WorkingDirectory);
