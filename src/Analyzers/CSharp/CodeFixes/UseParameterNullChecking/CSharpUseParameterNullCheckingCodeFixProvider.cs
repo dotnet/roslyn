@@ -43,60 +43,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
             return Task.CompletedTask;
         }
 
-        protected override async Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
                 var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
                 switch (node)
                 {
                     case IfStatementSyntax ifStatement:
-                        // if (item == null) throw new ArgumentNullException(nameof(item));
-                        // if (item is null) throw new ArgumentNullException(nameof(item));
-                        // if (object.ReferenceEquals(item, null)) throw new ArgumentNullException(nameof(item));
-                        var (left, right) = ifStatement.Condition switch
-                        {
-                            BinaryExpressionSyntax binary => (binary.Left, binary.Right),
-                            IsPatternExpressionSyntax isPattern => (isPattern.Expression, ((ConstantPatternSyntax)isPattern.Pattern).Expression),
-                            InvocationExpressionSyntax { ArgumentList.Arguments: var arguments } => (arguments[0].Expression, arguments[1].Expression),
-                            _ => throw ExceptionUtilities.UnexpectedValue(ifStatement.Kind())
-                        };
-
-                        // one of the sides of the binary must be a parameter
-                        var parameterInIf = (IParameterSymbol?)model.GetSymbolInfo(unwrapCast(left), cancellationToken).Symbol
-                            ?? (IParameterSymbol)model.GetSymbolInfo(unwrapCast(right), cancellationToken).Symbol!;
-
-                        var parameterSyntax = (ParameterSyntax)parameterInIf.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
                         editor.RemoveNode(ifStatement);
-                        editor.ReplaceNode(parameterSyntax, parameterSyntax.WithExclamationExclamationToken(SyntaxFactory.Token(SyntaxKind.ExclamationExclamationToken)));
                         break;
                     case ExpressionStatementSyntax expressionStatement:
                         // this.item = item ?? throw new ArgumentNullException(nameof(item));
                         var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
                         var nullCoalescing = (BinaryExpressionSyntax)assignment.Right;
                         var parameterReferenceSyntax = nullCoalescing.Left;
-
-                        var parameterSymbol = (IParameterSymbol)model.GetSymbolInfo(unwrapCast(parameterReferenceSyntax), cancellationToken).Symbol!;
-                        var parameterDeclarationSyntax = (ParameterSyntax)parameterSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-
                         editor.ReplaceNode(nullCoalescing, parameterReferenceSyntax.WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker));
-                        editor.ReplaceNode(parameterDeclarationSyntax, parameterDeclarationSyntax.WithExclamationExclamationToken(SyntaxFactory.Token(SyntaxKind.ExclamationExclamationToken)));
                         break;
-                }
-            }
-
-            static ExpressionSyntax unwrapCast(ExpressionSyntax expression)
-            {
-                if (expression is CastExpressionSyntax { Expression: var operand })
-                {
-                    return operand;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(node);
                 }
 
-                return expression;
+                var parameterSyntax = (ParameterSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+                editor.ReplaceNode(parameterSyntax, parameterSyntax.WithExclamationExclamationToken(SyntaxFactory.Token(SyntaxKind.ExclamationExclamationToken)));
             }
+
+            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction

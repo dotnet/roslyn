@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
 
             foreach (var statement in block.Statements)
             {
+                IParameterSymbol? parameter;
                 switch (statement)
                 {
                     // if (param == null) { throw new ArgumentNullException(nameof(param)); }
@@ -138,7 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                                 continue;
                         }
 
-                        IParameterSymbol? parameter;
                         if (!AreOperandsApplicable(left, right, out parameter)
                             && !AreOperandsApplicable(right, left, out parameter))
                         {
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                             }
                         }
                     }:
-                        if (!IsParameter(maybeParameter, out var parameterInNullCoalescing) || !IsConstructorApplicable(thrownInNullCoalescing, parameterInNullCoalescing))
+                        if (!IsParameter(maybeParameter, out parameter) || !IsConstructorApplicable(thrownInNullCoalescing, parameter))
                         {
                             continue;
                         }
@@ -185,7 +185,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                         continue;
                 }
 
-                context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, statement.GetLocation(), option.Notification.Severity, additionalLocations: null, properties: null));
+                context.ReportDiagnostic(DiagnosticHelper.Create(
+                    Descriptor,
+                    statement.GetLocation(),
+                    option.Notification.Severity,
+                    additionalLocations: new[] { parameter.Locations[0] },
+                    properties: null));
             }
 
             bool AreOperandsApplicable(ExpressionSyntax maybeParameter, ExpressionSyntax maybeNullLiteral, [NotNullWhen(true)] out IParameterSymbol? parameter)
