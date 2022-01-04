@@ -62,6 +62,20 @@ End Class");
             VisualStudio.Editor.Verify.CurrentTokenType("identifier");
         }
 
+        public void PackageReference()
+        {
+            var systemTextJson = new ProjectUtils.PackageReference("System.Text.Json", "6.0.0");
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddPackageReference(project, systemTextJson);
+            VisualStudio.SolutionExplorer.RestoreNuGetPackages(project);
+            VisualStudio.Editor.SetText("class C { System.Text.Json.JsonElement p; }");
+            VisualStudio.Editor.PlaceCaret("JsonElement");
+            VisualStudio.Editor.Verify.CurrentTokenType("struct name");
+            VisualStudio.SolutionExplorer.RemovePackageReference(project, systemTextJson);
+            VisualStudio.SolutionExplorer.RestoreNuGetPackages(project);
+            VisualStudio.Editor.Verify.CurrentTokenType("identifier");
+        }
+
         public virtual void ProjectReference()
         {
             var project = new ProjectUtils.Project(ProjectName);

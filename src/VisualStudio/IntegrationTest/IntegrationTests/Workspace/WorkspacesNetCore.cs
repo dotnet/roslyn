@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             VisualStudio.SolutionExplorer.EditProjectFile(project);
             VisualStudio.Editor.SetText(@"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
   </PropertyGroup>
 </Project>");
             VisualStudio.SolutionExplorer.SaveAll();
@@ -49,7 +49,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             // https://github.com/dotnet/roslyn/issues/34264
             VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout);
             VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
-            base.MetadataReference();
+            base.PackageReference();
         }
 
         [WpfFact]
