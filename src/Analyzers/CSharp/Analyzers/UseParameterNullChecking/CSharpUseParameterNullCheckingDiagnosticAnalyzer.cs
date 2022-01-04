@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                     return;
                 }
 
-                context.RegisterSyntaxNodeAction(context => AnalyzeSyntax(context, argumentNullExceptionConstructor, referenceEqualsMethod), SyntaxKind.MethodDeclaration, SyntaxKind.LocalFunctionStatement);
+                context.RegisterSyntaxNodeAction(context => AnalyzeSyntax(context, argumentNullExceptionConstructor, referenceEqualsMethod), SyntaxKind.ConstructorDeclaration, SyntaxKind.MethodDeclaration, SyntaxKind.LocalFunctionStatement);
             });
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol argumentNullExceptionConstructor, IMethodSymbol referenceEqualsMethod)
@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
             var block = node switch
             {
                 MethodDeclarationSyntax methodDecl => methodDecl.Body,
+                ConstructorDeclarationSyntax constructorDecl => constructorDecl.Body,
                 LocalFunctionStatementSyntax localFunctionStatement => localFunctionStatement.Body,
                 _ => throw ExceptionUtilities.UnexpectedValue(node)
             };
@@ -220,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
             bool isConstructorApplicable(ObjectCreationExpressionSyntax exceptionCreation, IParameterSymbol parameterSymbol)
             {
                 if (exceptionCreation.ArgumentList is null
-                    || exceptionCreation.ArgumentList.Arguments[0] is not { } argument)
+                    || exceptionCreation.ArgumentList.Arguments.FirstOrDefault() is not { } argument)
                 {
                     return false;
                 }
