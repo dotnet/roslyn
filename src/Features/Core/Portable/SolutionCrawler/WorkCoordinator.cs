@@ -439,7 +439,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _shutdownToken.ThrowIfCancellationRequested();
 
                 var priorityService = project.GetLanguageService<IWorkCoordinatorPriorityService>();
-                var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(GetRequiredDocument(project, documentId, document), _shutdownToken).ConfigureAwait(false);
+                document ??= project.GetDocument(documentId);
+                var isLowPriority = priorityService != null && document != null && await priorityService.IsLowPriorityAsync(document, _shutdownToken).ConfigureAwait(false);
 
                 var currentMember = GetSyntaxPath(changedMember);
 
@@ -474,6 +475,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private async Task EnqueueWorkItemAsync(Project project, InvocationReasons invocationReasons)
             {
                 foreach (var documentId in project.DocumentIds)
+                    await EnqueueWorkItemAsync(project, documentId, document: null, invocationReasons).ConfigureAwait(false);
+
+                foreach (var documentId in project.AdditionalDocumentIds)
+                    await EnqueueWorkItemAsync(project, documentId, document: null, invocationReasons).ConfigureAwait(false);
+
+                foreach (var documentId in project.AnalyzerConfigDocumentIds)
                     await EnqueueWorkItemAsync(project, documentId, document: null, invocationReasons).ConfigureAwait(false);
             }
 

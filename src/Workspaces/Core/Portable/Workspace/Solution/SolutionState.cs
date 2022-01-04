@@ -1989,5 +1989,22 @@ namespace Microsoft.CodeAnalysis
 
             return builder.ToImmutable();
         }
+
+        internal TestAccessor GetTestAccessor() => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly SolutionState _solutionState;
+
+            public TestAccessor(SolutionState solutionState)
+            {
+                _solutionState = solutionState;
+            }
+
+            public GeneratorDriver? GetGeneratorDriver(Project project)
+            {
+                return project.SupportsCompilation ? _solutionState.GetCompilationTracker(project.Id).GeneratorDriver : null;
+            }
+        }
     }
 }

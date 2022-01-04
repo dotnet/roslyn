@@ -544,6 +544,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.Equal(new[] { operation.ArrayReference }.Concat(operation.Indices), operation.Children);
         }
 
+        public override void VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation)
+        {
+            Assert.Equal(OperationKind.ImplicitIndexerReference, operation.Kind);
+            AssertEx.Equal(new[] { operation.Instance, operation.Argument }, operation.Children);
+
+            Assert.NotNull(operation.LengthSymbol);
+            Assert.NotNull(operation.IndexerSymbol);
+        }
+
         internal override void VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);

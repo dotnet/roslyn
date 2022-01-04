@@ -539,7 +539,7 @@
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
         <source>ShowValueTracking</source>
-        <target state="needs-review-translation">ViewEditorConfigSettings</target>
+        <target state="new">ShowValueTracking</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">
