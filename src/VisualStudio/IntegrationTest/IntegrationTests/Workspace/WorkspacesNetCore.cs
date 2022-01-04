@@ -49,7 +49,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             // https://github.com/dotnet/roslyn/issues/34264
             VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout);
             VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
-            base.PackageReference();
+            PackageReference();
+            base.MetadataReference();
         }
 
         [WpfFact]
