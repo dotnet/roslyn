@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     case WorkspaceChangeKind.DocumentReloaded:
                     case WorkspaceChangeKind.DocumentChanged:
                         Contract.ThrowIfNull(args.DocumentId);
-                        EnqueueEvent(args.OldSolution, args.NewSolution, args.DocumentId, eventName);
+                        EnqueueDocumentChangedEvent(args.OldSolution, args.NewSolution, args.DocumentId, eventName);
                         break;
 
                     case WorkspaceChangeKind.DocumentRemoved:
@@ -401,11 +401,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     () => EnqueueWorkItemForDocumentAsync(solution, documentId, invocationReasons), _shutdownToken);
             }
 
-            private void EnqueueEvent(Solution oldSolution, Solution newSolution, DocumentId documentId, string eventName)
+            private void EnqueueDocumentChangedEvent(Solution oldSolution, Solution newSolution, DocumentId documentId, string eventName)
             {
                 // document changed event is the special one.
-                _eventProcessingQueue.ScheduleTask(eventName,
-                    () => EnqueueWorkItemAfterDiffAsync(oldSolution, newSolution, documentId), _shutdownToken);
+                _eventProcessingQueue.ScheduleTask(
+                    eventName,
+                    async () =>
+                    {
+                        var oldProject = oldSolution.GetRequiredProject(documentId.ProjectId);
+                        var newProject = newSolution.GetRequiredProject(documentId.ProjectId);
+
+                        await EnqueueWorkItemAsync(oldProject.GetRequiredDocument(documentId), newProject.GetRequiredDocument(documentId)).ConfigureAwait(false);
+                    },
+                    _shutdownToken);
             }
 
             private async Task EnqueueWorkItemAsync(Project project, DocumentId documentId, Document? document, InvocationReasons invocationReasons, SyntaxNode? changedMember = null)
@@ -573,14 +581,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     await EnqueueWorkItemForProjectAsync(solution, projectId, invocationReasons).ConfigureAwait(false);
                 }
-            }
-
-            private async Task EnqueueWorkItemAfterDiffAsync(Solution oldSolution, Solution newSolution, DocumentId documentId)
-            {
-                var oldProject = oldSolution.GetRequiredProject(documentId.ProjectId);
-                var newProject = newSolution.GetRequiredProject(documentId.ProjectId);
-
-                await EnqueueWorkItemAsync(oldProject.GetRequiredDocument(documentId), newProject.GetRequiredDocument(documentId)).ConfigureAwait(continueOnCapturedContext: false);
             }
 
             internal TestAccessor GetTestAccessor()
