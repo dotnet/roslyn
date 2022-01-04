@@ -264,12 +264,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 switch (args.Kind)
                 {
                     case WorkspaceChangeKind.SolutionAdded:
+                        EnqueueEvent(args.NewSolution, InvocationReasons.DocumentAdded, eventName);
+                        break;
+
                     case WorkspaceChangeKind.SolutionChanged:
                     case WorkspaceChangeKind.SolutionReloaded:
-                    case WorkspaceChangeKind.SolutionRemoved:
-                    case WorkspaceChangeKind.SolutionCleared:
-                        ProcessSolutionEvent(args, eventName);
+                        EnqueueEvent(args.OldSolution, args.NewSolution, eventName);
                         break;
+
+                    case WorkspaceChangeKind.SolutionRemoved:
+                        EnqueueEvent(args.OldSolution, InvocationReasons.SolutionRemoved, eventName);
+                        break;
+
+                    case WorkspaceChangeKind.SolutionCleared:
+                        EnqueueEvent(args.OldSolution, InvocationReasons.DocumentRemoved, eventName);
+                        break;
+
                     case WorkspaceChangeKind.ProjectAdded:
                         Contract.ThrowIfNull(args.ProjectId);
                         EnqueueEvent(args.NewSolution, args.ProjectId, InvocationReasons.DocumentAdded, eventName);
@@ -348,32 +358,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // If an additional file or .editorconfig has changed we need to reanalyze the entire project.
                         Contract.ThrowIfNull(e.ProjectId);
                         EnqueueEvent(e.NewSolution, e.ProjectId, InvocationReasons.AdditionalDocumentChanged, eventName);
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(e.Kind);
-                }
-            }
-
-            private void ProcessSolutionEvent(WorkspaceChangeEventArgs e, string eventName)
-            {
-                switch (e.Kind)
-                {
-                    case WorkspaceChangeKind.SolutionAdded:
-                        EnqueueEvent(e.NewSolution, InvocationReasons.DocumentAdded, eventName);
-                        break;
-
-                    case WorkspaceChangeKind.SolutionRemoved:
-                        EnqueueEvent(e.OldSolution, InvocationReasons.SolutionRemoved, eventName);
-                        break;
-
-                    case WorkspaceChangeKind.SolutionCleared:
-                        EnqueueEvent(e.OldSolution, InvocationReasons.DocumentRemoved, eventName);
-                        break;
-
-                    case WorkspaceChangeKind.SolutionChanged:
-                    case WorkspaceChangeKind.SolutionReloaded:
-                        EnqueueEvent(e.OldSolution, e.NewSolution, eventName);
                         break;
 
                     default:
