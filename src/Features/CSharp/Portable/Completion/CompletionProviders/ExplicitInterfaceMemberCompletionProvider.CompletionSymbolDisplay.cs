@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             private static string ToDisplayString(IPropertySymbol symbol)
             {
-                using var _ = PooledStringBuilder.GetInstance(out var pooledBuilder);
-                var builder = pooledBuilder.Builder;
+                using var _ = PooledStringBuilder.GetInstance(out var builder);
 
                 if (symbol.IsIndexer)
                 {
@@ -51,8 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             private static string ToDisplayString(IMethodSymbol symbol)
             {
-                using var _ = PooledStringBuilder.GetInstance(out var pooledBuilder);
-                var builder = pooledBuilder.Builder;
+                using var _ = PooledStringBuilder.GetInstance(out var builder);
                 switch (symbol.MethodKind)
                 {
                     case MethodKind.Ordinary:
