@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseParameterNullCheckin
 
     public partial class UseParameterNullCheckingTests
     {
-        private static readonly CSharpParseOptions s_parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
-
         [Theory]
         [Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         [InlineData("==")]
@@ -607,6 +605,122 @@ class C
             {
                 TestCode = testCode,
                 FixedCode = testCode,
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestSimpleLambda()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+
+class C
+{
+    Action<string> lambda = x =>
+    {
+        [|if (x is null)
+            throw new ArgumentNullException(nameof(x));|]
+    };
+}
+",
+                FixedCode = @"using System;
+
+class C
+{
+    Action<string> lambda = x!! =>
+    {
+    };
+}
+",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestParenthesizedLambdaNoType()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+
+class C
+{
+    Action<string> lambda = (x) =>
+    {
+        [|if (x is null)
+            throw new ArgumentNullException(nameof(x));|]
+    };
+}
+",
+                FixedCode = @"using System;
+
+class C
+{
+    Action<string> lambda = (x!!) =>
+    {
+    };
+}
+",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestParenthesizedLambdaWithType()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+
+class C
+{
+    Action<string> lambda = (string x) =>
+    {
+        [|if (x is null)
+            throw new ArgumentNullException(nameof(x));|]
+    };
+}
+",
+                FixedCode = @"using System;
+
+class C
+{
+    Action<string> lambda = (string x!!) =>
+    {
+    };
+}
+",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestAnonymousMethod()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+
+class C
+{
+    Action<string> lambda = delegate (string x)
+    {
+        [|if (x is null)
+            throw new ArgumentNullException(nameof(x));|]
+    };
+}
+",
+                FixedCode = @"using System;
+
+class C
+{
+    Action<string> lambda = delegate (string x!!)
+    {
+    };
+}
+",
                 LanguageVersion = LanguageVersionExtensions.CSharpNext
             }.RunAsync();
         }

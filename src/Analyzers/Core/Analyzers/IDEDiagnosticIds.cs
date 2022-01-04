@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string SimplifyPropertyPatternDiagnosticId = "IDE0170";
 
         public const string UseTupleSwapDiagnosticId = "IDE0180";
-        public const string UseParameterNullCheckingId = "IDE0181";
+        public const string UseParameterNullCheckingId = "IDE0190";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

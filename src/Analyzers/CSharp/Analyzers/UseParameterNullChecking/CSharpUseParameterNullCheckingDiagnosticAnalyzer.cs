@@ -56,20 +56,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 }
 
                 var objectType = compilation.GetSpecialType(SpecialType.System_Object);
-                var referenceEqualsMethod = objectType
+                var referenceEqualsMethod = (IMethodSymbol?)objectType
                     .GetMembers(nameof(ReferenceEquals))
-                    .OfType<IMethodSymbol>()
-                    .FirstOrDefault(m => m.DeclaredAccessibility == Accessibility.Public && m.Parameters.Length == 2);
-                // This seems sufficiently rare that it's not a big deal to just not perform analysis in this case.
-                if (referenceEqualsMethod is null)
-                {
-                    return;
-                }
+                    .FirstOrDefault(m => m is IMethodSymbol { DeclaredAccessibility: Accessibility.Public, Parameters.Length: 2 });
 
-                context.RegisterSyntaxNodeAction(context => AnalyzeSyntax(context, argumentNullExceptionConstructor, referenceEqualsMethod), SyntaxKind.ConstructorDeclaration, SyntaxKind.MethodDeclaration, SyntaxKind.LocalFunctionStatement);
+                context.RegisterSyntaxNodeAction(
+                    context => AnalyzeSyntax(context, argumentNullExceptionConstructor, referenceEqualsMethod),
+                    SyntaxKind.ConstructorDeclaration,
+                    SyntaxKind.MethodDeclaration,
+                    SyntaxKind.LocalFunctionStatement,
+                    SyntaxKind.SimpleLambdaExpression,
+                    SyntaxKind.ParenthesizedLambdaExpression,
+                    SyntaxKind.AnonymousMethodExpression);
             });
 
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol argumentNullExceptionConstructor, IMethodSymbol referenceEqualsMethod)
+        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol argumentNullExceptionConstructor, IMethodSymbol? referenceEqualsMethod)
         {
             var cancellationToken = context.CancellationToken;
 
@@ -88,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 MethodDeclarationSyntax methodDecl => methodDecl.Body,
                 ConstructorDeclarationSyntax constructorDecl => constructorDecl.Body,
                 LocalFunctionStatementSyntax localFunctionStatement => localFunctionStatement.Body,
+                AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.Block,
                 _ => throw ExceptionUtilities.UnexpectedValue(node)
             };
             if (block is null)
@@ -95,7 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 return;
             }
 
-            var methodSymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+            var methodSymbol = node is AnonymousFunctionExpressionSyntax
+                ? semanticModel.GetSymbolInfo(node, cancellationToken).Symbol
+                : semanticModel.GetDeclaredSymbol(node, cancellationToken);
             if (methodSymbol is null)
             {
                 return;
@@ -121,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                                 right = patternExpression;
                                 break;
                             case { Condition: InvocationExpressionSyntax { Expression: var receiver, ArgumentList.Arguments: { Count: 2 } arguments } }:
-                                if (!referenceEqualsMethod.Equals(semanticModel.GetSymbolInfo(receiver, cancellationToken).Symbol))
+                                if (referenceEqualsMethod == null || !referenceEqualsMethod.Equals(semanticModel.GetSymbolInfo(receiver, cancellationToken).Symbol))
                                 {
                                     continue;
                                 }
@@ -135,8 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                         }
 
                         IParameterSymbol? parameter;
-                        if (!areOperandsApplicable(left, right, out parameter)
-                            && !areOperandsApplicable(right, left, out parameter))
+                        if (!AreOperandsApplicable(left, right, out parameter)
+                            && !AreOperandsApplicable(right, left, out parameter))
                         {
                             continue;
                         }
@@ -150,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
 
                         if (throwStatement is null
                             || throwStatement.Expression is not ObjectCreationExpressionSyntax thrownInIf
-                            || !isConstructorApplicable(thrownInIf, parameter))
+                            || !IsConstructorApplicable(thrownInIf, parameter))
                         {
                             continue;
                         }
@@ -170,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                             }
                         }
                     }:
-                        if (!isParameter(maybeParameter, out var parameterInNullCoalescing) || !isConstructorApplicable(thrownInNullCoalescing, parameterInNullCoalescing))
+                        if (!IsParameter(maybeParameter, out var parameterInNullCoalescing) || !IsConstructorApplicable(thrownInNullCoalescing, parameterInNullCoalescing))
                         {
                             continue;
                         }
@@ -184,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, statement.GetLocation(), option.Notification.Severity, additionalLocations: null, properties: null));
             }
 
-            bool areOperandsApplicable(ExpressionSyntax maybeParameter, ExpressionSyntax maybeNullLiteral, [NotNullWhen(true)] out IParameterSymbol? parameter)
+            bool AreOperandsApplicable(ExpressionSyntax maybeParameter, ExpressionSyntax maybeNullLiteral, [NotNullWhen(true)] out IParameterSymbol? parameter)
             {
                 if (!maybeNullLiteral.IsKind(SyntaxKind.NullLiteralExpression))
                 {
@@ -192,10 +196,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                     return false;
                 }
 
-                return isParameter(maybeParameter, out parameter);
+                return IsParameter(maybeParameter, out parameter);
             }
 
-            bool isParameter(ExpressionSyntax maybeParameter, [NotNullWhen(true)] out IParameterSymbol? parameter)
+            bool IsParameter(ExpressionSyntax maybeParameter, [NotNullWhen(true)] out IParameterSymbol? parameter)
             {
                 if (maybeParameter is CastExpressionSyntax { Type: var type, Expression: var operand })
                 {
@@ -218,13 +222,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 return true;
             }
 
-            bool isConstructorApplicable(ObjectCreationExpressionSyntax exceptionCreation, IParameterSymbol parameterSymbol)
+            bool IsConstructorApplicable(ObjectCreationExpressionSyntax exceptionCreation, IParameterSymbol parameterSymbol)
             {
                 if (exceptionCreation.ArgumentList is null
                     || exceptionCreation.ArgumentList.Arguments.FirstOrDefault() is not { } argument)
                 {
                     return false;
                 }
+
                 var constantValue = semanticModel.GetConstantValue(argument.Expression, cancellationToken);
                 if (!constantValue.HasValue || constantValue.Value is not string constantString || !string.Equals(constantString, parameterSymbol.Name, StringComparison.Ordinal))
                 {
