@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     case WorkspaceChangeKind.SolutionChanged:
                     case WorkspaceChangeKind.SolutionReloaded:
-                        EnqueueEvent(args.OldSolution, args.NewSolution, eventName);
+                        EnqueueSolutionChangedEvent(args.OldSolution, args.NewSolution, eventName);
                         break;
 
                     case WorkspaceChangeKind.SolutionRemoved:
@@ -342,10 +342,31 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     () => EnqueueWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentClosed), _shutdownToken);
             }
 
-            private void EnqueueEvent(Solution oldSolution, Solution newSolution, string eventName)
+            private void EnqueueSolutionChangedEvent(Solution oldSolution, Solution newSolution, string eventName)
             {
-                _eventProcessingQueue.ScheduleTask(eventName,
-                    () => EnqueueWorkItemAsync(oldSolution, newSolution), _shutdownToken);
+                _eventProcessingQueue.ScheduleTask(
+                    eventName,
+                    async () =>
+                    {
+                        var solutionChanges = newSolution.GetChanges(oldSolution);
+
+                        // TODO: Async version for GetXXX methods?
+                        foreach (var addedProject in solutionChanges.GetAddedProjects())
+                        {
+                            await EnqueueWorkItemAsync(addedProject, InvocationReasons.DocumentAdded).ConfigureAwait(false);
+                        }
+
+                        foreach (var projectChanges in solutionChanges.GetProjectChanges())
+                        {
+                            await EnqueueWorkItemAsync(projectChanges).ConfigureAwait(continueOnCapturedContext: false);
+                        }
+
+                        foreach (var removedProject in solutionChanges.GetRemovedProjects())
+                        {
+                            await EnqueueWorkItemAsync(removedProject, InvocationReasons.DocumentRemoved).ConfigureAwait(false);
+                        }
+                    },
+                    _shutdownToken);
             }
 
             private void EnqueueEvent(Solution solution, InvocationReasons invocationReasons, string eventName)
@@ -449,27 +470,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _documentAndProjectWorkerProcessor.Enqueue(
                     new WorkItem(documentId, project.Language, invocationReasons,
                         isLowPriority, analyzer, _listener.BeginAsyncOperation("WorkItem")));
-            }
-
-            private async Task EnqueueWorkItemAsync(Solution oldSolution, Solution newSolution)
-            {
-                var solutionChanges = newSolution.GetChanges(oldSolution);
-
-                // TODO: Async version for GetXXX methods?
-                foreach (var addedProject in solutionChanges.GetAddedProjects())
-                {
-                    await EnqueueWorkItemAsync(addedProject, InvocationReasons.DocumentAdded).ConfigureAwait(false);
-                }
-
-                foreach (var projectChanges in solutionChanges.GetProjectChanges())
-                {
-                    await EnqueueWorkItemAsync(projectChanges).ConfigureAwait(continueOnCapturedContext: false);
-                }
-
-                foreach (var removedProject in solutionChanges.GetRemovedProjects())
-                {
-                    await EnqueueWorkItemAsync(removedProject, InvocationReasons.DocumentRemoved).ConfigureAwait(false);
-                }
             }
 
             private async Task EnqueueWorkItemAsync(ProjectChanges projectChanges)
