@@ -45,8 +45,6 @@ namespace Microsoft.CodeAnalysis.Host
         private const string RazorSourceGeneratorTypeName = "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
         private static readonly string s_razorSourceGeneratorFileNamePrefix = Path.Combine(RazorSourceGeneratorAssemblyName, RazorSourceGeneratorTypeName);
 
-        private readonly Workspace _workspace;
-
         private readonly object _gate = new();
 
 #if NETCOREAPP
@@ -73,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Host
                     }
                 }
             };
-            _workspace = workspace;
         }
 
         private static bool IsRazorAnalyzerConfig(TextDocumentState documentState)

@@ -94,9 +94,6 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             }
         }
 
-        private static bool HasGetPrefix(SyntaxToken identifier)
-            => HasGetPrefix(identifier.ValueText);
-
         private static bool HasGetPrefix(string text)
             => HasPrefix(text, GetPrefix);
         private static bool HasPrefix(string text, string prefix)

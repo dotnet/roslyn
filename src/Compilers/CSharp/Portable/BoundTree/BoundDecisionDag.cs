@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// takes as its input the node to be rewritten and a function that returns the previously computed
         /// rewritten node for successor nodes.
         /// </summary>
-        public BoundDecisionDag Rewrite(Func<BoundDecisionDagNode, Func<BoundDecisionDagNode, BoundDecisionDagNode>, BoundDecisionDagNode> makeReplacement)
+        public BoundDecisionDag Rewrite(Func<BoundDecisionDagNode, IReadOnlyDictionary<BoundDecisionDagNode, BoundDecisionDagNode>, BoundDecisionDagNode> makeReplacement)
         {
             // First, we topologically sort the nodes of the dag so that we can translate the nodes bottom-up.
             // This will avoid overflowing the compiler's runtime stack which would occur for a large switch
@@ -95,14 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // a node's successors before the node, the replacement should always be in the cache when we need it.
             var replacement = PooledDictionary<BoundDecisionDagNode, BoundDecisionDagNode>.GetInstance();
 
-            Func<BoundDecisionDagNode, BoundDecisionDagNode> getReplacementForChild = n => replacement[n];
-
             // Loop backwards through the topologically sorted nodes to translate them, so that we always visit a node after its successors
             for (int i = sortedNodes.Length - 1; i >= 0; i--)
             {
                 BoundDecisionDagNode node = sortedNodes[i];
                 Debug.Assert(!replacement.ContainsKey(node));
-                BoundDecisionDagNode newNode = makeReplacement(node, getReplacementForChild);
+                BoundDecisionDagNode newNode = makeReplacement(node, replacement);
                 replacement.Add(node, newNode);
             }
 
@@ -113,18 +111,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// A trivial node replacement function for use with <see cref="Rewrite(Func{BoundDecisionDagNode, Func{BoundDecisionDagNode, BoundDecisionDagNode}, BoundDecisionDagNode})"/>.
+        /// A trivial node replacement function for use with <see cref="Rewrite(Func{BoundDecisionDagNode, IReadOnlyDictionary{BoundDecisionDagNode, BoundDecisionDagNode}, BoundDecisionDagNode})"/>.
         /// </summary>
-        public static BoundDecisionDagNode TrivialReplacement(BoundDecisionDagNode dag, Func<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
+        public static BoundDecisionDagNode TrivialReplacement(BoundDecisionDagNode dag, IReadOnlyDictionary<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
         {
             switch (dag)
             {
                 case BoundEvaluationDecisionDagNode p:
-                    return p.Update(p.Evaluation, replacement(p.Next));
+                    return p.Update(p.Evaluation, replacement[p.Next]);
                 case BoundTestDecisionDagNode p:
-                    return p.Update(p.Test, replacement(p.WhenTrue), replacement(p.WhenFalse));
+                    return p.Update(p.Test, replacement[p.WhenTrue], replacement[p.WhenFalse]);
                 case BoundWhenDecisionDagNode p:
-                    return p.Update(p.Bindings, p.WhenExpression, replacement(p.WhenTrue), (p.WhenFalse != null) ? replacement(p.WhenFalse) : null);
+                    return p.Update(p.Bindings, p.WhenExpression, replacement[p.WhenTrue], (p.WhenFalse != null) ? replacement[p.WhenFalse] : null);
                 case BoundLeafDecisionDagNode p:
                     return p;
                 default:
@@ -149,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Rewrite(makeReplacement);
 
                 // Make a replacement for a given node, using the precomputed replacements for its successors.
-                BoundDecisionDagNode makeReplacement(BoundDecisionDagNode dag, Func<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
+                BoundDecisionDagNode makeReplacement(BoundDecisionDagNode dag, IReadOnlyDictionary<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
                 {
                     if (dag is BoundTestDecisionDagNode p)
                     {
@@ -157,9 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (knownResult(p.Test))
                         {
                             case true:
-                                return replacement(p.WhenTrue);
+                                return replacement[p.WhenTrue];
                             case false:
-                                return replacement(p.WhenFalse);
+                                return replacement[p.WhenFalse];
                         }
                     }
 
