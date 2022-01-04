@@ -2182,9 +2182,6 @@ class Program
                 // (3,12): warning CS0169: The field 'S1.X' is never used
                 //     object X = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("S1.X").WithLocation(3, 12),
-                // (20,27): error CS1736: Default parameter value for 's' must be a compile-time constant
-                //     static void G1(S1 s = new()) { }
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(20, 27),
                 // (21,27): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //     static void G2(S2 s = new()) { }
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(21, 27));

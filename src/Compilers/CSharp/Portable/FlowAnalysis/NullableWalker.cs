@@ -3182,7 +3182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var boundObjectCreationExpression = node as BoundObjectCreationExpression;
                     var constructor = boundObjectCreationExpression?.Constructor;
-                    bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor(requireZeroInit: true) == true;
+                    bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor() == true;
 
                     if (EmptyStructTypeCache.IsTrackableStructType(type))
                     {
