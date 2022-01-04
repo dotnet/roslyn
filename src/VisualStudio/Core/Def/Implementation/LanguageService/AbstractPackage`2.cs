@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -31,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private PackageInstallerService _packageInstallerService;
         private VisualStudioSymbolSearchService _symbolSearchService;
-        private IComponentModel _componentModel_doNotAccessDirectly;
 
         protected AbstractPackage()
         {
@@ -100,19 +100,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             _packageInstallerService?.Connect(this.RoslynLanguageName);
             _symbolSearchService?.Connect(this.RoslynLanguageName);
-        }
-
-        internal IComponentModel ComponentModel
-        {
-            get
-            {
-                ThreadHelper.ThrowIfNotOnUIThread();
-
-                if (_componentModel_doNotAccessDirectly == null)
-                    _componentModel_doNotAccessDirectly = (IComponentModel)GetService(typeof(SComponentModel));
-
-                return _componentModel_doNotAccessDirectly;
-            }
         }
 
         protected abstract void RegisterMiscellaneousFilesWorkspaceInformation(MiscellaneousFilesWorkspace miscellaneousFilesWorkspace);

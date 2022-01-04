@@ -2993,8 +2993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<TMember> methodResult,
             ArrayBuilder<BoundExpression> arguments,
             BindingDiagnosticBag diagnostics,
-            TypeSymbol? receiverType,
-            uint receiverEscapeScope)
+            BoundExpression? receiver)
             where TMember : Symbol
         {
             var result = methodResult.Result;
@@ -3012,7 +3011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
                     TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
-                    arguments[arg] = BindInterpolatedStringHandlerInMemberCall(argument, arguments, parameters, ref result, arg, receiverType, receiverEscapeScope, diagnostics);
+                    arguments[arg] = BindInterpolatedStringHandlerInMemberCall(argument, arguments, parameters, ref result, arg, receiver, methodResult.LeastOverriddenMember.RequiresInstanceReceiver(), diagnostics);
                 }
                 // https://github.com/dotnet/roslyn/issues/37119 : should we create an (Identity) conversion when the kind is Identity but the types differ?
                 else if (!kind.IsIdentity)
@@ -4809,13 +4808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (argument is BoundConversion { Conversion.IsInterpolatedStringHandler: true, Operand: var operand })
                             {
-                                var handlerPlaceholders = operand switch
-                                {
-                                    BoundBinaryOperator { InterpolatedStringHandlerData: { } data } => data.ArgumentPlaceholders,
-                                    BoundInterpolatedString { InterpolationData: { } data } => data.ArgumentPlaceholders,
-                                    _ => throw ExceptionUtilities.UnexpectedValue(operand.Kind)
-                                };
-
+                                var handlerPlaceholders = operand.GetInterpolatedStringHandlerData().ArgumentPlaceholders;
                                 if (handlerPlaceholders.Any(placeholder => placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, argument.Syntax.Location);
@@ -5745,7 +5738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (succeededIgnoringAccessibility)
             {
-                this.CoerceArguments<MethodSymbol>(result.ValidResult, analyzedArguments.Arguments, diagnostics, receiverType: null, receiverEscapeScope: Binder.ExternalScope);
+                this.CoerceArguments<MethodSymbol>(result.ValidResult, analyzedArguments.Arguments, diagnostics, receiver: null);
             }
 
             // Fill in the out parameter with the result, if there was one; it might be inaccessible.
@@ -7565,15 +7558,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(convertedArguments.Length == 1);
 
                 var int32 = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
-                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(expr.Syntax, GetValEscape(expr, LocalScopeDepth), expr.Type) { WasCompilerGenerated = true };
+                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(expr.Syntax, GetValEscape(expr, LocalScopeDepth), isEquivalentToThisReference: expr.IsEquivalentToThisReference, expr.Type) { WasCompilerGenerated = true };
                 var argumentPlaceholders = ImmutableArray.Create(new BoundImplicitIndexerValuePlaceholder(convertedArguments[0].Syntax, int32) { WasCompilerGenerated = true });
 
                 return new BoundImplicitIndexerAccess(
                     node,
+                    receiver: expr,
                     argument: convertedArguments[0],
                     lengthOrCountAccess: new BoundArrayLength(node, receiverPlaceholder, int32) { WasCompilerGenerated = true },
                     receiverPlaceholder,
-                    indexerOrSliceAccess: new BoundArrayAccess(node, expr, ImmutableArray<BoundExpression>.CastUp(argumentPlaceholders), resultType),
+                    indexerOrSliceAccess: new BoundArrayAccess(node, receiverPlaceholder, ImmutableArray<BoundExpression>.CastUp(argumentPlaceholders), resultType) { WasCompilerGenerated = true },
                     argumentPlaceholders,
                     resultType);
             }
@@ -8011,11 +8005,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                 PropertySymbol property = resolutionResult.Member;
-                RefKind? receiverRefKind = receiver.GetRefKind();
-                uint receiverEscapeScope = property.RequiresInstanceReceiver && receiver != null
-                    ? receiverRefKind?.IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
-                    : Binder.ExternalScope;
-                this.CoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments.Arguments, diagnostics, receiver.Type, receiverEscapeScope);
 
                 var isExpanded = resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                 var argsToParams = resolutionResult.Result.ArgsToParamsOpt;
@@ -8026,6 +8015,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
 
                 receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
+
+                this.CoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments.Arguments, diagnostics, receiver);
 
                 if (!gotError && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
                 {
@@ -8103,8 +8094,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool argIsIndex = argIsIndexNotRange.Value();
             var receiverValEscape = GetValEscape(receiver, LocalScopeDepth);
-            var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, receiverValEscape, receiver.Type) { WasCompilerGenerated = true };
-            if (!TryBindIndexOrRangeImplicitIndexerParts(syntax, receiverPlaceholder, receiver, argIsIndex: argIsIndex,
+            var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, receiverValEscape, isEquivalentToThisReference: receiver.IsEquivalentToThisReference, receiver.Type) { WasCompilerGenerated = true };
+            if (!TryBindIndexOrRangeImplicitIndexerParts(syntax, receiverPlaceholder, argIsIndex: argIsIndex,
                     out var lengthOrCountAccess, out var indexerOrSliceAccess, out var argumentPlaceholders, diagnostics))
             {
                 return false;
@@ -8116,6 +8107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             implicitIndexerAccess = new BoundImplicitIndexerAccess(
                 syntax,
+                receiver: receiver,
                 argument: BindToNaturalType(argument, diagnostics),
                 lengthOrCountAccess: lengthOrCountAccess,
                 receiverPlaceholder,
@@ -8152,13 +8144,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Finds pattern-based implicit indexer and Length/Count property.
-        /// We'll use the receiver placeholder to bind the length access, but the real
-        /// receiver to bind the indexer access.
         /// </summary>
         private bool TryBindIndexOrRangeImplicitIndexerParts(
             SyntaxNode syntax,
-            BoundExpression receiverPlaceholder,
-            BoundExpression receiver,
+            BoundImplicitIndexerReceiverPlaceholder receiverPlaceholder,
             bool argIsIndex,
             [NotNullWhen(true)] out BoundExpression? lengthOrCountAccess,
             [NotNullWhen(true)] out BoundExpression? indexerOrSliceAccess,
@@ -8175,8 +8164,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 2. For Index: Has an accessible indexer with a single int parameter
             //    For Range: Has an accessible Slice method that takes two int parameters
 
-            if (TryBindLengthOrCount(syntax, receiverPlaceholder, receiver, out lengthOrCountAccess, diagnostics) &&
-                tryBindUnderlyingIndexerOrSliceAccess(syntax, receiver, argIsIndex, out indexerOrSliceAccess, out argumentPlaceholders, diagnostics))
+            if (TryBindLengthOrCount(syntax, receiverPlaceholder, out lengthOrCountAccess, diagnostics) &&
+                tryBindUnderlyingIndexerOrSliceAccess(syntax, receiverPlaceholder, argIsIndex, out indexerOrSliceAccess, out argumentPlaceholders, diagnostics))
             {
                 return true;
             }
@@ -8191,7 +8180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // - for Range indexer, this will find `Slice(int, int)` or `string.Substring(int, int)`.
             bool tryBindUnderlyingIndexerOrSliceAccess(
                 SyntaxNode syntax,
-                BoundExpression receiver,
+                BoundImplicitIndexerReceiverPlaceholder receiver,
                 bool argIsIndex,
                 [NotNullWhen(true)] out BoundExpression? indexerOrSliceAccess,
                 out ImmutableArray<BoundImplicitIndexerValuePlaceholder> argumentPlaceholders,
@@ -8324,8 +8313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryBindLengthOrCount(
             SyntaxNode syntax,
-            BoundExpression receiverPlaceholder,
-            BoundExpression? receiver,
+            BoundValuePlaceholderBase receiverPlaceholder,
             out BoundExpression lengthOrCountAccess,
             BindingDiagnosticBag diagnostics)
         {
@@ -8337,9 +8325,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.ReportUseSite(lengthOrCountProperty, syntax);
                 lengthOrCountAccess = BindPropertyAccess(syntax, receiverPlaceholder, lengthOrCountProperty, diagnostics, lookupResult.Kind, hasErrors: false).MakeCompilerGenerated();
                 lengthOrCountAccess = CheckValue(lengthOrCountAccess, BindValueKind.RValue, diagnostics);
-
-                // CheckValue does not handle placeholders well yet, so we're doing some extra check for `this` receiver
-                CheckImplicitThisCopyInReadOnlyMember(receiver, lengthOrCountProperty.GetOwnOrInheritedGetMethod(), diagnostics);
 
                 lookupResult.Free();
                 return true;

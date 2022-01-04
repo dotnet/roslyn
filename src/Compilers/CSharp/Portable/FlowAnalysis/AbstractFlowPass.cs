@@ -1114,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 { } d => (d.Construction, d.UsesBoolReturns, d.HasTrailingHandlerValidityParameter)
             };
 
-            VisitRvalue(construction);
+            VisitInterpolatedStringHandlerConstructor(construction);
             bool hasConditionalEvaluation = useBoolReturns || firstPartIsConditional;
             TLocalState? shortCircuitState = hasConditionalEvaluation ? State.Clone() : default;
 
@@ -1127,6 +1127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        protected virtual void VisitInterpolatedStringHandlerConstructor(BoundExpression? constructor)
+        {
+            VisitRvalue(constructor);
         }
 #nullable disable
 
@@ -1393,7 +1398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 2. The argument to the access
             // 3. The Count or Length method off the receiver
             // 4. The underlying indexer access or method call
-            VisitRvalue(node.GetReceiver());
+            VisitRvalue(node.Receiver);
             VisitRvalue(node.Argument);
 
             return null;
@@ -2459,7 +2464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(parts.Count >= 2);
 
-            VisitRvalue(data.Construction);
+            VisitInterpolatedStringHandlerConstructor(data.Construction);
 
             bool visitedFirst = false;
             bool hasTrailingHandlerValidityParameter = data.HasTrailingHandlerValidityParameter;

@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _factory.MakeSequence(savedTuple.LocalSymbol, assignmentToTemp, result);
         }
 
-        private static bool NullableNeverHasValue(BoundExpression expression)
+        internal static bool NullableNeverHasValue(BoundExpression expression)
         {
             // CONSIDER: A sequence of side effects with an always-null expression as its value
             // CONSIDER: can be optimized also. Should we?
@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// which conversions appearing at the top of the expression have not been lowered.
         /// If this method is updated to recognize more complex patterns, callers should be reviewed.
         /// </summary>
-        private static BoundExpression? NullableAlwaysHasValue(BoundExpression expression)
+        internal static BoundExpression? NullableAlwaysHasValue(BoundExpression expression)
         {
             Debug.Assert(expression.Type is { });
             if (!expression.Type.IsNullableType())
@@ -1108,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
 
             // temp.HasValue
-            BoundExpression condition = MakeNullableHasValue(syntax, boundTemp);
+            BoundExpression condition = _factory.MakeNullableHasValue(syntax, boundTemp);
 
             // temp.GetValueOrDefault()
             BoundCall callGetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault);

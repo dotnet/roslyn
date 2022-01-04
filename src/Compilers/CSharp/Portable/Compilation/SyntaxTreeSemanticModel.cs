@@ -2264,6 +2264,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override DataFlowAnalysis AnalyzeDataFlow(ConstructorInitializerSyntax constructorInitializer)
+        {
+            if (constructorInitializer == null)
+            {
+                throw new ArgumentNullException(nameof(constructorInitializer));
+            }
+
+            if (!IsInTree(constructorInitializer))
+            {
+                throw new ArgumentException("node not within tree");
+            }
+
+            var context = RegionAnalysisContext(constructorInitializer);
+            var result = new CSharpDataFlowAnalysis(context);
+            return result;
+        }
+
+        public override DataFlowAnalysis AnalyzeDataFlow(PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
+        {
+            if (primaryConstructorBaseType == null)
+            {
+                throw new ArgumentNullException(nameof(primaryConstructorBaseType));
+            }
+
+            if (!IsInTree(primaryConstructorBaseType))
+            {
+                throw new ArgumentException("node not within tree");
+            }
+
+            var context = RegionAnalysisContext(primaryConstructorBaseType);
+            var result = new CSharpDataFlowAnalysis(context);
+            return result;
+        }
+
         public override DataFlowAnalysis AnalyzeDataFlow(StatementSyntax firstStatement, StatementSyntax lastStatement)
         {
             ValidateStatementRange(firstStatement, lastStatement);

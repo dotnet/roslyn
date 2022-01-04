@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversion.AssertUnderlyingConversionsChecked();
                         return makeNullableHasValue(o);
                     default:
-                        return MakeNullableHasValue(expr.Syntax, expr);
+                        return _factory.MakeNullableHasValue(expr.Syntax, expr);
                 }
             }
         }

@@ -2,28 +2,34 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class Lexer
     {
         internal readonly struct Interpolation
         {
-            public readonly int OpenBracePosition;
-            public readonly int ColonPosition;
-            public readonly int CloseBracePosition;
-            public readonly bool CloseBraceMissing;
+            public readonly Range OpenBraceRange;
 
-            public bool ColonMissing => ColonPosition <= 0;
-            public bool HasColon => ColonPosition > 0;
-            public int LastPosition => CloseBraceMissing ? CloseBracePosition - 1 : CloseBracePosition;
-            public int FormatEndPosition => CloseBracePosition - 1;
+            /// <summary>
+            /// Range of the format colon in the interpolation.  Empty if there is no colon.
+            /// </summary>
+            public readonly Range ColonRange;
 
-            public Interpolation(int openBracePosition, int colonPosition, int closeBracePosition, bool closeBraceMissing)
+            /// <summary>
+            /// Range of the close brace.  Empty if there was no close brace (an error condition).
+            /// </summary>
+            public readonly Range CloseBraceRange;
+
+            public bool HasColon => ColonRange.Start.Value != ColonRange.End.Value;
+
+            public Interpolation(Range openBraceRange, Range colonRange, Range closeBraceRange)
             {
-                this.OpenBracePosition = openBracePosition;
-                this.ColonPosition = colonPosition;
-                this.CloseBracePosition = closeBracePosition;
-                this.CloseBraceMissing = closeBraceMissing;
+                OpenBraceRange = openBraceRange;
+                ColonRange = colonRange;
+                CloseBraceRange = closeBraceRange;
             }
         }
     }
