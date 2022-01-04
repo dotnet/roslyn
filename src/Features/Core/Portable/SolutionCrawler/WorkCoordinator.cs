@@ -297,9 +297,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         break;
 
                     case WorkspaceChangeKind.DocumentAdded:
+                        Contract.ThrowIfNull(args.DocumentId);
+                        EnqueueEvent(args.NewSolution, args.DocumentId, InvocationReasons.DocumentAdded, eventName);
+                        break;
+
                     case WorkspaceChangeKind.DocumentReloaded:
                     case WorkspaceChangeKind.DocumentChanged:
+                        Contract.ThrowIfNull(args.DocumentId);
+                        EnqueueEvent(args.OldSolution, args.NewSolution, args.DocumentId, eventName);
+                        break;
+
                     case WorkspaceChangeKind.DocumentRemoved:
+                        Contract.ThrowIfNull(args.DocumentId);
+                        EnqueueEvent(args.OldSolution, args.DocumentId, InvocationReasons.DocumentRemoved, eventName);
+                        break;
+
                     case WorkspaceChangeKind.AdditionalDocumentAdded:
                     case WorkspaceChangeKind.AdditionalDocumentRemoved:
                     case WorkspaceChangeKind.AdditionalDocumentChanged:
@@ -308,8 +320,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
                     case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
                     case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
-                        ProcessDocumentEvent(args, eventName);
+                        // If an additional file or .editorconfig has changed we need to reanalyze the entire project.
+                        Contract.ThrowIfNull(args.ProjectId);
+                        EnqueueEvent(args.NewSolution, args.ProjectId, InvocationReasons.AdditionalDocumentChanged, eventName);
                         break;
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(args.Kind);
                 }
@@ -325,44 +340,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 _eventProcessingQueue.ScheduleTask("OnDocumentClosed",
                     () => EnqueueWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentClosed), _shutdownToken);
-            }
-
-            private void ProcessDocumentEvent(WorkspaceChangeEventArgs e, string eventName)
-            {
-                switch (e.Kind)
-                {
-                    case WorkspaceChangeKind.DocumentAdded:
-                        Contract.ThrowIfNull(e.DocumentId);
-                        EnqueueEvent(e.NewSolution, e.DocumentId, InvocationReasons.DocumentAdded, eventName);
-                        break;
-
-                    case WorkspaceChangeKind.DocumentRemoved:
-                        Contract.ThrowIfNull(e.DocumentId);
-                        EnqueueEvent(e.OldSolution, e.DocumentId, InvocationReasons.DocumentRemoved, eventName);
-                        break;
-
-                    case WorkspaceChangeKind.DocumentReloaded:
-                    case WorkspaceChangeKind.DocumentChanged:
-                        Contract.ThrowIfNull(e.DocumentId);
-                        EnqueueEvent(e.OldSolution, e.NewSolution, e.DocumentId, eventName);
-                        break;
-
-                    case WorkspaceChangeKind.AdditionalDocumentAdded:
-                    case WorkspaceChangeKind.AdditionalDocumentRemoved:
-                    case WorkspaceChangeKind.AdditionalDocumentChanged:
-                    case WorkspaceChangeKind.AdditionalDocumentReloaded:
-                    case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
-                    case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
-                    case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
-                    case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
-                        // If an additional file or .editorconfig has changed we need to reanalyze the entire project.
-                        Contract.ThrowIfNull(e.ProjectId);
-                        EnqueueEvent(e.NewSolution, e.ProjectId, InvocationReasons.AdditionalDocumentChanged, eventName);
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(e.Kind);
-                }
             }
 
             private void EnqueueEvent(Solution oldSolution, Solution newSolution, string eventName)
