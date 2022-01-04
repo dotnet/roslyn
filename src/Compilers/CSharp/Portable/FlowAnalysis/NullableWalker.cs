@@ -211,8 +211,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Variables instances for each lambda or local function defined within the analyzed region.
         /// </summary>
         private PooledDictionary<MethodSymbol, Variables>? _nestedFunctionVariables;
-
+#if DEBUG
         private bool _completingTargetTypedExpression;
+#endif
         private PooledDictionary<BoundExpression, Func<TypeWithAnnotations, TypeWithState>>? _targetTypedAnalysisCompletionOpt;
 
         /// <summary>
@@ -2820,10 +2821,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var oldReturnTypes = _returnTypesOpt;
             _returnTypesOpt = null;
-
+#if DEBUG
             var oldCompletingTargetTypedExpression = _completingTargetTypedExpression;
             _completingTargetTypedExpression = false;
-
+#endif
             var oldState = this.State;
             _variables = GetOrCreateNestedFunctionVariables(_variables, lambdaOrFunctionSymbol);
             this.State = state.CreateNestedMethodState(_variables);
@@ -2869,7 +2870,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _variables = _variables.Container!;
             this.State = oldState;
+#if DEBUG
             _completingTargetTypedExpression = oldCompletingTargetTypedExpression;
+#endif
             _returnTypesOpt = oldReturnTypes;
             _useDelegateInvokeReturnType = oldUseDelegateInvokeReturnType;
             _useDelegateInvokeParameterTypes = oldUseDelegateInvokeParameterTypes;
@@ -3147,7 +3150,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundNode Visit(BoundNode? node, bool expressionIsRead)
         {
+#if DEBUG
             Debug.Assert(!_completingTargetTypedExpression);
+#endif
             bool originalExpressionIsRead = _expressionIsRead;
             _expressionIsRead = expressionIsRead;
 
@@ -3167,7 +3172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
-            VisitObjectCreationExpression((BoundObjectCreationExpressionBase)node);
+            VisitObjectCreationExpressionBase(node);
             return null;
         }
 
@@ -3179,18 +3184,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitObjectCreationExpression(BoundObjectCreationExpressionBase node)
+        private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node)
         {
             Debug.Assert(!IsConditionalState);
             bool isTargetTyped = node.WasTargetTyped;
             MethodSymbol? constructor = getConstructor(node, node.Type);
             var arguments = node.Arguments;
 
-            (_, ImmutableArray<VisitArgumentResult> argumentResults, _, Func<ImmutableArray<VisitArgumentResult>, ImmutableArray<ParameterSymbol>, MethodSymbol?, (MethodSymbol? method, bool returnNotNull)>? argumentsCompletion) =
+            (_, ImmutableArray<VisitArgumentResult> argumentResults, _, ArgumentsCompletionDelegate? argumentsCompletion) =
                 VisitArguments(
                            node, arguments, node.ArgumentRefKindsOpt, constructor?.Parameters ?? default,
                            node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded, invokedAsExtensionMethod: false,
-                           constructor, delayCompletionForTargetMemeber: isTargetTyped);
+                           constructor, delayCompletionForTargetMember: isTargetTyped);
             Debug.Assert(isTargetTyped == argumentsCompletion is not null);
 
             var type = node.Type;
@@ -3211,7 +3216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundObjectCreationExpressionBase node,
                 TypeSymbol? type,
                 ImmutableArray<VisitArgumentResult> argumentResults,
-                Func<ImmutableArray<VisitArgumentResult>, ImmutableArray<ParameterSymbol>, MethodSymbol?, (MethodSymbol? method, bool returnNotNull)>? argumentsCompletion,
+                ArgumentsCompletionDelegate? argumentsCompletion,
                 Func<TypeSymbol, MethodSymbol?, int>? initialStateInferenceCompletion,
                 Action<int, TypeSymbol>? initializerCompletion,
                 NullableFlowState resultState,
@@ -3240,7 +3245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             void setAnalyzedNullabilityAsContinuation(
                 BoundObjectCreationExpressionBase node,
                 ImmutableArray<VisitArgumentResult> argumentResults,
-                Func<ImmutableArray<VisitArgumentResult>, ImmutableArray<ParameterSymbol>, MethodSymbol?, (MethodSymbol? method, bool returnNotNull)> argumentsCompletion,
+                ArgumentsCompletionDelegate argumentsCompletion,
                 Func<TypeSymbol, MethodSymbol?, int> initialStateInferenceCompletion,
                 Action<int, TypeSymbol>? initializerCompletion,
                 NullableFlowState resultState)
@@ -3350,7 +3355,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Func<TypeSymbol, MethodSymbol?, int> inferInitialObjectStateAsContinuation(
                 BoundExpression node,
-                ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitArgumentResult> argumentResults)
+                ImmutableArray<BoundExpression> arguments,
+                ImmutableArray<VisitArgumentResult> argumentResults)
             {
                 return (TypeSymbol type, MethodSymbol? constructor) =>
                 {
@@ -3427,91 +3433,93 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ObjectInitializerMember:
                     {
                         TakeIncrementalSnapshot(left);
-                        return visitMemberinitializer(containingSlot, containingType, node, delayCompletionForType);
-
-                        Action<int, TypeSymbol>? visitMemberinitializer(int containingSlot, TypeSymbol containingType, BoundAssignmentOperator node, bool delayCompletionForType)
-                        {
-                            var objectInitializer = (BoundObjectInitializerMember)node.Left;
-                            Symbol? symbol = getTargetMember(containingType, objectInitializer);
-
-                            ImmutableArray<VisitArgumentResult> argumentResults = default;
-                            Func<ImmutableArray<VisitArgumentResult>, ImmutableArray<ParameterSymbol>, MethodSymbol?, (MethodSymbol? method, bool returnNotNull)>? argumentsCompletion = null;
-                            if (!objectInitializer.Arguments.IsDefaultOrEmpty)
-                            {
-                                // It is an error for an interpolated string to use the receiver of an object initializer indexer here, so we just use
-                                // a default visit result
-                                (_, argumentResults, _, argumentsCompletion) =
-                                    VisitArguments(
-                                        objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt,
-                                        ((PropertySymbol?)symbol)?.Parameters ?? default, objectInitializer.ArgsToParamsOpt,
-                                        objectInitializer.DefaultArguments, objectInitializer.Expanded,
-                                        invokedAsExtensionMethod: false, method: null, delayCompletionForTargetMemeber: delayCompletionForType);
-                            }
-
-                            Action<int, Symbol>? initializationCompletion = null;
-
-                            if (symbol is object)
-                            {
-                                if (node.Right is BoundObjectInitializerExpressionBase initializer)
-                                {
-                                    initializationCompletion = visitNestedInitializer(containingSlot, containingType, symbol, initializer, delayCompletionForType);
-                                }
-                                else
-                                {
-                                    TakeIncrementalSnapshot(node.Right);
-                                    initializationCompletion = visitMemberAssignment(node, containingSlot, symbol, delayCompletionForType);
-                                }
-                                // https://github.com/dotnet/roslyn/issues/35040: Should likely be setting _resultType in VisitObjectCreationInitializer
-                                // and using that value instead of reconstructing here
-                            }
-
-                            return setAnalyzedNullability(node, argumentResults, argumentsCompletion, initializationCompletion, delayCompletionForType);
-
-                            Action<int, TypeSymbol>? setAnalyzedNullability(
-                                BoundAssignmentOperator node,
-                                ImmutableArray<VisitArgumentResult> argumentResults,
-                                Func<ImmutableArray<VisitArgumentResult>, ImmutableArray<ParameterSymbol>, MethodSymbol?, (MethodSymbol? method, bool returnNotNull)>? argumentsCompletion, Action<int, Symbol>? initializationCompletion,
-                                bool delayCompletionForType)
-                            {
-                                if (delayCompletionForType)
-                                {
-                                    return setAnalyzedNullabilityAsContinuation(node, argumentResults, argumentsCompletion, initializationCompletion);
-                                }
-
-                                Debug.Assert(argumentsCompletion is null);
-                                Debug.Assert(initializationCompletion is null);
-                                var objectInitializer = (BoundObjectInitializerMember)node.Left;
-
-                                var result = new VisitResult(objectInitializer.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull);
-                                SetAnalyzedNullability(objectInitializer, result);
-                                SetAnalyzedNullability(node, result);
-                                return null;
-                            }
-
-                            Action<int, TypeSymbol>? setAnalyzedNullabilityAsContinuation(
-                                BoundAssignmentOperator node,
-                                ImmutableArray<VisitArgumentResult> argumentResults,
-                                Func<ImmutableArray<VisitArgumentResult>, ImmutableArray<ParameterSymbol>, MethodSymbol?, (MethodSymbol? method, bool returnNotNull)>? argumentsCompletion, Action<int, Symbol>? initializationCompletion)
-                            {
-                                return (int containingSlot, TypeSymbol containingType) =>
-                                {
-                                    Symbol? symbol = getTargetMember(containingType, (BoundObjectInitializerMember)node.Left);
-
-                                    Debug.Assert(initializationCompletion is null || symbol is not null);
-
-                                    argumentsCompletion?.Invoke(argumentResults, ((PropertySymbol?)symbol)?.Parameters ?? default, null);
-                                    initializationCompletion?.Invoke(containingSlot, symbol!);
-
-                                    var result = setAnalyzedNullability(node, argumentResults, argumentsCompletion: null, initializationCompletion: null, delayCompletionForType: false);
-                                    Debug.Assert(result is null);
-                                };
-                            }
-                        }
+                        return visitMemberInitializer(containingSlot, containingType, node, delayCompletionForType);
                     }
 
                 default:
                     VisitRvalue(node);
                     return null;
+            }
+
+            Action<int, TypeSymbol>? visitMemberInitializer(int containingSlot, TypeSymbol containingType, BoundAssignmentOperator node, bool delayCompletionForType)
+            {
+                var objectInitializer = (BoundObjectInitializerMember)node.Left;
+                Symbol? symbol = getTargetMember(containingType, objectInitializer);
+
+                ImmutableArray<VisitArgumentResult> argumentResults = default;
+                ArgumentsCompletionDelegate? argumentsCompletion = null;
+                if (!objectInitializer.Arguments.IsDefaultOrEmpty)
+                {
+                    // It is an error for an interpolated string to use the receiver of an object initializer indexer here, so we just use
+                    // a default visit result
+                    (_, argumentResults, _, argumentsCompletion) =
+                        VisitArguments(
+                            objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt,
+                            ((PropertySymbol?)symbol)?.Parameters ?? default, objectInitializer.ArgsToParamsOpt,
+                            objectInitializer.DefaultArguments, objectInitializer.Expanded,
+                            invokedAsExtensionMethod: false, method: null, delayCompletionForTargetMember: delayCompletionForType);
+                }
+
+                Action<int, Symbol>? initializationCompletion = null;
+
+                if (symbol is object)
+                {
+                    if (node.Right is BoundObjectInitializerExpressionBase initializer)
+                    {
+                        initializationCompletion = visitNestedInitializer(containingSlot, containingType, symbol, initializer, delayCompletionForType);
+                    }
+                    else
+                    {
+                        TakeIncrementalSnapshot(node.Right);
+                        initializationCompletion = visitMemberAssignment(node, containingSlot, symbol, delayCompletionForType);
+                    }
+                    // https://github.com/dotnet/roslyn/issues/35040: Should likely be setting _resultType in VisitObjectCreationInitializer
+                    // and using that value instead of reconstructing here
+                }
+
+                return setAnalyzedNullability(node, argumentResults, argumentsCompletion, initializationCompletion, delayCompletionForType);
+            }
+
+            Action<int, TypeSymbol>? setAnalyzedNullability(
+                BoundAssignmentOperator node,
+                ImmutableArray<VisitArgumentResult> argumentResults,
+                ArgumentsCompletionDelegate? argumentsCompletion,
+                Action<int, Symbol>? initializationCompletion,
+                bool delayCompletionForType)
+            {
+                if (delayCompletionForType)
+                {
+                    return setAnalyzedNullabilityAsContinuation(node, argumentResults, argumentsCompletion, initializationCompletion);
+                }
+
+                Debug.Assert(argumentsCompletion is null);
+                Debug.Assert(initializationCompletion is null);
+                var objectInitializer = (BoundObjectInitializerMember)node.Left;
+
+                var result = new VisitResult(objectInitializer.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull);
+                SetAnalyzedNullability(objectInitializer, result);
+                SetAnalyzedNullability(node, result);
+                return null;
+            }
+
+            Action<int, TypeSymbol>? setAnalyzedNullabilityAsContinuation(
+                BoundAssignmentOperator node,
+                ImmutableArray<VisitArgumentResult> argumentResults,
+                ArgumentsCompletionDelegate? argumentsCompletion,
+                Action<int, Symbol>? initializationCompletion)
+            {
+                return (int containingSlot, TypeSymbol containingType) =>
+                {
+                    Symbol? symbol = getTargetMember(containingType, (BoundObjectInitializerMember)node.Left);
+
+                    Debug.Assert(initializationCompletion is null || symbol is not null);
+
+                    argumentsCompletion?.Invoke(argumentResults, ((PropertySymbol?)symbol)?.Parameters ?? default, null);
+                    initializationCompletion?.Invoke(containingSlot, symbol!);
+
+                    var result = setAnalyzedNullability(node, argumentResults, argumentsCompletion: null, initializationCompletion: null, delayCompletionForType: false);
+                    Debug.Assert(result is null);
+                };
             }
 
             static Symbol? getTargetMember(TypeSymbol containingType, BoundObjectInitializerMember objectInitializer)
@@ -3631,7 +3639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (MethodSymbol? reinferredMethod,
              argumentResults,
              _,
-             Func<ImmutableArray<VisitArgumentResult>, ImmutableArray<ParameterSymbol>, MethodSymbol?, (MethodSymbol? method, bool returnNotNull)>? visitArgumentsCompletion) =
+             ArgumentsCompletionDelegate? visitArgumentsCompletion) =
                 VisitArguments(
                     node,
                     node.Arguments,
@@ -3642,7 +3650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Expanded,
                     node.InvokedAsExtensionMethod,
                     addMethod,
-                    delayCompletionForTargetMemeber: delayCompletionForType);
+                    delayCompletionForTargetMember: delayCompletionForType);
 
 #if DEBUG
             if (node.InvokedAsExtensionMethod)
@@ -3653,24 +3661,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 #endif 
 
-            return setUpdatedSymbol(node, containingType, reinferredMethod, delayCompletionForType ? argumentResults : default, visitArgumentsCompletion, delayCompletionForType);
+            return setUpdatedSymbol(node, containingType, reinferredMethod, argumentResults, visitArgumentsCompletion, delayCompletionForType);
 
             Action<int, TypeSymbol>? setUpdatedSymbol(
                 BoundCollectionElementInitializer node,
                 TypeSymbol containingType,
                 MethodSymbol? reinferredMethod,
                 ImmutableArray<VisitArgumentResult> argumentResults,
-                Func<ImmutableArray<VisitArgumentResult>, ImmutableArray<ParameterSymbol>, MethodSymbol?, (MethodSymbol? method, bool returnNotNull)>? visitArgumentsCompletion,
+                ArgumentsCompletionDelegate? visitArgumentsCompletion,
                 bool delayCompletionForType)
             {
                 if (delayCompletionForType)
                 {
-                    Debug.Assert(!argumentResults.IsDefault);
                     Debug.Assert(visitArgumentsCompletion is not null);
                     return setUpdatedSymbolAsContinuation(node, argumentResults, visitArgumentsCompletion);
                 }
 
-                Debug.Assert(argumentResults.IsDefault);
                 Debug.Assert(visitArgumentsCompletion is null);
                 Debug.Assert(reinferredMethod is object);
                 if (node.ImplicitReceiverOpt != null)
@@ -3687,17 +3693,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Action<int, TypeSymbol>? setUpdatedSymbolAsContinuation(
                 BoundCollectionElementInitializer node,
                 ImmutableArray<VisitArgumentResult> argumentResults,
-                Func<ImmutableArray<VisitArgumentResult>, ImmutableArray<ParameterSymbol>, MethodSymbol?, (MethodSymbol? method, bool returnNotNull)> visitArgumentsCompletion)
+                ArgumentsCompletionDelegate visitArgumentsCompletion)
             {
-                Debug.Assert(!argumentResults.IsDefault);
-
                 return (int containingSlot, TypeSymbol containingType) =>
                 {
                     MethodSymbol addMethod = addMethodAsMemberOfContainingType(node, containingType, ref argumentResults);
 
                     setUpdatedSymbol(
                         node, containingType, visitArgumentsCompletion.Invoke(argumentResults, addMethod.Parameters, addMethod).method,
-                        argumentResults: default, visitArgumentsCompletion: null, delayCompletionForType: false);
+                        argumentResults, visitArgumentsCompletion: null, delayCompletionForType: false);
                 };
             }
 
@@ -3973,7 +3977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private bool IsTargetTypedExpression(BoundExpression node)
+        private static bool IsTargetTypedExpression(BoundExpression node)
         {
             return node is BoundConditionalOperator { WasTargetTyped: true } or
                            BoundConvertedSwitchExpression { WasTargetTyped: true } or
@@ -4345,12 +4349,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isLifted = binary.OperatorKind.IsLifted();
                 TypeWithState leftUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, leftType);
                 TypeWithState rightUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, rightType);
-                TypeSymbol? asMemberOfType = getTypeIfContainingType(methodContainer, leftUnderlyingType.Type, leftOperand) ??
+                TypeSymbol asMemberOfType = getTypeIfContainingType(methodContainer, leftUnderlyingType.Type, leftOperand) ??
                     getTypeIfContainingType(methodContainer, rightUnderlyingType.Type, rightOperand) ?? methodContainer;
-                if (asMemberOfType is object)
-                {
-                    method = (MethodSymbol)AsMemberOfType(asMemberOfType, method);
-                }
+                method = (MethodSymbol)AsMemberOfType(asMemberOfType, method);
 
                 // Analyze operator call properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
                 var parameters = method.Parameters;
@@ -5830,13 +5831,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool invokedAsExtensionMethod,
             MethodSymbol? method = null)
         {
-            var result = VisitArguments(node, arguments, refKindsOpt, parametersOpt, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod, method, delayCompletionForTargetMemeber: false);
+            var result = VisitArguments(node, arguments, refKindsOpt, parametersOpt, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod, method, delayCompletionForTargetMember: false);
             Debug.Assert(result.completion is null);
 
             return (result.method, result.results, result.returnNotNull);
         }
 
-        private (MethodSymbol? method, ImmutableArray<VisitArgumentResult> results, bool returnNotNull, Func<ImmutableArray<VisitArgumentResult>, ImmutableArray<ParameterSymbol>, MethodSymbol?, (MethodSymbol? method, bool returnNotNull)>? completion)
+        private delegate (MethodSymbol? method, bool returnNotNull) ArgumentsCompletionDelegate(ImmutableArray<VisitArgumentResult> argumentResults, ImmutableArray<ParameterSymbol> parametersOpt, MethodSymbol? method);
+
+        private (MethodSymbol? method, ImmutableArray<VisitArgumentResult> results, bool returnNotNull, ArgumentsCompletionDelegate? completion)
         VisitArguments(
             BoundNode node,
             ImmutableArray<BoundExpression> arguments,
@@ -5847,7 +5850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             bool invokedAsExtensionMethod,
             MethodSymbol? method,
-            bool delayCompletionForTargetMemeber)
+            bool delayCompletionForTargetMember)
         {
             Debug.Assert(!arguments.IsDefault);
             (ImmutableArray<BoundExpression> argumentsNoConversions, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
@@ -5858,9 +5861,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitArguments(
                 node, arguments, argumentsNoConversions, conversions, results, refKindsOpt,
                 parametersOpt, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod,
-                method, delayCompletionForTargetMemeber);
+                method, delayCompletionForTargetMember);
 
-            (MethodSymbol? method, ImmutableArray<VisitArgumentResult> results, bool returnNotNull, Func<ImmutableArray<VisitArgumentResult>, ImmutableArray<ParameterSymbol>, MethodSymbol?, (MethodSymbol? method, bool returnNotNull)>? completion)
+            (MethodSymbol? method, ImmutableArray<VisitArgumentResult> results, bool returnNotNull, ArgumentsCompletionDelegate? completion)
             visitArguments(
                 BoundNode node,
                 ImmutableArray<BoundExpression> arguments,
@@ -5874,11 +5877,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool expanded,
                 bool invokedAsExtensionMethod,
                 MethodSymbol? method,
-                bool delayCompletionForTargetMemeber)
+                bool delayCompletionForTargetMember)
             {
                 bool shouldReturnNotNull = false;
 
-                if (delayCompletionForTargetMemeber)
+                if (delayCompletionForTargetMember)
                 {
                     return (method, results, shouldReturnNotNull, visitArgumentsAsContinuation(
                                                                       node, arguments, argumentsNoConversions, conversions, refKindsOpt,
@@ -5935,7 +5938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // If this assert fails, we are missing necessary info to visit the
                             // conversion of a target typed construct.
-                            Debug.Assert(!IsTargetTypedExpression(argumentNoConversion) || _targetTypedAnalysisCompletionOpt?.ContainsKey(argumentNoConversion) is not (null or false));
+                            Debug.Assert(!IsTargetTypedExpression(argumentNoConversion) || _targetTypedAnalysisCompletionOpt?.ContainsKey(argumentNoConversion) is true);
 
                             // If this assert fails, it means we failed to visit a lambda for error recovery above.
                             Debug.Assert(argumentNoConversion is not BoundLambda);
@@ -6031,7 +6034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (method, results, shouldReturnNotNull, null);
             }
 
-            Func<ImmutableArray<VisitArgumentResult>, ImmutableArray<ParameterSymbol>, MethodSymbol?, (MethodSymbol? method, bool returnNotNull)> visitArgumentsAsContinuation(
+            ArgumentsCompletionDelegate visitArgumentsAsContinuation(
                 BoundNode node,
                 ImmutableArray<BoundExpression> arguments,
                 ImmutableArray<BoundExpression> argumentsNoConversions,
@@ -6047,7 +6050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                            var result = visitArguments(
                                            node, arguments, argumentsNoConversions, conversions, results, refKindsOpt,
                                            parametersOpt, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod,
-                                           method, delayCompletionForTargetMemeber: false);
+                                           method, delayCompletionForTargetMember: false);
                            Debug.Assert(result.completion is null);
 
                            return (result.method, result.returnNotNull);
@@ -7621,10 +7624,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (TargetTypedAnalysisCompletion.TryGetValue(conversionOperand, out Func<TypeWithAnnotations, TypeWithState>? completion))
                 {
                     TargetTypedAnalysisCompletion.Remove(conversionOperand);
-
+#if DEBUG
                     bool save_completingTargetTypedExpression = _completingTargetTypedExpression;
                     _completingTargetTypedExpression = true;
-
+#endif
                     if (conversionOperand is BoundObjectCreationExpressionBase && targetTypeWithNullability.IsNullableType())
                     {
                         operandType = completion(targetTypeWithNullability.Type.GetNullableUnderlyingTypeWithAnnotations());
@@ -7634,8 +7637,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         operandType = completion(targetTypeWithNullability);
                     }
-
+#if DEBUG
                     _completingTargetTypedExpression = save_completingTargetTypedExpression;
+#endif
                 }
                 else
                 {
@@ -8102,14 +8106,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+            }
 
-                void visitHandlerConstruction(InterpolatedStringHandlerData handlerData)
-                {
-                    bool save_completingTargetTypedExpression = _completingTargetTypedExpression;
-                    _completingTargetTypedExpression = false;
-                    VisitRvalue(handlerData.Construction);
-                    _completingTargetTypedExpression = save_completingTargetTypedExpression;
-                }
+            void visitHandlerConstruction(InterpolatedStringHandlerData handlerData)
+            {
+#if DEBUG
+                bool save_completingTargetTypedExpression = _completingTargetTypedExpression;
+                _completingTargetTypedExpression = false;
+#endif
+                VisitRvalue(handlerData.Construction);
+#if DEBUG
+                _completingTargetTypedExpression = save_completingTargetTypedExpression;
+#endif 
             }
         }
 
@@ -10450,7 +10458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
-            VisitObjectCreationExpression((BoundObjectCreationExpressionBase)node);
+            VisitObjectCreationExpressionBase(node);
             return null;
         }
 
@@ -10492,13 +10500,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
         {
-            VisitObjectCreationExpression((BoundObjectCreationExpressionBase)node);
+            VisitObjectCreationExpressionBase(node);
             return null;
         }
 
         public override BoundNode? VisitNewT(BoundNewT node)
         {
-            VisitObjectCreationExpression((BoundObjectCreationExpressionBase)node);
+            VisitObjectCreationExpressionBase(node);
             return null;
         }
 

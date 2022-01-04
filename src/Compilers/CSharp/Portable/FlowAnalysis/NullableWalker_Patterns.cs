@@ -918,7 +918,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeWithAnnotations inferredTypeWithAnnotations,
                 bool isTargetTyped)
             {
-
                 if (!isTargetTyped)
                 {
                     int numSwitchArms = node.SwitchArms.Length;

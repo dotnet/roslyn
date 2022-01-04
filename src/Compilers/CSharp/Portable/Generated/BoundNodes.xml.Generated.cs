@@ -6538,8 +6538,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol Type => base.Type!;
-
         public string? GuidString { get; }
 
         private readonly BoundObjectInitializerExpressionBase? _InitializerExpressionOpt;
@@ -6956,8 +6954,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this._WasTargetTyped = wasTargetTyped;
         }
 
-
-        public new TypeSymbol Type => base.Type!;
 
         private readonly BoundObjectInitializerExpressionBase? _InitializerExpressionOpt;
         public override BoundObjectInitializerExpressionBase? InitializerExpressionOpt { get { return _InitializerExpressionOpt; } }

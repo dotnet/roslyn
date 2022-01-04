@@ -1851,8 +1851,6 @@
   </Node>
 
   <Node Name="BoundNoPiaObjectCreationExpression" Base="BoundObjectCreationExpressionBase">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="GuidString" Type="string?"/>
     <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
     <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
@@ -1951,9 +1949,6 @@
   </Node>
   
   <Node Name="BoundNewT" Base="BoundObjectCreationExpressionBase">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-  
     <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
     <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
