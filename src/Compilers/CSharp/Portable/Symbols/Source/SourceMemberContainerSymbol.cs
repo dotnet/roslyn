@@ -4766,8 +4766,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this; }
         }
 
-        internal sealed override bool HasFieldInitializers() => InstanceInitializers.Length > 0;
-
         internal class SynthesizedExplicitImplementations
         {
             public static readonly SynthesizedExplicitImplementations Empty = new SynthesizedExplicitImplementations(ImmutableArray<SynthesizedExplicitImplementationForwardingMethod>.Empty,
