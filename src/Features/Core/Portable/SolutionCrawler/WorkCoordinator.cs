@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     case WorkspaceChangeKind.ProjectChanged:
                     case WorkspaceChangeKind.ProjectReloaded:
                         Contract.ThrowIfNull(args.ProjectId);
-                        EnqueueEvent(args.OldSolution, args.NewSolution, args.ProjectId, eventName);
+                        EnqueueProjectChangedEvent(args.OldSolution, args.NewSolution, args.ProjectId, eventName);
                         break;
 
                     case WorkspaceChangeKind.ProjectRemoved:
@@ -375,10 +375,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     () => EnqueueWorkItemForSolutionAsync(solution, invocationReasons), _shutdownToken);
             }
 
-            private void EnqueueEvent(Solution oldSolution, Solution newSolution, ProjectId projectId, string eventName)
+            private void EnqueueProjectChangedEvent(Solution oldSolution, Solution newSolution, ProjectId projectId, string eventName)
             {
-                _eventProcessingQueue.ScheduleTask(eventName,
-                    () => EnqueueWorkItemAfterDiffAsync(oldSolution, newSolution, projectId), _shutdownToken);
+                _eventProcessingQueue.ScheduleTask(
+                    eventName,
+                    async () =>
+                    {
+                        var oldProject = oldSolution.GetRequiredProject(projectId);
+                        var newProject = newSolution.GetRequiredProject(projectId);
+
+                        await EnqueueWorkItemAsync(newProject.GetChanges(oldProject)).ConfigureAwait(false);
+                    },
+                    _shutdownToken);
             }
 
             private void EnqueueEvent(Solution solution, ProjectId projectId, InvocationReasons invocationReasons, string eventName)
@@ -565,14 +573,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     await EnqueueWorkItemForProjectAsync(solution, projectId, invocationReasons).ConfigureAwait(false);
                 }
-            }
-
-            private async Task EnqueueWorkItemAfterDiffAsync(Solution oldSolution, Solution newSolution, ProjectId projectId)
-            {
-                var oldProject = oldSolution.GetRequiredProject(projectId);
-                var newProject = newSolution.GetRequiredProject(projectId);
-
-                await EnqueueWorkItemAsync(newProject.GetChanges(oldProject)).ConfigureAwait(continueOnCapturedContext: false);
             }
 
             private async Task EnqueueWorkItemAfterDiffAsync(Solution oldSolution, Solution newSolution, DocumentId documentId)
