@@ -2,5 +2,8 @@
 <Project>
   <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
   <Import Project="eng\targets\Imports.targets" />
-  
+
+  <!-- <Metalama> -->
+  <Import Sdk="PostSharp.Engineering.Sdk" Project="TeamCity.targets" />
+  <!-- </Metalama> -->
 </Project>
