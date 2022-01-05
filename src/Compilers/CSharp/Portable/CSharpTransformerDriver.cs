@@ -4,12 +4,15 @@
 
 // <Metalama /> This code is used by Try.Metalama.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using PostSharp.Backstage.Extensibility;
+using PostSharp.Backstage.Licensing;
+using PostSharp.Backstage.Licensing.Consumption;
 
 namespace Metalama.Compiler
 {
@@ -21,14 +24,36 @@ namespace Metalama.Compiler
         {
             var services = new ServiceCollection();
 
-            // TODO: Configure for Try.Metalama
             var serviceProviderBuilder = new ServiceProviderBuilder(
                 (type, instance) => services.AddService(type, instance),
                 () => services.GetServiceProvider());
 
+            serviceProviderBuilder.AddSingleton<IBackstageDiagnosticSink>(new MetalamaTryBackstageDiagnosticsSink());
+            serviceProviderBuilder.AddSingleton<ILicenseConsumptionManager>(new MetalamaTryLicenseConsumptionManager());
+
             var diagnostics = DiagnosticBag.GetInstance();
             var results = CSharpCompiler.RunTransformers(input, transformers, null, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader, serviceProviderBuilder.ServiceProvider, CancellationToken.None);
             return (results.TransformedCompilation, diagnostics.ToReadOnlyAndFree());
+        }
+
+        private class MetalamaTryLicenseConsumptionManager : ILicenseConsumptionManager
+        {
+            public bool CanConsumeFeatures(ILicenseConsumer consumer, LicensedFeatures requiredFeatures) => true;
+
+            public void ConsumeFeatures(ILicenseConsumer consumer, LicensedFeatures requiredFeatures) { }
+        }
+
+        private class MetalamaTryBackstageDiagnosticsSink : IBackstageDiagnosticSink
+        {
+            public void ReportError(string message, IDiagnosticsLocation? location = null)
+            {
+                throw new InvalidOperationException(message);
+            }
+
+            public void ReportWarning(string message, IDiagnosticsLocation? location = null)
+            {
+                throw new InvalidOperationException(message);
+            }
         }
     }
 }
