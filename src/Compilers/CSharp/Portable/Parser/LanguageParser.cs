@@ -4386,20 +4386,16 @@ tryAgain:
             {
                 this.ParseParameterModifiers(modifiers);
 
-                TypeSyntax type;
-                SyntaxToken identifier;
                 if (this.CurrentToken.Kind == SyntaxKind.ArgListKeyword)
                 {
                     // We store an __arglist parameter as a parameter with null type and whose 
                     // .Identifier has the kind ArgListKeyword.
-                    type = null;
-                    identifier = this.EatToken(SyntaxKind.ArgListKeyword);
+                    return _syntaxFactory.Parameter(
+                        attributes, modifiers.ToList(), type: null, this.EatToken(SyntaxKind.ArgListKeyword), exclamationExclamationToken: null, @default: null);
                 }
-                else
-                {
-                    type = this.ParseType(mode: ParseTypeMode.Parameter);
-                    identifier = this.ParseIdentifierToken();
-                }
+
+                var type = this.ParseType(mode: ParseTypeMode.Parameter);
+                var identifier = this.ParseIdentifierToken();
 
                 // When the user type "int goo[]", give them a useful error
                 if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken)
