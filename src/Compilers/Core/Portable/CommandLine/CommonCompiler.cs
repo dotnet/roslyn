@@ -1300,10 +1300,14 @@ namespace Microsoft.CodeAnalysis
                             diagnostics.Add(diagnostic);
                         }
 
+                        // Make sure we start from an empty directory, otherwise we may let garbage from a previous run.
+                        if (hasTransformedOutputPath && Directory.Exists(transformedOutputPath))
+                        {
+                            Directory.Delete(transformedOutputPath, true);
+                        }
 
                         var prefixRemover = CommonPath.MakePrefixRemover(transformersResult.TransformedTrees.Select(t => t.NewTree.FilePath));
                         var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
 
                         foreach (var transformedTree in transformersResult.TransformedTrees)
                         {
@@ -1331,9 +1335,10 @@ namespace Microsoft.CodeAnalysis
                             if (hasTransformedOutputPath)
                             {
                                 var fullPath = Path.Combine(transformedOutputPath, path);
-                                if (Directory.Exists(transformedOutputPath))
+                                var directory = Path.GetDirectoryName(fullPath);
+                                if (!Directory.Exists(directory))
                                 {
-                                    Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+                                    Directory.CreateDirectory(directory);
                                 }
 
                                 newTree = newTree.WithFilePath(fullPath);

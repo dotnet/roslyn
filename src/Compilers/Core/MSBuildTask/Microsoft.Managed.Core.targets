@@ -359,7 +359,7 @@
     Controls output of files transformed by the Metalama compiler.
     
     MetalamaCompilerTransformedFilesOutputPath controls the location the files will be output to.
-    The compiler will not emit any transformed files when the path is empty, and defaults to a /transformed directory in $(IntermediateOutputPath) if $(IntermediateOutputPath) has a value.
+    The compiler will not emit any transformed files when the path is empty, and defaults to `$(IntermediateOutputPath)/metalama` if $(IntermediateOutputPath) has a value.
     MetalamaEmitCompilerTransformedFiles allows the user to control if anything is emitted by clearing the property when not true.
     When MetalamaEmitCompilerTransformedFiles is true, we ensure that MetalamaCompilerTransformedFilesOutputPath has a value and issue a warning if not.
     We will create MetalamaCompilerTransformedFilesOutputPath if it does not exist.
@@ -368,7 +368,7 @@
     <MetalamaEmitCompilerTransformedFiles Condition="'$(MetalamaEmitCompilerTransformedFiles)' == '' and '$(MetalamaDebugTransformedCode)' == 'true'">true</MetalamaEmitCompilerTransformedFiles>
     <MetalamaEmitCompilerTransformedFiles Condition="'$(MetalamaEmitCompilerTransformedFiles)' == ''">false</MetalamaEmitCompilerTransformedFiles>
     <MetalamaCompilerTransformedFilesOutputPath Condition="'$(MetalamaEmitCompilerTransformedFiles)' != 'true'"></MetalamaCompilerTransformedFilesOutputPath>
-    <MetalamaCompilerTransformedFilesOutputPath Condition="'$(MetalamaEmitCompilerTransformedFiles)' == 'true' and '$(MetalamaCompilerTransformedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)/transformed</MetalamaCompilerTransformedFilesOutputPath>
+    <MetalamaCompilerTransformedFilesOutputPath Condition="'$(MetalamaEmitCompilerTransformedFiles)' == 'true' and '$(MetalamaCompilerTransformedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)metalama</MetalamaCompilerTransformedFilesOutputPath>
   </PropertyGroup>
 
   <Target Name="CreateMetalamaCompilerTransformedFilesOutputPath"

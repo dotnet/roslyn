@@ -1,20 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
 
+  <!-- Transitive package dependencies must be included in the project as private assets, then we include their output in our own package.-->
+  <ItemGroup>
+    <PackageReference Include="System.Composition.AttributedModel" Version="$(SystemCompositionVersion)" PrivateAssets="all">
+            <GeneratePathProperty>true</GeneratePathProperty>
+    </PackageReference>
+     <PackageReference Include="System.Composition.Convention" Version="$(SystemCompositionVersion)" PrivateAssets="all">
+            <GeneratePathProperty>true</GeneratePathProperty>
+    </PackageReference>
+    <PackageReference Include="System.Composition.Hosting" Version="$(SystemCompositionVersion)" PrivateAssets="all">
+            <GeneratePathProperty>true</GeneratePathProperty>
+    </PackageReference>
+    <PackageReference Include="System.Composition.Runtime" Version="$(SystemCompositionVersion)" PrivateAssets="all">
+            <GeneratePathProperty>true</GeneratePathProperty>
+    </PackageReference>
+    <PackageReference Include="System.Composition.TypedParts" Version="$(SystemCompositionVersion)" PrivateAssets="all">
+            <GeneratePathProperty>true</GeneratePathProperty>
+    </PackageReference>
+     <PackageReference Include="Humanizer.Core" Version="$(HumanizerCoreVersion)" PrivateAssets="all">
+            <GeneratePathProperty>true</GeneratePathProperty>
+    </PackageReference>
+     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" PrivateAssets="all">
+            <GeneratePathProperty>true</GeneratePathProperty>
+    </PackageReference>
+  </ItemGroup>
+
   <Target Name="InitializeMetalamaCompilerArtifacts">
 
     <ItemGroup>
       <CommonMetalamaCompilerArtifact Include="$(ArtifactsBinDir)Metalama.Compiler.Interface.TypeForwards\$(Configuration)\netstandard2.0\Metalama.Compiler.Interface.dll" />
+      <CommonMetalamaCompilerArtifact Include="$(PkgHumanizer_Core)\lib\netstandard1.0\Humanizer.dll"/>
     </ItemGroup>
 
     <ItemGroup>
       <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\Microsoft.Bcl.HashCode.dll" />
       <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\PostSharp.Backstage.Settings.dll" />
+      <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" />
+      <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.Workspaces.dll" />
+      <CoreClrMetalamaCompilerArtifact Include="$(PkgSystem_Composition_AttributedModel)\lib\netstandard1.0\System.Composition.AttributedModel.dll"/>
+      <CoreClrMetalamaCompilerArtifact Include="$(PkgSystem_Composition_Convention)\lib\netstandard1.0\System.Composition.Convention.dll"/>
+      <CoreClrMetalamaCompilerArtifact Include="$(PkgSystem_Composition_Hosting)\lib\netstandard1.0\System.Composition.Hosting.dll"/>
+      <CoreClrMetalamaCompilerArtifact Include="$(PkgSystem_Composition_Runtime)\lib\netstandard1.0\System.Composition.Runtime.dll"/>
+      <CoreClrMetalamaCompilerArtifact Include="$(PkgSystem_Composition_TypedParts)\lib\netstandard1.0\System.Composition.TypedParts.dll"/>
+      <CoreClrMetalamaCompilerArtifact Include="$(PkgMicrosoft_Bcl_AsyncInterfaces)\lib\netstandard2.1\Microsoft.Bcl.AsyncInterfaces.dll"/>
     </ItemGroup>
 
     <ItemGroup>
       <DesktopMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\Microsoft.Bcl.HashCode.dll" />
       <DesktopMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\PostSharp.Backstage.Settings.dll" />
+      <DesktopMetalamaCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" />
+      <DesktopMetalamaCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Workspaces.dll" />
+      <DesktopMetalamaCompilerArtifact Include="$(PkgSystem_Composition_AttributedModel)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll"/>
+      <DesktopMetalamaCompilerArtifact Include="$(PkgSystem_Composition_Convention)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll"/>
+      <DesktopMetalamaCompilerArtifact Include="$(PkgSystem_Composition_Hosting)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll"/>
+      <DesktopMetalamaCompilerArtifact Include="$(PkgSystem_Composition_Runtime)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll"/>
+      <DesktopMetalamaCompilerArtifact Include="$(PkgSystem_Composition_TypedParts)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll"/>
+      <DesktopMetalamaCompilerArtifact Include="$(PkgMicrosoft_Bcl_AsyncInterfaces)\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll"/>
     </ItemGroup>
 
   </Target>
