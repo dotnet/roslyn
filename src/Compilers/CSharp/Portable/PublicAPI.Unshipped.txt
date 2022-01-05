@@ -3,6 +3,7 @@ abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax.ColonTok
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax.Expression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax!
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.LineOrSpanDirectiveTriviaSyntax.File.get -> Microsoft.CodeAnalysis.SyntaxToken
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.LineOrSpanDirectiveTriviaSyntax.LineKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Conversion.IsObjectCreation.get -> bool
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp10 = 1000 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax.WithColonToken(Microsoft.CodeAnalysis.SyntaxToken colonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax!
