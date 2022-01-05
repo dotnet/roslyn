@@ -1904,25 +1904,50 @@ namespace Microsoft.CodeAnalysis
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
-                if (sig.RemainingBytes >= arrayLen)
-                {
-                    var stringArray = new string?[arrayLen];
-                    for (int i = 0; i < arrayLen; i++)
-                    {
-                        if (!CrackStringInAttributeValue(out stringArray[i], ref sig))
-                        {
-                            value = stringArray.AsImmutableOrNull();
-                            return false;
-                        }
-                    }
 
-                    value = stringArray.AsImmutableOrNull();
-                    return true;
+                if (!ValidateMetadataArrayLength(arrayLen))
+                {
+                    value = default;
+                    return false;
                 }
+
+                var stringArray = new string?[arrayLen];
+
+                for (int i = 0; i < arrayLen; i++)
+                {
+                    if (!CrackStringInAttributeValue(out stringArray[i], ref sig))
+                    {
+                        value = stringArray.AsImmutableOrNull();
+                        return false;
+                    }
+                }
+
+                value = stringArray.AsImmutableOrNull();
+                return true;
             }
 
             value = default;
             return false;
+        }
+
+        private static bool ValidateMetadataArrayLength(uint length)
+        {
+            // Null arrays are represented in metadata by a length of 0xFFFF_FFFF. See ECMA 335 II.23.2.
+            const uint NullArray = 0xFFFF_FFFF;
+
+            if (length == NullArray)
+            {
+                return false;
+            }
+
+            // II.23.2 says that the length must be a int32 if not null. There can't be negative lengths,
+            // so if it's greater than int.MaxValue then we cannot interpret this array.
+            if (length > int.MaxValue)
+            {
+                throw new BadImageFormatException();
+            }
+
+            return true;
         }
 
         internal static bool CrackBoolAndStringArrayInAttributeValue(out BoolAndStringArrayData value, ref BlobReader sig)
@@ -2039,6 +2064,13 @@ namespace Microsoft.CodeAnalysis
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
+
+                if (!ValidateMetadataArrayLength(arrayLen))
+                {
+                    value = default;
+                    return false;
+                }
+
                 if (sig.RemainingBytes >= arrayLen)
                 {
                     var boolArrayBuilder = ArrayBuilder<bool>.GetInstance((int)arrayLen);
@@ -2061,6 +2093,13 @@ namespace Microsoft.CodeAnalysis
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
+
+                if (!ValidateMetadataArrayLength(arrayLen))
+                {
+                    value = default;
+                    return false;
+                }
+
                 if (sig.RemainingBytes >= arrayLen)
                 {
                     var byteArrayBuilder = ArrayBuilder<byte>.GetInstance((int)arrayLen);
