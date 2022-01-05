@@ -4406,6 +4406,10 @@ tryAgain:
                         else
                         {
                             exclamationExclamation = MergeTokens(exclamationExclamation, this.EatToken(SyntaxKind.ExclamationToken), SyntaxKind.ExclamationExclamationToken);
+                            if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
+                            {
+                                equals = this.EatToken(SyntaxKind.EqualsToken);
+                            }
                         }
                     }
                     else if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken)
@@ -4415,6 +4419,10 @@ tryAgain:
                         var close = this.EatToken();
                         open = this.AddError(open, ErrorCode.ERR_BadArraySyntax);
                         name = AddTrailingSkippedSyntax(name, SyntaxList.List(open, close));
+                        if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
+                        {
+                            equals = this.EatToken(SyntaxKind.EqualsToken);
+                        }
                     }
                 }
                 else
@@ -4423,12 +4431,12 @@ tryAgain:
                     // .Identifier has the kind ArgListKeyword.
                     type = null;
                     name = this.EatToken(SyntaxKind.ArgListKeyword);
+                    if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
+                    {
+                        equals = this.EatToken(SyntaxKind.EqualsToken);
+                    }
                 }
 
-                if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
-                {
-                    equals = this.EatToken(SyntaxKind.EqualsToken);
-                }
                 if (exclamationExclamation != null)
                 {
                     exclamationExclamation = (exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
@@ -13619,7 +13627,7 @@ tryAgain:
 
         private SyntaxToken MergeTokens(SyntaxToken s1, SyntaxToken s2, SyntaxKind kind)
         {
-            if (s1.GetTrailingTriviaWidth() == 0 && s2.GetLeadingTriviaWidth() == 0)
+            if (!s1.ContainsDiagnostics && !s2.ContainsDiagnostics && s1.GetTrailingTriviaWidth() == 0 && s2.GetLeadingTriviaWidth() == 0)
             {
                 s1 = SyntaxFactory.Token(s1.GetLeadingTrivia(), kind, s2.GetTrailingTrivia());
             }

@@ -7273,6 +7273,44 @@ class C<T> where T : struct? {}
         }
 
         [Fact]
+        public void TestMethodDeclarationNullValidation_SingleExclamation()
+        {
+            UsingStatement(@"void M(string name!) { }", options: TestOptions.RegularPreview,
+                // (1,20): error CS1003: Syntax error, '!' expected
+                // void M(string name!) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("!", ")").WithLocation(1, 20));
+
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        M(SyntaxKind.ExclamationExclamationToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestOptParamMethodDeclarationWithNullValidation()
         {
             UsingStatement(@"void M(string name!! = null) { }", options: TestOptions.RegularPreview);
@@ -7762,6 +7800,60 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+        }
+
+        [Fact]
+        public void TestMethodDeclarationNullValidation_ExtraEquals()
+        {
+            UsingStatement(@"void M(string name!!= = null) { }", options: TestOptions.RegularPreview,
+                // (1,23): error CS1525: Invalid expression term '='
+                // void M(string name!!= = null) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(1, 23));
+
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
         }
 
         [Fact]
