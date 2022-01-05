@@ -74,7 +74,7 @@ public class X
         AssertEx.Multiple(
             () => verifier.VerifyIL("X.Test(System.Span<char>)", @"
 {
-  // Code size       69 (0x45)
+  // Code size       71 (0x47)
   .maxstack  4
   .locals init (char V_0, //first
                 System.Span<char> V_1, //others
@@ -88,7 +88,7 @@ public class X
   IL_0009:  stloc.s    V_4
   IL_000b:  ldloc.s    V_4
   IL_000d:  ldc.i4.1
-  IL_000e:  ble.un.s   IL_0036
+  IL_000e:  ble.un.s   IL_0038
   IL_0010:  ldloca.s   V_3
   IL_0012:  ldc.i4.0
   IL_0013:  call       ""ref char System.Span<char>.this[int].get""
@@ -97,33 +97,35 @@ public class X
   IL_001a:  ldloca.s   V_3
   IL_001c:  ldc.i4.1
   IL_001d:  ldloc.s    V_4
-  IL_001f:  ldc.i4.2
+  IL_001f:  ldc.i4.1
   IL_0020:  sub
-  IL_0021:  call       ""System.Span<char> System.Span<char>.Slice(int, int)""
-  IL_0026:  stloc.1
-  IL_0027:  ldloca.s   V_3
-  IL_0029:  ldloc.s    V_4
-  IL_002b:  ldc.i4.1
-  IL_002c:  sub
-  IL_002d:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0032:  ldind.u2
-  IL_0033:  stloc.2
-  IL_0034:  br.s       IL_0038
-  IL_0036:  ldc.i4.1
-  IL_0037:  ret
-  IL_0038:  ldloc.0
-  IL_0039:  ldloc.2
-  IL_003a:  bne.un.s   IL_0043
-  IL_003c:  ldloc.1
-  IL_003d:  call       ""bool X.Test(System.Span<char>)""
-  IL_0042:  ret
-  IL_0043:  ldc.i4.0
+  IL_0021:  ldc.i4.1
+  IL_0022:  sub
+  IL_0023:  call       ""System.Span<char> System.Span<char>.Slice(int, int)""
+  IL_0028:  stloc.1
+  IL_0029:  ldloca.s   V_3
+  IL_002b:  ldloc.s    V_4
+  IL_002d:  ldc.i4.1
+  IL_002e:  sub
+  IL_002f:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0034:  ldind.u2
+  IL_0035:  stloc.2
+  IL_0036:  br.s       IL_003a
+  IL_0038:  ldc.i4.1
+  IL_0039:  ret
+  IL_003a:  ldloc.0
+  IL_003b:  ldloc.2
+  IL_003c:  bne.un.s   IL_0045
+  IL_003e:  ldloc.1
+  IL_003f:  call       ""bool X.Test(System.Span<char>)""
   IL_0044:  ret
+  IL_0045:  ldc.i4.0
+  IL_0046:  ret
 }
 "),
             () => verifier.VerifyIL("X.Test(char[])", @"
 {
-  // Code size       72 (0x48)
+  // Code size       69 (0x45)
   .maxstack  4
   .locals init (char V_0, //first
                 char[] V_1, //others
@@ -133,49 +135,50 @@ public class X
   IL_0000:  ldarg.0
   IL_0001:  stloc.3
   IL_0002:  ldloc.3
-  IL_0003:  brfalse.s  IL_0046
+  IL_0003:  brfalse.s  IL_0043
   IL_0005:  ldloc.3
-  IL_0006:  callvirt   ""int System.Array.Length.get""
-  IL_000b:  stloc.s    V_4
-  IL_000d:  ldloc.s    V_4
-  IL_000f:  ldc.i4.1
-  IL_0010:  ble.un.s   IL_0039
-  IL_0012:  ldloc.3
-  IL_0013:  ldc.i4.0
-  IL_0014:  ldelem.u2
-  IL_0015:  stloc.0
-  IL_0016:  ldloc.3
-  IL_0017:  ldc.i4.1
-  IL_0018:  ldc.i4.0
-  IL_0019:  newobj     ""System.Index..ctor(int, bool)""
-  IL_001e:  ldc.i4.1
-  IL_001f:  ldc.i4.1
-  IL_0020:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0025:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_002a:  call       ""char[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<char>(char[], System.Range)""
-  IL_002f:  stloc.1
-  IL_0030:  ldloc.3
-  IL_0031:  ldloc.s    V_4
-  IL_0033:  ldc.i4.1
-  IL_0034:  sub
-  IL_0035:  ldelem.u2
-  IL_0036:  stloc.2
-  IL_0037:  br.s       IL_003b
-  IL_0039:  ldc.i4.1
-  IL_003a:  ret
-  IL_003b:  ldloc.0
-  IL_003c:  ldloc.2
-  IL_003d:  bne.un.s   IL_0046
-  IL_003f:  ldloc.1
-  IL_0040:  call       ""bool X.Test(char[])""
-  IL_0045:  ret
-  IL_0046:  ldc.i4.0
-  IL_0047:  ret
+  IL_0006:  ldlen
+  IL_0007:  conv.i4
+  IL_0008:  stloc.s    V_4
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  ldc.i4.1
+  IL_000d:  ble.un.s   IL_0036
+  IL_000f:  ldloc.3
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldelem.u2
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.3
+  IL_0014:  ldc.i4.1
+  IL_0015:  ldc.i4.0
+  IL_0016:  newobj     ""System.Index..ctor(int, bool)""
+  IL_001b:  ldc.i4.1
+  IL_001c:  ldc.i4.1
+  IL_001d:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0022:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0027:  call       ""char[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<char>(char[], System.Range)""
+  IL_002c:  stloc.1
+  IL_002d:  ldloc.3
+  IL_002e:  ldloc.s    V_4
+  IL_0030:  ldc.i4.1
+  IL_0031:  sub
+  IL_0032:  ldelem.u2
+  IL_0033:  stloc.2
+  IL_0034:  br.s       IL_0038
+  IL_0036:  ldc.i4.1
+  IL_0037:  ret
+  IL_0038:  ldloc.0
+  IL_0039:  ldloc.2
+  IL_003a:  bne.un.s   IL_0043
+  IL_003c:  ldloc.1
+  IL_003d:  call       ""bool X.Test(char[])""
+  IL_0042:  ret
+  IL_0043:  ldc.i4.0
+  IL_0044:  ret
 }
 "),
             () => verifier.VerifyIL("X.Test(string)", @"
 {
-  // Code size       66 (0x42)
+  // Code size       68 (0x44)
   .maxstack  4
   .locals init (char V_0, //first
                 string V_1, //others
@@ -185,13 +188,13 @@ public class X
   IL_0000:  ldarg.0
   IL_0001:  stloc.3
   IL_0002:  ldloc.3
-  IL_0003:  brfalse.s  IL_0040
+  IL_0003:  brfalse.s  IL_0042
   IL_0005:  ldloc.3
   IL_0006:  callvirt   ""int string.Length.get""
   IL_000b:  stloc.s    V_4
   IL_000d:  ldloc.s    V_4
   IL_000f:  ldc.i4.1
-  IL_0010:  ble.un.s   IL_0033
+  IL_0010:  ble.un.s   IL_0035
   IL_0012:  ldloc.3
   IL_0013:  ldc.i4.0
   IL_0014:  callvirt   ""char string.this[int].get""
@@ -199,29 +202,67 @@ public class X
   IL_001a:  ldloc.3
   IL_001b:  ldc.i4.1
   IL_001c:  ldloc.s    V_4
-  IL_001e:  ldc.i4.2
+  IL_001e:  ldc.i4.1
   IL_001f:  sub
-  IL_0020:  callvirt   ""string string.Substring(int, int)""
-  IL_0025:  stloc.1
-  IL_0026:  ldloc.3
-  IL_0027:  ldloc.s    V_4
-  IL_0029:  ldc.i4.1
-  IL_002a:  sub
-  IL_002b:  callvirt   ""char string.this[int].get""
-  IL_0030:  stloc.2
-  IL_0031:  br.s       IL_0035
-  IL_0033:  ldc.i4.1
-  IL_0034:  ret
-  IL_0035:  ldloc.0
-  IL_0036:  ldloc.2
-  IL_0037:  bne.un.s   IL_0040
-  IL_0039:  ldloc.1
-  IL_003a:  call       ""bool X.Test(string)""
-  IL_003f:  ret
-  IL_0040:  ldc.i4.0
+  IL_0020:  ldc.i4.1
+  IL_0021:  sub
+  IL_0022:  callvirt   ""string string.Substring(int, int)""
+  IL_0027:  stloc.1
+  IL_0028:  ldloc.3
+  IL_0029:  ldloc.s    V_4
+  IL_002b:  ldc.i4.1
+  IL_002c:  sub
+  IL_002d:  callvirt   ""char string.this[int].get""
+  IL_0032:  stloc.2
+  IL_0033:  br.s       IL_0037
+  IL_0035:  ldc.i4.1
+  IL_0036:  ret
+  IL_0037:  ldloc.0
+  IL_0038:  ldloc.2
+  IL_0039:  bne.un.s   IL_0042
+  IL_003b:  ldloc.1
+  IL_003c:  call       ""bool X.Test(string)""
   IL_0041:  ret
+  IL_0042:  ldc.i4.0
+  IL_0043:  ret
 }
 ")
+            );
+    }
+
+    [Fact]
+    public void ListPattern_LangVer()
+    {
+        var source = @"
+_ = new C() is [];
+_ = new C() is [.. var x];
+_ = new C() is .. var y;
+
+class C
+{
+    public int this[int i] => 1;
+    public int Length => 0;
+    public int Slice(int i, int j) => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular10);
+        compilation.VerifyDiagnostics(
+            // (2,16): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = new C() is [];
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[]").WithArguments("list pattern").WithLocation(2, 16),
+            // (3,16): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = new C() is [.. var x];
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[.. var x]").WithArguments("list pattern").WithLocation(3, 16),
+            // (4,16): error CS9002: Slice patterns may only be used once and directly inside a list pattern.
+            // _ = new C() is .. var y;
+            Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, ".. var y").WithLocation(4, 16)
+            );
+
+        compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularNext);
+        compilation.VerifyDiagnostics(
+            // (4,16): error CS9002: Slice patterns may only be used once and directly inside a list pattern.
+            // _ = new C() is .. var y;
+            Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, ".. var y").WithLocation(4, 16)
             );
     }
 
@@ -587,26 +628,25 @@ True
 }"),
             () => verifier.VerifyIL("X.Test5", @"
 {
-  // Code size       26 (0x1a)
-  .maxstack  4
+  // Code size       24 (0x18)
+  .maxstack  3
   .locals init (int V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0018
+  IL_0001:  brfalse.s  IL_0016
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int Test5.Count.get""
   IL_0009:  stloc.0
   IL_000a:  ldarg.0
   IL_000b:  ldc.i4.0
   IL_000c:  ldloc.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  sub
-  IL_000f:  callvirt   ""int Test5.Slice(int, int)""
-  IL_0014:  ldc.i4.1
-  IL_0015:  ceq
+  IL_000d:  callvirt   ""int Test5.Slice(int, int)""
+  IL_0012:  ldc.i4.1
+  IL_0013:  ceq
+  IL_0015:  ret
+  IL_0016:  ldc.i4.0
   IL_0017:  ret
-  IL_0018:  ldc.i4.0
-  IL_0019:  ret
-}")
+}
+")
         );
     }
 
@@ -683,11 +723,12 @@ class X
 ";
         var expectedDiagnostics = new[]
         {
-                // error CS9200: List patterns may not be used for a value of type 'object'.
-                subpattern != "" ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, listPattern).WithArguments("object") : null,
-                // error CS9201: Slice patterns may not be used for a value of type 'object'.
-                subpattern == ".._" ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, subpattern).WithArguments("object") : null
-            };
+            // error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, listPattern).WithArguments("object"),
+
+            // error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+            subpattern == ".._" ? Diagnostic(ErrorCode.ERR_BadIndexLHS, subpattern).WithArguments("object") : null
+        };
         var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
         compilation.VerifyEmitDiagnostics(expectedDiagnostics.WhereNotNull().ToArray());
     }
@@ -716,10 +757,11 @@ class X
     {
         _ = new X() is [1];
         _ = new X() is [.. 1];
+        _ = new X()[^1];
     } 
 }
 ";
-        var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+        var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
         compilation.VerifyEmitDiagnostics(
             // (20,24): error CS0656: Missing compiler required member 'System.Index..ctor'
             //         _ = new X() is [1];
@@ -729,7 +771,10 @@ class X
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.. 1]").WithArguments("System.Index", ".ctor").WithLocation(21, 24),
             // (21,25): error CS0656: Missing compiler required member 'System.Range..ctor'
             //         _ = new X() is [.. 1];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. 1").WithArguments("System.Range", ".ctor").WithLocation(21, 25)
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. 1").WithArguments("System.Range", ".ctor").WithLocation(21, 25),
+            // (22,21): error CS0656: Missing compiler required member 'System.Index..ctor'
+            //         _ = new X()[^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^1").WithArguments("System.Index", ".ctor").WithLocation(22, 21)
             );
     }
 
@@ -760,6 +805,104 @@ class X
     }
 
     [Fact]
+    public void ListPattern_MissingMembers_IndexCtor()
+    {
+        var source = @"
+class X
+{
+    public int Length => throw null;
+    public int this[System.Index i] => throw null;
+    public int this[System.Range r] => throw null;
+
+    public void M()
+    {
+        _ = this is [0];
+        _ = this is [.., 0];
+        _ = this[^1];
+        _ = this[..];
+    }
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.MakeMemberMissing(WellKnownMember.System_Index__ctor);
+        compilation.VerifyEmitDiagnostics(
+            // (10,21): error CS0656: Missing compiler required member 'System.Index..ctor'
+            //         _ = this is [0];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Index", ".ctor").WithLocation(10, 21),
+            // (11,21): error CS0656: Missing compiler required member 'System.Index..ctor'
+            //         _ = this is [.., 0];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.., 0]").WithArguments("System.Index", ".ctor").WithLocation(11, 21),
+            // (12,18): error CS0656: Missing compiler required member 'System.Index..ctor'
+            //         _ = this[^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^1").WithArguments("System.Index", ".ctor").WithLocation(12, 18)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MissingMembers_RangeCtor()
+    {
+        var source = @"
+class X
+{
+    public int Length => throw null;
+    public int this[System.Index i] => throw null;
+    public int this[System.Range r] => throw null;
+
+    public void M()
+    {
+        _ = this is [0];
+
+        _ = this is [.._];
+        _ = this is [0, .._];
+        _ = this is [.._, 0];
+        _ = this is [0, .._, 0];
+
+        _ = this[^1];
+
+        _ = this[..];
+        _ = this[1..];
+        _ = this[..^1];
+        _ = this[1..^1];
+    }
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.MakeMemberMissing(WellKnownMember.System_Range__ctor);
+        compilation.MakeMemberMissing(WellKnownMember.System_Range__get_All);
+        compilation.MakeMemberMissing(WellKnownMember.System_Range__StartAt);
+        compilation.MakeMemberMissing(WellKnownMember.System_Range__EndAt);
+        // Note: slice patterns always use range expressions with start and end.
+        // But range syntax binds differently depending whether start/end are there and depending on what members are available.
+
+        compilation.VerifyEmitDiagnostics(
+            // (12,22): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this is [.._];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".._").WithArguments("System.Range", ".ctor").WithLocation(12, 22),
+            // (13,25): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this is [0, .._];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".._").WithArguments("System.Range", ".ctor").WithLocation(13, 25),
+            // (14,22): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this is [.._, 0];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".._").WithArguments("System.Range", ".ctor").WithLocation(14, 22),
+            // (15,25): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this is [0, .._, 0];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".._").WithArguments("System.Range", ".ctor").WithLocation(15, 25),
+            // (19,18): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this[..];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..").WithArguments("System.Range", ".ctor").WithLocation(19, 18),
+            // (20,18): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this[1..];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..").WithArguments("System.Range", ".ctor").WithLocation(20, 18),
+            // (21,18): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this[..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..^1").WithArguments("System.Range", ".ctor").WithLocation(21, 18),
+            // (22,18): error CS0656: Missing compiler required member 'System.Range..ctor'
+            //         _ = this[1..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..^1").WithArguments("System.Range", ".ctor").WithLocation(22, 18)
+            );
+    }
+
+    [Fact]
     public void ListPattern_MissingMembers_Substring()
     {
         var source = @"
@@ -772,12 +915,18 @@ class X
     } 
 }
 ";
-        var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
+        var compilation = CreateCompilationWithIndexAndRange(source);
         compilation.MakeMemberMissing(SpecialMember.System_String__Substring);
         compilation.VerifyEmitDiagnostics(
-            // (6,19): error CS9201: Slice patterns may not be used for a value of type 'string'.
-            //         _ = s is {.. var slice};
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, ".. var slice").WithArguments("string").WithLocation(6, 19),
+            // (6,19): error CS0656: Missing compiler required member 'System.String.Substring'
+            //         _ = s is [.. var slice];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. var slice").WithArguments("System.String", "Substring").WithLocation(6, 19),
+            // (6,19): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            //         _ = s is [.. var slice];
+            Diagnostic(ErrorCode.ERR_BadArgType, ".. var slice").WithArguments("1", "System.Range", "int").WithLocation(6, 19),
+            // (7,13): error CS0656: Missing compiler required member 'System.String.Substring'
+            //         _ = s[..];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "s[..]").WithArguments("System.String", "Substring").WithLocation(7, 13),
             // (7,15): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
             //         _ = s[..];
             Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(7, 15)
@@ -793,14 +942,18 @@ class X
     public void M(int[] a)
     {
         _ = a is [.. var slice];
+        _ = a[..];
     } 
 }
 ";
         var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
         compilation.VerifyEmitDiagnostics(
-            // (6,22): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            // (6,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
             //         _ = a is [.. var slice];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "var slice").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(6, 22)
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. var slice").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(6, 19),
+            // (7,15): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = a[..];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(7, 15)
             );
     }
 
@@ -817,52 +970,15 @@ class X
     } 
 }
 ";
-        // PROTOTYPE(list-patterns) Missing diagnostic on `.. var slice`; (this is strange as the test above works)
         var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
         compilation.VerifyEmitDiagnostics(
+            // (6,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = a is [.. var slice];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. var slice").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(6, 19),
             // (7,15): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
             //         _ = a[..];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(7, 15));
-    }
-
-    [Theory]
-    [PairwiseData]
-    public void ListPattern_MissingMembers(
-        bool implicitIndex, bool explicitIndex,
-        bool implicitRange, bool explicitRange,
-        bool hasLengthProp, bool hasCountProp)
-    {
-        var source = @$"
-class X
-{{
-    {(implicitIndex ? "public int this[int i] => 1;" : null)}
-    {(explicitIndex ? "public int this[System.Index i] => 1;" : null)}
-    {(explicitRange ? "public int this[System.Range i] => 1;" : null)}
-    {(implicitRange ? "public int Slice(int i, int j) => 1;" : null)}
-    {(hasLengthProp ? "public int Length => 1;" : null)}
-    {(hasCountProp ? "public int Count => 1;" : null)}
-
-    public static void Main()
-    {{
-        _ = new X() is [.._];
-    }}
-}}
-";
-        var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-
-        var isCountable = hasLengthProp || hasCountProp;
-        var isSliceable = implicitRange || explicitRange;
-        var isIndexable = implicitIndex || explicitIndex;
-        var expectedDiagnostics = new[]
-        {
-                 // (13,24): error CS9200: List patterns may not be used for a value of type 'X'.
-                //         _ = new X() is [.._];
-                !isIndexable || !isCountable ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[.._]").WithArguments("X").WithLocation(13, 24) : null,
-                // (13,25): error CS9201: Slice patterns may not be used for a value of type 'X'.
-                //         _ = new X() is [.._];
-                !isSliceable || !isCountable ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, ".._").WithArguments("X").WithLocation(13, 25) : null
-            };
-        compilation.VerifyEmitDiagnostics(expectedDiagnostics.WhereNotNull().ToArray());
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(7, 15)
+            );
     }
 
     [Fact]
@@ -901,24 +1017,30 @@ class X
 ";
         var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
         compilation.VerifyEmitDiagnostics(
-            // (25,28): error CS0619: 'Test1.this[int]' is obsolete: 'error2'
-            //         _ = new Test1() is [0];
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Test1.this[int]", "error2").WithLocation(25, 28),
             // (25,28): error CS0619: 'Test1.Count' is obsolete: 'error3'
             //         _ = new Test1() is [0];
             Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Test1.Count", "error3").WithLocation(25, 28),
-            // (26,28): error CS0619: 'Test1.this[int]' is obsolete: 'error2'
-            //         _ = new Test1() is [..0];
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Test1.this[int]", "error2").WithLocation(26, 28),
+            // (25,28): error CS0619: 'Test1.Count' is obsolete: 'error3'
+            //         _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Test1.Count", "error3").WithLocation(25, 28),
+            // (25,28): error CS0619: 'Test1.this[int]' is obsolete: 'error2'
+            //         _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Test1.this[int]", "error2").WithLocation(25, 28),
             // (26,28): error CS0619: 'Test1.Count' is obsolete: 'error3'
             //         _ = new Test1() is [..0];
             Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Test1.Count", "error3").WithLocation(26, 28),
-            // (26,29): error CS0619: 'Test1.Slice(int, int)' is obsolete: 'error1'
+            // (26,28): error CS0619: 'Test1.Count' is obsolete: 'error3'
             //         _ = new Test1() is [..0];
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test1.Slice(int, int)", "error1").WithLocation(26, 29),
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Test1.Count", "error3").WithLocation(26, 28),
+            // (26,28): error CS0619: 'Test1.this[int]' is obsolete: 'error2'
+            //         _ = new Test1() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Test1.this[int]", "error2").WithLocation(26, 28),
             // (26,29): error CS0619: 'Test1.Count' is obsolete: 'error3'
             //         _ = new Test1() is [..0];
             Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test1.Count", "error3").WithLocation(26, 29),
+            // (26,29): error CS0619: 'Test1.Slice(int, int)' is obsolete: 'error1'
+            //         _ = new Test1() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test1.Slice(int, int)", "error1").WithLocation(26, 29),
             // (27,28): error CS0619: 'Test2.Length' is obsolete: 'error6'
             //         _ = new Test2() is [0];
             Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Test2.Length", "error6").WithLocation(27, 28),
@@ -931,12 +1053,290 @@ class X
             // (28,28): error CS0619: 'Test2.this[Index]' is obsolete: 'error4'
             //         _ = new Test2() is [..0];
             Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Test2.this[System.Index]", "error4").WithLocation(28, 28),
-            // (28,29): error CS0619: 'Test2.Length' is obsolete: 'error6'
-            //         _ = new Test2() is [..0];
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test2.Length", "error6").WithLocation(28, 29),
             // (28,29): error CS0619: 'Test2.this[Range]' is obsolete: 'error5'
             //         _ = new Test2() is [..0];
             Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test2.this[System.Range]", "error5").WithLocation(28, 29)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_ObsoleteAccessors()
+    {
+        var source = @"
+using System;
+class Test1
+{
+    [Obsolete(""error1"", error: true)]
+    public int Slice(int i, int j) => 0;
+    public int this[int i]
+    {
+        [Obsolete(""error1"", error: true)]
+        get => 0;
+    }
+    public int Count
+    {
+        [Obsolete(""error2"", error: true)]
+        get => 0;
+    }
+}
+class Test2
+{
+    public int this[Index i]
+    {
+        [Obsolete(""error3"", error: true)]
+        get => 0;
+    }
+    public int this[Range i]
+    {
+        [Obsolete(""error4"", error: true)]
+        get => 0;
+    }
+    public int Length
+    {
+        [Obsolete(""error5"", error: true)]
+        get => 0;
+    }
+}
+class X
+{
+    public void M()
+    {
+        _ = new Test1() is [0];
+        _ = new Test1()[^1];
+
+        _ = new Test1() is [..0];
+        _ = new Test1()[..0];
+
+        _ = new Test2() is [0];
+        _ = new Test2()[^1];
+
+        _ = new Test2() is [..0];
+        _ = new Test2()[..0];
+    }
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (40,28): error CS0619: 'Test1.Count.get' is obsolete: 'error2'
+            //         _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Test1.Count.get", "error2").WithLocation(40, 28),
+            // (40,28): error CS0619: 'Test1.Count.get' is obsolete: 'error2'
+            //         _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Test1.Count.get", "error2").WithLocation(40, 28),
+            // (40,28): error CS0619: 'Test1.this[int].get' is obsolete: 'error1'
+            //         _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Test1.this[int].get", "error1").WithLocation(40, 28),
+
+            // (41,13): error CS0619: 'Test1.Count.get' is obsolete: 'error2'
+            //         _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new Test1()[^1]").WithArguments("Test1.Count.get", "error2").WithLocation(41, 13),
+            // (41,13): error CS0619: 'Test1.this[int].get' is obsolete: 'error1'
+            //         _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new Test1()[^1]").WithArguments("Test1.this[int].get", "error1").WithLocation(41, 13),
+
+            // (43,28): error CS0619: 'Test1.Count.get' is obsolete: 'error2'
+            //         _ = new Test1() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Test1.Count.get", "error2").WithLocation(43, 28),
+            // (43,28): error CS0619: 'Test1.Count.get' is obsolete: 'error2'
+            //         _ = new Test1() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Test1.Count.get", "error2").WithLocation(43, 28),
+            // (43,28): error CS0619: 'Test1.this[int].get' is obsolete: 'error1'
+            //         _ = new Test1() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Test1.this[int].get", "error1").WithLocation(43, 28),
+            // (43,29): error CS0619: 'Test1.Slice(int, int)' is obsolete: 'error1'
+            //         _ = new Test1() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test1.Slice(int, int)", "error1").WithLocation(43, 29),
+            // (43,29): error CS0619: 'Test1.Count.get' is obsolete: 'error2'
+            //         _ = new Test1() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test1.Count.get", "error2").WithLocation(43, 29),
+
+            // (44,13): error CS0619: 'Test1.Slice(int, int)' is obsolete: 'error1'
+            //         _ = new Test1()[..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new Test1()[..0]").WithArguments("Test1.Slice(int, int)", "error1").WithLocation(44, 13),
+            // (44,13): error CS0619: 'Test1.Count.get' is obsolete: 'error2'
+            //         _ = new Test1()[..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new Test1()[..0]").WithArguments("Test1.Count.get", "error2").WithLocation(44, 13),
+
+            // (46,28): error CS0619: 'Test2.Length.get' is obsolete: 'error5'
+            //         _ = new Test2() is [0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Test2.Length.get", "error5").WithLocation(46, 28),
+            // (46,28): error CS0619: 'Test2.this[Index].get' is obsolete: 'error3'
+            //         _ = new Test2() is [0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Test2.this[System.Index].get", "error3").WithLocation(46, 28),
+
+            // (47,13): error CS0619: 'Test2.this[Index].get' is obsolete: 'error3'
+            //         _ = new Test2()[^1];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new Test2()[^1]").WithArguments("Test2.this[System.Index].get", "error3").WithLocation(47, 13),
+
+            // (49,28): error CS0619: 'Test2.Length.get' is obsolete: 'error5'
+            //         _ = new Test2() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Test2.Length.get", "error5").WithLocation(49, 28),
+            // (49,28): error CS0619: 'Test2.this[Index].get' is obsolete: 'error3'
+            //         _ = new Test2() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Test2.this[System.Index].get", "error3").WithLocation(49, 28),
+            // (49,29): error CS0619: 'Test2.this[Range].get' is obsolete: 'error4'
+            //         _ = new Test2() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test2.this[System.Range].get", "error4").WithLocation(49, 29),
+
+            // (50,13): error CS0619: 'Test2.this[Range].get' is obsolete: 'error4'
+            //         _ = new Test2()[..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new Test2()[..0]").WithArguments("Test2.this[System.Range].get", "error4").WithLocation(50, 13)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_ObsoleteAccessors_OnBase()
+    {
+        var source = @"
+using System;
+class Base1
+{
+    [Obsolete(""error1"", error: true)]
+    public int Slice(int i, int j) => 0;
+
+    public virtual int this[int i]
+    {
+        [Obsolete(""error2"", error: true)]
+        get => 0;
+        set { }
+    }
+    public virtual int Count
+    {
+        [Obsolete(""error3"", error: true)]
+        get => 0;
+        set { }
+    }
+}
+class Test1 : Base1
+{
+    public override int this[int i]
+    {
+        set { }
+    }
+    public override int Count
+    {
+        set { }
+    }
+}
+class Base2
+{
+    public virtual int this[Index i]
+    {
+        [Obsolete(""error4"", error: true)]
+        get => 0;
+        set { }
+    }
+    public virtual int this[Range i]
+    {
+        [Obsolete(""error5"", error: true)]
+        get => 0;
+        set { }
+    }
+    public virtual int Length
+    {
+        [Obsolete(""error6"", error: true)]
+        get => 0;
+        set { }
+    }
+}
+
+class Test2 : Base2
+{
+    public override int this[Index i]
+    {
+        set { }
+    }
+    public override int this[Range i]
+    {
+        set { }
+    }
+    public override int Length
+    {
+        set { }
+    }
+}
+class X
+{
+    public void M()
+    {
+        _ = new Test1() is [0];
+        _ = new Test1() is [..0];
+        _ = new Test2() is [0];
+        _ = new Test2() is [..0];
+
+        _ = new Test1()[^1];
+        _ = new Test1()[..0];
+        _ = new Test2()[^1];
+        _ = new Test2()[..0];
+    }
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (73,28): error CS0619: 'Base1.Count.get' is obsolete: 'error3'
+            //         _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Base1.Count.get", "error3").WithLocation(73, 28),
+            // (73,28): error CS0619: 'Base1.Count.get' is obsolete: 'error3'
+            //         _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Base1.Count.get", "error3").WithLocation(73, 28),
+            // (73,28): error CS0619: 'Base1.this[int].get' is obsolete: 'error2'
+            //         _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Base1.this[int].get", "error2").WithLocation(73, 28),
+
+            // (74,28): error CS0619: 'Base1.Count.get' is obsolete: 'error3'
+            //         _ = new Test1() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Base1.Count.get", "error3").WithLocation(74, 28),
+            // (74,28): error CS0619: 'Base1.Count.get' is obsolete: 'error3'
+            //         _ = new Test1() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Base1.Count.get", "error3").WithLocation(74, 28),
+            // (74,28): error CS0619: 'Base1.this[int].get' is obsolete: 'error2'
+            //         _ = new Test1() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Base1.this[int].get", "error2").WithLocation(74, 28),
+            // (74,29): error CS0619: 'Base1.Count.get' is obsolete: 'error3'
+            //         _ = new Test1() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Base1.Count.get", "error3").WithLocation(74, 29),
+            // (74,29): error CS0619: 'Base1.Slice(int, int)' is obsolete: 'error1'
+            //         _ = new Test1() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Base1.Slice(int, int)", "error1").WithLocation(74, 29),
+
+            // (75,28): error CS0619: 'Base2.Length.get' is obsolete: 'error6'
+            //         _ = new Test2() is [0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Base2.Length.get", "error6").WithLocation(75, 28),
+            // (75,28): error CS0619: 'Base2.this[Index].get' is obsolete: 'error4'
+            //         _ = new Test2() is [0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Base2.this[System.Index].get", "error4").WithLocation(75, 28),
+
+            // (76,28): error CS0619: 'Base2.Length.get' is obsolete: 'error6'
+            //         _ = new Test2() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Base2.Length.get", "error6").WithLocation(76, 28),
+            // (76,28): error CS0619: 'Base2.this[Index].get' is obsolete: 'error4'
+            //         _ = new Test2() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Base2.this[System.Index].get", "error4").WithLocation(76, 28),
+            // (76,29): error CS0619: 'Base2.this[Range].get' is obsolete: 'error5'
+            //         _ = new Test2() is [..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Base2.this[System.Range].get", "error5").WithLocation(76, 29),
+
+            // (78,13): error CS0619: 'Base1.Count.get' is obsolete: 'error3'
+            //         _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new Test1()[^1]").WithArguments("Base1.Count.get", "error3").WithLocation(78, 13),
+            // (78,13): error CS0619: 'Base1.this[int].get' is obsolete: 'error2'
+            //         _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new Test1()[^1]").WithArguments("Base1.this[int].get", "error2").WithLocation(78, 13),
+
+            // (79,13): error CS0619: 'Base1.Count.get' is obsolete: 'error3'
+            //         _ = new Test1()[..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new Test1()[..0]").WithArguments("Base1.Count.get", "error3").WithLocation(79, 13),
+            // (79,13): error CS0619: 'Base1.Slice(int, int)' is obsolete: 'error1'
+            //         _ = new Test1()[..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new Test1()[..0]").WithArguments("Base1.Slice(int, int)", "error1").WithLocation(79, 13),
+
+            // (80,13): error CS0619: 'Base2.this[Index].get' is obsolete: 'error4'
+            //         _ = new Test2()[^1];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new Test2()[^1]").WithArguments("Base2.this[System.Index].get", "error4").WithLocation(80, 13),
+
+            // (81,13): error CS0619: 'Base2.this[Range].get' is obsolete: 'error5'
+            //         _ = new Test2()[..0];
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new Test2()[..0]").WithArguments("Base2.this[System.Range].get", "error5").WithLocation(81, 13)
             );
     }
 
@@ -960,22 +1360,22 @@ class X
 ";
         var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
         compilation.VerifyEmitDiagnostics(
-            // (6,23): error CS9202: Slice patterns may only be used once and directly inside a list pattern.
+            // (6,23): error CS9002: Slice patterns may only be used once and directly inside a list pattern.
             //         _ = a is [.., ..];
             Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(6, 23),
-            // (7,29): error CS9202: Slice patterns may only be used once and directly inside a list pattern.
+            // (7,29): error CS9002: Slice patterns may only be used once and directly inside a list pattern.
             //         _ = a is [1, .., 2, .., 3];
             Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(7, 29),
-            // (8,20): error CS9202: Slice patterns may only be used once and directly inside a list pattern.
+            // (8,20): error CS9002: Slice patterns may only be used once and directly inside a list pattern.
             //         _ = a is [(..)];
             Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(8, 20),
-            // (9,18): error CS9202: Slice patterns may only be used once and directly inside a list pattern.
+            // (9,18): error CS9002: Slice patterns may only be used once and directly inside a list pattern.
             //         _ = a is ..;
             Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(9, 18),
-            // (11,24): error CS9202: Slice patterns may only be used once and directly inside a list pattern.
+            // (11,24): error CS9002: Slice patterns may only be used once and directly inside a list pattern.
             //         _ = a switch { .. => 0, _ => 0 };
             Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(11, 24),
-            // (12,27): error CS9202: Slice patterns may only be used once and directly inside a list pattern.
+            // (12,27): error CS9002: Slice patterns may only be used once and directly inside a list pattern.
             //         switch (a) { case ..: break; }
             Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(12, 27)
             );
@@ -987,6 +1387,11 @@ class X
         var vbSource = @"
 Namespace System
     Public Structure Index
+        Public Sub New(ByVal value As Integer, ByVal Optional fromEnd As Boolean = False)
+        End Sub
+        Public Shared Widening Operator CType(ByVal i As Integer) As Index
+            Return Nothing
+        End Operator
     End Structure
 End Namespace
 Public Class Test1
@@ -1004,97 +1409,603 @@ class X
     public static void Main()
     {
         _ = new Test1() is [0];
+        _ = new Test1()[0];
     } 
 }
 ";
         var vbCompilation = CreateVisualBasicCompilation(vbSource);
-        var csCompilation = CreateCompilation(csSource, parseOptions: TestOptions.RegularWithListPatterns, references: new[] { vbCompilation.EmitToImageReference() });
-        // PROTOTYPE(list-patterns) Unsupported because the lookup fails not that the indexer is static
+        var csCompilation = CreateCompilation(csSource, references: new[] { vbCompilation.EmitToImageReference() });
+        // Note: the VB indexer's name is "Item" but C# looks for "this[]", but we can't put Default on Shared indexer declaration
         csCompilation.VerifyEmitDiagnostics(
-            // (6,28): error CS9200: List patterns may not be used for a value of type 'Test1'.
+            // (6,28): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
             //         _ = new Test1() is [0];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[0]").WithArguments("Test1").WithLocation(6, 28));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0]").WithArguments("Test1").WithLocation(6, 28),
+            // (7,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
+            //         _ = new Test1()[0];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new Test1()[0]").WithArguments("Test1").WithLocation(7, 13));
     }
 
-    [Theory]
-    [InlineData("public int this[Index i] { set {} }")]
-    [InlineData("public int this[Index i] { private get => 0; set {} }")]
-    [InlineData("public int this[int i, int ignored = 0] => 0;")]
-    [InlineData("public int this[long i, int ignored = 0] => 0;")]
-    [InlineData("public int this[long i] => 0;")]
-    [InlineData("public int this[params int[] i] => 0;")]
-    [InlineData("private int this[Index i] => 0;")]
-    [InlineData("public int this[Index i] => 0;", true)]
-    public void ListPattern_MemberLookup_Index_ErrorCases(string indexer, bool valid = false)
+    [Fact]
+    public void ListPattern_MemberLookup_StaticDefaultIndexer()
     {
-        var source = @"
-using System;
-class Test1
+        var ilSource = @"
+.class public sequential ansi sealed System.Index
+    extends [mscorlib]System.ValueType
 {
-    " + indexer + @"
-    public int Length => 0;
+    .method public specialname rtspecialname instance void .ctor ( int32 'value', [opt] bool fromEnd ) cil managed
+    {
+        .param [2] = bool(false)
+        IL_0000: nop
+        IL_0001: ldarg.0
+        IL_0002: initobj System.Index
+        IL_0008: ret
+    }
+
+    .method public specialname static valuetype System.Index op_Implicit ( int32 i ) cil managed
+    {
+        .locals init (
+            [0] valuetype System.Index
+        )
+
+        IL_0000: nop
+        IL_0001: ldloca.s 0
+        IL_0003: initobj System.Index
+        IL_0009: br.s IL_000b
+
+        IL_000b: ldloc.0
+        IL_000c: ret
+    }
 }
-class X
+
+.class public auto ansi Test1
+    extends [mscorlib]System.Object
 {
-    public static void Main()
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+
+    .field private int32 _Length
+
+    .method public specialname rtspecialname instance void .ctor () cil managed
     {
-        _ = new Test1() is [0];
-    } 
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ldarg.0
+        IL_0008: ldc.i4.0
+        IL_0009: call instance void Test1::set_Length(int32)
+        IL_000e: nop
+        IL_000f: ret
+    }
+
+    .method public specialname static int32 get_Item ( valuetype System.Index i ) cil managed
+    {
+        .locals init (
+            [0] int32 Item
+        )
+
+        IL_0000: nop
+        IL_0001: ldc.i4.0
+        IL_0002: stloc.0
+        IL_0003: br.s IL_0005
+
+        IL_0005: ldloc.0
+        IL_0006: ret
+    }
+
+    .method public specialname instance int32 get_Length () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Test1::_Length
+        IL_0006: br.s IL_0008
+
+        IL_0008: ret
+    }
+
+    .method public specialname instance void set_Length ( int32 AutoPropertyValue ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 Test1::_Length
+        IL_0007: ret
+    }
+
+    .property int32 Item( valuetype System.Index i )
+    {
+        .get int32 Test1::get_Item(valuetype System.Index)
+    }
+    .property instance int32 Length()
+    {
+        .get instance int32 Test1::get_Length()
+        .set instance void Test1::set_Length(int32)
+    }
 }
 ";
-        var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-        if (valid)
-        {
-            compilation.VerifyEmitDiagnostics();
-            return;
-        }
-        compilation.VerifyEmitDiagnostics(
-            // (12,28): error CS9200: List patterns may not be used for a value of type 'Test1'.
-            //         _ = new Test1() is [0];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[0]").WithArguments("Test1").WithLocation(12, 28));
+        var csSource = @"
+System.Console.Write((new Test1() is [42], new Test1()[0]));
+";
+        var csCompilation = CreateCompilationWithIL(csSource, ilSource);
+        csCompilation.VerifyEmitDiagnostics(
+            // (2,38): error CS0176: Member 'Test1.this[Index]' cannot be accessed with an instance reference; qualify it with a type name instead
+            // System.Console.Write((new Test1() is [42], new Test1()[0]));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "[42]").WithArguments("Test1.this[System.Index]").WithLocation(2, 38),
+            // (2,44): error CS0176: Member 'Test1.this[Index]' cannot be accessed with an instance reference; qualify it with a type name instead
+            // System.Console.Write((new Test1() is [42], new Test1()[0]));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new Test1()[0]").WithArguments("Test1.this[System.Index]").WithLocation(2, 44)
+            );
     }
 
-    [Theory]
-    [InlineData("public int this[Range i] { set {} }")]
-    [InlineData("public int this[Range i] { private get => 0; set {} }")]
-    [InlineData("public int Slice(int i, int j, int ignored = 0) => 0;")]
-    [InlineData("public int Slice(int i, int j, params int[] ignored) => 0;")]
-    [InlineData("public int Slice(long i, long j) => 0;")]
-    [InlineData("public int Slice(params int[] i) => 0;")]
-    [InlineData("private int Slice(int i, int j) => 0;")]
-    [InlineData("public void Slice(int i, int j) {}")]
-    [InlineData("public int this[Range i] => 0;", true)]
-    [InlineData("public int Slice(int i, int j) => 0;", true)]
-    public void ListPattern_MemberLookup_Range_ErrorCases(string member, bool valid = false)
+    [Fact]
+    public void ListPattern_MemberLookup_DefaultIndexerWithDifferentName()
+    {
+        var vbSource = @"
+Namespace System
+    Public Structure Index
+        Public Sub New(ByVal value As Integer, ByVal Optional fromEnd As Boolean = False)
+        End Sub
+        Public Shared Widening Operator CType(ByVal i As Integer) As Index
+            Return Nothing
+        End Operator
+    End Structure
+End Namespace
+Public Class Test1
+    Public Default ReadOnly Property Name(i As System.Index) As Integer
+        Get
+            Return 42
+        End Get
+    End Property
+    Public Property Length As Integer = 1
+End Class
+";
+        var csSource = @"
+System.Console.Write((new Test1() is [42], new Test1()[0]));
+";
+        var vbCompilation = CreateVisualBasicCompilation(vbSource);
+        var csCompilation = CreateCompilation(csSource, references: new[] { vbCompilation.EmitToImageReference() });
+        CompileAndVerify(csCompilation, expectedOutput: "(True, 42)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_NonDefaultIndexerNamedItem()
+    {
+        var vbSource = @"
+Namespace System
+    Public Structure Index
+        Public Sub New(ByVal value As Integer, ByVal Optional fromEnd As Boolean = False)
+        End Sub
+        Public Shared Widening Operator CType(ByVal i As Integer) As Index
+            Return Nothing
+        End Operator
+    End Structure
+End Namespace
+Public Class Test1
+    Public ReadOnly Property Item(i As System.Index) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+    Public Property Length As Integer = 0
+End Class
+";
+        var csSource = @"
+System.Console.Write((new Test1() is [42], new Test1()[0]));
+";
+        var vbCompilation = CreateVisualBasicCompilation(vbSource);
+        var csCompilation = CreateCompilation(csSource, references: new[] { vbCompilation.EmitToImageReference() });
+        csCompilation.VerifyEmitDiagnostics(
+            // (2,38): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
+            // System.Console.Write((new Test1() is [42], new Test1()[0]));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[42]").WithArguments("Test1").WithLocation(2, 38),
+            // (2,44): error CS0021: Cannot apply indexing with [] to an expression of type 'Test1'
+            // System.Console.Write((new Test1() is [42], new Test1()[0]));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new Test1()[0]").WithArguments("Test1").WithLocation(2, 44)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Index_ErrorCases_1()
     {
         var source = @"
-#pragma warning disable 8019 // Unused using
 using System;
+
+_ = new Test1() is [0];
+_ = new Test1()[^1];
+
 class Test1
 {
-    " + member + @"
+    public int this[Index i] { set {} }
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,20): error CS0154: The property or indexer 'Test1.this[Index]' cannot be used in this context because it lacks the get accessor
+            // _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "[0]").WithArguments("Test1.this[System.Index]").WithLocation(4, 20),
+            // (5,5): error CS0154: The property or indexer 'Test1.this[Index]' cannot be used in this context because it lacks the get accessor
+            // _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "new Test1()[^1]").WithArguments("Test1.this[System.Index]").WithLocation(5, 5)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Index_ErrorCases_2()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [0];
+_ = new Test1()[^1];
+
+class Test1
+{
+    public int this[Index i] { private get => 0; set {} }
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,20): error CS0271: The property or indexer 'Test1.this[Index]' cannot be used in this context because the get accessor is inaccessible
+            // _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_InaccessibleGetter, "[0]").WithArguments("Test1.this[System.Index]").WithLocation(4, 20),
+            // (5,5): error CS0271: The property or indexer 'Test1.this[Index]' cannot be used in this context because the get accessor is inaccessible
+            // _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_InaccessibleGetter, "new Test1()[^1]").WithArguments("Test1.this[System.Index]").WithLocation(5, 5)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Index_ErrorCases_3()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [0];
+_ = new Test1()[^1];
+
+class Test1
+{
+    public int this[int i, int ignored = 0] => 0;
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,20): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            // _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_BadArgType, "[0]").WithArguments("1", "System.Index", "int").WithLocation(4, 20),
+            // (5,17): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            // _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(5, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Index_ErrorCases_4()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [0];
+_ = new Test1()[^1];
+
+class Test1
+{
+    public int this[long i, int ignored = 0] => 0;
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,20): error CS1503: Argument 1: cannot convert from 'System.Index' to 'long'
+            // _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_BadArgType, "[0]").WithArguments("1", "System.Index", "long").WithLocation(4, 20),
+            // (5,17): error CS1503: Argument 1: cannot convert from 'System.Index' to 'long'
+            // _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "long").WithLocation(5, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Index_ErrorCases_5()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [0];
+_ = new Test1()[^1];
+
+class Test1
+{
+    public int this[long i] => 0;
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,20): error CS1503: Argument 1: cannot convert from 'System.Index' to 'long'
+            // _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_BadArgType, "[0]").WithArguments("1", "System.Index", "long").WithLocation(4, 20),
+            // (5,17): error CS1503: Argument 1: cannot convert from 'System.Index' to 'long'
+            // _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "long").WithLocation(5, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Index_ErrorCases_6()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [0];
+_ = new Test1()[^1];
+
+class Test1
+{
+    public int this[params int[] i] => 0;
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,20): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            // _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_BadArgType, "[0]").WithArguments("1", "System.Index", "int").WithLocation(4, 20),
+            // (5,17): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            // _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(5, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Index_ErrorCases_7()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [0];
+_ = new Test1()[^1];
+
+class Test1
+{
+    private int this[Index i] => 0;
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,20): error CS0122: 'Test1.this[Index]' is inaccessible due to its protection level
+            // _ = new Test1() is [0];
+            Diagnostic(ErrorCode.ERR_BadAccess, "[0]").WithArguments("Test1.this[System.Index]").WithLocation(4, 20),
+            // (5,5): error CS0122: 'Test1.this[Index]' is inaccessible due to its protection level
+            // _ = new Test1()[^1];
+            Diagnostic(ErrorCode.ERR_BadAccess, "new Test1()[^1]").WithArguments("Test1.this[System.Index]").WithLocation(5, 5)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_1()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    public int this[Range i] { set {} }
     public int this[int i] => throw new();
     public int Length => 0;
 }
-class X
-{
-    public static void Main()
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,21): error CS0154: The property or indexer 'Test1.this[Range]' cannot be used in this context because it lacks the get accessor
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "..var p").WithArguments("Test1.this[System.Range]").WithLocation(4, 21),
+            // (6,5): error CS0154: The property or indexer 'Test1.this[Range]' cannot be used in this context because it lacks the get accessor
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "new Test1()[..]").WithArguments("Test1.this[System.Range]").WithLocation(6, 5)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_2()
     {
-        _ = new Test1() is [..var p];
-        _ = new Test1() is [..];
-    } 
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    public int this[Range i] { private get => 0; set {} }
+    public int this[int i] => throw new();
+    public int Length => 0;
 }
 ";
-        var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-        if (valid)
-        {
-            compilation.VerifyDiagnostics();
-            return;
-        }
+        var compilation = CreateCompilationWithIndexAndRange(source);
         compilation.VerifyEmitDiagnostics(
-            // (14,29): error CS9201: Slice patterns may not be used for a value of type 'Test1'.
-            //         _ = new Test1() is {..var p};
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..var p").WithArguments("Test1").WithLocation(14, 29));
+            // (4,21): error CS0271: The property or indexer 'Test1.this[Range]' cannot be used in this context because the get accessor is inaccessible
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_InaccessibleGetter, "..var p").WithArguments("Test1.this[System.Range]").WithLocation(4, 21),
+            // (6,5): error CS0271: The property or indexer 'Test1.this[Range]' cannot be used in this context because the get accessor is inaccessible
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_InaccessibleGetter, "new Test1()[..]").WithArguments("Test1.this[System.Range]").WithLocation(6, 5)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_3()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    public int Slice(int i, int j, int ignored = 0) => 0;
+    public int this[int i] => throw new();
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,21): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var p").WithArguments("1", "System.Range", "int").WithLocation(4, 21),
+            // (6,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(6, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_4()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    public int Slice(int i, int j, params int[] ignored) => 0;
+    public int this[int i] => throw new();
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,21): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var p").WithArguments("1", "System.Range", "int").WithLocation(4, 21),
+            // (6,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(6, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_5()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    public int Slice(long i, long j) => 0;
+    public int this[int i] => throw new();
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,21): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var p").WithArguments("1", "System.Range", "int").WithLocation(4, 21),
+            // (6,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(6, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_6()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    public int Slice(params int[] i) => 0;
+    public int this[int i] => throw new();
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,21): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var p").WithArguments("1", "System.Range", "int").WithLocation(4, 21),
+            // (6,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(6, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_7()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    private int Slice(int i, int j) => 0;
+    public int this[int i] => throw new();
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,21): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var p").WithArguments("1", "System.Range", "int").WithLocation(4, 21),
+            // (6,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(6, 17)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_MemberLookup_Range_ErrorCases_8()
+    {
+        var source = @"
+using System;
+
+_ = new Test1() is [..var p];
+_ = new Test1() is [..];
+_ = new Test1()[..];
+
+class Test1
+{
+    public void Slice(int i, int j) {}
+    public int this[int i] => throw new();
+    public int Length => 0;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (4,21): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1() is [..var p];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var p").WithArguments("1", "System.Range", "int").WithLocation(4, 21),
+            // (6,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new Test1()[..];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(6, 17)
+            );
     }
 
     [Fact]
@@ -1163,32 +2074,6 @@ class X
 }
 ";
         var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-        compilation.VerifyEmitDiagnostics();
-        CompileAndVerify(compilation, expectedOutput: "True");
-    }
-
-    [Fact]
-    public void ListPattern_MemberLookup_Fallback_MissingIndexOrRange()
-    {
-        var source = @"
-using System;
-class Test1
-{
-    public int this[int i] => 1;
-    public int Slice(int i, int j) => 2;
-    public int Count => 1;
-}
-class X
-{
-    public static void Main()
-    {
-        Console.WriteLine(new Test1() is [1, ..2]);
-    } 
-}
-";
-        var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-        Assert.Null(compilation.GetTypeByMetadataName("System.Index"));
-        Assert.Null(compilation.GetTypeByMetadataName("System.Range"));
         compilation.VerifyEmitDiagnostics();
         CompileAndVerify(compilation, expectedOutput: "True");
     }
@@ -1477,7 +2362,7 @@ class X
     } 
 }
 ";
-        var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index }, options: TestOptions.ReleaseExe);
         compilation.VerifyEmitDiagnostics();
         CompileAndVerify(compilation, expectedOutput: "123");
     }
@@ -1521,7 +2406,7 @@ class X
     } 
 }
 ";
-        var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyEmitDiagnostics(
             // (7,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
             //         _ = a is [] and [1];          // 1
@@ -1589,58 +2474,69 @@ class X
     {
         _ = t is { Count: -1 };
         _ = new { t } is { t.Count: -1 };
+        _ = t[^1]; // 1
     }
     public static void Test2<T>(T t) where T : ICountableViaLength
     {
         _ = t is { Length: -1 };
         _ = new { t } is { t.Length: -1 };
+        _ = t[^1]; // 2
     }
     public static void Test3<T>(T t) where T : IIndexable, ICountableViaCount
     {
-        _ = t is { Count: -1 }; // 1
-        _ = new { t } is { t.Count: -1 }; // 2
+        _ = t is { Count: -1 }; // 3
+        _ = new { t } is { t.Count: -1 }; // 4
+        _ = t[^1];
     }
     public static void Test4<T>(T t) where T : IIndexable, ICountableViaLength
     {
-        _ = t is { Length: -1 }; // 3
-        _ = new { t } is { t.Length: -1 }; // 4
+        _ = t is { Length: -1 }; // 5
+        _ = new { t } is { t.Length: -1 }; // 6
+        _ = t[^1];
     }
     public static void Test5<T>(T t) where T : IIndexable, ICountableViaLength, ICountableViaCount
     {
-        _ = t is { Length: -1 }; // 5
+        _ = t is { Length: -1 }; // 7
         _ = t is { Count: -1 };
-        _ = new { t } is { t.Length: -1 }; // 6
+        _ = new { t } is { t.Length: -1 }; // 8
         _ = new { t } is { t.Count: -1 };
+        _ = t[^1];
     }
 }
 ";
-        var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyEmitDiagnostics(
-            // (28,13): error CS8518: An expression of type 'T' can never match the provided pattern.
-            //         _ = t is { Count: -1 }; // 1
-            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Count: -1 }").WithArguments("T").WithLocation(28, 13),
-            // (29,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
-            //         _ = new { t } is { t.Count: -1 }; // 2
-            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Count: -1 }").WithArguments("<anonymous type: T t>").WithLocation(29, 13),
-            // (33,13): error CS8518: An expression of type 'T' can never match the provided pattern.
-            //         _ = t is { Length: -1 }; // 3
-            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(33, 13),
-            // (34,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
-            //         _ = new { t } is { t.Length: -1 }; // 4
-            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(34, 13),
-            // (38,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+            // (20,13): error CS0021: Cannot apply indexing with [] to an expression of type 'T'
+            //         _ = t[^1]; // 1
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "t[^1]").WithArguments("T").WithLocation(20, 13),
+            // (26,13): error CS0021: Cannot apply indexing with [] to an expression of type 'T'
+            //         _ = t[^1]; // 2
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "t[^1]").WithArguments("T").WithLocation(26, 13),
+            // (30,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+            //         _ = t is { Count: -1 }; // 3
+            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Count: -1 }").WithArguments("T").WithLocation(30, 13),
+            // (31,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+            //         _ = new { t } is { t.Count: -1 }; // 4
+            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Count: -1 }").WithArguments("<anonymous type: T t>").WithLocation(31, 13),
+            // (36,13): error CS8518: An expression of type 'T' can never match the provided pattern.
             //         _ = t is { Length: -1 }; // 5
-            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(38, 13),
-            // (40,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(36, 13),
+            // (37,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
             //         _ = new { t } is { t.Length: -1 }; // 6
-            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(40, 13)
+            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(37, 13),
+            // (42,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+            //         _ = t is { Length: -1 }; // 7
+            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(42, 13),
+            // (44,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+            //         _ = new { t } is { t.Length: -1 }; // 8
+            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(44, 13)
             );
     }
 
     [Fact]
     public void ListPattern_ValEscape()
     {
-        CreateCompilationWithMscorlibAndSpan(@"
+        CreateCompilationWithIndexAndRangeAndSpan(@"
 using System;
 public ref struct R
 {
@@ -1716,7 +2612,7 @@ class X
     } 
 }
 ";
-        var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyEmitDiagnostics(
             // (7,25): error CS0029: Cannot implicitly convert type 'int[]' to 'int'
             //         const int bad = a;
@@ -1761,7 +2657,7 @@ slice
     }
 
     [Fact]
-    public void ListPattern_Nullable()
+    public void ListPattern_NullableValueType()
     {
         var source = @"
 using System;
@@ -1832,7 +2728,7 @@ class X
     }
 }
 ";
-        var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyEmitDiagnostics(
             // (8,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
             //             case not [{} y, .. {} z] x: _ = (x, y, z); break;
@@ -1892,7 +2788,7 @@ class X
     }
 }
 ";
-        var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyEmitDiagnostics(
             // (7,19): error CS0165: Use of unassigned local variable 'x'
             //              _ = (x, y, z); // 1
@@ -1964,15 +2860,30 @@ class D
             // (6,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         _ = c is [var item];
             Diagnostic(ErrorCode.ERR_NoTypeDef, "[var item]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 18),
+            // (6,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            //         _ = c is [var item];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[var item]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 18),
+            // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            //         _ = c is [..var rest];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[..var rest]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18),
             // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         _ = c is [..var rest];
             Diagnostic(ErrorCode.ERR_NoTypeDef, "[..var rest]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18),
             // (7,19): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         _ = c is [..var rest];
             Diagnostic(ErrorCode.ERR_NoTypeDef, "..var rest").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 19),
+            // (7,19): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            //         _ = c is [..var rest];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "..var rest").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 19),
             // (8,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         var index = c[^1];
             Diagnostic(ErrorCode.ERR_NoTypeDef, "c[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 21),
+            // (8,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            //         var index = c[^1];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "c[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 21),
+            // (9,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            //         var range = c[1..^1];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "c[1..^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 21),
             // (9,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         var range = c[1..^1];
             Diagnostic(ErrorCode.ERR_NoTypeDef, "c[1..^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 21)
@@ -1985,9 +2896,20 @@ class D
         verify(declarations[0], "item", "Missing?");
         verify(declarations[1], "rest", "Missing?");
 
+        var localDeclarations = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+        verify2(localDeclarations[0], "index", "Missing");
+        verify2(localDeclarations[1], "range", "Missing");
+
         void verify(VarPatternSyntax declaration, string name, string expectedType)
         {
             var local = (ILocalSymbol)model.GetDeclaredSymbol(declaration.Designation)!;
+            Assert.Equal(name, local.Name);
+            Assert.Equal(expectedType, local.Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        void verify2(VariableDeclaratorSyntax declaration, string name, string expectedType)
+        {
+            var local = (ILocalSymbol)model.GetDeclaredSymbol(declaration)!;
             Assert.Equal(name, local.Name);
             Assert.Equal(expectedType, local.Type.ToTestDisplayString(includeNonNullable: true));
         }
@@ -2008,45 +2930,238 @@ public class Missing
 using System;
 public class C
 {
-    public int Length => 0;
+    public int Length => 1;
     public Missing this[Index i] => throw null;
     public Missing this[Range r] => throw null;
-    public int this[int i] => throw null;
-    public int Slice(int i, int j) => throw null;
+    public int this[int i] => 42;
+    public int Slice(int i, int j) => 43;
 }
 ";
         var lib2Ref = CreateCompilation(new[] { lib2_cs, TestSources.Index, TestSources.Range }, references: new[] { missingRef })
             .EmitToImageReference();
 
         var source = @"
-class D
+var c = new C();
+
+if (c is [var item] && c is [..var slice])
 {
-    void M(C c)
-    {
-        _ = c is [var item];
-        _ = c is [..var rest];
-        var index = c[^1];
-        var range = c[1..^1];
-    }
+    var item2 = c[^1];
+    var slice2 = c[..];
+    System.Console.Write((item, slice, item2, slice2));
 }
 ";
-        var compilation = CreateCompilation(source, references: new[] { lib2Ref }, parseOptions: TestOptions.RegularWithListPatterns);
+        var compilation = CreateCompilation(source, references: new[] { lib2Ref });
         compilation.VerifyEmitDiagnostics(
-            // (6,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            //         _ = c is [var item];
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "[var item]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 18),
+            // (4,10): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // if (c is [var item] && c is [..var slice])
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[var item]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 10),
+            // (4,29): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // if (c is [var item] && c is [..var slice])
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[..var slice]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 29),
+            // (4,30): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // if (c is [var item] && c is [..var slice])
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "..var slice").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 30),
+            // (6,17): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            //     var item2 = c[^1];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "c[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 17),
             // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            //         _ = c is [..var rest];
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "[..var rest]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18),
-            // (7,19): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            //         _ = c is [..var rest];
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "..var rest").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 19),
-            // (8,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            //         var index = c[^1];
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "c[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 21),
-            // (9,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            //         var range = c[1..^1];
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "c[1..^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 21)
+            //     var slice2 = c[..];
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "c[..]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_RangeTypeWithMissingInterface()
+    {
+        var missing_cs = @"
+public interface IMissing { }
+";
+
+        var range_cs = @"
+namespace System;
+
+public struct Range : IMissing
+{
+    public Index Start { get; }
+    public Index End { get; }
+    public Range(Index start, Index end) => throw null;
+    public static Range StartAt(Index start) => throw null;
+    public static Range EndAt(Index end) => throw null;
+    public static Range All => throw null;
+}
+";
+
+        var lib_cs = @"
+public class C
+{
+    public int Length => 0;
+    public int this[System.Index i] => 0;
+    public int this[System.Range r] => 0;
+}
+";
+
+        var missingComp = CreateCompilation(missing_cs, assemblyName: "missing");
+        missingComp.VerifyDiagnostics();
+
+        var rangeComp = CreateCompilation(new[] { range_cs, TestSources.Index }, references: new[] { missingComp.EmitToImageReference() }, assemblyName: "range");
+        rangeComp.VerifyDiagnostics();
+        var rangeRef = rangeComp.EmitToImageReference();
+
+        var libComp = CreateCompilation(lib_cs, references: new[] { rangeRef }, assemblyName: "lib");
+        libComp.VerifyDiagnostics();
+
+        var sources = new[]
+        {
+            "_ = ^1;",
+            "_ = ..;",
+            "_ = new C() is [var x];",
+            "_ = new C() is [..var y];",
+            "_ = new C()[^1];",
+            "_ = new C()[..];"
+        };
+
+        foreach (var source in sources)
+        {
+            var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference(), rangeRef });
+            comp.VerifyDiagnostics();
+            var used = comp.GetUsedAssemblyReferences();
+            Assert.True(used.Any(r => r.Display == "range"));
+        }
+    }
+
+    [Fact]
+    public void ListPattern_ObsoleteLengthAndIndexerAndSlice()
+    {
+        var source = @"
+_ = new C() is [var x]; // 1, 2, 3
+_ = new C() is [.. var y]; // 4, 5, 6, 7, 8
+new C().Slice(0, 0); // 9
+_ = new C()[^1]; // 10, 11
+_ = new C()[..]; // 12, 13
+
+class C
+{
+    [System.Obsolete]
+    public int Length => 0;
+
+    [System.Obsolete]
+    public int this[int i] => 0;
+
+    [System.Obsolete]
+    public int Slice(int i, int j) => 0;
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        // Note: duplicate diagnostics are reported on Length because both the list pattern
+        //   and the implicit indexer need it.
+        comp.VerifyDiagnostics(
+            // (2,16): warning CS0612: 'C.Length' is obsolete
+            // _ = new C() is [var x]; // 1, 2, 3
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[var x]").WithArguments("C.Length").WithLocation(2, 16),
+            // (2,16): warning CS0612: 'C.Length' is obsolete
+            // _ = new C() is [var x]; // 1, 2, 3
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[var x]").WithArguments("C.Length").WithLocation(2, 16),
+            // (2,16): warning CS0612: 'C.this[int]' is obsolete
+            // _ = new C() is [var x]; // 1, 2, 3
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[var x]").WithArguments("C.this[int]").WithLocation(2, 16),
+            // (3,16): warning CS0612: 'C.Length' is obsolete
+            // _ = new C() is [.. var y]; // 4, 5, 6, 7, 8
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[.. var y]").WithArguments("C.Length").WithLocation(3, 16),
+            // (3,16): warning CS0612: 'C.Length' is obsolete
+            // _ = new C() is [.. var y]; // 4, 5, 6, 7, 8
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[.. var y]").WithArguments("C.Length").WithLocation(3, 16),
+            // (3,16): warning CS0612: 'C.this[int]' is obsolete
+            // _ = new C() is [.. var y]; // 4, 5, 6, 7, 8
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[.. var y]").WithArguments("C.this[int]").WithLocation(3, 16),
+            // (3,17): warning CS0612: 'C.Length' is obsolete
+            // _ = new C() is [.. var y]; // 4, 5, 6, 7, 8
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, ".. var y").WithArguments("C.Length").WithLocation(3, 17),
+            // (3,17): warning CS0612: 'C.Slice(int, int)' is obsolete
+            // _ = new C() is [.. var y]; // 4, 5, 6, 7, 8
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, ".. var y").WithArguments("C.Slice(int, int)").WithLocation(3, 17),
+            // (4,1): warning CS0612: 'C.Slice(int, int)' is obsolete
+            // new C().Slice(0, 0); // 9
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C().Slice(0, 0)").WithArguments("C.Slice(int, int)").WithLocation(4, 1),
+            // (5,5): warning CS0612: 'C.Length' is obsolete
+            // _ = new C()[^1]; // 10, 11
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()[^1]").WithArguments("C.Length").WithLocation(5, 5),
+            // (5,5): warning CS0612: 'C.this[int]' is obsolete
+            // _ = new C()[^1]; // 10, 11
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()[^1]").WithArguments("C.this[int]").WithLocation(5, 5),
+            // (6,5): warning CS0612: 'C.Length' is obsolete
+            // _ = new C()[..]; // 12, 13
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()[..]").WithArguments("C.Length").WithLocation(6, 5),
+            // (6,5): warning CS0612: 'C.Slice(int, int)' is obsolete
+            // _ = new C()[..]; // 12, 13
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()[..]").WithArguments("C.Slice(int, int)").WithLocation(6, 5)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_IndexAndSliceReturnMissingTypes()
+    {
+        var missing_cs = @"
+public class Missing { }
+public class Missing2 { }
+";
+
+        var lib_cs = @"
+public class C
+{
+    public int Length => throw null;
+    public Missing this[int i] => throw null;
+    public Missing2 Slice(int i, int j) => throw null;
+}
+";
+
+        var source = @"
+_ = new C() is [var x]; // 1, 2
+_ = new C() is [.. var y]; // 3, 4, 5, 6
+new C().Slice(0, 0); // 7
+_ = new C()[^1]; // 8, 9
+_ = new C()[..]; // 10, 11
+";
+        var missingComp = CreateCompilation(missing_cs, assemblyName: "missing");
+        missingComp.VerifyDiagnostics();
+
+        var libComp = CreateCompilation(lib_cs, references: new[] { missingComp.EmitToImageReference() }, assemblyName: "lib");
+        libComp.VerifyDiagnostics();
+
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range }, references: new[] { libComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (2,16): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C() is [var x]; // 1, 2
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[var x]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 16),
+            // (2,16): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C() is [var x]; // 1, 2
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[var x]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 16),
+            // (3,16): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C() is [.. var y]; // 3, 4, 5, 6
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[.. var y]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 16),
+            // (3,16): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C() is [.. var y]; // 3, 4, 5, 6
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[.. var y]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 16),
+            // (3,17): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C() is [.. var y]; // 3, 4, 5, 6
+            Diagnostic(ErrorCode.ERR_NoTypeDef, ".. var y").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 17),
+            // (3,17): error CS0012: The type 'Missing2' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C() is [.. var y]; // 3, 4, 5, 6
+            Diagnostic(ErrorCode.ERR_NoTypeDef, ".. var y").WithArguments("Missing2", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 17),
+            // (4,1): error CS0012: The type 'Missing2' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // new C().Slice(0, 0); // 7
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "new C().Slice").WithArguments("Missing2", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 1),
+            // (5,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C()[^1]; // 8, 9
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "new C()[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 5),
+            // (5,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C()[^1]; // 8, 9
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "new C()[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 5),
+            // (6,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C()[..]; // 10, 11
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "new C()[..]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 5),
+            // (6,5): error CS0012: The type 'Missing2' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C()[..]; // 10, 11
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "new C()[..]").WithArguments("Missing2", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 5)
             );
     }
 
@@ -2072,7 +3187,7 @@ class X
         _ = integers is [..int[] slice4] list4b;
     }
 }";
-        var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyDiagnostics();
         var tree = compilation.SyntaxTrees[0];
         var nodes = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>();
@@ -2129,7 +3244,7 @@ class X
         _ = integers is [..{}];
     }
 }";
-        var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyDiagnostics();
         var tree = compilation.SyntaxTrees[0];
         var nodes = tree.GetRoot().DescendantNodes()
@@ -2154,6 +3269,63 @@ class X
     }
 
     [Fact]
+    public void ListPattern_Symbols_WithoutIndexOrRangeOrGetSubArray()
+    {
+        var source = @"
+#nullable enable
+class X
+{
+    public void Test(int[] integers)
+    {
+        _ = integers is [var item, ..var slice];
+    }
+}";
+        var compilation = CreateCompilation(source);
+        compilation.VerifyDiagnostics(
+            // (7,25): error CS0518: Predefined type 'System.Index' is not defined or imported
+            //         _ = integers is [var item, ..var slice];
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[var item, ..var slice]").WithArguments("System.Index").WithLocation(7, 25),
+            // (7,36): error CS0518: Predefined type 'System.Range' is not defined or imported
+            //         _ = integers is [var item, ..var slice];
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "..var slice").WithArguments("System.Range").WithLocation(7, 36)
+            );
+
+        var tree = compilation.SyntaxTrees.First();
+        var model = compilation.GetSemanticModel(tree);
+        var designations = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+
+        var itemDesignation = designations[0];
+        Assert.Equal("item", itemDesignation.ToString());
+
+        var symbol = model.GetDeclaredSymbol(itemDesignation);
+        Assert.Equal(SymbolKind.Local, symbol.Kind);
+        Assert.Equal("System.Int32", ((ILocalSymbol)symbol).Type.ToTestDisplayString());
+
+        var typeInfo = model.GetTypeInfo(itemDesignation);
+        Assert.Null(typeInfo.Type);
+        Assert.Null(typeInfo.ConvertedType);
+
+        typeInfo = model.GetTypeInfo(itemDesignation.Parent);
+        Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+        Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+        var sliceDesignation = designations[1];
+        Assert.Equal("slice", sliceDesignation.ToString());
+
+        symbol = model.GetDeclaredSymbol(sliceDesignation);
+        Assert.Equal(SymbolKind.Local, symbol.Kind);
+        Assert.Equal("System.Int32", ((ILocalSymbol)symbol).Type.ToTestDisplayString());
+
+        typeInfo = model.GetTypeInfo(sliceDesignation);
+        Assert.Null(typeInfo.Type);
+        Assert.Null(typeInfo.ConvertedType);
+
+        typeInfo = model.GetTypeInfo(sliceDesignation.Parent);
+        Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+        Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+    }
+
+    [Fact]
     public void PatternIndexRangeReadOnly_01()
     {
         // Relates to https://github.com/dotnet/roslyn/pull/37194
@@ -2174,7 +3346,7 @@ struct S
         _ = this is [2, ..var rest];
     }
 }";
-        var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+        var comp = CreateCompilationWithIndexAndRange(src);
         comp.VerifyDiagnostics(
             // (11,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
             //         _ = this[i]; // 1, 2
@@ -2187,7 +3359,32 @@ struct S
             Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(12, 13),
             // (12,13): warning CS8656: Call to non-readonly member 'S.Slice(int, int)' from a 'readonly' member results in an implicit copy of 'this'.
             //         _ = this[r]; // 3, 4
-            Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Slice(int, int)", "this").WithLocation(12, 13));
+            Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Slice(int, int)", "this").WithLocation(12, 13)
+            );
+    }
+
+    [Fact]
+    public void PatternIndexRangeReadOnly_02()
+    {
+        var src = @"
+using System;
+struct S
+{
+    public readonly int this[int i] => 0;
+    public readonly int Length => 0;
+    public readonly int Slice(int x, int y) => 0;
+
+    readonly void M(Index i, Range r)
+    {
+        _ = this[i];
+        _ = this[r];
+
+        _ = this is [1];
+        _ = this is [2, ..var rest];
+    }
+}";
+        var comp = CreateCompilationWithIndexAndRange(src);
+        comp.VerifyDiagnostics();
     }
 
     [Fact]
@@ -2201,17 +3398,21 @@ class C
     public void M()
     {
         _ = this is [1];
+        _ = this[^1];
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index });
         compilation.VerifyEmitDiagnostics(
             // (4,17): error CS0547: 'C.Length': property or indexer cannot have void type
             //     public void Length => throw null;
             Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "Length").WithArguments("C.Length").WithLocation(4, 17),
-            // (8,21): error CS9200: List patterns may not be used for a value of type 'C'.
+            // (8,21): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             //         _ = this is [1];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[1]").WithArguments("C").WithLocation(8, 21)
+            Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "System.Index", "int").WithLocation(8, 21),
+            // (9,18): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            //         _ = this[^1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(9, 18)
             );
     }
 
@@ -2231,17 +3432,14 @@ class C
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index });
         compilation.VerifyEmitDiagnostics(
-            // (9,21): error CS9200: List patterns may not be used for a value of type 'C'.
+            // (9,21): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             //         _ = this is [1];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[1]").WithArguments("C").WithLocation(9, 21),
-            // (10,18): error CS0518: Predefined type 'System.Index' is not defined or imported
+            Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "System.Index", "int").WithLocation(9, 21),
+            // (10,18): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             //         _ = this[^1];
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "^1").WithArguments("System.Index").WithLocation(10, 18),
-            // (10,18): error CS0656: Missing compiler required member 'System.Index..ctor'
-            //         _ = this[^1];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^1").WithArguments("System.Index", ".ctor").WithLocation(10, 18)
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(10, 18)
             );
     }
 
@@ -2264,20 +3462,24 @@ class C
         {
             System.Console.Write(used);
         }
+        _ = this[..];
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
-            // (11,22): error CS9201: Slice patterns may not be used for a value of type 'C'.
+            // (11,22): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
             //         _ = this is [.._];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, ".._").WithArguments("C").WithLocation(11, 22),
-            // (12,22): error CS9201: Slice patterns may not be used for a value of type 'C'.
+            Diagnostic(ErrorCode.ERR_BadArgType, ".._").WithArguments("1", "System.Range", "int").WithLocation(11, 22),
+            // (12,22): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
             //         _ = this is [..var unused];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..var unused").WithArguments("C").WithLocation(12, 22),
-            // (13,22): error CS9201: Slice patterns may not be used for a value of type 'C'.
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var unused").WithArguments("1", "System.Range", "int").WithLocation(12, 22),
+            // (13,22): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
             //         if (this is [..var used])
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..var used").WithArguments("C").WithLocation(13, 22)
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var used").WithArguments("1", "System.Range", "int").WithLocation(13, 22),
+            // (17,18): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            //         _ = this[..];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(17, 18)
             );
     }
 
@@ -2300,7 +3502,7 @@ public class C
     public int Slice(int i, int j) {{ System.Console.Write(""Slice ""); return 0; }}
 }}
 ";
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyDiagnostics();
         CompileAndVerify(compilation, expectedOutput: expectedOutput);
     }
@@ -2319,11 +3521,11 @@ class C<T>
     {
         if (new C<int>() is [var item]) // 1
             item.ToString();
-        _ = new C<int>()[^1]; // 2
 
-        if (new C<int?>() is [var item2]) // 3
-            item2.Value.ToString();
-        _ = new C<int?>()[^1]; // 4
+        if (new C<int?>() is [var item2]) // 2
+            item2.Value.ToString(); // 3
+        var item22 = new C<int?>()[^1]; // 4
+        item22.Value.ToString(); // 5
 
         if (new C<System.Index>() is [var item3])
             item3.ToString();
@@ -2337,18 +3539,21 @@ class C<T>
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index });
         compilation.VerifyEmitDiagnostics(
-            // (10,29): error CS9200: List patterns may not be used for a value of type 'C<int>'.
+            // (10,29): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             //         if (new C<int>() is [var item]) // 1
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[var item]").WithArguments("C<int>").WithLocation(10, 29),
-            // (12,26): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
-            //         _ = new C<int>()[^1]; // 2
-            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(12, 26),
-            // (14,30): error CS9200: List patterns may not be used for a value of type 'C<int?>'.
-            //         if (new C<int?>() is [var item2]) // 3
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[var item2]").WithArguments("C<int?>").WithLocation(14, 30),
-            // (16,27): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int?'
-            //         _ = new C<int?>()[^1]; // 4
-            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int?").WithLocation(16, 27)
+            Diagnostic(ErrorCode.ERR_BadArgType, "[var item]").WithArguments("1", "System.Index", "int").WithLocation(10, 29),
+            // (13,30): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int?'
+            //         if (new C<int?>() is [var item2]) // 2
+            Diagnostic(ErrorCode.ERR_BadArgType, "[var item2]").WithArguments("1", "System.Index", "int?").WithLocation(13, 30),
+            // (14,19): error CS1061: 'int' does not contain a definition for 'Value' and no accessible extension method 'Value' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            //             item2.Value.ToString(); // 3
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Value").WithArguments("int", "Value").WithLocation(14, 19),
+            // (15,36): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int?'
+            //         var item22 = new C<int?>()[^1]; // 4
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int?").WithLocation(15, 36),
+            // (16,16): error CS1061: 'int' does not contain a definition for 'Value' and no accessible extension method 'Value' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            //         item22.Value.ToString(); // 5
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Value").WithArguments("int", "Value").WithLocation(16, 16)
             );
     }
 
@@ -2389,7 +3594,7 @@ class C<T>
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index });
         compilation.VerifyEmitDiagnostics(
             // (13,13): error CS0165: Use of unassigned local variable 'item'
             //             item.ToString(); // 1
@@ -2420,7 +3625,7 @@ class C<T>
             Diagnostic(ErrorCode.ERR_UseDefViolation, "item4").WithArguments("item4").WithLocation(31, 13)
             );
 
-        var tree = compilation.SyntaxTrees.Single();
+        var tree = compilation.SyntaxTrees.First();
         var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
         var declarations = tree.GetRoot().DescendantNodes().OfType<VarPatternSyntax>().ToArray();
 
@@ -2559,7 +3764,7 @@ class C
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index });
         compilation.VerifyEmitDiagnostics(
             // (10,13): error CS0165: Use of unassigned local variable 'item'
             //             item.ToString(); // 1
@@ -2584,7 +3789,7 @@ class C
             Diagnostic(ErrorCode.ERR_UseDefViolation, "item4").WithArguments("item4").WithLocation(28, 13)
             );
 
-        var tree = compilation.SyntaxTrees.Single();
+        var tree = compilation.SyntaxTrees.First();
         var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
         var declarations = tree.GetRoot().DescendantNodes().OfType<VarPatternSyntax>().ToArray();
 
@@ -2600,6 +3805,33 @@ class C
             Assert.Equal(name, local.Name);
             Assert.Equal(expectedType, local.Type.ToTestDisplayString(includeNonNullable: true));
         }
+    }
+
+    [Fact]
+    public void ListPattern_Nullability_MaybeNullReceiver()
+    {
+        var source = @"
+#nullable enable
+class C<T>
+{
+    public int Length => throw null!;
+    public T this[int i] => throw null!;
+
+    public void M(C<int>? c)
+    {
+        if (c is [var item])
+            item.ToString();
+
+        _ = c[^1];
+    }
+}
+";
+        var compilation = CreateCompilation(new[] { source, TestSources.Index });
+        compilation.VerifyEmitDiagnostics(
+            // (13,13): warning CS8602: Dereference of a possibly null reference.
+            //         _ = c[^1];
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(13, 13)
+            );
     }
 
     [Fact]
@@ -2646,7 +3878,7 @@ class C<T>
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
             // (14,13): error CS0165: Use of unassigned local variable 'rest'
             //             rest.ToString(); // 1
@@ -2680,7 +3912,7 @@ class C<T>
             Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "var rest5").WithArguments("T").WithLocation(34, 33)
             );
 
-        var tree = compilation.SyntaxTrees.Single();
+        var tree = compilation.SyntaxTrees.First();
         var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
         var declarations = tree.GetRoot().DescendantNodes().OfType<VarPatternSyntax>().ToArray();
 
@@ -2858,7 +4090,7 @@ class C
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyEmitDiagnostics(
             // (13,13): warning CS8602: Dereference of a possibly null reference.
             //             rest.ToString(); // 1, 2
@@ -2886,7 +4118,7 @@ class C
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest4").WithArguments("rest4").WithLocation(28, 13)
             );
 
-        var tree = compilation.SyntaxTrees.Single();
+        var tree = compilation.SyntaxTrees.First();
         var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
         var declarations = tree.GetRoot().DescendantNodes().OfType<VarPatternSyntax>().ToArray();
 
@@ -2902,6 +4134,34 @@ class C
             Assert.Equal(name, local.Name);
             Assert.Equal(expectedType, local.Type.ToTestDisplayString(includeNonNullable: true));
         }
+    }
+
+    [Fact]
+    public void SlicePattern_Nullability_MaybeNullReceiver()
+    {
+        var source = @"
+#nullable enable
+class C<T>
+{
+    public int Length => throw null!;
+    public T this[int i] => throw null!;
+    public T Slice(int i, int j) => throw null!;
+
+    public void M(C<int>? c)
+    {
+        if (c is [.. var item])
+            item.ToString();
+
+        _ = c[..];
+    }
+}
+";
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        compilation.VerifyEmitDiagnostics(
+            // (14,13): warning CS8602: Dereference of a possibly null reference.
+            //         _ = c[..];
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(14, 13)
+            );
     }
 
     [Fact]
@@ -2929,7 +4189,7 @@ class C
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
             // (17,13): error CS0165: Use of unassigned local variable 'item'
             //             item.ToString(); // 1
@@ -2990,17 +4250,25 @@ class D
     public void M()
     {
         _ = new C() is [var item, ..var rest];
+        _ = new C()[^1];
+        _ = new C()[..];
     }
 }
 ";
-        var compilation = CreateCompilationWithIL(source, il);
+        var compilation = CreateCompilationWithIL(new[] { source, TestSources.Index, TestSources.Range }, il);
         compilation.VerifyEmitDiagnostics(
-            // (6,24): error CS9200: List patterns may not be used for a value of type 'C'.
+            // (6,24): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             //         _ = new C() is [var item, ..var rest];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[var item, ..var rest]").WithArguments("C").WithLocation(6, 24),
-            // (6,35): error CS9201: Slice patterns may not be used for a value of type 'C'.
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[var item, ..var rest]").WithArguments("C").WithLocation(6, 24),
+            // (6,35): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             //         _ = new C() is [var item, ..var rest];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..var rest").WithArguments("C").WithLocation(6, 35)
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "..var rest").WithArguments("C").WithLocation(6, 35),
+            // (7,13): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //         _ = new C()[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new C()[^1]").WithArguments("C").WithLocation(7, 13),
+            // (8,13): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //         _ = new C()[..];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new C()[..]").WithArguments("C").WithLocation(8, 13)
             );
     }
 
@@ -3213,12 +4481,12 @@ class D
 ";
         var compilation = CreateCompilationWithIL(source, il);
         compilation.VerifyEmitDiagnostics(
-            // (6,24): error CS9200: List patterns may not be used for a value of type 'C'.
+            // (6,24): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             //         _ = new C() is [var item, ..var rest];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[var item, ..var rest]").WithArguments("C").WithLocation(6, 24),
-            // (6,35): error CS9201: Slice patterns may not be used for a value of type 'C'.
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[var item, ..var rest]").WithArguments("C").WithLocation(6, 24),
+            // (6,35): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             //         _ = new C() is [var item, ..var rest];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..var rest").WithArguments("C").WithLocation(6, 35)
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "..var rest").WithArguments("C").WithLocation(6, 35)
             );
     }
 
@@ -3663,19 +4931,23 @@ class C
     public void ListPattern_Dynamic()
     {
         var source = @"
+#nullable enable
 class C
 {
     void M(dynamic d)
     {
-        _ = d is [_];
+        _ = d is [_, .._];
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index });
         compilation.VerifyEmitDiagnostics(
-            // (6,18): error CS9200: List patterns may not be used for a value of type 'dynamic'.
-            //         _ = d is [_];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[_]").WithArguments("dynamic").WithLocation(6, 18)
+            // (7,18): error CS8979: List patterns may not be used for a value of type 'dynamic'.
+            //         _ = d is [_, .._];
+            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[_, .._]").WithArguments("dynamic").WithLocation(7, 18),
+            // (7,22): error CS0518: Predefined type 'System.Range' is not defined or imported
+            //         _ = d is [_, .._];
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, ".._").WithArguments("System.Range").WithLocation(7, 22)
             );
     }
 
@@ -3716,15 +4988,15 @@ class D
 ";
         var compilation = CreateCompilation(source, references: new[] { lib2Ref });
         compilation.VerifyEmitDiagnostics(
-            // (6,18): error CS9200: List patterns may not be used for a value of type 'C'.
+            // (6,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         _ = c is [var item];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[var item]").WithArguments("C").WithLocation(6, 18),
-            // (7,18): error CS9200: List patterns may not be used for a value of type 'C'.
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[var item]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 18),
+            // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         _ = c is [..var rest];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[..var rest]").WithArguments("C").WithLocation(7, 18),
-            // (7,19): error CS9201: Slice patterns may not be used for a value of type 'C'.
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "[..var rest]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18),
+            // (7,19): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         _ = c is [..var rest];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..var rest").WithArguments("C").WithLocation(7, 19),
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "..var rest").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 19),
             // (8,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         var index = c[^1];
             Diagnostic(ErrorCode.ERR_NoTypeDef, "c[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 21),
@@ -3752,38 +5024,23 @@ class C
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
             // (5,21): error CS0631: ref and out are not valid in this context
             //     public int this[ref int i] => 0;
             Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(5, 21),
-            // (10,21): error CS9200: List patterns may not be used for a value of type 'C'.
+            // (10,21): error CS1620: Argument 1 must be passed with the 'ref' keyword
             //         _ = this is [var item, ..var rest];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[var item, ..var rest]").WithArguments("C").WithLocation(10, 21),
-            // (10,32): error CS9201: Slice patterns may not be used for a value of type 'C'.
+            Diagnostic(ErrorCode.ERR_BadArgRef, "[var item, ..var rest]").WithArguments("1", "ref").WithLocation(10, 21),
+            // (10,32): error CS1620: Argument 1 must be passed with the 'ref' keyword
             //         _ = this is [var item, ..var rest];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..var rest").WithArguments("C").WithLocation(10, 32),
-            // (11,18): error CS0518: Predefined type 'System.Index' is not defined or imported
+            Diagnostic(ErrorCode.ERR_BadArgRef, "..var rest").WithArguments("1", "ref").WithLocation(10, 32),
+            // (11,18): error CS1620: Argument 1 must be passed with the 'ref' keyword
             //         _ = this[^1];
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "^1").WithArguments("System.Index").WithLocation(11, 18),
-            // (11,18): error CS0656: Missing compiler required member 'System.Index..ctor'
-            //         _ = this[^1];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^1").WithArguments("System.Index", ".ctor").WithLocation(11, 18),
-            // (12,18): error CS0518: Predefined type 'System.Range' is not defined or imported
+            Diagnostic(ErrorCode.ERR_BadArgRef, "^1").WithArguments("1", "ref").WithLocation(11, 18),
+            // (12,18): error CS1620: Argument 1 must be passed with the 'ref' keyword
             //         _ = this[1..^1];
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1..^1").WithArguments("System.Range").WithLocation(12, 18),
-            // (12,18): error CS0518: Predefined type 'System.Index' is not defined or imported
-            //         _ = this[1..^1];
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1").WithArguments("System.Index").WithLocation(12, 18),
-            // (12,21): error CS0518: Predefined type 'System.Index' is not defined or imported
-            //         _ = this[1..^1];
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "^1").WithArguments("System.Index").WithLocation(12, 21),
-            // (12,21): error CS0656: Missing compiler required member 'System.Index..ctor'
-            //         _ = this[1..^1];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^1").WithArguments("System.Index", ".ctor").WithLocation(12, 21),
-            // (12,21): error CS0518: Predefined type 'System.Index' is not defined or imported
-            //         _ = this[1..^1];
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "^1").WithArguments("System.Index").WithLocation(12, 21)
+            Diagnostic(ErrorCode.ERR_BadArgRef, "1..^1").WithArguments("1", "ref").WithLocation(12, 18)
             );
     }
 
@@ -3814,12 +5071,12 @@ class C
             // (7,21): error CS0631: ref and out are not valid in this context
             //     public int this[ref Range r] => 0;
             Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(7, 21),
-            // (11,21): error CS9200: List patterns may not be used for a value of type 'C'.
+            // (11,21): error CS1620: Argument 1 must be passed with the 'ref' keyword
             //         _ = this is [var item, ..var rest];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[var item, ..var rest]").WithArguments("C").WithLocation(11, 21),
-            // (11,32): error CS9201: Slice patterns may not be used for a value of type 'C'.
+            Diagnostic(ErrorCode.ERR_BadArgRef, "[var item, ..var rest]").WithArguments("1", "ref").WithLocation(11, 21),
+            // (11,32): error CS1620: Argument 1 must be passed with the 'ref' keyword
             //         _ = this is [var item, ..var rest];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..var rest").WithArguments("C").WithLocation(11, 32),
+            Diagnostic(ErrorCode.ERR_BadArgRef, "..var rest").WithArguments("1", "ref").WithLocation(11, 32),
             // (12,18): error CS1620: Argument 1 must be passed with the 'ref' keyword
             //         _ = this[^1];
             Diagnostic(ErrorCode.ERR_BadArgRef, "^1").WithArguments("1", "ref").WithLocation(12, 18),
@@ -3847,35 +5104,20 @@ class C
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index });
         compilation.VerifyEmitDiagnostics(
-            // (10,21): error CS9200: List patterns may not be used for a value of type 'C'.
+            // (10,21): error CS1503: Argument 1: cannot convert from 'System.Index' to 'in int'
             //         _ = this is [var item, ..var rest];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[var item, ..var rest]").WithArguments("C").WithLocation(10, 21),
-            // (10,32): error CS9201: Slice patterns may not be used for a value of type 'C'.
+            Diagnostic(ErrorCode.ERR_BadArgType, "[var item, ..var rest]").WithArguments("1", "System.Index", "in int").WithLocation(10, 21),
+            // (10,32): error CS0518: Predefined type 'System.Range' is not defined or imported
             //         _ = this is [var item, ..var rest];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..var rest").WithArguments("C").WithLocation(10, 32),
-            // (11,18): error CS0518: Predefined type 'System.Index' is not defined or imported
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "..var rest").WithArguments("System.Range").WithLocation(10, 32),
+            // (11,18): error CS1503: Argument 1: cannot convert from 'System.Index' to 'in int'
             //         _ = this[^1];
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "^1").WithArguments("System.Index").WithLocation(11, 18),
-            // (11,18): error CS0656: Missing compiler required member 'System.Index..ctor'
-            //         _ = this[^1];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^1").WithArguments("System.Index", ".ctor").WithLocation(11, 18),
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "in int").WithLocation(11, 18),
             // (12,18): error CS0518: Predefined type 'System.Range' is not defined or imported
             //         _ = this[1..^1];
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1..^1").WithArguments("System.Range").WithLocation(12, 18),
-            // (12,18): error CS0518: Predefined type 'System.Index' is not defined or imported
-            //         _ = this[1..^1];
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1").WithArguments("System.Index").WithLocation(12, 18),
-            // (12,21): error CS0518: Predefined type 'System.Index' is not defined or imported
-            //         _ = this[1..^1];
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "^1").WithArguments("System.Index").WithLocation(12, 21),
-            // (12,21): error CS0656: Missing compiler required member 'System.Index..ctor'
-            //         _ = this[1..^1];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^1").WithArguments("System.Index", ".ctor").WithLocation(12, 21),
-            // (12,21): error CS0518: Predefined type 'System.Index' is not defined or imported
-            //         _ = this[1..^1];
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "^1").WithArguments("System.Index").WithLocation(12, 21)
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1..^1").WithArguments("System.Range").WithLocation(12, 18)
             );
     }
 
@@ -4056,7 +5298,7 @@ class C
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index });
         compilation.VerifyEmitDiagnostics(
             // (9,44): error CS8122: An expression tree may not contain an 'is' pattern-matching operator.
             //         Expression<Func<bool>> ok1 = () => array is [_, ..];
@@ -4093,6 +5335,7 @@ class C
     {
         var src = @"
 _ = new C() is [..var y];
+_ = new C()[..];
 
 static class Extensions
 {
@@ -4103,11 +5346,14 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics(
-            // (2,17): error CS9201: Slice patterns may not be used for a value of type 'C'.
+            // (2,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
             // _ = new C() is [..var y];
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..var y").WithArguments("C").WithLocation(2, 17)
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var y").WithArguments("1", "System.Range", "int").WithLocation(2, 17),
+            // (3,13): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = new C()[..];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(3, 13)
             );
     }
 
@@ -4120,7 +5366,7 @@ if (""abc"" is [var first, ..var rest])
     System.Console.Write((first, rest).ToString());
 }
 ";
-        CompileAndVerify(src, expectedOutput: "(a, bc)");
+        CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, expectedOutput: "(a, bc)");
     }
 
     [Fact]
@@ -4138,7 +5384,7 @@ _ = new C() switch // 2
 {
     { Count: 0 } => 0,
     // missing
-    { _, _, .. } => 2,
+    [ _, _, .. ] => 2,
 };
 
 _ = new C() switch // 3
@@ -4162,17 +5408,60 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
             // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 2 }' is not covered.
             // _ = new C() switch // 1
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 2 }").WithLocation(2, 13),
-            // (13,7): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: _ }'
-            //     { _, _, .. } => 2,
-            Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "_").WithArguments("_").WithLocation(13, 7),
+            // (9,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            // _ = new C() switch // 2
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(9, 13),
             // (16,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
             // _ = new C() switch // 3
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(16, 13)
+            );
+
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 2 }' is not covered.
+            // _ = new C() switch // 1
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 2 }").WithLocation(2, 13),
+            // (5,5): error CS0518: Predefined type 'System.Index' is not defined or imported
+            //     [_] => 1,
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[_]").WithArguments("System.Index").WithLocation(5, 5),
+            // (5,5): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+            //     [_] => 1,
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[_]").WithArguments("System.Index", "GetOffset").WithLocation(5, 5),
+            // (9,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            // _ = new C() switch // 2
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(9, 13),
+            // (13,5): error CS0518: Predefined type 'System.Index' is not defined or imported
+            //     [ _, _, .. ] => 2,
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[ _, _, .. ]").WithArguments("System.Index").WithLocation(13, 5),
+            // (13,5): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+            //     [ _, _, .. ] => 2,
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[ _, _, .. ]").WithArguments("System.Index", "GetOffset").WithLocation(13, 5),
+            // (16,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            // _ = new C() switch // 3
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(16, 13),
+            // (20,5): error CS0518: Predefined type 'System.Index' is not defined or imported
+            //     [_, _] => 2,
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[_, _]").WithArguments("System.Index").WithLocation(20, 5),
+            // (20,5): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+            //     [_, _] => 2,
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[_, _]").WithArguments("System.Index", "GetOffset").WithLocation(20, 5),
+            // (21,5): error CS0518: Predefined type 'System.Index' is not defined or imported
+            //     [_, _, ..] => 3,
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[_, _, ..]").WithArguments("System.Index").WithLocation(21, 5),
+            // (21,5): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+            //     [_, _, ..] => 3,
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[_, _, ..]").WithArguments("System.Index", "GetOffset").WithLocation(21, 5),
+            // (28,5): error CS0518: Predefined type 'System.Index' is not defined or imported
+            //     [_, _] => 2,
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[_, _]").WithArguments("System.Index").WithLocation(28, 5),
+            // (28,5): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+            //     [_, _] => 2,
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[_, _]").WithArguments("System.Index", "GetOffset").WithLocation(28, 5)
             );
     }
 
@@ -4206,7 +5495,7 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
             // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 0 }' is not covered.
             // _ = new C() switch // 1
@@ -4255,7 +5544,7 @@ class C
     public int Count => throw null!;
     public string? this[int i] => throw null!;
 }";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
             // (3,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
             // _ = new C() switch // 1
@@ -4282,7 +5571,7 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
             // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[_, 0]' is not covered.
             // _ = new C() switch // 1
@@ -4306,7 +5595,7 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
             // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[0, _]' is not covered.
             // _ = new C() switch // 1
@@ -4345,7 +5634,7 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
             // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '[0]' is not covered.
             // _ = new C() switch // 1
@@ -4375,7 +5664,7 @@ class C
     public int this[int i] => throw null;
 }
 ";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
             // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
             // _ = new C() switch
@@ -4399,7 +5688,7 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics();
     }
 
@@ -4420,7 +5709,7 @@ class C
     public int this[int i] => throw null;
     public C Slice(int i, int j) => throw null;
 }";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
     }
 
@@ -4443,7 +5732,7 @@ class C
 class Derived : C { }
 ";
         // Note: we don't know how to explain `Derived and [1]`
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
             // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
             // _ = new C() switch
@@ -4467,17 +5756,14 @@ class C
     public uint Count => throw null!;
     public int this[int i] => throw null!;
 }";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
-            // (4,5): error CS9200: List patterns may not be used for a value of type 'C'.
+            // (4,5): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             //     [..] => 1,
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[..]").WithArguments("C").WithLocation(4, 5),
-            // (7,13): error CS0518: Predefined type 'System.Index' is not defined or imported
+            Diagnostic(ErrorCode.ERR_BadArgType, "[..]").WithArguments("1", "System.Index", "int").WithLocation(4, 5),
+            // (7,13): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             // _ = new C()[^1]; // 2
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "^1").WithArguments("System.Index").WithLocation(7, 13),
-            // (7,13): error CS0656: Missing compiler required member 'System.Index..ctor'
-            // _ = new C()[^1]; // 2
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^1").WithArguments("System.Index", ".ctor").WithLocation(7, 13)
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(7, 13)
             );
     }
 
@@ -4497,17 +5783,14 @@ class C
     public nint Count => throw null!;
     public int this[int i] => throw null!;
 }";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
-            // (4,5): error CS9200: List patterns may not be used for a value of type 'C'.
+            // (4,5): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             //     [..] => 1,
-            Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "[..]").WithArguments("C").WithLocation(4, 5),
-            // (7,13): error CS0518: Predefined type 'System.Index' is not defined or imported
+            Diagnostic(ErrorCode.ERR_BadArgType, "[..]").WithArguments("1", "System.Index", "int").WithLocation(4, 5),
+            // (7,13): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             // _ = new C()[^1]; // 2, 3
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "^1").WithArguments("System.Index").WithLocation(7, 13),
-            // (7,13): error CS0656: Missing compiler required member 'System.Index..ctor'
-            // _ = new C()[^1]; // 2, 3
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^1").WithArguments("System.Index", ".ctor").WithLocation(7, 13)
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(7, 13)
             );
     }
 
@@ -4935,7 +6218,7 @@ class C
     }
 }
 ";
-        var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+        var comp = CreateCompilation(new[] { src, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         comp.VerifyEmitDiagnostics(
             // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
             //             case [{Y:0, X:> 0}]:
@@ -5404,7 +6687,7 @@ class Derived : Base, I2
 {
 }
 ";
-        var compilation = CreateCompilation(new[] { source, _iTupleSource }, options: TestOptions.DebugExe);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, _iTupleSource }, options: TestOptions.DebugExe);
         compilation.VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [Derived s]: // 1
@@ -5472,7 +6755,7 @@ class C
         };
     }
 }";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyEmitDiagnostics(
                 // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [_]:         
@@ -5735,6 +7018,18 @@ class C
     }
 
     [Fact]
+    public void LengthPattern_NegativeLengthTest_MissingIndex()
+    {
+        var src = @"
+int[] a = null;
+_ = a is { Length: -1 };
+";
+        var comp = CreateCompilation(src);
+        comp.MakeTypeMissing(WellKnownType.System_Index);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
     public void LengthPattern_NegativeLengthTest()
     {
         var src = @"
@@ -5764,7 +7059,7 @@ _ = a switch // 6
     { Length: 1 } => 0,
 };
 ";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyDiagnostics(
             // (3,5): error CS8518: An expression of type 'int[]' can never match the provided pattern.
             // _ = a is { Length: -1 }; // 1
@@ -5803,7 +7098,7 @@ _ = a switch // 1
     { Length: -1 } => 0, // 2
 };
 ";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyDiagnostics(
             // (5,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'not null' is not covered.
             // _ = a switch // 1
@@ -5828,7 +7123,7 @@ _ = a switch
     _ => 3,
 };
 ";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyDiagnostics(
             // (3,5): error CS8518: An expression of type 'int[]' can never match the provided pattern.
             // _ = a is { Length: -1 } or { Length: -1 };
@@ -5854,7 +7149,7 @@ _ = a switch // 2
     { Length: < 0 } => 0, // 3
 };
 ";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyDiagnostics(
             // (3,5): error CS8518: An expression of type 'int[]' can never match the provided pattern.
             // _ = a is { Length: < 0 }; // 1
@@ -5880,12 +7175,15 @@ _ = a switch
     _ => 3,
 };
 ";
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
         comp.VerifyDiagnostics(
             // (6,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
             //     { Length: <= 0 } => 2,
             Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: <= 0 }").WithLocation(6, 5)
             );
+
+        comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
     }
 
     [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
@@ -5919,7 +7217,7 @@ class C : Base
     }
 }
 ";
-        var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+        var verifier = CompileAndVerify(new[] { source, TestSources.Index }, options: TestOptions.DebugDll);
         verifier.VerifyIL("C.M", @"
 {
   // Code size      105 (0x69)
@@ -5983,6 +7281,287 @@ class C : Base
   IL_0066:  ldloc.s    V_7
   IL_0068:  ret
 }");
+    }
+
+    [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
+    public void LengthOverrideLacksAccessor()
+    {
+        var source = @"
+#nullable enable
+using System.Runtime.CompilerServices;
+
+class Base
+{
+    public virtual int Length { get { return 2; } set { } }
+}
+
+class C : Base
+{
+    public override int Length { set { } }
+    public object this[int i] { get { return 1; } set { } }
+
+    public string? Value { get; }
+
+    public string M()
+    {
+        switch (this)
+        {
+            case [1, 1]:
+                return Value;
+            default:
+                return Value;
+        }
+    }
+}
+";
+        var verifier = CompileAndVerify(new[] { source, TestSources.Index });
+        verifier.VerifyIL("C.M", @"
+{
+  // Code size       78 (0x4e)
+  .maxstack  2
+  .locals init (C V_0,
+                object V_1,
+                object V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0047
+  IL_0005:  ldloc.0
+  IL_0006:  callvirt   ""int Base.Length.get""
+  IL_000b:  ldc.i4.2
+  IL_000c:  bne.un.s   IL_0047
+  IL_000e:  ldloc.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  callvirt   ""object C.this[int].get""
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  isinst     ""int""
+  IL_001c:  brfalse.s  IL_0047
+  IL_001e:  ldloc.1
+  IL_001f:  unbox.any  ""int""
+  IL_0024:  ldc.i4.1
+  IL_0025:  bne.un.s   IL_0047
+  IL_0027:  ldloc.0
+  IL_0028:  ldc.i4.1
+  IL_0029:  callvirt   ""object C.this[int].get""
+  IL_002e:  stloc.2
+  IL_002f:  ldloc.2
+  IL_0030:  isinst     ""int""
+  IL_0035:  brfalse.s  IL_0047
+  IL_0037:  ldloc.2
+  IL_0038:  unbox.any  ""int""
+  IL_003d:  ldc.i4.1
+  IL_003e:  pop
+  IL_003f:  pop
+  IL_0040:  ldarg.0
+  IL_0041:  call       ""string C.Value.get""
+  IL_0046:  ret
+  IL_0047:  ldarg.0
+  IL_0048:  call       ""string C.Value.get""
+  IL_004d:  ret
+}");
+    }
+
+    [Fact]
+    public void ListPattern_LengthAndCountAreOrthogonal()
+    {
+        var source = @"
+_ = new C() switch
+{
+    [] => 0,
+    { Length: 1 } => 0,
+    { Count: > 1 } => 0
+};
+
+class C
+{
+    public int this[System.Index i] => 1;
+    public int Length => 1;
+    public int Count => 1;
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source);
+        compilation.VerifyEmitDiagnostics(
+            // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 2,  Count: 0 }' is not covered.
+            // _ = new C() switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 2,  Count: 0 }").WithLocation(2, 13)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_LengthFieldNotApplicable()
+    {
+        var source = @"
+_ = new C() is [];
+_ = new C()[^1];
+
+class C
+{
+    public int this[int i] => 1;
+    public int Length = 0;
+}
+";
+        var compilation = CreateCompilationWithIndex(source);
+        compilation.VerifyEmitDiagnostics(
+            // (2,16): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            // _ = new C() is [];
+            Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "System.Index", "int").WithLocation(2, 16),
+            // (3,13): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            // _ = new C()[^1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(3, 13)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_IndexAndRangeAreNecessaryButOptimizedAway()
+    {
+        var source = @"
+new C().M();
+
+public class C
+{
+    public int this[int i] => 2;
+    public int Length => 1;
+    public int Slice(int i, int j) => 3;
+
+    public void M()
+    {
+        if (this is [var x] && this is [.. var y])
+            System.Console.Write((x, y));
+    }
+}
+";
+
+        var compilation = CreateCompilation(source);
+        compilation.MakeTypeMissing(WellKnownType.System_Index);
+        compilation.MakeTypeMissing(WellKnownType.System_Range);
+        compilation.VerifyDiagnostics(
+            // (12,21): error CS0518: Predefined type 'System.Index' is not defined or imported
+            //         if (this is [var x] && this is [.. var y])
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[var x]").WithArguments("System.Index").WithLocation(12, 21),
+            // (12,21): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+            //         if (this is [var x] && this is [.. var y])
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[var x]").WithArguments("System.Index", "GetOffset").WithLocation(12, 21),
+            // (12,40): error CS0518: Predefined type 'System.Index' is not defined or imported
+            //         if (this is [var x] && this is [.. var y])
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[.. var y]").WithArguments("System.Index").WithLocation(12, 40),
+            // (12,40): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+            //         if (this is [var x] && this is [.. var y])
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.. var y]").WithArguments("System.Index", "GetOffset").WithLocation(12, 40),
+            // (12,41): error CS0518: Predefined type 'System.Range' is not defined or imported
+            //         if (this is [var x] && this is [.. var y])
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, ".. var y").WithArguments("System.Range").WithLocation(12, 41),
+            // (12,41): error CS0656: Missing compiler required member 'System.Range.get_Start'
+            //         if (this is [var x] && this is [.. var y])
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. var y").WithArguments("System.Range", "get_Start").WithLocation(12, 41),
+            // (12,41): error CS0656: Missing compiler required member 'System.Range.get_End'
+            //         if (this is [var x] && this is [.. var y])
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. var y").WithArguments("System.Range", "get_End").WithLocation(12, 41),
+            // (12,41): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+            //         if (this is [var x] && this is [.. var y])
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. var y").WithArguments("System.Index", "GetOffset").WithLocation(12, 41)
+            );
+
+        compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        var verifier = CompileAndVerify(compilation, expectedOutput: "(2, 3)");
+        verifier.VerifyDiagnostics();
+        // Note: no Index or Range involved
+        verifier.VerifyIL("C.M", @"
+{
+  // Code size       61 (0x3d)
+  .maxstack  3
+  .locals init (int V_0, //x
+                int V_1, //y
+                C V_2,
+                int V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloc.2
+  IL_0003:  brfalse.s  IL_003c
+  IL_0005:  ldloc.2
+  IL_0006:  callvirt   ""int C.Length.get""
+  IL_000b:  ldc.i4.1
+  IL_000c:  bne.un.s   IL_003c
+  IL_000e:  ldloc.2
+  IL_000f:  ldc.i4.0
+  IL_0010:  callvirt   ""int C.this[int].get""
+  IL_0015:  stloc.0
+  IL_0016:  ldarg.0
+  IL_0017:  stloc.2
+  IL_0018:  ldloc.2
+  IL_0019:  brfalse.s  IL_003c
+  IL_001b:  ldloc.2
+  IL_001c:  callvirt   ""int C.Length.get""
+  IL_0021:  stloc.3
+  IL_0022:  ldloc.2
+  IL_0023:  ldc.i4.0
+  IL_0024:  ldloc.3
+  IL_0025:  callvirt   ""int C.Slice(int, int)""
+  IL_002a:  stloc.1
+  IL_002b:  ldloc.0
+  IL_002c:  ldloc.1
+  IL_002d:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0032:  box        ""System.ValueTuple<int, int>""
+  IL_0037:  call       ""void System.Console.Write(object)""
+  IL_003c:  ret
+}
+");
+    }
+
+    [Fact]
+    public void ListPattern_StaticIndexers()
+    {
+        var source = @"
+_ = new C() is [var x, .. var y];
+
+class C
+{
+    public int Length => 0;
+    public static int this[System.Index i] => 0;
+    public static int this[System.Range r] => 0;
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        comp.VerifyDiagnostics(
+            // (7,23): error CS0106: The modifier 'static' is not valid for this item
+            //     public static int this[System.Index i] => 0;
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(7, 23),
+            // (8,23): error CS0106: The modifier 'static' is not valid for this item
+            //     public static int this[System.Range r] => 0;
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(8, 23)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_SetOnlyIndexers()
+    {
+        var source = @"
+_ = new C() is [var x, .. var y]; // 1, 2, 3
+_ = new C()[^1]; // 4
+_ = new C()[..]; // 5
+
+class C
+{
+    public int Length { set { } }
+    public int this[System.Index i] { set { } }
+    public int this[System.Range r] { set { } }
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        comp.VerifyEmitDiagnostics(
+            // (2,16): error CS0154: The property or indexer 'C.this[Index]' cannot be used in this context because it lacks the get accessor
+            // _ = new C() is [var x, .. var y]; // 1, 2, 3
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "[var x, .. var y]").WithArguments("C.this[System.Index]").WithLocation(2, 16),
+            // (2,24): error CS0154: The property or indexer 'C.this[Range]' cannot be used in this context because it lacks the get accessor
+            // _ = new C() is [var x, .. var y]; // 1, 2, 3
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, ".. var y").WithArguments("C.this[System.Range]").WithLocation(2, 24),
+            // (3,5): error CS0154: The property or indexer 'C.this[Index]' cannot be used in this context because it lacks the get accessor
+            // _ = new C()[^1]; // 4
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "new C()[^1]").WithArguments("C.this[System.Index]").WithLocation(3, 5),
+            // (4,5): error CS0154: The property or indexer 'C.this[Range]' cannot be used in this context because it lacks the get accessor
+            // _ = new C()[..]; // 5
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "new C()[..]").WithArguments("C.this[System.Range]").WithLocation(4, 5)
+            );
     }
 
     [Fact]
@@ -6115,5 +7694,448 @@ record ConsList(object Head, ConsList? Tail)
   IL_002b:  ret
 }
 ");
+    }
+
+    [Fact]
+    public void Simple_IndexIndexer()
+    {
+        var source = @"
+if (new C() is [var x])
+{
+    System.Console.Write((x, new C()[^1]));
+}
+
+class C
+{
+    public int Length => 1;
+    public int this[System.Index i] => 42;
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "(42, 42)");
+    }
+
+    [Fact]
+    public void Simple_IntIndexer_MissingIndex()
+    {
+        var source = @"
+if (new C() is [var x])
+{
+    System.Console.Write(x);
+}
+
+class C
+{
+    public int Count => 1;
+    public int this[int i] => 42;
+}
+";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (2,16): error CS0518: Predefined type 'System.Index' is not defined or imported
+            // if (new C() is [var x])
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[var x]").WithArguments("System.Index").WithLocation(2, 16),
+            // (2,16): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+            // if (new C() is [var x])
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[var x]").WithArguments("System.Index", "GetOffset").WithLocation(2, 16)
+            );
+    }
+
+    [Fact]
+    public void Simple_IntIndexer()
+    {
+        var source = @"
+if (new C() is [var x])
+{
+    System.Console.Write((x, new C()[^1]));
+}
+
+class C
+{
+    public int Count => 1;
+    public int this[int i] => 42;
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "(42, 42)");
+    }
+
+    [Fact]
+    public void Simple_String()
+    {
+        var source = @"
+if (""42"" is [var x, var y])
+{
+    System.Console.Write((x, y));
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "(4, 2)");
+    }
+
+    [Fact]
+    public void Simple_Array()
+    {
+        var source = @"
+if (new[] { 4, 2 } is [var x, _])
+{
+    var y = new[] { 4, 2 }[^1];
+    System.Console.Write((x, y));
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "(4, 2)");
+    }
+
+    [Theory]
+    [InlineData("{ 4, 0, 0 }", "[var x, _, _]", "[0]")]
+    [InlineData("{ 0, 4, 0 }", "[_, var x, _]", "[1]")]
+    [InlineData("{ 0, 0, 4 }", "[_, _, var x]", "[2]")]
+    [InlineData("{ 4, 0, 0 }", "[.., var x, _, _]", "[^3]")]
+    [InlineData("{ 0, 4, 0 }", "[.., _, var x, _]", "[^2]")]
+    [InlineData("{ 0, 0, 4 }", "[.., _, _, var x]", "[^1]")]
+    public void Simple_Array_VerifyIndexMaths(string data, string pattern, string elementAccess)
+    {
+        var source = $@"
+if (new[] {data} is {pattern})
+{{
+    var y = new[] {data}{elementAccess};
+    System.Console.Write((x, y));
+}}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "(4, 4)");
+    }
+
+    [Fact]
+    public void Simple_IndexIndexer_Slice()
+    {
+        var source = @"
+if (new C() is [.. var x])
+{
+    System.Console.Write((x, new C()[..]));
+}
+
+class C
+{
+    public int Length => 0;
+    public int this[System.Index i] => throw null;
+    public int this[System.Range r] => 42; 
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "(42, 42)");
+    }
+
+    [Fact]
+    public void Simple_IntIndexer_Slice()
+    {
+        var source = @"
+if (new C() is [.. var x])
+{
+    System.Console.Write((x, new C()[..]));
+}
+
+class C
+{
+    public int Length => 1;
+    public int this[System.Index i] => throw null;
+    public int Slice(int i, int j) => 42; 
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "(42, 42)");
+    }
+
+    [Fact]
+    public void Simple_String_Slice()
+    {
+        var source = @"
+if (""0420"" is [_, .. var x, _])
+{
+    System.Console.Write(x);
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "42");
+    }
+
+    [Fact, WorkItem(57728, "https://github.com/dotnet/roslyn/issues/57728")]
+    public void Simple_Array_Slice()
+    {
+        var source = @"
+class C
+{
+    public static void Main()
+    {
+        if (new[] { 0, 4, 2, 0 } is [_, .. var x, _])
+        {
+            var y = new[] { 0, 4, 2, 0 }[1..^1];
+            System.Console.Write((x[0], x[1], y[0], y[1]));
+        }
+    }
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseExe);
+        comp.VerifyEmitDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "(4, 2, 4, 2)");
+        // we use Array.Length to get the length, but should be using ldlen
+        // Tracked by https://github.com/dotnet/roslyn/issues/57728
+        verifier.VerifyIL("C.Main", @"
+{
+  // Code size      116 (0x74)
+  .maxstack  5
+  .locals init (int[] V_0, //x
+                int[] V_1,
+                int[] V_2) //y
+  IL_0000:  ldc.i4.4
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldc.i4.4
+  IL_0009:  stelem.i4
+  IL_000a:  dup
+  IL_000b:  ldc.i4.2
+  IL_000c:  ldc.i4.2
+  IL_000d:  stelem.i4
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
+  IL_0010:  brfalse.s  IL_0073
+  IL_0012:  ldloc.1
+  IL_0013:  ldlen
+  IL_0014:  conv.i4
+  IL_0015:  ldc.i4.2
+  IL_0016:  blt.s      IL_0073
+  IL_0018:  ldloc.1
+  IL_0019:  ldc.i4.1
+  IL_001a:  ldc.i4.0
+  IL_001b:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0020:  ldc.i4.1
+  IL_0021:  ldc.i4.1
+  IL_0022:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0027:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_002c:  call       ""int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)""
+  IL_0031:  stloc.0
+  IL_0032:  ldc.i4.4
+  IL_0033:  newarr     ""int""
+  IL_0038:  dup
+  IL_0039:  ldc.i4.1
+  IL_003a:  ldc.i4.4
+  IL_003b:  stelem.i4
+  IL_003c:  dup
+  IL_003d:  ldc.i4.2
+  IL_003e:  ldc.i4.2
+  IL_003f:  stelem.i4
+  IL_0040:  ldc.i4.1
+  IL_0041:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_0046:  ldc.i4.1
+  IL_0047:  ldc.i4.1
+  IL_0048:  newobj     ""System.Index..ctor(int, bool)""
+  IL_004d:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0052:  call       ""int[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<int>(int[], System.Range)""
+  IL_0057:  stloc.2
+  IL_0058:  ldloc.0
+  IL_0059:  ldc.i4.0
+  IL_005a:  ldelem.i4
+  IL_005b:  ldloc.0
+  IL_005c:  ldc.i4.1
+  IL_005d:  ldelem.i4
+  IL_005e:  ldloc.2
+  IL_005f:  ldc.i4.0
+  IL_0060:  ldelem.i4
+  IL_0061:  ldloc.2
+  IL_0062:  ldc.i4.1
+  IL_0063:  ldelem.i4
+  IL_0064:  newobj     ""System.ValueTuple<int, int, int, int>..ctor(int, int, int, int)""
+  IL_0069:  box        ""System.ValueTuple<int, int, int, int>""
+  IL_006e:  call       ""void System.Console.Write(object)""
+  IL_0073:  ret
+}
+");
+    }
+
+    [Theory]
+    [InlineData("{ 4, 2, 0, 0, 0 }", "[.. var x, _, _, _]", "[0..^3]")]
+    [InlineData("{ 0, 4, 2, 0, 0 }", "[_, .. var x, _, _]", "[1..^2]")]
+    [InlineData("{ 0, 0, 4, 2, 0 }", "[_, _, .. var x, _]", "[2..^1]")]
+    [InlineData("{ 0, 0, 0, 4, 2 }", "[_, _, _, .. var x]", "[3..^0]")]
+    public void Simple_Array_Slice_VerifyRangeMaths(string data, string pattern, string elementAccess)
+    {
+        var source = $@"
+if (new[] {data} is {pattern})
+{{
+    var y = new[] {data}{elementAccess};
+    System.Console.Write((x[0], x[1], x.Length, y[0], y[1], y.Length));
+}}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "(4, 2, 2, 4, 2, 2)");
+    }
+
+    [Fact]
+    public void ArrayLengthAccess()
+    {
+        var source = @"
+class C
+{
+    public int M(int[] a)
+    {
+        switch (a)
+        {
+            case [.., var x]: return x;
+        }
+
+        return 3;
+    }
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseDll);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+        verifier.VerifyIL("C.M", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0011
+  IL_0003:  ldarg.1
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_0011
+  IL_000b:  ldarg.1
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  sub
+  IL_000f:  ldelem.i4
+  IL_0010:  ret
+  IL_0011:  ldc.i4.3
+  IL_0012:  ret
+}
+");
+    }
+
+    [Fact]
+    public void ListPattern_NotCountableInterface()
+    {
+        var source = @"
+_ = new C() is INotCountable and [var x, .. var y];
+
+interface INotCountable { }
+class C : INotCountable
+{
+    public int Length { get => 0; }
+    public int this[System.Index i] { get => 0; }
+    public int this[System.Range r] { get => 0; }
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        comp.VerifyEmitDiagnostics(
+            // (2,34): error CS0021: Cannot apply indexing with [] to an expression of type 'INotCountable'
+            // _ = new C() is INotCountable and [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[var x, .. var y]").WithArguments("INotCountable").WithLocation(2, 34),
+            // (2,42): error CS0021: Cannot apply indexing with [] to an expression of type 'INotCountable'
+            // _ = new C() is INotCountable and [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. var y").WithArguments("INotCountable").WithLocation(2, 42)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_ExplicitInterfaceImplementation()
+    {
+        var source = @"
+if (new C() is Interface and [var x, .. var y])
+{
+    System.Console.Write((x, y));
+}
+
+interface Interface
+{
+    int Length { get; }
+    int this[System.Index i] { get; }
+    int this[System.Range r] { get; }
+}
+class C : Interface
+{
+    int Interface.Length { get => 2; }
+    int Interface.this[System.Index i] { get => 42; }
+    int Interface.this[System.Range r] { get => 43; }
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ListPattern_Tuples()
+    {
+        var source = @"
+_ = (1, 2) is [var x, .. var y];
+
+System.Runtime.CompilerServices.ITuple ituple = default;
+_ = ituple is [var x2];
+_ = ituple is [..var y2];
+
+_ = ituple switch
+{
+    [1, 2] => 0,
+    (1, 2) => 0,
+    _ => 0,
+};
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.ITuple });
+        comp.VerifyEmitDiagnostics(
+            // (2,15): error CS0021: Cannot apply indexing with [] to an expression of type '(int, int)'
+            // _ = (1, 2) is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[var x, .. var y]").WithArguments("(int, int)").WithLocation(2, 15),
+            // (2,23): error CS0021: Cannot apply indexing with [] to an expression of type '(int, int)'
+            // _ = (1, 2) is [var x, .. var y];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. var y").WithArguments("(int, int)").WithLocation(2, 23),
+            // (6,16): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+            // _ = ituple is [..var y2];
+            Diagnostic(ErrorCode.ERR_BadArgType, "..var y2").WithArguments("1", "System.Range", "int").WithLocation(6, 16)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_NullTestOnSlice()
+    {
+        var source = @"
+using System;
+Span<int> s = default;
+switch (s)
+{
+    case [..[1],2,3]:
+    case [1,2,3]: // error
+        break;
+}
+
+int[] a = default;
+switch (a)
+{
+    case [..[1],2,3]:
+    case [1,2,3]: // no error
+        break;
+}
+";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        comp.VerifyEmitDiagnostics(
+            // (7,10): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+            //     case [1,2,3]: // error
+            Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[1,2,3]").WithLocation(7, 10)
+            );
     }
 }

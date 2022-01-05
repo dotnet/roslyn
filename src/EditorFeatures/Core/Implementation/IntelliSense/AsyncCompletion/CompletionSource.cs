@@ -245,6 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // We only want to provide expanded items for Roslyn's expander.
             if (expander == FilterSet.Expander && session.Properties.TryGetProperty(ExpandedItemTriggerLocation, out SnapshotPoint initialTriggerLocation))
             {
+                AsyncCompletionLogger.LogExpanderUsage();
                 return await GetCompletionContextWorkerAsync(session, intialTrigger, initialTriggerLocation, isExpanded: true, cancellationToken).ConfigureAwait(false);
             }
 
@@ -390,7 +391,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
 
             var options = CompletionOptions.From(document.Project);
-            var description = await service.GetDescriptionAsync(document, roslynItem, options, cancellationToken).ConfigureAwait(false);
+            var displayOptions = SymbolDescriptionOptions.From(document.Project);
+            var description = await service.GetDescriptionAsync(document, roslynItem, options, displayOptions, cancellationToken).ConfigureAwait(false);
             if (description == null)
                 return null;
 

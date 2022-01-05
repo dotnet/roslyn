@@ -155,15 +155,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundITuplePattern _:
                 case BoundRelationalPattern _:
                 case BoundSlicePattern _:
+                case BoundListPattern lp:
                     break; // nothing to learn
                 case BoundTypePattern tp:
                     if (tp.IsExplicitNotNullTest)
                     {
                         LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
                     }
-                    break;
-                case BoundListPattern lp:
-                    // PROTOTYPE(list-patterns)
                     break;
                 case BoundRecursivePattern rp:
                     {
@@ -501,32 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagIndexerEvaluation e:
                                     {
                                         Debug.Assert(inputSlot > 0);
-                                        TypeWithAnnotations type;
-                                        if (e.IndexerType.IsErrorType())
-                                        {
-                                            type = TypeWithAnnotations.Create(isNullableEnabled: true, e.IndexerType, isAnnotated: false);
-                                        }
-                                        else if (e.IndexerAccess is not null)
-                                        {
-                                            // this[Index]
-                                            Debug.Assert(e.IndexerSymbol is null && e.Input.Type is not ArrayTypeSymbol);
-                                            var indexer = AsMemberOfType(inputType, e.IndexerAccess.Indexer);
-                                            type = indexer.GetTypeOrReturnType();
-                                        }
-                                        else if (e.IndexerSymbol is not null)
-                                        {
-                                            // this[int]
-                                            Debug.Assert(e.Input.Type is not ArrayTypeSymbol);
-                                            var indexer = AsMemberOfType(inputType, e.IndexerSymbol);
-                                            type = indexer.GetTypeOrReturnType();
-                                        }
-                                        else
-                                        {
-                                            // array[int]
-                                            var arrayType = (ArrayTypeSymbol)e.Input.Type;
-                                            type = arrayType.ElementTypeWithAnnotations;
-                                        }
-
+                                        TypeWithAnnotations type = getIndexerOutputType(inputType, e.IndexerAccess, isSlice: false);
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
                                         var outputSlot = makeDagTempSlot(type, output);
                                         Debug.Assert(outputSlot > 0);
@@ -536,34 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagSliceEvaluation e:
                                     {
                                         Debug.Assert(inputSlot > 0);
-                                        TypeWithAnnotations type;
-
-                                        if (e.SliceType.IsErrorType())
-                                        {
-                                            type = TypeWithAnnotations.Create(isNullableEnabled: true, e.SliceType, isAnnotated: false);
-                                        }
-                                        else if (e.IndexerAccess is not null)
-                                        {
-                                            // this[Range]
-                                            Debug.Assert(e.SliceMethod is null && e.Input.Type is not ArrayTypeSymbol);
-                                            var symbol = AsMemberOfType(inputType, e.IndexerAccess.Indexer);
-                                            type = symbol.GetTypeOrReturnType();
-                                        }
-                                        else if (e.SliceMethod is not null)
-                                        {
-                                            // Slice(int, int)
-                                            Debug.Assert(e.Input.Type is not ArrayTypeSymbol);
-                                            var symbol = AsMemberOfType(inputType, e.SliceMethod);
-                                            type = symbol.GetTypeOrReturnType();
-                                        }
-                                        else
-                                        {
-                                            // RuntimeHelpers.GetSubArray(T[], Range)
-                                            var arrayType = e.Input.Type;
-                                            Debug.Assert(arrayType is ArrayTypeSymbol);
-                                            type = TypeWithAnnotations.Create(isNullableEnabled: true, arrayType, isAnnotated: false);
-                                        }
-
+                                        TypeWithAnnotations type = getIndexerOutputType(inputType, e.IndexerAccess, isSlice: true);
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
                                         var outputSlot = makeDagTempSlot(type, output);
                                         Debug.Assert(outputSlot > 0);
@@ -848,6 +794,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(outputSlot > 0);
                 addToTempMap(output, outputSlot, type.Type);
             }
+
+            static TypeWithAnnotations getIndexerOutputType(TypeSymbol inputType, BoundExpression e, bool isSlice)
+            {
+                return e switch
+                {
+                    BoundIndexerAccess indexerAccess => AsMemberOfType(inputType, indexerAccess.Indexer).GetTypeOrReturnType(),
+                    BoundCall call => AsMemberOfType(inputType, call.Method).GetTypeOrReturnType(),
+
+                    BoundArrayAccess arrayAccess => isSlice
+                        ? TypeWithAnnotations.Create(isNullableEnabled: true, inputType, isAnnotated: false)
+                        : ((ArrayTypeSymbol)inputType).ElementTypeWithAnnotations,
+
+                    BoundImplicitIndexerAccess implicitIndexerAccess => getIndexerOutputType(inputType, implicitIndexerAccess.IndexerOrSliceAccess, isSlice),
+                    _ => throw ExceptionUtilities.UnexpectedValue(e.Kind)
+                };
+            }
         }
 
         public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
@@ -907,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var arm in node.SwitchArms)
             {
-                SetState(getStateForArm(arm));
+                SetState(getStateForArm(arm, labelStateMap));
                 // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the snapshot?
                 TakeIncrementalSnapshot(arm);
                 VisitPatternForRewriting(arm.Pattern);
@@ -923,63 +885,103 @@ namespace Microsoft.CodeAnalysis.CSharp
                 placeholderBuilder.Add(CreatePlaceholderIfNecessary(expression, armType.ToTypeWithAnnotations(compilation)));
             }
 
+            SetState(endState);
+
             var placeholders = placeholderBuilder.ToImmutableAndFree();
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
             TypeSymbol inferredType =
-                (inferType ? BestTypeInferrer.InferBestType(placeholders, _conversions, ref discardedUseSiteInfo) : null)
+                (inferType ? BestTypeInferrer.InferBestType(placeholders, _conversions, ref discardedUseSiteInfo, out _) : null)
                     ?? node.Type?.SetUnknownNullabilityForReferenceTypes();
 
             var inferredTypeWithAnnotations = TypeWithAnnotations.Create(inferredType);
             NullableFlowState inferredState;
+            TypeWithState resultType;
 
-            if (inferType)
+            if (inferType && inferredType is null)
             {
-                if (inferredType is null)
+                // This can happen when we're inferring the return type of a lambda, or when there are no arms (an error case).
+                // For this case, we don't need to do any work, as the unconverted switch expression can't contribute info, and
+                // there is nothing that is being publicly exposed to the semantic model.
+                Debug.Assert((node is BoundUnconvertedSwitchExpression && _returnTypesOpt is not null)
+                                || node is BoundSwitchExpression { SwitchArms: { Length: 0 } });
+                inferredState = default;
+
+                resultType = TypeWithState.Create(inferredType, inferredState);
+
+                conversions.Free();
+                resultTypes.Free();
+                expressions.Free();
+                labelStateMap.Free();
+                SetResult(node, resultType, inferredTypeWithAnnotations);
+                return;
+            }
+
+            resultType = convertArms(node, labelStateMap, conversions, resultTypes, expressions, inferredTypeWithAnnotations, isTargetTyped: !inferType);
+
+            SetResult(node, resultType, inferredTypeWithAnnotations, updateAnalyzedNullability: false);
+            return;
+
+            TypeWithState convertArms(
+                BoundSwitchExpression node,
+                PooledDictionary<LabelSymbol, (LocalState state, bool believedReachable)> labelStateMap,
+                ArrayBuilder<Conversion> conversions,
+                ArrayBuilder<TypeWithState> resultTypes,
+                ArrayBuilder<BoundExpression> expressions,
+                TypeWithAnnotations inferredTypeWithAnnotations,
+                bool isTargetTyped)
+            {
+                if (!isTargetTyped)
                 {
-                    // This can happen when we're inferring the return type of a lambda, or when there are no arms (an error case).
-                    // For this case, we don't need to do any work, as the unconverted switch expression can't contribute info, and
-                    // there is nothing that is being publicly exposed to the semantic model.
-                    Debug.Assert((node is BoundUnconvertedSwitchExpression && _returnTypesOpt is not null)
-                                 || node is BoundSwitchExpression { SwitchArms: { Length: 0 } });
-                    inferredState = default;
-                }
-                else
-                {
+                    int numSwitchArms = node.SwitchArms.Length;
                     for (int i = 0; i < numSwitchArms; i++)
                     {
                         var nodeForSyntax = expressions[i];
                         var arm = node.SwitchArms[i];
-                        var armState = getStateForArm(arm);
+                        var armState = getStateForArm(arm, labelStateMap);
                         resultTypes[i] = ConvertConditionalOperandOrSwitchExpressionArmResult(arm.Value, nodeForSyntax, conversions[i], inferredTypeWithAnnotations, resultTypes[i], armState, armState.Reachable);
                     }
-                    inferredState = BestTypeInferrer.GetNullableState(resultTypes);
                 }
-            }
-            else
-            {
-                var states = ArrayBuilder<(LocalState, TypeWithState, bool)>.GetInstance(numSwitchArms);
-                for (int i = 0; i < numSwitchArms; i++)
+
+                NullableFlowState inferredState = BestTypeInferrer.GetNullableState(resultTypes);
+
+                if (!isTargetTyped)
                 {
-                    var nodeForSyntax = expressions[i];
-                    var armState = getStateForArm(node.SwitchArms[i]);
-                    states.Add((armState, resultTypes[i], armState.Reachable));
+                    conversions.Free();
+                    resultTypes.Free();
+                    expressions.Free();
+                    labelStateMap.Free();
+                }
+                else
+                {
+                    addConvertArmsAsCompletion(node, labelStateMap, conversions, resultTypes, expressions);
                 }
 
-                ConditionalInfoForConversion.Add(node, states.ToImmutableAndFree());
-                inferredState = BestTypeInferrer.GetNullableState(resultTypes);
+                TypeWithState resultType = TypeWithState.Create(inferredTypeWithAnnotations.Type, inferredState);
+
+                if (!isTargetTyped)
+                {
+                    SetAnalyzedNullability(node, resultType);
+                }
+
+                return resultType;
             }
 
-            var resultType = TypeWithState.Create(inferredType, inferredState);
+            void addConvertArmsAsCompletion(
+                BoundSwitchExpression node,
+                PooledDictionary<LabelSymbol, (LocalState state, bool believedReachable)> labelStateMap,
+                ArrayBuilder<Conversion> conversions,
+                ArrayBuilder<TypeWithState> resultTypes,
+                ArrayBuilder<BoundExpression> expressions)
+            {
+                TargetTypedAnalysisCompletion[node] =
+                    (TypeWithAnnotations inferredTypeWithAnnotations) =>
+                    {
+                        return convertArms(node, labelStateMap, conversions, resultTypes, expressions, inferredTypeWithAnnotations, isTargetTyped: false);
+                    };
+            }
 
-            conversions.Free();
-            resultTypes.Free();
-            expressions.Free();
-            labelStateMap.Free();
-            SetState(endState);
-            SetResult(node, resultType, inferredTypeWithAnnotations);
-
-            LocalState getStateForArm(BoundSwitchExpressionArm arm)
+            LocalState getStateForArm(BoundSwitchExpressionArm arm, PooledDictionary<LabelSymbol, (LocalState state, bool believedReachable)> labelStateMap)
                 => !arm.Pattern.HasErrors && labelStateMap.TryGetValue(arm.Label, out var labelState) ? labelState.state : UnreachableState();
         }
 

@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             catch (OperationCanceledException)
             {
             }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {
             }
         }
@@ -321,18 +321,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         #endregion
-
-        internal TestAccessor GetTestAccessor() => new(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly SuggestedAction _suggestedAction;
-
-            public TestAccessor(SuggestedAction suggestedAction)
-                => _suggestedAction = suggestedAction;
-
-            public Task InvokeAsync()
-                => _suggestedAction.InvokeAsync();
-        }
     }
 }

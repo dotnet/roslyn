@@ -32,18 +32,38 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this switch
+                var result = this switch
                 {
                     BoundDagFieldEvaluation e => e.Field.CorrespondingTupleField ?? e.Field,
                     BoundDagPropertyEvaluation e => e.Property,
                     BoundDagTypeEvaluation e => e.Type,
                     BoundDagDeconstructEvaluation e => e.DeconstructMethod,
                     BoundDagIndexEvaluation e => e.Property,
-                    BoundDagSliceEvaluation e => (Symbol?)e.SliceMethod ?? e.IndexerAccess?.Indexer,
-                    BoundDagIndexerEvaluation e => e.IndexerSymbol ?? e.IndexerAccess?.Indexer,
+                    BoundDagSliceEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
+                    BoundDagIndexerEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
                     BoundDagAssignmentEvaluation => null,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
+
+                Debug.Assert(result is not null || this is BoundDagAssignmentEvaluation);
+                return result;
+
+                static Symbol? getSymbolFromIndexerAccess(BoundExpression indexerAccess)
+                {
+                    switch (indexerAccess)
+                    {
+                        // array[Range]
+                        case BoundArrayAccess arrayAccess:
+                            return arrayAccess.Expression.Type;
+
+                        // array[Index]
+                        case BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundArrayAccess arrayAccess }:
+                            return arrayAccess.Expression.Type;
+
+                        default:
+                            return Binder.GetIndexerOrImplicitIndexerSymbol(indexerAccess);
+                    }
+                }
             }
         }
 
@@ -105,6 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.IsEquivalentTo(obj) &&
                 this.Index == ((BoundDagIndexerEvaluation)obj).Index;
         }
+
+        private partial void Validate()
+        {
+            Debug.Assert(IndexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess);
+        }
     }
 
     partial class BoundDagSliceEvaluation
@@ -115,6 +140,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.IsEquivalentTo(obj) &&
                 (BoundDagSliceEvaluation)obj is var e &&
                 this.StartIndex == e.StartIndex && this.EndIndex == e.EndIndex;
+        }
+
+        private partial void Validate()
+        {
+            Debug.Assert(IndexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess);
         }
     }
 

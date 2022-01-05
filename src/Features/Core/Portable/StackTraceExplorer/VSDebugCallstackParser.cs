@@ -6,6 +6,7 @@ using System;
 using System.Text;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
@@ -27,20 +28,15 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                 return false;
             }
 
-            var success = StackFrameParserHelpers.TryParseMethodSignature(line.AsSpan().Slice(startPoint), out var classSpan, out var methodSpan, out var argsSpan);
+            var textToParse = line[startPoint..];
+            var tree = StackFrameParser.TryParse(textToParse);
 
-            if (!success)
+            if (tree is null)
             {
                 return false;
             }
 
-            // The spans need to be fixed up by the start point since we didn't
-            // pass everyting from '!' and before to the parser
-            classSpan = new TextSpan(classSpan.Start + startPoint, classSpan.Length);
-            methodSpan = new TextSpan(methodSpan.Start + startPoint, methodSpan.Length);
-            argsSpan = new TextSpan(argsSpan.Start + startPoint, argsSpan.Length);
-
-            parsedFrame = new ParsedStackFrame(line, classSpan, methodSpan, argsSpan);
+            parsedFrame = new ParsedStackFrame(tree);
             return true;
         }
     }

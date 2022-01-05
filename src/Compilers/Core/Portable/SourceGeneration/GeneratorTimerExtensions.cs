@@ -51,8 +51,6 @@ namespace Microsoft.CodeAnalysis
 
             public RunTimer()
             {
-                // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details 
-                _ = SharedStopwatch.StartNew();
                 _timer = SharedStopwatch.StartNew();
                 _callback = null;
             }

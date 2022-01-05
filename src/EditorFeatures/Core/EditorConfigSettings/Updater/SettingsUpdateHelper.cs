@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis.EditorConfig;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -75,12 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                 var optionValue = storageLocation.GetEditorConfigStringValue(value, optionSet);
                 if (value is ICodeStyleOption codeStyleOption && !optionValue.Contains(':'))
                 {
-                    var severity = codeStyleOption.Notification switch
+                    var severity = codeStyleOption.Notification.Severity switch
                     {
-                        { Severity: ReportDiagnostic.Hidden } => "silent",
-                        { Severity: ReportDiagnostic.Info } => "suggestion",
-                        { Severity: ReportDiagnostic.Warn } => "warning",
-                        { Severity: ReportDiagnostic.Error } => "error",
+                        ReportDiagnostic.Hidden => "silent",
+                        ReportDiagnostic.Info => "suggestion",
+                        ReportDiagnostic.Warn => "warning",
+                        ReportDiagnostic.Error => "error",
                         _ => string.Empty
                     };
                     optionValue = $"{optionValue}:{severity}";
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                         string.Equals(key, optionName, StringComparison.OrdinalIgnoreCase))
                     {
                         // We found the rule in the file -- replace it with updated option value.
-                        textChange = new TextChange(curLine.Span, $"{untrimmedKey}={optionValue}{comment}");
+                        textChange = new TextChange(curLine.Span, $"{untrimmedKey}= {optionValue}{comment}");
                     }
                 }
                 else if (s_headerPattern.IsMatch(curLineText.Trim()))
@@ -294,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                                                                                                                                         string optionValue,
                                                                                                                                         Language language)
         {
-            var newEntry = $"{optionName}={optionValue}";
+            var newEntry = $"{optionName} = {optionValue}";
             if (lastValidSpecificHeaderSpanEnd.HasValue)
             {
                 if (lastValidSpecificHeaderSpanEnd.Value.ToString().Trim().Length != 0)

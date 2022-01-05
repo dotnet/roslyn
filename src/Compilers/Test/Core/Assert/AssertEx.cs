@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using DiffPlex;
+using DiffPlex.Chunkers;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -28,6 +29,10 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public static class AssertEx
     {
+        private static readonly IChunker s_lineChunker = new LineChunker();
+        private static readonly IChunker s_lineEndingsPreservingChunker = new LineEndingsPreservingChunker();
+        private static readonly InlineDiffBuilder s_diffBuilder = new InlineDiffBuilder(new Differ());
+
         #region AssertEqualityComparer<T>
 
         private class AssertEqualityComparer<T> : IEqualityComparer<T>
@@ -242,30 +247,35 @@ namespace Roslyn.Test.Utilities
                 return;
             }
 
-            var diffBuilder = new InlineDiffBuilder(new Differ());
-            var diff = diffBuilder.BuildDiffModel(expected, actual, ignoreWhitespace: false);
+            var diff = s_diffBuilder.BuildDiffModel(expected, actual, ignoreWhitespace: false, ignoreCase: false, s_lineChunker);
             var messageBuilder = new StringBuilder();
             messageBuilder.AppendLine(
                 string.IsNullOrEmpty(message)
                     ? "Actual and expected values differ. Expected shown in baseline of diff:"
                     : message);
 
+            if (!diff.Lines.Any(line => line.Type == ChangeType.Inserted || line.Type == ChangeType.Deleted))
+            {
+                // We have a failure only caused by line ending differences; recalculate with line endings visible
+                diff = s_diffBuilder.BuildDiffModel(expected, actual, ignoreWhitespace: false, ignoreCase: false, s_lineEndingsPreservingChunker);
+            }
+
             foreach (var line in diff.Lines)
             {
                 switch (line.Type)
                 {
                     case ChangeType.Inserted:
-                        messageBuilder.Append("+");
+                        messageBuilder.Append('+');
                         break;
                     case ChangeType.Deleted:
-                        messageBuilder.Append("-");
+                        messageBuilder.Append('-');
                         break;
                     default:
-                        messageBuilder.Append(" ");
+                        messageBuilder.Append(' ');
                         break;
                 }
 
-                messageBuilder.AppendLine(line.Text);
+                messageBuilder.AppendLine(line.Text.Replace("\r", "<CR>").Replace("\n", "<LF>"));
             }
 
             Assert.True(false, messageBuilder.ToString());

@@ -908,8 +908,8 @@ IInvocationOperation (virtual System.String (System.Int32, System.String).ToStri
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.String), IsInvalid) (Syntax: '(int, string)')
       NaturalType: (System.Int32, System.String)
       Elements(2):
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'int')
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'string')
+          IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'int')
+          IOperation:  (OperationKind.None, Type: System.String, IsInvalid) (Syntax: 'string')
   Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -2847,7 +2847,7 @@ class C
         /*<bind>*/var (x1, x2) = (1, 2)/*</bind>*/;
     }
 }
-class var { }
+class @var { }
 ";
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2) = (1, 2)')
@@ -2888,7 +2888,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         public void DeclarationVarFormWithAliasedVarType()
         {
             string source = @"
-using var = D;
+using @var = D;
 class C
 {
     static void Main()

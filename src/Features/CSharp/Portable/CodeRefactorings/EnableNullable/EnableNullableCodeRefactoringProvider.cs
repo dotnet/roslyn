@@ -38,16 +38,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             if (!textSpan.IsEmpty)
                 return;
 
-            if (document.Project.CompilationOptions!.NullableContextOptions != NullableContextOptions.Disable)
+            if (document.Project is not
+                {
+                    ParseOptions: CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp8 },
+                    CompilationOptions.NullableContextOptions: NullableContextOptions.Disable,
+                })
+            {
                 return;
+            }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(textSpan.Start, findInsideTrivia: true);
             if (token.IsKind(SyntaxKind.EndOfDirectiveToken))
                 token = root.FindToken(textSpan.Start - 1, findInsideTrivia: true);
 
-            if (!token.IsKind(SyntaxKind.EnableKeyword) || !token.Parent.IsKind(SyntaxKind.NullableDirectiveTrivia))
+            if (!token.IsKind(SyntaxKind.EnableKeyword, SyntaxKind.RestoreKeyword, SyntaxKind.DisableKeyword, SyntaxKind.NullableKeyword, SyntaxKind.HashToken)
+                || !token.Parent.IsKind(SyntaxKind.NullableDirectiveTrivia, out NullableDirectiveTriviaSyntax? nullableDirectiveTrivia))
+            {
                 return;
+            }
 
             context.RegisterRefactoring(
                 new MyCodeAction((purpose, cancellationToken) => EnableNullableReferenceTypesAsync(document.Project, purpose, cancellationToken)));

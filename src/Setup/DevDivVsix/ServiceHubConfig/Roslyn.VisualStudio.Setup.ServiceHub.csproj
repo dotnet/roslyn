@@ -9,7 +9,7 @@
     <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.LanguageServices</VisualStudioInsertionComponent>
 
     <!-- ServiceHub AssemblyPath -->
-    <!-- Path to our servicehub entry point dll in Common7\IDE\CommonExtensions\Microsoft\ManagedLanguages\VBCSharp\LanguageServices (our vsix directory)
+    <!-- Path to our servicehub entry point dll in Common7\IDE\CommonExtensions\Microsoft\VBCSharp\LanguageServices (our vsix directory)
          relative to Common7\ServiceHub\Services\RoslynCodeAnalysisService where our in-box servicehub.service.json files are -->
     <ServiceHubAssemblyBasePath>..\..\..\IDE\$(CommonExtensionInstallationRoot)\$(LanguageServicesExtensionInstallationFolder)\</ServiceHubAssemblyBasePath>
   </PropertyGroup>
@@ -27,10 +27,11 @@
           Outputs="$(_SwrFilePath)">
 
     <ItemGroup>
+      <!-- We are shipping a copy of config files for Roslyn desktop services in ServiceHub folder, which is to mitigate an issue where the VsixDiscoveryService is 
+           flaky and occasionally not finding the Roslyn services properly. However, we can't do the same for services running on .Net Core host because the config
+           file location is used as default path to resolve service assemblies. -->
       <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="64" />
       <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="64S" />
-      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="Core64" />
-      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="Core64S" />
       <_FileEntries Include='file source="$(IntermediateOutputPath)%(_ServiceHubConfigFiles.Identity)%(_ServiceHubConfigFiles.FileSuffix).servicehub.service.json"'/>
     </ItemGroup>
 

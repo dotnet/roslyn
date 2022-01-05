@@ -39,20 +39,25 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         private static readonly ImmutableArray<char> s_invalidPathChars = Path.GetInvalidPathChars().Concat('/').ToImmutableArray();
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultPersistentStorageConfiguration()
-        {
-        }
+        private static readonly string s_cacheDirectory;
+        private static readonly string s_moduleFileName;
 
-        private static string GetCacheDirectory()
+        static DefaultPersistentStorageConfiguration()
         {
             // Store in the LocalApplicationData/Roslyn/hash folder (%appdatalocal%/... on Windows,
             // ~/.local/share/... on unix).  This will place the folder in a location we can trust
             // to be able to get back to consistently as long as we're working with the same
             // solution and the same workspace kind.
             var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create);
-            return Path.Combine(appDataFolder, "Microsoft", "VisualStudio", "Roslyn", "Cache");
+            s_cacheDirectory = Path.Combine(appDataFolder, "Microsoft", "VisualStudio", "Roslyn", "Cache");
+
+            s_moduleFileName = SafeName(Process.GetCurrentProcess().MainModule.FileName);
+        }
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public DefaultPersistentStorageConfiguration()
+        {
         }
 
         public bool ThrowOnFailure => false;
@@ -66,30 +71,30 @@ namespace Microsoft.CodeAnalysis.Host
             // folder to store their data in.
 
             return Path.Combine(
-                GetCacheDirectory(),
-                SafeName(Process.GetCurrentProcess().MainModule.FileName),
+                s_cacheDirectory,
+                s_moduleFileName,
                 SafeName(solutionKey.FilePath));
+        }
 
-            static string SafeName(string fullPath)
-            {
-                var fileName = Path.GetFileName(fullPath);
+        private static string SafeName(string fullPath)
+        {
+            var fileName = Path.GetFileName(fullPath);
 
-                // we don't want to build too long a path.  So only take a portion of the text we started with.
-                // However, we want to avoid collisions, so ensure we also append a safe short piece of text
-                // that is based on the full text.
-                const int MaxLength = 20;
-                var prefix = fileName.Length > MaxLength ? fileName.Substring(0, MaxLength) : fileName;
-                var suffix = Checksum.Create(fullPath);
-                var fullName = $"{prefix}-{suffix}";
-                return StripInvalidPathChars(fullName);
-            }
+            // we don't want to build too long a path.  So only take a portion of the text we started with.
+            // However, we want to avoid collisions, so ensure we also append a safe short piece of text
+            // that is based on the full text.
+            const int MaxLength = 20;
+            var prefix = fileName.Length > MaxLength ? fileName.Substring(0, MaxLength) : fileName;
+            var suffix = Checksum.Create(fullPath);
+            var fullName = $"{prefix}-{suffix}";
+            return StripInvalidPathChars(fullName);
+        }
 
-            static string StripInvalidPathChars(string val)
-            {
-                val = new string(val.Where(c => !s_invalidPathChars.Contains(c)).ToArray());
+        private static string StripInvalidPathChars(string val)
+        {
+            val = new string(val.Where(c => !s_invalidPathChars.Contains(c)).ToArray());
 
-                return string.IsNullOrWhiteSpace(val) ? "None" : val;
-            }
+            return string.IsNullOrWhiteSpace(val) ? "None" : val;
         }
     }
 }

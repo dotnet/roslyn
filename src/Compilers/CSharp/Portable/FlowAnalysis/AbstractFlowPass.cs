@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// contents of the pendingBranches buffer to take into account the behavior of
         /// "intervening" finally clauses.
         /// </summary>
-        protected ArrayBuilder<PendingBranch> PendingBranches { get; private set; }
+        protected PendingBranchesCollection PendingBranches { get; private set; }
 
         /// <summary>
         /// The definite assignment and/or reachability state at the point currently being analyzed.
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.RegionSpan = new TextSpan(startLocation, length);
             }
 
-            PendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
+            PendingBranches = new PendingBranchesCollection();
             _labelsSeen = PooledHashSet<BoundStatement>.GetInstance();
             _labels = PooledDictionary<LabelSymbol, TLocalState>.GetInstance();
             this.Diagnostics = DiagnosticBag.GetInstance();
@@ -390,14 +390,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// pending branches to a label in that block we process the branch.  Otherwise we relay it
         /// up to the enclosing construct as a pending branch of the enclosing construct.
         /// </summary>
-        internal class PendingBranch
+        internal sealed class PendingBranch
         {
             public readonly BoundNode Branch;
             public bool IsConditionalState;
             public TLocalState State;
             public TLocalState StateWhenTrue;
             public TLocalState StateWhenFalse;
-            public readonly LabelSymbol Label;
+#nullable enable
+            public readonly LabelSymbol? Label;
+#nullable disable
 
             public PendingBranch(BoundNode branch, TLocalState state, LabelSymbol label, bool isConditionalState = false, TLocalState stateWhenTrue = default, TLocalState stateWhenFalse = default)
             {
@@ -708,38 +710,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         /// <summary>
         /// Used to resolve break statements in each statement form that has a break statement
         /// (loops, switch).
         /// </summary>
         private void ResolveBreaks(TLocalState breakState, LabelSymbol label)
         {
-            var pendingBranches = PendingBranches;
-            var count = pendingBranches.Count;
-
-            if (count != 0)
-            {
-                int stillPending = 0;
-                for (int i = 0; i < count; i++)
-                {
-                    var pending = pendingBranches[i];
-                    if (pending.Label == label)
-                    {
-                        Join(ref breakState, ref pending.State);
-                    }
-                    else
-                    {
-                        if (stillPending != i)
-                        {
-                            pendingBranches[stillPending] = pending;
-                        }
-                        stillPending++;
-                    }
-                }
-
-                pendingBranches.Clip(stillPending);
-            }
-
+            JoinPendingBranches(ref breakState, label);
             SetState(breakState);
         }
 
@@ -748,38 +726,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ResolveContinues(LabelSymbol continueLabel)
         {
-            var pendingBranches = PendingBranches;
-            var count = pendingBranches.Count;
+            // Technically, nothing in the language specification depends on the state
+            // at the continue label, so we could just discard them instead of merging
+            // the states. In fact, we need not have added continue statements to the
+            // pending jump queue in the first place if we were interested solely in the
+            // flow analysis.  However, region analysis (in support of extract method)
+            // and other forms of more precise analysis
+            // depend on continue statements appearing in the pending branch queue, so
+            // we process them from the queue here.
+            JoinPendingBranches(ref this.State, continueLabel);
+        }
 
-            if (count != 0)
+        private void JoinPendingBranches(ref TLocalState state, LabelSymbol label)
+        {
+            var pendingBranches = PendingBranches.GetAndRemoveBranches(label);
+            if (pendingBranches is { })
             {
-                int stillPending = 0;
-                for (int i = 0; i < count; i++)
+                foreach (var pending in pendingBranches)
                 {
-                    var pending = pendingBranches[i];
-                    if (pending.Label == continueLabel)
-                    {
-                        // Technically, nothing in the language specification depends on the state
-                        // at the continue label, so we could just discard them instead of merging
-                        // the states. In fact, we need not have added continue statements to the
-                        // pending jump queue in the first place if we were interested solely in the
-                        // flow analysis.  However, region analysis (in support of extract method)
-                        // and other forms of more precise analysis
-                        // depend on continue statements appearing in the pending branch queue, so
-                        // we process them from the queue here.
-                        Join(ref this.State, ref pending.State);
-                    }
-                    else
-                    {
-                        if (stillPending != i)
-                        {
-                            pendingBranches[stillPending] = pending;
-                        }
-                        stillPending++;
-                    }
+                    Join(ref state, ref pending.State);
                 }
-
-                pendingBranches.Clip(stillPending);
+                pendingBranches.Free();
             }
         }
 
@@ -798,41 +765,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="label">Target label</param>
         /// <param name="target">Statement containing the target label</param>
-        private bool ResolveBranches(LabelSymbol label, BoundStatement target)
+        private bool ResolveBranches(LabelSymbol label, BoundStatement? target)
         {
             target?.AssertIsLabeledStatementWithLabel(label);
 
             bool labelStateChanged = false;
-            var pendingBranches = PendingBranches;
-            var count = pendingBranches.Count;
 
-            if (count != 0)
+            var pendingBranches = PendingBranches.GetAndRemoveBranches(label);
+            if (pendingBranches is { })
             {
-                int stillPending = 0;
-                for (int i = 0; i < count; i++)
+                foreach (var pending in pendingBranches)
                 {
-                    var pending = pendingBranches[i];
-                    if (pending.Label == label)
-                    {
-                        ResolveBranch(pending, label, target, ref labelStateChanged);
-                    }
-                    else
-                    {
-                        if (stillPending != i)
-                        {
-                            pendingBranches[stillPending] = pending;
-                        }
-                        stillPending++;
-                    }
+                    ResolveBranch(pending, label, target, ref labelStateChanged);
                 }
-
-                pendingBranches.Clip(stillPending);
+                pendingBranches.Free();
             }
 
             return labelStateChanged;
         }
 
-        protected virtual void ResolveBranch(PendingBranch pending, LabelSymbol label, BoundStatement target, ref bool labelStateChanged)
+        protected virtual void ResolveBranch(PendingBranch pending, LabelSymbol label, BoundStatement? target, ref bool labelStateChanged)
         {
             var state = LabelState(label);
             if (target != null)
@@ -848,12 +800,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected struct SavedPending
+        protected readonly struct SavedPending
         {
-            public readonly ArrayBuilder<PendingBranch> PendingBranches;
+            public readonly PendingBranchesCollection PendingBranches;
             public readonly PooledHashSet<BoundStatement> LabelsSeen;
 
-            public SavedPending(ArrayBuilder<PendingBranch> pendingBranches, PooledHashSet<BoundStatement> labelsSeen)
+            public SavedPending(PendingBranchesCollection pendingBranches, PooledHashSet<BoundStatement> labelsSeen)
             {
                 this.PendingBranches = pendingBranches;
                 this.LabelsSeen = labelsSeen;
@@ -870,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!this.IsConditionalState);
             var result = new SavedPending(PendingBranches, _labelsSeen);
 
-            PendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
+            PendingBranches = new PendingBranchesCollection();
             _labelsSeen = PooledHashSet<BoundStatement>.GetInstance();
 
             return result;
@@ -927,6 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _labelsSeen.Free();
             _labelsSeen = oldPending.LabelsSeen;
         }
+#nullable disable
 
         #region visitors
 
@@ -1161,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 { } d => (d.Construction, d.UsesBoolReturns, d.HasTrailingHandlerValidityParameter)
             };
 
-            VisitRvalue(construction);
+            VisitInterpolatedStringHandlerConstructor(construction);
             bool hasConditionalEvaluation = useBoolReturns || firstPartIsConditional;
             TLocalState? shortCircuitState = hasConditionalEvaluation ? State.Clone() : default;
 
@@ -1174,6 +1127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        protected virtual void VisitInterpolatedStringHandlerConstructor(BoundExpression? constructor)
+        {
+            VisitRvalue(constructor);
         }
 #nullable disable
 
@@ -1433,24 +1391,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        public override BoundNode VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
         {
-            // Index or Range pattern indexers evaluate the following in order:
+            // Index or Range implicit indexers evaluate the following in order:
             // 1. The receiver
-            // 1. The Count or Length method off the receiver
             // 2. The argument to the access
-            // 3. The pattern method
+            // 3. The Count or Length method off the receiver
+            // 4. The underlying indexer access or method call
             VisitRvalue(node.Receiver);
-            var method = GetReadMethod(node.LengthOrCountProperty);
-            VisitReceiverAfterCall(node.Receiver, method);
             VisitRvalue(node.Argument);
-            method = node.PatternSymbol switch
-            {
-                PropertySymbol p => GetReadMethod(p),
-                MethodSymbol m => m,
-                _ => throw ExceptionUtilities.UnexpectedValue(node.PatternSymbol)
-            };
-            VisitReceiverAfterCall(node.Receiver, method);
 
             return null;
         }
@@ -1541,7 +1490,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        // Can be called as part of a bad expression.
         public override BoundNode VisitArrayInitialization(BoundArrayInitialization node)
         {
             foreach (var child in node.Initializers)
@@ -1727,7 +1675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var tryAndCatchPending = SavePending();
                 var stateMovedUpInFinally = ReachableBottomState();
                 VisitFinallyBlockWithAnyTransferFunction(node.FinallyBlockOpt, ref stateMovedUpInFinally);
-                foreach (var pend in tryAndCatchPending.PendingBranches)
+                foreach (var pend in tryAndCatchPending.PendingBranches.AsEnumerable())
                 {
                     if (pend.Branch == null)
                     {
@@ -2516,7 +2464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(parts.Count >= 2);
 
-            VisitRvalue(data.Construction);
+            VisitInterpolatedStringHandlerConstructor(data.Construction);
 
             bool visitedFirst = false;
             bool hasTrailingHandlerValidityParameter = data.HasTrailingHandlerValidityParameter;
@@ -2648,27 +2596,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(expr);
             }
 
-            if (node.InitializerOpt != null)
-            {
-                VisitArrayInitializationInternal(node, node.InitializerOpt);
-            }
-
+            VisitRvalue(node.InitializerOpt);
             return null;
-        }
-
-        private void VisitArrayInitializationInternal(BoundArrayCreation arrayCreation, BoundArrayInitialization node)
-        {
-            foreach (var child in node.Initializers)
-            {
-                if (child.Kind == BoundKind.ArrayInitialization)
-                {
-                    VisitArrayInitializationInternal(arrayCreation, (BoundArrayInitialization)child);
-                }
-                else
-                {
-                    VisitRvalue(child);
-                }
-            }
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)
