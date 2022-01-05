@@ -1013,6 +1013,9 @@ csharp_style_prefer_extended_property_pattern = true
 # IDE0180, PreferTupleSwap
 csharp_style_prefer_tuple_swap = true
 
+# IDE0190, PreferParameterNullChecking
+dotnet_style_prefer_parameter_null_checking = true
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
 
