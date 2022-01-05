@@ -358,6 +358,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // 3. Token length
             var tokenLength = originalTextSpan.Length;
+            Contract.ThrowIfFalse(tokenLength > 0);
 
             // We currently only have one modifier (static). The logic below will need to change in the future if other
             // modifiers are added in the future.
