@@ -4460,25 +4460,21 @@ tryAgain:
                 // We can potentially merge that with an immediately following !! or an immediately following !=
                 // All other cases are in error.
                 var firstExclamation = this.EatToken();
-                if (this.CurrentToken.Kind is SyntaxKind.ExclamationToken or SyntaxKind.ExclamationEqualsToken)
+                if (this.CurrentToken.Kind is SyntaxKind.ExclamationToken)
                 {
-                    if (this.CurrentToken.Kind is SyntaxKind.ExclamationToken)
-                    {
-                        // have two !'s in a row.  Merge them (reporting any errors if they cannot merge properly).
-                        exclamationExclamationToken = MergeAdjacent(firstExclamation, this.EatToken(), SyntaxKind.ExclamationExclamationToken);
-                    }
-                    else
-                    {
-                        Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken);
-                        // split != into two tokens.
-                        var exclamationEquals = this.EatToken();
+                    // have two !'s in a row.  Merge them (reporting any errors if they cannot merge properly).
+                    exclamationExclamationToken = MergeAdjacent(firstExclamation, this.EatToken(), SyntaxKind.ExclamationExclamationToken);
+                }
+                else if (this.CurrentToken.Kind is SyntaxKind.ExclamationEqualsToken)
+                {
+                    // split != into two tokens.
+                    var exclamationEquals = this.EatToken();
 
-                        exclamationExclamationToken = MergeAdjacent(
-                            firstExclamation,
-                            SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, trailing: null),
-                            SyntaxKind.ExclamationExclamationToken);
-                        equalsToken = SyntaxFactory.Token(leading: null, SyntaxKind.EqualsToken, exclamationEquals.GetTrailingTrivia());
-                    }
+                    exclamationExclamationToken = MergeAdjacent(
+                        firstExclamation,
+                        SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, trailing: null),
+                        SyntaxKind.ExclamationExclamationToken);
+                    equalsToken = SyntaxFactory.Token(leading: null, SyntaxKind.EqualsToken, exclamationEquals.GetTrailingTrivia());
                 }
                 else
                 {
