@@ -203,9 +203,10 @@ namespace Microsoft.CodeAnalysis.Classification
                     finalParts.Add(semanticParts[replacementIndex]);
                 }
                 // We might already have a semantic part for the given TextSpan, in
-                // which case we don't want to add the syntactic part unless it's a
-                // modifier.
-                else if (finalParts.Count == 0 || !finalParts[^1].TextSpan.Equals(syntaxPartAndSpan.TextSpan) ||
+                // which case we don't want to add the syntactic part unless it's an
+                // additive type name (e.g. `static`).
+                else if (finalParts.Count == 0 ||
+                    !finalParts[^1].TextSpan.Equals(syntaxPartAndSpan.TextSpan) ||
                     ClassificationTypeNames.AdditiveTypeNames.Contains(syntaxPartAndSpan.ClassificationType))
                 {
                     finalParts.Add(syntaxPartAndSpan);
