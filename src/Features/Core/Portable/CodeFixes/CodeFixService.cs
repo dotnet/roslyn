@@ -510,9 +510,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         }
                     }
                 },
-                verifyArguments: false,
                 isBlocking,
-                cancellationToken: cancellationToken);
+                cancellationToken);
 
             var task = fixer.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
             await task.ConfigureAwait(false);
@@ -781,7 +780,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         fixes.Add(new CodeFix(document.Project, action, applicableDiagnostics));
                     }
                 },
-                verifyArguments: false,
                 cancellationToken: cancellationToken);
 
             var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();

@@ -396,7 +396,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                     // so guarding us from them
                     if (localRegistration != null)
                     {
-                        FatalError.ReportAndCatch(new InvalidOperationException("BulkFileOperation already exist"));
+                        FatalError.ReportAndCatch(new InvalidOperationException("BulkFileOperation already exist"), ErrorSeverity.General);
                         return;
                     }
 

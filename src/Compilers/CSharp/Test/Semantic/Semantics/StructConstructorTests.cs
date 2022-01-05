@@ -2052,6 +2052,14 @@ class Program
     static void G2(S2 s = new()) { }
     static void G3(S3 s = new()) { }
     static void G4(S4 s = new()) { }
+    static void G5(S1? s = new()) { }
+    static void G6(S1? s = new S1()) { }
+    static void G7(decimal s = new(1)) { }
+    static void G8(decimal s = new decimal(1)) { }
+    static void G9(decimal? s = new(1)) { }
+    static void G10(decimal? s = new decimal(1)) { }
+    static void G11(decimal s = (decimal)1) { }
+    static void G12(decimal? s = (decimal)2) { }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -2072,7 +2080,26 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadAccess, "new()").WithArguments("S4.S4()").WithLocation(14, 27),
                 // (14,27): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //     static void G4(S4 s = new()) { }
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(14, 27));
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(14, 27),
+                // (15,24): error CS1770: A value of type 'S1' cannot be used as default parameter for nullable parameter 's' because 'S1' is not a simple type
+                //     static void G5(S1? s = new()) { }
+                Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "s").WithArguments("S1", "s").WithLocation(15, 24),
+                // (16,24): error CS1770: A value of type 'S1' cannot be used as default parameter for nullable parameter 's' because 'S1' is not a simple type
+                //     static void G6(S1? s = new S1()) { }
+                Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "s").WithArguments("S1", "s").WithLocation(16, 24),
+                // (17,32): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void G7(decimal s = new(1)) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new(1)").WithArguments("s").WithLocation(17, 32),
+                // (18,32): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void G8(decimal s = new decimal(1)) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new decimal(1)").WithArguments("s").WithLocation(18, 32),
+                // (19,33): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void G9(decimal? s = new(1)) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new(1)").WithArguments("s").WithLocation(19, 33),
+                // (20,34): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void G10(decimal? s = new decimal(1)) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new decimal(1)").WithArguments("s").WithLocation(20, 34)
+                );
         }
 
         [Fact]
@@ -2110,6 +2137,60 @@ class Program
                 // (21,27): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //     static void G2(S2 s = new()) { }
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(21, 27));
+        }
+
+        [Fact]
+        public void ParameterDefaultValues_03()
+        {
+            var source =
+@"public struct S1 { }
+public class Program
+{
+    public static void G1(S1 s = new()) { }
+    public static void G2(S1 s = new S1()) { }
+}";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                var g1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.G1");
+                Assert.True(g1.Parameters[0].HasExplicitDefaultValue);
+                Assert.Null(g1.Parameters[0].ExplicitDefaultValue);
+                Assert.True(g1.Parameters[0].ExplicitDefaultConstantValue.IsNull);
+
+                var g2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.G2");
+                Assert.True(g2.Parameters[0].HasExplicitDefaultValue);
+                Assert.Null(g2.Parameters[0].ExplicitDefaultValue);
+                Assert.True(g2.Parameters[0].ExplicitDefaultConstantValue.IsNull);
+            }
+        }
+
+        [Fact]
+        public void ParameterDefaultValues_04()
+        {
+            var source =
+@"
+public class Program
+{
+    public static void G1(bool? s = new()) { }
+    public static void G2(bool? s = new bool()) { }
+}";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                var g1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.G1");
+                Assert.True(g1.Parameters[0].HasExplicitDefaultValue);
+                Assert.False((bool)g1.Parameters[0].ExplicitDefaultValue);
+                Assert.False(g1.Parameters[0].ExplicitDefaultConstantValue.IsNull);
+
+                var g2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.G2");
+                Assert.True(g2.Parameters[0].HasExplicitDefaultValue);
+                Assert.False((bool)g2.Parameters[0].ExplicitDefaultValue);
+                Assert.False(g2.Parameters[0].ExplicitDefaultConstantValue.BooleanValue);
+            }
         }
 
         [Fact]
