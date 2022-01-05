@@ -347,6 +347,11 @@
         <target state="translated">Não há um tipo de destino para o literal padrão.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DefaultParameterValueNotAllowed">
+        <source>Default parameter value not allowed here</source>
+        <target state="new">Default parameter value not allowed here</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">Um literal padrão 'default' não é válido como um padrão. Use outro literal (por exemplo, '0' ou 'null') conforme o necessário. Para corresponder a tudo, use um padrão de descarte '_'.</target>

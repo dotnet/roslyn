@@ -347,6 +347,11 @@
         <target state="translated">default 字面量缺少目标类型。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DefaultParameterValueNotAllowed">
+        <source>Default parameter value not allowed here</source>
+        <target state="new">Default parameter value not allowed here</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">默认字面量“default”不能作为模式使用。请使用其他更适合的字面量（如“0”或“null”）。若要匹配任何输入，请使用放弃模式“_”。</target>

@@ -347,6 +347,11 @@
         <target state="translated">Non esiste alcun tipo di destinazione per il valore letterale predefinito.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DefaultParameterValueNotAllowed">
+        <source>Default parameter value not allowed here</source>
+        <target state="new">Default parameter value not allowed here</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">Non è possibile usare un valore letterale predefinito 'default' come criterio. Usare un altro valore letterale, ad esempio '0' o 'null'. Per abbinare tutto, usare un criterio di rimozione '_'.</target>
