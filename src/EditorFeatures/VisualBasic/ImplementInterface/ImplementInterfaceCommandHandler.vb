@@ -7,6 +7,7 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 Imports Microsoft.CodeAnalysis.ImplementInterface
+Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Commanding
@@ -32,6 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementInterface
 
         Protected Overrides Function TryGetNewDocument(
             document As Document,
+            options As ImplementTypeOptions,
             typeSyntax As TypeSyntax,
             cancellationToken As CancellationToken
         ) As Document
@@ -43,6 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementInterface
             Dim service = document.GetLanguageService(Of IImplementInterfaceService)()
             Dim updatedDocument = service.ImplementInterfaceAsync(
                 document,
+                options,
                 typeSyntax.Parent,
                 cancellationToken).WaitAndGetResult(cancellationToken)
             If updatedDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken).Count = 0 Then

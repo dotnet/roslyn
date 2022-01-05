@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available codefix with a global fixer
                 Dim fixes = Await codefixService.GetFixesAsync(document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    includeSuppressionFixes:=True, cancellationToken:=CancellationToken.None)
+                    cancellationToken:=CancellationToken.None)
                 Assert.Equal(0, fixes.Count())
 
                 ' Verify available codefix with a global fixer + a project fixer
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 document = project.Documents.Single()
                 fixes = Await codefixService.GetFixesAsync(document,
                                                      (Await document.GetSyntaxRootAsync()).FullSpan,
-                                                     includeSuppressionFixes:=True, cancellationToken:=CancellationToken.None)
+                                                     cancellationToken:=CancellationToken.None)
                 Assert.Equal(1, fixes.Count())
 
                 ' Remove a project analyzer
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 document = project.Documents.Single()
                 fixes = Await codefixService.GetFixesAsync(document,
                                                      (Await document.GetSyntaxRootAsync()).FullSpan,
-                                                     includeSuppressionFixes:=True, cancellationToken:=CancellationToken.None)
+                                                     cancellationToken:=CancellationToken.None)
                 Assert.Equal(0, fixes.Count())
             End Using
         End Function
@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify no codefix with a global fixer
                 Dim fixes = Await codefixService.GetFixesAsync(document,
                                                          (Await document.GetSyntaxRootAsync()).FullSpan,
-                                                         includeSuppressionFixes:=True, cancellationToken:=CancellationToken.None)
+                                                         cancellationToken:=CancellationToken.None)
                 Assert.Equal(0, fixes.Count())
 
                 ' Verify no codefix with a global fixer + a project fixer
@@ -155,8 +155,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 project = project.WithAnalyzerReferences(projectAnalyzerReferences)
                 document = project.Documents.Single()
                 fixes = Await codefixService.GetFixesAsync(document,
-                    (Await document.GetSyntaxRootAsync()).FullSpan,
-                    includeSuppressionFixes:=True, cancellationToken:=CancellationToken.None)
+                                                     (Await document.GetSyntaxRootAsync()).FullSpan,
+                                                     cancellationToken:=CancellationToken.None)
                 Assert.Equal(0, fixes.Count())
             End Using
         End Function

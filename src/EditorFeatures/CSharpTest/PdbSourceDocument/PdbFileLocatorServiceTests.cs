@@ -34,9 +34,9 @@ public class C
                 File.Move(GetPdbPath(path), pdbFilePath);
 
                 var sourceLinkService = new TestSourceLinkService(pdbFilePath: pdbFilePath);
-                var service = new PdbFileLocatorService(sourceLinkService);
+                var service = new PdbFileLocatorService(sourceLinkService, logger: null);
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), logger: null, CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
                 Assert.NotNull(result);
             });
@@ -63,10 +63,10 @@ public class C
                 var pdbFilePath = Path.Combine(path, "SourceLink.pdb");
                 File.Move(GetPdbPath(path), pdbFilePath);
 
-                var sourceLinkService = new TestSourceLinkService(pdbFilePath: pdbFilePath, isPortablePdb: false);
-                var service = new PdbFileLocatorService(sourceLinkService);
+                var sourceLinkService = new TestSourceLinkService(pdbFilePath);
+                var service = new PdbFileLocatorService(sourceLinkService, logger: null);
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), logger: null, CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
                 Assert.Null(result);
             });
@@ -92,9 +92,9 @@ public class C
                 File.Move(GetPdbPath(path), pdbFilePath);
 
                 var sourceLinkService = new TestSourceLinkService(pdbFilePath: null);
-                var service = new PdbFileLocatorService(sourceLinkService);
+                var service = new PdbFileLocatorService(sourceLinkService, logger: null);
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), logger: null, CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
                 Assert.Null(result);
             });

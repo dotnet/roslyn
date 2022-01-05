@@ -1327,7 +1327,7 @@ class C
             string source = @"
 using System;
 using System.Linq.Expressions;
-class p
+class @p
 {
     static void Goo<T>(ref Func<T, T> a) { }
     static void Bar<T>(out Func<T, T> a) { a = null; }
@@ -6458,7 +6458,7 @@ class Ambig
     static void overload2(byte b, goo f) { }
 }
 
-class goo
+class @goo
 {
     public static implicit operator goo(int i)
     {
@@ -6466,7 +6466,7 @@ class goo
     }
 }
 
-class bar
+class @bar
 {
     public static implicit operator bar(int i)
     {
@@ -6474,7 +6474,7 @@ class bar
     }
 }
 
-class baz
+class @baz
 {
     public static implicit operator baz(int i)
     {
@@ -7058,8 +7058,8 @@ class C : IA
             var source = @"
 public class Test
 {
-    public delegate dynamic nongenerics(dynamic id);
-    public delegate T generics< T>(dynamic id);
+    public delegate dynamic @nongenerics(dynamic id);
+    public delegate T @generics< T>(dynamic id);
     public dynamic Goo(nongenerics Meth, dynamic id)
     {
         return null;
@@ -7102,7 +7102,7 @@ public class Goo
     {
     }
 }
-public struct start
+public struct @start
 {
     static void M(D002<dynamic, object> d) {}
     static public void Main()
