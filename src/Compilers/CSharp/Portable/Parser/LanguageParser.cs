@@ -4493,6 +4493,12 @@ tryAgain:
                 exclamationExclamationToken = CheckFeatureAvailability(exclamationExclamationToken, MessageID.IDS_ParameterNullChecking);
         }
 
+        /// <summary>
+        /// Merges two successive tokens into a single token with the given <paramref name="kind"/>.  If the two tokens
+        /// have no trivia between them, then the final token will be trivially generated, properly passing on the right
+        /// leading/trailing trivia.  However, if there is trivia between the tokens, then appropriate errors will be
+        /// reported that the tokens cannot merge successfully.
+        /// </summary>
         private SyntaxToken? MergeAdjacent(SyntaxToken t1, SyntaxToken t2, SyntaxKind kind)
         {
             if (t1.GetTrailingTriviaWidth() == 0 && t2.GetLeadingTriviaWidth() == 0)
