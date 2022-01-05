@@ -2025,7 +2025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_LowerCaseTypeName = 8981,
         ERR_RecordStructConstructorCallsDefaultConstructor = 8982,
 
-        WRN_AnnotationOnSliceReturnType = 8978,
+        WRN_AnnotationOnSliceReturnType = 8983,
 
         #endregion
 

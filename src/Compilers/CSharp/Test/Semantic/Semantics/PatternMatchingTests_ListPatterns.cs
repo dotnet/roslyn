@@ -1382,6 +1382,40 @@ class X
     }
 
     [Fact]
+    public void SlicePattern_NullValue()
+    {
+        var source = @"
+#nullable enable
+class C
+{
+    public int Length => 3;
+    public int this[int i] => 0;
+    public int[]? Slice(int i, int j) => null;
+
+    public static void Main()
+    {
+        if (new C() is [.. var s0] && s0 == null)
+            System.Console.Write(1);
+        if (new C() is [.. null])
+            System.Console.Write(2);
+        if (new C() is not [.. {}])
+            System.Console.Write(3);
+    }
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExe);
+        compilation.VerifyEmitDiagnostics(
+            // (11,28): warning CS8983: The annotation on the output type 'int[]?' is ignored.
+            //         if (new C() is [.. var s0] && s0 == null)
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "var s0").WithArguments("int[]?").WithLocation(11, 28),
+            // (13,28): warning CS8983: The annotation on the output type 'int[]?' is ignored.
+            //         if (new C() is [.. null])
+            Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "null").WithArguments("int[]?").WithLocation(13, 28)
+            );
+        CompileAndVerify(compilation, expectedOutput: "123");
+    }
+
+    [Fact]
     public void ListPattern_MemberLookup_StaticIndexer()
     {
         var vbSource = @"
@@ -3951,7 +3985,7 @@ class C
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+        var compilation = CreateCompilationWithIndexAndRange(source);
         compilation.VerifyEmitDiagnostics(
             // (11,27): warning CS8978: The annotation on the output type 'int[]?' is ignored.
             //         if (this is [1, ..var slice])
@@ -6899,6 +6933,36 @@ interface IInner
     }
 
     [Fact]
+    public void Subsumption_Slice_04()
+    {
+        var source = @"
+#nullable enable
+class C
+{
+    public int Length => 3;
+    public int this[int i] => 0;
+    public int[]? Slice(int i, int j) => null;
+
+    public static void Main()
+    {
+        switch (new C())
+        {
+            case [.. {}]:
+                break;
+            case [.. null]:
+                break;
+        }
+    }
+}
+";
+        var compilation = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExe);
+        compilation.VerifyEmitDiagnostics(
+                    // (15,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                    //             case [.. null]:
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[.. null]").WithLocation(15, 18));
+    }
+
+    [Fact]
     public void Exhaustiveness_01()
     {
         var src = @"
@@ -8127,7 +8191,7 @@ int[] a = default;
 switch (a)
 {
     case [..[1],2,3]:
-    case [1,2,3]: // no error
+    case [1,2,3]: // error
         break;
 }
 ";
@@ -8135,7 +8199,10 @@ switch (a)
         comp.VerifyEmitDiagnostics(
             // (7,10): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
             //     case [1,2,3]: // error
-            Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[1,2,3]").WithLocation(7, 10)
+            Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[1,2,3]").WithLocation(7, 10),
+            // (15,10): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+            //     case [1,2,3]: // error
+            Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[1,2,3]").WithLocation(15, 10)
             );
     }
 }
