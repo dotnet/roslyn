@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document,
             TextSpan span,
+            ClassificationOptions options,
             CancellationToken cancellationToken,
             bool removeAdditiveSpans = true,
             bool fillInClassifiedSpanGaps = true)
@@ -32,8 +34,6 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 return default;
             }
-
-            var options = ClassificationOptions.From(document.Project);
 
             // Call out to the individual language to classify the chunk of text around the
             // reference. We'll get both the syntactic and semantic spans for this region.

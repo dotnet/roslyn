@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InlineHints
@@ -16,6 +17,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
     /// </summary>
     internal interface IInlineParameterNameHintsService : ILanguageService
     {
-        Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+        Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, InlineParameterHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken);
     }
 }

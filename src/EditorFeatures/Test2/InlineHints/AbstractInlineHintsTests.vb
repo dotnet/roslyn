@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.InlineHints
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.InlineHints
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
@@ -15,16 +16,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
 
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                    InlineParameterHintsOptions.Metadata.EnabledForParameters,
-                    workspace.CurrentSolution.Projects().First().Language,
-                    optionIsEnabled)))
+                Dim options = New InlineParameterHintsOptions(
+                    EnabledForParameters:=optionIsEnabled,
+                    ForLiteralParameters:=True,
+                    ForIndexerParameters:=True,
+                    ForObjectCreationParameters:=True,
+                    ForOtherParameters:=False,
+                    SuppressForParametersThatDifferOnlyBySuffix:=True,
+                    SuppressForParametersThatMatchMethodIntent:=True,
+                    SuppressForParametersThatMatchArgumentName:=True)
+
+                Dim displayOptions = New SymbolDescriptionOptions()
 
                 Dim hostDocument = workspace.Documents.Single()
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineParameterNameHintsService)
-                Dim inlineHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
+                Dim inlineHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), options, displayOptions, CancellationToken.None)
 
                 Dim producedTags = From hint In inlineHints
                                    Select hint.DisplayParts.GetFullText().TrimEnd() + hint.Span.ToString
@@ -50,20 +58,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
         Protected Async Function VerifyTypeHints(test As XElement, Optional optionIsEnabled As Boolean = True, Optional ephemeral As Boolean = False) As Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyTypeHints)} creates asynchronous taggers")
+
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-
-                Dim language = workspace.CurrentSolution.Projects().First().Language
-
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                    workspace.CurrentSolution.Options.WithChangedOption(InlineTypeHintsOptions.Metadata.EnabledForTypes, language, optionIsEnabled AndAlso Not ephemeral)))
-
                 globalOptions.SetGlobalOption(New OptionKey(InlineHintsGlobalStateOption.DisplayAllOverride), ephemeral)
+
+                Dim options = New InlineTypeHintsOptions(
+                    EnabledForTypes:=optionIsEnabled AndAlso Not ephemeral,
+                    ForImplicitVariableTypes:=True,
+                    ForLambdaParameterTypes:=True,
+                    ForImplicitObjectCreation:=True)
+
+                Dim displayOptions = New SymbolDescriptionOptions()
 
                 Dim hostDocument = workspace.Documents.Single()
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineTypeHintsService)
-                Dim typeHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
+                Dim typeHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), options, displayOptions, CancellationToken.None)
 
                 Dim producedTags = From hint In typeHints
                                    Select hint.DisplayParts.GetFullText() + ":" + hint.Span.ToString()
