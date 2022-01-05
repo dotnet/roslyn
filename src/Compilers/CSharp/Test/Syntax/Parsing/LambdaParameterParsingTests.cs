@@ -1821,6 +1821,213 @@ class C {
         }
 
         [Fact]
+        public void TestBracesAfterSimpleLambdaName()
+        {
+            UsingDeclaration("Func<string[], string> func0 = x[] => x;", options: TestOptions.RegularPreview,
+                    // (1,34): error CS0443: Syntax error; value expected
+                    // Func<string[], string> func0 = x[] => x;
+                    Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 34),
+                    // (1,36): error CS1003: Syntax error, ',' expected
+                    // Func<string[], string> func0 = x[] => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 36));
+            EOF();
+        }
+
+        [Fact]
+        public void TestBracesAfterParenthesizedLambdaName()
+        {
+            UsingDeclaration("Func<string[], string> func0 = (x[]) => x;", options: TestOptions.RegularPreview,
+                    // (1,36): error CS1001: Identifier expected
+                    // Func<string[], string> func0 = (x[]) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 36));
+            EOF();
+        }
+
+        [Fact]
+        public void TestBracesAfterParenthesizedLambdaTypeAndName()
+        {
+            UsingDeclaration("Func<string[], string> func0 = (string x[]) => x;", options: TestOptions.RegularPreview,
+                    // (1,33): error CS1525: Invalid expression term 'string'
+                    // Func<string[], string> func0 = (string x[]) => x;
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(1, 33),
+                    // (1,40): error CS1026: ) expected
+                    // Func<string[], string> func0 = (string x[]) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 40),
+                    // (1,40): error CS1003: Syntax error, ',' expected
+                    // Func<string[], string> func0 = (string x[]) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 40));
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueSimpleLambda()
+        {
+            UsingDeclaration("Func<string, string> func0 = x = null => x;", options: TestOptions.RegularPreview,
+                    // (1,39): error CS1003: Syntax error, ',' expected
+                    // Func<string, string> func0 = x = null => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 39));
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueParenthesizedLamda1()
+        {
+            UsingDeclaration("Func<string, string> func0 = (x = null) => x;", options: TestOptions.RegularPreview,
+                    // (1,41): error CS1003: Syntax error, ',' expected
+                    // Func<string, string> func0 = (x = null) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 41));
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueParenthesizedLamda2()
+        {
+            UsingDeclaration("Func<string, string> func0 = (y, x = null) => x;", options: TestOptions.RegularPreview,
+                    // (1,44): error CS1003: Syntax error, ',' expected
+                    // Func<string, string> func0 = (y, x = null) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 44));
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueParenthesizedLamdaWithType1()
+        {
+            UsingDeclaration("Func<string, string> func0 = (string x = null) => x;", options: TestOptions.RegularPreview,
+                    // (1,31): error CS1525: Invalid expression term 'string'
+                    // Func<string, string> func0 = (string x = null) => x;
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(1, 31),
+                    // (1,38): error CS1026: ) expected
+                    // Func<string, string> func0 = (string x = null) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 38),
+                    // (1,38): error CS1003: Syntax error, ',' expected
+                    // Func<string, string> func0 = (string x = null) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 38));
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueParenthesizedLamdaWithType2()
+        {
+            UsingDeclaration("Func<string, string> func0 = (string y, string x = null) => x;", options: TestOptions.RegularPreview,
+                    // (1,41): error CS1525: Invalid expression term 'string'
+                    // Func<string, string> func0 = (string y, string x = null) => x;
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(1, 41),
+                    // (1,48): error CS1026: ) expected
+                    // Func<string, string> func0 = (string y, string x = null) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 48),
+                    // (1,48): error CS1003: Syntax error, ',' expected
+                    // Func<string, string> func0 = (string y, string x = null) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 48));
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedDefaultValueSimpleLambda()
+        {
+            UsingDeclaration("Func<string, string> func0 = x!! = null => x;", options: TestOptions.RegularPreview,
+                    // (1,41): error CS1003: Syntax error, ',' expected
+                    // Func<string, string> func0 = x!! = null => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 41));
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedDefaultValueParenthesizedLamda1()
+        {
+            UsingDeclaration("Func<string, string> func0 = (x!! = null) => x;", options: TestOptions.RegularPreview,
+                    // (1,43): error CS1003: Syntax error, ',' expected
+                    // Func<string, string> func0 = (x!! = null) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 43));
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedDefaultValueParenthesizedLamda2()
+        {
+            UsingDeclaration("Func<string, string> func0 = (y, x!! = null) => x;", options: TestOptions.RegularPreview,
+                    // (1,46): error CS1003: Syntax error, ',' expected
+                    // Func<string, string> func0 = (y, x!! = null) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 46));
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedDefaultValueParenthesizedLamdaWithType1()
+        {
+            UsingDeclaration("Func<string, string> func0 = (string x!! = null) => x;", options: TestOptions.RegularPreview,
+                    // (1,31): error CS1525: Invalid expression term 'string'
+                    // Func<string, string> func0 = (string x!! = null) => x;
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(1, 31),
+                    // (1,38): error CS1026: ) expected
+                    // Func<string, string> func0 = (string x!! = null) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 38),
+                    // (1,38): error CS1003: Syntax error, ',' expected
+                    // Func<string, string> func0 = (string x!! = null) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 38));
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedDefaultValueParenthesizedLamdaWithType2()
+        {
+            UsingDeclaration("Func<string, string> func0 = (string y, string x!! = null) => x;", options: TestOptions.RegularPreview,
+                // (1,41): error CS1525: Invalid expression term 'string'
+                // Func<string, string> func0 = (string y, string x!! = null) => x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(1, 41),
+                // (1,48): error CS1026: ) expected
+                // Func<string, string> func0 = (string y, string x!! = null) => x;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 48),
+                // (1,48): error CS1003: Syntax error, ',' expected
+                // Func<string, string> func0 = (string y, string x!! = null) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 48));
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedSpaceBetweenSimpleLambda()
+        {
+            UsingDeclaration("Func<string, string> func0 = x! ! => x;", options: TestOptions.RegularPreview);
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedSpaceBetweenParenthesizedLamda1()
+        {
+            UsingDeclaration("Func<string, string> func0 = (x! !) => x;", options: TestOptions.RegularPreview);
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedSpaceBetweenParenthesizedLamda2()
+        {
+            UsingDeclaration("Func<string, string> func0 = (y, x! !) => x;", options: TestOptions.RegularPreview);
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedSpaceBetweenLamdaWithType1()
+        {
+            UsingDeclaration("Func<string, string> func0 = (string x! !) => x;", options: TestOptions.RegularPreview,
+                    // (1,31): error CS1525: Invalid expression term 'string'
+                    // Func<string, string> func0 = (string x! !) => x;
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(1, 31),
+                    // (1,38): error CS1026: ) expected
+                    // Func<string, string> func0 = (string x! !) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 38),
+                    // (1,38): error CS1003: Syntax error, ',' expected
+                    // Func<string, string> func0 = (string x! !) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 38));
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedSpaceBetweenLamdaWithType2()
+        {
+            UsingDeclaration("Func<string, string> func0 = (string y, string x! !) => x;", options: TestOptions.RegularPreview);
+            EOF();
+        }
+
+        [Fact]
         public void AsyncAwaitInLambda()
         {
             UsingStatement(@"F(async () => await Task.FromResult(4));");

@@ -2013,7 +2013,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullCheckedHasDefaultNull = 8993,
         ERR_NullCheckingOnByRefParameter = 8994,
         WRN_NullCheckingOnNullableType = 8995,
-        ERR_DefaultParameterValueNotAllowed = 8996,
 
         #endregion
 
