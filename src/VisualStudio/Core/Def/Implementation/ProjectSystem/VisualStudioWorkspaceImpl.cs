@@ -19,11 +19,13 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
@@ -33,11 +35,14 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Exten
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
+using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using VSLangProj;
 using VSLangProj140;
@@ -197,6 +202,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Create services that are bound to the UI thread
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
+            // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
+            // the background thread then we will experience hangs like we see in this bug:
+            // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=190808 or
+            // https://devdiv.visualstudio.com/DevDiv/_workitems?id=296981&_a=edit
+            var telemetrySession = TelemetryService.DefaultSession;
+
             var solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
             solutionClosingContext.UIContextChanged += (_, e) => _solutionClosing = e.Activated;
 
@@ -215,6 +226,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
             openFileTracker.ProcessQueuedWorkOnUIThread();
+
+            // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
+            await TaskScheduler.Default;
+
+            var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
+            telemetryService.InitializeTelemetrySession(telemetrySession);
+
+            Logger.Log(FunctionId.Run_Environment,
+                KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
         }
 
         public void QueueCheckForFilesBeingOpen(ImmutableArray<string> newFileNames)

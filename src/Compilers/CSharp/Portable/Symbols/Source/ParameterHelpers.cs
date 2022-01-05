@@ -636,7 +636,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 hasErrors = true;
             }
-            else if (conversion.IsNullable && !defaultExpression.Type.IsNullableType() &&
+            else if (((conversion.IsNullable && !defaultExpression.Type.IsNullableType()) ||
+                      (conversion.IsObjectCreation && convertedExpression.Type.IsNullableType())) &&
                 !(parameterType.GetNullableUnderlyingType().IsEnumType() || parameterType.GetNullableUnderlyingType().IsIntrinsicType()))
             {
                 // We can do:
@@ -653,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS1770: 
                 // A value of type '{0}' cannot be used as default parameter for nullable parameter '{1}' because '{0}' is not a simple type
                 diagnostics.Add(ErrorCode.ERR_NoConversionForNubDefaultParam, parameterSyntax.Identifier.GetLocation(),
-                    defaultExpression.Type, parameterSyntax.Identifier.ValueText);
+                    (defaultExpression.IsImplicitObjectCreation() ? convertedExpression.Type.StrippedType() : defaultExpression.Type), parameterSyntax.Identifier.ValueText);
 
                 hasErrors = true;
             }
@@ -708,18 +709,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
-            while (true)
+
+            switch (expression.Kind)
             {
-                switch (expression.Kind)
-                {
-                    case BoundKind.DefaultLiteral:
-                    case BoundKind.DefaultExpression:
-                        return true;
-                    case BoundKind.ObjectCreationExpression:
-                        return IsValidDefaultValue((BoundObjectCreationExpression)expression);
-                    default:
-                        return false;
-                }
+                case BoundKind.DefaultLiteral:
+                case BoundKind.DefaultExpression:
+                    return true;
+                case BoundKind.ObjectCreationExpression:
+                    return IsValidDefaultValue((BoundObjectCreationExpression)expression);
+                case BoundKind.Conversion:
+                    var conversion = (BoundConversion)expression;
+                    return conversion is { Conversion.IsObjectCreation: true, Operand: BoundObjectCreationExpression { WasTargetTyped: true } operand } &&
+                           IsValidDefaultValue(operand);
+                default:
+                    return false;
             }
         }
 
