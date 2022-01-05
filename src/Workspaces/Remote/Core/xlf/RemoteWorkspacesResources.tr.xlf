@@ -112,11 +112,6 @@
         <target state="translated">Anlamsal sınıflandırma</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_SemanticClassificationCache">
-        <source>Semantic classification cache</source>
-        <target state="translated">Anlamsal sınıflandırma önbelleği</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">Varlık sağlayıcısı</target>
