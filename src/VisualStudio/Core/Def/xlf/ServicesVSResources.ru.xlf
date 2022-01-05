@@ -807,6 +807,11 @@
         <target state="translated">Перейти к {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_to_external_sources">
+        <source>Navigate to External Sources</source>
+        <target state="new">Navigate to External Sources</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
         <target state="translated">Никогда </target>

@@ -1893,6 +1893,9 @@ Additional information: {1}</value>
   <data name="Sort_usings" xml:space="preserve">
     <value>Sort usings</value>
   </data>
+  <data name="Navigate_to_external_sources" xml:space="preserve">
+    <value>Navigate to External Sources</value>
+  </data>
   <data name="Automatically_open_stack_trace_explorer_on_focus" xml:space="preserve">
     <value>Automatically open Stack Trace Explorer on focus</value>
     <comment>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</comment>
