@@ -1819,6 +1819,55 @@ record struct S
         }
 
         [Fact]
+        public void FieldInitializers_15()
+        {
+            var source =
+@"struct S0
+{
+    static S0() { }
+    public int F = 1;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S0
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S0").WithLocation(1, 8),
+                // (4,16): warning CS0649: Field 'S0.F' is never assigned to, and will always have its default value 0
+                //     public int F = 1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S0.F", "0").WithLocation(4, 16));
+        }
+
+        [Fact]
+        public void FieldInitializers_16()
+        {
+            var source =
+@"using System;
+struct S1
+{
+    static S1() { }
+    public S1() { }
+    public int F = 1;
+}
+struct S2
+{
+    static S2() { }
+    public S2(object o) { }
+    public int F = 2;
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1().F);
+        Console.WriteLine(new S2().F);
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"1
+0");
+        }
+
+        [Fact]
         public void ExpressionTrees_01()
         {
             var source =
