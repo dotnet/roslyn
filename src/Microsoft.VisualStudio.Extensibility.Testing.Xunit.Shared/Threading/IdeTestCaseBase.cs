@@ -48,10 +48,19 @@ namespace Xunit.Threading
             private set;
         }
 
+        protected virtual bool IncludeRootSuffixInDisplayName => false;
+
         protected override string GetDisplayName(IAttributeInfo factAttribute, string displayName)
         {
             var baseName = base.GetDisplayName(factAttribute, displayName);
-            return $"{baseName} ({VisualStudioInstanceKey.Version})";
+            if (!IncludeRootSuffixInDisplayName || string.IsNullOrEmpty(VisualStudioInstanceKey.RootSuffix))
+            {
+                return $"{baseName} ({VisualStudioInstanceKey.Version})";
+            }
+            else
+            {
+                return $"{baseName} ({VisualStudioInstanceKey.Version}, {VisualStudioInstanceKey.RootSuffix})";
+            }
         }
 
         protected override string GetUniqueID()

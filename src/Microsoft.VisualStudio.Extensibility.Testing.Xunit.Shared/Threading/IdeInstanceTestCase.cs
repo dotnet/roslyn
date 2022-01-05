@@ -36,6 +36,8 @@ namespace Xunit.Threading
         {
         }
 
+        protected override bool IncludeRootSuffixInDisplayName => true;
+
         public static IdeInstanceTestCase? TryCreateNewInstanceForFramework(ITestFrameworkDiscoveryOptions discoveryOptions, IMessageSink diagnosticMessageSink, VisualStudioInstanceKey visualStudioInstanceKey)
         {
             var lazyInstances = _instances.GetValue(discoveryOptions, static _ => new StrongBox<ImmutableDictionary<VisualStudioInstanceKey, IdeInstanceTestCase>>(ImmutableDictionary<VisualStudioInstanceKey, IdeInstanceTestCase>.Empty));
