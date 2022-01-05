@@ -6957,9 +6957,10 @@ class C
 ";
         var compilation = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExe);
         compilation.VerifyEmitDiagnostics(
-                    // (15,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
-                    //             case [.. null]:
-                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[.. null]").WithLocation(15, 18));
+            // (15,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+            //             case [.. null]:
+            Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[.. null]").WithLocation(15, 18)
+            );
     }
 
     [Fact]
