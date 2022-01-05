@@ -385,6 +385,12 @@ namespace Microsoft.CodeAnalysis
         public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
         {
             var docVersion = await _lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+            // This is unfortunate, however the impact of this is that *any* change to our project-state version will 
+            // cause us to think the semantic version of the project has changed.  Thus, any change to a project property
+            // that does *not* flow into the compiler still makes us think the semantic version has changed.  This is 
+            // likely to not be too much of an issue as these changes should be rare, and it's better to be conservative
+            // and assume there was a change than to wrongly presume there was not.
             return docVersion.GetNewerVersion(this.Version);
         }
 

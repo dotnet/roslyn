@@ -960,7 +960,7 @@ class C
         public void GenericTypeOk()
         {
             var text =
-@"struct var<T>
+@"struct @var<T>
 {
     public static T field;
 }

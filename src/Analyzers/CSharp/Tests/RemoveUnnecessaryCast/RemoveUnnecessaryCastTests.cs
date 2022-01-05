@@ -644,7 +644,7 @@ class Test
     {
         int b = 5;
 
-        long f1 = (b == 5) ? 4 : (long)5;
+        long f1 = (b == 5) ? 4 : 5;
     }
 }";
 
@@ -658,75 +658,15 @@ class Test
                 {
                     Sources = { fixedSource },
                 },
-                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             }.RunAsync();
         }
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveUnneededCastInConditionalExpression2()
-        {
-            var source =
-            @"
-class Test
-{
-    public static void Main()
-    {
-        int b = 5;
-
-        long f1 = (b == 5) ? [|(long)|]4 : [|(long)|]5;
-    }
-}";
-            var fixedSource =
-@"
-class Test
-{
-    public static void Main()
-    {
-        int b = 5;
-
-        long f1 = (b == 5) ? (long)4 : 5;
-    }
-}";
-            var batchFixedSource =
-@"
-class Test
-{
-    public static void Main()
-    {
-        int b = 5;
-
-        long f1 = (b == 5) ? 4 : (long)5;
-    }
-}";
-
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                },
-                FixedState =
-                {
-                    Sources = { fixedSource },
-                },
-                BatchFixedState =
-                {
-                    Sources = { batchFixedSource },
-                },
-                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
-                DiagnosticSelector = diagnostics => diagnostics[1],
-            }.RunAsync();
-        }
-
-        [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveUnneededCastInConditionalExpression3()
         {
-            // We could support removing the cast here, but it would take understanding
-            // that the end values will be the same and will be converted to the same 
-            // destination type.
-            var source = @"
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
 class Test
 {
     public static void Main()
@@ -735,9 +675,17 @@ class Test
 
         long f1 = (b == 5) ? 4 : [|(long)|]5;
     }
-}";
+}",
+                @"
+class Test
+{
+    public static void Main()
+    {
+        int b = 5;
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+        long f1 = (b == 5) ? 4 : 5;
+    }
+}");
         }
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
@@ -2406,15 +2354,13 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveCastToByteFromIntInConditionalExpression()
         {
-            var source =
-@"class C
+            var source = @"class C
 {
     object M1(bool b)
     {
         return b ? (byte)1 : (byte)0;
     }
 }";
-
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
@@ -5619,41 +5565,41 @@ enum Sign
         }
 
         [WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastOnValidUnaryOperatorEnumValue_Nullable()
         {
             var source =
 @"
 enum Sign
-    {
-        Positive = 1,
-        Negative = -1
-    }
+{
+    Positive = 1,
+    Negative = -1
+}
 
-    class T
+class T
+{
+    void Goo()
     {
-        void Goo()
-        {
-            Sign mySign = Sign.Positive;
-            Sign? invertedSign = (Sign?)(~[|(int)|] mySign);
-        }
-    }";
+        Sign mySign = Sign.Positive;
+        Sign? invertedSign = (Sign?)(~[|(int)|] mySign);
+    }
+}";
             var fixedSource =
 @"
 enum Sign
-    {
-        Positive = 1,
-        Negative = -1
-    }
+{
+    Positive = 1,
+    Negative = -1
+}
 
-    class T
+class T
+{
+    void Goo()
     {
-        void Goo()
-        {
-            Sign mySign = Sign.Positive;
-            Sign? invertedSign = (Sign?)(~mySign);
-        }
-    }";
+        Sign mySign = Sign.Positive;
+        Sign? invertedSign = (Sign?)(~mySign);
+    }
+}";
 
             await new VerifyCS.Test
             {
@@ -7807,7 +7753,7 @@ public class sign
         sbyte? i08 = 1;
         short? i16 = -1;
 
-        object v4 = [|(ulong?)|](uint?)(ushort?)i08 | (ulong?)i32_lo;
+        object v4 = [|(ulong?)|][|(uint?)|](ushort?)i08 | (ulong?)i32_lo;
     }
 }", @"
 public class sign
@@ -8661,7 +8607,7 @@ public class sign
         }
 
         [WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnecessaryCastInConditional5()
         {
             var source =
@@ -8898,8 +8844,7 @@ public class sign
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison1()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -8918,38 +8863,16 @@ class Program
         Object a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
-        Console.WriteLine(a1 == [|(object)|]a2);
+        Console.WriteLine(a1 == (object)a2);
     }
-}",
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine(a1 == a2);
-    }
-}");
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison2()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -8968,38 +8891,16 @@ class Program
         Object a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
-        Console.WriteLine([|(object)|]a1 == a2);
+        Console.WriteLine((object)a1 == a2);
     }
-}",
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine(a1 == a2);
-    }
-}");
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison3()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -9018,60 +8919,16 @@ class Program
         Object a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
-        Console.WriteLine(a1 != [|(object)|]a2);
+        Console.WriteLine(a1 != (object)a2);
     }
-}",
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine(a1 != a2);
-    }
-}");
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison4()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine([|(object)|]a1 != a2);
-    }
-}",
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -9092,36 +8949,15 @@ class Program
 
         Console.WriteLine(a1 != a2);
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison5()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine(a2 == [|(object)|]a1);
-    }
-}",
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -9142,14 +8978,15 @@ class Program
 
         Console.WriteLine(a2 == a1);
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison6()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -9168,38 +9005,16 @@ class Program
         Object a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
-        Console.WriteLine([|(object)|]a2 == a1);
+        Console.WriteLine((object)a2 == a1);
     }
-}",
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine(a2 == a1);
-    }
-}");
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison7()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -9218,38 +9033,16 @@ class Program
         Object a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
-        Console.WriteLine(a2 != [|(object)|]a1);
+        Console.WriteLine(a2 != (object)a1);
     }
-}",
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine(a2 != a1);
-    }
-}");
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestUnintendedReferenceComparison8()
         {
-            await VerifyCS.VerifyCodeFixAsync(
-                @"using System;
+            var source = @"using System;
 
 public class Symbol
 {
@@ -9268,31 +9061,10 @@ class Program
         Object a1 = null;
         MethodSymbol a2 = new MethodSymbol();
 
-        Console.WriteLine([|(object)|]a2 != a1);
+        Console.WriteLine((object)a2 != a1);
     }
-}",
-                @"using System;
-
-public class Symbol
-{
-    public static bool operator ==(Symbol a, Symbol b) => false;
-    public static bool operator !=(Symbol a, Symbol b) => false;
-}
-
-public class MethodSymbol : Symbol
-{
-}
-
-class Program
-{
-    void Main()
-    {
-        Object a1 = null;
-        MethodSymbol a2 = new MethodSymbol();
-
-        Console.WriteLine(a2 != a1);
-    }
-}");
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -9850,10 +9622,9 @@ class C
         }
 
         [WorkItem(49140, "https://github.com/dotnet/roslyn/issues/49140")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoRemoveBitwiseNotOfSignExtendedValue1()
         {
-
             var test = new VerifyCS.Test()
             {
                 TestCode = @"
@@ -9879,7 +9650,7 @@ class C
         }
 
         [WorkItem(49140, "https://github.com/dotnet/roslyn/issues/49140")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoRemoveBitwiseNotOfSignExtendedValue2()
         {
 
@@ -10743,6 +10514,1887 @@ class Program
     }
 }";
             await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57062, "https://github.com/dotnet/roslyn/issues/57062")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveIdentityCastInConstantPattern1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is [|(int)|]0)
+        {
+        }
+    }
+}",
+                @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is 0)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(57062, "https://github.com/dotnet/roslyn/issues/57062")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveIdentityCastInConstantPattern2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is [|(long)|]0L)
+        {
+        }
+    }
+}",
+                @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is 0L)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(57062, "https://github.com/dotnet/roslyn/issues/57062")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNonIdentityCastInConstantPattern1()
+        {
+            var source =
+            @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is (sbyte)0)
+        {
+        }
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57062, "https://github.com/dotnet/roslyn/issues/57062")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNonIdentityCastInConstantPattern2()
+        {
+            var source =
+            @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is (sbyte)0 or (short)0)
+        {
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [WorkItem(57062, "https://github.com/dotnet/roslyn/issues/57062")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNonIdentityCastInConstantPattern3()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is (sbyte)1 or (short)1 or [|(int)|]1 or (long)1 or
+                (byte)1 or (ushort)1 or (uint)1 or (ulong)1 or
+                1.0 or 1.0f or 1.0m)
+        {
+        }
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is (sbyte)1 or (short)1 or 1 or (long)1 or
+                (byte)1 or (ushort)1 or (uint)1 or (ulong)1 or
+                1.0 or 1.0f or 1.0m)
+        {
+        }
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [WorkItem(57062, "https://github.com/dotnet/roslyn/issues/57062")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNonIdentityCastInConstantPattern4()
+        {
+            var source =
+            @"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        if (o is (long)0)
+        {
+        }
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast1()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a1, IAssembly a2)
+        => (object)a1 == a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast2()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a1, IAssembly a2)
+        => a1 == (object)a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast3()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => (object)a1 == a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast4()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => a1 == (object)a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast5()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => [|(object)|]a1 == [|(object)|]a2;
+}", @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => a1 == [|(object)|]a2;
+}");
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast6()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a1, IAssembly a2)
+        => a1 as object == a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast7()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a1, IAssembly a2)
+        => a1 == a2 as object;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast8()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => a1 as object == a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast9()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => a1 == a2 as object;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveEqualityWarningSilencingCast10()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => a1 [|as object|] == a2 [|as object|];
+}", @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(IAssembly a2, Assembly a1)
+        => a1 == a2 as object;
+}");
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveObjectCastToCauseReferenceEqualityWhenUserDefinedComparisonExists1()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a2, Assembly a1)
+        => (object)a1 == a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveObjectCastToCauseReferenceEqualityWhenUserDefinedComparisonExists2()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a2, Assembly a1)
+        => a1 == (object)a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveObjectCastToCauseReferenceEqualityWhenUserDefinedComparisonExists3()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a2, Assembly a1)
+        => a1 as object == a2;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveObjectCastToCauseReferenceEqualityWhenUserDefinedComparisonExists4()
+        {
+            var source =
+            @"
+interface IAssembly
+{
+}
+
+class Assembly : IAssembly
+{
+    public static bool operator ==(Assembly a1, Assembly a2) => false;
+    public static bool operator !=(Assembly a1, Assembly a2) => false;
+
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+}
+
+class C
+{
+    bool M(Assembly a2, Assembly a1)
+        => a1 == a2 as object;
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => [|(object)|]a1 == a2;
+}",
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == a2;
+}");
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == [|(object)|]a2;
+}",
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == a2;
+}");
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface3()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => [|(object)|]a1 == [|(object)|]a2;
+}",
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == a2;
+}");
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface4()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 [|as object|] == a2;
+}",
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == a2;
+}");
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface5()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == a2 [|as object|];
+}",
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == a2;
+}");
+        }
+
+        [WorkItem(57065, "https://github.com/dotnet/roslyn/issues/57065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface6()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 [|as object|] == a2 [|as object|];
+}",
+                @"
+interface IAssembly
+{
+}
+
+class C
+{
+    bool M(IAssembly a2, IAssembly a1)
+        => a1 == a2;
+}");
+        }
+
+        [WorkItem(57063, "https://github.com/dotnet/roslyn/issues/57063")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNullableIntToNullableEnumCast()
+        {
+            var source =
+            @"
+enum E { }
+
+class Program
+{
+    static E? Main(object o)
+    {
+        return (E?)(int?)o;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNRTCast1()
+        {
+            var source =
+            @"
+#nullable enable
+
+using System.Collections.Generic;
+using System.Linq;
+
+class Node
+{
+    public readonly string Name = """";
+}
+
+class C
+{
+    void M(IList<Node> nodes)
+    {
+        Dictionary<string, Node?> map = nodes.ToDictionary(t => t.Name, t => (Node?)t);
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveNRTCastInConditional1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+#nullable enable
+
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    string? M(bool b, string s)
+    {
+        return b ? [|(string?)|]s : null;
+    }
+}",
+                FixedCode =
+@"
+#nullable enable
+
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    string? M(bool b, string s)
+    {
+        return b ? s : null;
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveNRTCastInConditional2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                            @"
+#nullable enable
+
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    string? M(bool b, string s)
+    {
+        return b ? s : [|(string?)|]null;
+    }
+}",
+                                        @"
+#nullable enable
+
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    string? M(bool b, string s)
+    {
+        return b ? s : null;
+    }
+}");
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveUnnecessaryWideningConstantCastInConditional1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                            @"
+class C
+{
+    void M(int a)
+    {
+        long f1 = (a == 5) ? 4 : [|(long)|]5;
+    }
+}",
+                                        @"
+class C
+{
+    void M(int a)
+    {
+        long f1 = (a == 5) ? 4 : 5;
+    }
+}");
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNnecessaryWideningConstantCastInConditional1()
+        {
+            var source = @"
+class C
+{
+    void M(int a)
+    {
+        var f1 = (a == 5) ? 4 : (long)5;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveUnnecessaryWideningCastInConditional2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                            @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        long f1 = (a == 5) ? b : [|(long)|]c;
+    }
+}",
+                                        @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        long f1 = (a == 5) ? b : c;
+    }
+}");
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryWideningCastInConditional2()
+        {
+            var source = @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        var f1 = (a == 5) ? b : (long)c;
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveUnnecessaryWideningNullableConstantCastInConditional3()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                            @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        int? f1 = (a == 5) ? [|(int?)|]0 : 1;
+    }
+}",
+                                        @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        int? f1 = (a == 5) ? 0 : 1;
+    }
+}");
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryWideningNullableConstantCastInConditional3()
+        {
+            var source = @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        var f1 = (a == 5) ? (int?)0 : 1;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveUnnecessaryWideningNullableCastInConditional3()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                            @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        int? f1 = (a == 5) ? [|(int?)|]b : c;
+    }
+}",
+                                        @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        int? f1 = (a == 5) ? b : c;
+    }
+}");
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryWideningNullableCastInConditional3()
+        {
+            var source = @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        var f1 = (a == 5) ? (int?)b : c;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveUnnecessaryWideningConstantCastInConditionalWithDefault3()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        long f1 = (a == 5) ? [|(long)|]0 : default;
+    }
+}",
+                @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        long f1 = (a == 5) ? 0 : default;
+    }
+}");
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNnecessaryWideningConstantCastInConditionalWithDefault3()
+        {
+            var source = @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        var f1 = (a == 5) ? (long)0 : default;
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveUnnecessaryWideningConstantCastInConditionalWithDefault4()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        long f1 = (a == 5) ? [|(long)|]b : default;
+    }
+}",
+                @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        long f1 = (a == 5) ? b : default;
+    }
+}");
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryWideningConstantCastInConditionalWithDefault4()
+        {
+            var source = @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        var f1 = (a == 5) ? (long)b : default;
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryWideningNullableConstantCastInConditionalWithDefault3()
+        {
+            var source = @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        int? f1 = (a == 5) ? (int?)0 : default;
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryWideningNullableCastInConditionalWithDefault3()
+        {
+            var source = @"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        int? f1 = (a == 5) ? (int?)b : default;
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(56938, "https://github.com/dotnet/roslyn/issues/56938")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task CanRemoveDoubleNullableNumericCast1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine((int)(float?)[|(int?)|]2147483647); // Prints -2147483648
+    }
+}",
+                @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine((int)(float?)2147483647); // Prints -2147483648
+    }
+}");
+        }
+
+        [WorkItem(56938, "https://github.com/dotnet/roslyn/issues/56938")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task CanRemoveTripleNullableNumericCast1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+                @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine((int)(double?)[|(long?)|][|(int?)|]1);
+    }
+}",
+                @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine((int)(double?)1);
+    }
+}");
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveMultipleNullableCastsThroughUserDefinedConversions1()
+        {
+            var source = @"
+struct A
+{
+}
+
+struct B
+{
+    public static implicit operator A(B b) => default;
+    public static implicit operator B(int a) => default;
+}
+
+class P
+{
+    void M()
+    {
+        var v = (A?)(B?)0;
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveMultipleNullableCastsThroughUserDefinedConversions2()
+        {
+            var source = @"
+struct A
+{
+}
+
+struct B
+{
+    public static implicit operator A(B b) => default;
+    public static implicit operator B(int a) => default;
+}
+
+class P
+{
+    void M()
+    {
+        var v = (A?)(B)0;
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(57064, "https://github.com/dotnet/roslyn/issues/57064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveMultipleCastsThroughUserDefinedConversions2()
+        {
+            var source = @"
+struct A
+{
+}
+
+struct B
+{
+    public static implicit operator A(B b) => default;
+    public static implicit operator B(int a) => default;
+}
+
+class P
+{
+    void M()
+    {
+        var v = (A)(B)0;
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(58171, "https://github.com/dotnet/roslyn/issues/58171")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [CombinatorialData]
+        public async Task DoNotRemoveMethodGroupToSpecificDelegateType(LanguageVersion version)
+        {
+            var source = @"
+using System;
+
+class KeyEventArgs : EventArgs
+{
+}
+
+delegate void KeyEventHandler(object sender, KeyEventArgs e);
+
+class C
+{
+
+    void M()
+    {
+        AddHandler((KeyEventHandler)HandleSymbolKindsPreviewKeyDown);
+    }
+
+    void HandleSymbolKindsPreviewKeyDown(object sender, KeyEventArgs e) { }
+    void AddHandler(Delegate handler) { }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = version,
+            }.RunAsync();
+        }
+
+        [WorkItem(58095, "https://github.com/dotnet/roslyn/issues/58095")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNullableCastsInTuples()
+        {
+            var source = @"
+using System.Diagnostics;
+
+class C
+{
+    void M()
+    {
+        var (isEdge, moreOnes) = (true, false);
+
+        char? expected_a = isEdge ? null : moreOnes ? '1' : '0';
+        char? expected_b = isEdge ? null : moreOnes ? '0' : '1';
+
+        (char? expected_a_01, char? expected_b_01) = isEdge ? default : moreOnes ? ((char?)'1', (char?)'0') : ('0', '1');
+        (char? expected_a_02, char? expected_b_02) = isEdge ? default : moreOnes ? ('1', '0') : ('0', '1');
+
+        Debug.Assert(expected_a == expected_a_01 && expected_a == expected_a_02);
+        Debug.Assert(expected_b == expected_b_01 && expected_b == expected_b_02);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(49954, "https://github.com/dotnet/roslyn/issues/49954")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNullableDefaultCast1()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    protected bool? IsNewResource() =>
+        Boolean.TryParse("""", out var b) ? b : (bool?)default;
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+            }.RunAsync();
+        }
+
+        [WorkItem(34509, "https://github.com/dotnet/roslyn/issues/34509")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNullableDefaultCast2()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static long? TestParse(string val) => long.TryParse(val, out var parseResult) ? (long?)parseResult : default;
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(49690, "https://github.com/dotnet/roslyn/issues/49690")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNullableGenericCast()
+        {
+            var source = @"
+#nullable enable
+
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    static IEnumerable<string> DoThis(IEnumerable<string?> notreallynull)
+    {
+        return notreallynull.Where(s => s is not null) as IEnumerable<string>;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(45925, "https://github.com/dotnet/roslyn/issues/45925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecesssaryPatternCasts1()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    bool M(object obj)
+    {
+        return obj is 0 or (uint)0 or (long)0 or (ulong)0 or (short)0 or (ushort)0 or (byte)0 or (sbyte)0 or (float)0
+             or (double)0 or (decimal)0 or (AttributeTargets)0;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(37473, "https://github.com/dotnet/roslyn/issues/37473")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecesssaryCastInTupleWrappedInObject1()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+public class C
+{
+    public IEnumerable<object> Bar()
+    {
+        yield return (""test"", (decimal?)1.23);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(33143, "https://github.com/dotnet/roslyn/issues/33143")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecesssaryCastInTupleWrappedInObject2()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+public class C
+{
+    void M()
+    {
+        object x = (true, (IEnumerable<int>)new int[0]);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(33043, "https://github.com/dotnet/roslyn/issues/33043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecesssaryCastInIsNullCheck1()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+public class C
+{
+    void M()
+    {
+        if ((int?)1 is null)
+        {
+        }
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(20617, "https://github.com/dotnet/roslyn/issues/20617")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecesssaryBitwiseNotOnUnsignedValue1()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public static void MethodName()
+    {
+        const long x = ~(long)~1U;
+        Console.WriteLine(x);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastThatPreventsOverflowInChecked1()
+        {
+            var source = @"
+static class Program
+{
+    static readonly long x = -(long)int.MinValue;
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(34553, "https://github.com/dotnet/roslyn/issues/34553")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastThatPreventsOverflowInChecked2()
+        {
+            var source = @"
+using System;
+class Program
+{
+    void M()
+    {
+        Int32 input32 = Int32.MinValue;
+        Int64 output64_a = checked(-input32);
+        Int64 output64_b = checked(-(Int64)input32);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastFromIntToNullableEnum1()
+        {
+            var source = @"
+enum E
+{
+}
+
+class Program
+{
+    void M()
+    {
+        int? num = 1;
+        string s = ((E?)num)?.ToString().Replace('a', 'b');
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveWideningCastInBitwiseOr1()
+        {
+            var source = @"
+class C
+{
+    public uint fn1(sbyte a, sbyte b)
+    {
+        return (uint)((a << 8) | (int)b);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(32773, "https://github.com/dotnet/roslyn/issues/32773")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveWideningCastInBitwiseOr2()
+        {
+            var source = @"
+class C
+{
+    public void fn1(int start, int end)
+    {
+        var bounds = (((long)end) << 32) | ((long)start);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(25165, "https://github.com/dotnet/roslyn/issues/25165")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastInIllegalDelegateCast()
+        {
+            var source = @"
+using System;
+public delegate void DoSomething();
+
+public class Code
+{
+    private Action _f;
+    public Code(DoSomething f)
+    {
+        Action doNothing = (() => {});
+        _f = f ?? {|CS0030:(DoSomething)doNothing|};  
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(31303, "https://github.com/dotnet/roslyn/issues/31303")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveUnsignedCastInBitwiseNot1()
+        {
+            var source = @"
+using System;
+
+public class Code
+{
+    static void CheckRedundantCast()
+    {
+        ulong number1 = 0xFFFFFFFFFFFFFFFFL;
+        uint number2 = 0xFF;
+        ulong myResult = number1 & ~(ulong)number2;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(36755, "https://github.com/dotnet/roslyn/issues/36755")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryCastInSwitchExpressionArm1()
+        {
+            var source = @"
+class Program
+{
+    void M()
+    {
+        string numberString = ""One"";
+        Numbers? number = numberString switch
+        {
+            ""One"" => (Numbers?)Numbers.One,
+            ""Two"" => Numbers.Two,
+            _ => null,
+        };
+    }
+}
+
+enum Numbers
+{
+    One,
+    Two
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(36782, "https://github.com/dotnet/roslyn/issues/36782")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryCastWithOverloadedNegationAndImplicitConversion1()
+        {
+            var source = @"
+using System;
+
+namespace WrongRedundantCastWarning
+{
+	struct Flag
+	{
+		public Flag(int value) => this.Value = value;
+
+		public int Value { get; }
+
+		// This cast is wrongly reported as redundant
+		public static FlagSet operator ~(Flag flag) => ~(FlagSet)flag;
+	}
+
+	struct FlagSet
+	{
+		public FlagSet(int value) => this.Value = value;
+
+		public int Value { get; }
+
+		public static implicit operator FlagSet(Flag flag) => new FlagSet(flag.Value);
+
+		public static FlagSet operator ~(FlagSet flagSet) => new FlagSet(~flagSet.Value);
+	}
+
+	class Program
+	{
+		static readonly Flag One = new Flag(1);
+		static readonly Flag Two = new Flag(2);
+
+		static void Main(string[] args)
+		{
+			var flipped = ~Two;
+
+			Console.WriteLine(flipped.Value);
+		}
+	}
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(37041, "https://github.com/dotnet/roslyn/issues/37041")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNecessaryMethodGroupToDelegateCast1()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+namespace RedundantCast
+{
+    class Program
+    {
+        class A { }
+        class B : A { }
+
+        B Goo() { return null; }
+
+        static void Main()
+        {
+            (new Program()). Run();
+        }
+
+        void Run()
+        {
+            var list = new List<Func<A>>();
+            list. Add((Func<B>) Goo);
+            switch (list[0])
+            {
+                case Func<B> value: Console.WriteLine(""B""); break;
+                case Func<A> value: Console.WriteLine(""A""); break;
+            }
+        }
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(54388, "https://github.com/dotnet/roslyn/issues/54388")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastFromIntToDecimal()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    void M()
+    {
+        X v = new((decimal)-1);
+    }
+}
+
+class X
+{
+    public X(decimal d) { }
+    public X(double d) { }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(33285, "https://github.com/dotnet/roslyn/issues/33285")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNullableToStructCast1()
+        {
+            var source = @"
+using System;
+
+namespace System
+{
+    public readonly struct ReadOnlyMemory<T> : IEquatable<ReadOnlyMemory<T>>
+    {
+        private readonly object _dummy;
+        private readonly int _dummyPrimitive;
+        public static ReadOnlyMemory<T> Empty => throw new NotImplementedException();
+        public bool IsEmpty => throw new NotImplementedException();
+        public int Length => throw new NotImplementedException();
+        public ReadOnlyMemory(T[] array) => throw new NotImplementedException();
+        public ReadOnlyMemory(T[] array, int start, int length) => throw new NotImplementedException();
+        public bool Equals(ReadOnlyMemory<T> other) => throw new NotImplementedException();
+    }
+
+    public class Lazy<T>
+    {
+        public bool IsValueCreated => throw new NotImplementedException();
+        public T Value => throw new NotImplementedException();
+        public Lazy() => throw new NotImplementedException();
+        public Lazy(bool isThreadSafe) => throw new NotImplementedException();
+        public Lazy(Func<T> valueFactory) => throw new NotImplementedException();
+        public Lazy(Func<T> valueFactory, bool isThreadSafe) => throw new NotImplementedException();
+        public Lazy(T value) => throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private C(ReadOnlyMemory<byte>? buffer = null)
+    {
+        var v = new Lazy<ReadOnlyMemory<byte>>((ReadOnlyMemory<byte>)buffer);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
         }
     }
 }

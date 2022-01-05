@@ -14,7 +14,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.ServiceModel.Description;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -29,7 +28,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 => string.Format("<member name='{0}'><summary>{0}</summary></member>", documentationMemberID);
 
             public override bool Equals(object obj)
-                => (object)this == obj;
+                => ReferenceEquals(this, obj);
 
             public override int GetHashCode()
                 => RuntimeHelpers.GetHashCode(this);
@@ -103,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 compilationOptions,
                 parseOptions,
                 files,
+                sourceGeneratedFiles: Array.Empty<string>(),
                 metadataReferences,
                 extension,
                 commonReferences);
@@ -338,8 +337,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 documents.Add(document);
             }
 
+            SingleFileTestGenerator testGenerator = null;
             foreach (var sourceGeneratedDocumentElement in projectElement.Elements(DocumentFromSourceGeneratorElementName))
             {
+                if (testGenerator is null)
+                {
+                    testGenerator = new SingleFileTestGenerator();
+                    analyzers.Add(new TestGeneratorReference(testGenerator));
+                }
+
                 var name = GetFileName(workspace, sourceGeneratedDocumentElement, ref documentId);
 
                 var markupCode = sourceGeneratedDocumentElement.NormalizedValue();
@@ -350,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var document = new TestHostDocument(exportProvider, languageServices, code, name, documentFilePath, cursorPosition, spans, isSourceGenerated: true);
                 documents.Add(document);
 
-                analyzers.Add(new TestGeneratorReference(new SingleFileTestGenerator(code, name)));
+                testGenerator.AddSource(code, name);
             }
 
             var additionalDocuments = new List<TestHostDocument>();
@@ -588,7 +594,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var outputKindAttribute = compilationOptionsElement.Attribute(OutputKindName);
                 if (outputKindAttribute != null)
                 {
-                    outputKind = (OutputKind)Enum.Parse(typeof(OutputKind), (string)outputKindAttribute.Value);
+                    outputKind = (OutputKind)Enum.Parse(typeof(OutputKind), outputKindAttribute.Value);
                 }
 
                 var checkOverflowAttribute = compilationOptionsElement.Attribute(CheckOverflowAttributeName);
@@ -641,7 +647,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var nullableAttribute = compilationOptionsElement.Attribute(NullableAttributeName);
                 if (nullableAttribute != null)
                 {
-                    nullable = (NullableContextOptions)Enum.Parse(typeof(NullableContextOptions), (string)nullableAttribute.Value);
+                    nullable = (NullableContextOptions)Enum.Parse(typeof(NullableContextOptions), nullableAttribute.Value);
                 }
 
                 var outputTypeAttribute = compilationOptionsElement.Attribute(OutputTypeAttributeName);
@@ -655,7 +661,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     // VB needs Compilation.ParseOptions set (we do the same at the VS layer)
                     return language == LanguageNames.CSharp
-                       ? (CompilationOptions)new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata, allowUnsafe: allowUnsafe)
+                       ? new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata, allowUnsafe: allowUnsafe)
                        : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports).WithRootNamespace(rootNamespace)
                             .WithParseOptions((VisualBasicParseOptions)parseOptions ?? VisualBasicParseOptions.Default);
                 }

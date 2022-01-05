@@ -349,18 +349,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDagTemp OriginalInput(BoundDagTemp input, Symbol symbol)
         {
-            while (input.Source is BoundDagTypeEvaluation source && IsDerivedType(source.Input.Type, symbol.ContainingType))
+            while (input.Source is BoundDagTypeEvaluation source && isDerivedType(source.Input.Type, symbol.ContainingType))
             {
                 input = source.Input;
             }
 
             return input;
+
+            bool isDerivedType(TypeSymbol possibleDerived, TypeSymbol possibleBase)
+            {
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return this._conversions.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref discardedUseSiteInfo);
+            }
         }
 
-        bool IsDerivedType(TypeSymbol possibleDerived, TypeSymbol possibleBase)
+        private static BoundDagTemp OriginalInput(BoundDagTemp input)
         {
-            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            return this._conversions.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref discardedUseSiteInfo);
+            // Type evaluations do not change identity
+            while (input.Source is BoundDagTypeEvaluation source)
+            {
+                Debug.Assert(input.Index == 0);
+                input = source.Input;
+            }
+
+            return input;
         }
 
         private Tests MakeTestsAndBindingsForDeclarationPattern(
@@ -461,7 +473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var tests = ArrayBuilder<Tests>.GetInstance(2);
-                output = input = MakeConvertToType(input, constant.Syntax, constant.Value.Type!, isExplicitTest: false, tests);
+                Debug.Assert(constant.Value.Type is not null || constant.HasErrors);
+                output = input = constant.Value.Type is { } type ? MakeConvertToType(input, constant.Syntax, type, isExplicitTest: false, tests) : input;
                 if (ValueSetFactory.ForInput(input)?.Related(BinaryOperatorKind.Equal, constant.ConstantValue).IsEmpty == true)
                 {
                     // This could only happen for a length input where the permitted value domain (>=0) is a strict subset of possible values for the type (int)
@@ -642,10 +655,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundRelationalPattern rel,
             out BoundDagTemp output)
         {
+            Debug.Assert(rel.Value.Type is not null);
             // check if the test is always true or always false
             var tests = ArrayBuilder<Tests>.GetInstance(2);
-            output = MakeConvertToType(input, rel.Syntax, rel.Value.Type!, isExplicitTest: false, tests);
-            var fac = ValueSetFactory.ForInput(input);
+            output = MakeConvertToType(input, rel.Syntax, rel.Value.Type, isExplicitTest: false, tests);
+            var fac = ValueSetFactory.ForInput(output);
             var values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
             if (values?.IsEmpty == true)
             {
@@ -1096,6 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp? lengthTemp = null;
             while (input.Source is BoundDagSliceEvaluation slice)
             {
+                Debug.Assert(input.Index == 0);
                 offset += slice.StartIndex - slice.EndIndex;
                 lengthTemp = slice.LengthTemp;
                 input = slice.Input;
@@ -1110,11 +1125,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp lengthTemp = e.LengthTemp;
             while (input.Source is BoundDagSliceEvaluation slice)
             {
+                Debug.Assert(input.Index == 0);
                 index = index < 0 ? index - slice.EndIndex : index + slice.StartIndex;
                 lengthTemp = slice.LengthTemp;
                 input = slice.Input;
             }
-            return (input, lengthTemp, index);
+            return (OriginalInput(input), lengthTemp, index);
         }
 
         private static ImmutableArray<StateForCase> RemoveEvaluation(ImmutableArray<StateForCase> cases, BoundDagEvaluation e)
@@ -1164,8 +1180,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool falseTestImpliesTrueOther,
             ref bool foundExplicitNullTest)
         {
-            Debug.Assert(test.Input.IsEquivalentTo(other.Input));
-
             // innocent until proven guilty
             trueTestPermitsTrueOther = true;
             falseTestPermitsTrueOther = true;
@@ -1333,20 +1347,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             relationCondition = Tests.True.Instance;
             relationEffect = Tests.True.Instance;
 
-            BoundDagTemp s1Input = test.Input;
-            BoundDagTemp s2Input = other.Input;
-            if (s1Input.Equals(s2Input))
+            // If inputs are identical, we don't need to do any further check.
+            if (test.Input == other.Input)
             {
                 return true;
             }
 
-            var conditions = ArrayBuilder<Tests>.GetInstance();
+            // For null tests or type tests we just need to make sure we are looking at the same instance,
+            // for other tests the projected type should also match
+            if (test is not (BoundDagNonNullTest or BoundDagExplicitNullTest) &&
+                other is not (BoundDagNonNullTest or BoundDagExplicitNullTest) &&
+                (test is not BoundDagTypeTest || other is not BoundDagTypeTest) &&
+                !test.Input.Type.Equals(other.Input.Type, TypeCompareKind.AllIgnoreOptions))
+            {
+                return false;
+            }
+
+            BoundDagTemp s1Input = OriginalInput(test.Input);
+            BoundDagTemp s2Input = OriginalInput(other.Input);
             // Loop through the input chain for both tests at the same time and check if there's
             // any pair of indexers in the path that could relate depending on the length value.
-            do
+            ArrayBuilder<Tests>? conditions = null;
+            while (s1Input.Index == s2Input.Index)
             {
                 switch (s1Input.Source, s2Input.Source)
                 {
+                    // We should've skipped all type evaluations at this point.
+                    case (BoundDagTypeEvaluation, _):
+                    case (_, BoundDagTypeEvaluation):
+                        throw ExceptionUtilities.Unreachable;
+
+                    // If we have found two identical evaluations as the source (possibly null), inputs can be considered related.
+                    case var (s1, s2) when s1 == s2:
+                        if (conditions != null)
+                        {
+                            relationCondition = Tests.AndSequence.Create(conditions);
+                            // At this point, we have determined that two non-identical inputs refer to the same element.
+                            // We represent this correspondence with an assignment node in order to merge the remaining values.
+                            // If tests are related unconditionally, we won't need to do so as the remaining values are updated right away.
+                            relationEffect = new Tests.One(new BoundDagAssignmentEvaluation(syntax, target: other.Input, input: test.Input));
+                        }
+                        return true;
+
                     // Even though the two tests appear unrelated (with different inputs),
                     // it is possible that they are in fact related under certain conditions.
                     // For instance, the inputs [0] and [^1] point to the same element when length is 1.
@@ -1358,12 +1400,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
                         Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
                         // Ignore input source as it will be matched in the subsequent iterations.
-                        if (s1Input.IsEquivalentTo(s2Input) &&
+                        if (s1Input.Index == s2Input.Index &&
                             // We don't want to pair two indices within the same pattern.
                             s1LengthTemp.Syntax != s2LengthTemp.Syntax)
                         {
                             Debug.Assert(s1LengthTemp.IsEquivalentTo(s2LengthTemp));
-                            Debug.Assert(s1LengthTemp.Equals(s2LengthTemp) == s1Input.Equals(s2Input));
                             if (s1Index == s2Index)
                             {
                                 continue;
@@ -1388,7 +1429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
                                 {
                                     // Otherwise, we add a test to make the result conditional on the length value.
-                                    conditions.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp)));
+                                    (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp)));
                                     continue;
                                 }
                             }
@@ -1398,24 +1439,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If the sources are equivalent (ignoring their input), it's still possible to find a pair of indexers that could relate.
                     // For example, the subpatterns in `[.., { E: subpat }] or [{ E: subpat }]` are being applied to the same element in the list.
                     // To account for this scenario, we walk up all the inputs as long as we see equivalent evaluation nodes in the path.
-                    case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1.IsEquivalentTo(s2) && s1Input.IsEquivalentTo(s2Input):
-                        s1Input = s1.Input;
-                        s2Input = s2.Input;
+                    case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1.IsEquivalentTo(s2):
+                        s1Input = OriginalInput(s1.Input);
+                        s2Input = OriginalInput(s2.Input);
                         continue;
                 }
-
-                // tests are unrelated
-                conditions.Free();
-                return false;
+                break;
             }
-            while (!s1Input.Equals(s2Input)); // if we have found two identical input fragments, there's no point to continue.
 
-            relationCondition = Tests.AndSequence.Create(conditions);
-            // At this point, we have determined that two non-identical inputs refer to the same element.
-            // We represent this correspondence with an assignment node in order to merge the remaining values.
-            relationEffect = new Tests.One(new BoundDagAssignmentEvaluation(syntax, target: other.Input, input: test.Input));
-            // PROTOTYPE(list-patterns): Do we still need to add this node if there's no preconditions?
-            return true;
+            // tests are unrelated
+            conditions?.Free();
+            return false;
         }
 
         /// <summary>

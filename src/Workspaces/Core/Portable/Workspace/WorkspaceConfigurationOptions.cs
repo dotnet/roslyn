@@ -5,21 +5,30 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis
 {
-    [ExportOptionProvider, Shared]
+    [ExportSolutionOptionProvider, Shared]
     internal class WorkspaceConfigurationOptions : IOptionProvider
     {
+        /// <summary>
+        /// Disables if the workspace creates recoverable trees when from its <see cref="ISyntaxTreeFactoryService"/>s.
+        /// </summary>
         public static readonly Option<bool> DisableRecoverableTrees = new(
             nameof(WorkspaceConfigurationOptions), nameof(DisableRecoverableTrees), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
 
+        public static readonly Option<bool> DisableProjectCacheService = new(
+            nameof(WorkspaceConfigurationOptions), nameof(DisableProjectCacheService), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.DisableProjectCacheService"));
+
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-            DisableRecoverableTrees);
+            DisableRecoverableTrees,
+            DisableProjectCacheService);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

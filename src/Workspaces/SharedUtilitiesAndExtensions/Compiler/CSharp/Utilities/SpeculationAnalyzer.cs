@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.InvocationExpression => ((InvocationExpressionSyntax)expression).ArgumentList,
                 SyntaxKind.ObjectCreationExpression => ((ObjectCreationExpressionSyntax)expression).ArgumentList,
                 SyntaxKind.ElementAccessExpression => ((ElementAccessExpressionSyntax)expression).ArgumentList,
-                _ => (BaseArgumentListSyntax)null,
+                _ => null,
             };
         }
 

@@ -177,6 +177,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_OptimizeForSolutionSize_Small
             => CSharpVSResources.Small;
 
+        public static string Option_Quick_Actions
+            => ServicesVSResources.Quick_Actions;
+
+        public static string Option_Compute_Quick_Actions_asynchronously_experimental
+            => ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental;
+
         public static string Option_Outlining
             => ServicesVSResources.Outlining;
 
@@ -293,5 +299,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Inheritance_Margin
             => ServicesVSResources.Inheritance_Margin;
+
+        public static string Stack_Trace_Explorer
+            => ServicesVSResources.Stack_Trace_Explorer;
+
+        public static string Option_Automatically_open_stack_trace_explorer_on_focus
+            => ServicesVSResources.Automatically_open_stack_trace_explorer_on_focus;
     }
 }

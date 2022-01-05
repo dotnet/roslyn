@@ -109,12 +109,10 @@ namespace Microsoft.CodeAnalysis
                         documentsAreFinal: false));
 
                 /// <summary>
-                /// The best compilation that is available that source generators have not ran on. May be an in-progress,
-                /// full declaration,  a final compilation, or <see langword="null"/>.
-                /// The value is an <see cref="Optional{Compilation}"/> to represent the
-                /// possibility of the compilation already having been garabage collected.
+                /// The best compilation that is available that source generators have not ran on. May be an
+                /// in-progress, full declaration,  a final compilation, or <see langword="null"/>.
                 /// </summary>
-                public ValueSource<Optional<Compilation>>? CompilationWithoutGeneratedDocuments { get; }
+                public Compilation? CompilationWithoutGeneratedDocuments { get; }
 
                 public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
 
@@ -126,13 +124,11 @@ namespace Microsoft.CodeAnalysis
 
                 /// <summary>
                 /// The final compilation is potentially available, otherwise <see langword="null"/>.
-                /// The value is an <see cref="Optional{Compilation}"/> to represent the
-                /// possibility of the compilation already having been garabage collected.
                 /// </summary>
-                public virtual ValueSource<Optional<Compilation>>? FinalCompilationWithGeneratedDocuments => null;
+                public virtual Compilation? FinalCompilationWithGeneratedDocuments => null;
 
                 protected CompilationTrackerState(
-                    ValueSource<Optional<Compilation>>? compilationWithoutGeneratedDocuments,
+                    Compilation? compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo)
                 {
                     CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
@@ -142,7 +138,7 @@ namespace Microsoft.CodeAnalysis
 
                     // As a sanity check, we should never see the generated trees inside of the compilation that should not
                     // have generated trees.
-                    var compilation = compilationWithoutGeneratedDocuments?.GetValueOrNull();
+                    var compilation = compilationWithoutGeneratedDocuments;
 
                     if (compilation != null)
                     {
@@ -168,15 +164,6 @@ namespace Microsoft.CodeAnalysis
                     return intermediateProjects.Length == 0
                         ? new AllSyntaxTreesParsedState(compilation, generatorInfo.WithDocumentsAreFinal(false))
                         : new InProgressState(compilation, generatorInfo, compilationWithGeneratedDocuments, intermediateProjects);
-                }
-
-                public static ValueSource<Optional<Compilation>> CreateValueSource(
-                    Compilation compilation,
-                    SolutionServices services)
-                {
-                    return services.SupportsCachingRecoverableObjects
-                        ? new WeakValueSource<Compilation>(compilation)
-                        : (ValueSource<Optional<Compilation>>)new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
             }
 
@@ -217,7 +204,7 @@ namespace Microsoft.CodeAnalysis
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? compilationWithGeneratedDocuments,
                     ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
-                    : base(compilationWithoutGeneratedDocuments: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
+                    : base(compilationWithoutGeneratedDocuments: inProgressCompilation,
                            generatorInfo.WithDocumentsAreFinal(false)) // since we have a set of transformations to make, we'll always have to run generators again
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
@@ -234,11 +221,8 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class AllSyntaxTreesParsedState : CompilationTrackerState
             {
-                public AllSyntaxTreesParsedState(
-                    Compilation declarationCompilation,
-                    CompilationTrackerGeneratorInfo generatorInfo)
-                    : base(new WeakValueSource<Compilation>(declarationCompilation),
-                           generatorInfo)
+                public AllSyntaxTreesParsedState(Compilation declarationCompilation, CompilationTrackerGeneratorInfo generatorInfo)
+                    : base(declarationCompilation, generatorInfo)
                 {
                 }
             }
@@ -266,34 +250,34 @@ namespace Microsoft.CodeAnalysis
                 public readonly UnrootedSymbolSet UnrootedSymbolSet;
 
                 /// <summary>
-                /// The final compilation, with all references and source generators run. This is distinct from
-                /// <see cref="Compilation"/>, which in the <see cref="FinalState"/> case will be the compilation
-                /// before any source generators were ran. This ensures that a later invocation of the source generators
-                /// consumes <see cref="Compilation"/> which will avoid generators being ran a second time on a compilation that
-                /// already contains the output of other generators. If source generators are not active, this is equal to <see cref="Compilation"/>.
+                /// The final compilation, with all references and source generators run. This is distinct from <see
+                /// cref="Compilation"/>, which in the <see cref="FinalState"/> case will be the compilation before any
+                /// source generators were ran. This ensures that a later invocation of the source generators consumes
+                /// <see cref="Compilation"/> which will avoid generators being ran a second time on a compilation that
+                /// already contains the output of other generators. If source generators are not active, this is equal
+                /// to <see cref="Compilation"/>.
                 /// </summary>
-                public override ValueSource<Optional<Compilation>> FinalCompilationWithGeneratedDocuments { get; }
+                public override Compilation FinalCompilationWithGeneratedDocuments { get; }
 
                 private FinalState(
-                    ValueSource<Optional<Compilation>> finalCompilationSource,
-                    ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
+                    Compilation finalCompilation,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     UnrootedSymbolSet unrootedSymbolSet)
-                    : base(compilationWithoutGeneratedFilesSource,
-                          generatorInfo.WithDocumentsAreFinal(true)) // when we're in a final state, we've ran generators and should not run again
+                    : base(compilationWithoutGeneratedFiles,
+                           generatorInfo.WithDocumentsAreFinal(true)) // when we're in a final state, we've ran generators and should not run again
                 {
+                    Contract.ThrowIfNull(finalCompilation);
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
-                    FinalCompilationWithGeneratedDocuments = finalCompilationSource;
+                    FinalCompilationWithGeneratedDocuments = finalCompilation;
                     UnrootedSymbolSet = unrootedSymbolSet;
 
                     if (this.GeneratorInfo.Documents.IsEmpty)
                     {
                         // In this case, the finalCompilationSource and compilationWithoutGeneratedFilesSource should point to the
                         // same Compilation, which should be compilationWithoutGeneratedFiles itself
-                        Debug.Assert(finalCompilationSource.TryGetValue(out var finalCompilationVal));
-                        Debug.Assert(object.ReferenceEquals(finalCompilationVal.Value, compilationWithoutGeneratedFiles));
+                        Debug.Assert(object.ReferenceEquals(finalCompilation, compilationWithoutGeneratedFiles));
                     }
                 }
 
@@ -301,8 +285,7 @@ namespace Microsoft.CodeAnalysis
                 /// <param name="projectId">Not held onto</param>
                 /// <param name="metadataReferenceToProjectId">Not held onto</param>
                 public static FinalState Create(
-                    ValueSource<Optional<Compilation>> finalCompilationSource,
-                    ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
+                    Compilation finalCompilationSource,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
                     CompilationTrackerGeneratorInfo generatorInfo,
@@ -318,7 +301,6 @@ namespace Microsoft.CodeAnalysis
 
                     return new FinalState(
                         finalCompilationSource,
-                        compilationWithoutGeneratedFilesSource,
                         compilationWithoutGeneratedFiles,
                         hasSuccessfullyLoaded,
                         generatorInfo,

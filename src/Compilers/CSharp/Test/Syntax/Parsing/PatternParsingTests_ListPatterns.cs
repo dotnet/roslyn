@@ -11,8 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class PatternParsingTests_ListPatterns : ParsingTests
     {
-        // PROTOTYPE(list-patterns)
-        private static CSharpParseOptions RegularWithoutListPatterns => TestOptions.Regular9;
+        private static CSharpParseOptions RegularWithoutListPatterns => TestOptions.Regular10;
 
         private new void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
         {
@@ -29,13 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"c is [[]]");
             verify();
 
-            UsingExpression(@"c is [[]]", RegularWithoutListPatterns,
-                // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is [[]]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[[]]").WithArguments("list pattern").WithLocation(1, 6),
-                // (1,7): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is [[]]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[]").WithArguments("list pattern").WithLocation(1, 7));
+            UsingExpression(@"c is [[]]", RegularWithoutListPatterns);
             verify();
 
             void verify()
@@ -68,13 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"c is [[],] v");
             verify();
 
-            UsingExpression(@"c is [[],] v", RegularWithoutListPatterns,
-                // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is [[],]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[[],] v").WithArguments("list pattern").WithLocation(1, 6),
-                // (1,7): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is [[],]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[]").WithArguments("list pattern").WithLocation(1, 7));
+            UsingExpression(@"c is [[],] v", RegularWithoutListPatterns);
             verify();
 
             void verify()
@@ -458,10 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"c is [..]");
             verify();
 
-            UsingExpression(@"c is [..]", RegularWithoutListPatterns,
-                // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is [..]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[..]").WithArguments("list pattern").WithLocation(1, 6));
+            UsingExpression(@"c is [..]", RegularWithoutListPatterns);
             verify();
 
             void verify()
@@ -1117,3 +1101,4 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 }
+

@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override Type GetCompletionProviderType()
             => typeof(OverrideCompletionProvider);
 
-        protected override OptionSet WithChangedOptions(OptionSet options)
+        protected override OptionSet WithChangedNonCompletionOptions(OptionSet options)
         {
-            return base.WithChangedOptions(options)
+            return base.WithChangedNonCompletionOptions(options)
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement)
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
         }
@@ -2777,7 +2777,7 @@ namespace ConsoleApplication46
         override $$
     }
 }";
-            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, ExportProvider);
+            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, exportProvider: ExportProvider);
             var provider = new OverrideCompletionProvider();
             var testDocument = workspace.Documents.Single();
             var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);

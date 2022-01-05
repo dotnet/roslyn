@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            var c = text[characterPosition];
-            return c == '<' || c == '"' || CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
-        }
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+            => text[characterPosition] is ('<' or '"') ||
+               CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('<', '"', ' ');
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 items.AddRange(GetAlwaysVisibleItems());
                 return items;
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
                 return SpecializedCollections.EmptyEnumerable<CompletionItem>();
             }

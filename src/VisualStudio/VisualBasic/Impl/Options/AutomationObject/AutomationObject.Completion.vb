@@ -8,64 +8,64 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Partial Public Class AutomationObject
         Public Property Option_TriggerOnTypingLetters As Boolean
             Get
-                Return GetBooleanOption(CompletionOptions.TriggerOnTypingLetters2)
+                Return GetBooleanOption(CompletionOptions.Metadata.TriggerOnTypingLetters)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(CompletionOptions.TriggerOnTypingLetters2, value)
+                SetBooleanOption(CompletionOptions.Metadata.TriggerOnTypingLetters, value)
             End Set
         End Property
 
         Public Property Option_HighlightMatchingPortionsOfCompletionListItems As Boolean
             Get
-                Return GetBooleanOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems)
+                Return GetBooleanOption(CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, value)
+                SetBooleanOption(CompletionViewOptions.HighlightMatchingPortionsOfCompletionListItems, value)
             End Set
         End Property
 
         Public Property Option_EnterKeyBehavior As Integer
             Get
-                Return GetOption(CompletionOptions.EnterKeyBehavior)
+                Return GetOption(CompletionOptions.Metadata.EnterKeyBehavior)
             End Get
             Set(value As Integer)
-                SetOption(CompletionOptions.EnterKeyBehavior, DirectCast(value, EnterKeyRule))
+                SetOption(CompletionOptions.Metadata.EnterKeyBehavior, DirectCast(value, EnterKeyRule))
             End Set
         End Property
 
         Public Property Option_SnippetsBehavior As Integer
             Get
-                Return GetOption(CompletionOptions.SnippetsBehavior)
+                Return GetOption(CompletionOptions.Metadata.SnippetsBehavior)
             End Get
             Set(value As Integer)
-                SetOption(CompletionOptions.SnippetsBehavior, DirectCast(value, SnippetsRule))
+                SetOption(CompletionOptions.Metadata.SnippetsBehavior, DirectCast(value, SnippetsRule))
             End Set
         End Property
 
         Public Property Option_ShowItemsFromUnimportedNamespaces As Integer
             Get
-                Return GetBooleanOption(CompletionOptions.ShowItemsFromUnimportedNamespaces)
+                Return GetBooleanOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces)
             End Get
             Set(value As Integer)
-                SetBooleanOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, value)
+                SetBooleanOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, value)
             End Set
         End Property
 
         Public Property Option_TriggerInArgumentLists As Boolean
             Get
-                Return GetBooleanOption(CompletionOptions.TriggerInArgumentLists)
+                Return GetBooleanOption(CompletionOptions.Metadata.TriggerInArgumentLists)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(CompletionOptions.TriggerInArgumentLists, value)
+                SetBooleanOption(CompletionOptions.Metadata.TriggerInArgumentLists, value)
             End Set
         End Property
 
         Public Property Option_EnableArgumentCompletionSnippets As Integer
             Get
-                Return GetBooleanOption(CompletionOptions.EnableArgumentCompletionSnippets)
+                Return GetBooleanOption(CompletionViewOptions.EnableArgumentCompletionSnippets)
             End Get
             Set(value As Integer)
-                SetBooleanOption(CompletionOptions.EnableArgumentCompletionSnippets, value)
+                SetBooleanOption(CompletionViewOptions.EnableArgumentCompletionSnippets, value)
             End Set
         End Property
     End Class
