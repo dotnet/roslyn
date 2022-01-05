@@ -13,35 +13,26 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class SyntaxInputNode<T> : IIncrementalGeneratorNode<T>, ISyntaxInputNode
+    internal sealed class SyntaxInputNode<T> : ISyntaxInputNode
     {
         private readonly Func<GeneratorSyntaxContext, CancellationToken, T> _transformFunc;
-        private readonly Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> _registerOutputAndNode;
         private readonly Func<SyntaxNode, CancellationToken, bool> _filterFunc;
         private readonly IEqualityComparer<T> _comparer;
         private readonly object _filterKey = new object();
 
-        internal SyntaxInputNode(Func<SyntaxNode, CancellationToken, bool> filterFunc, Func<GeneratorSyntaxContext, CancellationToken, T> transformFunc, Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> registerOutputAndNode, IEqualityComparer<T>? comparer = null, string? name = null)
+        internal SyntaxInputNode(Func<SyntaxNode, CancellationToken, bool> filterFunc, Func<GeneratorSyntaxContext, CancellationToken, T> transformFunc, IEqualityComparer<T>? comparer = null, string? name = null)
         {
             _transformFunc = transformFunc;
-            _registerOutputAndNode = registerOutputAndNode;
             _filterFunc = filterFunc;
             _comparer = comparer ?? EqualityComparer<T>.Default;
             Name = name;
         }
 
-        public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
-        {
-            return (NodeStateTable<T>)graphState.SyntaxStore.GetSyntaxInputTable(this, graphState.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees));
-        }
+        public SyntaxInputNode<T> WithTrackingName(string name) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, _comparer, name);
 
-        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, _registerOutputAndNode, comparer, Name);
-
-        public IIncrementalGeneratorNode<T> WithTrackingName(string name) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, _registerOutputAndNode, _comparer, name);
+        public SyntaxInputNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, comparer, Name);
 
         public ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps) => new Builder(this, table, trackIncrementalSteps);
-
-        public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutputAndNode(this, output);
 
         private string? Name { get; }
 

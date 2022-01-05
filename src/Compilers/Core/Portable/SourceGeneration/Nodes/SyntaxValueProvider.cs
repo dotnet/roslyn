@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         public IncrementalValuesProvider<T> CreateSyntaxProvider<T>(Func<SyntaxNode, CancellationToken, bool> predicate, Func<GeneratorSyntaxContext, CancellationToken, T> transform)
         {
             // registration of the input is deferred until we know the node is used
-            return new IncrementalValuesProvider<T>(new SyntaxInputNode<T>(predicate.WrapUserFunction(), transform.WrapUserFunction(), RegisterOutputAndDeferredInput));
+            return new IncrementalValuesProvider<T>(new SyntaxInputNode2<T>(new SyntaxInputNode<T>(predicate.WrapUserFunction(), transform.WrapUserFunction()), RegisterOutputAndDeferredInput));
         }
 
         /// <summary>
