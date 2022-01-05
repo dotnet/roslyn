@@ -18,27 +18,34 @@ pr:
 - features/*
 - demos/*
 
-variables:
-  - name: XUNIT_LOGS
-    value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
-
 jobs:
-- job: VS_Integration_CoreHost
+- job: VS_Integration_CoreHost_Debug
   pool:
     name: NetCore1ESPool-Public
     demands: ImageOverride -equals $(queueName)
-  strategy:
-    maxParallel: 2
-    matrix:
-      debug:
-        _configuration: Debug
-      release:
-        _configuration: Release
   timeoutInMinutes: 135
-
+  variables:
+    - name: XUNIT_LOGS
+      value: $(Build.SourcesDirectory)\artifacts\log\Debug
   steps:
     - template: eng/pipelines/test-integration-job.yml
       parameters:
-        configuration: $(_configuration)
+        configuration: Debug
         oop64bit: true
         oopCoreClr: true
+
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - job: VS_Integration_CoreHost_Release
+    pool:
+      name: NetCore1ESPool-Public
+      demands: ImageOverride -equals $(queueName)
+    timeoutInMinutes: 135
+    variables:
+      - name: XUNIT_LOGS
+        value: $(Build.SourcesDirectory)\artifacts\log\Debug
+    steps:
+      - template: eng/pipelines/test-integration-job.yml
+        parameters:
+          configuration: Release
+          oop64bit: true
+          oopCoreClr: true
