@@ -1004,7 +1004,7 @@ public class B
 
         [Theory, WorkItem(7173, "https://github.com/dotnet/roslyn/issues/7173")]
         [CombinatorialData]
-        public void TestReportingDiagnosticWithInvalidLocation(AnalyzerWithInvalidDiagnosticLocation.ActionKind actionKind)
+        public void TestReportingDiagnosticWithInvalidLocation(AnalyzerWithInvalidDiagnosticLocation.ActionKind actionKind, bool testInvalidAdditionalLocation)
         {
             var source1 = @"class C1 { void M() { int i = 0; i++; } }";
             var source2 = @"class C2 { void M() { int i = 0; i++; } }";
@@ -1017,7 +1017,7 @@ public class B
 
             compilation.VerifyDiagnostics();
 
-            var analyzer = new AnalyzerWithInvalidDiagnosticLocation(treeInAnotherCompilation, actionKind);
+            var analyzer = new AnalyzerWithInvalidDiagnosticLocation(treeInAnotherCompilation, actionKind, testInvalidAdditionalLocation);
             var analyzers = new DiagnosticAnalyzer[] { analyzer };
             Exception analyzerException = null;
 
