@@ -51,16 +51,16 @@ namespace Microsoft.CodeAnalysis.Remote
         /// same document may appear multiple times inside of this queue (for different versions of the document).
         /// However, we'll only process the last version of any document added.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<Document> _workQueue;
+        private readonly AsyncBatchingWorkQueue<(Document, ClassificationOptions, StorageDatabase)> _workQueue;
         private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         public RemoteSemanticClassificationService(in ServiceConstructionArguments arguments)
             : base(arguments)
         {
-            _workQueue = new AsyncBatchingWorkQueue<Document>(
+            _workQueue = new AsyncBatchingWorkQueue<(Document, ClassificationOptions, StorageDatabase)>(
                 TimeSpan.FromMilliseconds(TaggerConstants.ShortDelay),
                 CacheSemanticClassificationsAsync,
-                EqualityComparer<Document>.Default,
+                EqualityComparer<(Document, ClassificationOptions, StorageDatabase)>.Default,
                 AsynchronousOperationListenerProvider.NullListener,
                 _cancellationTokenSource.Token);
         }
@@ -82,20 +82,25 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         private static async ValueTask CacheSemanticClassificationsAsync(
-            ImmutableArray<Document> documents, CancellationToken cancellationToken)
+            ImmutableArray<(Document document, ClassificationOptions options, StorageDatabase database)> documents, CancellationToken cancellationToken)
         {
             // Group all the requests by document (as we may have gotten many requests for the same document). Then,
             // only process the last document from each group (we don't need to bother stale versions of a particular
             // document).
-            var groups = documents.GroupBy(d => d.Id);
-            var tasks = groups.Select(g => Task.Run(() => CacheSemanticClassificationsAsync(g.Last(), cancellationToken), cancellationToken));
+            var groups = documents.GroupBy(d => d.document.Id);
+            var tasks = groups.Select(g => Task.Run(() =>
+            {
+                var (document, options, database) = g.Last();
+                return CacheSemanticClassificationsAsync(document, options, database, cancellationToken);
+            }, cancellationToken));
+
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private static async Task CacheSemanticClassificationsAsync(Document document, CancellationToken cancellationToken)
+        private static async Task CacheSemanticClassificationsAsync(Document document, ClassificationOptions options, StorageDatabase database, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistenceService = solution.Workspace.Services.GetPersistentStorageService(solution.Options);
+            var persistenceService = solution.Workspace.Services.GetPersistentStorageService(database);
             var storage = await persistenceService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
             await using var _1 = storage.ConfigureAwait(false);
             if (storage == null)
@@ -119,7 +124,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Compute classifications for the full span.
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var options = ClassificationOptions.From(document.Project);
             await classificationService.AddSemanticClassificationsAsync(document, new TextSpan(0, text.Length), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
 
             using var stream = SerializableBytes.CreateWritableStream();
