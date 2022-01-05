@@ -121,7 +121,7 @@ L2:
 End Module
     </file>
 </compilation>,
-verify:=Verification.Passes, ' TODO2
+verify:=Verification.FailsIlVerify,
 expectedOutput:="TryGoToCatchFinally").
             VerifyIL("EmitTest.Main",
             <![CDATA[

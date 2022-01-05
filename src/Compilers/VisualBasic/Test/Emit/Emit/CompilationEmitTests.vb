@@ -402,7 +402,8 @@ End Class"
 
             Dim comp = CreateEmptyCompilation({Parse("")})
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor)
-            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.Passes, validator:=assemblyValidator)
+            ' ILVerify: Failed to load type 'System.String' from assembly ...
+            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.FailsIlVerify, validator:=assemblyValidator)
         End Sub
 
         <Fact>

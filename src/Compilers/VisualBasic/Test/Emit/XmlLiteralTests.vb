@@ -6,6 +6,7 @@ Imports System.IO
 Imports System.Text
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
 
@@ -2968,7 +2969,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, references:=Net40XmlReferences)
+</compilation>, references:=Net40XmlReferences, verify:=Verification.FailsIlVerify)
             compilation.VerifyIL("M.M(Of T)", <![CDATA[
 {
   // Code size      166 (0xa6)
