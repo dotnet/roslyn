@@ -1300,7 +1300,7 @@ namespace Microsoft.CodeAnalysis
                             diagnostics.Add(diagnostic);
                         }
 
-                        // Make sure we start from an empty directory, otherwise we may let gargage from a previous run.
+                        // Make sure we start from an empty directory, otherwise we may let garbage from a previous run.
                         if (hasTransformedOutputPath && Directory.Exists(transformedOutputPath))
                         {
                             Directory.Delete(transformedOutputPath, true);
