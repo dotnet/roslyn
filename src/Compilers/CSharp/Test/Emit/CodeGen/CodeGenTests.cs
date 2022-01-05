@@ -78,7 +78,7 @@ class Program
     }
 }";
             // ILVerify: Unexpected type on the stack. { Offset = 59, Found = readonly address of '[...]DoubleAndStruct', Expected = address of '[...]DoubleAndStruct' }
-            var result = CompileAndVerify(source, verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack, options: TestOptions.DebugDll);
+            var result = CompileAndVerify(source, verify: Verification.FailsIlVerify, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -166,7 +166,7 @@ class Program
     }
 }";
             // ILVerify: Unexpected type on the stack. { Offset = 34, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
-            var result = CompileAndVerify(source, verify: Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack, options: TestOptions.DebugDll);
+            var result = CompileAndVerify(source, verify: Verification.FailsIlVerify, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -4361,7 +4361,7 @@ public class Program
         Callee3<T>(default(T), default(T));
     }
 }
-", verify: Verification.FailsPeVerify_TypeDevNotNil, options: TestOptions.ReleaseExe);
+", verify: Verification.FailsPeVerify, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size      297 (0x129)
@@ -4494,7 +4494,7 @@ public class Program
         Callee3<string>();
     }
 }
-", verify: Verification.FailsPeVerify_TypeDevNotNil, options: TestOptions.ReleaseExe);
+", verify: Verification.FailsPeVerify, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size       34 (0x22)
@@ -5267,7 +5267,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
             // ILVerify:
             // Unexpected type on the stack. { Offset = 9, Found = readonly address of 'T', Expected = address of 'T' }
             // Unexpected type on the stack. { Offset = 23, Found = readonly address of 'T', Expected = address of 'T' }
-            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.FailsPeVerify_UnexpectedTypeOnStack | Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack);
+            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails);
 
             var expectedIL = @"
 {
@@ -5288,7 +5288,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
             compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
 
             // expect the same IL in the compat case since direct references are required and must be emitted with "readonly.", even though unverifiable
-            compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.FailsPeVerify_UnexpectedTypeOnStack | Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
         }
@@ -10466,7 +10466,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Goo").WithArguments("Test.Goo()"));
 
             // NOTE: the resulting IL is unverifiable, but not an error for compat reasons
-            CompileAndVerify(comp, verify: Verification.FailsPeVerify_TypeLoadFailed).VerifyIL("Test.Main",
+            CompileAndVerify(comp, verify: Verification.FailsPeVerify).VerifyIL("Test.Main",
                 @"
 {
   // Code size       11 (0xb)
@@ -17224,7 +17224,7 @@ class Program
 System.Threading.Tasks.Task`1[System.Object]
 Success
 True
-", verify: Verification.FailsIlVerify_TypedReference).VerifyDiagnostics();
+", verify: Verification.FailsIlVerify).VerifyDiagnostics();
         }
     }
 }

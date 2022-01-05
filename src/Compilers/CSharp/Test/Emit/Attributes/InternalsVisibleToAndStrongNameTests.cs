@@ -2671,7 +2671,7 @@ internal class B
                 references: new[] { new CSharpCompilationReference(ca) },
                 parseOptions: parseOptions);
 
-            CompileAndVerify(cb, verify: Verification.FailsPeVerify_MissingManifest | Verification.FailsIlVerify_BadImage).Diagnostics.Verify();
+            CompileAndVerify(cb, verify: Verification.Fails).Diagnostics.Verify();
         }
 
         [WorkItem(1072350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072350")]

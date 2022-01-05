@@ -2437,7 +2437,7 @@ End Class
 </compilation>, expectedOutput:=<![CDATA[
 23
 42
-]]>, verify:=Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack).VerifyIL("C2.DoStuff", <![CDATA[
+]]>, verify:=Verification.FailsIlVerify).VerifyIL("C2.DoStuff", <![CDATA[
 {
   // Code size       66 (0x42)
   .maxstack  1

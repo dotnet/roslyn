@@ -52,7 +52,7 @@ Structure OuterStruct
     Public z As DoubleAndStruct
 End Structure
     </file>
-</compilation>, verify:=Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack).
+</compilation>, verify:=Verification.FailsIlVerify).
             VerifyIL("Program.M",
             <![CDATA[
 {
@@ -166,7 +166,7 @@ Structure OuterStruct
     Public z As DoubleAndStruct
 End Structure
     </file>
-</compilation>, verify:=Verification.FailsIlVerify_UnexpectedReadonlyAddressOnStack).
+</compilation>, verify:=Verification.FailsIlVerify).
             VerifyIL("Program.M",
             <![CDATA[
 {

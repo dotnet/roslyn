@@ -4109,7 +4109,7 @@ class Program
             // PEVerify:
             // Error: Assembly name contains leading spaces or path or extension.
             // Type load failed.
-            var verifier = CompileAndVerify(comp, verify: Verification.FailsPeVerify_TypeLoadFailed);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPeVerify);
             verifier.VerifyIL("Program.Main", @"
 {
   // Code size      223 (0xdf)

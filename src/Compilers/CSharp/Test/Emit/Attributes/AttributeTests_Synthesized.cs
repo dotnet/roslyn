@@ -957,8 +957,8 @@ public class Test
                 // ILVerify: Failed to load type 'System.String' from assembly
                 // ILVerify: The format of a DLL or executable being loaded is invalid
                 var verify = outputKind.IsNetModule() 
-                    ? Verification.FailsPeVerify_MissingManifest | Verification.FailsIlVerify_BadImage
-                    : Verification.FailsIlVerify_MissingStringType;
+                    ? Verification.Fails
+                    : Verification.FailsIlVerify;
 
                 CompileAndVerify(compilation, verify: verify, symbolValidator: module =>
                 {

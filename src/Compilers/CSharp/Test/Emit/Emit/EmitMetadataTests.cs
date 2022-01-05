@@ -206,7 +206,7 @@ public class Test : Class2
 {
 }
 ";
-            CompileAndVerifyWithMscorlib40(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, verify: Verification.FailsIlVerify_NotImplemented, assemblyValidator: (assembly) =>
+            CompileAndVerifyWithMscorlib40(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, verify: Verification.FailsIlVerify, assemblyValidator: (assembly) =>
             {
                 var refs2 = assembly.Modules[0].ReferencedAssemblies.Select(r => r.Name);
                 Assert.Equal(2, refs2.Count());
@@ -226,7 +226,7 @@ public class Test : Class2
         {
             CompileAndVerify(
                 "public class C { }",
-                verify: Verification.FailsPeVerify_MissingManifest | Verification.FailsIlVerify_BadImage,
+                verify: Verification.Fails,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.NetModule));
         }
 
@@ -243,7 +243,7 @@ public class Test : Class1
 ";
             // modules not supported in ref emit
             // ILVerify: Assembly or module not found: netModule1
-            CompileAndVerify(source, new[] { netModule1, netModule2 }, verify: Verification.FailsIlVerify_MissingAssembly, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, new[] { netModule1, netModule2 }, verify: Verification.FailsIlVerify, assemblyValidator: (assembly) =>
             {
                 Assert.Equal(3, assembly.Modules.Length);
 

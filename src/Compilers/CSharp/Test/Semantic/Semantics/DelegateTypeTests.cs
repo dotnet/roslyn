@@ -1299,7 +1299,7 @@ static class B
             if (expectedDiagnostics is null)
             {
                 // ILVerify: Unrecognized arguments for delegate .ctor.
-                CompileAndVerify(comp, verify: Verification.FailsIlVerify_UnrecognizedArgDelegate, expectedOutput: $"{expectedMethod}: {expectedType}");
+                CompileAndVerify(comp, verify: Verification.FailsIlVerify, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -1394,7 +1394,7 @@ namespace N
             if (expectedDiagnostics is null)
             {
                 // ILVerify: Unrecognized arguments for delegate .ctor.
-                CompileAndVerify(comp, verify: Verification.FailsIlVerify_UnrecognizedArgDelegate, expectedOutput: $"{expectedMethod}: {expectedType}");
+                CompileAndVerify(comp, verify: Verification.FailsIlVerify, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -1770,7 +1770,7 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsIlVerify_UnrecognizedArgDelegate, expectedOutput: "System.Action<System.Int32>, System.Action");
+            CompileAndVerify(comp, verify: Verification.FailsIlVerify, expectedOutput: "System.Action<System.Int32>, System.Action");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -7873,7 +7873,7 @@ static class E
             comp.VerifyDiagnostics();
 
             // ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(comp, verify: Verification.FailsIlVerify_UnrecognizedArgDelegate, expectedOutput: @"(41, 42)");
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsIlVerify, expectedOutput: @"(41, 42)");
             verifier.VerifyIL("Program.M1",
 @"{
   // Code size       20 (0x14)

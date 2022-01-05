@@ -23,50 +23,15 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    /// <summary>
-    /// Either verification is:
-    /// - Skipped
-    /// - Passes
-    /// - Fails (with breakdown of specific failures)
-    /// </summary>
     [Flags]
     public enum Verification
     {
         Skipped = 0,
-        Passes = 1 << 2,
-        Fails = FailsPeVerify_UnspecifiedError | FailsIlVerify_UnspecifiedError,
+        Passes = 1 << 1,
 
-        // Don't use these directly
-        FailsPeVerify = 1 << 3,
-        FailsIlVerify = 1 << 4,
-
-        // ILVerify errors
-        FailsIlVerify_UnspecifiedError = FailsIlVerify | 1 << 5,
-        FailsIlVerify_TypedReference = FailsIlVerify | 1 << 6, // ILVerify doesn't support TypedReference
-        FailsIlVerify_NotImplemented = FailsIlVerify | 1 << 7, // ILVerify has some un-implemented cases in EcmaModule.GetType
-        FailsIlVerify_NotVisible = FailsIlVerify | 1 << 8, // ILVerify: Type|Method|Field is not visible.
-        FailsIlVerify_UnrecognizedArgDelegate = FailsIlVerify | 1 << 9, // ILVerify: Unrecognized arguments for delegate .ctor.
-        FailsIlVerify_MissingStringType = FailsIlVerify | 1 << 10, // ILVerify: Internal.TypeSystem.TypeSystemException+TypeLoadException : Failed to load type 'System.String' from assembly ...
-        FailsIlVerify_MissingAssembly = FailsIlVerify | 1 << 11, // ILVerify: Assembly or module not found: ...
-        FailsIlVerify_UnexpectedReadonlyAddressOnStack = FailsIlVerify | 1 << 12, // ILVerify: Unexpected type on the stack. { Found = readonly address of ..., Expected = address of ... }
-        FailsIlVerify_BadReturnType = FailsIlVerify | 1 << 13, // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-        FailsIlVerify_UnexpectedTypeOnStack = FailsIlVerify | 1 << 14, // ILVerify: Unexpected type on the stack. { Found = readonly address of ..., Expected = address of ... }
-        FailsIlVerify_ReturnFromCtor = FailsIlVerify | 1 << 15, // ILVerify: ImportCalli not implemented
-        FailsIlVerify_BadImage = FailsIlVerify | 1 << 16, // ILVerify: The format of a DLL or executable being loaded is invalid
-
-        // Both
-        Fails_InitOnly = FailsPeVerify | FailsIlVerify | 1 << 17, // Cannot change initonly field outside its .ctor.
-
-        // PEVerify errors
-        FailsPeVerify_UnspecifiedError = FailsIlVerify | 1 << 18,
-        FailsPeVerify_TypeLoadFailed = FailsPeVerify | 1 << 19, // ILVerify doesn't complain type load failed
-        FailsPeVerify_UnexpectedTypeOnStack = FailsPeVerify | 1 << 20, // ILVerify doesn't complain about: Unexpected type on the stack.
-        FailsPeVerify_UnableToResolveToken = FailsPeVerify | 1 << 21, // ILVerify doesn't complain about "unable to resolve token"
-        FailsPeVerify_TypeDevNotNil = FailsPeVerify | 1 << 22, // ILVerify doesn't complain about: TypeDef for Object class extends token=0x01000005 which is not nil.
-        FailsPeVerify_ClassLayout = FailsPeVerify | 1 << 23, // ILVerify doesn't complain about: ClassLayout has parent TypeDef token=0x0200000f marked AutoLayout.
-        FailsPeVerify_BadName = FailsPeVerify | 1 << 24, // PEVerify complains about: Assembly name contains leading spaces or path or extension.
-        FailsPeVerify_BadFormat = FailsPeVerify | 1 << 25, // TODO2 // PEVerify complains about: An attempt was made to load a program with an incorrect format.
-        FailsPeVerify_MissingManifest = FailsPeVerify | 1 << 26, // PEVerify complains about: The module  was expected to contain an assembly manifest.
+        FailsPeVerify = 1 << 2,
+        FailsIlVerify = 1 << 3,
+        Fails = FailsPeVerify | FailsIlVerify,
     }
 
     /// <summary>

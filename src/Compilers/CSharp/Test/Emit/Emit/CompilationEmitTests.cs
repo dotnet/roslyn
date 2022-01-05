@@ -4309,7 +4309,7 @@ public class Test
             string source2 = @"public class B: A {}";
             var comp = CreateCompilation(source1, options: TestOptions.ReleaseModule);
             var metadataRef = ModuleMetadata.CreateFromStream(comp.EmitToStream()).GetReference();
-            CompileAndVerify(source2, references: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: Verification.FailsPeVerify_MissingManifest | Verification.FailsIlVerify_BadImage);
+            CompileAndVerify(source2, references: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: Verification.Fails);
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
@@ -5232,7 +5232,7 @@ public class DerivingClass<T> : BaseClass<T>
             var comp = CreateCompilation("public class B : A { }", references: new[] { modRef }, assemblyName: "sourceMod");
 
             // ILVerify: Assembly or module not found: refMod
-            CompileAndVerify(comp, verify: Verification.FailsIlVerify_MissingAssembly, symbolValidator: module =>
+            CompileAndVerify(comp, verify: Verification.FailsIlVerify, symbolValidator: module =>
             {
                 var b = module.GlobalNamespace.GetTypeMember("B");
                 Assert.Equal("B", b.Name);

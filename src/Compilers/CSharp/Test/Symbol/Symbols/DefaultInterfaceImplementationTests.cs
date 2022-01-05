@@ -44,15 +44,17 @@ public interface I1
         {
             get
             {
+                // TODO2
                 return ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped;
             }
         }
 
-        private static Verification VerifyOnMonoOrCoreClr_NotVisible
+        private static Verification VerifyOnMonoOrCoreClr_Fails
         {
             get
             {
-                return ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsIlVerify_NotVisible : Verification.Skipped;
+                // TODO2
+                return ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsIlVerify : Verification.Skipped;
             }
         }
 
@@ -9646,7 +9648,7 @@ class Test1 : I1
 M2
 M3",
                 symbolValidator: validate,
-                verify: VerifyOnMonoOrCoreClr_NotVisible);
+                verify: VerifyOnMonoOrCoreClr_Fails);
 
             validate(compilation1.SourceModule);
 
@@ -9710,7 +9712,7 @@ class Test1
                 CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
 M2",
-                    verify: VerifyOnMonoOrCoreClr_NotVisible);
+                    verify: VerifyOnMonoOrCoreClr_Fails);
 
                 var compilation5 = CreateCompilation(source4, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
@@ -17962,7 +17964,7 @@ set_P5
 get_P6
 set_P6",
                 symbolValidator: validate,
-                verify: VerifyOnMonoOrCoreClr_NotVisible);
+                verify: VerifyOnMonoOrCoreClr_Fails);
 
             validate(compilation1.SourceModule);
 
@@ -18071,7 +18073,7 @@ get_P5
 set_P5
 set_P6
 ",
-                    verify: VerifyOnMonoOrCoreClr_NotVisible);
+                    verify: VerifyOnMonoOrCoreClr_Fails);
 
                 var compilation5 = CreateCompilation(source4, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
@@ -28452,7 +28454,7 @@ set_P1
 get_P2
 set_P2
 get_P3
-set_P3", symbolValidator: validate, verify: VerifyOnMonoOrCoreClr_NotVisible);
+set_P3", symbolValidator: validate, verify: VerifyOnMonoOrCoreClr_Fails);
 
             validate(compilation1.SourceModule);
 
@@ -28525,7 +28527,7 @@ class Test1
 set_P1
 get_P2
 set_P2",
-                    verify: VerifyOnMonoOrCoreClr_NotVisible);
+                    verify: VerifyOnMonoOrCoreClr_Fails);
 
                 var compilation5 = CreateCompilation(source4, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
@@ -29267,7 +29269,7 @@ class Test1 : I1
 }
 ";
 
-            ValidateNestedTypes_01(source0 + source1, Accessibility.Protected, targetFramework: TargetFramework.NetCoreApp, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr_NotVisible);
+            ValidateNestedTypes_01(source0 + source1, Accessibility.Protected, targetFramework: TargetFramework.NetCoreApp, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr_Fails);
 
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -29373,7 +29375,7 @@ I1+T2
 I1+T3
 B
 I1+T5",
-                    verify: VerifyOnMonoOrCoreClr_NotVisible);
+                    verify: VerifyOnMonoOrCoreClr_Fails);
 
                 var compilation5 = CreateCompilation(source2, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
@@ -29508,7 +29510,7 @@ I1+T2
 I1+T3
 B
 I1+T5",
-                    verify: VerifyOnMonoOrCoreClr_NotVisible);
+                    verify: VerifyOnMonoOrCoreClr_Fails);
 
                 var compilation5 = CreateCompilation(source2, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
@@ -29817,7 +29819,7 @@ class Test1
     }
 }
 ";
-            ValidateNestedTypes_01(source0 + source1, Accessibility.ProtectedAndInternal, targetFramework: TargetFramework.NetCoreApp, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr_NotVisible);
+            ValidateNestedTypes_01(source0 + source1, Accessibility.ProtectedAndInternal, targetFramework: TargetFramework.NetCoreApp, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr_Fails);
 
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -32827,7 +32829,7 @@ class Test1 : I1
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnMonoOrCoreClr_NotVisible,
+                verify: VerifyOnMonoOrCoreClr_Fails,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
@@ -33073,7 +33075,7 @@ class Test1 : I1
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnMonoOrCoreClr_NotVisible,
+                verify: VerifyOnMonoOrCoreClr_Fails,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
@@ -38936,7 +38938,7 @@ class Test2
 @"123
 -2
 ",
-                verify: VerifyOnMonoOrCoreClr_NotVisible, symbolValidator: validate);
+                verify: VerifyOnMonoOrCoreClr_Fails, symbolValidator: validate);
 
             var source2 =
 @"
@@ -38958,7 +38960,7 @@ class Test2 : I1
                                                      parseOptions: TestOptions.Regular,
                                                      targetFramework: TargetFramework.NetCoreApp);
 
-                CompileAndVerify(compilation2, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "1122" : null, verify: VerifyOnMonoOrCoreClr_NotVisible);
+                CompileAndVerify(compilation2, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "1122" : null, verify: VerifyOnMonoOrCoreClr_Fails);
             }
 
             var source3 =
@@ -44787,7 +44789,7 @@ class A : I2<int>
             var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation0.VerifyDiagnostics();
 
-            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr_NotVisible);
+            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr_Fails);
 
             var source2 = @"
 interface I2<T> : I3<T>
@@ -44813,7 +44815,7 @@ class A : I4
             var compilation1 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr_NotVisible);
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr_Fails);
 
             var source3 = @"
 interface I2<T> : I3<T>
@@ -44950,7 +44952,7 @@ class A
             var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation0.VerifyDiagnostics();
 
-            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr_NotVisible);
+            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr_Fails);
 
             var source3 = @"
 class I2<T>
@@ -45010,7 +45012,7 @@ class A
             var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation0.VerifyDiagnostics();
 
-            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr_NotVisible);
+            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr_Fails);
         }
 
         private const string NoPiaAttributes = @"

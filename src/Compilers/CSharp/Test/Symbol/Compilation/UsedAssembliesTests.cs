@@ -32,7 +32,7 @@ interface I1
 }
 ";
             var comp1 = CreateEmptyCompilation(source);
-            CompileAndVerify(comp1, verify: Verification.FailsIlVerify_MissingStringType);
+            CompileAndVerify(comp1, verify: Verification.FailsIlVerify);
 
             Assert.Empty(comp1.GetUsedAssemblyReferences());
 
@@ -53,7 +53,7 @@ public interface I1
 }
 ";
             var comp1 = CreateEmptyCompilation(source);
-            CompileAndVerify(comp1, verify: Verification.FailsIlVerify_MissingStringType);
+            CompileAndVerify(comp1, verify: Verification.FailsIlVerify);
 
             var source2 =
 @"
@@ -411,7 +411,7 @@ public interface I1
 }
 ";
             var comp1 = CreateEmptyCompilation(source);
-            CompileAndVerify(comp1, verify: Verification.FailsIlVerify_MissingStringType);
+            CompileAndVerify(comp1, verify: Verification.FailsIlVerify);
 
             var source2 =
 @"

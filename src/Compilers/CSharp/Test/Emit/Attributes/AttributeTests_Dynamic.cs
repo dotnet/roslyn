@@ -1157,7 +1157,7 @@ class C
             // Make sure we emit without errors when System.Boolean is missing.
             // PEVerify: Type load failed.
             // ILVerify: Failed to load type 'System.String' from assembly ...
-            CompileAndVerify(comp, verify: Verification.FailsPeVerify_TypeLoadFailed | Verification.FailsIlVerify_MissingStringType);
+            CompileAndVerify(comp, verify: Verification.Fails);
         }
 
         [Fact]
@@ -1193,7 +1193,7 @@ class C
             // Make sure we emit without errors when System.Boolean is missing.
             // PEVerify: Type load failed.
             // ILVerify: Internal.TypeSystem.TypeSystemException+TypeLoadException : Failed to load type 'System.String' from assembly ...
-            CompileAndVerify(comp, verify: Verification.FailsPeVerify_TypeLoadFailed | Verification.FailsIlVerify_MissingStringType);
+            CompileAndVerify(comp, verify: Verification.Fails);
         }
 
         [Fact]

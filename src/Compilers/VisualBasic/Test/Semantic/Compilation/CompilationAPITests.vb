@@ -904,7 +904,7 @@ End Class
             assembly.VerifyDiagnostics()
 
             ' ILVerify: Assembly or module not found: missing2
-            CompileAndVerify(assembly, verify:=Verification.FailsIlVerify_MissingAssembly)
+            CompileAndVerify(assembly, verify:=Verification.FailsIlVerify)
         End Sub
 
         <WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")>

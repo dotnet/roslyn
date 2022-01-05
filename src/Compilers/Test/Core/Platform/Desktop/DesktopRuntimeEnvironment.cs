@@ -320,55 +320,7 @@ namespace Roslyn.Test.Utilities.Desktop
             }
             catch (RuntimePeVerifyException ex)
             {
-                if ((verification & Verification.FailsPeVerify_TypeLoadFailed) == Verification.FailsPeVerify_TypeLoadFailed
-                    && ex.Message.Contains("Type load failed."))
-                {
-                    return;
-                }
-
-                if ((verification & Verification.FailsPeVerify_UnexpectedTypeOnStack) == Verification.FailsPeVerify_UnexpectedTypeOnStack
-                    && ex.Message.Contains("Unexpected type on the stack."))
-                {
-                    return;
-                }
-
-                if ((verification & Verification.FailsPeVerify_UnableToResolveToken) == Verification.FailsPeVerify_UnableToResolveToken
-                    && ex.Message.Contains("Unable to resolve token."))
-                {
-                    return;
-                }
-
-                if ((verification & Verification.FailsPeVerify_TypeDevNotNil) == Verification.FailsPeVerify_TypeDevNotNil
-                    && ex.Message.Contains("which is not nil."))
-                {
-                    return;
-                }
-
-                if ((verification & Verification.FailsPeVerify_ClassLayout) == Verification.FailsPeVerify_ClassLayout
-                    && ex.Message.Contains("marked AutoLayout."))
-                {
-                    return;
-                }
-
-                if ((verification & Verification.FailsPeVerify_BadName) == Verification.FailsPeVerify_BadName
-                    && ex.Message.Contains("Assembly name contains leading spaces or path or extension."))
-                {
-                    return;
-                }
-
-                if ((verification & Verification.FailsPeVerify_MissingManifest) == Verification.FailsPeVerify_MissingManifest
-                    && ex.Message.Contains("was expected to contain an assembly manifest."))
-                {
-                    return;
-                }
-
-                if ((verification & Verification.Fails_InitOnly) == Verification.Fails_InitOnly
-                    && ex.Message.Contains("Cannot change initonly field outside its .ctor."))
-                {
-                    return;
-                }
-
-                if ((verification & Verification.FailsPeVerify_UnspecifiedError) == Verification.FailsPeVerify_UnspecifiedError)
+                if ((verification & Verification.FailsPeVerify) != 0)
                 {
                     return;
                 }

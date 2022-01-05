@@ -1779,9 +1779,9 @@ interface UsePia5 : ITest29
                     Assert.Equal(VarianceKind.None, t7.Variance);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.FailsPeVerify_TypeLoadFailed);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.FailsPeVerify);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.FailsPeVerify_TypeLoadFailed);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.FailsPeVerify);
         }
 
         [Fact]
@@ -4708,11 +4708,11 @@ class UsePia5
 
             var compilation3 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: Verification.FailsPeVerify_TypeLoadFailed);
+            CompileAndVerify(compilation3, verify: Verification.FailsPeVerify);
 
             var compilation4 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: Verification.FailsPeVerify_TypeLoadFailed);
+            CompileAndVerify(compilation4, verify: Verification.FailsPeVerify);
         }
 
         [Fact]
@@ -5185,11 +5185,11 @@ class UsePia5
 
             var compilation3 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: Verification.FailsPeVerify_TypeLoadFailed);
+            CompileAndVerify(compilation3, verify: Verification.FailsPeVerify);
 
             var compilation4 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: Verification.FailsPeVerify_TypeLoadFailed);
+            CompileAndVerify(compilation4, verify: Verification.FailsPeVerify);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
