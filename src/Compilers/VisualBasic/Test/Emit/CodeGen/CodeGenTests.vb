@@ -6063,7 +6063,8 @@ End Module
         <WorkItem(538865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538865")>
         <Fact>
         Public Sub TestGetObjectValueCalls()
-
+            ' ILVerify null ref
+            ' Tracked by https//github.com/dotnet/roslyn/issues/58652
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -6288,7 +6289,7 @@ Module Program1
 
 End Module
     </file>
-</compilation>, references:={TestReferences.SymbolsTests.PropertiesWithByRef})
+</compilation>, references:={TestReferences.SymbolsTests.PropertiesWithByRef}, verify:=Verification.FailsIlVerify)
 
             verifier.VerifyIL("Module1.M",
             <![CDATA[

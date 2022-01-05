@@ -110,7 +110,8 @@ public class B
     }
 }
 ";
-            // TODO2 ILVerify null ref
+            // ILVerify null ref
+            // Tracked by https://github.com/dotnet/roslyn/issues/58652
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
@@ -143,7 +144,8 @@ public class B
     }
 }
 ";
-            // TODO2 ILVerify null ref
+            // ILVerify null ref
+            // Tracked by https://github.com/dotnet/roslyn/issues/58652
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
@@ -181,7 +183,8 @@ public class B
 }
 ";
 
-            // TODO2 ILVerify null ref
+            // ILVerify null ref
+            // Tracked by https://github.com/dotnet/roslyn/issues/58652
             var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },

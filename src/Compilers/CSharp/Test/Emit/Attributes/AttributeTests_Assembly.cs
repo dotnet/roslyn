@@ -664,7 +664,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: Verification.Skipped,
+            CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -693,7 +693,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: Verification.Skipped,
+            CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -726,7 +726,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: Verification.Skipped,
+            CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {

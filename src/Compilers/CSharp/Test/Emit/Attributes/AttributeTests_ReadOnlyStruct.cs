@@ -429,7 +429,7 @@ public class Test
 
             // PEVerify: The module  was expected to contain an assembly manifest.
             // ILVerify: The format of a DLL or executable being loaded is invalid
-            CompileAndVerify(code, verify: Verification.Skipped, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);

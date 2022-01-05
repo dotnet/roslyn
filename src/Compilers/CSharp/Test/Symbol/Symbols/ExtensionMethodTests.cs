@@ -2293,7 +2293,7 @@ static class C
         a();
     }
 }";
-            // TODO2 ILVerify: Unrecognized arguments for delegate .ctor.
+            // ILVerify: Unrecognized arguments for delegate .ctor.
             var compilation = CompileAndVerify(source, expectedOutput:
 @"F: System.Int32
 F: S
