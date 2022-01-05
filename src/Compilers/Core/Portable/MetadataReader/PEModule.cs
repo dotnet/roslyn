@@ -1932,7 +1932,7 @@ namespace Microsoft.CodeAnalysis
 
         private static bool ValidateMetadataArrayLength(uint length)
         {
-            // Null arrays are represented in metadata by a length of 0xFFFF_FFFF. See ECMA 335 II.23.2.
+            // Null arrays are represented in metadata by a length of 0xFFFF_FFFF. See ECMA 335 II.23.3.
             const uint NullArray = 0xFFFF_FFFF;
 
             if (length == NullArray)
@@ -1940,7 +1940,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            // II.23.2 says that the length must be a int32 if not null. There can't be negative lengths,
+            // II.23.3 says that the length must be a int32 if not null. There can't be negative lengths,
             // so if it's greater than int.MaxValue then we cannot interpret this array.
             if (length > int.MaxValue)
             {
