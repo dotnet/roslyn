@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseParameterNullCheckingDiagnosticAnalyzer
+    internal sealed class CSharpUseParameterNullCheckingDiagnosticAnalyzer
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string ArgumentNullExceptionName = $"{nameof(System)}.{nameof(ArgumentNullException)}";
@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(context =>
             {
-                if (((CSharpCompilation)context.Compilation).LanguageVersion < LanguageVersionExtensions.CSharpNext)
+                var compilation = (CSharpCompilation)context.Compilation;
+                if (compilation.LanguageVersion < LanguageVersionExtensions.CSharpNext)
                 {
                     return;
                 }
 
-                var compilation = context.Compilation;
                 var argumentNullException = compilation.GetTypeByMetadataName(ArgumentNullExceptionName);
                 if (argumentNullException is null)
                 {
@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
             }
 
             var methodSymbol = node is AnonymousFunctionExpressionSyntax
-                ? semanticModel.GetSymbolInfo(node, cancellationToken).Symbol
-                : semanticModel.GetDeclaredSymbol(node, cancellationToken);
-            if (methodSymbol is null)
+                ? (IMethodSymbol?)semanticModel.GetSymbolInfo(node, cancellationToken).Symbol
+                : (IMethodSymbol?)semanticModel.GetDeclaredSymbol(node, cancellationToken);
+            if (methodSymbol is null || methodSymbol.Parameters.IsEmpty)
             {
                 return;
             }
@@ -117,7 +117,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                         ExpressionSyntax left, right;
                         switch (ifStatement)
                         {
-                            case { Condition: BinaryExpressionSyntax { OperatorToken.RawKind: (int)SyntaxKind.EqualsEqualsToken } binary }:
+                            case { Condition: BinaryExpressionSyntax { OperatorToken.RawKind: (int)SyntaxKind.EqualsEqualsToken } binary }
+                                // Only suggest the fix on built-in `==` operators where we know we won't change behavior
+                                when semanticModel.GetSymbolInfo(binary).Symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator }:
+
                                 left = binary.Left;
                                 right = binary.Right;
                                 break;
@@ -125,11 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                                 left = patternInput;
                                 right = patternExpression;
                                 break;
-                            case { Condition: InvocationExpressionSyntax { Expression: var receiver, ArgumentList.Arguments: { Count: 2 } arguments } }:
-                                if (referenceEqualsMethod == null || !referenceEqualsMethod.Equals(semanticModel.GetSymbolInfo(receiver, cancellationToken).Symbol))
-                                {
-                                    continue;
-                                }
+                            case { Condition: InvocationExpressionSyntax { Expression: var receiver, ArgumentList.Arguments: { Count: 2 } arguments } }
+                                when referenceEqualsMethod != null && referenceEqualsMethod.Equals(semanticModel.GetSymbolInfo(receiver, cancellationToken).Symbol):
 
                                 left = arguments[0].Expression;
                                 right = arguments[1].Expression;
@@ -152,8 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                             _ => null
                         };
 
-                        if (throwStatement is null
-                            || throwStatement.Expression is not ObjectCreationExpressionSyntax thrownInIf
+                        if (throwStatement?.Expression is not ObjectCreationExpressionSyntax thrownInIf
                             || !IsConstructorApplicable(thrownInIf, parameter))
                         {
                             continue;
@@ -185,13 +184,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                         continue;
                 }
 
-                context.ReportDiagnostic(DiagnosticHelper.Create(
-                    Descriptor,
-                    statement.GetLocation(),
-                    option.Notification.Severity,
-                    additionalLocations: new[] { parameter.Locations[0] },
-                    properties: null));
+                if (parameter.DeclaringSyntaxReferences.FirstOrDefault() is SyntaxReference reference
+                    && reference.SyntaxTree.Equals(statement.SyntaxTree)
+                    && reference.GetSyntax() is ParameterSyntax parameterSyntax)
+                {
+                    context.ReportDiagnostic(DiagnosticHelper.Create(
+                        Descriptor,
+                        statement.GetLocation(),
+                        option.Notification.Severity,
+                        additionalLocations: new[] { parameterSyntax.GetLocation() },
+                        properties: null));
+                }
             }
+
+            return;
 
             bool AreOperandsApplicable(ExpressionSyntax maybeParameter, ExpressionSyntax maybeNullLiteral, [NotNullWhen(true)] out IParameterSymbol? parameter)
             {
@@ -206,6 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
 
             bool IsParameter(ExpressionSyntax maybeParameter, [NotNullWhen(true)] out IParameterSymbol? parameter)
             {
+                // `(object)x == null` is often used to ensure reference equality is used.
+                // therefore, we specially unwrap casts when the cast is to `object`.
                 if (maybeParameter is CastExpressionSyntax { Type: var type, Expression: var operand })
                 {
                     if (semanticModel.GetTypeInfo(type).Type?.SpecialType != SpecialType.System_Object)
@@ -229,14 +237,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
 
             bool IsConstructorApplicable(ObjectCreationExpressionSyntax exceptionCreation, IParameterSymbol parameterSymbol)
             {
-                if (exceptionCreation.ArgumentList is null
-                    || exceptionCreation.ArgumentList.Arguments.FirstOrDefault() is not { } argument)
+                if (exceptionCreation.ArgumentList?.Arguments.FirstOrDefault() is not { } argument)
                 {
                     return false;
                 }
 
                 var constantValue = semanticModel.GetConstantValue(argument.Expression, cancellationToken);
-                if (!constantValue.HasValue || constantValue.Value is not string constantString || !string.Equals(constantString, parameterSymbol.Name, StringComparison.Ordinal))
+                if (constantValue.Value is not string constantString || !string.Equals(constantString, parameterSymbol.Name, StringComparison.Ordinal))
                 {
                     return false;
                 }

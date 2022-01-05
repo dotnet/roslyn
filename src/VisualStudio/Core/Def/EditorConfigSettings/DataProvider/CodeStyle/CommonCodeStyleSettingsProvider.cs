@@ -109,6 +109,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
                 description: EditorFeaturesResources.Prefer_is_null_for_reference_equality_checks,
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
+            yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferParameterNullChecking,
+                description: EditorFeaturesResources.Prefer_parameter_null_checking,
+                editorConfigOptions: options,
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)

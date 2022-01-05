@@ -192,6 +192,11 @@
         <target state="translated">Başvuru eşitliği denetimleri için 'is null'ı tercih et</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_parameter_null_checking">
+        <source>Prefer parameter null checking</source>
+        <target state="new">Prefer parameter null checking</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_this_or_Me">
         <source>Prefer 'this.' or 'Me.'</source>
         <target state="translated">'this.' veya 'Me.' tercih et</target>

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseParameterNullCheckin
 {
     using VerifyCS = CSharpCodeFixVerifier<CSharpUseParameterNullCheckingDiagnosticAnalyzer, CSharpUseParameterNullCheckingCodeFixProvider>;
 
-    public partial class UseParameterNullCheckingTests
+    public class UseParameterNullCheckingTests
     {
         [Theory]
         [Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
@@ -211,7 +211,55 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestReferenceEqualsCheck()
+        public async Task TestNullCoalescingThrowExpressionBody()
+        {
+            var testCode = @"
+using System;
+
+class C
+{
+    private readonly string s;
+    public C(string s)
+        => this.s = s ?? throw new ArgumentNullException(nameof(s));
+}";
+            await new VerifyCS.Test()
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+
+            // TODO: the fixer should work in this scenario
+#if false
+            await new VerifyCS.Test()
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    private readonly string s;
+    public C(string s)
+        => [|this.s = s ?? throw new ArgumentNullException(nameof(s));|]
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    private readonly string s;
+    public C(string s!!)
+        => this.s = s;
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+#endif
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [InlineData("object")]
+        [InlineData("C")]
+        public async Task TestReferenceEqualsCheck(string className)
         {
             await new VerifyCS.Test()
             {
@@ -221,9 +269,17 @@ using System;
 class C
 {
     private readonly string s;
-    void M(string s)
+    void M1(string s)
     {
-        [|if (object.ReferenceEquals(s, null))
+        [|if (" + className + @".ReferenceEquals(s, null))
+        {
+            throw new ArgumentNullException(nameof(s));
+        }|]
+    }
+
+    void M2(string s)
+    {
+        [|if (" + className + @".ReferenceEquals(null, s))
         {
             throw new ArgumentNullException(nameof(s));
         }|]
@@ -235,7 +291,11 @@ using System;
 class C
 {
     private readonly string s;
-    void M(string s!!)
+    void M1(string s!!)
+    {
+    }
+
+    void M2(string s!!)
     {
     }
 }",
@@ -721,6 +781,199 @@ class C
     };
 }
 ",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestLocalFunctionWithinAccessor()
+        {
+            var testCode = @"using System;
+class C
+{
+    private int _p;
+
+    public int P
+    {
+        get => _p;
+        set
+        {
+            local();
+
+            void local()
+            {
+                if (value == null) throw new ArgumentNullException(nameof(value));
+                _p = value;
+            }
+        }
+    }
+}
+";
+            await new VerifyCS.Test()
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestLocalFunctionCapturingParameter()
+        {
+            var testCode = @"using System;
+class C
+{
+    void M(string param)
+    {
+        local();
+
+        void local()
+        {
+            if (param == null)
+                throw new ArgumentNullException(nameof(param));
+        }
+    }
+}
+";
+            await new VerifyCS.Test()
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNotWithUserDefinedOperator()
+        {
+            var testCode = @"using System;
+class C
+{
+    public static bool operator ==(C c1, C c2) => true;
+    public static bool operator !=(C c1, C c2) => false;
+
+    static void M(C c)
+    {
+        if (c == null)
+            throw new ArgumentNullException(nameof(c));
+    }
+}
+";
+            await new VerifyCS.Test()
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestWithUnusedUserDefinedOperator()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+class C
+{
+    public static bool operator ==(C c1, C c2) => true;
+    public static bool operator !=(C c1, C c2) => false;
+
+    static void M(C c)
+    {
+        [|if ((object)c == null)
+            throw new ArgumentNullException(nameof(c));|]
+    }
+}
+",
+                FixedCode = @"using System;
+class C
+{
+    public static bool operator ==(C c1, C c2) => true;
+    public static bool operator !=(C c1, C c2) => false;
+
+    static void M(C c!!)
+    {
+    }
+}
+",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestWithPreprocessorDirective()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+class C
+{
+    static void M(C c)
+    {
+#nullable enable
+        [|if ((object)c == null)
+            throw new ArgumentNullException(nameof(c));|]
+#nullable disable
+    }
+}
+",
+                FixedCode = @"using System;
+class C
+{
+    static void M(C c!!)
+    {
+#nullable disable
+    }
+}
+",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestPartialMethod()
+        {
+            var partialDeclaration = @"
+partial class C
+{
+    static partial void M(C c);
+}
+";
+
+            await new VerifyCS.Test()
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        partialDeclaration,
+                        @"using System;
+partial class C
+{
+    static partial void M(C c)
+    {
+        [|if ((object)c == null)
+            throw new ArgumentNullException(nameof(c));|]
+    }
+}
+"
+                    }
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        partialDeclaration,
+                        @"using System;
+partial class C
+{
+    static partial void M(C c!!)
+    {
+    }
+}
+"
+                    }
+                },
                 LanguageVersion = LanguageVersionExtensions.CSharpNext
             }.RunAsync();
         }
