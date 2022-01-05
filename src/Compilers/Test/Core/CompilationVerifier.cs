@@ -19,6 +19,10 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader.Tools;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Reflection.PortableExecutable;
+using System.Reflection;
+using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -203,6 +207,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
             _allModuleData = testEnvironment.GetAllModuleData();
             testEnvironment.Verify(peVerify);
+#if NETCOREAPP
+            ILVerify(peVerify);
+#endif
 
             if (expectedSignatures != null)
             {
@@ -217,6 +224,128 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     Assert.Equal(exCode, returnCode);
                 }
+            }
+        }
+
+        private class Resolver : ILVerify.ResolverBase
+        {
+            private readonly Dictionary<string, ImmutableArray<byte>> imagesByName = new Dictionary<string, ImmutableArray<byte>>();
+
+            internal Resolver(IList<ModuleData> allModuleData)
+            {
+                foreach (var module in allModuleData)
+                {
+                    string name = module.FullName;
+                    var image = module.Image;
+
+                    // TODO2 figure out why we need both the simple name and full name
+                    imagesByName.Add(name, image);
+                    if (module.SimpleName != name)
+                    {
+                        imagesByName.Add(module.SimpleName, image);
+                    }
+                }
+            }
+
+            protected override PEReader ResolveCore(string name)
+            {
+                if (imagesByName.TryGetValue(name, out var image))
+                {
+                    return new PEReader(image);
+                }
+
+                return null;
+            }
+        }
+
+        private void ILVerify(Verification verification)
+        {
+            if (verification == Verification.Skipped)
+            {
+                return;
+            }
+
+            try
+            {
+                var resolver = new Resolver(_allModuleData);
+                var verifier = new ILVerify.Verifier(resolver);
+                var mscorlibModules = _allModuleData.Where(m => m.SimpleName == "mscorlib").ToArray();
+                if (mscorlibModules.Length == 1)
+                {
+                    verifier.SetSystemModuleName(new AssemblyName(mscorlibModules[0].FullName));
+                }
+                else
+                {
+                    // auto-detect which module is the "corlib"
+                    foreach (var module in _allModuleData)
+                    {
+                        var name = module.SimpleName;
+                        var metadataReader = resolver.Resolve(name).GetMetadataReader();
+                        if (metadataReader.AssemblyReferences.Count == 0)
+                        {
+                            verifier.SetSystemModuleName(new AssemblyName(name));
+                        }
+                    }
+                }
+
+                // Main module is the first one
+                var result = verifier.Verify(resolver.Resolve(_allModuleData[0].FullName));
+                if (result.Count() == 0)
+                {
+                    if ((verification & Verification.FailsIlVerify) == 0)
+                    {
+                        return;
+                    }
+
+                    throw new Exception("IL Verify succeeded unexpectedly");
+                }
+
+                if ((verification & Verification.FailsIlVerify) != 0)
+                {
+                    return;
+                }
+
+                string message = printVerificationResult(result);
+                throw new Exception("IL Verify failed unexpectedly: \r\n" + message);
+            }
+            catch (Exception)
+            {
+                if ((verification & Verification.FailsIlVerify) != 0)
+                {
+                    return;
+                }
+
+                throw;
+            }
+
+            static string printVerificationResult(IEnumerable<ILVerify.VerificationResult> result)
+            {
+                return string.Join("\r\n", result.Select(r => r.Message + printErrorArguments(r.ErrorArguments)));
+            }
+
+            static string printErrorArguments(ILVerify.ErrorArgument[] errorArguments)
+            {
+                if (errorArguments is null
+                    || errorArguments.Length == 0)
+                {
+                    return "";
+                }
+
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                var builder = pooledBuilder.Builder;
+                builder.Append(" { ");
+                var x = errorArguments.Select(a => a.Name + " = " + a.Value.ToString()).ToArray();
+                for (int i = 0; i < x.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(", ");
+                    }
+                    builder.Append(x[i]);
+                }
+                builder.Append(" }");
+
+                return pooledBuilder.ToStringAndFree();
             }
         }
 
