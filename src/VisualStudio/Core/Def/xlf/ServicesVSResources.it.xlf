@@ -107,6 +107,11 @@
         <target state="translated">Assembly</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
+        <source>Automatically open Stack Trace Explorer on focus</source>
+        <target state="new">Automatically open Stack Trace Explorer on focus</target>
+        <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
+      </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
         <target state="translated">Evita le istruzioni di espressione che ignorano il valore in modo implicito</target>
@@ -800,6 +805,11 @@
       <trans-unit id="Navigate_to_0">
         <source>Navigate to '{0}'</source>
         <target state="translated">Passa a '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_to_external_sources">
+        <source>Navigate to External Sources</source>
+        <target state="new">Navigate to External Sources</target>
         <note />
       </trans-unit>
       <trans-unit id="Never">
