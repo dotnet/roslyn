@@ -18,6 +18,11 @@
     <ProjectReference Include="..\..\..\Metalama\Metalama.Compiler.Interface.TypeForwards\Metalama.Compiler.Interface.TypeForwards.csproj" />
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <!-- <Metalama> -->
+    <!-- Add these project references so they are included in app.config binding redirections. -->
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    <!-- </Metalama> -->
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
