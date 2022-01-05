@@ -8,6 +8,7 @@ namespace Xunit.Harness
     using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Linq;
+    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Threading;
@@ -22,9 +23,25 @@ namespace Xunit.Harness
         /// </summary>
         private static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(1);
 
+        private HashSet<VisualStudioInstanceKey>? _ideInstancesInTests;
+
         public IdeTestAssemblyRunner(ITestAssembly testAssembly, IEnumerable<IXunitTestCase> testCases, IMessageSink diagnosticMessageSink, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions)
             : base(testAssembly, testCases, diagnosticMessageSink, executionMessageSink, executionOptions)
         {
+        }
+
+        protected override async Task AfterTestAssemblyStartingAsync()
+        {
+            await base.AfterTestAssemblyStartingAsync().ConfigureAwait(false);
+            TestCollectionOrderer = new TestCollectionOrdererWrapper(TestCollectionOrderer);
+            _ideInstancesInTests = new HashSet<VisualStudioInstanceKey>();
+        }
+
+        protected override async Task BeforeTestAssemblyFinishedAsync()
+        {
+            _ideInstancesInTests = null;
+            TestCollectionOrderer = ((TestCollectionOrdererWrapper)TestCollectionOrderer).Underlying;
+            await base.BeforeTestAssemblyFinishedAsync();
         }
 
         protected override async Task<RunSummary> RunTestCollectionAsync(IMessageBus messageBus, ITestCollection testCollection, IEnumerable<IXunitTestCase> testCases, CancellationTokenSource cancellationTokenSource)
@@ -44,11 +61,9 @@ namespace Xunit.Harness
                 }
 
                 var ideTestCases = testCases.OfType<IdeTestCaseBase>().Where(testCase => testCase is not IdeInstanceTestCase).ToArray();
-                var ideInstancesInTests = new HashSet<VisualStudioInstanceKey>();
-
                 foreach (var testCasesByTargetVersion in ideTestCases.GroupBy(GetVisualStudioVersionForTestCase))
                 {
-                    ideInstancesInTests.Add(testCasesByTargetVersion.Key);
+                    _ideInstancesInTests!.Add(testCasesByTargetVersion.Key);
                     using var marshalledObjects = new MarshalledObjects();
                     using (var visualStudioInstanceFactory = new VisualStudioInstanceFactory())
                     {
@@ -61,9 +76,23 @@ namespace Xunit.Harness
 
                 foreach (var ideInstanceTestCase in testCases.OfType<IdeInstanceTestCase>())
                 {
-                    if (ideInstancesInTests.Contains(ideInstanceTestCase.VisualStudioInstanceKey))
+                    if (_ideInstancesInTests!.Contains(ideInstanceTestCase.VisualStudioInstanceKey))
                     {
-                        // Already had at least one test run in this version, so no need to launch it separately
+                        // Already had at least one test run in this version, so no need to launch it separately.
+                        // Report it as passed and continue.
+                        ExecutionMessageSink.OnMessage(new TestClassStarting(new[] { ideInstanceTestCase }, ideInstanceTestCase.TestMethod.TestClass));
+                        ExecutionMessageSink.OnMessage(new TestMethodStarting(new[] { ideInstanceTestCase }, ideInstanceTestCase.TestMethod));
+                        ExecutionMessageSink.OnMessage(new TestCaseStarting(ideInstanceTestCase));
+
+                        var test = new XunitTest(ideInstanceTestCase, ideInstanceTestCase.DisplayName);
+                        ExecutionMessageSink.OnMessage(new TestStarting(test));
+                        ExecutionMessageSink.OnMessage(new TestPassed(test, 0, output: null));
+                        ExecutionMessageSink.OnMessage(new TestFinished(test, 0, output: null));
+
+                        ExecutionMessageSink.OnMessage(new TestCaseFinished(ideInstanceTestCase, 0, 1, 0, 0));
+                        ExecutionMessageSink.OnMessage(new TestMethodFinished(new[] { ideInstanceTestCase }, ideInstanceTestCase.TestMethod, 0, 1, 0, 0));
+                        ExecutionMessageSink.OnMessage(new TestClassFinished(new[] { ideInstanceTestCase }, ideInstanceTestCase.TestMethod.TestClass, 0, 1, 0, 0));
+
                         continue;
                     }
 
@@ -479,6 +508,33 @@ namespace Xunit.Harness
             public IEnumerable<ITypeInfo> GetTypes(bool includePrivateTypes)
             {
                 return _assemblyInfo.GetTypes(includePrivateTypes).ToArray();
+            }
+        }
+
+        /// <summary>
+        /// A collection orderer wrapper that ensures <see cref="IdeInstanceTestCase"/> runs after other test cases.
+        /// </summary>
+        private sealed class TestCollectionOrdererWrapper : ITestCollectionOrderer
+        {
+            public TestCollectionOrdererWrapper(ITestCollectionOrderer underlying)
+            {
+                Underlying = underlying;
+            }
+
+            public ITestCollectionOrderer Underlying { get; }
+
+            public IEnumerable<ITestCollection> OrderTestCollections(IEnumerable<ITestCollection> testCollections)
+            {
+                var collections = Underlying.OrderTestCollections(testCollections).ToArray();
+                var collectionsWithoutIdeInstanceCases = collections.Where(collection => !ContainsIdeInstanceCase(collection));
+                var collectionsWithIdeInstanceCases = collections.Where(collection => ContainsIdeInstanceCase(collection));
+                return collectionsWithoutIdeInstanceCases.Concat(collectionsWithIdeInstanceCases);
+            }
+
+            private static bool ContainsIdeInstanceCase(ITestCollection collection)
+            {
+                var assemblyName = new AssemblyName(collection.TestAssembly.Assembly.Name);
+                return assemblyName.Name == "Microsoft.VisualStudio.Extensibility.Testing.Xunit";
             }
         }
     }

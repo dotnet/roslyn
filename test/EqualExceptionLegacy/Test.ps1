@@ -127,9 +127,9 @@ if ($trx.TestRun.ResultSummary.outcome -ne "Failed") {
     $errorCount++
 }
 
-if ($trx.TestRun.ResultSummary.Counters.executed -ne "12") {
+if ($trx.TestRun.ResultSummary.Counters.executed -ne "16") {
     Write-Host "Testing /TestRun/ResultSummary/Counters/@executed"
-    Write-Host "Expected '12', found '$($trx.TestRun.ResultSummary.Counters.executed)'"
+    Write-Host "Expected '16', found '$($trx.TestRun.ResultSummary.Counters.executed)'"
     $errorCount++
 }
 
@@ -139,9 +139,9 @@ if ($trx.TestRun.ResultSummary.Counters.total -ne "75") {
     $errorCount++
 }
 
-if ($trx.TestRun.ResultSummary.Counters.passed -ne "4") {
+if ($trx.TestRun.ResultSummary.Counters.passed -ne "8") {
     Write-Host "Testing /TestRun/ResultSummary/Counters/@passed"
-    Write-Host "Expected '4', found '$($trx.TestRun.ResultSummary.Counters.passed)'"
+    Write-Host "Expected '8', found '$($trx.TestRun.ResultSummary.Counters.passed)'"
     $errorCount++
 }
 
