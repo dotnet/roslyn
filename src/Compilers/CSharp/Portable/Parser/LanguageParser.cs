@@ -4401,7 +4401,15 @@ tryAgain:
                     identifier = this.ParseIdentifierToken();
                 }
 
-                ParseParameterRest(ref identifier, out var exclamationExclamationToken, out var equalsToken);
+                // When the user type "int goo[]", give them a useful error
+                if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken)
+                {
+                    identifier = AddTrailingSkippedSyntax(identifier, SyntaxList.List(
+                        this.AddError(this.EatToken(), ErrorCode.ERR_BadArraySyntax),
+                        this.EatToken()));
+                }
+
+                ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
 
                 // If we didn't already consume an equals sign as part of !!=, then try to scan one out now.
                 equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
@@ -4421,25 +4429,16 @@ tryAgain:
 #nullable enable
 
         /// <summary>
-        /// Parses out the remainder of a parameter once the type and identifier of it has been parsed out already.  If
-        /// the token is followed by <c>!!=</c> or <c>! !=</c>, then the final equals will be returned out through
-        /// <paramref name="equalsToken"/>.
+        /// Parses out the <c>!!</c> following once the type and identifier has been parsed out already.  If the token
+        /// is followed by <c>!!=</c> or <c>! !=</c>, then the final equals will be returned out through <paramref
+        /// name="equalsToken"/>.
         /// </summary>
-        private void ParseParameterRest(
-            ref SyntaxToken identifier,
+        private void ParseParameterNullCheck(
             out SyntaxToken? exclamationExclamationToken,
             out SyntaxToken? equalsToken)
         {
             exclamationExclamationToken = null;
             equalsToken = null;
-
-            // When the user type "int goo[]", give them a useful error
-            if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken)
-            {
-                identifier = AddTrailingSkippedSyntax(identifier, SyntaxList.List(
-                    this.AddError(this.EatToken(), ErrorCode.ERR_BadArraySyntax),
-                    this.EatToken()));
-            }
 
             if (this.CurrentToken.Kind is SyntaxKind.ExclamationEqualsToken)
             {
@@ -4454,8 +4453,7 @@ tryAgain:
                 // Return the split out `=` for the consumer to handle.
                 equalsToken = SyntaxFactory.Token(leading: null, SyntaxKind.EqualsToken, exclamationEquals.GetTrailingTrivia());
             }
-
-            if (this.CurrentToken.Kind is SyntaxKind.ExclamationToken)
+            else if (this.CurrentToken.Kind is SyntaxKind.ExclamationToken)
             {
                 // We have seen at least !
                 //
@@ -4486,7 +4484,7 @@ tryAgain:
                 {
                     // Report that the ! should have been !!
                     exclamationExclamationToken = WithAdditionalDiagnostics(
-                        SyntaxFactory.Token(firstExclamation.GetLeadingTrivia(), SyntaxKind.ExclamationExclamationToken, "!", "!", trailing: firstExclamation.GetTrailingTrivia())
+                        SyntaxFactory.Token(firstExclamation.GetLeadingTrivia(), SyntaxKind.ExclamationExclamationToken, "!", "!", trailing: firstExclamation.GetTrailingTrivia()),
                         this.GetExpectedTokenError(expected: SyntaxKind.ExclamationExclamationToken, actual: firstExclamation.Kind));
                 }
             }
@@ -12966,7 +12964,7 @@ tryAgain:
                 {
                     var identifier = this.ParseIdentifierToken();
 
-                    ParseParameterRest(ref identifier, out var exclamationExclamationToken, out var equalsToken);
+                    ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
 
                     SyntaxToken arrow;
                     if (equalsToken != null)
@@ -13112,7 +13110,7 @@ tryAgain:
             }
 
             var identifier = this.ParseIdentifierToken();
-            ParseParameterRest(ref identifier, out var exclamationExclamationToken, out var equalsToken);
+            ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
 
             // This should never be non-null.  That indicates while we were scanning for potential lambdas, we saw an
             // `!!=` or `!=` sign in the parameter list and allowed it. However, that should never happen as

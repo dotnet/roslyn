@@ -7276,9 +7276,9 @@ class C<T> where T : struct? {}
         public void TestMethodDeclarationNullValidation_SingleExclamation()
         {
             UsingStatement(@"void M(string name!) { }", options: TestOptions.RegularPreview,
-                // (1,20): error CS1003: Syntax error, '!' expected
-                // void M(string name!) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("!", ")").WithLocation(1, 20));
+                    // (1,19): error CS1003: Syntax error, '!!' expected
+                    // void M(string name!) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 19));
 
             N(SyntaxKind.LocalFunctionStatement);
             {
@@ -7297,7 +7297,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        M(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.ExclamationExclamationToken);
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7396,9 +7396,9 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgList()
         {
             UsingStatement(@"void M(__arglist!) { }", options: TestOptions.RegularPreview,
-                    // (1,17): error CS1003: Syntax error, ',' expected
+                    // (1,17): error CS1003: Syntax error, '!!' expected
                     // void M(__arglist!) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 17));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7412,6 +7412,7 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.ArgListKeyword);
+                        N(SyntaxKind.ExclamationExclamationToken);
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7421,8 +7422,44 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
+        [Fact]
+        public void TestArgListWithDefaultValue()
+        {
+            UsingStatement(@"void M(__arglist = null) { }", options: TestOptions.RegularPreview); N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
 
         [Fact]
         public void TestNullCheckedArgWithLeadingSpace()
@@ -7592,9 +7629,9 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgWithSpaceInbetween()
         {
             UsingStatement(@"void M(string name! !=null) { }", options: TestOptions.RegularPreview,
-                    // (1,21): error CS1525: Invalid expression term '!'
+                    // (1,19): error CS1003: Syntax error, '!!' expected
                     // void M(string name! !=null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 21));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(1, 19));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7612,7 +7649,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        M(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -7630,6 +7667,7 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -7677,9 +7715,9 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgWithSpaceAfterBangs()
         {
             UsingStatement(@"void M(string name! ! =null) { }", options: TestOptions.RegularPreview,
-                    // (1,21): error CS1525: Invalid expression term '!'
+                    // (1,19): error CS1003: Syntax error, '!!' expected
                     // void M(string name! ! =null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 21));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 19));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7697,7 +7735,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        M(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -7715,15 +7753,16 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
         public void TestNullCheckedArgWithSpaceBeforeBangs()
         {
             UsingStatement(@"void M(string name ! !=null) { }", options: TestOptions.RegularPreview,
-                    // (1,22): error CS1525: Invalid expression term '!'
+                    // (1,20): error CS1003: Syntax error, '!!' expected
                     // void M(string name ! !=null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 22));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(1, 20));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7741,7 +7780,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        M(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -7759,6 +7798,7 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
