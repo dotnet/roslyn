@@ -299,33 +299,35 @@ namespace Roslyn.Test.Utilities.Desktop
 
         public void Verify(Verification verification)
         {
+            // Verification is only done on windows desktop 
+            if (!ExecutionConditionUtil.IsWindowsDesktop)
+            {
+                return;
+            }
+
             if (verification == Verification.Skipped)
             {
                 return;
             }
 
+            var shouldSucceed = (verification & Verification.FailsPeVerify) == 0;
             var emitData = GetEmitData();
 
-            // PE Verify
             try
             {
                 emitData.RuntimeData.PeverifyRequested = true;
                 emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName }, throwOnError: true);
-                if ((verification & Verification.FailsPeVerify) == 0)
+                if (!shouldSucceed)
                 {
-                    return;
+                    throw new Exception("PE Verify succeeded unexpectedly");
                 }
-
-                throw new Exception("PE Verify succeeded unexpectedly");
             }
             catch (RuntimePeVerifyException ex)
             {
-                if ((verification & Verification.FailsPeVerify) != 0)
+                if (shouldSucceed)
                 {
-                    return;
+                    throw new Exception("Verification failed", ex);
                 }
-
-                throw new Exception("Verification failed", ex);
             }
         }
 

@@ -1841,7 +1841,7 @@ class Test
 hello
 2
 ";
-            CompileAndVerify(source, expectedOutput: expected, verify: Verification.Passes);
+            CompileAndVerify(source, expectedOutput: expected);
         }
 
         [Fact]

@@ -1152,6 +1152,7 @@ public class Test
 {
     public void M(in int x) { }
 }";
+
             CompileAndVerify(code, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
            {
                AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);

@@ -13334,7 +13334,6 @@ class A
 ";
             var compilation = CompileAndVerify(
                 source,
-                verify: Verification.Passes,
                 expectedOutput: @"Inside - TestVarArgs::ctor (__arglist)
 Inside - TestVarArgs::ctor (__arglist)
 System.Int32

@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
             _allModuleData = testEnvironment.GetAllModuleData();
             testEnvironment.Verify(peVerify);
-#if NETCOREAPP
+#if NETCOREAPP // TODO2 need strong-named ILVerify
             ILVerify(peVerify);
 #endif
 

@@ -2722,6 +2722,7 @@ class B
         System.Console.Write(A.I);
     }
 }";
+
             var ca = CreateCompilation(sourceA, options: TestOptions.ReleaseDll, assemblyName: "ClassLibrary2", parseOptions: parseOptions);
             CompileAndVerify(ca);
 

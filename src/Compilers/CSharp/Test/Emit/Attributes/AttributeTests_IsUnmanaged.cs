@@ -255,6 +255,7 @@ public class Test
     public void M<T>() where T : unmanaged { }
 }
 ";
+
             CompileAndVerify(text, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M").TypeParameters.Single();
@@ -280,6 +281,7 @@ public class Test<T> where T : unmanaged
 {
 }
 ";
+
             CompileAndVerify(text, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test`1").TypeParameters.Single();

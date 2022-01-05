@@ -1283,7 +1283,7 @@ public class D
 }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "11", verify: Verification.Passes);
+            var compilation = CompileAndVerify(source, expectedOutput: "11");
 
             compilation.VerifyIL("D.Main",
 @"
