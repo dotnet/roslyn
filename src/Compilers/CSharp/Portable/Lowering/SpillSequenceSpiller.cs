@@ -968,7 +968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var argument = VisitExpression(ref builder, node.Argument);
-            return UpdateExpression(builder, node.Update(argument, node.MethodOpt, node.IsExtensionMethod, node.Type));
+            return UpdateExpression(builder, node.Update(argument, node.MethodOpt, node.IsExtensionMethod, node.WasTargetTyped, node.Type));
         }
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)

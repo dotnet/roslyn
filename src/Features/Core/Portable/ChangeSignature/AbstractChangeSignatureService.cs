@@ -950,7 +950,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             var updatedLeadingTrivia = ImmutableArray.CreateBuilder<SyntaxTrivia>();
             var index = 0;
-            SyntaxTrivia lastWhiteSpaceTrivia = default;
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
@@ -958,11 +957,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 if (!trivia.HasStructure)
                 {
-                    if (syntaxFacts.IsWhitespaceTrivia(trivia))
-                    {
-                        lastWhiteSpaceTrivia = trivia;
-                    }
-
                     updatedLeadingTrivia.Add(trivia);
                     continue;
                 }
@@ -1015,7 +1009,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var extraDocComments = Generator.DocumentationCommentTrivia(
                     extraNodeList,
                     node.GetTrailingTrivia(),
-                    lastWhiteSpaceTrivia,
                     document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, document.Project.Language));
                 var newTrivia = Generator.Trivia(extraDocComments);
 

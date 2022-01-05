@@ -505,6 +505,8 @@ namespace Microsoft.CodeAnalysis
         System_Threading_CancellationTokenSource__Token,
         System_Threading_CancellationTokenSource__Dispose,
 
+        System_ArgumentNullException__ctorString,
+
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
         System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
 
@@ -514,8 +516,6 @@ namespace Microsoft.CodeAnalysis
         System_Text_StringBuilder__ctor,
 
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
-
-        System_Index__op_Implicit_FromInt32,
 
         Count
 

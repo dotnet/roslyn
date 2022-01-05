@@ -1931,7 +1931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (anonymousFunction.FunctionType is { } functionType &&
-                    functionType.GetValue() is null)
+                    functionType.GetInternalDelegateType() is null)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     if (Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo))
@@ -3497,10 +3497,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool thisInitializer = initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) == true;
             if (!thisInitializer &&
-                ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any())
+                hasRecordPrimaryConstructor())
             {
-                var constructorSymbol = (MethodSymbol)this.ContainingMember();
-                if (!constructorSymbol.IsStatic &&
+                if (isInstanceConstructor(out MethodSymbol constructorSymbol) &&
                     !SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
                 {
                     // Note: we check the constructor initializer of copy constructors elsewhere
@@ -3508,11 +3507,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            bool isDefaultValueTypeInitializer = thisInitializer
+                && ContainingType.IsDefaultValueTypeConstructor(initializer);
+
+            if (isDefaultValueTypeInitializer &&
+                isInstanceConstructor(out _) &&
+                hasRecordPrimaryConstructor())
+            {
+                Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+            }
+
             // The `: this()` initializer is ignored when it is a default value type constructor
             // and we need to include field initializers into the constructor.
             bool skipInitializer = includesFieldInitializers
-                && thisInitializer
-                && ContainingType.IsDefaultValueTypeConstructor(initializer);
+                && isDefaultValueTypeInitializer;
 
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,
@@ -3524,6 +3532,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       null :
                                                       bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
                                                                                            constructor.Body == null ? diagnostics : BindingDiagnosticBag.Discarded));
+
+            bool hasRecordPrimaryConstructor() =>
+                ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any();
+
+            bool isInstanceConstructor(out MethodSymbol constructorSymbol)
+            {
+                if (this.ContainingMember() is MethodSymbol { IsStatic: false } method)
+                {
+                    constructorSymbol = method;
+                    return true;
+                }
+                constructorSymbol = null;
+                return false;
+            }
         }
 
         internal virtual BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax initializer, BindingDiagnosticBag diagnostics)

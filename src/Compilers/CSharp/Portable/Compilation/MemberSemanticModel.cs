@@ -1998,24 +1998,7 @@ done:
 
             BoundNode bind(CSharpSyntaxNode root, out Binder binder)
             {
-                if (root is CompilationUnitSyntax)
-                {
-                    // Top level statements are unique among our nodes: if there are no syntax nodes before local functions,
-                    // then that means the start of the span of the top-level statement is the same as the start of the local
-                    // function. Therefore, GetEnclosingBinder can't tell the difference, and it will get the binder for the
-                    // local function, not for the CompilationUnitSyntax. This is desirable in almost all cases but this one:
-                    // There are no locals or invocations before this, meaning there's nothing to call GetDeclaredSymbol,
-                    // GetTypeInfo, or GetSymbolInfo on. GetDeclaredSymbol(CompilationUnitSyntax) goes down another path that
-                    // does not need to do any binding whatsoever, so it also doesn't care about this behavior. The only place
-                    // that actually needs to get the enclosing binding for a CompilationUnitSyntax in such a scenario is this
-                    // method. So, if our root is the CompilationUnitSyntax, directly get the binder for it.
-                    binder = RootBinder.GetBinder(root);
-                    Debug.Assert(binder is SimpleProgramBinder);
-                }
-                else
-                {
-                    binder = GetEnclosingBinder(GetAdjustedNodePosition(root));
-                }
+                binder = GetBinderToBindNode(root);
                 return Bind(binder, root, BindingDiagnosticBag.Discarded);
             }
 
@@ -2036,6 +2019,31 @@ done:
                 diagnostics.Free();
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
             }
+        }
+
+        private Binder GetBinderToBindNode(CSharpSyntaxNode nodeToBind)
+        {
+            Binder binder;
+            if (nodeToBind is CompilationUnitSyntax)
+            {
+                // Top level statements are unique among our nodes: if there are no syntax nodes before local functions,
+                // then that means the start of the span of the top-level statement is the same as the start of the local
+                // function. Therefore, GetEnclosingBinder can't tell the difference, and it will get the binder for the
+                // local function, not for the CompilationUnitSyntax. This is desirable in almost all cases but this one:
+                // There are no locals or invocations before this, meaning there's nothing to call GetDeclaredSymbol,
+                // GetTypeInfo, or GetSymbolInfo on. GetDeclaredSymbol(CompilationUnitSyntax) goes down another path that
+                // does not need to do any binding whatsoever, so it also doesn't care about this behavior. The only place
+                // that actually needs to get the enclosing binding for a CompilationUnitSyntax in such a scenario is this
+                // method. So, if our root is the CompilationUnitSyntax, directly get the binder for it.
+                binder = RootBinder.GetBinder(nodeToBind);
+                Debug.Assert(binder is SimpleProgramBinder);
+            }
+            else
+            {
+                binder = GetEnclosingBinder(GetAdjustedNodePosition(nodeToBind));
+            }
+
+            return binder;
         }
 
 #nullable enable
@@ -2105,7 +2113,7 @@ done:
             // If we didn't find in the cached bound nodes, find a binding root and bind it.
             // This will cache bound nodes under the binding root.
             CSharpSyntaxNode nodeToBind = GetBindingRoot(node);
-            var statementBinder = GetEnclosingBinder(GetAdjustedNodePosition(nodeToBind));
+            var statementBinder = GetBinderToBindNode(nodeToBind);
             Binder incrementalBinder = new IncrementalBinder(this, statementBinder);
 
             using (_nodeMapLock.DisposableWrite())
@@ -2126,7 +2134,7 @@ done:
             // In this case, however, we only add the single bound node we found to the map, not any child bound nodes,
             // to avoid duplicates in the map if a parent of this node comes through this code path also.
 
-            var binder = GetEnclosingBinder(GetAdjustedNodePosition(node));
+            var binder = GetBinderToBindNode(node);
             incrementalBinder = new IncrementalBinder(this, binder);
 
             using (_nodeMapLock.DisposableRead())

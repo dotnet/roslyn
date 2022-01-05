@@ -134,6 +134,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundAwaitExpressionOperation((BoundAwaitExpression)boundNode);
                 case BoundKind.ArrayAccess:
                     return CreateBoundArrayAccessOperation((BoundArrayAccess)boundNode);
+                case BoundKind.ImplicitIndexerAccess:
+                    return CreateBoundImplicitIndexerAccessOperation((BoundImplicitIndexerAccess)boundNode);
                 case BoundKind.NameOfOperator:
                     return CreateBoundNameOfOperatorOperation((BoundNameOfOperator)boundNode);
                 case BoundKind.ThrowExpression:
@@ -304,7 +306,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
-                case BoundKind.ImplicitIndexerAccess:
 
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValue;
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -969,9 +970,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (boundConversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
             {
-                // https://github.com/dotnet/roslyn/issues/54505 Support interpolation handlers in conversions
                 Debug.Assert(!forceOperandImplicitLiteral);
-                Debug.Assert(boundOperand is BoundInterpolatedString { InterpolationData: not null } or BoundBinaryOperator { InterpolatedStringHandlerData: not null });
+                Debug.Assert(!boundOperand.GetInterpolatedStringHandlerData().IsDefault);
                 return CreateInterpolatedStringHandler(boundConversion);
             }
 
@@ -1484,6 +1484,28 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundArrayAccess.WasCompilerGenerated;
 
             return new ArrayElementReferenceOperation(arrayReference, indices, _semanticModel, syntax, type, isImplicit);
+        }
+
+        private IOperation CreateBoundImplicitIndexerAccessOperation(BoundImplicitIndexerAccess boundIndexerAccess)
+        {
+            IOperation instance = Create(boundIndexerAccess.Receiver);
+            IOperation argument = Create(boundIndexerAccess.Argument);
+            SyntaxNode syntax = boundIndexerAccess.Syntax;
+            ITypeSymbol? type = boundIndexerAccess.GetPublicTypeSymbol();
+            bool isImplicit = boundIndexerAccess.WasCompilerGenerated;
+
+            if (boundIndexerAccess.LengthOrCountAccess.Kind == BoundKind.ArrayLength)
+            {
+                return new ArrayElementReferenceOperation(instance, ImmutableArray.Create(argument), _semanticModel, syntax, type, isImplicit);
+            }
+
+            var lengthSymbol = Binder.GetPropertySymbol(boundIndexerAccess.LengthOrCountAccess, out _, out _).GetPublicSymbol();
+            var indexerSymbol = Binder.GetIndexerOrImplicitIndexerSymbol(boundIndexerAccess).GetPublicSymbol();
+
+            Debug.Assert(lengthSymbol is not null);
+            Debug.Assert(indexerSymbol is not null);
+
+            return new ImplicitIndexerReferenceOperation(instance, argument, lengthSymbol, indexerSymbol, _semanticModel, syntax, type, isImplicit);
         }
 
         private INameOfOperation CreateBoundNameOfOperatorOperation(BoundNameOfOperator boundNameOfOperator)
@@ -2187,13 +2209,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Debug.Assert(conversion.Conversion.IsInterpolatedStringHandler);
 
-            InterpolatedStringHandlerData interpolationData = conversion.Operand switch
-            {
-                BoundInterpolatedString { InterpolationData: { } data } => data,
-                BoundBinaryOperator { InterpolatedStringHandlerData: { } data } => data,
-                _ => throw ExceptionUtilities.UnexpectedValue(conversion.Operand.Kind)
-            };
-
+            InterpolatedStringHandlerData interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
             var construction = Create(interpolationData.Construction);
             var content = createContent(conversion.Operand);
             var isImplicit = conversion.WasCompilerGenerated || !conversion.ExplicitCastInCode;
