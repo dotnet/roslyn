@@ -5,11 +5,9 @@
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
-    using Microsoft.VisualStudio.Extensibility.Testing;
-
-    internal partial class SolutionExplorerInProcess : global::Microsoft.VisualStudio.Extensibility.Testing.InProcComponent
+    internal partial class WorkspaceInProcess : global::Microsoft.VisualStudio.Extensibility.Testing.InProcComponent
     {
-        public SolutionExplorerInProcess(TestServices testServices)
+        public WorkspaceInProcess(TestServices testServices)
             : base(testServices)
         {
         }

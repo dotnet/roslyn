@@ -15,6 +15,100 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator
     {
         private const string SourceSuffix = ".g.cs";
 
+        private const string IVsTextManagerExtensionsSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.VisualStudio.TextManager.Interop;
+    using Microsoft.VisualStudio.Threading;
+
+    internal static partial class IVsTextManagerExtensions
+    {
+        public static Task<IVsTextView> GetActiveViewAsync(this IVsTextManager textManager, JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken)
+            => textManager.GetActiveViewAsync(joinableTaskFactory, mustHaveFocus: true, buffer: null, cancellationToken);
+
+        public static async Task<IVsTextView> GetActiveViewAsync(this IVsTextManager textManager, JoinableTaskFactory joinableTaskFactory, bool mustHaveFocus, IVsTextBuffer? buffer, CancellationToken cancellationToken)
+        {
+            await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            ErrorHandler.ThrowOnFailure(textManager.GetActiveView(fMustHaveFocus: mustHaveFocus ? 1 : 0, pBuffer: buffer, ppView: out var vsTextView));
+
+            return vsTextView;
+        }
+    }
+}
+";
+
+        private const string IVsTextViewExtensionsSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Editor;
+    using Microsoft.VisualStudio.Text.Editor;
+    using Microsoft.VisualStudio.TextManager.Interop;
+    using Microsoft.VisualStudio.Threading;
+
+    internal static partial class IVsTextViewExtensions
+    {
+        public static async Task<IWpfTextViewHost> GetTextViewHostAsync(this IVsTextView textView, JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken)
+        {
+            await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            ErrorHandler.ThrowOnFailure(((IVsUserData)textView).GetData(DefGuidList.guidIWpfTextViewHost, out var wpfTextViewHost));
+            return (IWpfTextViewHost)wpfTextViewHost;
+        }
+    }
+}
+";
+
+        private const string EditorInProcessSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Text.Editor;
+    using Microsoft.VisualStudio.TextManager.Interop;
+
+    [TestService]
+    internal partial class EditorInProcess
+    {
+        public async Task<IWpfTextView> GetActiveTextViewAsync(CancellationToken cancellationToken)
+            => (await GetActiveTextViewHostAsync(cancellationToken)).TextView;
+
+        private async Task<IWpfTextViewHost> GetActiveTextViewHostAsync(CancellationToken cancellationToken)
+        {
+            var activeVsTextView = await GetActiveVsTextViewAsync(cancellationToken);
+            return await activeVsTextView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);
+        }
+
+        private async Task<IVsTextView> GetActiveVsTextViewAsync(CancellationToken cancellationToken)
+        {
+            // The active text view might not have finished composing yet, waiting for the application to 'idle'
+            // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text
+            // view.
+            await WaitForApplicationIdleAsync(cancellationToken);
+
+            var vsTextManager = await GetRequiredGlobalServiceAsync<SVsTextManager, IVsTextManager>(cancellationToken);
+            return await vsTextManager.GetActiveViewAsync(JoinableTaskFactory, cancellationToken);
+        }
+    }
+}
+";
+
         private const string ShellInProcessSource = @"// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
@@ -23,13 +117,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft;
     using Microsoft.VisualStudio;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
@@ -97,14 +186,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
-    using Microsoft;
     using Microsoft.VisualStudio;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
@@ -231,6 +315,20 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 }
 ";
 
+        private const string WorkspaceInProcessSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    [TestService]
+    internal partial class WorkspaceInProcess
+    {
+    }
+}
+";
+
         private const string SolutionExplorerInProcessSolutionEventsDisposeSource = @"// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
@@ -301,6 +399,69 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 ErrorHandler.ThrowOnFailure(_solution.UnadviseSolutionEvents(_cookie));
             }
         }
+    }
+}
+";
+
+        private const string WorkspaceInProcessWaitForProjectSystemSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System.Threading;
+    using Microsoft.VisualStudio.OperationProgress;
+    using Microsoft.VisualStudio.Threading;
+    using Task = System.Threading.Tasks.Task;
+
+    internal partial class WorkspaceInProcess
+    {
+        public async Task WaitForProjectSystemAsync(CancellationToken cancellationToken)
+        {
+            var operationProgressStatus = await GetRequiredGlobalServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(cancellationToken);
+            var stageStatus = operationProgressStatus.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
+            await stageStatus.WaitForCompletionAsync().WithCancellation(cancellationToken);
+        }
+    }
+}
+";
+
+        private const string WorkspaceInProcessWaitForProjectSystemPartialSource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System;
+    using System.Threading;
+    using Task = System.Threading.Tasks.Task;
+
+    internal partial class WorkspaceInProcess
+    {
+        public Task WaitForProjectSystemAsync(CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException(""Visual Studio 2019 version 16.0 includes SVsOperationProgress, but does not include IVsOperationProgressStatusService. Update Microsoft.VisualStudio.Shell.Framework to 16.1 or newer to support waiting for project system."");
+        }
+    }
+}
+";
+
+        private const string WorkspaceInProcessWaitForProjectSystemLegacySource = @"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{
+    using System.Threading;
+    using Task = System.Threading.Tasks.Task;
+
+    internal partial class WorkspaceInProcess
+    {
+        public Task WaitForProjectSystemAsync(CancellationToken cancellationToken)
+            => Task.CompletedTask;
     }
 }
 ";
@@ -391,8 +552,12 @@ namespace Microsoft.VisualStudio
         {
             context.RegisterPostInitializationOutput(context =>
             {
+                context.AddSource($"IVsTextViewExtensions{SourceSuffix}", IVsTextViewExtensionsSource);
+                context.AddSource($"IVsTextManagerExtensions{SourceSuffix}", IVsTextManagerExtensionsSource);
+                context.AddSource($"EditorInProcess1{SourceSuffix}", EditorInProcessSource);
                 context.AddSource($"SolutionExplorerInProcess1{SourceSuffix}", SolutionExplorerInProcessSource);
                 context.AddSource($"ShellInProcess1{SourceSuffix}", ShellInProcessSource);
+                context.AddSource($"WorkspaceInProcess1{SourceSuffix}", WorkspaceInProcessSource);
                 context.AddSource($"TestServiceAttribute{SourceSuffix}", TestServiceAttributeSource);
             });
 
@@ -460,20 +625,47 @@ namespace Microsoft.VisualStudio
                     var hasJoinableTaskFactoryWithPriority = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.Threading.DispatcherExtensions") is not null;
                     var hasAsyncEnumerable = compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerable`1") is not null;
                     var hasErrorHandler = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.ErrorHandler") is not null;
+                    var hasOperationProgress = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.OperationProgress.SVsOperationProgress") is not null;
+                    var hasOperationProgressStatusService = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.OperationProgress.IVsOperationProgressStatusService") is not null;
 
-                    return new ReferenceDataModel(hasSAsyncServiceProvider, hasThreadHelperJoinableTaskContext, canCancelJoinTillEmptyAsync, hasJoinableTaskFactoryWithPriority, hasAsyncEnumerable, hasErrorHandler);
+                    return new ReferenceDataModel(hasSAsyncServiceProvider, hasThreadHelperJoinableTaskContext, canCancelJoinTillEmptyAsync, hasJoinableTaskFactoryWithPriority, hasAsyncEnumerable, hasErrorHandler, hasOperationProgress, hasOperationProgressStatusService);
                 });
 
             context.RegisterSourceOutput(
                 referenceDataModel,
                 static (context, referenceDataModel) =>
                 {
-                    string aliases;
+                    var usings = new List<string>
+                    {
+                        "System",
+                        "System.Threading",
+                        "System.Threading.Tasks",
+                        "System.Windows",
+                        "System.Windows.Threading",
+                        "global::Xunit",
+                    };
+
+                    if (!referenceDataModel.HasSAsyncServiceProvider)
+                    {
+                        usings.Add("global::Xunit.Harness");
+                    }
+
+                    usings.Add("global::Xunit.Threading");
+                    usings.Add("Microsoft.VisualStudio.ComponentModelHost");
+                    usings.Add("Microsoft.VisualStudio.Shell");
+
+                    if (referenceDataModel.HasSAsyncServiceProvider)
+                    {
+                        usings.Add("Microsoft.VisualStudio.Shell.Interop");
+                    }
+
+                    usings.Add("Microsoft.VisualStudio.Threading");
+
                     string getServiceImpl;
                     if (referenceDataModel.HasSAsyncServiceProvider)
                     {
-                        aliases = @"    using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
-    using Task = System.Threading.Tasks.Task;";
+                        usings.Add("IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider");
+                        usings.Add("Task = System.Threading.Tasks.Task");
                         getServiceImpl = @"            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var serviceProvider = (IAsyncServiceProvider?)await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SAsyncServiceProvider)).WithCancellation(cancellationToken);
@@ -485,7 +677,7 @@ namespace Microsoft.VisualStudio
                     }
                     else
                     {
-                        aliases = @"    using Task = System.Threading.Tasks.Task;";
+                        usings.Add("Task = System.Threading.Tasks.Task");
                         getServiceImpl = @"            await TaskScheduler.Default;
 
             var @interface = await GetServiceCoreAsync(JoinableTaskFactory, cancellationToken).WithCancellation(cancellationToken);
@@ -508,20 +700,7 @@ namespace Microsoft.VisualStudio
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {{
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using System.Windows;
-    using System.Windows.Threading;
-    using global::Xunit;
-    using global::Xunit.Harness;
-    using global::Xunit.Threading;
-    using Microsoft;
-    using Microsoft.VisualStudio.ComponentModelHost;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.Threading;
-{aliases}
+{string.Join(Environment.NewLine, usings.Select(u => $"    using {u};"))}
 
     internal abstract class InProcComponent : IAsyncLifetime
     {{
@@ -587,7 +766,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     string shellInProcessEnumerateWindowsImpl;
                     if (referenceDataModel.HasAsyncEnumerable)
                     {
-                        shellInProcessEnumerateWindowsImpl = @"        public async IAsyncEnumerable<IVsWindowFrame> EnumerateWindowsAsync(__WindowFrameTypeFlags windowFrameTypeFlags, [EnumeratorCancellation] CancellationToken cancellationToken)
+                        shellInProcessEnumerateWindowsImpl = @"    using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
+    using Microsoft.VisualStudio;
+    using Microsoft.VisualStudio.Shell;
+    using Microsoft.VisualStudio.Shell.Interop;
+    using Microsoft.VisualStudio.Threading;
+
+    internal partial class ShellInProcess
+    {
+        public async IAsyncEnumerable<IVsWindowFrame> EnumerateWindowsAsync(__WindowFrameTypeFlags windowFrameTypeFlags, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var uiShell = await GetRequiredGlobalServiceAsync<SVsUIShell, IVsUIShell4>(cancellationToken);
@@ -607,11 +796,24 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     yield return frameBuffer[i];
                 }
             }
-        }";
+        }
+    }";
                     }
                     else
                     {
-                        shellInProcessEnumerateWindowsImpl = @"        public async Task<ReadOnlyCollection<IVsWindowFrame>> EnumerateWindowsAsync(__WindowFrameTypeFlags windowFrameTypeFlags, CancellationToken cancellationToken)
+                        shellInProcessEnumerateWindowsImpl = @"    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.VisualStudio;
+    using Microsoft.VisualStudio.Shell;
+    using Microsoft.VisualStudio.Shell.Interop;
+    using Microsoft.VisualStudio.Threading;
+
+    internal partial class ShellInProcess
+    {
+        public async Task<ReadOnlyCollection<IVsWindowFrame>> EnumerateWindowsAsync(__WindowFrameTypeFlags windowFrameTypeFlags, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var uiShell = await GetRequiredGlobalServiceAsync<SVsUIShell, IVsUIShell4>(cancellationToken);
@@ -631,7 +833,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             return result.AsReadOnly();
-        }";
+        }
+    }";
                     }
 
                     var shellInProcessEnumerateWindowsSource = $@"// Copyright (c) Microsoft. All rights reserved.
@@ -641,24 +844,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {{
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.CompilerServices;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Microsoft;
-    using Microsoft.VisualStudio;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.Threading;
-
-    internal partial class ShellInProcess
-    {{
 {shellInProcessEnumerateWindowsImpl}
-    }}
 }}
 ";
                     context.AddSource($"ShellInProcess_EnumerateWindowsAsync{SourceSuffix}", shellInProcessEnumerateWindowsSource);
@@ -671,6 +857,41 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     {
                         context.AddSource($"SolutionExplorerInProcess.SolutionEvents_IDisposable{SourceSuffix}", SolutionExplorerInProcessSolutionEventsDisposeSource);
                     }
+
+                    var usings2 = new List<string>
+                    {
+                        "System",
+                        "System.Diagnostics.CodeAnalysis",
+                        "System.Threading",
+                        "System.Threading.Tasks",
+                        "System.Windows",
+                    };
+
+                    if (referenceDataModel.HasJoinableTaskFactoryWithPriority)
+                    {
+                        usings2.Add("System.Windows.Threading");
+                    }
+
+                    usings2.Add("global::Xunit");
+
+                    if (!referenceDataModel.HasThreadHelperJoinableTaskContext)
+                    {
+                        usings2.Add("global::Xunit.Harness");
+                    }
+
+                    usings2.Add("global::Xunit.Sdk");
+
+                    if (referenceDataModel.HasThreadHelperJoinableTaskContext)
+                    {
+                        usings2.Add("Microsoft.VisualStudio.Shell");
+                    }
+                    else
+                    {
+                        usings2.Add("Microsoft.VisualStudio.Shell.Interop");
+                    }
+
+                    usings2.Add("Microsoft.VisualStudio.Threading");
+                    usings2.Add("Task = System.Threading.Tasks.Task");
 
                     string joinableTaskContextInitializer;
                     if (referenceDataModel.HasThreadHelperJoinableTaskContext)
@@ -704,19 +925,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {{
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using System.Windows;
-    using System.Windows.Threading;
-    using global::Xunit;
-    using global::Xunit.Harness;
-    using global::Xunit.Sdk;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using Microsoft.VisualStudio.Threading;
-    using Task = System.Threading.Tasks.Task;
+{string.Join(Environment.NewLine, usings2.Select(u => $"    using {u};"))}
 
     /// <summary>
     /// Provides a base class for Visual Studio integration tests.
@@ -884,6 +1093,22 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                         context.AddSource($"ErrorHandler{SourceSuffix}", ErrorHandlerSource);
                         context.AddSource($"VSConstants{SourceSuffix}", VSConstantsSource);
                     }
+
+                    if (referenceDataModel.HasOperationProgress)
+                    {
+                        if (referenceDataModel.HasOperationProgressStatusService)
+                        {
+                            context.AddSource($"WorkspaceInProcess.WaitForProjectSystemAsync{SourceSuffix}", WorkspaceInProcessWaitForProjectSystemSource);
+                        }
+                        else
+                        {
+                            context.AddSource($"WorkspaceInProcess.WaitForProjectSystemAsync{SourceSuffix}", WorkspaceInProcessWaitForProjectSystemPartialSource);
+                        }
+                    }
+                    else
+                    {
+                        context.AddSource($"WorkspaceInProcess.WaitForProjectSystemAsync{SourceSuffix}", WorkspaceInProcessWaitForProjectSystemLegacySource);
+                    }
                 });
 
             context.RegisterSourceOutput(
@@ -899,15 +1124,23 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     var namespaceName = service.ImplementingTypeName.Substring("global::".Length, service.ImplementingTypeName.LastIndexOf('.') - "global::".Length);
                     var typeName = service.ImplementingTypeName.Substring(service.ImplementingTypeName.LastIndexOf('.') + 1);
                     var baseTypeName = service.BaseTypeName ?? "global::Microsoft.VisualStudio.Extensibility.Testing.InProcComponent";
+                    var usings = string.Empty;
+                    if (namespaceName != "Microsoft.VisualStudio.Extensibility.Testing"
+                        && !namespaceName.StartsWith("Microsoft.VisualStudio.Extensibility.Testing."))
+                    {
+                        usings = @"
+    using Microsoft.VisualStudio.Extensibility.Testing;
+
+";
+                    }
+
                     var partialService = $@"// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for more information.
 
 #nullable enable
 
 namespace {namespaceName}
-{{
-    using Microsoft.VisualStudio.Extensibility.Testing;
-
+{{{usings}
     {accessibility} partial class {typeName} : {baseTypeName}
     {{
         public {typeName}(TestServices testServices)
@@ -950,9 +1183,6 @@ namespace {namespaceName}
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {{
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
     using System.Threading.Tasks;
     using global::Xunit;
     using Microsoft.VisualStudio.Threading;
@@ -1018,6 +1248,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             bool CanCancelJoinTillEmptyAsync,
             bool HasJoinableTaskFactoryWithPriority,
             bool HasAsyncEnumerable,
-            bool HasErrorHandler);
+            bool HasErrorHandler,
+            bool HasOperationProgress,
+            bool HasOperationProgressStatusService);
     }
 }

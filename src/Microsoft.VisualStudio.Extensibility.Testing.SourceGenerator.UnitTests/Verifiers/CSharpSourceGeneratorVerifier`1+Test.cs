@@ -50,7 +50,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
             protected override CompilationOptions CreateCompilationOptions()
             {
                 var compilationOptions = (CSharpCompilationOptions)base.CreateCompilationOptions();
-                return compilationOptions.WithWarningLevel(99);
+                return compilationOptions.WithWarningLevel(99)
+                    .WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItem("CS8019", ReportDiagnostic.Warn));
             }
 
             protected override ParseOptions CreateParseOptions()
