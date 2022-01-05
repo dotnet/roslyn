@@ -1227,228 +1227,33 @@ class C {
         public void TestNullCheckedSyntaxCorrection0()
         {
             UsingDeclaration("Func<string, string> func0 = x!=> x;", options: TestOptions.RegularPreview,
-                    // (1,31): error CS1003: Syntax error, '=>' expected
+                    // (1,31): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func0 = x!=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!=").WithArguments("=>", "!=").WithLocation(1, 31),
-                    // (1,31): error CS1525: Invalid expression term '!='
-                    // Func<string, string> func0 = x!=> x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(1, 31),
-                    // (1,33): error CS1525: Invalid expression term '>'
-                    // Func<string, string> func0 = x!=> x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 33));
-            N(SyntaxKind.FieldDeclaration);
-            {
-                N(SyntaxKind.VariableDeclaration);
-                {
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Func");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                    N(SyntaxKind.VariableDeclarator);
-                    {
-                        N(SyntaxKind.IdentifierToken, "func0");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.SimpleLambdaExpression);
-                            {
-                                N(SyntaxKind.Parameter);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x");
-                                }
-                                M(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.NotEqualsExpression);
-                                {
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.ExclamationEqualsToken);
-                                    N(SyntaxKind.GreaterThanExpression);
-                                    {
-                                        M(SyntaxKind.IdentifierName);
-                                        {
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
-                                        N(SyntaxKind.GreaterThanToken);
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "x");
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 31));
+            EOF();
         }
 
         [Fact]
         public void TestNullCheckedSyntaxCorrection1()
         {
             UsingDeclaration("Func<string, string> func1 = x !=> x;", options: TestOptions.RegularPreview,
-                    // (1,32): error CS1003: Syntax error, '=>' expected
+                    // (1,32): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func1 = x !=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!=").WithArguments("=>", "!=").WithLocation(1, 32),
-                    // (1,32): error CS1525: Invalid expression term '!='
-                    // Func<string, string> func1 = x !=> x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(1, 32),
-                    // (1,34): error CS1525: Invalid expression term '>'
-                    // Func<string, string> func1 = x !=> x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 34));
-            N(SyntaxKind.FieldDeclaration);
-            {
-                N(SyntaxKind.VariableDeclaration);
-                {
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Func");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                    N(SyntaxKind.VariableDeclarator);
-                    {
-                        N(SyntaxKind.IdentifierToken, "func1");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.SimpleLambdaExpression);
-                            {
-                                N(SyntaxKind.Parameter);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x");
-                                }
-                                M(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.NotEqualsExpression);
-                                {
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.ExclamationEqualsToken);
-                                    N(SyntaxKind.GreaterThanExpression);
-                                    {
-                                        M(SyntaxKind.IdentifierName);
-                                        {
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
-                                        N(SyntaxKind.GreaterThanToken);
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "x");
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 32));
+            EOF();
         }
 
         [Fact]
         public void TestNullCheckedSyntaxCorrection2()
         {
             UsingDeclaration("Func<string, string> func2 = x != > x;", options: TestOptions.RegularPreview,
-                    // (1,32): error CS1003: Syntax error, '=>' expected
+                    // (1,32): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func2 = x != > x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!=").WithArguments("=>", "!=").WithLocation(1, 32),
-                    // (1,32): error CS1525: Invalid expression term '!='
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 32),
+                    // (1,33): error CS1003: Syntax error, '=>' expected
                     // Func<string, string> func2 = x != > x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(1, 32),
-                    // (1,35): error CS1525: Invalid expression term '>'
-                    // Func<string, string> func2 = x != > x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 35));
-            N(SyntaxKind.FieldDeclaration);
-            {
-                N(SyntaxKind.VariableDeclaration);
-                {
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Func");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                    N(SyntaxKind.VariableDeclarator);
-                    {
-                        N(SyntaxKind.IdentifierToken, "func2");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.SimpleLambdaExpression);
-                            {
-                                N(SyntaxKind.Parameter);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x");
-                                }
-                                M(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.NotEqualsExpression);
-                                {
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.ExclamationEqualsToken);
-                                    N(SyntaxKind.GreaterThanExpression);
-                                    {
-                                        M(SyntaxKind.IdentifierName);
-                                        {
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
-                                        N(SyntaxKind.GreaterThanToken);
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "x");
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(1, 33));
+            EOF();
         }
 
         [Fact]
@@ -1607,55 +1412,10 @@ class C {
         public void TestNullCheckedSyntaxCorrection6()
         {
             UsingDeclaration("Func<string, string> func6 = x !!= > x;", options: TestOptions.RegularPreview,
-                    // (1,36): error CS1525: Invalid expression term '>'
+                    // (1,34): error CS1003: Syntax error, '=>' expected
                     // Func<string, string> func6 = x !!= > x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 36));
-            N(SyntaxKind.FieldDeclaration);
-            {
-                N(SyntaxKind.VariableDeclaration);
-                {
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Func");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                    N(SyntaxKind.VariableDeclarator);
-                    {
-                        N(SyntaxKind.IdentifierToken, "func6");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.SimpleLambdaExpression);
-                            {
-                                N(SyntaxKind.Parameter);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x");
-                                    N(SyntaxKind.ExclamationExclamationToken);
-                                }
-                                M(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x");
-                                }
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(1, 34));
+            EOF();
         }
 
         [Fact]
@@ -1714,110 +1474,20 @@ class C {
         public void TestNullCheckedSyntaxCorrection8()
         {
             UsingDeclaration("Func<string, string> func8 = x! !=> x;", options: TestOptions.RegularPreview,
-                    // (1,33): error CS1525: Invalid expression term '!'
+                    // (1,31): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func8 = x! !=> x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 33));
-            N(SyntaxKind.FieldDeclaration);
-            {
-                N(SyntaxKind.VariableDeclaration);
-                {
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Func");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                    N(SyntaxKind.VariableDeclarator);
-                    {
-                        N(SyntaxKind.IdentifierToken, "func8");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.SimpleLambdaExpression);
-                            {
-                                N(SyntaxKind.Parameter);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x");
-                                    M(SyntaxKind.ExclamationExclamationToken);
-                                }
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x");
-                                }
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 31));
+            EOF();
         }
 
         [Fact]
         public void TestNullCheckedSyntaxCorrection9()
         {
             UsingDeclaration("Func<string, string> func9 = x! ! => x;", options: TestOptions.RegularPreview,
-                    // (1,33): error CS1525: Invalid expression term '!'
+                    // (1,31): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func9 = x! ! => x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 33));
-            N(SyntaxKind.FieldDeclaration);
-            {
-                N(SyntaxKind.VariableDeclaration);
-                {
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Func");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                    N(SyntaxKind.VariableDeclarator);
-                    {
-                        N(SyntaxKind.IdentifierToken, "func9");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.SimpleLambdaExpression);
-                            {
-                                N(SyntaxKind.Parameter);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x");
-                                    M(SyntaxKind.ExclamationExclamationToken);
-                                }
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x");
-                                }
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!", "!").WithLocation(1, 31));
+            EOF();
         }
 
         [Fact]
@@ -1986,21 +1656,30 @@ class C {
         [Fact]
         public void TestNullCheckedSpaceBetweenSimpleLambda()
         {
-            UsingDeclaration("Func<string, string> func0 = x! ! => x;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<string, string> func0 = x! ! => x;", options: TestOptions.RegularPreview,
+                    // (1,31): error CS1003: Syntax error, '!!' expected
+                    // Func<string, string> func0 = x! ! => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!", "!").WithLocation(1, 31));
             EOF();
         }
 
         [Fact]
         public void TestNullCheckedSpaceBetweenParenthesizedLamda1()
         {
-            UsingDeclaration("Func<string, string> func0 = (x! !) => x;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<string, string> func0 = (x! !) => x;", options: TestOptions.RegularPreview,
+                    // (1,32): error CS1003: Syntax error, '!!' expected
+                    // Func<string, string> func0 = (x! !) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 32));
             EOF();
         }
 
         [Fact]
         public void TestNullCheckedSpaceBetweenParenthesizedLamda2()
         {
-            UsingDeclaration("Func<string, string> func0 = (y, x! !) => x;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<string, string> func0 = (y, x! !) => x;", options: TestOptions.RegularPreview,
+                    // (1,35): error CS1003: Syntax error, '!!' expected
+                    // Func<string, string> func0 = (y, x! !) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 35));
             EOF();
         }
 
@@ -2008,22 +1687,19 @@ class C {
         public void TestNullCheckedSpaceBetweenLamdaWithType1()
         {
             UsingDeclaration("Func<string, string> func0 = (string x! !) => x;", options: TestOptions.RegularPreview,
-                    // (1,31): error CS1525: Invalid expression term 'string'
+                    // (1,39): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func0 = (string x! !) => x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(1, 31),
-                    // (1,38): error CS1026: ) expected
-                    // Func<string, string> func0 = (string x! !) => x;
-                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 38),
-                    // (1,38): error CS1003: Syntax error, ',' expected
-                    // Func<string, string> func0 = (string x! !) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 38));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 39));
             EOF();
         }
 
         [Fact]
         public void TestNullCheckedSpaceBetweenLamdaWithType2()
         {
-            UsingDeclaration("Func<string, string> func0 = (string y, string x! !) => x;", options: TestOptions.RegularPreview);
+            UsingDeclaration("Func<string, string> func0 = (string y, string x! !) => x;", options: TestOptions.RegularPreview,
+                    // (1,49): error CS1003: Syntax error, '!!' expected
+                    // Func<string, string> func0 = (string y, string x! !) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 49));
             EOF();
         }
 

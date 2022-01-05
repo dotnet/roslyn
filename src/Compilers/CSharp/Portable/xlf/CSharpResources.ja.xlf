@@ -347,11 +347,6 @@
         <target state="translated">既定のリテラルのターゲット型がありません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DefaultParameterValueNotAllowed">
-        <source>Default parameter value not allowed here</source>
-        <target state="new">Default parameter value not allowed here</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">既定のリテラル 'default' はパターンとして無効です。必要に応じて別のリテラル (例: '0' または 'null') をご使用ください。すべてと一致させるには、破棄パターン '_' をご使用ください。</target>

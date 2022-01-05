@@ -347,11 +347,6 @@
         <target state="translated">預設常值沒有目標類型。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DefaultParameterValueNotAllowed">
-        <source>Default parameter value not allowed here</source>
-        <target state="new">Default parameter value not allowed here</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">預設常值 'default' 作為模式無效。請使用另一個適當的常值 (例如 '0' 或 'null')。若要比對所有項目，請使用捨棄模式 '_'。</target>

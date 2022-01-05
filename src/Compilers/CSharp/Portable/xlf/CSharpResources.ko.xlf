@@ -347,11 +347,6 @@
         <target state="translated">기본 리터럴의 대상 형식이 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DefaultParameterValueNotAllowed">
-        <source>Default parameter value not allowed here</source>
-        <target state="new">Default parameter value not allowed here</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">기본 리터럴 'default'가 패턴으로 유효하지 않습니다. 다른 리터럴(예: '0' 또는 'null')을 적절하게 사용하세요. 모두 일치시키려면 무시 패턴 '_'을 사용하세요.</target>

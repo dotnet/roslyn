@@ -347,11 +347,6 @@
         <target state="translated">Für das Standardliteral ist kein Zieltyp vorhanden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DefaultParameterValueNotAllowed">
-        <source>Default parameter value not allowed here</source>
-        <target state="new">Default parameter value not allowed here</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">Ein Standardliteral "default" ist als Muster ungültig. Verwenden Sie ggf. ein anderes Literal (z. B. 0 oder "null"). Verwenden Sie zum Abgleich aller Elemente ein discard-Muster "_".</target>
