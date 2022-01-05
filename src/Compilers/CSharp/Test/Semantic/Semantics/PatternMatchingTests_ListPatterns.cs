@@ -1412,7 +1412,7 @@ class C
             //         if (new C() is [.. null])
             Diagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, "null").WithArguments("int[]?").WithLocation(13, 28)
             );
-        CompileAndVerify(compilation, expectedOutput: "123");
+        CompileAndVerify(compilation, expectedOutput: "12");
     }
 
     [Fact]
