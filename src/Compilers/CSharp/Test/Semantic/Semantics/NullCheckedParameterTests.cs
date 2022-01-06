@@ -498,57 +498,57 @@ class C
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (7,39): error CS1003: Syntax error, '!!' expected
-                //         Func<string, string> func0 = x!=> x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(7, 39),
-                // (8,40): error CS1003: Syntax error, '!!' expected
-                //         Func<string, string> func1 = x !=> x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(8, 40),
-                // (9,40): error CS1003: Syntax error, '!!' expected
-                //         Func<string, string> func2 = x != > x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(9, 40),
-                // (9,41): error CS1003: Syntax error, '=>' expected
-                //         Func<string, string> func2 = x != > x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(9, 41),
-                // (10,38): error CS0103: The name 'x' does not exist in the current context
-                //         Func<string, string> func3 = x! => x;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 38),
-                // (10,41): error CS1003: Syntax error, ',' expected
-                //         Func<string, string> func3 = x! => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(10, 41),
-                // (10,44): error CS1002: ; expected
-                //         Func<string, string> func3 = x! => x;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(10, 44),
-                // (10,44): error CS0103: The name 'x' does not exist in the current context
-                //         Func<string, string> func3 = x! => x;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 44),
-                // (10,44): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                //         Func<string, string> func3 = x! => x;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(10, 44),
-                // (11,38): error CS0103: The name 'x' does not exist in the current context
-                //         Func<string, string> func4 = x ! => x;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(11, 38),
-                // (11,42): error CS1003: Syntax error, ',' expected
-                //         Func<string, string> func4 = x ! => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(11, 42),
-                // (11,45): error CS1002: ; expected
-                //         Func<string, string> func4 = x ! => x;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(11, 45),
-                // (11,45): error CS0103: The name 'x' does not exist in the current context
-                //         Func<string, string> func4 = x ! => x;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(11, 45),
-                // (11,45): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                //         Func<string, string> func4 = x ! => x;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(11, 45),
-                // (13,42): error CS1003: Syntax error, '=>' expected
-                //         Func<string, string> func6 = x !!= > x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(13, 42),
-                // (15,39): error CS1003: Syntax error, '!!' expected
-                //         Func<string, string> func8 = x! !=> x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(15, 39),
-                // (16,39): error CS1003: Syntax error, '!!' expected
-                //         Func<string, string> func9 = x! ! => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!", "!").WithLocation(16, 39));
+                    // (7,39): error CS1003: Syntax error, '!!' expected
+                    //         Func<string, string> func0 = x!=> x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(7, 39),
+                    // (8,40): error CS1003: Syntax error, '!!' expected
+                    //         Func<string, string> func1 = x !=> x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(8, 40),
+                    // (9,40): error CS1003: Syntax error, '!!' expected
+                    //         Func<string, string> func2 = x != > x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(9, 40),
+                    // (9,41): error CS1003: Syntax error, '=>' expected
+                    //         Func<string, string> func2 = x != > x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(9, 41),
+                    // (10,38): error CS0103: The name 'x' does not exist in the current context
+                    //         Func<string, string> func3 = x! => x;
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 38),
+                    // (10,41): error CS1003: Syntax error, ',' expected
+                    //         Func<string, string> func3 = x! => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(10, 41),
+                    // (10,44): error CS1002: ; expected
+                    //         Func<string, string> func3 = x! => x;
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(10, 44),
+                    // (10,44): error CS0103: The name 'x' does not exist in the current context
+                    //         Func<string, string> func3 = x! => x;
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 44),
+                    // (10,44): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                    //         Func<string, string> func3 = x! => x;
+                    Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(10, 44),
+                    // (11,38): error CS0103: The name 'x' does not exist in the current context
+                    //         Func<string, string> func4 = x ! => x;
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(11, 38),
+                    // (11,42): error CS1003: Syntax error, ',' expected
+                    //         Func<string, string> func4 = x ! => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(11, 42),
+                    // (11,45): error CS1002: ; expected
+                    //         Func<string, string> func4 = x ! => x;
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(11, 45),
+                    // (11,45): error CS0103: The name 'x' does not exist in the current context
+                    //         Func<string, string> func4 = x ! => x;
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(11, 45),
+                    // (11,45): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                    //         Func<string, string> func4 = x ! => x;
+                    Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(11, 45),
+                    // (13,42): error CS1003: Syntax error, '=>' expected
+                    //         Func<string, string> func6 = x !!= > x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(13, 42),
+                    // (15,39): error CS1003: Syntax error, '!!' expected
+                    //         Func<string, string> func8 = x! !=> x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(15, 39),
+                    // (16,39): error CS1003: Syntax error, '!!' expected
+                    //         Func<string, string> func9 = x! ! => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!", "!").WithLocation(16, 39));
         }
 
         [Fact]
