@@ -1033,8 +1033,6 @@ namespace Microsoft.CodeAnalysis
         /// those that can only be referenced via an extern alias) using its canonical CLR metadata name.
         /// This lookup follows the following order:
         /// <list type="number">
-        /// </list>
-        /// <list type="number">
         /// <item><description>If the type is found in the compilation's assembly, that type is returned.</description></item>
         /// <item><description>Next the core library (the library that defines <c>System.Object</c> is searched. If the type is found there, that type is returned.</description></item>
         /// <item><description>
