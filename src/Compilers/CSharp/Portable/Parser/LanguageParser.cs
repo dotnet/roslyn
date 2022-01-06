@@ -13106,8 +13106,8 @@ tryAgain:
             ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
 
             // 'equalsToken' should always be null here. Otherwise, it means while we were scanning
-            // for potential lambdas, we saw an `!!=` or `!=` sign in the parameter list and allowed
-            // it. However, that should never happen as ScanParenthesizedLambda only allows !! only.
+            // for potential lambdas, we saw an `!!=` or `!=` in the parameter list and allowed
+            // it. However, that should never happen as ScanParenthesizedLambda allows `!!` only.
             Debug.Assert(equalsToken == null);
 
             var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, exclamationExclamationToken, @default: null);
