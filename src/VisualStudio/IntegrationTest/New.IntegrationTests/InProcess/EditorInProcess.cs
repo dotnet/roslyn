@@ -129,20 +129,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     throw new InvalidOperationException($"{WellKnownCommandNames.Edit_ToggleCompletionMode} did not leave the editor in the expected state.");
                 }
             }
-
-            if (!value)
-            {
-                // For blocking completion mode, make sure we don't have responsive completion interfering when
-                // integration tests run slowly.
-                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                var editorOptionsFactory = await GetComponentModelServiceAsync<IEditorOptionsFactoryService>(cancellationToken);
-                var options = editorOptionsFactory.GlobalOptions;
-                options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, false);
-
-                var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
-                options.SetOptionValue(latencyGuardOptionKey, false);
-            }
         }
 
         private static bool IsDebuggerTextView(ITextView textView)
