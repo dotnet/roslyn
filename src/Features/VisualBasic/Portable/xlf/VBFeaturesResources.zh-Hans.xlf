@@ -1443,7 +1443,7 @@ New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</targ
         <source>Runs a series of statements that refer to a single object or structure.
 With &lt;object&gt;...End With</source>
         <target state="translated">运行引用单个对象或结构的一系列语句。
-With &lt;object&gt;...End With</target>
+使用&lt;object&gt;...结尾为</target>
         <note />
       </trans-unit>
       <trans-unit id="Produces_an_element_of_an_IEnumerable_or_IEnumerator">

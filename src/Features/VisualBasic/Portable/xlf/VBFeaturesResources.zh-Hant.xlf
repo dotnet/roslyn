@@ -1369,8 +1369,8 @@ Option Strict {On | Off}</target>
       <trans-unit id="Ensures_that_multiple_threads_do_not_execute_the_statement_block_at_the_same_time_SyncLock_object_End_Synclock">
         <source>Ensures that multiple threads do not execute the statement block at the same time.
 SyncLock &lt;object&gt;...End Synclock</source>
-        <target state="translated">確定不會有多個執行緒同時執行此陳述式區塊。
-SyncLock &lt;object&gt;...End Synclock</target>
+        <target state="translated">確保多個執行緒不會同時執行語句區塊。
+SyncLock &lt;object&gt;...結束同步鎖定</target>
         <note />
       </trans-unit>
       <trans-unit id="Includes_elements_up_to_a_specified_position_in_the_collection">
