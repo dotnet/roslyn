@@ -2060,9 +2060,9 @@ class C {
         public void TestDefaultValueParenthesizedLamda1()
         {
             UsingDeclaration("Func<string, string> func0 = (x = null) => x;", options: TestOptions.RegularPreview,
-                    // (1,41): error CS1003: Syntax error, ',' expected
-                    // Func<string, string> func0 = (x = null) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 41));
+                // (1,33): error CS1065: Default values are not valid in this context.
+                // Func<string, string> func0 = (x = null) => x;
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 33));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2091,22 +2091,22 @@ class C {
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.ParenthesizedExpression);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
                             {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.SimpleAssignmentExpression);
+                                N(SyntaxKind.ParameterList);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Parameter);
                                     {
                                         N(SyntaxKind.IdentifierToken, "x");
                                     }
-                                    N(SyntaxKind.EqualsToken);
-                                    N(SyntaxKind.NullLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NullKeyword);
-                                    }
+                                    N(SyntaxKind.CloseParenToken);
                                 }
-                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
                             }
                         }
                     }
@@ -2120,9 +2120,9 @@ class C {
         public void TestDefaultValueParenthesizedLamda2()
         {
             UsingDeclaration("Func<string, string> func0 = (y, x = null) => x;", options: TestOptions.RegularPreview,
-                    // (1,44): error CS1003: Syntax error, ',' expected
+                    // (1,36): error CS1065: Default values are not valid in this context.
                     // Func<string, string> func0 = (y, x = null) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 44));
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 36));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2151,33 +2151,27 @@ class C {
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.TupleExpression);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
                             {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Argument);
+                                N(SyntaxKind.ParameterList);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Parameter);
                                     {
                                         N(SyntaxKind.IdentifierToken, "y");
                                     }
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Parameter);
                                     {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "x");
-                                        }
-                                        N(SyntaxKind.EqualsToken);
-                                        N(SyntaxKind.NullLiteralExpression);
-                                        {
-                                            N(SyntaxKind.NullKeyword);
-                                        }
+                                        N(SyntaxKind.IdentifierToken, "x");
                                     }
+                                    N(SyntaxKind.CloseParenToken);
                                 }
-                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
                             }
                         }
                     }
@@ -2191,15 +2185,9 @@ class C {
         public void TestDefaultValueParenthesizedLamdaWithType1()
         {
             UsingDeclaration("Func<string, string> func0 = (string x = null) => x;", options: TestOptions.RegularPreview,
-                    // (1,31): error CS1525: Invalid expression term 'string'
+                    // (1,40): error CS1065: Default values are not valid in this context.
                     // Func<string, string> func0 = (string x = null) => x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(1, 31),
-                    // (1,38): error CS1026: ) expected
-                    // Func<string, string> func0 = (string x = null) => x;
-                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 38),
-                    // (1,38): error CS1003: Syntax error, ',' expected
-                    // Func<string, string> func0 = (string x = null) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 38));
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 40));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2228,14 +2216,26 @@ class C {
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.ParenthesizedExpression);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
                             {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.ParameterList);
                                 {
-                                    N(SyntaxKind.StringKeyword);
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Parameter);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.StringKeyword);
+                                        }
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
                                 }
-                                M(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
                             }
                         }
                     }
@@ -2249,15 +2249,9 @@ class C {
         public void TestDefaultValueParenthesizedLamdaWithType2()
         {
             UsingDeclaration("Func<string, string> func0 = (string y, string x = null) => x;", options: TestOptions.RegularPreview,
-                    // (1,41): error CS1525: Invalid expression term 'string'
+                    // (1,50): error CS1065: Default values are not valid in this context.
                     // Func<string, string> func0 = (string y, string x = null) => x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(1, 41),
-                    // (1,48): error CS1026: ) expected
-                    // Func<string, string> func0 = (string y, string x = null) => x;
-                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 48),
-                    // (1,48): error CS1003: Syntax error, ',' expected
-                    // Func<string, string> func0 = (string y, string x = null) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 48));
+                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 50));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2286,32 +2280,35 @@ class C {
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.TupleExpression);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
                             {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Argument);
+                                N(SyntaxKind.ParameterList);
                                 {
-                                    N(SyntaxKind.DeclarationExpression);
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Parameter);
                                     {
                                         N(SyntaxKind.PredefinedType);
                                         {
                                             N(SyntaxKind.StringKeyword);
                                         }
-                                        N(SyntaxKind.SingleVariableDesignation);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "y");
-                                        }
+                                        N(SyntaxKind.IdentifierToken, "y");
                                     }
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
-                                {
-                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Parameter);
                                     {
-                                        N(SyntaxKind.StringKeyword);
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.StringKeyword);
+                                        }
+                                        N(SyntaxKind.IdentifierToken, "x");
                                     }
+                                    N(SyntaxKind.CloseParenToken);
                                 }
-                                M(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
                             }
                         }
                     }

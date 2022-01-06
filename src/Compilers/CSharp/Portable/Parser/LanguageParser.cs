@@ -13165,6 +13165,8 @@ tryAgain:
                 //      (a)
                 //      (a =>
                 //      (a {
+                //      (a !!    or    (a !!=
+                //      (a =
                 //
                 // In all other cases, parse out a type.
                 var peek1 = this.PeekToken(1);
@@ -13172,7 +13174,8 @@ tryAgain:
                     peek1.Kind != SyntaxKind.CloseParenToken &&
                     peek1.Kind != SyntaxKind.EqualsGreaterThanToken &&
                     peek1.Kind != SyntaxKind.OpenBraceToken &&
-                    peek1.Kind != SyntaxKind.ExclamationToken)
+                    peek1.Kind != SyntaxKind.ExclamationToken &&
+                    peek1.Kind != SyntaxKind.EqualsToken)
                 {
                     return true;
                 }
