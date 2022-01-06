@@ -220,9 +220,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public bool TryFetch(OptionKey optionKey, out object value)
         {
             // This particular serializer is a bit strange, since we have to initially read things out on the UI thread.
-            // Therefore, we refresh the values in the constructor, meaning that this should never get called for our values.
-
-            Contract.ThrowIfTrue(_supportedOptions.Contains(optionKey.Option) && _languageMap.ContainsKey(optionKey.Language));
+            // Therefore, we refresh the values in the constructor, meaning that this should never get called for our values,
+            // unless the constructor fails to fetch the values. We accept that case for now.
+            // TODO: https://github.com/dotnet/roslyn/issues/56815
 
             value = null;
             return false;
