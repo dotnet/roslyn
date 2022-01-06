@@ -960,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)node.Constructor == null ||
                 (node.Arguments.Length == 0 && !node.Type.IsStructType()) ||
-                node.Constructor.IsDefaultValueTypeConstructor(requireZeroInit: true))
+                node.Constructor.IsDefaultValueTypeConstructor())
             {
                 return ExprFactory("New", _bound.Typeof(node.Type));
             }

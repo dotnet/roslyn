@@ -1211,50 +1211,65 @@ class Program
         }
 
         [Fact]
-        public void FieldInitializers_04()
+        public void FieldInitializers_04A()
         {
             var source =
 @"#pragma warning disable 649
 using System;
 struct S1<T> { internal int X = 1; }
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1<object>().X);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S1<T> { internal int X = 1; }
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(3, 8));
+        }
+
+        [Fact]
+        public void FieldInitializers_04B()
+        {
+            var source =
+@"#pragma warning disable 649
+using System;
 struct S2<T> { internal int X = 2; public S2() { } }
 struct S3<T> { internal int X = 3; public S3(int _) { } }
 class Program
 {
     static void Main()
     {
-        Console.WriteLine(new S1<object>().X);
         Console.WriteLine(new S2<object>().X);
         Console.WriteLine(new S3<object>().X);
     }
 }";
 
             var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-@"1
-2
+@"2
 0");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size       50 (0x32)
+  // Code size       35 (0x23)
   .maxstack  1
   .locals init (S3<object> V_0)
-  IL_0000:  newobj     ""S1<object>..ctor()""
-  IL_0005:  ldfld      ""int S1<object>.X""
+  IL_0000:  newobj     ""S2<object>..ctor()""
+  IL_0005:  ldfld      ""int S2<object>.X""
   IL_000a:  call       ""void System.Console.WriteLine(int)""
-  IL_000f:  newobj     ""S2<object>..ctor()""
-  IL_0014:  ldfld      ""int S2<object>.X""
-  IL_0019:  call       ""void System.Console.WriteLine(int)""
-  IL_001e:  ldloca.s   V_0
-  IL_0020:  initobj    ""S3<object>""
-  IL_0026:  ldloc.0
-  IL_0027:  ldfld      ""int S3<object>.X""
-  IL_002c:  call       ""void System.Console.WriteLine(int)""
-  IL_0031:  ret
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""S3<object>""
+  IL_0017:  ldloc.0
+  IL_0018:  ldfld      ""int S3<object>.X""
+  IL_001d:  call       ""void System.Console.WriteLine(int)""
+  IL_0022:  ret
 }");
         }
 
         [Fact]
-        public void FieldInitializers_05()
+        public void FieldInitializers_05A()
         {
             var source =
 @"#pragma warning disable 649
@@ -1262,6 +1277,29 @@ using System;
 class A<T>
 {
     internal struct S1 { internal int X { get; } = 1; }
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new A<object>.S1().X);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,21): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                //     internal struct S1 { internal int X { get; } = 1; }
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(5, 21));
+        }
+
+        [Fact]
+        public void FieldInitializers_05B()
+        {
+            var source =
+@"#pragma warning disable 649
+using System;
+class A<T>
+{
     internal struct S2 { internal int X { get; init; } = 2; public S2() { } }
     internal struct S3 { internal int X { get; set; } = 3; public S3(int _) { } }
 }
@@ -1269,48 +1307,31 @@ class Program
 {
     static void Main()
     {
-        Console.WriteLine(new A<object>.S1().X);
         Console.WriteLine(new A<object>.S2().X);
         Console.WriteLine(new A<object>.S3().X);
     }
 }";
 
             var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput:
-@"1
-2
+@"2
 0");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size       56 (0x38)
+  // Code size       38 (0x26)
   .maxstack  2
-  .locals init (A<object>.S1 V_0,
-                A<object>.S2 V_1,
-                A<object>.S3 V_2)
-  IL_0000:  newobj     ""A<object>.S1..ctor()""
+  .locals init (A<object>.S2 V_0,
+                A<object>.S3 V_1)
+  IL_0000:  newobj     ""A<object>.S2..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
-  IL_0008:  call       ""readonly int A<object>.S1.X.get""
+  IL_0008:  call       ""readonly int A<object>.S2.X.get""
   IL_000d:  call       ""void System.Console.WriteLine(int)""
-  IL_0012:  newobj     ""A<object>.S2..ctor()""
-  IL_0017:  stloc.1
-  IL_0018:  ldloca.s   V_1
-  IL_001a:  call       ""readonly int A<object>.S2.X.get""
-  IL_001f:  call       ""void System.Console.WriteLine(int)""
-  IL_0024:  ldloca.s   V_2
-  IL_0026:  dup
-  IL_0027:  initobj    ""A<object>.S3""
-  IL_002d:  call       ""readonly int A<object>.S3.X.get""
-  IL_0032:  call       ""void System.Console.WriteLine(int)""
-  IL_0037:  ret
-}");
-            verifier.VerifyIL("A<T>.S1..ctor()",
-@"{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  stfld      ""int A<T>.S1.<X>k__BackingField""
-  IL_0007:  ret
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  dup
+  IL_0015:  initobj    ""A<object>.S3""
+  IL_001b:  call       ""readonly int A<object>.S3.X.get""
+  IL_0020:  call       ""void System.Console.WriteLine(int)""
+  IL_0025:  ret
 }");
             verifier.VerifyIL("A<T>.S2..ctor()",
 @"{
@@ -1364,9 +1385,9 @@ struct S4
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (2,8): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S1
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 8),
                 // (4,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     internal object X = null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X").WithArguments("struct field initializers", "10.0").WithLocation(4, 21),
@@ -1397,9 +1418,9 @@ struct S4
 
             var expectedDiagnostics = new[]
             {
-                // (2,8): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S1
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 8),
                 // (11,12): error CS0171: Field 'S2.Y' must be fully assigned before control is returned to the caller
                 //     public S2() { }
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.Y").WithLocation(11, 12),
@@ -1447,9 +1468,9 @@ struct S4
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (2,8): error CS0843: Auto-implemented property 'S1.Y' must be fully assigned before control is returned to the caller.
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S1
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S1").WithArguments("S1.Y").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 8),
                 // (4,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     internal object X { get; } = null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X").WithArguments("struct field initializers", "10.0").WithLocation(4, 21),
@@ -1480,9 +1501,9 @@ struct S4
 
             var expectedDiagnostics = new[]
             {
-                // (2,8): error CS0843: Auto-implemented property 'S1.Y' must be fully assigned before control is returned to the caller.
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S1
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S1").WithArguments("S1.Y").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 8),
                 // (11,12): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
                 //     public S2() { }
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(11, 12),
@@ -1531,9 +1552,9 @@ record struct S4
 
             var expectedDiagnostics = new[]
             {
-                // (2,15): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
+                // (2,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // record struct S1
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 15),
                 // (11,12): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
                 //     public S2() { }
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(11, 12),
@@ -1760,9 +1781,9 @@ record struct S
 
             var expectedDiagnostics = new[]
             {
-                // (10,15): error CS0843: Auto-implemented property 'S.P1' must be fully assigned before control is returned to the caller.
+                // (10,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // record struct S
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.P1").WithLocation(10, 15)
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(10, 15)
             };
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
@@ -1772,8 +1793,113 @@ record struct S
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
+        /// <summary>
+        /// Should still report binding errors in field initializers
+        /// even if there is no explicit constructor.
+        /// </summary>
         [Fact]
-        public void ExpressionTrees()
+        public void FieldInitializers_14()
+        {
+            var source =
+@"struct S
+{
+    private object F = Unknown();
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(1, 8),
+                // (3,20): warning CS0169: The field 'S.F' is never used
+                //     private object F = Unknown();
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("S.F").WithLocation(3, 20),
+                // (3,24): error CS0103: The name 'Unknown' does not exist in the current context
+                //     private object F = Unknown();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Unknown").WithArguments("Unknown").WithLocation(3, 24));
+        }
+
+        [Fact]
+        public void FieldInitializers_15()
+        {
+            var source =
+@"struct S0
+{
+    static S0() { }
+    public int F = 1;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S0
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S0").WithLocation(1, 8),
+                // (4,16): warning CS0649: Field 'S0.F' is never assigned to, and will always have its default value 0
+                //     public int F = 1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S0.F", "0").WithLocation(4, 16));
+        }
+
+        [Fact]
+        public void FieldInitializers_16()
+        {
+            var source =
+@"using System;
+struct S1
+{
+    static S1() { }
+    public S1() { }
+    public int F = 1;
+}
+struct S2
+{
+    static S2() { }
+    public S2(object o) { }
+    public int F = 2;
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1().F);
+        Console.WriteLine(new S2().F);
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"1
+0");
+        }
+
+        [Fact]
+        public void ExpressionTrees_01()
+        {
+            var source =
+@"#pragma warning disable 649
+using System;
+using System.Linq.Expressions;
+struct S1
+{
+    int X = 1;
+    public override string ToString() => X.ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Report(() => new S1());
+    }
+    static void Report<T>(Expression<Func<T>> e)
+    {
+        var t = e.Compile().Invoke();
+        Console.WriteLine(t);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S1
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(4, 8));
+        }
+
+        [Fact]
+        public void ExpressionTrees_02()
         {
             var source =
 @"#pragma warning disable 649
@@ -1782,11 +1908,6 @@ using System.Linq.Expressions;
 struct S0
 {
     int X;
-    public override string ToString() => X.ToString();
-}
-struct S1
-{
-    int X = 1;
     public override string ToString() => X.ToString();
 }
 struct S2
@@ -1800,7 +1921,6 @@ class Program
     static void Main()
     {
         Report(() => new S0());
-        Report(() => new S1());
         Report(() => new S2());
     }
     static void Report<T>(Expression<Func<T>> e)
@@ -1812,11 +1932,10 @@ class Program
 
             var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"0
-1
 2");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      111 (0x6f)
+  // Code size       71 (0x47)
   .maxstack  2
   IL_0000:  ldtoken    ""S0""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1824,23 +1943,15 @@ class Program
   IL_000f:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
   IL_0014:  call       ""System.Linq.Expressions.Expression<System.Func<S0>> System.Linq.Expressions.Expression.Lambda<System.Func<S0>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
   IL_0019:  call       ""void Program.Report<S0>(System.Linq.Expressions.Expression<System.Func<S0>>)""
-  IL_001e:  ldtoken    ""S1..ctor()""
+  IL_001e:  ldtoken    ""S2..ctor()""
   IL_0023:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
   IL_0028:  castclass  ""System.Reflection.ConstructorInfo""
   IL_002d:  call       ""System.Linq.Expressions.Expression[] System.Array.Empty<System.Linq.Expressions.Expression>()""
   IL_0032:  call       ""System.Linq.Expressions.NewExpression System.Linq.Expressions.Expression.New(System.Reflection.ConstructorInfo, System.Collections.Generic.IEnumerable<System.Linq.Expressions.Expression>)""
   IL_0037:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
-  IL_003c:  call       ""System.Linq.Expressions.Expression<System.Func<S1>> System.Linq.Expressions.Expression.Lambda<System.Func<S1>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
-  IL_0041:  call       ""void Program.Report<S1>(System.Linq.Expressions.Expression<System.Func<S1>>)""
-  IL_0046:  ldtoken    ""S2..ctor()""
-  IL_004b:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
-  IL_0050:  castclass  ""System.Reflection.ConstructorInfo""
-  IL_0055:  call       ""System.Linq.Expressions.Expression[] System.Array.Empty<System.Linq.Expressions.Expression>()""
-  IL_005a:  call       ""System.Linq.Expressions.NewExpression System.Linq.Expressions.Expression.New(System.Reflection.ConstructorInfo, System.Collections.Generic.IEnumerable<System.Linq.Expressions.Expression>)""
-  IL_005f:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
-  IL_0064:  call       ""System.Linq.Expressions.Expression<System.Func<S2>> System.Linq.Expressions.Expression.Lambda<System.Func<S2>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
-  IL_0069:  call       ""void Program.Report<S2>(System.Linq.Expressions.Expression<System.Func<S2>>)""
-  IL_006e:  ret
+  IL_003c:  call       ""System.Linq.Expressions.Expression<System.Func<S2>> System.Linq.Expressions.Expression.Lambda<System.Func<S2>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0041:  call       ""void Program.Report<S2>(System.Linq.Expressions.Expression<System.Func<S2>>)""
+  IL_0046:  ret
 }");
         }
 
@@ -1848,11 +1959,7 @@ class Program
         public void Retargeting_01()
         {
             var sourceA =
-@"public struct S1
-{
-    public int X = 1;
-}
-public struct S2
+@"public struct S2
 {
     public int X = 2;
     public S2() { }
@@ -1865,7 +1972,7 @@ public struct S3
             var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Mscorlib40);
             var refA = comp.ToMetadataReference();
 
-            var typeA = comp.GetMember<FieldSymbol>("S1.X").Type;
+            var typeA = comp.GetMember<FieldSymbol>("S2.X").Type;
             var corLibA = comp.Assembly.CorLibrary;
             Assert.Equal(corLibA, typeA.ContainingAssembly);
 
@@ -1875,21 +1982,19 @@ class Program
 {
     static void Main()
     {
-        Console.WriteLine(new S1().X);
         Console.WriteLine(new S2().X);
         Console.WriteLine(new S3().X);
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Mscorlib45);
             CompileAndVerify(comp, expectedOutput:
-@"1
-2
+@"2
 0");
 
             var corLibB = comp.Assembly.CorLibrary;
             Assert.NotEqual(corLibA, corLibB);
 
-            var field = comp.GetMember<FieldSymbol>("S1.X");
+            var field = comp.GetMember<FieldSymbol>("S2.X");
             Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
             var typeB = (NamedTypeSymbol)field.Type;
             Assert.Equal(corLibB, typeB.ContainingAssembly);
@@ -1953,6 +2058,25 @@ struct S0
 {
     object F0 = Utils.GetValue();
 }
+static class Utils
+{
+    internal static object? GetValue() => null;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S0
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S0").WithLocation(2, 8),
+                // (4,12): warning CS0169: The field 'S0.F0' is never used
+                //     object F0 = Utils.GetValue();
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F0").WithArguments("S0.F0").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void NullableAnalysis_03()
+        {
+            var source =
+@"#nullable enable
 struct S1
 {
     object F1 = Utils.GetValue();
@@ -1971,17 +2095,14 @@ static class Utils
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,17): warning CS8601: Possible null reference assignment.
-                //     object F0 = Utils.GetValue();
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "Utils.GetValue()").WithLocation(4, 17),
-                // (8,17): warning CS8601: Possible null reference assignment.
                 //     object F1 = Utils.GetValue();
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "Utils.GetValue()").WithLocation(8, 17),
-                // (13,17): warning CS8601: Possible null reference assignment.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "Utils.GetValue()").WithLocation(4, 17),
+                // (9,17): warning CS8601: Possible null reference assignment.
                 //     object F2 = Utils.GetValue();
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "Utils.GetValue()").WithLocation(13, 17),
-                // (14,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "Utils.GetValue()").WithLocation(9, 17),
+                // (10,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     public S2() : this(null) { }
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 24));
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 24));
         }
 
         [Fact]
@@ -2026,9 +2147,9 @@ unsafe struct S5
                 // (20,12): error CS0171: Field 'S3.X' must be fully assigned before control is returned to the caller
                 //     public S3() { }
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S3").WithArguments("S3.X").WithLocation(20, 12),
-                // (24,9): warning CS0414: The field 'S4.X' is assigned but its value is never used
-                //     int X = 4;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("S4.X").WithLocation(24, 9),
+                // (22,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // unsafe struct S4
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S4").WithLocation(22, 15),
                 // (29,9): warning CS0414: The field 'S5.X' is assigned but its value is never used
                 //     int X;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("S5.X").WithLocation(29, 9));
@@ -2131,9 +2252,12 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (20,27): error CS1736: Default parameter value for 's' must be a compile-time constant
-                //     static void G1(S1 s = new()) { }
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(20, 27),
+                // (1,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S1
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(1, 8),
+                // (3,12): warning CS0169: The field 'S1.X' is never used
+                //     object X = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("S1.X").WithLocation(3, 12),
                 // (21,27): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //     static void G2(S2 s = new()) { }
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(21, 27));
@@ -2219,6 +2343,12 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (4,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S1
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(4, 8),
+                // (6,12): warning CS0169: The field 'S1.X' is never used
+                //     object X = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("S1.X").WithLocation(6, 12),
                 // (14,23): error CS0133: The expression being assigned to 'Program.d0' must be constant
                 //     const object d0 = default(S0);
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "default(S0)").WithArguments("Program.d0").WithLocation(14, 23),
@@ -2252,7 +2382,6 @@ public interface I
 {
     S0 F0();
     S1 F1();
-    S2 F2();
 }
 public struct S0
 {
@@ -2260,10 +2389,6 @@ public struct S0
 public struct S1
 {
     public S1() { }
-}
-public struct S2
-{
-    object F = 2;
 }";
             var comp = CreateCompilationWithMscorlib40(sourceA);
             var refA = comp.EmitToImageReference(embedInteropTypes: true);
@@ -2275,17 +2400,13 @@ public struct S2
     {
         var s0 = i.F0();
         var s1 = i.F1();
-        var s2 = i.F2();
     }
 }";
             comp = CreateCompilationWithMscorlib40(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
                 // (6,18): error CS1757: Embedded interop struct 'S1' can contain only public instance fields.
                 //         var s1 = i.F1();
-                Diagnostic(ErrorCode.ERR_InteropStructContainsMethods, "i.F1()").WithArguments("S1").WithLocation(6, 18),
-                // (7,18): error CS1757: Embedded interop struct 'S2' can contain only public instance fields.
-                //         var s2 = i.F2();
-                Diagnostic(ErrorCode.ERR_InteropStructContainsMethods, "i.F2()").WithArguments("S2").WithLocation(7, 18));
+                Diagnostic(ErrorCode.ERR_InteropStructContainsMethods, "i.F1()").WithArguments("S1").WithLocation(6, 18));
         }
     }
 }

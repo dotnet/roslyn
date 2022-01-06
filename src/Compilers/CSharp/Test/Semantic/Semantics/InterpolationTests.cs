@@ -14191,6 +14191,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14210,9 +14211,9 @@ partial struct CustomHandler
                 // (5,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // s.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(5, 5),
-                // (14,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                // (15,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
                 //     public static void M(this S1 s, [InterpolatedStringHandlerArgument("")] CustomHandler c) => throw null;
-                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(14, 38)
+                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(15, 38)
             );
         }
 
@@ -14228,6 +14229,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14258,6 +14260,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14308,6 +14311,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14356,6 +14360,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14389,6 +14394,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
