@@ -49,7 +49,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             // https://github.com/dotnet/roslyn/issues/34264
             VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout);
             VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
-            PackageReference();
+            var referenceAssemblies = new ProjectUtils.PackageReference("Microsoft.NETFramework.ReferenceAssemblies.net461", "1.0.2");
+            VisualStudio.SolutionExplorer.AddPackageReference(project, referenceAssemblies);
+            VisualStudio.SolutionExplorer.RestoreNuGetPackages(project);
             base.MetadataReference();
         }
 

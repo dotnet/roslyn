@@ -62,14 +62,6 @@ End Class");
             VisualStudio.Editor.Verify.CurrentTokenType("identifier");
         }
 
-        public void PackageReference()
-        {
-            var project = new ProjectUtils.Project(ProjectName);
-            var referenceAssemblies = new ProjectUtils.PackageReference("Microsoft.NETFramework.ReferenceAssemblies", "1.0.2");
-            VisualStudio.SolutionExplorer.AddPackageReference(project, referenceAssemblies);
-            VisualStudio.SolutionExplorer.RestoreNuGetPackages(project);
-        }
-
         public virtual void ProjectReference()
         {
             var project = new ProjectUtils.Project(ProjectName);
