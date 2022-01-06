@@ -629,7 +629,7 @@
       </trans-unit>
       <trans-unit id="ERR_IncorrectNullCheckSyntax">
         <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
-        <target state="new">Incorrect parameter null checking syntax. Should be '!!'.</target>
+        <target state="translated">Неправильный синтаксис проверки значений NULL для параметра. Следует использовать "!!".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -854,7 +854,7 @@
       </trans-unit>
       <trans-unit id="ERR_MustNullCheckInImplementation">
         <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
-        <target state="new">Parameter '{0}' can only have exclamation-point null checking in implementation methods.</target>
+        <target state="translated">Для параметра "{0}" может использоваться только проверка значений NULL с восклицательным знаком в методах реализации.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -899,7 +899,7 @@
       </trans-unit>
       <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
         <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
-        <target state="new">Parameter '{0}' is a non-nullable value type and cannot be null-checked.</target>
+        <target state="translated">Параметр "{0}" является типом значения, не допускающим значения NULL, и для него невозможно выполнить проверку значения NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
@@ -934,7 +934,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullCheckingOnByRefParameter">
         <source>By-reference parameter '{0}' cannot be null-checked.</source>
-        <target state="new">By-reference parameter '{0}' cannot be null-checked.</target>
+        <target state="translated">Для параметра по ссылке "{0}" невозможно проверить значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1069,7 +1069,7 @@
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="new">A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</target>
+        <target state="translated">Конструктор, объявленный в "record struct" со списком параметров, должен содержать инициализатор "this", который вызывает первичный конструктор или явно объявленный конструктор.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1190,6 +1190,11 @@
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
         <target state="translated">Указан аргумент stdin "-", но входные данные не были перенаправлены из стандартного входного потока.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
+        <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
+        <target state="new">A 'struct' with field initializers must include an explicitly declared constructor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -1404,7 +1409,7 @@
       </trans-unit>
       <trans-unit id="IDS_ParameterNullChecking">
         <source>parameter null-checking</source>
-        <target state="new">parameter null-checking</target>
+        <target state="translated">проверка значений NULL для параметра</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1519,12 +1524,12 @@
       </trans-unit>
       <trans-unit id="WRN_LowerCaseTypeName">
         <source>The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
-        <target state="new">The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <target state="translated">Имя типа "{0}" содержит только строчные символы ASCII. Такие имена могут резервироваться для языка.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_LowerCaseTypeName_Title">
         <source>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
-        <target state="new">The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <target state="translated">Имя типа содержит только строчные символы ASCII. Такие имена могут резервироваться для языка.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
@@ -1539,22 +1544,22 @@
       </trans-unit>
       <trans-unit id="WRN_NullCheckedHasDefaultNull">
         <source>Parameter '{0}' is null-checked but is null by default.</source>
-        <target state="new">Parameter '{0}' is null-checked but is null by default.</target>
+        <target state="translated">Для параметра "{0}" выполнена проверка значения NULL, но он по умолчанию имеет значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
         <source>Parameter is null-checked but is null by default.</source>
-        <target state="new">Parameter is null-checked but is null by default.</target>
+        <target state="translated">Для параметра выполнена проверка значения NULL, но он по умолчанию имеет значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckingOnNullableType">
         <source>Nullable type '{0}' is null-checked and will throw if null.</source>
-        <target state="new">Nullable type '{0}' is null-checked and will throw if null.</target>
+        <target state="translated">Для типа "{0}", допускающего значение NULL, выполнена проверка значения NULL. Он будет выдаваться, если ему присвоено значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckingOnNullableType_Title">
         <source>Nullable type is null-checked and will throw if null.</source>
-        <target state="new">Nullable type is null-checked and will throw if null.</target>
+        <target state="translated">Для типа, допускающего значение NULL, выполнена проверка значения NULL. Он будет выдаваться, если ему присвоено значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
