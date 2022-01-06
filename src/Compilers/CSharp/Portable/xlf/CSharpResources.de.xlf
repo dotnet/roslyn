@@ -629,7 +629,7 @@
       </trans-unit>
       <trans-unit id="ERR_IncorrectNullCheckSyntax">
         <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
-        <target state="new">Incorrect parameter null checking syntax. Should be '!!'.</target>
+        <target state="translated">Falsche Syntax für die NULL-Überprüfung des Parameters. Muss „!!“ sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -854,7 +854,7 @@
       </trans-unit>
       <trans-unit id="ERR_MustNullCheckInImplementation">
         <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
-        <target state="new">Parameter '{0}' can only have exclamation-point null checking in implementation methods.</target>
+        <target state="translated">Der Parameter „{0}“ kann nur eine Ausrufezeichen-NULL-Überprüfung in den Implementierungsmethoden aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -899,7 +899,7 @@
       </trans-unit>
       <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
         <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
-        <target state="new">Parameter '{0}' is a non-nullable value type and cannot be null-checked.</target>
+        <target state="translated">Der Parameter „{0}“ ist ein Non-Nullable-Werttyp und kann nicht auf NULL-Werte überprüft werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
@@ -934,7 +934,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullCheckingOnByRefParameter">
         <source>By-reference parameter '{0}' cannot be null-checked.</source>
-        <target state="new">By-reference parameter '{0}' cannot be null-checked.</target>
+        <target state="translated">Der Verweisparameter „{0}“ kann nicht auf NULL-Werte überprüft werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1069,7 +1069,7 @@
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="new">A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</target>
+        <target state="translated">Ein in „record struct“ mit Parameterliste deklarierter Konstruktor muss über einen „this“-Initialisierer verfügen, der den primären Konstruktor oder einen explizit deklarierten Konstruktor aufruft.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1404,7 +1404,7 @@
       </trans-unit>
       <trans-unit id="IDS_ParameterNullChecking">
         <source>parameter null-checking</source>
-        <target state="new">parameter null-checking</target>
+        <target state="translated">NULL-Überprüfung des Parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1519,12 +1519,12 @@
       </trans-unit>
       <trans-unit id="WRN_LowerCaseTypeName">
         <source>The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
-        <target state="new">The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <target state="translated">Der Typname „{0}“ enthält nur ASCII-Zeichen in Kleinbuchstaben. Solche Namen können möglicherweise für die Sprache reserviert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_LowerCaseTypeName_Title">
         <source>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
-        <target state="new">The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <target state="translated">Der Typname enthält nur ASCII-Zeichen in Kleinbuchstaben. Solche Namen können möglicherweise für die Sprache reserviert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
@@ -1539,22 +1539,22 @@
       </trans-unit>
       <trans-unit id="WRN_NullCheckedHasDefaultNull">
         <source>Parameter '{0}' is null-checked but is null by default.</source>
-        <target state="new">Parameter '{0}' is null-checked but is null by default.</target>
+        <target state="translated">Der Parameter „{0}“ wurde auf NULL-Werte überprüft, ist aber standardmäßig NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
         <source>Parameter is null-checked but is null by default.</source>
-        <target state="new">Parameter is null-checked but is null by default.</target>
+        <target state="translated">Der Parameter wurde auf NULL-Werte überprüft, ist aber standardmäßig NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckingOnNullableType">
         <source>Nullable type '{0}' is null-checked and will throw if null.</source>
-        <target state="new">Nullable type '{0}' is null-checked and will throw if null.</target>
+        <target state="translated">Der Nullable-Typ „{0}“ wurde auf NULL-Werte überprüft und wird bei NULL ausgelöst.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckingOnNullableType_Title">
         <source>Nullable type is null-checked and will throw if null.</source>
-        <target state="new">Nullable type is null-checked and will throw if null.</target>
+        <target state="translated">Der Nullable-Typ wurde auf NULL-Werte überprüft und wird bei NULL ausgelöst.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
