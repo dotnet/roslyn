@@ -1026,15 +1026,31 @@ namespace Microsoft.CodeAnalysis
             new ConcurrentCache<string, INamedTypeSymbol?>(50, ReferenceEqualityComparer.Instance);
 
         private readonly ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>> _getTypesCache =
-            new ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>>(50);
+            new ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>>(50, ReferenceEqualityComparer.Instance);
 
         /// <summary>
         /// Gets the type within the compilation's assembly and all referenced assemblies (other than
         /// those that can only be referenced via an extern alias) using its canonical CLR metadata name.
+        /// This lookup follows the following order:
+        /// <list type="number">
+        /// </list>
+        /// <list type="number">
+        /// <item><description>If the type is found in the compilation's assembly, that type is returned.</description></item>
+        /// <item><description>Next the core library (the library that defines <c>System.Object</c> is searched. If the type is found there, that type is returned.</description></item>
+        /// <item><description>
+        /// Finally, all remaining referenced assemblies are searched. If one and only one type matching the provided metadata name is found, that
+        /// single type is returned. Accessibility is ignored for this check.
+        /// </description></item>
+        /// </list>
         /// </summary>
-        /// <returns>Null if the type can't be found.</returns>
+        /// <returns>Null if the type can't be found or there was an ambiguity during lookup.</returns>
         /// <remarks>
         /// Since VB does not have the concept of extern aliases, it considers all referenced assemblies.
+        /// <br/>
+        /// Because accessibility to the current assembly is ignored when searching for types that match the provided metadata name, this means if multiple referenced
+        /// assemblies define the same type symbol (as often happens when users copy well-known types from the BCL or other sources) then this API will return null,
+        /// even if all but one of those symbols would be otherwise inaccessible to user-written code in the current assembly. If it is not an error for a type to exist
+        /// in multiple referenced assemblies, consider using <see cref="GetTypesByMetadataName(string)" /> instead and filtering the results for the symbol required.
         /// </remarks>
         public INamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
@@ -1051,7 +1067,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets all types with the compilation's assembly and all referenced assemblies that have the
-        /// given canonical CLR metadata name.
+        /// given canonical CLR metadata name. Accessibility to the current assembly is ignored when
+        /// searching for matching type names.
         /// </summary>
         /// <returns>Empty array if no types match. Otherwise, all types that match the name, current assembly first if present.</returns>
         public ImmutableArray<INamedTypeSymbol> GetTypesByMetadataName(string fullyQualifiedMetadataName)
@@ -1071,12 +1088,24 @@ namespace Microsoft.CodeAnalysis
             {
                 ArrayBuilder<INamedTypeSymbol>? typesByMetadataName = null;
 
-                // Start with the current assembly, then look through all references, to mimic GetTypeByMetadataName search order.
+                // Start with the current assembly, then corlib, then look through all references, to mimic GetTypeByMetadataName search order.
 
                 addIfNotNull(Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName));
 
+                var corLib = (IAssemblySymbol)((IAssemblySymbolInternal)Assembly).CorLibrary;
+
+                if (!ReferenceEquals(corLib, Assembly))
+                {
+                    addIfNotNull(corLib.GetTypeByMetadataName(fullyQualifiedMetadataName));
+                }
+
                 foreach (var referencedAssembly in SourceModule.ReferencedAssemblySymbols)
                 {
+                    if (ReferenceEquals(referencedAssembly, corLib))
+                    {
+                        continue;
+                    }
+
                     addIfNotNull(referencedAssembly.GetTypeByMetadataName(fullyQualifiedMetadataName));
                 }
 
