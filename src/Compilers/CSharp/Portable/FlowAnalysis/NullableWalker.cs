@@ -3304,7 +3304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     slot = GetOrCreatePlaceholderSlot(node);
                     if (slot > 0)
                     {
-                        bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor(requireZeroInit: true) == true;
+                        bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor() == true;
 
                         if (EmptyStructTypeCache.IsTrackableStructType(type))
                         {
