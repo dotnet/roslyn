@@ -233,16 +233,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             internal Resolver(IList<ModuleData> allModuleData)
             {
+
                 foreach (var module in allModuleData)
                 {
-                    string name = module.FullName;
                     var image = module.Image;
+                    imagesByName.Add(module.FullName, image);
 
-                    // TODO2 figure out why we need both the simple name and full name
-                    imagesByName.Add(name, image);
-                    if (module.SimpleName != name)
+                    // Note: although the signature in ResolverBase.ResolveCore calls the parameter "simpleName"
+                    //  ILVerify can also pass in full names. So we do allow resolving both.
+                    if (module.SimpleName != module.FullName)
                     {
-                        imagesByName.Add(module.SimpleName, image);
+                        if (imagesByName.ContainsKey(module.SimpleName))
+                        {
+                            imagesByName.Remove(module.SimpleName);
+                            imagesByName.Add(module.SimpleName, default);
+                        }
+                        else
+                        {
+                            imagesByName.Add(module.SimpleName, image);
+                        }
                     }
                 }
             }
@@ -251,10 +260,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 if (imagesByName.TryGetValue(name, out var image))
                 {
+                    if (image.IsDefault)
+                    {
+                        throw new Exception($"ILVerify was not able to resolve a module named '{name}' because multiple exist in this compilation");
+                    }
                     return new PEReader(image);
                 }
 
-                return null;
+                throw new Exception($"ILVerify was not able to resolve a module named '{name}'");
             }
         }
 
@@ -276,14 +289,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
                 else
                 {
-                    // auto-detect which module is the "corlib"
+                    // ILVerify requires a "system" module to be identified (see ILVerify.Verifier.ThrowMissingSystemModule)
+                    // So we auto-detect a candidate module
                     foreach (var module in _allModuleData)
                     {
-                        var name = module.SimpleName;
+                        var name = module.FullName;
                         var metadataReader = resolver.Resolve(name).GetMetadataReader();
                         if (metadataReader.AssemblyReferences.Count == 0)
                         {
                             verifier.SetSystemModuleName(new AssemblyName(name));
+                            break;
                         }
                     }
                 }
