@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <remarks>
         /// expandItemsAvailable is true when expanded items are returned or can be provided upon request.
         /// </remarks>
-        internal virtual async Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
+        internal virtual async Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
              Document document,
              int caretPosition,
              CompletionOptions options,
@@ -146,7 +146,8 @@ namespace Microsoft.CodeAnalysis.Completion
              CancellationToken cancellationToken = default)
         {
 #pragma warning disable RS0030 // Do not use banned APIs
-            var completionList = await GetCompletionsAsync(document, caretPosition, trigger, roles, options.ToSet(document.Project.Language), cancellationToken).ConfigureAwait(false);
+            var completionList = await GetCompletionsAsync(document, caretPosition, trigger, roles,
+                options.ToSet(document.Project.Language), cancellationToken).ConfigureAwait(false) ?? CompletionList.Empty;
             return (completionList, false);
 #pragma warning restore
         }

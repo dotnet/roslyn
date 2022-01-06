@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return base.GetBetterItem(item, existingItem);
         }
 
-        internal override Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
+        internal override Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
             Document document,
             int caretPosition,
             CompletionOptions options,

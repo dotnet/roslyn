@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Returns a document with frozen partial semantic unless we already have a complete compilation available.
-        /// Getting full semantic could be costly in certains scenarios and would cause significant delay in completion. 
+        /// Getting full semantic could be costly in certain scenarios and would cause significant delay in completion. 
         /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
         /// we get into this transient state.
         /// </summary>
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private protected async Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
+        private protected async Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
             Document document,
             int caretPosition,
             CompletionTrigger trigger,
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // want to show any completion.
             if (!triggeredCompletionContexts.Any(cc => cc.Items.Count > 0))
             {
-                return (null, expandItemsAvailableFromTriggeredProviders);
+                return (CompletionList.Empty, expandItemsAvailableFromTriggeredProviders);
             }
 
             // All the contexts should be non-empty or have a suggestion item.
