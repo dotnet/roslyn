@@ -1192,6 +1192,11 @@
         <target state="translated">L'argument stdin '-' est spécifié, mais l'entrée n'a pas été redirigée à partir du flux d'entrée standard.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
+        <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
+        <target state="new">A 'struct' with field initializers must include an explicitly declared constructor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
         <target state="translated">Le modèle est inaccessible. Il a déjà été traité par un bras précédent de l'expression switch ou la mise en correspondance est impossible.</target>

@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
-    internal class WatsonTraceListener : TraceListener
+    internal class TestTraceListener : TraceListener
     {
         public override void Fail(string? message, string? detailMessage)
         {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         internal static void Install()
         {
             Trace.Listeners.Clear();
-            Trace.Listeners.Add(new WatsonTraceListener());
+            Trace.Listeners.Add(new TestTraceListener());
         }
     }
 }
