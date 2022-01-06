@@ -14,12 +14,13 @@ steps:
     targetArgument: $(System.DefaultWorkingDirectory)
     optionsUEPATH: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
 
-- task: BinSkim@3
+- task: BinSkim@4
   displayName: Run BinSkim
   inputs:
     InputType: Basic
     Function: analyze
-    AnalyzeTarget: $(BinSkimTargets)
+    TargetPattern: guardianGlob
+    AnalyzeTargetGlob: $(BinSkimTargets)
 
 - task: CopyFiles@2
   displayName: Collect APIScan inputs
