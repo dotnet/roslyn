@@ -2057,7 +2057,7 @@ class C {
         }
 
         [Fact]
-        public void TestDefaultValueParenthesizedLamda1()
+        public void TestDefaultValueParenthesizedLambda1()
         {
             UsingDeclaration("Func<string, string> func0 = (x = null) => x;", options: TestOptions.RegularPreview,
                     // (1,41): error CS1003: Syntax error, ',' expected
@@ -2117,7 +2117,7 @@ class C {
         }
 
         [Fact]
-        public void TestDefaultValueParenthesizedLamda2()
+        public void TestDefaultValueParenthesizedLambda2()
         {
             UsingDeclaration("Func<string, string> func0 = (y, x = null) => x;", options: TestOptions.RegularPreview,
                     // (1,44): error CS1003: Syntax error, ',' expected
@@ -2188,7 +2188,7 @@ class C {
         }
 
         [Fact]
-        public void TestDefaultValueParenthesizedLamdaWithType1()
+        public void TestDefaultValueParenthesizedLambdaWithType1()
         {
             UsingDeclaration("Func<string, string> func0 = (string x = null) => x;", options: TestOptions.RegularPreview,
                     // (1,31): error CS1525: Invalid expression term 'string'
@@ -2246,7 +2246,7 @@ class C {
         }
 
         [Fact]
-        public void TestDefaultValueParenthesizedLamdaWithType2()
+        public void TestDefaultValueParenthesizedLambdaWithType2()
         {
             UsingDeclaration("Func<string, string> func0 = (string y, string x = null) => x;", options: TestOptions.RegularPreview,
                     // (1,41): error CS1525: Invalid expression term 'string'
@@ -2385,7 +2385,7 @@ class C {
         }
 
         [Fact]
-        public void TestNullCheckedDefaultValueParenthesizedLamda1()
+        public void TestNullCheckedDefaultValueParenthesizedLambda1()
         {
             UsingDeclaration("Func<string, string> func0 = (x!! = null) => x;", options: TestOptions.RegularPreview,
                     // (1,43): error CS1003: Syntax error, ',' expected
@@ -2453,7 +2453,7 @@ class C {
         }
 
         [Fact]
-        public void TestNullCheckedDefaultValueParenthesizedLamda2()
+        public void TestNullCheckedDefaultValueParenthesizedLambda2()
         {
             UsingDeclaration("Func<string, string> func0 = (y, x!! = null) => x;", options: TestOptions.RegularPreview,
                     // (1,46): error CS1003: Syntax error, ',' expected
@@ -2532,7 +2532,7 @@ class C {
         }
 
         [Fact]
-        public void TestNullCheckedDefaultValueParenthesizedLamdaWithType1()
+        public void TestNullCheckedDefaultValueParenthesizedLambdaWithType1()
         {
             UsingDeclaration("Func<string, string> func0 = (string x!! = null) => x;", options: TestOptions.RegularPreview,
                     // (1,31): error CS1525: Invalid expression term 'string'
@@ -2590,7 +2590,7 @@ class C {
         }
 
         [Fact]
-        public void TestNullCheckedDefaultValueParenthesizedLamdaWithType2()
+        public void TestNullCheckedDefaultValueParenthesizedLambdaWithType2()
         {
             UsingDeclaration("Func<string, string> func0 = (string y, string x!! = null) => x;", options: TestOptions.RegularPreview,
                 // (1,41): error CS1525: Invalid expression term 'string'
@@ -2722,7 +2722,7 @@ class C {
         }
 
         [Fact]
-        public void TestNullCheckedSpaceBetweenParenthesizedLamda1()
+        public void TestNullCheckedSpaceBetweenParenthesizedLambda1()
         {
             UsingDeclaration("Func<string, string> func0 = (x! !) => x;", options: TestOptions.RegularPreview,
                     // (1,32): error CS1003: Syntax error, '!!' expected
@@ -2783,7 +2783,7 @@ class C {
         }
 
         [Fact]
-        public void TestNullCheckedSpaceBetweenParenthesizedLamda2()
+        public void TestNullCheckedSpaceBetweenParenthesizedLambda2()
         {
             UsingDeclaration("Func<string, string> func0 = (y, x! !) => x;", options: TestOptions.RegularPreview,
                     // (1,35): error CS1003: Syntax error, '!!' expected
@@ -2849,7 +2849,7 @@ class C {
         }
 
         [Fact]
-        public void TestNullCheckedSpaceBetweenLamdaWithType1()
+        public void TestNullCheckedSpaceBetweenLambdaWithType1()
         {
             UsingDeclaration("Func<string, string> func0 = (string x! !) => x;", options: TestOptions.RegularPreview,
                     // (1,39): error CS1003: Syntax error, '!!' expected
@@ -2914,7 +2914,7 @@ class C {
         }
 
         [Fact]
-        public void TestNullCheckedSpaceBetweenLamdaWithType2()
+        public void TestNullCheckedSpaceBetweenLambdaWithType2()
         {
             UsingDeclaration("Func<string, string> func0 = (string y, string x! !) => x;", options: TestOptions.RegularPreview,
                     // (1,49): error CS1003: Syntax error, '!!' expected
