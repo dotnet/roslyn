@@ -185,6 +185,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             private ExpressionSyntax CastIfChangeInRuntimeRepresentation(ExpressionSyntax node)
             {
+                // If the existing return/assign had an conversion involved that changed the runtime representation of
+                // the type (or value), then insert that same cast explicitly in the final result.  This is needed as
+                // switch statements do not use best-common-type, but switch expressions can use it.  We don't want the
+                // original conversion to be lost because a new best-common-type conversion is added.
                 var typeInfo = _semanticModel.GetTypeInfo(node, _cancellationToken);
                 if (typeInfo.ConvertedType is not null &&
                     typeInfo.Type is not null &&
@@ -253,8 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             private SwitchStatementSyntax AddCastIfNecessary(SwitchStatementSyntax node)
             {
-                // If the swith statement expression is being implicitly converted then we need to explicitly cast the expression
-                // before rewriting as a switch expression
+                // If the switch statement expression is being implicitly converted then we need to explicitly cast the
+                // expression before rewriting as a switch expression
                 var expressionType = _semanticModel.GetSymbolInfo(node.Expression).Symbol.GetSymbolType();
                 var expressionConvertedType = _semanticModel.GetTypeInfo(node.Expression).ConvertedType;
 
