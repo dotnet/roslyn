@@ -3513,7 +3513,7 @@ parse_member_name:;
             if (opToken.Kind == SyntaxKind.GreaterThanToken && tk.Kind == SyntaxKind.GreaterThanToken)
             {
                 // no trailing trivia and no leading trivia
-                if (opToken.GetTrailingTriviaWidth() == 0 && tk.GetLeadingTriviaWidth() == 0)
+                if (NoTriviaBetween(opToken, tk))
                 {
                     var opToken2 = this.EatToken();
                     opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), SyntaxKind.GreaterThanGreaterThanToken, opToken2.GetTrailingTrivia());
@@ -12976,7 +12976,9 @@ tryAgain:
                     }
 
                     if (arrow != null)
+                    {
                         arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
+                    }
 
                     var parameter = _syntaxFactory.Parameter(
                         attributeLists: default, modifiers: default, type: null, identifier, exclamationExclamationToken, @default: null);
