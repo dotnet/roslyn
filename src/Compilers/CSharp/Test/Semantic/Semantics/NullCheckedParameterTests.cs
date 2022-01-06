@@ -140,48 +140,48 @@ partial class C
     != null) { }
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                    // (5,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                    //     void M0(string name !!=null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(5, 20),
-                    // (6,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                    //     void M1(string name! !=null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(6, 20),
-                    // (6,24): error CS1003: Syntax error, '!!' expected
-                    //     void M1(string name! !=null) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(6, 24),
-                    // (7,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                    //     void M2(string name!!= null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(7, 20),
-                    // (8,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                    //     void M3(string name ! !=null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(8, 20),
-                    // (8,25): error CS1003: Syntax error, '!!' expected
-                    //     void M3(string name ! !=null) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(8, 25),
-                    // (9,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                    //     void M4(string name ! ! =null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(9, 20),
-                    // (9,25): error CS1003: Syntax error, '!!' expected
-                    //     void M4(string name ! ! =null) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(9, 25),
-                    // (10,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                    //     void M5(string name! ! =null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(10, 20),
-                    // (10,24): error CS1003: Syntax error, '!!' expected
-                    //     void M5(string name! ! =null) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(10, 24),
-                    // (11,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                    //     void M6(string name! != null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(11, 20),
-                    // (11,24): error CS1003: Syntax error, '!!' expected
-                    //     void M6(string name! != null) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(11, 24),
-                    // (12,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                    //     void M7(string name!
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(12, 20),
-                    // (12,24): error CS1003: Syntax error, '!!' expected
-                    //     void M7(string name!
-                    Diagnostic(ErrorCode.ERR_SyntaxError, @"!
+                // (5,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M0(string name !!=null) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(5, 20),
+                // (6,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M1(string name! !=null) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(6, 20),
+                // (6,24): error CS1003: Syntax error, '!!' expected
+                //     void M1(string name! !=null) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(6, 24),
+                // (7,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M2(string name!!= null) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(7, 20),
+                // (8,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M3(string name ! !=null) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(8, 20),
+                // (8,25): error CS1003: Syntax error, '!!' expected
+                //     void M3(string name ! !=null) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(8, 25),
+                // (9,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M4(string name ! ! =null) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(9, 20),
+                // (9,25): error CS1003: Syntax error, '!!' expected
+                //     void M4(string name ! ! =null) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(9, 25),
+                // (10,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M5(string name! ! =null) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(10, 20),
+                // (10,24): error CS1003: Syntax error, '!!' expected
+                //     void M5(string name! ! =null) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(10, 24),
+                // (11,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M6(string name! != null) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(11, 20),
+                // (11,24): error CS1003: Syntax error, '!!' expected
+                //     void M6(string name! != null) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(11, 24),
+                // (12,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
+                //     void M7(string name!
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(12, 20),
+                // (12,24): error CS1003: Syntax error, '!!' expected
+                //     void M7(string name!
+                Diagnostic(ErrorCode.ERR_SyntaxError, @"!
  ").WithArguments("!!", "!").WithLocation(12, 24));
         }
 
