@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var symbol = obj as SourceParameterSymbolBase;
-            return (object)symbol != null
+            return symbol is not null
                 && symbol.Ordinal == this.Ordinal
                 && symbol._containingSymbol.Equals(_containingSymbol, compareKind);
         }
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _containingSymbol; }
         }
 
-        public sealed override AssemblySymbol ContainingAssembly
+        public sealed override AssemblySymbol? ContainingAssembly
         {
             get { return _containingSymbol.ContainingAssembly; }
         }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -78,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _underlyingParameter.AddSynthesizedAttributes(moduleBuilder, ref attributes);
         }
 
-        internal sealed override ConstantValue ExplicitDefaultConstantValue
+        internal sealed override ConstantValue? ExplicitDefaultConstantValue
         {
             get { return _underlyingParameter.ExplicitDefaultConstantValue; }
         }
