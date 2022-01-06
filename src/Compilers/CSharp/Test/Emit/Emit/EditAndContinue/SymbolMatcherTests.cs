@@ -1688,7 +1688,7 @@ public record R
         }
 
         [Fact]
-        public void SynthesizedDelegates()
+        public void SynthesizedDelegates_01()
         {
             var source0 = @"
 using System;
@@ -1759,6 +1759,57 @@ class C
             Assert.Equal("<>9__0_0", mappedField1.Name);
             Assert.Equal("<>9__0_1", mappedField2.Name);
             Assert.Equal("<>9__0_2", mappedField3.Name);
+        }
+
+        [Fact]
+        public void SynthesizedDelegates_02()
+        {
+            var source0 =
+@"unsafe class Program
+{
+    static void Main()
+    {
+        var d1 = (int* p) => *p;
+    }
+}";
+            var source1 =
+@"unsafe class Program
+{
+    static void Main()
+    {
+        var d1 = (int* p) => 1;
+    }
+}";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.UnsafeDebugDll);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll);
+
+            var peRef0 = compilation0.EmitToImageReference();
+            var peAssemblySymbol0 = (PEAssemblySymbol)CreateCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
+            var peModule0 = (PEModuleSymbol)peAssemblySymbol0.Modules[0];
+
+            var reader0 = peModule0.Module.MetadataReader;
+            var decoder0 = new MetadataDecoder(peModule0);
+
+            PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0, out _, out var anonymousDelegates0);
+            Assert.Equal("<>f__AnonymousDelegate0", anonymousDelegates0["<>f__AnonymousDelegate0"].Name);
+            Assert.Equal(1, anonymousDelegates0.Count);
+
+            var testData = new CompilationTestData();
+            compilation1.EmitToArray(testData: testData);
+            var peAssemblyBuilder = (PEAssemblyBuilder)testData.Module;
+
+            var type = compilation1.GetMember<NamedTypeSymbol>("Program");
+            var displayClass = peAssemblyBuilder.GetSynthesizedTypes(type).Single();
+            Assert.Equal("<>c", displayClass.Name);
+
+            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var field0 = displayClass.GetFields(emitContext).Single(f => f.Name == "<>9__0_0");
+            Assert.Equal("<>f__AnonymousDelegate0", field0.GetType(emitContext).ToString());
+
+            var matcher = new CSharpSymbolMatcher(null, null, anonymousDelegates0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+            var field1 = (Cci.IFieldDefinition)matcher.MapDefinition(field0);
+            Assert.Equal("<>9__0_0", field1.Name);
         }
     }
 }
