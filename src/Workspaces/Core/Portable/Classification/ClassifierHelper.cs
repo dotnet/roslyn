@@ -198,10 +198,19 @@ namespace Microsoft.CodeAnalysis.Classification
                 // Take the semantic part if it's just 'text'.  We want to keep it if
                 // the semantic classifier actually produced an interesting result 
                 // (as opposed to it just being a 'gap' classification).
-                var part = replacementIndex >= 0 && !IsClassifiedAsText(semanticParts[replacementIndex])
-                    ? semanticParts[replacementIndex]
-                    : syntaxPartAndSpan;
-                finalParts.Add(part);
+                if (replacementIndex >= 0 && !IsClassifiedAsText(semanticParts[replacementIndex]))
+                {
+                    finalParts.Add(semanticParts[replacementIndex]);
+                }
+                // We might already have a semantic part for the given TextSpan, in
+                // which case we don't want to add the syntactic part unless it's an
+                // additive type name (e.g. `static`).
+                else if (finalParts.Count == 0 ||
+                    !finalParts[^1].TextSpan.Equals(syntaxPartAndSpan.TextSpan) ||
+                    ClassificationTypeNames.AdditiveTypeNames.Contains(syntaxPartAndSpan.ClassificationType))
+                {
+                    finalParts.Add(syntaxPartAndSpan);
+                }
 
                 if (replacementIndex >= 0)
                 {
