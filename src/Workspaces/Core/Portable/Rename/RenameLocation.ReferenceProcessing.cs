@@ -65,9 +65,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 // backing field.
                 if (symbol.Kind == SymbolKind.Parameter)
                 {
-                    if (symbol.ContainingSymbol.IsKind(SymbolKind.Method))
+                    if (symbol.ContainingSymbol is IMethodSymbol containingMethod)
                     {
-                        var containingMethod = (IMethodSymbol)symbol.ContainingSymbol;
                         if (containingMethod.AssociatedSymbol is IPropertySymbol)
                         {
                             var associatedPropertyOrEvent = (IPropertySymbol)containingMethod.AssociatedSymbol;
