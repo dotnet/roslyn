@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis
         /// This lookup follows the following order:
         /// <list type="number">
         /// <item><description>If the type is found in the compilation's assembly, that type is returned.</description></item>
-        /// <item><description>Next the core library (the library that defines <c>System.Object</c> is searched. If the type is found there, that type is returned.</description></item>
+        /// <item><description>Next, the core library (the library that defines <c>System.Object</c>) is searched. If the type is found there, that type is returned.</description></item>
         /// <item><description>
         /// Finally, all remaining referenced assemblies are searched. If one and only one type matching the provided metadata name is found, that
         /// single type is returned. Accessibility is ignored for this check.
@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Since VB does not have the concept of extern aliases, it considers all referenced assemblies.
         /// <br/>
-        /// Because accessibility to the current assembly is ignored when searching for types that match the provided metadata name, this means if multiple referenced
+        /// Because accessibility to the current assembly is ignored when searching for types that match the provided metadata name, if multiple referenced
         /// assemblies define the same type symbol (as often happens when users copy well-known types from the BCL or other sources) then this API will return null,
         /// even if all but one of those symbols would be otherwise inaccessible to user-written code in the current assembly. If it is not an error for a type to exist
         /// in multiple referenced assemblies, consider using <see cref="GetTypesByMetadataName(string)" /> instead and filtering the results for the symbol required.
