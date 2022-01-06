@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
@@ -97,7 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 var switchExpression = Rewriter.Rewrite(
                    switchStatement, semanticModel, declaratorToRemoveTypeOpt, nodeToGenerate,
                    shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
-                   generateDeclaration: declaratorToRemoveLocationOpt is object);
+                   generateDeclaration: declaratorToRemoveLocationOpt is not null,
+                   cancellationToken);
 
                 editor.ReplaceNode(switchStatement, switchExpression.WithAdditionalAnnotations(Formatter.Annotation));
 
