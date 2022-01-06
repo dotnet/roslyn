@@ -78,14 +78,19 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var textView = await GetActiveTextViewAsync(cancellationToken);
+            return await IsUseSuggestionModeOnAsync(forDebuggerTextView: IsDebuggerTextView(textView), cancellationToken);
+        }
 
-            var subjectBuffer = textView.GetBufferContainingCaret();
-            Assumes.Present(subjectBuffer);
+        public async Task<bool> IsUseSuggestionModeOnAsync(bool forDebuggerTextView, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var options = textView.Options.GlobalOptions;
+            var editorOptionsFactory = await GetComponentModelServiceAsync<IEditorOptionsFactoryService>(cancellationToken);
+            var options = editorOptionsFactory.GlobalOptions;
+
             EditorOptionKey<bool> optionKey;
             bool defaultOption;
-            if (IsDebuggerTextView(textView))
+            if (forDebuggerTextView)
             {
                 optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInDebuggerCompletionOptionName);
                 defaultOption = true;
@@ -102,19 +107,24 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             return options.GetOptionValue(optionKey);
-
-            static bool IsDebuggerTextView(IWpfTextView textView)
-                => textView.Roles.Contains("DEBUGVIEW");
         }
 
         public async Task SetUseSuggestionModeAsync(bool value, CancellationToken cancellationToken)
         {
-            if (await IsUseSuggestionModeOnAsync(cancellationToken) != value)
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var textView = await GetActiveTextViewAsync(cancellationToken);
+            await SetUseSuggestionModeAsync(forDebuggerTextView: IsDebuggerTextView(textView), value, cancellationToken);
+        }
+
+        public async Task SetUseSuggestionModeAsync(bool forDebuggerTextView, bool value, CancellationToken cancellationToken)
+        {
+            if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
             {
                 var dispatcher = await GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
                 ErrorHandler.ThrowOnFailure(dispatcher.Exec(typeof(VSConstants.VSStd2KCmdID).GUID, (uint)VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, IntPtr.Zero, IntPtr.Zero));
 
-                if (await IsUseSuggestionModeOnAsync(cancellationToken) != value)
+                if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
                 {
                     throw new InvalidOperationException($"{WellKnownCommandNames.Edit_ToggleCompletionMode} did not leave the editor in the expected state.");
                 }
@@ -126,14 +136,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 // integration tests run slowly.
                 await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                var view = await GetActiveTextViewAsync(cancellationToken);
-                var options = view.Options.GlobalOptions;
+                var editorOptionsFactory = await GetComponentModelServiceAsync<IEditorOptionsFactoryService>(cancellationToken);
+                var options = editorOptionsFactory.GlobalOptions;
                 options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, false);
 
                 var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
                 options.SetOptionValue(latencyGuardOptionKey, false);
             }
         }
+
+        private static bool IsDebuggerTextView(ITextView textView)
+            => textView.Roles.Contains("DEBUGVIEW");
 
         #region Navigation bars
 
