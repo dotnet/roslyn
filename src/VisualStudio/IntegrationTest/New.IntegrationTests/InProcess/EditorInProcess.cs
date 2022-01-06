@@ -13,14 +13,12 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -32,24 +30,17 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Xunit;
 using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
 using IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 
-namespace Roslyn.VisualStudio.IntegrationTests.InProcess
+namespace Microsoft.VisualStudio.Extensibility.Testing
 {
-    internal class EditorInProcess : InProcComponent
+    internal partial class EditorInProcess
     {
-        public EditorInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
-        public async Task<IWpfTextView> GetActiveTextViewAsync(CancellationToken cancellationToken)
-            => (await GetActiveTextViewHostAsync(cancellationToken)).TextView;
-
         public async Task SetTextAsync(string text, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -696,33 +687,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
-        }
-
-        private async Task<IWpfTextViewHost> GetActiveTextViewHostAsync(CancellationToken cancellationToken)
-        {
-            // The active text view might not have finished composing yet, waiting for the application to 'idle'
-            // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text
-            // view.
-            await WaitForApplicationIdleAsync(cancellationToken);
-
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var activeVsTextView = (IVsUserData)await GetActiveVsTextViewAsync(cancellationToken);
-
-            ErrorHandler.ThrowOnFailure(activeVsTextView.GetData(DefGuidList.guidIWpfTextViewHost, out var wpfTextViewHost));
-
-            return (IWpfTextViewHost)wpfTextViewHost;
-        }
-
-        private async Task<IVsTextView> GetActiveVsTextViewAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var vsTextManager = await GetRequiredGlobalServiceAsync<SVsTextManager, IVsTextManager>(cancellationToken);
-
-            ErrorHandler.ThrowOnFailure(vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView));
-
-            return vsTextView;
         }
     }
 }
