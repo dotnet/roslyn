@@ -126,7 +126,6 @@ partial class C
         public void NullCheckedBadSyntax()
         {
             var source = @"
-#pragma warning disable CS8893  
 partial class C
 {
     void M0(string name !!=""a"") { }
@@ -160,7 +159,6 @@ partial class C
         public void CommentTriviaBetweenExclamations()
         {
             var source = @"
-#pragma warning disable CS8893  
 partial class C
 {
     void M0(string name !/*comment1*/
@@ -171,6 +169,24 @@ partial class C
                     // (5,25): error CS1003: Syntax error, '!!' expected
                     //     void M0(string name !/*comment1*/
                     Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(5, 25)
+                    );
+        }
+
+        [Fact]
+        public void CommentTriviaSurroundingNotEquals()
+        {
+            var source = @"
+partial class C
+{
+    void M0(string name
+        /*comment1*/!=/*comment2*/
+        ""a"") { }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (4,12): error CS1003: Syntax error, '!!' expected
+                    //     void M0(string name
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("!!", "!").WithLocation(4, 12)
                     );
         }
 
