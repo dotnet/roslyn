@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -190,7 +191,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 // Therefore, we set both optional parameters to false.
                 var spans = await ClassifierHelper.GetClassifiedSpansAsync(
                     document, textSpan, options, cancellationToken, removeAdditiveSpans: false, fillInClassifiedSpanGaps: false).ConfigureAwait(false);
-                classifiedSpans.AddRange(spans);
+
+                // The spans returned to us may include some empty spans, which we don't care about.
+                var nonEmptySpans = spans.Where(s => !s.TextSpan.IsEmpty);
+                classifiedSpans.AddRange(nonEmptySpans);
             }
             else
             {
@@ -356,6 +360,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // 3. Token length
             var tokenLength = originalTextSpan.Length;
+            Contract.ThrowIfFalse(tokenLength > 0);
 
             // We currently only have one modifier (static). The logic below will need to change in the future if other
             // modifiers are added in the future.
