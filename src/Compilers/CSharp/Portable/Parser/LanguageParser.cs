@@ -11671,17 +11671,21 @@ tryAgain:
                         return false;
                     }
 
+                    // eat the parameter name.
                     if (this.IsTrueIdentifier())
                     {
-                        // eat the identifier
                         this.EatToken();
                     }
-                    if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken
-                        && this.PeekToken(1).Kind == SyntaxKind.ExclamationToken)
-                    {
-                        this.EatToken();
-                        this.EatToken();
-                    }
+
+                    // eat a !! if present.
+                    this.ParseParameterNullCheck(out _, out var equalsToken);
+                    equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
+
+                    // If we have an `=` then parse out a default value.  Note: this is not legal, but this allows us to
+                    // to be resilient to the user writing this so we don't go completely off the rails.
+                    if (equalsToken != null)
+                        this.ParseExpressionCore();
+
                     switch (this.CurrentToken.Kind)
                     {
                         case SyntaxKind.CommaToken:
@@ -13105,10 +13109,23 @@ tryAgain:
             var identifier = this.ParseIdentifierToken();
             ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
 
-            // 'equalsToken' should always be null here. Otherwise, it means while we were scanning
-            // for potential lambdas, we saw an `!!=` or `!=` sign in the parameter list and allowed
-            // it. However, that should never happen as ScanParenthesizedLambda only allows !! only.
-            Debug.Assert(equalsToken == null);
+            // If we didn't already consume an equals sign as part of !!=, then try to scan one out now. Note: this is
+            // not legal code.  But we detect it so that we can give the user a good message, and so we don't completely
+            // off the rails.
+            //
+            // Note: we add the `= value` as skipped trivia to either the identifier or `!!` (if we have the latter).
+            // This allows us to handle this code without ever showing it the binding phases.  We could consider
+            // actually binding this in the future if it would be helpful and if we're ok paying the testing cost of
+            // checking this at the semantic layers.
+            equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
+
+            if (equalsToken != null)
+            {
+                equalsToken = AddError(equalsToken, ErrorCode.ERR_DefaultValueNotAllowed);
+
+                ref var nodeToAttachTo = ref exclamationExclamationToken != null ? ref exclamationExclamationToken : ref identifier;
+                nodeToAttachTo = AddTrailingSkippedSyntax(nodeToAttachTo, _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()));
+            }
 
             var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, exclamationExclamationToken, @default: null);
             _pool.Free(modifiers);
