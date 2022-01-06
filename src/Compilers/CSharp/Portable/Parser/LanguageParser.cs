@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
@@ -4493,11 +4494,11 @@ tryAgain:
         /// </summary>
         private SyntaxToken? MergeAdjacent(SyntaxToken t1, SyntaxToken t2, SyntaxKind kind)
         {
-            if (t1.GetTrailingTriviaWidth() == 0 && t2.GetLeadingTriviaWidth() == 0)
+            if (NoTriviaBetween(t1, t2))
                 return SyntaxFactory.Token(t1.GetLeadingTrivia(), kind, t2.GetTrailingTrivia());
 
             var sb = PooledStringBuilder.GetInstance();
-            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
+            var writer = new StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
             t1.WriteTo(writer, leading: false, trailing: true);
             t2.WriteTo(writer, leading: true, trailing: false);
             var text = sb.ToStringAndFree();
@@ -11587,17 +11588,17 @@ tryAgain:
 
             bool isParenVarCommaSyntax()
             {
-                var next = this.PeekToken(1);
+                var token1 = this.PeekToken(1);
 
                 // Ensure next token is a variable
-                if (next.Kind == SyntaxKind.IdentifierToken)
+                if (token1.Kind == SyntaxKind.IdentifierToken)
                 {
-                    if (!this.IsInQuery || !IsTokenQueryContextualKeyword(next))
+                    if (!this.IsInQuery || !IsTokenQueryContextualKeyword(token1))
                     {
                         // Variable must be directly followed by a comma if not followed by exclamation
-                        var after = this.PeekToken(2);
+                        var token2 = this.PeekToken(2);
                         // ( x , [...]
-                        if (after.Kind == SyntaxKind.CommaToken)
+                        if (token2.Kind == SyntaxKind.CommaToken)
                         {
                             return true;
                         }
@@ -11605,7 +11606,7 @@ tryAgain:
                         var token3 = this.PeekToken(3);
                         // ( x!! , [...]
                         // https://github.com/dotnet/roslyn/issues/58335: https://github.com/dotnet/roslyn/pull/46520#discussion_r466650228
-                        if (after.Kind == SyntaxKind.ExclamationToken
+                        if (token2.Kind == SyntaxKind.ExclamationToken
                             && token3.Kind == SyntaxKind.ExclamationToken
                             && this.PeekToken(4).Kind == SyntaxKind.CommaToken)
                         {
@@ -11928,27 +11929,18 @@ tryAgain:
             var token2 = this.PeekToken(2);
             var token3 = this.PeekToken(3);
 
-            // x!! =>
-            //
-            // Def a lambda (though possibly has errors).
-            if (token1.Kind == SyntaxKind.ExclamationToken
-                && token2.Kind == SyntaxKind.ExclamationToken
-                && token3.Kind == SyntaxKind.EqualsGreaterThanToken)
-            {
-                return true;
-            }
+            if ((token1.Kind, token2.Kind, token3.Kind) is
 
-            // Broken case but error will be added in lambda function (!=>).
-            if (token1.Kind == SyntaxKind.ExclamationEqualsToken
-                && token2.Kind == SyntaxKind.GreaterThanToken)
-            {
-                return true;
-            }
+                // x!! =>
+                //
+                // Def a lambda (though possibly has errors).
+                (SyntaxKind.ExclamationToken, SyntaxKind.ExclamationToken, SyntaxKind.EqualsGreaterThanToken)
 
-            // Broken case but error will be added in lambda function (!!=>).
-            if (token1.Kind == SyntaxKind.ExclamationToken
-                && token2.Kind == SyntaxKind.ExclamationEqualsToken
-                && token3.Kind == SyntaxKind.GreaterThanToken)
+                // Broken case but error will be added in lambda function (!=>).
+                or (SyntaxKind.ExclamationEqualsToken, SyntaxKind.GreaterThanToken, _)
+
+                // Broken case but error will be added in lambda function (!!=>).
+                or (SyntaxKind.ExclamationToken, SyntaxKind.ExclamationEqualsToken, SyntaxKind.GreaterThanToken))
             {
                 return true;
             }
@@ -12960,6 +12952,9 @@ tryAgain:
                 }
                 else
                 {
+                    // Unparenthesized lambda case
+                    // x => ...
+                    // x!! => ...
                     var identifier = this.ParseIdentifierToken();
 
                     ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
@@ -13110,9 +13105,9 @@ tryAgain:
             var identifier = this.ParseIdentifierToken();
             ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
 
-            // This should never be non-null.  That indicates while we were scanning for potential lambdas, we saw an
-            // `!!=` or `!=` sign in the parameter list and allowed it. However, that should never happen as
-            // ScanParenthesizedLambda only allows !! only.
+            // 'equalsToken' should always be null here. Otherwise, it means while we were scanning
+            // for potential lambdas, we saw an `!!=` or `!=` sign in the parameter list and allowed
+            // it. However, that should never happen as ScanParenthesizedLambda only allows !! only.
             Debug.Assert(equalsToken == null);
 
             var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, exclamationExclamationToken, @default: null);

@@ -182,7 +182,7 @@ partial class C
                 // (12,24): error CS1003: Syntax error, '!!' expected
                 //     void M7(string name!
                 Diagnostic(ErrorCode.ERR_SyntaxError, @"!
- ").WithArguments("!!", "!").WithLocation(12, 24));
+ ".NormalizeLineEndings()).WithArguments("!!", "!").WithLocation(12, 24));
         }
 
         [Fact]
