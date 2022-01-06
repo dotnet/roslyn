@@ -233,41 +233,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             internal Resolver(IList<ModuleData> allModuleData)
             {
-
                 foreach (var module in allModuleData)
                 {
-                    var image = module.Image;
-                    imagesByName.Add(module.FullName, image);
-
-                    // Note: although the signature in ResolverBase.ResolveCore calls the parameter "simpleName"
-                    //  ILVerify can also pass in full names. So we do allow resolving both.
-                    if (module.SimpleName != module.FullName)
+                    string name = module.SimpleName;
+                    if (imagesByName.ContainsKey(module.SimpleName))
                     {
-                        if (imagesByName.ContainsKey(module.SimpleName))
-                        {
-                            imagesByName.Remove(module.SimpleName);
-                            imagesByName.Add(module.SimpleName, default);
-                        }
-                        else
-                        {
-                            imagesByName.Add(module.SimpleName, image);
-                        }
+                        throw new Exception($"Multiple modules named '{name}' were found");
                     }
+                    imagesByName.Add(name, module.Image);
                 }
             }
 
-            protected override PEReader ResolveCore(string name)
+            protected override PEReader ResolveCore(string simpleName)
             {
-                if (imagesByName.TryGetValue(name, out var image))
+                if (imagesByName.TryGetValue(simpleName, out var image))
                 {
                     if (image.IsDefault)
                     {
-                        throw new Exception($"ILVerify was not able to resolve a module named '{name}' because multiple exist in this compilation");
+                        throw new Exception($"ILVerify was not able to resolve a module named '{simpleName}' because multiple exist in this compilation");
                     }
                     return new PEReader(image);
                 }
 
-                throw new Exception($"ILVerify was not able to resolve a module named '{name}'");
+                throw new Exception($"ILVerify was not able to resolve a module named '{simpleName}'");
             }
         }
 
@@ -285,15 +273,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var mscorlibModules = _allModuleData.Where(m => m.SimpleName == "mscorlib").ToArray();
                 if (mscorlibModules.Length == 1)
                 {
-                    verifier.SetSystemModuleName(new AssemblyName(mscorlibModules[0].FullName));
+                    verifier.SetSystemModuleName(new AssemblyName(mscorlibModules[0].SimpleName));
                 }
                 else
                 {
                     // ILVerify requires a "system" module to be identified (see ILVerify.Verifier.ThrowMissingSystemModule)
                     // So we auto-detect a candidate module
+                    // This comes in handy in tests that use TestBase.AacorlibRef for instance.
                     foreach (var module in _allModuleData)
                     {
-                        var name = module.FullName;
+                        var name = module.SimpleName;
                         var metadataReader = resolver.Resolve(name).GetMetadataReader();
                         if (metadataReader.AssemblyReferences.Count == 0)
                         {
@@ -304,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 // Main module is the first one
-                var result = verifier.Verify(resolver.Resolve(_allModuleData[0].FullName));
+                var result = verifier.Verify(resolver.Resolve(_allModuleData[0].SimpleName));
                 if (result.Count() == 0)
                 {
                     if ((verification & Verification.FailsIlVerify) == 0)

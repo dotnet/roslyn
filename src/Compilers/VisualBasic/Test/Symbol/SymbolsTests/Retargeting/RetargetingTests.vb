@@ -943,7 +943,8 @@ End Namespace
 
             'Retargetted - should result in No additional Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe,
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsIlVerify,
                                                  expectedOutput:=<![CDATA[Success
 ]]>)
             Main_Retarget.VerifyDiagnostics()
@@ -1307,7 +1308,8 @@ End Namespace
 
             '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe,
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsIlVerify,
                                                  expectedOutput:=<![CDATA[Success
 ]]>)
             Main_Retarget.VerifyDiagnostics()
@@ -1693,7 +1695,8 @@ Imports System
 
             '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe,
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsIlVerify,
                                                  expectedOutput:=<![CDATA[11
 12
 13
@@ -1894,7 +1897,8 @@ MethodOverload(Base)
 
             '//Retargetted - should result in No Errors also same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe,
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsIlVerify,
                                                  expectedOutput:=<![CDATA[Sharedmethod
 method(Other)
 MethodOverload(Other)
@@ -2172,7 +2176,8 @@ Success]]>)
 
             '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe,
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsIlVerify,
                                                  expectedOutput:=<![CDATA[Success
 Success
 Success
@@ -2365,7 +2370,8 @@ test
 
             '//Retargetted - should result in No Errors also
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe,
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsIlVerify,
                                                  expectedOutput:=<![CDATA[1
 test
 ]]>)
@@ -2681,12 +2687,14 @@ End Class
 </compilation>
             ''//All on same FX - should result in No Errors
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(sourceLibV1, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
-            Dim main_NoRetarget = CompileAndVerify(sourceMain, references:={referenceLibrary_Compilation.ToMetadataReference})
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim main_NoRetarget = CompileAndVerify(sourceMain, references:={referenceLibrary_Compilation.ToMetadataReference}, verify:=Verification.FailsIlVerify)
             main_NoRetarget.VerifyDiagnostics()
 
             ''//Retargetted - should result in No Errors also
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(sourceMain, references:={RetargetReference}, options:=TestOptions.ReleaseExe)
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(sourceMain, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsIlVerify)
             main_NoRetarget.VerifyDiagnostics()
         End Sub
 
@@ -3081,7 +3089,8 @@ End Namespace
 
             '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe,
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsIlVerify,
                                                  expectedOutput:=<![CDATA[Success
 ]]>)
             Main_Retarget.VerifyDiagnostics()
