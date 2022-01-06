@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
             var candidateName = selectedType.Name + "Base";
             var defaultTypeName = NameGenerator.GenerateUniqueName(candidateName, name => !conflictingTypeNames.Contains(name));
 
-            var containingNamespaceDisplay = selectedType.ContainingNamespace!.IsGlobalNamespace
+            var containingNamespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
                 : selectedType.ContainingNamespace.ToDisplayString();
 

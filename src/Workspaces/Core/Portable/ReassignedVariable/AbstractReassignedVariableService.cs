@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                         return true;
                     }
                 }
-                else if (parameter.ContainingSymbol?.Name == WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)
+                else if (parameter.ContainingSymbol!.Name == WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)
                 {
                     // If this is a parameter of the top-level-main function, then the entire span of the compilation
                     // unit is what we need to examine.
