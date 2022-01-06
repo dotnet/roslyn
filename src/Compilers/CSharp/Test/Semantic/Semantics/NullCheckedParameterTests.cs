@@ -137,21 +137,21 @@ partial class C
     void M6(string name! != ""a"") { }
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (6,24): error CS1003: Syntax error, '!!' expected
+                // (5,24): error CS1003: Syntax error, '!!' expected
                 //     void M1(string name! !="a") { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!", "!").WithLocation(6, 24),
-                // (8,25): error CS1003: Syntax error, '!!' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!", "!").WithLocation(5, 24),
+                // (7,25): error CS1003: Syntax error, '!!' expected
                 //     void M3(string name ! !="a") { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!", "!").WithLocation(8, 25),
-                // (9,25): error CS1003: Syntax error, '!!' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!", "!").WithLocation(7, 25),
+                // (8,25): error CS1003: Syntax error, '!!' expected
                 //     void M4(string name ! ! ="a") { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(9, 25),
-                // (10,24): error CS1003: Syntax error, '!!' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(8, 25),
+                // (9,24): error CS1003: Syntax error, '!!' expected
                 //     void M5(string name! ! ="a") { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(10, 24),
-                // (11,24): error CS1003: Syntax error, '!!' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(9, 24),
+                // (10,24): error CS1003: Syntax error, '!!' expected
                 //     void M6(string name! != "a") { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!", "!").WithLocation(11, 24)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!", "!").WithLocation(10, 24)
                 );
         }
 
@@ -166,9 +166,9 @@ partial class C
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (5,25): error CS1003: Syntax error, '!!' expected
+                    // (4,25): error CS1003: Syntax error, '!!' expected
                     //     void M0(string name !/*comment1*/
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(5, 25)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(4, 25)
                     );
         }
 
