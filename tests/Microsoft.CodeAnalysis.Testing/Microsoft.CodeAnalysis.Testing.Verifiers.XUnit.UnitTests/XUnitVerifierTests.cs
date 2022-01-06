@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             var actual = new int[1];
             var verifier = new XUnitVerifier();
             var exception = Assert.ThrowsAny<EmptyException>(() => verifier.Empty("someCollectionName", actual));
-            Assert.Same(actual, exception.Collection);
-            Assert.Equal($"'someCollectionName' is not empty{Environment.NewLine}Assert.Empty() Failure{Environment.NewLine}Collection: [0]", exception.Message);
+            Assert.Equal($"'someCollectionName' is not empty{Environment.NewLine}Assert.Empty() Failure{Environment.NewLine}Expected: <empty>{Environment.NewLine}Actual:   [0]", exception.Message);
         }
 
         [Fact]
@@ -26,8 +25,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             var actual = new int[1];
             var verifier = new XUnitVerifier().PushContext("Known Context");
             var exception = Assert.ThrowsAny<EmptyException>(() => verifier.Empty("someCollectionName", actual));
-            Assert.Same(actual, exception.Collection);
-            Assert.Equal($"Context: Known Context{Environment.NewLine}'someCollectionName' is not empty{Environment.NewLine}Assert.Empty() Failure{Environment.NewLine}Collection: [0]", exception.Message);
+            Assert.Equal($"Context: Known Context{Environment.NewLine}'someCollectionName' is not empty{Environment.NewLine}Assert.Empty() Failure{Environment.NewLine}Expected: <empty>{Environment.NewLine}Actual:   [0]", exception.Message);
         }
 
         [Fact]
