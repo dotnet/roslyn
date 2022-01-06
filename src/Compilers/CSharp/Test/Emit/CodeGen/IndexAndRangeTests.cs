@@ -3765,5 +3765,27 @@ class C
 125
 ").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void PatternIndexArrayAndAwait_08()
+        {
+            var src = @"
+class C
+{
+    static async System.Threading.Tasks.Task M1((int x, int y)[] arr)
+    {
+        (arr[1..][^1].x, arr[1..][0].y) = (123, await System.Threading.Tasks.Task.FromResult(124));
+    }
+
+    static async System.Threading.Tasks.Task Main()
+    {
+        var arr = new (int x, int y)[5];
+        await M1(arr);
+        System.Console.WriteLine(""Done"");
+    }
+}
+";
+            CompileAndVerifyWithIndexAndRange(src, expectedOutput: "Done").VerifyDiagnostics();
+        }
     }
 }
