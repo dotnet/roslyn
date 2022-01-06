@@ -338,7 +338,7 @@ class C
             var service = CompletionService.GetService(document);
             var options = CompletionOptions.Default;
             var displayOptions = SymbolDescriptionOptions.Default;
-            var (completions, _) = await service.GetCompletionsInternalAsync(document, position, options);
+            var completions = await service.GetCompletionsAsync(document, position, options);
 
             var item = completions.Items.First(i => i.DisplayText == "Beep");
             var edit = testDocument.GetTextBuffer().CreateEdit();

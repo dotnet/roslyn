@@ -250,19 +250,6 @@ namespace Microsoft.CodeAnalysis.Completion
             return providers.FirstOrDefault(p => p.Name == providerName);
         }
 
-        public override async Task<CompletionList?> GetCompletionsAsync(
-            Document document,
-            int caretPosition,
-            CompletionTrigger trigger,
-            ImmutableHashSet<string>? roles,
-            OptionSet? options,
-            CancellationToken cancellationToken)
-        {
-            var completionOptions = CompletionOptions.From(options ?? document.Project.Solution.Options, document.Project.Language);
-            var (completionList, _) = await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, trigger, roles, completionOptions, cancellationToken).ConfigureAwait(false);
-            return completionList;
-        }
-
         /// <summary>
         /// Returns a document with frozen partial semantic unless we already have a complete compilation available.
         /// Getting full semantic could be costly in certain scenarios and would cause significant delay in completion. 
@@ -279,12 +266,24 @@ namespace Microsoft.CodeAnalysis.Completion
             return await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private protected async Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
+        public override async Task<CompletionList?> GetCompletionsAsync(
             Document document,
             int caretPosition,
             CompletionTrigger trigger,
             ImmutableHashSet<string>? roles,
+            OptionSet? options,
+            CancellationToken cancellationToken)
+        {
+            var completionOptions = CompletionOptions.From(options ?? document.Project.Solution.Options, document.Project.Language);
+            return await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, completionOptions, trigger, roles, cancellationToken).ConfigureAwait(false);
+        }
+
+        private protected async Task<CompletionList> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
+            Document document,
+            int caretPosition,
             CompletionOptions options,
+            CompletionTrigger trigger,
+            ImmutableHashSet<string>? roles,
             CancellationToken cancellationToken)
         {
             // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
@@ -350,7 +349,8 @@ namespace Microsoft.CodeAnalysis.Completion
             // want to show any completion.
             if (!triggeredCompletionContexts.Any(cc => cc.Items.Count > 0))
             {
-                return (CompletionList.Empty, expandItemsAvailableFromTriggeredProviders);
+                return CompletionList.Empty
+                    .WithExpandItemsAvailable(expandItemsAvailableFromTriggeredProviders);
             }
 
             // All the contexts should be non-empty or have a suggestion item.
@@ -362,8 +362,8 @@ namespace Microsoft.CodeAnalysis.Completion
 
             if (exclusiveContexts.Any())
             {
-                return (MergeAndPruneCompletionLists(exclusiveContexts, defaultItemSpan, options, isExclusive: true),
-                    expandItemsAvailableFromTriggeredProviders);
+                return MergeAndPruneCompletionLists(exclusiveContexts, defaultItemSpan, options, isExclusive: true)
+                    .WithExpandItemsAvailable(expandItemsAvailableFromTriggeredProviders);
             }
 
             // Shouldn't be any exclusive completion contexts at this point.
@@ -388,8 +388,8 @@ namespace Microsoft.CodeAnalysis.Completion
             // groups are properly ordered based on the original providers.
             allContexts = allContexts.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
 
-            return (MergeAndPruneCompletionLists(allContexts, defaultItemSpan, options, isExclusive: false),
-                (expandItemsAvailableFromTriggeredProviders || expandItemsAvailableFromAugmentingProviders));
+            return MergeAndPruneCompletionLists(allContexts, defaultItemSpan, options, isExclusive: false)
+                .WithExpandItemsAvailable(expandItemsAvailableFromTriggeredProviders || expandItemsAvailableFromAugmentingProviders);
         }
 
         private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,

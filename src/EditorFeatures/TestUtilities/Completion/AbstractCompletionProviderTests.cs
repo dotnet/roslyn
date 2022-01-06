@@ -133,15 +133,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags);
 
-        internal async Task<CompletionList> GetCompletionListAsync(
+        internal Task<CompletionList> GetCompletionListAsync(
             CompletionService service,
             Document document,
             int position,
             RoslynCompletion.CompletionTrigger triggerInfo,
             CompletionOptions? options = null)
-        {
-            return (await service.GetCompletionsInternalAsync(document, position, options ?? GetCompletionOptions(), triggerInfo, GetRoles(document)).ConfigureAwait(false)).completionList;
-        }
+            => service.GetCompletionsAsync(document, position, options ?? GetCompletionOptions(), triggerInfo, GetRoles(document));
 
         private protected async Task CheckResultsAsync(
             Document document, int position, string expectedItemOrNull,

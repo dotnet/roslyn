@@ -44,25 +44,32 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// An optional <see cref="CompletionItem"/> that appears selected in the list presented to the user during suggestion mode.
-        /// Suggestion mode disables autoselection of items in the list, giving preference to the text typed by the user unless a specific item is selected manually.
+        /// Suggestion mode disables auto-selection of items in the list, giving preference to the text typed by the user unless a specific item is selected manually.
         /// Specifying a <see cref="SuggestionModeItem"/> is a request that the completion host operate in suggestion mode.
         /// The item specified determines the text displayed and the description associated with it unless a different item is manually selected.
         /// No text is ever inserted when this item is completed, leaving the text the user typed instead.
         /// </summary>
         public CompletionItem? SuggestionModeItem { get; }
 
+        /// <summary>
+        /// Indicate if expand items are returned or can be provided upon request (if expand items are disabled via options)
+        /// </summary>
+        internal bool ExpandItemsAvailable { get; }
+
         private CompletionList(
             TextSpan defaultSpan,
             ImmutableArray<CompletionItem> items,
             CompletionRules? rules,
             CompletionItem? suggestionModeItem,
-            bool isExclusive)
+            bool isExclusive,
+            bool expandItemsAvailable)
         {
             Span = defaultSpan;
-
             Items = items.NullToEmpty();
             Rules = rules ?? CompletionRules.Default;
             SuggestionModeItem = suggestionModeItem;
+            ExpandItemsAvailable = expandItemsAvailable;
+
             _isExclusive = isExclusive;
 
             foreach (var item in Items)
@@ -85,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionRules? rules = null,
             CompletionItem? suggestionModeItem = null)
         {
-            return Create(defaultSpan, items, rules, suggestionModeItem, isExclusive: false);
+            return Create(defaultSpan, items, rules, suggestionModeItem, isExclusive: false, expandItemsAvailable: false);
         }
 
         internal static CompletionList Create(
@@ -93,32 +100,36 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<CompletionItem> items,
             CompletionRules? rules,
             CompletionItem? suggestionModeItem,
-            bool isExclusive)
+            bool isExclusive,
+            bool expandItemsAvailable = false)
         {
-            return new CompletionList(defaultSpan, items, rules, suggestionModeItem, isExclusive);
+            return new CompletionList(defaultSpan, items, rules, suggestionModeItem, isExclusive, expandItemsAvailable);
         }
 
         private CompletionList With(
             Optional<TextSpan> span = default,
             Optional<ImmutableArray<CompletionItem>> items = default,
             Optional<CompletionRules> rules = default,
-            Optional<CompletionItem> suggestionModeItem = default)
+            Optional<CompletionItem> suggestionModeItem = default,
+            Optional<bool> expandItemsAvailable = default)
         {
             var newSpan = span.HasValue ? span.Value : Span;
             var newItems = items.HasValue ? items.Value : Items;
             var newRules = rules.HasValue ? rules.Value : Rules;
             var newSuggestionModeItem = suggestionModeItem.HasValue ? suggestionModeItem.Value : SuggestionModeItem;
+            var newExpandItemsAvailable = expandItemsAvailable.HasValue ? expandItemsAvailable.Value : ExpandItemsAvailable;
 
             if (newSpan == Span &&
                 newItems == Items &&
                 newRules == Rules &&
-                newSuggestionModeItem == SuggestionModeItem)
+                newSuggestionModeItem == SuggestionModeItem &&
+                newExpandItemsAvailable == ExpandItemsAvailable)
             {
                 return this;
             }
             else
             {
-                return Create(newSpan, newItems, newRules, newSuggestionModeItem);
+                return Create(newSpan, newItems, newRules, newSuggestionModeItem, _isExclusive, newExpandItemsAvailable);
             }
         }
 
@@ -151,11 +162,17 @@ namespace Microsoft.CodeAnalysis.Completion
             => With(suggestionModeItem: suggestionModeItem);
 
         /// <summary>
+        /// Creates a copy of this <see cref="CompletionList"/> with the <see cref="ExpandItemsAvailable"/> property changed.
+        /// </summary>
+        internal CompletionList WithExpandItemsAvailable(bool expandItemsAvailable)
+            => With(expandItemsAvailable: expandItemsAvailable);
+
+        /// <summary>
         /// The default <see cref="CompletionList"/> returned when no items are found to populate the list.
         /// </summary>
         public static readonly CompletionList Empty = new(
             default, default, CompletionRules.Default,
-            suggestionModeItem: null, isExclusive: false);
+            suggestionModeItem: null, isExclusive: false, expandItemsAvailable: false);
 
         internal TestAccessor GetTestAccessor()
             => new(this);

@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 };
             }
 
-            var (completionList, expandItemsAvailable) = await completionService.GetCompletionsInternalAsync(
+            var completionList = await completionService.GetCompletionsAsync(
                 document, triggerLocation, options, roslynTrigger, _roles, cancellationToken).ConfigureAwait(false);
 
             var filterSet = new FilterSet();
@@ -299,10 +299,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             // It's possible that some providers can provide expanded items, in which case we will need to show expander as unselected.
-            var filters = filterSet.GetFilterStatesInSet(addUnselectedExpander: expandItemsAvailable);
+            var filters = filterSet.GetFilterStatesInSet(addUnselectedExpander: completionList.ExpandItemsAvailable);
             var items = itemsBuilder.ToImmutableAndFree();
 
-            AddPropertiesToSession(session, completionList, triggerLocation, isExpanded, expandItemsAvailable);
+            AddPropertiesToSession(session, completionList, triggerLocation, isExpanded, completionList.ExpandItemsAvailable);
 
             if (completionList.SuggestionModeItem is null)
                 return new(items, suggestionItemOptions: null, selectionHint: AsyncCompletionData.InitialSelectionHint.RegularSelection, filters);

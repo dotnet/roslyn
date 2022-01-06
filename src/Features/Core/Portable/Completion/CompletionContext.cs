@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -41,19 +42,17 @@ namespace Microsoft.CodeAnalysis.Completion
         [Obsolete("Not used anymore. Use CompletionListSpan instead.", error: true)]
         public TextSpan DefaultItemSpan { get; }
 
-#pragma warning disable RS0030 // Do not used banned APIs
         /// <summary>
         /// The span of the document the completion list corresponds to.  It will be set initially to
         /// the result of <see cref="CompletionService.GetDefaultCompletionListSpan"/>, but it can
-        /// be overwritten during <see cref="CompletionService.GetCompletionsAsync"/>.  The purpose
-        /// of the span is to:
+        /// be overwritten during <see cref="CompletionService.GetCompletionsAsync(Document, int, CompletionOptions, CompletionTrigger, ImmutableHashSet{string}, CancellationToken)"/>.
+        /// The purpose of the span is to:
         ///     1. Signify where the completions should be presented.
         ///     2. Designate any existing text in the document that should be used for filtering.
         ///     3. Specify, by default, what portion of the text should be replaced when a completion 
         ///        item is committed.
         /// </summary>
         public TextSpan CompletionListSpan { get; set; }
-#pragma warning restore RS0030 // Do not used banned APIs
 
         /// <summary>
         /// The triggering action that caused completion to be started.

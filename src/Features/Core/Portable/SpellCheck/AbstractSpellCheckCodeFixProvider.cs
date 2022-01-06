@@ -121,9 +121,9 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 TargetTypedCompletionFilter = false
             };
 
-            var (completionList, _) = await service.GetCompletionsInternalAsync(
+            var completionList = await service.GetCompletionsAsync(
                 document, nameToken.SpanStart, options, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (completionList == null)
+            if (completionList.Items.IsEmpty)
             {
                 return;
             }
