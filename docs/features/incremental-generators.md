@@ -87,7 +87,7 @@ The currently available providers are:
 - ParseOptionsProvider
 
 *Note*: there is no provider for accessing syntax nodes. This is handled
-in a slightly different way. See [SyntaxProviderFactory](#syntaxproviderfactory) for details.
+in a slightly different way. See [SyntaxValueProvider](#syntaxvalueprovider) for details.
 
 A value provider can be thought of as a 'box' that holds the value itself. An
 execution pipeline does not access the values in a value provider directly.
@@ -639,7 +639,112 @@ and parse options pairs are skipped and their previously computed value are
 used. If the single value changes, such as the parse options in the example,
 then the transformation is executed for every tuple.
 
-### SyntaxProviderFactory
+### SyntaxValueProvider
+
+Syntax Nodes are not available directly through a value provider. Instead, a
+generator author uses the special `SyntaxValueProvider` (provided via the
+`IncrementalGeneratorInitializationContext.SyntaxProvider`) to create a
+dedicated input node that instead exposes a sub-set of the syntax they are
+interested in. The syntax provider is specialized in this way to achieve a
+desired level of performance.
+
+**CreateSyntaxProvider**:
+
+Currently the provider exposes a single method `CreateSyntaxProvider` that
+allows the author to construct an input node.
+
+```csharp
+    public readonly struct SyntaxValueProvider
+    {
+        public IncrementalValuesProvider<T> CreateSyntaxProvider<T>(Func<SyntaxNode, CancellationToken, bool> predicate, Func<GeneratorSyntaxContext, CancellationToken, T> transform);
+    }
+```
+
+Note how this takes _two_ lambda parameters: one that examines a `SyntaxNode` in
+isolation, and a second one that can then use the `GeneratorSyntaxContext` to
+access a semantic model and transform the node for downstream usage.
+
+It is because of this split that performance can be achieved: as the driver is
+aware of which nodes are chosen for examination, it can safely skip the first
+`predicate` lambda when a syntax tree remains unchanged. The driver will still
+re-run the second `transform` lambda even for nodes in unchanged files, as a
+change in one file can impact the semantic meaning of a node in another file.
+
+Consider the following syntax trees:
+
+```csharp
+// file1.cs
+public class Class1
+{
+    public int Method1() => 0;
+}
+
+// file2.cs
+public class Class2
+{
+    public Class1 Method2() => null;
+}
+
+// file3.cs
+public class Class3 {}
+```
+
+As an author I can make an input node that extracts the return type information 
+
+```csharp
+initContext.RegisterExecutionPipeline(context =>
+{
+    // create a syntax provider that extracts the return type kind of method symbols
+    var returnKinds = context.SyntaxProvider.CreateSyntaxProvider((n, _) => n is MethodDeclarationSyntax,
+                                                                  (n, _) => ((IMethodSymbol)n.SemanticModel.GetDeclaredSymbol(n.Node)).ReturnType.Kind);
+}
+```
+
+Initially the `predicate` will run for all syntax nodes, and select the two
+`MethodDeclarationSyntax` nodes `Method1()` and `Method2()`. These are then
+passed to the `transform` where the semantic model is used to obtain the method
+symbol and extract the kind of the return type for the method. `returnKinds`
+will contain two values, both `NamedType`.
+
+Now imagine that `file3.cs` is edited:
+
+```csharp
+// file3.cs
+public class Class3 {
+    public int field;
+}
+```
+
+The `predicate` will only be run for syntax nodes inside `file3.cs`, and will
+not return any as it still doesn't contain any method symbols. The `transform`
+however will still be run again for the two methods from `Class1` and `Class2`.
+
+To see why it was necessary to re-run the `transform` consider the following
+edit to `file1.cs` where we change the classes name:
+
+```csharp
+// file1.cs
+public class Class4
+{
+    public int Method1() => 0;
+}
+```
+
+The `predicate` will be re-run for `file1.cs` as it has changed, and will pick
+out the method symbol `Method1()` again.  Next, because the `transform` is
+re-run for _all_ the methods, the return type kind for `Method2()` is correctly
+changed to `Error` as `Class1` no longer exists.
+
+Note that we didn't need to run the `predicate` over for nodes in `file2.cs`
+even though they referenced something in `file1.cs`. Because the first check is
+purely _syntactic_ we can be sure the results for `file2.cs` would be the same.
+
+While it may seem unfortunate that the driver must run the `transform` for all
+selected syntax nodes, if it did not it could up producing incorrect data
+due to cross file dependencies. Because the initial syntactic check
+allows the driver to substantially filter the number of nodes on which the
+semantic checks have to be re-run, significantly improved performance
+characteristics are still observed when editing a syntax tree.
 
 ## Outputting values
 
