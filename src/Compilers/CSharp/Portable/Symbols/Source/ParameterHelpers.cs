@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool IsValidDefaultValue(BoundObjectCreationExpression expression)
         {
-            return expression.Constructor.IsDefaultValueTypeConstructor(requireZeroInit: true) && expression.InitializerExpressionOpt == null;
+            return expression.Constructor.IsDefaultValueTypeConstructor() && expression.InitializerExpressionOpt == null;
         }
 
         internal static MethodSymbol FindContainingGenericMethod(Symbol symbol)
