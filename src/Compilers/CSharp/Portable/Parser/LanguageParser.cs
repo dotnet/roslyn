@@ -4426,8 +4426,8 @@ tryAgain:
 #nullable enable
 
         /// <summary>
-        /// Parses out the <c>!!</c> following once the type and identifier has been parsed out already.  If the token
-        /// is followed by <c>!!=</c> or <c>! !=</c>, then the final equals will be returned out through <paramref
+        /// Parses the <c>!!</c> following a parameter type and identifier.  If the token
+        /// is followed by <c>!!=</c> or <c>! !=</c>, then the final equals will be returned through <paramref
         /// name="equalsToken"/>.
         /// </summary>
         private void ParseParameterNullCheck(
