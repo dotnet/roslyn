@@ -1905,7 +1905,7 @@ namespace Microsoft.CodeAnalysis
             {
                 uint arrayLen = sig.ReadUInt32();
 
-                if (!ValidateMetadataArrayLength(arrayLen))
+                if (IsArrayNull(arrayLen))
                 {
                     value = default;
                     return false;
@@ -1930,17 +1930,17 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private static bool ValidateMetadataArrayLength(uint length)
+        private static bool IsArrayNull(uint length)
         {
             // Null arrays are represented in metadata by a length of 0xFFFF_FFFF. See ECMA 335 II.23.3.
             const uint NullArray = 0xFFFF_FFFF;
 
             if (length == NullArray)
             {
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         internal static bool CrackBoolAndStringArrayInAttributeValue(out BoolAndStringArrayData value, ref BlobReader sig)
@@ -2058,7 +2058,7 @@ namespace Microsoft.CodeAnalysis
             {
                 uint arrayLen = sig.ReadUInt32();
 
-                if (!ValidateMetadataArrayLength(arrayLen))
+                if (IsArrayNull(arrayLen))
                 {
                     value = default;
                     return false;
@@ -2087,7 +2087,7 @@ namespace Microsoft.CodeAnalysis
             {
                 uint arrayLen = sig.ReadUInt32();
 
-                if (!ValidateMetadataArrayLength(arrayLen))
+                if (IsArrayNull(arrayLen))
                 {
                     value = default;
                     return false;
