@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             internal readonly bool HasFixedTypes;
 
+            /// <summary>
+            /// A delegate type where the parameter types and return type
+            /// of the delegate signature are type parameters.
+            /// </summary>
             internal AnonymousDelegateTemplateSymbol(
                 AnonymousTypeManager manager,
                 string name,
@@ -84,6 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            /// <summary>
+            /// A delegate type where at least one of the parameter types or return type
+            /// of the delegate signature is a fixed type not a type parameter.
+            /// </summary>
             internal AnonymousDelegateTemplateSymbol(AnonymousTypeManager manager, AnonymousTypeDescriptor typeDescr, ImmutableArray<TypeParameterSymbol> typeParametersToSubstitute)
                 : base(manager, typeDescr.Location)
             {

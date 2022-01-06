@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 filterOpt: s => changes.RequiresCompilation(s.GetISymbol()),
                 cancellationToken: cancellationToken))
             {
-                if (!ContainsAnonymousDelegates(definitionMap, baseline.AnonymousDelegatesWithFixedTypes, moduleBeingBuilt.GetAnonymousDelegatesWithFixedTypes()))
+                if (!ContainsPreviousAnonymousDelegates(definitionMap, baseline.AnonymousDelegatesWithFixedTypes, moduleBeingBuilt.GetAnonymousDelegatesWithFixedTypes()))
                 {
                     diagnostics.Add(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged, Location.None);
                 }
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 changedTypes: changedTypes.ToImmutableAndFree());
         }
 
-        private static bool ContainsAnonymousDelegates(
+        private static bool ContainsPreviousAnonymousDelegates(
             CSharpDefinitionMap definitionMap,
             IReadOnlyDictionary<string, AnonymousTypeValue> previousDictionary,
             IReadOnlyDictionary<string, AnonymousTypeValue> currentDictionary)

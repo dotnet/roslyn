@@ -380,6 +380,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert((ordinal == 0) == (initialBaseline == null));
             Debug.Assert((ordinal == 0) == (anonymousTypeMap == null));
             Debug.Assert((ordinal == 0) == (anonymousDelegates == null));
+            Debug.Assert((ordinal == 0) == (anonymousDelegatesWithFixedTypes == null));
             Debug.Assert(encId != module.GetModuleVersionId());
             Debug.Assert(debugInformationProvider != null);
             Debug.Assert(localSignatureProvider != null);

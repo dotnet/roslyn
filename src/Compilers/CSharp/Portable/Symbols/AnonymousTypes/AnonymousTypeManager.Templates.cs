@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If all parameter types and return type are valid type arguments, construct
             // the delegate type from a generic template. Otherwise, use a non-generic template.
-            if (!allValidTypeArguments(typeDescr))
+            if (allValidTypeArguments(typeDescr))
             {
                 var fields = typeDescr.Fields;
                 bool returnsVoid = fields.Last().Type.IsVoidType();
@@ -247,11 +247,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (!isValidTypeArgument(fields[i]))
                     {
-                        return true;
+                        return false;
                     }
                 }
                 var returnParameter = fields[n - 1];
-                return !returnParameter.Type.IsVoidType() && !isValidTypeArgument(returnParameter);
+                return returnParameter.Type.IsVoidType() || isValidTypeArgument(returnParameter);
             }
 
             static bool isValidTypeArgument(AnonymousTypeField field)
@@ -310,8 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static int compareTypeParameters(TypeParameterSymbol x, TypeParameterSymbol y)
             {
-                var xOwner = x.ContainingSymbol!;
-                var yOwner = y.ContainingSymbol!;
+                var xOwner = x.ContainingSymbol;
+                var yOwner = y.ContainingSymbol;
                 if (xOwner.Equals(yOwner))
                 {
                     return x.Ordinal - y.Ordinal;
