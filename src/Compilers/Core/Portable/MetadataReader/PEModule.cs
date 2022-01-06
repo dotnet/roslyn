@@ -1940,13 +1940,6 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            // II.23.3 says that the length must be a int32 if not null. There can't be negative lengths,
-            // so if it's greater than int.MaxValue then we cannot interpret this array.
-            if (length > int.MaxValue)
-            {
-                throw new BadImageFormatException();
-            }
-
             return true;
         }
 
