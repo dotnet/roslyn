@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public override string Language => InternalLanguageNames.TypeScript;
 
-        public override async Task<BlockStructure> GetBlockStructureAsync(Document document, CancellationToken cancellationToken)
+        public override async Task<BlockStructure> GetBlockStructureAsync(Document document, BlockStructureOptions options, CancellationToken cancellationToken)
         {
             var blockStructure = await _impl.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
 

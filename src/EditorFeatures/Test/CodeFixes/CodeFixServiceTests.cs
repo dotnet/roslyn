@@ -158,6 +158,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.True(analyzerWithoutFix.ReceivedCallback);
         }
 
+        [Fact, WorkItem(1450689, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1450689")]
+        public async Task TestGetFixesAsyncForDocumentDiagnosticAnalyzerAsync()
+        {
+            // TS has special DocumentDiagnosticAnalyzer that report 0 SupportedDiagnostics.
+            // We need to ensure that we don't skip these document analyzers
+            // when computing the diagnostics/code fixes for "Normal" priority bucket, which
+            // normally only execute those analyzers which report at least one fixable supported diagnostic.
+            var documentDiagnosticAnalyzer = new MockAnalyzerReference.MockDocumentDiagnosticAnalyzer(reportedDiagnosticIds: ImmutableArray<string>.Empty);
+            Assert.Empty(documentDiagnosticAnalyzer.SupportedDiagnostics);
+
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(documentDiagnosticAnalyzer);
+            var codeFix = new MockFixer();
+            var analyzerReference = new MockAnalyzerReference(codeFix, analyzers);
+
+            // Verify no callbacks received at initialization.
+            Assert.False(documentDiagnosticAnalyzer.ReceivedCallback);
+
+            var tuple = ServiceSetup(codeFix, includeConfigurationFixProviders: false);
+            using var workspace = tuple.workspace;
+            GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager, analyzerReference);
+
+            // Verify both analyzers are executed when GetFixesAsync is invoked with 'CodeActionRequestPriority.Normal'.
+            _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
+                priority: CodeActionRequestPriority.Normal, isBlocking: false,
+                addOperationScope: _ => null, cancellationToken: CancellationToken.None);
+            Assert.True(documentDiagnosticAnalyzer.ReceivedCallback);
+        }
+
         [Fact]
         public async Task TestGetCodeFixWithExceptionInRegisterMethod_Diagnostic()
         {
@@ -401,6 +429,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             public ImmutableArray<CodeFixProvider> GetFixers()
                 => Fixer != null ? ImmutableArray.Create(Fixer) : ImmutableArray<CodeFixProvider>.Empty;
 
+            private static ImmutableArray<DiagnosticDescriptor> CreateSupportedDiagnostics(ImmutableArray<(string id, string category)> reportedDiagnosticIdsWithCategories)
+            {
+                var builder = ArrayBuilder<DiagnosticDescriptor>.GetInstance();
+                foreach (var (diagnosticId, category) in reportedDiagnosticIdsWithCategories)
+                {
+                    var descriptor = new DiagnosticDescriptor(diagnosticId, "MockDiagnostic", "MockDiagnostic", category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                    builder.Add(descriptor);
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+
             public class MockDiagnosticAnalyzer : DiagnosticAnalyzer
             {
                 public MockDiagnosticAnalyzer(ImmutableArray<(string id, string category)> reportedDiagnosticIdsWithCategories)
@@ -423,18 +463,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
                 public bool ReceivedCallback { get; private set; }
 
-                private static ImmutableArray<DiagnosticDescriptor> CreateSupportedDiagnostics(ImmutableArray<(string id, string category)> reportedDiagnosticIdsWithCategories)
-                {
-                    var builder = ArrayBuilder<DiagnosticDescriptor>.GetInstance();
-                    foreach (var (diagnosticId, category) in reportedDiagnosticIdsWithCategories)
-                    {
-                        var descriptor = new DiagnosticDescriptor(diagnosticId, "MockDiagnostic", "MockDiagnostic", category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
-                        builder.Add(descriptor);
-                    }
-
-                    return builder.ToImmutableAndFree();
-                }
-
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
                 public override void Initialize(AnalysisContext context)
@@ -448,6 +476,38 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                             c.ReportDiagnostic(Diagnostic.Create(descriptor, c.Tree.GetLocation(TextSpan.FromBounds(0, 0))));
                         }
                     });
+                }
+            }
+
+            public class MockDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
+            {
+                public MockDocumentDiagnosticAnalyzer(ImmutableArray<(string id, string category)> reportedDiagnosticIdsWithCategories)
+                    => SupportedDiagnostics = CreateSupportedDiagnostics(reportedDiagnosticIdsWithCategories);
+
+                public MockDocumentDiagnosticAnalyzer(ImmutableArray<string> reportedDiagnosticIds)
+                    : this(reportedDiagnosticIds.SelectAsArray(id => (id, "InternalCategory")))
+                {
+                }
+
+                public MockDocumentDiagnosticAnalyzer()
+                    : this(ImmutableArray.Create(MockFixer.Id))
+                {
+                }
+
+                public bool ReceivedCallback { get; private set; }
+
+                public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+
+                public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+                {
+                    ReceivedCallback = true;
+                    return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+                }
+
+                public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+                {
+                    ReceivedCallback = true;
+                    return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
                 }
             }
         }
