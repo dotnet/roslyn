@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             private readonly bool _isAllThrowStatements;
             private readonly CancellationToken _cancellationToken;
 
-            private ExpressionSyntax? _assignmentTargetOpt;
+            private ExpressionSyntax? _assignmentTarget;
 
             private Rewriter(SemanticModel semanticModel, bool isAllThrowStatements, CancellationToken cancellationToken)
             {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 }
 
                 Debug.Assert(SyntaxFacts.IsAssignmentExpression(nodeToGenerate));
-                Debug.Assert(_assignmentTargetOpt != null);
+                Debug.Assert(_assignmentTarget != null);
 
                 return generateDeclaration
                     ? GenerateVariableDeclaration(switchExpression, declaratorToRemoveTypeOpt)
@@ -91,18 +91,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             private ExpressionStatementSyntax GenerateAssignment(ExpressionSyntax switchExpression, SyntaxKind assignmentKind, SyntaxTriviaList leadingTrivia)
             {
-                Contract.ThrowIfNull(_assignmentTargetOpt);
+                Contract.ThrowIfNull(_assignmentTarget);
 
                 return ExpressionStatement(
                     AssignmentExpression(assignmentKind,
-                        left: _assignmentTargetOpt,
+                        left: _assignmentTarget,
                         right: switchExpression))
                     .WithLeadingTrivia(leadingTrivia);
             }
 
             private StatementSyntax GenerateVariableDeclaration(ExpressionSyntax switchExpression, ITypeSymbol declaratorToRemoveTypeOpt)
             {
-                Contract.ThrowIfFalse(_assignmentTargetOpt is IdentifierNameSyntax);
+                Contract.ThrowIfFalse(_assignmentTarget is IdentifierNameSyntax);
 
                 // There is a probability that we cannot use var if the declaration type is a reference type or nullable type.
                 // In these cases, we generate the explicit type for now and decide later whether or not to use var.
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                         type,
                         variables: SingletonSeparatedList(
                                     VariableDeclarator(
-                                        identifier: ((IdentifierNameSyntax)_assignmentTargetOpt).Identifier,
+                                        identifier: ((IdentifierNameSyntax)_assignmentTarget).Identifier,
                                         argumentList: null,
                                         initializer: EqualsValueClause(switchExpression)))));
             }
@@ -127,15 +127,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     expression: RewriteStatements(node.Statements));
             }
 
-            private static PatternSyntax GetPattern(SyntaxList<SwitchLabelSyntax> switchLabels, out WhenClauseSyntax? whenClauseOpt)
+            private static PatternSyntax GetPattern(SyntaxList<SwitchLabelSyntax> switchLabels, out WhenClauseSyntax? whenClause)
             {
                 if (switchLabels.Count == 1)
-                    return GetPattern(switchLabels[0], out whenClauseOpt);
+                    return GetPattern(switchLabels[0], out whenClause);
 
                 if (switchLabels.Any(label => IsDefaultSwitchLabel(label)))
                 {
                     // original group had a catch-all label.  just convert to a discard _ to indicate the same.
-                    whenClauseOpt = null;
+                    whenClause = null;
                     return DiscardPattern();
                 }
 
@@ -151,25 +151,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     totalPattern = BinaryPattern(SyntaxKind.OrPattern, totalPattern.Parenthesize(), nextPatternPart.Parenthesize());
                 }
 
-                whenClauseOpt = null;
+                whenClause = null;
                 return totalPattern;
             }
 
-            private static PatternSyntax GetPattern(SwitchLabelSyntax switchLabel, out WhenClauseSyntax? whenClauseOpt)
+            private static PatternSyntax GetPattern(SwitchLabelSyntax switchLabel, out WhenClauseSyntax? whenClause)
             {
                 switch (switchLabel.Kind())
                 {
                     case SyntaxKind.CasePatternSwitchLabel:
                         var node = (CasePatternSwitchLabelSyntax)switchLabel;
-                        whenClauseOpt = node.WhenClause;
+                        whenClause = node.WhenClause;
                         return node.Pattern;
 
                     case SyntaxKind.CaseSwitchLabel:
-                        whenClauseOpt = null;
+                        whenClause = null;
                         return ConstantPattern(((CaseSwitchLabelSyntax)switchLabel).Value);
 
                     case SyntaxKind.DefaultSwitchLabel:
-                        whenClauseOpt = null;
+                        whenClause = null;
                         return DiscardPattern();
 
                     case var value:
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public override ExpressionSyntax VisitAssignmentExpression(AssignmentExpressionSyntax node)
             {
-                _assignmentTargetOpt ??= node.Left;
+                _assignmentTarget ??= node.Left;
                 return CastIfChangeInRuntimeRepresentation(node.Right);
             }
 

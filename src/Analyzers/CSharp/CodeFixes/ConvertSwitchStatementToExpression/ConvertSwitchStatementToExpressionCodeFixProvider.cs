@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
                 editor.ReplaceNode(switchStatement, switchExpression.WithAdditionalAnnotations(Formatter.Annotation));
 
-                if (declaratorToRemoveLocationOpt is object)
+                if (declaratorToRemoveLocationOpt is not null)
                 {
                     editor.RemoveNode(declaratorToRemoveLocationOpt.FindNode(cancellationToken));
                 }
