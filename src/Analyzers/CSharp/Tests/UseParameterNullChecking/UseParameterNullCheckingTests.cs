@@ -452,14 +452,6 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestRedundantNullChecks()
         {
-            // Produces the following error:
-            //             Message: 
-            // System.InvalidOperationException : GetCurrentNode returned null with the following node: string s - line 321
-            //  Stack Trace: 
-            // Contract.Fail(String message, Int32 lineNumber) line 115
-            // ReplaceChange.Apply(SyntaxNode root, SyntaxGenerator generator) line 321
-            // SyntaxEditor.GetChangedRoot() line 92
-            // <FixAllWithEditorAsync>d__5.MoveNext() line 71
             await new VerifyCS.Test()
             {
                 TestCode = @"

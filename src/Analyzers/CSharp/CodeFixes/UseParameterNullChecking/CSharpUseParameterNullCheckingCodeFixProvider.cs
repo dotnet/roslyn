@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -47,6 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            // Tracking parameters which have already been fixed by a fix-all operation.
+            // This avoids crashing the fixer when the same parameter is null-tested multiple times.
+            using var _ = PooledHashSet<Location>.GetInstance(out var fixedParameterLocations);
             foreach (var diagnostic in diagnostics)
             {
                 var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
@@ -66,8 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                         throw ExceptionUtilities.UnexpectedValue(node);
                 }
 
-                var parameterSyntax = (ParameterSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
-                editor.ReplaceNode(parameterSyntax, parameterSyntax.WithExclamationExclamationToken(SyntaxFactory.Token(SyntaxKind.ExclamationExclamationToken)));
+                var parameterLocation = diagnostic.AdditionalLocations[0];
+                if (fixedParameterLocations.Add(parameterLocation))
+                {
+                    var parameterSyntax = (ParameterSyntax)parameterLocation.FindNode(cancellationToken);
+                    editor.ReplaceNode(parameterSyntax, parameterSyntax.WithExclamationExclamationToken(SyntaxFactory.Token(SyntaxKind.ExclamationExclamationToken)));
+                }
             }
 
             return Task.CompletedTask;
