@@ -143,5 +143,29 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("goo.cs", firstDoc.Name);
             Assert.Equal(pathToAssembly, analyzerRef.FullPath);
         }
+
+        [Fact]
+        public void TestDuplicateReferenceInVisualBasic()
+        {
+            var pathToAssembly = typeof(object).Assembly.Location;
+            var quotedPathToAssembly = '"' + pathToAssembly + '"';
+            var commandLine = $"goo.vb /r:{quotedPathToAssembly},{quotedPathToAssembly}";
+            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.VisualBasic, commandLine, baseDirectory: @"C:\ProjectDirectory");
+
+            // The compiler may add other references automatically, so we'll only assert a single reference for the one we're interested in
+            Assert.Single(info.MetadataReferences.OfType<PortableExecutableReference>(), r => r.FilePath == pathToAssembly);
+        }
+
+        [Fact]
+        public void TestDuplicateReferenceInVisualBasicWithVbRuntimeFlag()
+        {
+            var pathToAssembly = typeof(object).Assembly.Location;
+            var quotedPathToAssembly = '"' + pathToAssembly + '"';
+            var commandLine = $"goo.vb /r:{quotedPathToAssembly} /vbruntime:{quotedPathToAssembly}";
+            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.VisualBasic, commandLine, baseDirectory: @"C:\ProjectDirectory");
+
+            // The compiler may add other references automatically, so we'll only assert a single reference for the one we're interested in
+            Assert.Single(info.MetadataReferences.OfType<PortableExecutableReference>(), r => r.FilePath == pathToAssembly);
+        }
     }
 }
