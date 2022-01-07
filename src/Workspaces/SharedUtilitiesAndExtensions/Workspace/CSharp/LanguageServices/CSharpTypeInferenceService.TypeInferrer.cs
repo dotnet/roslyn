@@ -1727,7 +1727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //
                 //      await goo.ConfigureAwait()
                 //
-                // then we can figure out what 'goo' should be based on teh await
+                // then we can figure out what 'goo' should be based on the await
                 // context.
                 var name = memberAccessExpression.Name.Identifier.Value;
                 if (name.Equals(nameof(Task<int>.ConfigureAwait)) &&
