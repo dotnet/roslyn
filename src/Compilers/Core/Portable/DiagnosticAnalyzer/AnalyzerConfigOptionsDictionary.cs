@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
@@ -13,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static AnalyzerConfigOptionsDictionary Empty { get; } = new AnalyzerConfigOptionsDictionary(EmptyDictionary);
 
-        private readonly ImmutableDictionary<string, string> _options;
+        internal readonly ImmutableDictionary<string, string> Options;
 
         public AnalyzerConfigOptionsDictionary(ImmutableDictionary<string, string> options)
-            => _options = options;
+            => Options = options;
 
         public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-            => _options.TryGetValue(key, out value);
+            => Options.TryGetValue(key, out value);
     }
 }
