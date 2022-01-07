@@ -4,25 +4,25 @@ If you need to tag folks on an issue or PR, you will generally want to tag the o
 
 ## Areas
 
-| Area                       | Lead    | Owners                         |
-|----------------------------|---------|--------------------------------|
-|api-Syntax                  |@jaredpar|@CyrusNajmabadi @333fred        |
-|api-Symbols                 |@jaredpar|@AlekseyTs                      |
-|api-SemanticModel           |@jaredpar|@AlekseyTs @333fred             |
-|api-IOperation              |@jaredpar|@333fred                        |
-|api-SourceGenerators        |@jaredpar|@chsienki                       |
-|api-Analyzers               |@jaredpar|@mavasani @333fred              |
-|api-CodeFixes (Refactoring) |@jinuj   |@mavasani @sharwell             |
-|api-Completion              |@jinuj   |@genlu @CyrusNajmabadi          |
-|api-Debugging               |@jinuj   |@tmat @davidwengier             |
-|api-EditAndContinue         |@jinuj   |@tmat @davidwengier             |
-|api-EmbeddedLanguages       |@jinuj   |@CyrusNajmabadi @joerobich      |
-|api-Formatting              |@jinuj   |@sharwell @joerobich            |
-|api-LSP                     |@jinuj   |@dibarbet @jasonmalinowski      |
-|api-MetadataAsSource        |@jinuj   |@sharwell @jasonmalinowski      |
-|api-Navigation              |@jinuj   |@CyrusNajmabadi @dibarbet       |
-|api-QuickInfo               |@jinuj   |@sharwell @jasonmalinowski      |
-|api-SignatureHelp           |@jinuj   |@sharwell @jasonmalinowski      |
-|api-Structure (Outlining)   |@jinuj   |@CyrusNajmabadi @jasonmalinowski|
-|api-Tagging (Classification)|@jinuj   |@CyrusNajmabadi @joerobich      |
-|api-Workspace               |@jinuj   |@jasonmalinowski @tmat          |
+| Area                       | Lead      | Owners                         |
+|----------------------------|-----------|--------------------------------|
+|api-Syntax                  |@jaredpar  |@CyrusNajmabadi @333fred        |
+|api-Symbols                 |@jaredpar  |@AlekseyTs                      |
+|api-SemanticModel           |@jaredpar  |@AlekseyTs @333fred             |
+|api-IOperation              |@jaredpar  |@333fred                        |
+|api-SourceGenerators        |@jaredpar  |@chsienki                       |
+|api-Analyzers               |@jaredpar  |@mavasani @333fred              |
+|api-CodeFixes (Refactoring) |@jinujoseph|@mavasani @sharwell             |
+|api-Completion              |@jinujoseph|@genlu @CyrusNajmabadi          |
+|api-Debugging               |@jinujoseph|@tmat @davidwengier             |
+|api-EditAndContinue         |@jinujoseph|@tmat @davidwengier             |
+|api-EmbeddedLanguages       |@jinujoseph|@CyrusNajmabadi @JoeRobich      |
+|api-Formatting              |@jinujoseph|@sharwell @JoeRobich            |
+|api-LSP                     |@jinujoseph|@dibarbet @jasonmalinowski      |
+|api-MetadataAsSource        |@jinujoseph|@sharwell @jasonmalinowski      |
+|api-Navigation              |@jinujoseph|@CyrusNajmabadi @dibarbet       |
+|api-QuickInfo               |@jinujoseph|@sharwell @jasonmalinowski      |
+|api-SignatureHelp           |@jinujoseph|@sharwell @jasonmalinowski      |
+|api-Structure (Outlining)   |@jinujoseph|@CyrusNajmabadi @jasonmalinowski|
+|api-Tagging (Classification)|@jinujoseph|@CyrusNajmabadi @JoeRobich      |
+|api-Workspace               |@jinujoseph|@jasonmalinowski @tmat          |
