@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
         <source>Automatically open Stack Trace Explorer on focus</source>
-        <target state="new">Automatically open Stack Trace Explorer on focus</target>
+        <target state="translated">フォーカス時に スタック トレース エクスプローラーを自動的に開く</target>
         <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
@@ -809,7 +809,7 @@
       </trans-unit>
       <trans-unit id="Navigate_to_external_sources">
         <source>Navigate to External Sources</source>
-        <target state="new">Navigate to External Sources</target>
+        <target state="translated">外部ソースに移動する</target>
         <note />
       </trans-unit>
       <trans-unit id="Never">
