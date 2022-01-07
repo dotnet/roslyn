@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
@@ -46,11 +45,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                     return;
                 }
 
-                var argumentNullExceptionConstructor = argumentNullException.InstanceConstructors.FirstOrDefault(m =>
-                    m.DeclaredAccessibility == Accessibility.Public
-                    && m.Parameters.Length == 1
-                    && m.Parameters[0].Type.SpecialType == SpecialType.System_String);
-                if (argumentNullExceptionConstructor is null)
+                IMethodSymbol? argumentNullExceptionConstructor = null;
+                IMethodSymbol? argumentNullExceptionStringConstructor = null;
+                foreach (var constructor in argumentNullException.InstanceConstructors)
+                {
+                    if (argumentNullExceptionConstructor is not null && argumentNullExceptionStringConstructor is not null)
+                    {
+                        break;
+                    }
+
+                    switch (constructor)
+                    {
+                        case { DeclaredAccessibility: Accessibility.Public, Parameters.Length: 0 }:
+                            argumentNullExceptionConstructor = constructor;
+                            break;
+                        case { DeclaredAccessibility: Accessibility.Public, Parameters.Length: 1 }
+                            when constructor.Parameters[0].Type.SpecialType == SpecialType.System_String:
+
+                            argumentNullExceptionStringConstructor = constructor;
+                            break;
+                    }
+                }
+
+                if (argumentNullExceptionConstructor is null || argumentNullExceptionStringConstructor is null)
                 {
                     return;
                 }
@@ -60,17 +77,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                     .GetMembers(nameof(ReferenceEquals))
                     .FirstOrDefault(m => m is IMethodSymbol { DeclaredAccessibility: Accessibility.Public, Parameters.Length: 2 });
 
+                // We are potentially interested in any declaration that has parameters.
+                // However, we avoid indexers specifically because of the complexity of locating and deleting equivalent null checks across multiple accessors.
                 context.RegisterSyntaxNodeAction(
-                    context => AnalyzeSyntax(context, argumentNullExceptionConstructor, referenceEqualsMethod),
+                    context => AnalyzeSyntax(context, argumentNullExceptionConstructor, argumentNullExceptionStringConstructor, referenceEqualsMethod),
                     SyntaxKind.ConstructorDeclaration,
                     SyntaxKind.MethodDeclaration,
                     SyntaxKind.LocalFunctionStatement,
                     SyntaxKind.SimpleLambdaExpression,
                     SyntaxKind.ParenthesizedLambdaExpression,
-                    SyntaxKind.AnonymousMethodExpression);
+                    SyntaxKind.AnonymousMethodExpression,
+                    SyntaxKind.OperatorDeclaration,
+                    SyntaxKind.ConversionOperatorDeclaration);
             });
 
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol argumentNullExceptionConstructor, IMethodSymbol? referenceEqualsMethod)
+        private void AnalyzeSyntax(
+            SyntaxNodeAnalysisContext context,
+            IMethodSymbol argumentNullExceptionConstructor,
+            IMethodSymbol argumentNullExceptionStringConstructor,
+            IMethodSymbol? referenceEqualsMethod)
         {
             var cancellationToken = context.CancellationToken;
 
@@ -90,8 +115,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 ConstructorDeclarationSyntax constructorDecl => constructorDecl.Body,
                 LocalFunctionStatementSyntax localFunctionStatement => localFunctionStatement.Body,
                 AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.Block,
+                OperatorDeclarationSyntax operatorDecl => operatorDecl.Body,
+                ConversionOperatorDeclarationSyntax conversionDecl => conversionDecl.Body,
                 _ => throw ExceptionUtilities.UnexpectedValue(node)
             };
+
+            // More scenarios should be supported eventually: https://github.com/dotnet/roslyn/issues/58699
             if (block is null)
             {
                 return;
@@ -107,7 +136,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
 
             foreach (var statement in block.Statements)
             {
-                IParameterSymbol? parameter;
+                var parameter = TryGetParameterNullCheckedByStatement(statement);
+                if (parameter is not null
+                    && (!parameter.Type.IsValueType
+                        || parameter.Type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
+                        || parameter.Type.TypeKind is TypeKind.Pointer or TypeKind.FunctionPointer)
+                    && parameter.DeclaringSyntaxReferences.FirstOrDefault() is SyntaxReference reference
+                    && reference.SyntaxTree.Equals(statement.SyntaxTree)
+                    && reference.GetSyntax() is ParameterSyntax parameterSyntax)
+                {
+                    context.ReportDiagnostic(DiagnosticHelper.Create(
+                        Descriptor,
+                        statement.GetLocation(),
+                        option.Notification.Severity,
+                        additionalLocations: new[] { parameterSyntax.GetLocation() },
+                        properties: null));
+                }
+            }
+
+            return;
+
+            IParameterSymbol? TryGetParameterNullCheckedByStatement(StatementSyntax statement)
+            {
                 switch (statement)
                 {
                     // if (param == null) { throw new ArgumentNullException(nameof(param)); }
@@ -136,13 +186,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                                 break;
 
                             default:
-                                continue;
+                                return null;
                         }
 
-                        if (!AreOperandsApplicable(left, right, out parameter)
-                            && !AreOperandsApplicable(right, left, out parameter))
+                        var parameterInBinary = left.IsKind(SyntaxKind.NullLiteralExpression) ? TryGetParameter(right)
+                            : right.IsKind(SyntaxKind.NullLiteralExpression) ? TryGetParameter(left)
+                            : null;
+                        if (parameterInBinary is null)
                         {
-                            continue;
+                            return null;
                         }
 
                         var throwStatement = ifStatement.Statement switch
@@ -153,12 +205,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                         };
 
                         if (throwStatement?.Expression is not ObjectCreationExpressionSyntax thrownInIf
-                            || !IsConstructorApplicable(thrownInIf, parameter))
+                            || !IsConstructorApplicable(thrownInIf, parameterInBinary))
                         {
-                            continue;
+                            return null;
                         }
 
-                        break;
+                        return parameterInBinary;
 
                     // this.field = param ?? throw new ArgumentNullException(nameof(param));
                     case ExpressionStatementSyntax
@@ -173,44 +225,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                             }
                         }
                     }:
-                        if (!IsParameter(maybeParameter, out parameter) || !IsConstructorApplicable(thrownInNullCoalescing, parameter))
+                        var coalescedParameter = TryGetParameter(maybeParameter);
+                        if (coalescedParameter is null || !IsConstructorApplicable(thrownInNullCoalescing, coalescedParameter))
                         {
-                            continue;
+                            return null;
                         }
 
-                        break;
+                        return coalescedParameter;
 
                     default:
-                        continue;
-                }
-
-                if (parameter.DeclaringSyntaxReferences.FirstOrDefault() is SyntaxReference reference
-                    && reference.SyntaxTree.Equals(statement.SyntaxTree)
-                    && reference.GetSyntax() is ParameterSyntax parameterSyntax)
-                {
-                    context.ReportDiagnostic(DiagnosticHelper.Create(
-                        Descriptor,
-                        statement.GetLocation(),
-                        option.Notification.Severity,
-                        additionalLocations: new[] { parameterSyntax.GetLocation() },
-                        properties: null));
+                        return null;
                 }
             }
 
-            return;
-
-            bool AreOperandsApplicable(ExpressionSyntax maybeParameter, ExpressionSyntax maybeNullLiteral, [NotNullWhen(true)] out IParameterSymbol? parameter)
-            {
-                if (!maybeNullLiteral.IsKind(SyntaxKind.NullLiteralExpression))
-                {
-                    parameter = null;
-                    return false;
-                }
-
-                return IsParameter(maybeParameter, out parameter);
-            }
-
-            bool IsParameter(ExpressionSyntax maybeParameter, [NotNullWhen(true)] out IParameterSymbol? parameter)
+            IParameterSymbol? TryGetParameter(ExpressionSyntax maybeParameter)
             {
                 // `(object)x == null` is often used to ensure reference equality is used.
                 // therefore, we specially unwrap casts when the cast is to `object`.
@@ -218,8 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 {
                     if (semanticModel.GetTypeInfo(type).Type?.SpecialType != SpecialType.System_Object)
                     {
-                        parameter = null;
-                        return false;
+                        return null;
                     }
 
                     maybeParameter = operand;
@@ -227,33 +254,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
 
                 if (semanticModel.GetSymbolInfo(maybeParameter).Symbol is not IParameterSymbol { ContainingSymbol: { } containingSymbol } parameterSymbol || !containingSymbol.Equals(methodSymbol))
                 {
-                    parameter = null;
-                    return false;
+                    return null;
                 }
 
-                parameter = parameterSymbol;
-                return true;
+                return parameterSymbol;
             }
 
             bool IsConstructorApplicable(ObjectCreationExpressionSyntax exceptionCreation, IParameterSymbol parameterSymbol)
             {
-                if (exceptionCreation.ArgumentList?.Arguments.FirstOrDefault() is not { } argument)
+                if (exceptionCreation.ArgumentList?.Arguments is not { } arguments)
                 {
                     return false;
                 }
 
-                var constantValue = semanticModel.GetConstantValue(argument.Expression, cancellationToken);
+                if (arguments.Count == 0)
+                {
+                    // 'new ArgumentNullException()'
+                    return argumentNullExceptionConstructor.Equals(semanticModel.GetSymbolInfo(exceptionCreation, cancellationToken).Symbol);
+                }
+
+                if (arguments.Count != 1)
+                {
+                    return false;
+                }
+
+                // 'new ArgumentNullException(nameof(param))' (or equivalent)
+                var constantValue = semanticModel.GetConstantValue(arguments[0].Expression, cancellationToken);
                 if (constantValue.Value is not string constantString || !string.Equals(constantString, parameterSymbol.Name, StringComparison.Ordinal))
                 {
                     return false;
                 }
 
-                if (!argumentNullExceptionConstructor.Equals(semanticModel.GetSymbolInfo(exceptionCreation, cancellationToken).Symbol))
-                {
-                    return false;
-                }
-
-                return true;
+                return argumentNullExceptionStringConstructor.Equals(semanticModel.GetSymbolInfo(exceptionCreation, cancellationToken).Symbol);
             }
         }
     }
