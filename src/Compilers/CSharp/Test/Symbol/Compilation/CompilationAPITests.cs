@@ -3108,7 +3108,8 @@ $@"namespace N;
 
             referenceComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(source, new[] { useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference() });
+            MetadataReference reference = useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference();
+            var comp = CreateCompilation(source, new[] { reference });
             comp.VerifyDiagnostics();
 
             var types = comp.GetTypesByMetadataName("N.C`1");
@@ -3117,14 +3118,9 @@ $@"namespace N;
             AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
             Assert.Same(comp.Assembly.GetPublicSymbol(), types[0].ContainingAssembly);
             AssertEx.Equal("N.C<T>", types[1].ToTestDisplayString());
-            if (useMetadataReference)
-            {
-                Assert.Same(referenceComp.Assembly.GetPublicSymbol(), types[1].ContainingAssembly);
-            }
-            else
-            {
-                Assert.False(types[1].IsInSource());
-            }
+
+            var assembly1 = comp.GetAssemblyOrModuleSymbol(reference).GetPublicSymbol();
+            Assert.Same(types[1].ContainingAssembly, assembly1);
         }
 
         [Theory]
@@ -3140,7 +3136,8 @@ $@"namespace N;
 
             referenceComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation("", new[] { useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference() });
+            MetadataReference reference = useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference();
+            var comp = CreateCompilation("", new[] { reference });
             comp.VerifyDiagnostics();
 
             var types = comp.GetTypesByMetadataName("N.C`1");
@@ -3148,14 +3145,9 @@ $@"namespace N;
 
             Assert.Single(types);
             AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
-            if (useMetadataReference)
-            {
-                Assert.Same(referenceComp.Assembly.GetPublicSymbol(), types[0].ContainingAssembly);
-            }
-            else
-            {
-                Assert.False(types[0].IsInSource());
-            }
+
+            var assembly1 = comp.GetAssemblyOrModuleSymbol(reference).GetPublicSymbol();
+            Assert.Same(types[0].ContainingAssembly, assembly1);
         }
 
         [Theory]
@@ -3173,7 +3165,9 @@ $@"namespace N;
             var referenceComp2 = CreateCompilation(source);
             referenceComp2.VerifyDiagnostics();
 
-            var comp = CreateCompilation("", new[] { getReference(referenceComp1), getReference(referenceComp2) });
+            MetadataReference reference1 = getReference(referenceComp1);
+            MetadataReference reference2 = getReference(referenceComp2);
+            var comp = CreateCompilation("", new[] { reference1, reference2 });
             comp.VerifyDiagnostics();
 
             var types = comp.GetTypesByMetadataName("N.C`1");
@@ -3181,17 +3175,12 @@ $@"namespace N;
             Assert.Equal(2, types.Length);
             AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
             AssertEx.Equal("N.C<T>", types[1].ToTestDisplayString());
-            if (useMetadataReference)
-            {
-                Assert.Same(referenceComp1.Assembly.GetPublicSymbol(), types[0].ContainingAssembly);
-                Assert.Same(referenceComp2.Assembly.GetPublicSymbol(), types[1].ContainingAssembly);
-            }
-            else
-            {
-                Assert.False(types[0].IsInSource());
-                Assert.False(types[1].IsInSource());
-                Assert.NotSame(types[0].ContainingAssembly, types[1].ContainingAssembly);
-            }
+
+            var assembly1 = comp.GetAssemblyOrModuleSymbol(reference1).GetPublicSymbol();
+            Assert.Same(types[0].ContainingAssembly, assembly1);
+
+            var assembly2 = comp.GetAssemblyOrModuleSymbol(reference2).GetPublicSymbol();
+            Assert.Same(types[1].ContainingAssembly, assembly2);
 
             MetadataReference getReference(CSharpCompilation referenceComp1)
             {
@@ -3214,7 +3203,9 @@ $@"namespace N;
             var referenceComp2 = CreateCompilation(source);
             referenceComp2.VerifyDiagnostics();
 
-            var comp = CreateCompilation(source, new[] { getReference(referenceComp1), getReference(referenceComp2) });
+            MetadataReference reference1 = getReference(referenceComp1);
+            MetadataReference reference2 = getReference(referenceComp2);
+            var comp = CreateCompilation(source, new[] { reference1, reference2 });
             comp.VerifyDiagnostics();
 
             var types = comp.GetTypesByMetadataName("N.C`1");
@@ -3225,22 +3216,100 @@ $@"namespace N;
             AssertEx.Equal("N.C<T>", types[1].ToTestDisplayString());
             AssertEx.Equal("N.C<T>", types[2].ToTestDisplayString());
 
-            if (useMetadataReference)
-            {
-                Assert.Same(referenceComp1.Assembly.GetPublicSymbol(), types[1].ContainingAssembly);
-                Assert.Same(referenceComp2.Assembly.GetPublicSymbol(), types[2].ContainingAssembly);
-            }
-            else
-            {
-                Assert.False(types[1].IsInSource());
-                Assert.False(types[2].IsInSource());
-                Assert.NotSame(types[1].ContainingAssembly, types[2].ContainingAssembly);
-            }
+            var assembly1 = comp.GetAssemblyOrModuleSymbol(reference1).GetPublicSymbol();
+            Assert.Same(types[1].ContainingAssembly, assembly1);
+
+            var assembly2 = comp.GetAssemblyOrModuleSymbol(reference2).GetPublicSymbol();
+            Assert.Same(types[2].ContainingAssembly, assembly2);
 
             MetadataReference getReference(CSharpCompilation referenceComp1)
             {
                 return useMetadataReference ? referenceComp1.ToMetadataReference() : referenceComp1.EmitToImageReference();
             }
+        }
+
+        [Fact]
+        public void GetTypesByMetadataName_Ordering()
+        {
+            var corlibSource = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+}
+
+public class C {}
+";
+
+            var corlib = CreateEmptyCompilation(corlibSource);
+            var corlibReference = corlib.EmitToImageReference();
+
+            var other = CreateEmptyCompilation(@"public class C {}", new[] { corlibReference });
+            var otherReference = other.EmitToImageReference();
+
+            var current = CreateEmptyCompilation(@"public class C {}", new[] { otherReference, corlibReference });
+            current.VerifyDiagnostics();
+
+            var types = current.GetTypesByMetadataName("C");
+
+            AssertEx.Equal(types.Select(t => t.ToTestDisplayString()), new[] { "C", "C", "C" });
+            Assert.Same(types[0].ContainingAssembly, current.Assembly.GetPublicSymbol());
+
+            var corlibAssembly = current.GetAssemblyOrModuleSymbol(corlibReference).GetPublicSymbol();
+            Assert.Same(types[1].ContainingAssembly, corlibAssembly);
+
+            var otherAssembly = current.GetAssemblyOrModuleSymbol(otherReference).GetPublicSymbol();
+            Assert.Same(types[2].ContainingAssembly, otherAssembly);
+        }
+
+        [Fact]
+        public void GetTypeByMetadataName_CorLibViaExtern()
+        {
+            var corlibSource = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+}
+
+public class C {}
+";
+
+            var corlib = CreateEmptyCompilation(corlibSource);
+            var corlibReference = corlib.EmitToImageReference(aliases: ImmutableArray.Create("corlib"));
+
+            var current = CreateEmptyCompilation(@"", new[] { corlibReference });
+            current.VerifyDiagnostics();
+
+            var type = current.GetTypeByMetadataName("C");
+            Assert.NotNull(type);
+
+            var corlibAssembly = current.GetAssemblyOrModuleSymbol(corlibReference).GetPublicSymbol();
+            Assert.Same(type.ContainingAssembly, corlibAssembly);
+        }
+
+        [Fact]
+        public void GetTypeByMetadataName_OtherViaExtern()
+        {
+            var corlibSource = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+}
+";
+
+            var corlib = CreateEmptyCompilation(corlibSource);
+            var corlibReference = corlib.EmitToImageReference();
+
+            var other = CreateEmptyCompilation(@"public class C {}", new[] { corlibReference });
+            var otherReference = other.EmitToImageReference(aliases: ImmutableArray.Create("other"));
+
+            var current = CreateEmptyCompilation(@"", new[] { otherReference, corlibReference });
+            current.VerifyDiagnostics();
+
+            var type = current.GetTypeByMetadataName("C");
+            Assert.Null(type);
         }
 
         #endregion

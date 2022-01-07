@@ -74,7 +74,8 @@ $"Namespace N
 End Namespace"
 
             Dim referenceComp = CreateCompilation(source)
-            Dim comp = CreateCompilation(source, {If(useMetadataReference, referenceComp.ToMetadataReference(), referenceComp.EmitToImageReference())})
+            Dim reference As MetadataReference = If(useMetadataReference, referenceComp.ToMetadataReference(), referenceComp.EmitToImageReference())
+            Dim comp = CreateCompilation(source, {reference})
             comp.AssertNoDiagnostics()
 
             Dim types = comp.GetTypesByMetadataName("N.C`1")
@@ -83,11 +84,9 @@ End Namespace"
             AssertEx.Equal("N.C(Of T)", types(0).ToTestDisplayString())
             Assert.Same(comp.Assembly, types(0).ContainingAssembly)
             AssertEx.Equal("N.C(Of T)", types(1).ToTestDisplayString())
-            If (useMetadataReference) Then
-                Assert.Same(referenceComp.Assembly, types(1).ContainingAssembly)
-            Else
-                Assert.False(types(1).IsInSource())
-            End If
+
+            Dim referenceAssembly = comp.GetAssemblyOrModuleSymbol(reference)
+            Assert.Same(types(1).ContainingAssembly, referenceAssembly)
         End Sub
 
         <Theory, CombinatorialData>
@@ -99,18 +98,17 @@ $"Namespace N
 End Namespace"
 
             Dim referenceComp = CreateCompilation(source)
-            Dim comp = CreateCompilation("", {GetReference(useMetadataReference, referenceComp)})
+            Dim reference As MetadataReference = GetReference(useMetadataReference, referenceComp)
+            Dim comp = CreateCompilation("", {reference})
             comp.AssertNoDiagnostics()
 
             Dim types = comp.GetTypesByMetadataName("N.C`1")
 
             Assert.Single(types)
             AssertEx.Equal("N.C(Of T)", types(0).ToTestDisplayString())
-            If (useMetadataReference) Then
-                Assert.Same(referenceComp.Assembly, types(0).ContainingAssembly)
-            Else
-                Assert.False(types(0).IsInSource())
-            End If
+
+            Dim referenceAssembly = comp.GetAssemblyOrModuleSymbol(reference)
+            Assert.Same(types(0).ContainingAssembly, referenceAssembly)
         End Sub
 
         Private Shared Function GetReference(useMetadataReference As Boolean, referenceComp As VisualBasicCompilation) As MetadataReference
@@ -127,7 +125,9 @@ End Namespace"
 
             Dim referenceComp1 = CreateCompilation(source)
             Dim referenceComp2 = CreateCompilation(source)
-            Dim comp = CreateCompilation("", {GetReference(useMetadataReference, referenceComp1), GetReference(useMetadataReference, referenceComp2)})
+            Dim reference1 As MetadataReference = GetReference(useMetadataReference, referenceComp1)
+            Dim reference2 As MetadataReference = GetReference(useMetadataReference, referenceComp2)
+            Dim comp = CreateCompilation("", {reference1, reference2})
             comp.AssertNoDiagnostics()
 
             Dim types = comp.GetTypesByMetadataName("N.C`1")
@@ -135,9 +135,14 @@ End Namespace"
             Assert.Equal(2, types.Length)
             AssertEx.Equal("N.C(Of T)", types(0).ToTestDisplayString())
             AssertEx.Equal("N.C(Of T)", types(1).ToTestDisplayString())
+
+            Dim referenceAssembly1 = comp.GetAssemblyOrModuleSymbol(reference1)
+            Assert.Same(types(0).ContainingAssembly, referenceAssembly1)
+
+            Dim referenceAssembly2 = comp.GetAssemblyOrModuleSymbol(reference2)
+            Assert.Same(types(1).ContainingAssembly, referenceAssembly2)
+
             If (useMetadataReference) Then
-                Assert.Same(referenceComp1.Assembly, types(0).ContainingAssembly)
-                Assert.Same(referenceComp2.Assembly, types(1).ContainingAssembly)
             Else
                 Assert.False(types(0).IsInSource())
                 Assert.False(types(1).IsInSource())
@@ -154,7 +159,9 @@ End Namespace"
 
             Dim referenceComp1 = CreateCompilation(source)
             Dim referenceComp2 = CreateCompilation(source)
-            Dim comp = CreateCompilation(source, {GetReference(useMetadataReference, referenceComp1), GetReference(useMetadataReference, referenceComp2)})
+            Dim reference1 As MetadataReference = GetReference(useMetadataReference, referenceComp1)
+            Dim reference2 As MetadataReference = GetReference(useMetadataReference, referenceComp2)
+            Dim comp = CreateCompilation(source, {reference1, reference2})
             comp.AssertNoDiagnostics()
 
             Dim types = comp.GetTypesByMetadataName("N.C`1")
@@ -164,13 +171,56 @@ End Namespace"
             Assert.Same(comp.Assembly, types(0).ContainingAssembly)
             AssertEx.Equal("N.C(Of T)", types(1).ToTestDisplayString())
             AssertEx.Equal("N.C(Of T)", types(2).ToTestDisplayString())
-            If (useMetadataReference) Then
-                Assert.Same(referenceComp1.Assembly, types(1).ContainingAssembly)
-                Assert.Same(referenceComp2.Assembly, types(2).ContainingAssembly)
-            Else
-                Assert.False(types(1).IsInSource())
-                Assert.False(types(2).IsInSource())
-            End If
+
+            Dim referenceAssembly1 = comp.GetAssemblyOrModuleSymbol(reference1)
+            Assert.Same(types(1).ContainingAssembly, referenceAssembly1)
+
+            Dim referenceAssembly2 = comp.GetAssemblyOrModuleSymbol(reference2)
+            Assert.Same(types(2).ContainingAssembly, referenceAssembly2)
+        End Sub
+
+        <Fact>
+        Public Sub GetTypesByMetadataName_Ordering()
+            Dim corlibSource = "
+Namespace System
+    Public Class [Object]
+    End Class
+    Public Class [Void]
+    End Class
+End Namespace
+Public Class C
+End Class
+"
+
+            Dim corlib = CreateEmptyCompilation(corlibSource)
+            Dim corlibReference = corlib.EmitToImageReference()
+
+            Dim otherSource = "
+Public Class C
+End Class
+"
+
+            Dim other = CreateEmptyCompilation(otherSource, {corlibReference})
+            Dim otherReference = other.EmitToImageReference()
+
+            Dim currentSource = "
+Public Class C
+End Class
+"
+            Dim current = CreateEmptyCompilation(currentSource, {otherReference, corlibReference})
+            current.AssertNoDiagnostics()
+
+            Dim types = current.GetTypesByMetadataName("C")
+
+            AssertEx.Equal(types.Select(Function(t) t.ToTestDisplayString()), {"C", "C", "C"})
+
+            Assert.Same(current.Assembly, types(0).ContainingAssembly)
+
+            Dim corlibAssembly = current.GetAssemblyOrModuleSymbol(corlibReference)
+            Assert.Same(types(1).ContainingAssembly, corlibAssembly)
+
+            Dim otherAssembly = current.GetAssemblyOrModuleSymbol(otherReference)
+            Assert.Same(types(2).ContainingAssembly, otherAssembly)
         End Sub
     End Class
 End Namespace

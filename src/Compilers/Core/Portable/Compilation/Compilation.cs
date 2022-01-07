@@ -1034,21 +1034,35 @@ namespace Microsoft.CodeAnalysis
         /// This lookup follows the following order:
         /// <list type="number">
         /// <item><description>If the type is found in the compilation's assembly, that type is returned.</description></item>
-        /// <item><description>Next, the core library (the library that defines <c>System.Object</c>) is searched. If the type is found there, that type is returned.</description></item>
         /// <item><description>
-        /// Finally, all remaining referenced assemblies are searched. If one and only one type matching the provided metadata name is found, that
+        /// Next, the core library (the library that defines <c>System.Object</c> and has no assembly references) is searched.
+        /// If the type is found there, that type is returned.
+        /// </description></item>
+        /// <item><description>
+        /// Finally, all remaining referenced non-extern assemblies are searched. If one and only one type matching the provided metadata name is found, that
         /// single type is returned. Accessibility is ignored for this check.
         /// </description></item>
         /// </list>
         /// </summary>
         /// <returns>Null if the type can't be found or there was an ambiguity during lookup.</returns>
         /// <remarks>
+        /// <para>
         /// Since VB does not have the concept of extern aliases, it considers all referenced assemblies.
-        /// <br/>
+        /// </para>
+        /// <para>
+        /// In C#, if the core library is referenced as an extern assembly, it will be searched. All other extern-aliased assemblies will not be searched.
+        /// </para>
+        /// <para>
         /// Because accessibility to the current assembly is ignored when searching for types that match the provided metadata name, if multiple referenced
         /// assemblies define the same type symbol (as often happens when users copy well-known types from the BCL or other sources) then this API will return null,
-        /// even if all but one of those symbols would be otherwise inaccessible to user-written code in the current assembly. If it is not an error for a type to exist
-        /// in multiple referenced assemblies, consider using <see cref="GetTypesByMetadataName(string)" /> instead and filtering the results for the symbol required.
+        /// even if all but one of those symbols would be otherwise inaccessible to user-written code in the current assembly. For fine-grained control over ambiguity
+        /// resolution, consider using <see cref="GetTypesByMetadataName(string)" /> instead and filtering the results for the symbol required.
+        /// </para>
+        /// <para>
+        /// Assemblies can contain multiple modules. Within each assembly, the search is performed based on module's position in the module list of that assembly. When
+        /// a match is found in one module in an assembly, no further modules within that assembly are searched.
+        /// </para>
+        /// <para>Type forwarders are ignored, and not considered part of the assembly where the TypeForwardAttribute is written.</para>
         /// </remarks>
         public INamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
@@ -1069,6 +1083,13 @@ namespace Microsoft.CodeAnalysis
         /// searching for matching type names.
         /// </summary>
         /// <returns>Empty array if no types match. Otherwise, all types that match the name, current assembly first if present.</returns>
+        /// <remarks>
+        /// <para>
+        /// Assemblies can contain multiple modules. Within each assembly, the search is performed based on module's position in the module list of that assembly. When
+        /// a match is found in one module in an assembly, no further modules within that assembly are searched.
+        /// </para>
+        /// <para>Type forwarders are ignored, and not considered part of the assembly where the TypeForwardAttribute is written.</para>
+        /// </remarks>
         public ImmutableArray<INamedTypeSymbol> GetTypesByMetadataName(string fullyQualifiedMetadataName)
         {
             if (!_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out ImmutableArray<INamedTypeSymbol> val))
@@ -1077,7 +1098,7 @@ namespace Microsoft.CodeAnalysis
                 var result = _getTypesCache.TryAdd(fullyQualifiedMetadataName, val);
                 Debug.Assert(result
                     || (_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray)
-                        && addedArray.Zip(val, (added, calculated) => (added, calculated)).All(el => ReferenceEquals(el.added, el.calculated))));
+                        && Enumerable.SequenceEqual(addedArray, val, ReferenceEqualityComparer.Instance)));
             }
 
             return val;
@@ -1090,7 +1111,7 @@ namespace Microsoft.CodeAnalysis
 
                 addIfNotNull(Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName));
 
-                var corLib = (IAssemblySymbol)((IAssemblySymbolInternal)Assembly).CorLibrary;
+                var corLib = ObjectType.ContainingAssembly;
 
                 if (!ReferenceEquals(corLib, Assembly))
                 {
