@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         public const string TagId = "inline hints";
 
         private readonly ITextView _textView;
-        private readonly ITextBuffer _subjectBuffer;
         private readonly SnapshotSpan _span;
         private readonly InlineHint _hint;
         private readonly InlineHintsTaggerProvider _taggerProvider;
@@ -48,7 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private InlineHintsTag(
             FrameworkElement adornment,
             ITextView textView,
-            ITextBuffer subjectBuffer,
             SnapshotSpan span,
             InlineHint hint,
             InlineHintsTaggerProvider taggerProvider)
@@ -57,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                    PositionAffinity.Predecessor)
         {
             _textView = textView;
-            _subjectBuffer = subjectBuffer;
             _span = span;
             _hint = hint;
             _taggerProvider = taggerProvider;
@@ -87,12 +84,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             SnapshotSpan span,
             InlineHintsTaggerProvider taggerProvider,
             IClassificationFormatMap formatMap,
-            ITextBuffer subjectBuffer,
             bool classify)
         {
             return new InlineHintsTag(
                 CreateElement(hint.DisplayParts, textView, format, formatMap, taggerProvider.TypeMap, classify),
-                textView, subjectBuffer, span, hint, taggerProvider);
+                textView, span, hint, taggerProvider);
         }
 
         public async Task<IReadOnlyCollection<object>> CreateDescriptionAsync(CancellationToken cancellationToken)
@@ -272,15 +268,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 e.Handled = true;
                 var replacementValue = _hint.ReplacementTextChange!.Value;
+                var subjectBuffer = _span.Snapshot.TextBuffer;
 
-                if (_subjectBuffer.CurrentSnapshot.Length > replacementValue.Span.End)
+                if (subjectBuffer.CurrentSnapshot.Length > replacementValue.Span.End)
                 {
-                    _subjectBuffer.Replace(new VisualStudio.Text.Span(replacementValue.Span.Start, replacementValue.Span.Length), replacementValue.NewText);
+                    subjectBuffer.Replace(new VisualStudio.Text.Span(replacementValue.Span.Start, replacementValue.Span.Length), replacementValue.NewText);
                 }
                 else
                 {
                     Internal.Log.Logger.Log(FunctionId.Inline_Hints_DoubleClick,
-                        $"replacement span end:{replacementValue.Span.End} is greater than or equal to current snapshot length:{_subjectBuffer.CurrentSnapshot.Length}");
+                        $"replacement span end:{replacementValue.Span.End} is greater than or equal to current snapshot length:{subjectBuffer.CurrentSnapshot.Length}");
                 }
             }
         }

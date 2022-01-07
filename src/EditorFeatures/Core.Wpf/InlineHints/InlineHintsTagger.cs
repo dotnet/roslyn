@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                         if (_cache[i].tagSpan is not { } hintTagSpan)
                         {
                             var parameterHintUITag = InlineHintsTag.Create(
-                                    _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, snapshot.TextBuffer, classify);
+                                    _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
                             hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, parameterHintUITag);
                             _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);
                         }

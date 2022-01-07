@@ -82,14 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     if (parameter?.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } &&
                         IsValidType(parameter?.Type))
                     {
-                        if (parameterNode.Parent!.Parent.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
-                        {
-                            return new(parameter.Type, span, textChange: new TextChange(span, parameter.Type.ToDisplayString(s_minimalTypeStyle) + " "), trailingSpace: true);
-                        }
-                        else
-                        {
-                            return new(parameter.Type, span, textChange: null, trailingSpace: true);
-                        }
+                        return parameterNode.Parent?.Parent?.Kind() is SyntaxKind.ParenthesizedLambdaExpression
+                            ? new TypeHint(parameter.Type, span, textChange: new TextChange(span, parameter.Type.ToDisplayString(s_minimalTypeStyle) + " "), trailingSpace: true)
+                            : new TypeHint(parameter.Type, span, textChange: null, trailingSpace: true);
                     }
                 }
             }
