@@ -11,17 +11,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.LanguageServices;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal class StateResetInProcess : InProcComponent
+    [TestService]
+    internal partial class StateResetInProcess
     {
-        public StateResetInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         public async Task ResetGlobalOptionsAsync(CancellationToken cancellationToken)
         {
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);

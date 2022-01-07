@@ -55,17 +55,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var diagnostic = diagnostics.First();
 
             var namespaceDecl = (BaseNamespaceDeclarationSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
-            var converted = Convert(namespaceDecl);
+            var converted = await ConvertAsync(document, namespaceDecl, cancellationToken).ConfigureAwait(false);
 
-            editor.ReplaceNode(namespaceDecl, converted);
-            return Task.CompletedTask;
+            editor.ReplaceNode(
+                editor.OriginalRoot,
+                await converted.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction

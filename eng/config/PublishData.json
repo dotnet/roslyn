@@ -210,7 +210,8 @@
       "channels": [],
       "vsBranch": "rel/d17.1",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.1p2]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.1p3]"
     },
     "main-vs-deps": {
       "nugetKind": [
@@ -222,8 +223,8 @@
       "channels": [],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.1p3]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.2p1]"
     },
     "main": {
       "nugetKind": [
