@@ -177,9 +177,9 @@ namespace Microsoft.CodeAnalysis.Editor
         bool HasOverloads { get; }
 
         /// <summary>
-        /// Whether the Rename Overloads option should be forced to true. Used if rename is invoked from within a nameof expression.
+        /// True if overloads must be renamed (the user is not given a choice). Used if rename is invoked from within a nameof expression.
         /// </summary>
-        bool ForceRenameOverloads { get; }
+        bool MustRenameOverloads { get; }
 
         /// <summary>
         /// The short name of the symbol being renamed, for use in displaying information to the user.

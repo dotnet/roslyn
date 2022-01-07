@@ -96,8 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return;
             }
 
-            var options = new SymbolRenameOptions();
-            var sessionInfo = _renameService.StartInlineSession(document, selectedSpans.Single().Span.ToTextSpan(), options, cancellationToken);
+            var sessionInfo = _renameService.StartInlineSession(document, selectedSpans.Single().Span.ToTextSpan(), cancellationToken);
             if (!sessionInfo.CanRename)
             {
                 ShowErrorDialog(workspace, sessionInfo.LocalizedErrorMessage);

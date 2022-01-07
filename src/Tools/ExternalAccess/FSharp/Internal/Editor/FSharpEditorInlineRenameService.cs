@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, SymbolRenameOptions options, CancellationToken cancellationToken)
         {
-            var info = await _set.GetReplacementsAsync(replacementText, null, cancellationToken).ConfigureAwait(false);
+            var info = await _set.GetReplacementsAsync(replacementText, optionSet: null, cancellationToken).ConfigureAwait(false);
             if (info != null)
             {
                 return new FSharpInlineRenameReplacementInfoLegacyWrapper(info);
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         public bool HasOverloads => _info.HasOverloads;
 
-        public bool ForceRenameOverloads => _info.ForceRenameOverloads;
+        public bool MustRenameOverloads => _info.ForceRenameOverloads;
 
         public string DisplayName => _info.DisplayName;
 

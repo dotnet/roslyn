@@ -346,8 +346,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                                 var snapshot = openDocument.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
                                 if (snapshot != null)
                                 {
-                                    var options = new SymbolRenameOptions();
-                                    _renameService.StartInlineSession(openDocument, resolvedRenameToken.AsToken().Span, options, cancellationToken);
+                                    _renameService.StartInlineSession(openDocument, resolvedRenameToken.AsToken().Span, cancellationToken);
                                 }
                             }
                         }

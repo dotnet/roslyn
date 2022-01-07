@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 End Get
             End Property
 
-            Public Function StartInlineSession(snapshot As Document, triggerSpan As TextSpan, options As SymbolRenameOptions, Optional cancellationToken As CancellationToken = Nothing) As InlineRenameSessionInfo Implements IInlineRenameService.StartInlineSession
+            Public Function StartInlineSession(snapshot As Document, triggerSpan As TextSpan, cancellationToken As CancellationToken) As InlineRenameSessionInfo Implements IInlineRenameService.StartInlineSession
                 Throw New NotImplementedException()
             End Function
 

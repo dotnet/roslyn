@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 
         public bool HasOverloads => _info.HasOverloads;
 
-        public bool ForceRenameOverloads => _info.ForceRenameOverloads;
+        public bool MustRenameOverloads => _info.ForceRenameOverloads;
 
         public string DisplayName => _info.DisplayName;
 

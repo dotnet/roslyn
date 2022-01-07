@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal partial class InlineRenameSession : ForegroundThreadAffinitizedObject, IInlineRenameSession, IFeatureController
     {
         private readonly Workspace _workspace;
-        private readonly InlineRenameService _renameService;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
@@ -49,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly Document _triggerDocument;
         private readonly ITextView _triggerView;
         private readonly IDisposable _inlineRenameSessionDurationLogBlock;
+
+        public readonly InlineRenameService RenameService;
 
         private bool _dismissed;
         private bool _isApplyingEdit;
@@ -117,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             SnapshotSpan triggerSpan,
             IInlineRenameInfo renameInfo,
             SymbolRenameOptions options,
+            bool previewChanges,
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
@@ -147,14 +149,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _featureService = featureServiceFactory.GlobalFeatureService;
             _completionDisabledToken = _featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
 
-            _renameService = renameService;
+            RenameService = renameService;
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _refactorNotifyServices = refactorNotifyServices;
             _asyncListener = asyncListener;
             _triggerView = textBufferAssociatedViewService.GetAssociatedTextViews(triggerSpan.Snapshot.TextBuffer).FirstOrDefault(v => v.HasAggregateFocus) ??
                 textBufferAssociatedViewService.GetAssociatedTextViews(triggerSpan.Snapshot.TextBuffer).First();
 
-            _options = options with { RenameOverloads = options.RenameOverloads || renameInfo.ForceRenameOverloads };
+            _options = options;
+            _previewChanges = previewChanges;
+
             _initialRenameText = triggerSpan.GetText();
             this.ReplacementText = _initialRenameText;
 
@@ -314,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public SymbolRenameOptions Options => _options;
         public bool PreviewChanges => _previewChanges;
         public bool HasRenameOverloads => _renameInfo.HasOverloads;
-        public bool ForceRenameOverloads => _renameInfo.ForceRenameOverloads;
+        public bool MustRenameOverloads => _renameInfo.MustRenameOverloads;
 
         public IInlineRenameUndoManager UndoManager { get; }
 
@@ -330,10 +334,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public void RefreshRenameSessionWithOptionsChanged(SymbolRenameOptions newOptions)
         {
+            if (_options == newOptions)
+            {
+                return;
+            }
+
             AssertIsForeground();
             VerifyNotDismissed();
-
-            Debug.Assert(_options != newOptions);
 
             _options = newOptions;
 
@@ -386,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _triggerView.Selection.Clear();
             }
 
-            _renameService.ActiveSession = null;
+            RenameService.ActiveSession = null;
         }
 
         private void VerifyNotDismissed()

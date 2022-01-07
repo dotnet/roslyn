@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.IntroduceVariable
@@ -123,7 +124,10 @@ class [|Test1$$|]
                         </Project>
                     </Workspace>, host)
 
-                Dim session = StartSession(workspace, New SymbolRenameOptions(RenameFile:=True))
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
+                globalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameFile, True)
+
+                Dim session = StartSession(workspace)
 
                 Dim selectedSpan = workspace.DocumentWithCursor.CursorPosition.Value
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
@@ -239,11 +243,14 @@ class Deconstructable
                                                            Optional renameInComments As Boolean = False,
                                                            Optional renameFile As Boolean = False,
                                                            Optional fileToRename As DocumentId = Nothing) As Task
-            Dim session = StartSession(workspace, New SymbolRenameOptions(
-                RenameOverloads:=renameOverloads,
-                RenameInStrings:=renameInStrings,
-                RenameInComments:=renameInComments,
-                RenameFile:=renameFile))
+
+            Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
+            globalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameOverloads, renameOverloads)
+            globalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameInStrings, renameInStrings)
+            globalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameInComments, renameInComments)
+            globalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameFile, renameFile)
+
+            Dim session = StartSession(workspace)
 
             ' Type a bit in the file
             Dim renameDocument As TestHostDocument = workspace.DocumentWithCursor

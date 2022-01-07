@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public bool HasOverloads => false;
 
-            public bool ForceRenameOverloads => false;
+            public bool MustRenameOverloads => false;
 
             public string LocalizedErrorMessage { get; }
 

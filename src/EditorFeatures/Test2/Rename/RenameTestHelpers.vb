@@ -43,27 +43,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return (solution.GetDocument(hostdoc.Id), token.Span)
         End Function
 
-        Public Function StartSession(workspace As TestWorkspace, Optional options As SymbolRenameOptions = Nothing) As InlineRenameSession
+        Public Function StartSession(workspace As TestWorkspace) As InlineRenameSession
             Dim renameService = workspace.GetService(Of IInlineRenameService)()
             Dim sessionInfo = GetSessionInfo(workspace)
 
-            Return DirectCast(renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan, options, CancellationToken.None).Session, InlineRenameSession)
+            Return DirectCast(renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan, CancellationToken.None).Session, InlineRenameSession)
         End Function
 
-        Public Sub AssertTokenRenamable(workspace As TestWorkspace, Optional options As SymbolRenameOptions = Nothing)
+        Public Sub AssertTokenRenamable(workspace As TestWorkspace)
             Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)
             Dim sessionInfo = GetSessionInfo(workspace)
 
-            Dim result = renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan, options, CancellationToken.None)
+            Dim result = renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan, CancellationToken.None)
             Assert.True(result.CanRename)
             Assert.Null(result.LocalizedErrorMessage)
         End Sub
 
-        Public Sub AssertTokenNotRenamable(workspace As TestWorkspace, Optional options As SymbolRenameOptions = Nothing)
+        Public Sub AssertTokenNotRenamable(workspace As TestWorkspace)
             Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)
             Dim sessionInfo = GetSessionInfo(workspace)
 
-            Dim result = renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan, options, CancellationToken.None)
+            Dim result = renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan, CancellationToken.None)
             Assert.False(result.CanRename)
             Assert.NotNull(result.LocalizedErrorMessage)
         End Sub

@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -33,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IFeatureServiceFactory _featureServiceFactory;
         private InlineRenameSession? _activeRenameSession;
 
+        internal readonly IGlobalOptionService GlobalOptions;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineRenameService(
@@ -41,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
             IFeatureServiceFactory featureServiceFactory,
+            IGlobalOptionService globalOptions,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
@@ -51,12 +55,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _featureServiceFactory = featureServiceFactory;
             _refactorNotifyServices = refactorNotifyServices;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.Rename);
+            GlobalOptions = globalOptions;
         }
 
         public InlineRenameSessionInfo StartInlineSession(
             Document document,
             TextSpan textSpan,
-            SymbolRenameOptions options,
             CancellationToken cancellationToken)
         {
             if (_activeRenameSession != null)
@@ -81,6 +85,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var snapshot = document.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
             Contract.ThrowIfNull(snapshot, "The document used for starting the inline rename session should still be open and associated with a snapshot.");
 
+            var options = new SymbolRenameOptions(
+                RenameOverloads: renameInfo.MustRenameOverloads || GlobalOptions.GetOption(InlineRenameSessionOptions.Metadata.RenameOverloads),
+                RenameInStrings: GlobalOptions.GetOption(InlineRenameSessionOptions.Metadata.RenameInStrings),
+                RenameInComments: GlobalOptions.GetOption(InlineRenameSessionOptions.Metadata.RenameInComments),
+                RenameFile: GlobalOptions.GetOption(InlineRenameSessionOptions.Metadata.RenameFile));
+
+            var previewChanges = GlobalOptions.GetOption(InlineRenameSessionOptions.Metadata.PreviewChanges);
+
             ActiveSession = new InlineRenameSession(
                 _threadingContext,
                 this,
@@ -88,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 renameInfo.TriggerSpan.ToSnapshotSpan(snapshot),
                 renameInfo,
                 options,
+                previewChanges,
                 _uiThreadOperationExecutor,
                 _textBufferAssociatedViewService,
                 _textBufferFactoryService,

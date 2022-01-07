@@ -307,8 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                         editSpan = memberAccessExpression.Name.Span;
                     }
 
-                    var options = new SymbolRenameOptions();
-                    _inlineRenameService.StartInlineSession(document, editSpan, options, cancellationToken);
+                    _inlineRenameService.StartInlineSession(document, editSpan, cancellationToken);
                     textView.SetSelection(editSpan.ToSnapshotSpan(textView.TextSnapshot));
                 }
             }

@@ -19,10 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         /// <param name="document">The Document containing the triggerSpan.</param>
         /// <param name="triggerSpan">The triggerSpan itself.</param>
-        /// <param name="options">Initial options.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The rename session.</returns>
-        InlineRenameSessionInfo StartInlineSession(Document document, TextSpan triggerSpan, SymbolRenameOptions options, CancellationToken cancellationToken = default);
+        InlineRenameSessionInfo StartInlineSession(Document document, TextSpan triggerSpan, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the currently active inline session, or null if none is active.

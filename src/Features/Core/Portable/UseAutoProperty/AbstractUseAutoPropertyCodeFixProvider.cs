@@ -85,11 +85,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var project = fieldDocument.Project;
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var renameOptions = new SymbolRenameOptions(
-                RenameOverloads: false,
-                RenameInStrings: false,
-                RenameInComments: false,
-                RenameFile: false);
+            var renameOptions = new SymbolRenameOptions();
 
             var fieldLocations = await Renamer.FindRenameLocationsAsync(
                 solution, fieldSymbol, renameOptions, cancellationToken).ConfigureAwait(false);

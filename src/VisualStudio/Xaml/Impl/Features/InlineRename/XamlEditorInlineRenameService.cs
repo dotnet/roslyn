@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
             public bool HasOverloads => false;
 
-            public bool ForceRenameOverloads => false;
+            public bool MustRenameOverloads => false;
 
             public string LocalizedErrorMessage => _renameInfo.LocalizedErrorMessage;
 
