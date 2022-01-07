@@ -21,6 +21,7 @@ pr:
     exclude:
       - azure-pipelines.yml
       - azure-pipelines-integration.yml
+      - azure-pipelines-integration-corehost.yml
 
 
 # Windows Build and Test Jobs
