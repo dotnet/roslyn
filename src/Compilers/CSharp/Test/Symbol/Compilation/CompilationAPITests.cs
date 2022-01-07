@@ -3281,7 +3281,7 @@ public class C {}
             var current = CreateEmptyCompilation(@"", new[] { corlibReference });
             current.VerifyDiagnostics();
 
-            var type = current.GetTypeByMetadataName("C");
+            var type = ((Compilation)current).GetTypeByMetadataName("C");
             Assert.NotNull(type);
 
             var corlibAssembly = current.GetAssemblyOrModuleSymbol(corlibReference).GetPublicSymbol();
@@ -3308,7 +3308,7 @@ namespace System
             var current = CreateEmptyCompilation(@"", new[] { otherReference, corlibReference });
             current.VerifyDiagnostics();
 
-            var type = current.GetTypeByMetadataName("C");
+            var type = ((Compilation)current).GetTypeByMetadataName("C");
             Assert.Null(type);
         }
 
