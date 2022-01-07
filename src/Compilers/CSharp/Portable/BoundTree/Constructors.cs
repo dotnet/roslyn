@@ -731,4 +731,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Update(operatorKind, operand, methodOpt, constrainedToTypeOpt, operandPlaceholder, operandConversion, resultPlaceholder, resultConversion, resultKind, this.OriginalUserDefinedOperatorsOpt, type);
         }
     }
+
+    internal partial class BoundSequence
+    {
+        public BoundSequence(
+            SyntaxNode syntax,
+            ImmutableArray<LocalSymbol> locals,
+            ImmutableArray<BoundExpression> sideEffects,
+            BoundExpression value,
+            TypeSymbol type,
+            bool hasErrors = false)
+            : this(syntax, locals, sideEffects, value, forceSpill: false, type, hasErrors)
+        {
+        }
+    }
 }

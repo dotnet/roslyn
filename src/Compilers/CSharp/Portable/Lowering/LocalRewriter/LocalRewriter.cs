@@ -1103,9 +1103,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            private void Fail(BoundNode node)
+            public override BoundNode? VisitSequence(BoundSequence node)
             {
-                Debug.Assert(false, $"Bound nodes of kind {node.Kind} should not survive past local rewriting");
+                if (node.ForceSpill)
+                {
+                    Fail(node, extraContent: $" with {nameof(BoundSequence)}.{nameof(node.ForceSpill)} true");
+                }
+
+                return null;
+            }
+
+            private void Fail(BoundNode node, string extraContent = "")
+            {
+                Debug.Assert(false, $"Bound nodes of kind {node.Kind}{extraContent} should not survive past local rewriting");
             }
         }
 #endif

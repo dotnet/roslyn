@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
@@ -745,6 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                                     rewrittenSideeffects.ToImmutableAndFree() :
                                     sideeffects,
                                 value,
+                                node.ForceSpill,
                                 node.Type);
         }
 
@@ -899,6 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 BoundExpression rewritten = sequence.Update(sequence.Locals,
                                         sequence.SideEffects,
                                         node.Update(sequence.Value, node.Right, node.IsRef, node.Type),
+                                        sequence.ForceSpill,
                                         sequence.Type);
 
                 rewritten = (BoundExpression)Visit(rewritten);

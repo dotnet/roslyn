@@ -1611,6 +1611,10 @@
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="SideEffects" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="Value" Type="BoundExpression"/>
+
+    <!-- Force the SpillSequenceSpiller to treat this sequence as if it should be spilled, regardless of whether it contains any
+         nested BoundSpillSequence nodes. -->
+    <Field Name="ForceSpill" Type="bool"/>
   </Node>
 
   <!-- 

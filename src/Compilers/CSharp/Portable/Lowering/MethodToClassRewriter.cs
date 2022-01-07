@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var newSideEffects = VisitList<BoundExpression>(node.SideEffects);
             var newValue = (BoundExpression)this.Visit(node.Value);
             var newType = this.VisitType(node.Type);
-            return node.Update(newLocals, newSideEffects, newValue, newType);
+            return node.Update(newLocals, newSideEffects, newValue, node.ForceSpill, newType);
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)

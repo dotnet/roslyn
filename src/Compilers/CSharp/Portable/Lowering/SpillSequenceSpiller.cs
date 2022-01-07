@@ -1222,14 +1222,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var sideEffects = VisitExpressionList(ref builder, node.SideEffects, forceSpill: valueBuilder != null, sideEffectsOnly: true);
 
-            if (builder == null && valueBuilder == null)
+            if (builder == null && valueBuilder == null && !node.ForceSpill)
             {
-                return node.Update(node.Locals, sideEffects, value, node.Type);
+                return node.Update(node.Locals, sideEffects, value, node.ForceSpill, node.Type);
             }
 
             if (builder == null)
             {
-                builder = new BoundSpillSequenceBuilder(valueBuilder.Syntax);
+                builder = new BoundSpillSequenceBuilder(valueBuilder?.Syntax ?? node.Syntax);
             }
 
             PromoteAndAddLocals(builder, node.Locals);

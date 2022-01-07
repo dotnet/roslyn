@@ -919,20 +919,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Sequence(locals, builder.ToImmutableAndFree(), lastExpression);
         }
 
-        public BoundSequence Sequence(BoundExpression[] sideEffects, BoundExpression result, TypeSymbol? type = null)
+        public BoundSequence Sequence(BoundExpression[] sideEffects, BoundExpression result, TypeSymbol? type = null, bool forceSpill = false)
         {
             Debug.Assert(result.Type is { });
             var resultType = type ?? result.Type;
-            return new BoundSequence(Syntax, ImmutableArray<LocalSymbol>.Empty, sideEffects.AsImmutableOrNull(), result, resultType) { WasCompilerGenerated = true };
+            return new BoundSequence(Syntax, ImmutableArray<LocalSymbol>.Empty, sideEffects.AsImmutableOrNull(), result, forceSpill, resultType) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
+        public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result, bool forceSpill = false)
         {
             Debug.Assert(result.Type is { });
             return
                 locals.IsDefaultOrEmpty && sideEffects.IsDefaultOrEmpty
                 ? result
-                : new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
+                : new BoundSequence(Syntax, locals, sideEffects, result, forceSpill, result.Type) { WasCompilerGenerated = true };
         }
 
         public BoundSpillSequence SpillSequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression result)

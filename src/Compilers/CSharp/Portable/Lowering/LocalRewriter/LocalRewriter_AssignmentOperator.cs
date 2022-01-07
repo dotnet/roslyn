@@ -265,6 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 isRef,
                                 type,
                                 used),
+                            sequence.ForceSpill,
                             type);
                     }
                     goto default;

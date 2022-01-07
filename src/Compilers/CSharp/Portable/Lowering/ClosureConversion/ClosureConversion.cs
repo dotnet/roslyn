@@ -1108,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var newValue = (BoundExpression)this.Visit(node.Value);
             var newType = this.VisitType(node.Type);
 
-            return node.Update(newLocals.ToImmutableAndFree(), prologue.ToImmutableAndFree(), newValue, newType);
+            return node.Update(newLocals.ToImmutableAndFree(), prologue.ToImmutableAndFree(), newValue, node.ForceSpill, newType);
         }
 
         public override BoundNode VisitBlock(BoundBlock node)

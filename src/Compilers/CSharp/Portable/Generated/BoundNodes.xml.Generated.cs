@@ -5693,7 +5693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSequence : BoundExpression
     {
-        public BoundSequence(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression value, TypeSymbol type, bool hasErrors = false)
+        public BoundSequence(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression value, bool forceSpill, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.Sequence, syntax, type, hasErrors || sideEffects.HasErrors() || value.HasErrors())
         {
 
@@ -5705,6 +5705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Locals = locals;
             this.SideEffects = sideEffects;
             this.Value = value;
+            this.ForceSpill = forceSpill;
         }
 
 
@@ -5715,14 +5716,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<BoundExpression> SideEffects { get; }
 
         public BoundExpression Value { get; }
+
+        public bool ForceSpill { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSequence(this);
 
-        public BoundSequence Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression value, TypeSymbol type)
+        public BoundSequence Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression value, bool forceSpill, TypeSymbol type)
         {
-            if (locals != this.Locals || sideEffects != this.SideEffects || value != this.Value || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (locals != this.Locals || sideEffects != this.SideEffects || value != this.Value || forceSpill != this.ForceSpill || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundSequence(this.Syntax, locals, sideEffects, value, type, this.HasErrors);
+                var result = new BoundSequence(this.Syntax, locals, sideEffects, value, forceSpill, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11466,7 +11469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> sideEffects = this.VisitList(node.SideEffects);
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Locals, sideEffects, value, type);
+            return node.Update(node.Locals, sideEffects, value, node.ForceSpill, type);
         }
         public override BoundNode? VisitSpillSequence(BoundSpillSequence node)
         {
@@ -13391,12 +13394,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(locals, sideEffects, value, infoAndType.Type!);
+                updatedNode = node.Update(locals, sideEffects, value, node.ForceSpill, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(locals, sideEffects, value, node.Type);
+                updatedNode = node.Update(locals, sideEffects, value, node.ForceSpill, node.Type);
             }
             return updatedNode;
         }
@@ -15764,6 +15767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("sideEffects", null, from x in node.SideEffects select Visit(x, null)),
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
+            new TreeDumperNode("forceSpill", node.ForceSpill, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

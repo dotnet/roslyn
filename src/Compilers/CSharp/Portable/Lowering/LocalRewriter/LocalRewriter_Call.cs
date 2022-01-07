@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     Debug.Assert(visitedReceiver != null && requiresInstanceReceiver);
                                     local = _factory.StoreToTemp(visitedReceiver, out var store, refKind: visitedReceiver.GetRefKind());
                                     temps.Add(local.LocalSymbol);
-                                    visitedReceiver = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundExpression>(store), local);
+                                    visitedReceiver = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundExpression>(store), local, forceSpill: true);
                                     receiverAssignedToTemp = true;
                                     break;
 
