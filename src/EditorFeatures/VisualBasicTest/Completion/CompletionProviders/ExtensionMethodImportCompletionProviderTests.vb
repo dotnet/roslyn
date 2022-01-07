@@ -12,25 +12,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public Class ExtensionMethodImportCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Private Property IsExpandedCompletion As Boolean = True
-
-        ' -1 would disable timebox, whereas 0 means always timeout.
-        Private Property TimeoutInMilliseconds As Integer = -1
-
-        Private Property ShowImportCompletionItemsOptionValue As Boolean = True
-        Private Property UsePartialSemantic As Boolean = False
-
-        Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
-            Return options _
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion) _
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds) _
-                .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, UsePartialSemantic)
-        End Function
-
-        Protected Overrides Function GetComposition() As TestComposition
-            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
-        End Function
+        Public Sub New()
+            ShowImportCompletionItemsOptionValue = True
+            IsExpandedCompletion = True
+            TimeoutInMilliseconds = -1 ' -1 would disable timebox
+        End Sub
 
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(ExtensionMethodImportCompletionProvider)

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
             if (node is MemberAccessExpressionSyntax { Expression: TypeOfExpressionSyntax typeOfExpression })
             {
                 var typeSymbol = model.GetSymbolInfo(typeOfExpression.Type, cancellationToken).Symbol.GetSymbolType();
-                return typeSymbol?.GenerateTypeSyntax();
+                return typeSymbol?.GenerateExpressionSyntax();
             }
 
             return null;

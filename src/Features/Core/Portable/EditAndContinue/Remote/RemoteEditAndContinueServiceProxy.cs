@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
                 => ((EditSessionCallback)GetCallback(callbackId)).GetActiveStatementsAsync(cancellationToken);
 
-            public ValueTask<ManagedEditAndContinueAvailability> GetAvailabilityAsync(RemoteServiceCallbackId callbackId, Guid mvid, CancellationToken cancellationToken)
+            public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(RemoteServiceCallbackId callbackId, Guid mvid, CancellationToken cancellationToken)
                 => ((EditSessionCallback)GetCallback(callbackId)).GetAvailabilityAsync(mvid, cancellationToken);
 
             public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private sealed class EditSessionCallback
         {
-            private readonly IManagedEditAndContinueDebuggerService _debuggerService;
+            private readonly IManagedHotReloadService _debuggerService;
 
-            public EditSessionCallback(IManagedEditAndContinueDebuggerService debuggerService)
+            public EditSessionCallback(IManagedHotReloadService debuggerService)
             {
                 _debuggerService = debuggerService;
             }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            public async ValueTask<ManagedEditAndContinueAvailability> GetAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
+            public async ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
-                    return new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.InternalError, e.Message);
+                    return new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.InternalError, e.Message);
                 }
             }
 
@@ -119,15 +119,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<RemoteDebuggingSessionProxy?> StartDebuggingSessionAsync(
             Solution solution,
-            IManagedEditAndContinueDebuggerService debuggerService,
-            bool captureMatchingDocuments,
+            IManagedHotReloadService debuggerService,
+            ImmutableArray<DocumentId> captureMatchingDocuments,
+            bool captureAllMatchingDocuments,
             bool reportDiagnostics,
             CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                var sessionId = await GetLocalService().StartDebuggingSessionAsync(solution, debuggerService, captureMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
+                var sessionId = await GetLocalService().StartDebuggingSessionAsync(solution, debuggerService, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
                 return new RemoteDebuggingSessionProxy(Workspace, LocalConnection.Instance, sessionId);
             }
 
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var sessionIdOpt = await connection.TryInvokeAsync(
                 solution,
-                async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false),
+                async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
 
             if (sessionIdOpt.HasValue)

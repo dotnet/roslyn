@@ -64,7 +64,7 @@ class C
         [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
         public void PatternMatchGenericParameterToMethodGroup()
         {
-            var comp = CreateCompilation(@"
+            var source = @"
 class C
 {
     public void M1(object o)
@@ -85,7 +85,9 @@ class C
                 break;
         }
     }
-}");
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0428: Cannot convert method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         _ = o is M1;
@@ -98,8 +100,28 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(15, 18),
                 // (18,18): error CS0150: A constant value is expected
                 //             case M2:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,18): warning CS8974: Converting method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         _ = o is M1;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(6, 18),
+                // (6,18): error CS0150: A constant value is expected
+                //         _ = o is M1;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M1").WithLocation(6, 18),
+                // (9,18): warning CS8974: Converting method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
+                //             case M1:
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(9, 18),
+                // (9,18): error CS0150: A constant value is expected
+                //             case M1:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M1").WithLocation(9, 18),
+                // (15,18): error CS0150: A constant value is expected
+                //         _ = t is M2;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(15, 18),
+                // (18,18): error CS0150: A constant value is expected
+                //             case M2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18));
         }
 
         [Fact]
@@ -3047,6 +3069,32 @@ class Program
                 // (7,18): error CS8521: Pattern-matching is not permitted for pointer types.
                 //         if (p is var (x, y)) { }
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var (x, y)").WithLocation(7, 18)
+                );
+        }
+
+        [Fact, WorkItem(48591, "https://github.com/dotnet/roslyn/issues/48591")]
+        public void PointerAsInput_05()
+        {
+            var source =
+@"public class C
+{
+    unsafe static void F2<T>(nint i) where T : unmanaged
+    {
+        T* p = (T*)i;
+        _ = p == null;
+        _ = p != null;
+        _ = p is null;
+        _ = p is not null;
+        _ = p switch { not null => true, null => false };
+        _ = p switch { { } => true, null => false }; // 1
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                // (11,24): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         _ = p switch { { } => true, null => false }; // 1
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "{ }").WithLocation(11, 24)
                 );
         }
 

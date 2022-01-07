@@ -21,7 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 ERRID.Unknown,
                 ERRID.ERR_None,
                 ERRID.ERR_CannotUseGenericBaseTypeAcrossAssemblyBoundaries, ' Not reported. See ImportsBinder.ShouldReportUseSiteErrorForAlias.
-                ERRID.ERRWRN_NextAvailable
+                ERRID.ERR_NextAvailable,
+                ERRID.WRN_NextAvailable,
+                ERRID.HDN_NextAvailable,
+                ERRID.IDS_NextAvailable
             }
             For Each id As ERRID In [Enum].GetValues(GetType(ERRID))
                 If Array.IndexOf(excludedIds, id) >= 0 Then
@@ -66,6 +69,73 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Next
         End Sub
 
+        <Fact>
+        Public Sub ErrorMessagesWithinCorrectRanges()
+            Const WarningsStart = ERRID.WRN_UseOfObsoleteSymbol2
+            Const HiddenInfoStart = ERRID.HDN_UnusedImportClause
+            Const IdsStart = ERRID.IDS_ProjectSettingsLocationName
+            Const FeatureStart = ERRID.FEATURE_AutoProperties
+
+            Dim legacyWarningsInErrorRange = {ERRID.WRN_BadSwitch, ERRID.WRN_NoConfigInResponseFile, ERRID.FTL_InvalidInputFileName, ERRID.WRN_IgnoreModuleManifest, ERRID.WRN_BadUILang}
+
+            For Each errObj In [Enum].GetValues(GetType(ERRID))
+                Dim err = DirectCast(errObj, ERRID)
+                Dim errString = err.ToString()
+                Select Case err
+                    Case ERRID.Void, ERRID.Unknown
+                        Continue For
+
+                    Case <= ERRID.ERR_NextAvailable
+                        If legacyWarningsInErrorRange.Contains(err) Then
+                            Continue For
+                        End If
+
+                        Assert.True(errString.StartsWith("ERR_"), GetErrorMessage(errString))
+
+                    Case < WarningsStart
+                        Assert.True(False, GetErrorMessage(errString))
+
+                    Case WarningsStart To ERRID.WRN_NextAvailable
+                        Assert.True(errString.StartsWith("WRN_"), GetErrorMessage(errString))
+
+                    Case < HiddenInfoStart
+                        Assert.True(False, GetErrorMessage(errString))
+
+                    Case HiddenInfoStart To ERRID.HDN_NextAvailable
+                        Assert.True(errString.StartsWith("HDN_") OrElse errString.StartsWith("INF_"),
+                                    GetErrorMessage(errString))
+
+                    Case < IdsStart
+                        Assert.True(False, GetErrorMessage(errString))
+
+                    Case IdsStart to ERRID.IDS_NextAvailable
+                        Assert.True(errString.StartsWith("IDS_"), GetErrorMessage(errString))
+
+                    Case < FeatureStart
+                        Assert.True(False, GetErrorMessage(errString))
+
+                    Case >= FeatureStart
+                        Assert.True(errString.StartsWith("FEATURE_"), GetErrorMessage(errString))
+                End Select
+            Next
+
+        End Sub
+
+        Private Shared Function GetErrorMessage(str As String) As String
+            If str.StartsWith("ERR_") Then
+                Return $"Error {str} should use {ERRID.ERR_NextAvailable} and increment the value."
+            ElseIf str.StartsWith("WRN_") Then
+                Return $"Warning {str} should use {ERRID.WRN_NextAvailable} and increment the value."
+            ElseIf str.StartsWith("HDN_") OrElse str.StartsWith("INF_") Then
+                Return $"Hidden or info diagnostic {str} should use {ERRID.HDN_NextAvailable} and increment the value."
+            ElseIf str.StartsWith("IDS_") Then
+                Return $"Id {str} should use {ERRID.IDS_NextAvailable} and increment the value."
+            ElseIf str.StartsWith("FEATURE_") Then
+                Return $"Feature code should go at the end of {NameOf(ERRID)}"
+            Else
+                Return $"{str} does not start with an approved prefix. Use ERR_ for errors, WRN_ for warnings, HDN_/INF_ for hidden or info diagnostics, IDS_ for ids, and FEATURE_ for feature codes"
+            End If
+        End Function
     End Class
 
 End Namespace

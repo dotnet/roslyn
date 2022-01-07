@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../VSPackage.resx">
     <body>
@@ -83,7 +83,8 @@ regular expression;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">インラインのヒントを表示する;
+        <target state="translated">再割り当てされる変数に下線を引く;
+インラインのヒントを表示する;
 閉じているファイルの診断結果を表示する;
 正規表現をカラー化する;
 カーソルの下にある関連コンポーネントを強調表示する;
@@ -127,10 +128,11 @@ string.Format の呼び出しで無効なプレースホルダーをレポート
 プロパティの生成時;
 スロー プロパティを優先する;
 自動プロパティを優先する;
-正規表現;
+RegEx;
 正規表現;
 拡張された色を使用する;
-エディターの配色;</target>
+エディターの配色;
+継承余白;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

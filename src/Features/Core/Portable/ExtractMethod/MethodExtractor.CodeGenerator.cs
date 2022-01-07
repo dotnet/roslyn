@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken);
             protected abstract SyntaxNode GetPreviousMember(SemanticDocument document);
             protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
+            protected abstract bool ShouldLocalFunctionCaptureParameter(SyntaxNode node);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
             protected abstract SyntaxToken CreateMethodName();
@@ -123,7 +124,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var newSyntaxRoot = newCallSiteRoot.ReplaceNode(destination, newContainer);
                 var newDocument = callSiteDocument.Document.WithSyntaxRoot(newSyntaxRoot);
-                newDocument = await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, null, cancellationToken).ConfigureAwait(false);
 
                 var generatedDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
 
@@ -335,19 +335,22 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected ImmutableArray<IParameterSymbol> CreateMethodParameters()
             {
                 var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
-
+                var isLocalFunction = LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root);
                 foreach (var parameter in AnalyzerResult.MethodParameters)
                 {
-                    var refKind = GetRefKind(parameter.ParameterModifier);
-                    var type = parameter.GetVariableType(SemanticDocument);
+                    if (!isLocalFunction || !parameter.CanBeCapturedByLocalFunction)
+                    {
+                        var refKind = GetRefKind(parameter.ParameterModifier);
+                        var type = parameter.GetVariableType(SemanticDocument);
 
-                    parameters.Add(
-                        CodeGenerationSymbolFactory.CreateParameterSymbol(
-                            attributes: ImmutableArray<AttributeData>.Empty,
-                            refKind: refKind,
-                            isParams: false,
-                            type: type,
-                            name: parameter.Name));
+                        parameters.Add(
+                            CodeGenerationSymbolFactory.CreateParameterSymbol(
+                                attributes: ImmutableArray<AttributeData>.Empty,
+                                refKind: refKind,
+                                isParams: false,
+                                type: type,
+                                name: parameter.Name));
+                    }
                 }
 
                 return parameters.ToImmutableAndFree();

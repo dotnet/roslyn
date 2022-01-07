@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document>? documents,
             CancellationToken cancellationToken = default)
         {
-            if (symbol.Kind == SymbolKind.Event ||
-                symbol.Kind == SymbolKind.Method ||
-                symbol.Kind == SymbolKind.Property)
+            if (symbol.Kind is SymbolKind.Event or
+                SymbolKind.Method or
+                SymbolKind.Property)
             {
                 var collector = new StreamingProgressCollector();
                 await FindReferencesAsync(

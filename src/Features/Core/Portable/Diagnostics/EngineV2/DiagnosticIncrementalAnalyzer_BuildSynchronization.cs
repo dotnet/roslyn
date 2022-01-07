@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 descriptor.DefaultSeverity,
                 descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
-                descriptor.CustomTags.ToImmutableArray(),
+                descriptor.ImmutableCustomTags(),
                 diagnostic.Properties,
                 diagnostic.ProjectId,
                 diagnostic.DataLocation,

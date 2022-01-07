@@ -28,10 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
     internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService<
         CompilationUnitSyntax,
         UsingDirectiveSyntax,
-        NamespaceDeclarationSyntax,
+        BaseNamespaceDeclarationSyntax,
         TypeDeclarationSyntax,
         EnumDeclarationSyntax,
-        MemberDeclarationSyntax>
+        MemberDeclarationSyntax,
+        NameSyntax,
+        QualifiedNameSyntax,
+        IdentifierNameSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -89,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         {
             for (var current = node; current != null; current = current.Parent)
             {
-                if (current.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax nsDecl))
+                if (current is BaseNamespaceDeclarationSyntax nsDecl)
                 {
                     ProcessUsings(aliasMaps, nsDecl.Usings);
                 }
@@ -341,6 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                             variableDeclarator.Identifier.Span,
                             inheritanceNames: ImmutableArray<string>.Empty));
                     }
+
                     return;
             }
         }
@@ -348,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         protected override SyntaxList<MemberDeclarationSyntax> GetChildren(CompilationUnitSyntax node)
             => node.Members;
 
-        protected override SyntaxList<MemberDeclarationSyntax> GetChildren(NamespaceDeclarationSyntax node)
+        protected override SyntaxList<MemberDeclarationSyntax> GetChildren(BaseNamespaceDeclarationSyntax node)
             => node.Members;
 
         protected override SyntaxList<MemberDeclarationSyntax> GetChildren(TypeDeclarationSyntax node)
@@ -360,8 +364,20 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         protected override SyntaxList<UsingDirectiveSyntax> GetUsingAliases(CompilationUnitSyntax node)
             => node.Usings;
 
-        protected override SyntaxList<UsingDirectiveSyntax> GetUsingAliases(NamespaceDeclarationSyntax node)
+        protected override SyntaxList<UsingDirectiveSyntax> GetUsingAliases(BaseNamespaceDeclarationSyntax node)
             => node.Usings;
+
+        protected override NameSyntax GetName(BaseNamespaceDeclarationSyntax node)
+            => node.Name;
+
+        protected override NameSyntax GetLeft(QualifiedNameSyntax node)
+            => node.Left;
+
+        protected override NameSyntax GetRight(QualifiedNameSyntax node)
+            => node.Right;
+
+        protected override SyntaxToken GetIdentifier(IdentifierNameSyntax node)
+            => node.Identifier;
 
         private static bool IsNestedType(BaseTypeDeclarationSyntax typeDecl)
             => typeDecl.Parent is BaseTypeDeclarationSyntax;

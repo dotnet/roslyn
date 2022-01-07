@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
-        DefinitionItem? GetThirdPartyDefinitionItem(
+        Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken);
     }
 
@@ -44,10 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// Provides an extension point that allows for other workspace layers to add additional
         /// results to the results found by the FindReferences engine.
         /// </summary>
-        public virtual DefinitionItem? GetThirdPartyDefinitionItem(
+        public virtual Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
-            return null;
+            return SpecializedTasks.Null<DefinitionItem>();
         }
     }
 
@@ -166,10 +165,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                         var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
+                            var classificationOptions = ClassificationOptions.From(document.Project);
+
                             var documentLocation = !includeClassifiedSpans
                                 ? new DocumentSpan(document, location.SourceSpan)
                                 : await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
-                                    document, location.SourceSpan, cancellationToken).ConfigureAwait(false);
+                                    document, location.SourceSpan, classificationOptions, cancellationToken).ConfigureAwait(false);
 
                             sourceLocations.Add(documentLocation);
                         }
@@ -240,9 +241,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var document = referenceLocation.Document;
             var sourceSpan = location.SourceSpan;
+            var options = ClassificationOptions.From(document.Project);
 
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
-                document, sourceSpan, cancellationToken).ConfigureAwait(false);
+                document, sourceSpan, options, cancellationToken).ConfigureAwait(false);
 
             return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo, referenceLocation.AdditionalProperties);
         }

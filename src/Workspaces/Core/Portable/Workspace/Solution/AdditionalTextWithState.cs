@@ -3,30 +3,22 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// An implementation of <see cref="AdditionalText"/> for the compiler that wraps a <see cref="TextDocumentState"/>.
+    /// An implementation of <see cref="AdditionalText"/> for the compiler that wraps a <see cref="AdditionalDocumentState"/>.
     /// </summary>
     internal sealed class AdditionalTextWithState : AdditionalText
     {
-        private readonly TextDocumentState _documentState;
-        private static readonly ConditionalWeakTable<TextDocumentState, AdditionalText> _additionalTextsForDocumentStates = new();
-        private static readonly ConditionalWeakTable<TextDocumentState, AdditionalText>.CreateValueCallback s_createAdditionalText = static ts => new AdditionalTextWithState(ts);
-
-        public static AdditionalText FromState(TextDocumentState state)
-        {
-            return _additionalTextsForDocumentStates.GetValue(state, s_createAdditionalText);
-        }
+        private readonly AdditionalDocumentState _documentState;
 
         /// <summary>
-        /// Create a <see cref="SourceText"/> from a <see cref="TextDocumentState"/>.
+        /// Create a <see cref="SourceText"/> from a <see cref="AdditionalDocumentState"/>.
         /// </summary>
-        private AdditionalTextWithState(TextDocumentState documentState)
+        public AdditionalTextWithState(AdditionalDocumentState documentState)
             => _documentState = documentState ?? throw new ArgumentNullException(nameof(documentState));
 
         /// <summary>

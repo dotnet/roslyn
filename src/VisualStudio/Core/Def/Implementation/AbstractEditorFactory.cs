@@ -4,26 +4,22 @@
 
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FileHeaders;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.WinForms.Interfaces;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -42,9 +38,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
-        protected abstract SyntaxGenerator SyntaxGenerator { get; }
-        protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
-        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
+
+        /// <summary>
+        /// The project that is used to format newly added documents is in an unknown state - it might be
+        /// fully realized, we might have only recieved part of the data about it, or it could be a temporary
+        /// one that we create solely for the purpose of new document formatting. Since the language version
+        /// informs what types of formatting changes might be possible, this method exists to ensure that we
+        /// at least provide that piece of information regardless of anything else.
+        /// </summary>
+        protected abstract Project GetProjectWithCorrectParseOptionsForProject(Project project, IVsHierarchy hierarchy);
 
         public void SetEncoding(bool value)
             => _encoding = value;
@@ -113,32 +115,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 case "Form":
 
-                    // We must create the WinForms designer here
-                    var loaderName = GetWinFormsLoaderName(vsHierarchy);
-                    var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
-                    var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(loaderName);
-                    if (designerLoader is null)
+                    if (CreateWinFormsEditorInstance(
+                        vsHierarchy,
+                        itemid,
+                        textBuffer,
+                        readOnlyStatus,
+                        out ppunkDocView,
+                        out pbstrEditorCaption,
+                        out pguidCmdUI) == VSConstants.E_FAIL)
                     {
                         goto case "Code";
-                    }
-
-                    try
-                    {
-                        designerLoader.Initialize(_oleServiceProvider, vsHierarchy, (int)itemid, (IVsTextLines)textBuffer);
-                        pbstrEditorCaption = designerLoader.GetEditorCaption((int)readOnlyStatus);
-
-                        var designer = designerService.CreateDesigner(_oleServiceProvider, designerLoader);
-                        ppunkDocView = Marshal.GetIUnknownForObject(designer.View);
-                        pguidCmdUI = designer.CommandGuid;
-                    }
-                    catch
-                    {
-                        // Only dispose the designer loader on failure to create a designer.
-                        // The IVSMDDesignerService.CreateDesigner() method in VS passes it into the DesignSurface that gets created
-                        // and is used to perform the actual load (and reloads -- which happen during normal designer operation).
-                        // http://index/?leftProject=Microsoft.VisualStudio.Design&leftSymbol=n8p1tszkfyz7&file=DesignerActivationService.cs&line=629
-                        designerLoader.Dispose();
-                        throw;
                     }
 
                     break;
@@ -207,36 +193,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return "Form".Equals(pszPhysicalView, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static string GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
-        {
-            const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
-            const string NewLoaderName = "Microsoft.VisualStudio.Design.Core.Serialization.CodeDom.VSCodeDomDesignerLoader";
-
-            // If this is a netcoreapp3.0 (or newer), we must create the newer WinForms designer.
-            // TODO: This check will eventually move into the WinForms designer itself.
-            if (!vsHierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out var targetFrameworkMoniker) ||
-                string.IsNullOrWhiteSpace(targetFrameworkMoniker))
-            {
-                return LoaderName;
-            }
-
-            try
-            {
-                var frameworkName = new FrameworkName(targetFrameworkMoniker);
-                if (frameworkName.Identifier == ".NETCoreApp" && frameworkName.Version?.Major >= 3)
-                {
-                    return NewLoaderName;
-                }
-            }
-            catch
-            {
-                // Fall back to the old loader name if there are any failures
-                // while parsing the TFM.
-            }
-
-            return LoaderName;
-        }
-
         public int MapLogicalView(ref Guid rguidLogicalView, out string? pbstrPhysicalView)
         {
             pbstrPhysicalView = null;
@@ -289,10 +245,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         int IVsEditorFactoryNotify.NotifyItemRenamed(IVsHierarchy pHier, uint itemid, string pszMkDocumentOld, string pszMkDocumentNew)
             => VSConstants.S_OK;
 
-        protected virtual Task<Document> OrganizeUsingsCreatedFromTemplateAsync(Document document, CancellationToken cancellationToken)
-            => Formatter.OrganizeImportsAsync(document, cancellationToken);
-
         private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
+        {
+            Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.Run(() => FormatDocumentCreatedFromTemplateAsync(hierarchy, itemid, filePath, cancellationToken));
+        }
+
+        // NOTE: This function has been created to hide IWinFormsEditorFactory type in non-WinForms scenarios (e.g. editing .cs or .vb file)
+        // so that its corresponding dll doesn't get loaded. Due to this reason, function inlining has been disabled.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private int CreateWinFormsEditorInstance(
+            IVsHierarchy vsHierarchy,
+            uint itemid,
+            IVsTextBuffer textBuffer,
+            READONLYSTATUS readOnlyStatus,
+            out IntPtr ppunkDocView,
+            out string pbstrEditorCaption,
+            out Guid pguidCmdUI)
+        {
+            ppunkDocView = IntPtr.Zero;
+            pbstrEditorCaption = string.Empty;
+            pguidCmdUI = Guid.Empty;
+
+            var winFormsEditorFactory = (IWinFormsEditorFactory)PackageUtilities.QueryService<IWinFormsEditorFactory>(_oleServiceProvider);
+
+            return winFormsEditorFactory is null
+                ? VSConstants.E_FAIL
+                : winFormsEditorFactory.CreateEditorInstance(
+                    vsHierarchy,
+                    itemid,
+                    _oleServiceProvider,
+                    textBuffer,
+                    readOnlyStatus,
+                    out ppunkDocView,
+                    out pbstrEditorCaption,
+                    out pguidCmdUI);
+        }
+
+        private async Task FormatDocumentCreatedFromTemplateAsync(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
         {
             // A file has been created on disk which the user added from the "Add Item" dialog. We need
             // to include this in a workspace to figure out the right options it should be formatted with.
@@ -300,63 +289,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var workspace = _componentModel.GetService<VisualStudioWorkspace>();
             var solution = workspace.CurrentSolution;
 
-            ProjectId? projectIdToAddTo = null;
+            Project? projectToAddTo = null;
 
             foreach (var projectId in solution.ProjectIds)
             {
                 if (workspace.GetHierarchy(projectId) == hierarchy)
                 {
-                    projectIdToAddTo = projectId;
+                    projectToAddTo = solution.GetRequiredProject(projectId);
                     break;
                 }
             }
 
-            if (projectIdToAddTo == null)
+            if (projectToAddTo == null)
             {
                 // We don't have a project for this, so we'll just make up a fake project altogether
-                var temporaryProject = solution.AddProject(
+                projectToAddTo = solution.AddProject(
                     name: nameof(FormatDocumentCreatedFromTemplate),
                     assemblyName: nameof(FormatDocumentCreatedFromTemplate),
                     language: LanguageName);
-
-                solution = temporaryProject.Solution;
-                projectIdToAddTo = temporaryProject.Id;
             }
 
-            var documentId = DocumentId.CreateNewId(projectIdToAddTo);
-            var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
+            // We need to ensure that decisions made during new document formatting are based on the right language
+            // version from the project system, but the NotifyItemAdded event happens before a design time build,
+            // and sometimes before we have even been told about the projects existence, so we have to ask the hierarchy
+            // for the language version to use.
+            projectToAddTo = GetProjectWithCorrectParseOptionsForProject(projectToAddTo, hierarchy);
+
+            var documentId = DocumentId.CreateNewId(projectToAddTo.Id);
+
+            var forkedSolution = projectToAddTo.Solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
-            var rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
-            Contract.ThrowIfNull(rootToFormat);
-            var documentOptions = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetOptionsAsync(cancellationToken));
-
-            // Apply file header preferences
-            var fileHeaderTemplate = documentOptions.GetOption(CodeStyleOptions2.FileHeaderTemplate);
-            if (!string.IsNullOrEmpty(fileHeaderTemplate))
+            // Call out to various new document formatters to tweak what they want
+            var formattingService = addedDocument.GetLanguageService<INewDocumentFormattingService>();
+            if (formattingService is not null)
             {
-                var documentWithFileHeader = ThreadHelper.JoinableTaskFactory.Run(() =>
-                {
-                    var newLineText = documentOptions.GetOption(FormattingOptions.NewLine, rootToFormat.Language);
-                    var newLineTrivia = SyntaxGeneratorInternal.EndOfLine(newLineText);
-                    return AbstractFileHeaderCodeFixProvider.GetTransformedSyntaxRootAsync(
-                        SyntaxGenerator.SyntaxFacts,
-                        FileHeaderHelper,
-                        newLineTrivia,
-                        addedDocument,
-                        cancellationToken);
-                });
-
-                addedDocument = addedDocument.WithSyntaxRoot(documentWithFileHeader);
-                rootToFormat = documentWithFileHeader;
+                addedDocument = await formattingService.FormatNewDocumentAsync(addedDocument, hintDocument: null, cancellationToken).ConfigureAwait(true);
             }
 
-            // Organize using directives
-            addedDocument = ThreadHelper.JoinableTaskFactory.Run(() => OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken));
-            rootToFormat = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).AsTask());
+            var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
+            var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(true);
 
             // Format document
-            var unformattedText = addedDocument.GetTextSynchronously(cancellationToken);
+            var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
             var formattedRoot = Formatter.Format(rootToFormat, workspace, documentOptions, cancellationToken);
             var formattedText = formattedRoot.GetText(unformattedText.Encoding, unformattedText.ChecksumAlgorithm);
 

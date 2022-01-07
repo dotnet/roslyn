@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 
@@ -295,7 +296,7 @@ class C
         }
 
         [Fact]
-        public void Syntax_Receiver_Is_Not_Reused_Between_Invocations()
+        public void Syntax_Receiver_Is_Not_Reused_Between_Non_Cached_Invocations()
         {
             var source = @"
 class C 
@@ -333,6 +334,10 @@ class C
             Assert.Equal(1, testReceiver.Tag);
             Assert.Equal(21, testReceiver.VisitedNodes.Count);
             Assert.IsType<CompilationUnitSyntax>(testReceiver.VisitedNodes[0]);
+
+            // update the compilation. In v1 we always re-created the receiver, but in v2 we only re-create
+            // it if the compilation has changed.
+            compilation = compilation.WithAssemblyName("modified");
 
             var previousReceiver = receiver;
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
@@ -941,18 +946,16 @@ class C
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            List<string> fieldsCalledFor = new List<string>();
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText).WithTrackingName("Fields");
                 context.RegisterSourceOutput(source, (spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
-                    fieldsCalledFor.Add(fieldName);
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
 
             var results = driver.GetRunResult();
@@ -961,12 +964,15 @@ class C
             Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
             Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
             Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
-            Assert.Equal("fieldA", fieldsCalledFor[0]);
-            Assert.Equal("fieldB", fieldsCalledFor[1]);
-            Assert.Equal("fieldC", fieldsCalledFor[2]);
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.New), output)));
 
-            // clear out the collected state and run again on the *same* compilation
-            fieldsCalledFor.Clear();
+            // run again on the *same* compilation
             driver = driver.RunGenerators(compilation);
             results = driver.GetRunResult();
             Assert.Empty(results.Diagnostics);
@@ -974,12 +980,16 @@ class C
             Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
             Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
             Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
-            // we produced the same source, but didn't call back at all
-            Assert.Empty(fieldsCalledFor);
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.Cached), output)));
 
             // now change the compilation, but don't change the syntax trees
             compilation = compilation.WithAssemblyName("newCompilation");
-            fieldsCalledFor.Clear();
             driver = driver.RunGenerators(compilation);
             results = driver.GetRunResult();
             Assert.Empty(results.Diagnostics);
@@ -987,7 +997,13 @@ class C
             Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
             Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
             Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
-            Assert.Empty(fieldsCalledFor);
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.Cached), output)));
         }
 
         [Fact]
@@ -1014,18 +1030,16 @@ class D
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            List<string> fieldsCalledFor = new List<string>();
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText).WithTrackingName("Fields");
                 context.RegisterSourceOutput(source, (spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
-                    fieldsCalledFor.Add(fieldName);
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
 
             var results = driver.GetRunResult();
@@ -1034,14 +1048,15 @@ class D
             Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
             Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
             Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
-            Assert.Equal(3, fieldsCalledFor.Count);
-            Assert.Equal("fieldA", fieldsCalledFor[0]);
-            Assert.Equal("fieldB", fieldsCalledFor[1]);
-            Assert.Equal("fieldC", fieldsCalledFor[2]);
-
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.New), output)));
 
             // add the second tree and re-run
-            fieldsCalledFor.Clear();
             compilation = compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source2, parseOptions));
             driver = driver.RunGenerators(compilation);
 
@@ -1053,9 +1068,17 @@ class D
             Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
             Assert.EndsWith("fieldD.cs", results.GeneratedTrees[3].FilePath);
             Assert.EndsWith("fieldE.cs", results.GeneratedTrees[4].FilePath);
-            Assert.Equal(2, fieldsCalledFor.Count);
-            Assert.Equal("fieldD", fieldsCalledFor[0]);
-            Assert.Equal("fieldE", fieldsCalledFor[1]);
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldD", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldE", IncrementalStepRunReason.New), output)));
         }
 
         [Fact]
@@ -1082,18 +1105,16 @@ class D
             Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            List<string> fieldsCalledFor = new List<string>();
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText).WithTrackingName("Fields");
                 context.RegisterSourceOutput(source, (spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
-                    fieldsCalledFor.Add(fieldName);
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
 
             var results = driver.GetRunResult();
@@ -1104,15 +1125,19 @@ class D
             Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
             Assert.EndsWith("fieldD.cs", results.GeneratedTrees[3].FilePath);
             Assert.EndsWith("fieldE.cs", results.GeneratedTrees[4].FilePath);
-            Assert.Equal(5, fieldsCalledFor.Count);
-            Assert.Equal("fieldA", fieldsCalledFor[0]);
-            Assert.Equal("fieldB", fieldsCalledFor[1]);
-            Assert.Equal("fieldC", fieldsCalledFor[2]);
-            Assert.Equal("fieldD", fieldsCalledFor[3]);
-            Assert.Equal("fieldE", fieldsCalledFor[4]);
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldD", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldE", IncrementalStepRunReason.New), output)));
 
             // remove the second tree and re-run
-            fieldsCalledFor.Clear();
             compilation = compilation.RemoveSyntaxTrees(compilation.SyntaxTrees.Last());
             driver = driver.RunGenerators(compilation);
 
@@ -1122,7 +1147,68 @@ class D
             Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
             Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
             Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
-            Assert.Empty(fieldsCalledFor);
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldD", IncrementalStepRunReason.Removed), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldE", IncrementalStepRunReason.Removed), output)));
+        }
+
+        [Fact]
+        [WorkItem(58647, "https://github.com/dotnet/roslyn/issues/58647")]
+        public void IncrementalGenerator_With_Syntax_Filter_Removed_Tree_Add_New_Generator()
+        {
+            var source1 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldA = null; 
+    string fieldB = null;
+    string fieldC = null;
+}";
+
+            var source2 = @"
+#pragma warning disable CS0414
+class D
+{
+    string fieldD = null; 
+    string fieldE = null;
+}
+";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var testGenerator = new PipelineCallbackGenerator(context =>
+            {
+                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                context.RegisterSourceOutput(source, (spc, fieldName) =>
+                {
+                });
+            });
+
+            var testGenerator2 = new PipelineCallbackGenerator2(context =>
+            {
+                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                context.RegisterSourceOutput(source, (spc, fieldName) =>
+                {
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            // remove the second tree, and add the new generator
+            compilation = compilation.RemoveSyntaxTrees(compilation.SyntaxTrees.Last());
+            driver = driver.AddGenerators(ImmutableArray.Create(testGenerator2.AsSourceGenerator()));
+            driver = driver.RunGenerators(compilation);
         }
 
         [Fact]
@@ -1153,7 +1239,7 @@ class E
             List<string> fieldsCalledFor = new List<string>();
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText).WithTrackingName("Fields");
                 context.RegisterSourceOutput(source, (spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
@@ -1161,18 +1247,21 @@ class E
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
 
             var results = driver.GetRunResult();
             Assert.Empty(results.Diagnostics);
-            Assert.Equal(3, results.GeneratedTrees.Length);
             Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
             Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
             Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
-            Assert.Equal("fieldA", fieldsCalledFor[0]);
-            Assert.Equal("fieldB", fieldsCalledFor[1]);
-            Assert.Equal("fieldC", fieldsCalledFor[2]);
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.New), output)));
 
             // edit one of the syntax trees
             var firstTree = compilation.SyntaxTrees.First();
@@ -1185,17 +1274,144 @@ class F
             compilation = compilation.ReplaceSyntaxTree(firstTree, newTree);
 
             // now re-run the drivers 
-            fieldsCalledFor.Clear();
             driver = driver.RunGenerators(compilation);
             results = driver.GetRunResult();
             Assert.Empty(results.Diagnostics);
             Assert.Equal(3, results.GeneratedTrees.Length);
 
             // we produced the expected modified sources, but only called for the one different tree
-            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[0].FilePath);
-            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[1].FilePath);
-            Assert.EndsWith("fieldD.cs", results.GeneratedTrees[2].FilePath);
-            Assert.Single(fieldsCalledFor, "fieldD");
+            Assert.EndsWith("fieldD.cs", results.GeneratedTrees[0].FilePath);
+            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
+            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldD", IncrementalStepRunReason.Modified), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.Cached), output)));
+        }
+
+        [Fact]
+        public void IncrementalGenerator_With_Syntax_Filter_And_Changed_Tree_Order()
+        {
+            var source1 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldA = null; 
+}";
+            var source2 = @"
+#pragma warning disable CS0414
+class D 
+{
+    string fieldB = null; 
+}";
+            var source3 = @"
+#pragma warning disable CS0414
+class E 
+{
+    string fieldC = null; 
+}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            List<string> syntaxFieldsCalledFor = new List<string>();
+
+            var testGenerator = new PipelineCallbackGenerator(context =>
+            {
+                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) =>
+                {
+                    if (c is FieldDeclarationSyntax fds)
+                    {
+                        syntaxFieldsCalledFor.Add(fds.Declaration.Variables[0].Identifier.ValueText);
+                        return true;
+                    }
+                    return false;
+                },
+                (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText).WithTrackingName("Fields");
+
+                context.RegisterSourceOutput(source, (spc, fieldName) =>
+                {
+                    spc.AddSource(fieldName, "");
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+
+            var results = driver.GetRunResult();
+            Assert.Empty(results.Diagnostics);
+            Assert.Equal(3, results.GeneratedTrees.Length);
+            Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
+            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
+            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.New), output)));
+            Assert.Equal("fieldA", syntaxFieldsCalledFor[0]);
+            Assert.Equal("fieldB", syntaxFieldsCalledFor[1]);
+            Assert.Equal("fieldC", syntaxFieldsCalledFor[2]);
+
+            //swap the order of the first and last trees
+            var firstTree = compilation.SyntaxTrees.First();
+            var lastTree = compilation.SyntaxTrees.Last();
+            var dummyTree = CSharpSyntaxTree.ParseText("", parseOptions);
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, dummyTree)
+                                     .ReplaceSyntaxTree(lastTree, firstTree)
+                                     .ReplaceSyntaxTree(dummyTree, lastTree);
+
+            // now re-run the drivers and confirm we didn't actually run
+            syntaxFieldsCalledFor.Clear();
+            driver = driver.RunGenerators(compilation);
+            results = driver.GetRunResult();
+            Assert.Empty(results.Diagnostics);
+            Assert.Equal(3, results.GeneratedTrees.Length);
+            Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
+            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
+            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.Cached), output)));
+            Assert.Empty(syntaxFieldsCalledFor);
+
+
+            // swap a tree for a tree with the same contents, but a new reference
+            var newLastTree = CSharpSyntaxTree.ParseText(lastTree.ToString(), parseOptions);
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, dummyTree)
+                                     .ReplaceSyntaxTree(lastTree, firstTree)
+                                     .ReplaceSyntaxTree(dummyTree, newLastTree);
+
+            // now re-run the drivers and confirm we only ran for the 'new' syntax tree
+            // but then stopped when we got the same value out
+            syntaxFieldsCalledFor.Clear();
+            driver = driver.RunGenerators(compilation);
+            results = driver.GetRunResult();
+            Assert.Empty(results.Diagnostics);
+            Assert.Equal(3, results.GeneratedTrees.Length);
+            Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
+            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
+            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.Cached), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.Unchanged), output)));
+            Assert.Single(syntaxFieldsCalledFor);
+            Assert.Equal("fieldC", syntaxFieldsCalledFor[0]);
         }
 
         [Fact]
@@ -1210,30 +1426,54 @@ class C
     string fieldC = null;
 }
 ";
+
+            var source2 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldD = null; 
+    string fieldE = null;
+    string fieldF = null;
+}
+";
             var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            List<string> calledFor = new List<string>();
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
-                source = source.WithComparer(new LambdaComparer<string>((a, b) => false));
+                source = source.WithComparer(new LambdaComparer<string>((a, b) => true)).WithTrackingName("Fields");
                 context.RegisterSourceOutput(source, (spc, fieldName) =>
                 {
-                    calledFor.Add(fieldName);
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
-            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, calledFor);
+            var results = driver.GetRunResult();
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.New), output)));
 
-            // when we run it again, we get the same fields called for
-            // even though they were cached, because of our comparer
-            calledFor.Clear();
+            // make a change to the syntax tree
+            compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.First(), CSharpSyntaxTree.ParseText(source2, parseOptions));
+
+            // when we run it again, we get cached steps with the original values because the comparer has suppressed the modification.
+            // the original value is preserved to ensure that separate runs of the generator have the same output when the user-provided comparer returns true.
             driver = driver.RunGenerators(compilation);
-            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, calledFor);
+            results = driver.GetRunResult();
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.Unchanged), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.Unchanged), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.Unchanged), output)));
         }
 
         [Fact]
@@ -1287,6 +1527,16 @@ class C
     string fieldC = null;
 }
 ";
+
+            var source2 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldD = null; 
+    string fieldE = null;
+    string fieldF = null;
+}
+";
             var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
@@ -1309,7 +1559,7 @@ class C
                     noCompareCalledFor.Add(fieldName);
                 });
 
-                var comparerSource = source.WithComparer(new LambdaComparer<string>((a, b) => false));
+                var comparerSource = source.WithComparer(new LambdaComparer<string>((a, b) => true));
                 context.RegisterSourceOutput(comparerSource, (spc, fieldName) =>
                 {
                     compareCalledFor.Add(fieldName);
@@ -1324,14 +1574,17 @@ class C
             Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, noCompareCalledFor);
             Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, compareCalledFor);
 
-            // now, when we re-run, both transforms will run, but only the comparare output will re-run
+            // make a change to the syntax tree
+            compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.First(), CSharpSyntaxTree.ParseText(source2, parseOptions));
+
+            // now, when we re-run, both transforms will run, but the comparer will suppress the modified output
             syntaxCalledFor.Clear();
             noCompareCalledFor.Clear();
             compareCalledFor.Clear();
             driver = driver.RunGenerators(compilation);
-            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC", "fieldA", "fieldB", "fieldC" }, syntaxCalledFor);
-            Assert.Empty(noCompareCalledFor);
-            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, compareCalledFor);
+            Assert.Equal(new[] { "fieldD", "fieldE", "fieldF", "fieldD", "fieldE", "fieldF" }, syntaxCalledFor);
+            Assert.Equal(new[] { "fieldD", "fieldE", "fieldF" }, noCompareCalledFor);
+            Assert.Empty(compareCalledFor);
         }
 
         [Fact]
@@ -1350,37 +1603,47 @@ class C
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            List<string> syntaxCalledFor = new List<string>();
-            List<string> output1CalledFor = new List<string>();
-            List<string> output2CalledFor = new List<string>();
-
-
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) =>
                 {
-                    syntaxCalledFor.Add(((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                     return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
+                }).WithTrackingName("Fields");
+
+                context.RegisterSourceOutput(source.Select((s, ct) => $"Output1_{s}").WithTrackingName("Output"), (spc, fieldName) =>
+                {
                 });
 
-                context.RegisterSourceOutput(source, (spc, fieldName) =>
+                context.RegisterSourceOutput(source.Select((s, ct) => $"Output2_{s}").WithTrackingName("Output"), (spc, fieldName) =>
                 {
-                    output1CalledFor.Add("Output1_" + fieldName);
-                });
-
-                context.RegisterSourceOutput(source, (spc, fieldName) =>
-                {
-                    output2CalledFor.Add("Output2_" + fieldName);
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
 
             // verify we ran the syntax transform once, but fed both outputs
-            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC", }, syntaxCalledFor);
-            Assert.Equal(new[] { "Output1_fieldA", "Output1_fieldB", "Output1_fieldC" }, output1CalledFor);
-            Assert.Equal(new[] { "Output2_fieldA", "Output2_fieldB", "Output2_fieldC" }, output2CalledFor);
+            var results = driver.GetRunResult();
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.New), output)));
+            Assert.Collection(results.Results[0].TrackedSteps["Output"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("Output1_fieldA", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("Output1_fieldB", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("Output1_fieldC", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("Output2_fieldA", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("Output2_fieldB", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("Output2_fieldC", IncrementalStepRunReason.New), output)));
         }
 
         [Fact]
@@ -1399,33 +1662,41 @@ class C
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            List<string> syntaxCalledFor = new List<string>();
-            List<string> outputCalledFor = new List<string>();
-
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) =>
                 {
-                    syntaxCalledFor.Add(((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                     return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
-                });
+                }).WithTrackingName("Fields");
 
                 var source2 = source.Combine(context.AdditionalTextsProvider.Collect())
                                     .Combine(context.AnalyzerConfigOptionsProvider)
                                     .Combine(context.ParseOptionsProvider);
 
-                context.RegisterSourceOutput(source2, (spc, output) =>
+                context.RegisterSourceOutput(source2.Select((value, ct) => value.Left.Left.Left).WithTrackingName("Output"), (spc, output) =>
                 {
-                    outputCalledFor.Add(output.Left.Left.Left);
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
+            var results = driver.GetRunResult();
 
             // verify we only ran the syntax transform once, even though we called through a join
-            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC", }, syntaxCalledFor);
-            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, outputCalledFor);
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.New), output)));
+            Assert.Collection(results.Results[0].TrackedSteps["Output"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.New), output)));
         }
 
         [Fact]
@@ -1444,34 +1715,48 @@ class C
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            List<string> syntaxCalledFor = new List<string>();
-            List<string> outputCalledFor = new List<string>();
-
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) =>
                 {
-                    syntaxCalledFor.Add(((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                     return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
-                });
+                }).WithTrackingName("Fields");
 
                 var comparerSource = source.WithComparer(new LambdaComparer<string>((a, b) => false));
 
                 // now join the two sources together
                 var joinedSource = source.Combine(comparerSource.Collect());
-                context.RegisterSourceOutput(joinedSource, (spc, fieldName) =>
+                context.RegisterSourceOutput(joinedSource.Select((value, ct) => value.Left).WithTrackingName("Output"), (spc, fieldName) =>
                 {
-                    outputCalledFor.Add(fieldName.Left);
                 });
 
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
+            var results = driver.GetRunResult();
 
             // verify we ran the syntax transform twice, one for each input node, but only called into the output once
-            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC", "fieldA", "fieldB", "fieldC" }, syntaxCalledFor);
-            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, outputCalledFor);
+            Assert.Collection(results.Results[0].TrackedSteps["Fields"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.New), output)));
+            Assert.Collection(results.Results[0].TrackedSteps["Output"],
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldA", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldB", IncrementalStepRunReason.New), output)),
+                step => Assert.Collection(step.Outputs,
+                    output => Assert.Equal(("fieldC", IncrementalStepRunReason.New), output)));
         }
 
         [Fact]

@@ -202,8 +202,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Diagnostic.InfoAndHiddenWarningLevel;
             }
 
+            // Warning wave warnings (warning level > 4) should be documented in
+            // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
+                case ErrorCode.WRN_LowerCaseTypeName:
+                    // Warning level 7 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 7 (C# 11) and that can be reported for pre-existing code.
+                    return 7;
                 case ErrorCode.WRN_PartialMethodTypeDifference:
                     // Warning level 6 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 6 (C# 10) and that can be reported for pre-existing code.
@@ -449,6 +455,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                 case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
+                case ErrorCode.WRN_NullCheckedHasDefaultNull:
+                case ErrorCode.WRN_NullCheckingOnNullableType:
                 case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
                 case ErrorCode.WRN_NullReferenceInitializer:
                 case ErrorCode.WRN_ShouldNotReturn:
@@ -476,6 +484,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AnalyzerReferencesFramework:
                 case ErrorCode.WRN_UnreadRecordParameter:
                 case ErrorCode.WRN_DoNotCompareFunctionPointers:
+                case ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation:
+                case ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression:
+                case ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression:
+                case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
+                case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
+                case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
+                case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
+                case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
+                case ErrorCode.WRN_CompileTimeCheckedOverflow:
+                case ErrorCode.WRN_MethGrpToNonDel:
                     return 1;
                 default:
                     return 0;

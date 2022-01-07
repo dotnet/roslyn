@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
                     bool initializeLazily,
                     Registration registration,
-                    int highBackOffTimeSpanInMs,
-                    int normalBackOffTimeSpanInMs,
-                    int lowBackOffTimeSpanInMs,
+                    TimeSpan highBackOffTimeSpan,
+                    TimeSpan normalBackOffTimeSpan,
+                    TimeSpan lowBackOffTimeSpan,
                     CancellationToken shutdownToken)
                 {
                     _logAggregator = new LogAggregator();
@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     var globalNotificationService = _registration.Workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
 
-                    _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpanInMs, shutdownToken);
-                    _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpanInMs, shutdownToken);
-                    _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpanInMs, shutdownToken);
+                    _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpan, shutdownToken);
+                    _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpan, shutdownToken);
+                    _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpan, shutdownToken);
                 }
 
                 private static IDiagnosticAnalyzerService? GetDiagnosticAnalyzerService(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)

@@ -7,7 +7,9 @@ Imports System.Composition
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
@@ -26,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 context As QuickInfoContext,
                 token As SyntaxToken) As Task(Of QuickInfoItem)
             Dim semanticModel = Await context.Document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(False)
-            Dim info = Await BuildQuickInfoAsync(context.Document.Project.Solution.Workspace,
-                semanticModel, token, context.CancellationToken).ConfigureAwait(False)
+            Dim services = context.Document.Project.Solution.Workspace.Services
+            Dim info = Await BuildQuickInfoAsync(services, semanticModel, token, context.Options, context.CancellationToken).ConfigureAwait(False)
             If info IsNot Nothing Then
                 Return info
             End If
@@ -38,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         Protected Overrides Async Function BuildQuickInfoAsync(
                 context As CommonQuickInfoContext,
                 token As SyntaxToken) As Task(Of QuickInfoItem)
-            Dim info = Await BuildQuickInfoAsync(context.Workspace, context.SemanticModel, token, context.CancellationToken).ConfigureAwait(False)
+            Dim info = Await BuildQuickInfoAsync(context.Services, context.SemanticModel, token, context.Options, context.CancellationToken).ConfigureAwait(False)
             If info IsNot Nothing Then
                 Return info
             End If
@@ -47,9 +49,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         End Function
 
         Private Overloads Shared Async Function BuildQuickInfoAsync(
-                workspace As Workspace,
+                services As HostWorkspaceServices,
                 semanticModel As SemanticModel,
                 token As SyntaxToken,
+                options As SymbolDescriptionOptions,
                 cancellationToken As CancellationToken) As Task(Of QuickInfoItem)
 
             Dim parent = token.Parent
@@ -68,9 +71,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
 
                 Case SyntaxKind.DimKeyword
                     If TypeOf parent Is FieldDeclarationSyntax Then
-                        Return Await BuildContentAsync(workspace, semanticModel, token, DirectCast(parent, FieldDeclarationSyntax).Declarators, cancellationToken).ConfigureAwait(False)
+                        Return Await BuildContentAsync(services, semanticModel, token, DirectCast(parent, FieldDeclarationSyntax).Declarators, options, cancellationToken).ConfigureAwait(False)
                     ElseIf TypeOf parent Is LocalDeclarationStatementSyntax Then
-                        Return Await BuildContentAsync(workspace, semanticModel, token, DirectCast(parent, LocalDeclarationStatementSyntax).Declarators, cancellationToken).ConfigureAwait(False)
+                        Return Await BuildContentAsync(services, semanticModel, token, DirectCast(parent, LocalDeclarationStatementSyntax).Declarators, options, cancellationToken).ConfigureAwait(False)
                     End If
 
                 Case SyntaxKind.CTypeKeyword
@@ -145,11 +148,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
             Return False
         End Function
 
+        Protected Overrides Function GetBindableNodeForTokenIndicatingMemberAccess(token As SyntaxToken, ByRef found As SyntaxToken) As Boolean
+            If token.IsKind(SyntaxKind.DotToken) AndAlso
+                token.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
+
+                found = DirectCast(token.Parent, MemberAccessExpressionSyntax).Name.Identifier
+                Return True
+            End If
+
+            found = Nothing
+            Return False
+        End Function
+
         Private Overloads Shared Async Function BuildContentAsync(
-                workspace As Workspace,
+                services As HostWorkspaceServices,
                 semanticModel As SemanticModel,
                 token As SyntaxToken,
                 declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax),
+                options As SymbolDescriptionOptions,
                 cancellationToken As CancellationToken) As Task(Of QuickInfoItem)
 
             If declarators.Count = 0 Then
@@ -180,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 Return QuickInfoItem.Create(token.Span, sections:=ImmutableArray.Create(QuickInfoSection.Create(QuickInfoSectionKinds.Description, ImmutableArray.Create(New TaggedText(TextTags.Text, VBFeaturesResources.Multiple_Types)))))
             End If
 
-            Return Await CreateContentAsync(workspace, semanticModel, token, New TokenInformation(types), supportedPlatforms:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
+            Return Await CreateContentAsync(services, semanticModel, token, New TokenInformation(types), supportedPlatforms:=Nothing, options, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Shared Function BuildContentForIntrinsicOperator(

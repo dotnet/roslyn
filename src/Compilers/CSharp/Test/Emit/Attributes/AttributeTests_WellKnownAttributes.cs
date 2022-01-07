@@ -11331,7 +11331,7 @@ void local()
 
             var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.UnsafeReleaseExe);
             Assert.False(verifier.HasLocalsInit("<top-level-statements-entry-point>"));
-            Assert.False(verifier.HasLocalsInit("<Program>$.<<Main>$>g__local|0_0"));
+            Assert.False(verifier.HasLocalsInit("Program.<<Main>$>g__local|0_0"));
         }
 
         [Fact, WorkItem(49434, "https://github.com/dotnet/roslyn/issues/49434")]
@@ -11350,7 +11350,7 @@ void local()
 
             var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.UnsafeReleaseExe, verify: Verification.Passes);
             Assert.True(verifier.HasLocalsInit("<top-level-statements-entry-point>"));
-            Assert.True(verifier.HasLocalsInit("<Program>$.<<Main>$>g__local|0_0"));
+            Assert.True(verifier.HasLocalsInit("Program.<<Main>$>g__local|0_0"));
         }
 
         [Fact]
@@ -13362,7 +13362,7 @@ second",
         }
 
         [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
-        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute()
+        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute_01()
         {
             var code = @"
 namespace System.Runtime.CompilerServices
@@ -13381,6 +13381,76 @@ class Test
             CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics(
                 // error CS0616: 'IsReadOnlyAttribute' is not an attribute class
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute_02()
+        {
+            var sourceAttribute =
+@"#pragma warning disable 414
+namespace System.Runtime.CompilerServices
+{
+    public struct IsReadOnlyAttribute
+    {
+        private int F = 1; // requires synthesized parameterless .ctor
+    }
+}";
+            var sourceA =
+@"public class A
+{
+    public static void M(in int i)
+    {
+        System.Console.WriteLine(i);
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceAttribute, sourceA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                //     public struct IsReadOnlyAttribute
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "IsReadOnlyAttribute").WithLocation(4, 19),
+                // (6,21): warning CS0169: The field 'IsReadOnlyAttribute.F' is never used
+                //         private int F = 1; // requires synthesized parameterless .ctor
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute.F").WithLocation(6, 21));
+        }
+
+        /// <summary>
+        /// Verify that a parameterless constructor can be referenced
+        /// in metadata for an "attribute type", even if the attribute type is a struct.
+        /// Compare with WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute_01
+        /// where no parameterless constructor is emitted for the struct type.
+        /// </summary>
+        [Fact]
+        public void WellKnownTypeAsStruct_ExplicitParameterlessConstructor_IsReadOnlyAttribute()
+        {
+            var sourceAttribute =
+@"namespace System.Runtime.CompilerServices
+{
+    public struct IsReadOnlyAttribute
+    {
+        // explicit parameterless .ctor
+        public IsReadOnlyAttribute() { }
+    }
+}";
+            var sourceA =
+@"public class A
+{
+    public static void M(in int i)
+    {
+        System.Console.WriteLine(i);
+    }
+}";
+            var sourceB =
+@"class B
+{
+    static void Main()
+    {
+        int i = 42;
+        A.M(in i);
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceAttribute, sourceA }, parseOptions: TestOptions.RegularPreview);
+            var refA = comp.EmitToImageReference();
+            CompileAndVerify(sourceB, references: new[] { refA }, expectedOutput: "42");
         }
 
         [Fact]
@@ -13555,6 +13625,97 @@ public class C
                 // (18,13): error CS0619: 'C.Count' is obsolete: 'error'
                 //         _ = this[..];
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Count", "error").WithLocation(18, 13)
+                );
+        }
+
+        [Fact, WorkItem(53418, "https://github.com/dotnet/roslyn/issues/53418")]
+        public void TestObsoleteIndexerSlice_ObsoleteCountAccessor()
+        {
+            var code = @"
+using System;
+
+public class C
+{
+    [Obsolete(""error"", error: true)]
+    public int Slice(int i, int j) => 0;
+
+    public int this[int i]
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public int Count
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public void M()
+    {
+        _ = this[^1]; // 1, 2
+        _ = this[..]; // 3, 4
+    }
+}
+";
+
+            CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (23,13): error CS0619: 'C.Count.get' is obsolete: 'error'
+                //         _ = this[^1]; // 1, 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.Count.get", "error").WithLocation(23, 13),
+                // (23,13): error CS0619: 'C.this[int].get' is obsolete: 'error'
+                //         _ = this[^1]; // 1, 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.this[int].get", "error").WithLocation(23, 13),
+                // (24,13): error CS0619: 'C.Count.get' is obsolete: 'error'
+                //         _ = this[..]; // 3, 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Count.get", "error").WithLocation(24, 13),
+                // (24,13): error CS0619: 'C.Slice(int, int)' is obsolete: 'error'
+                //         _ = this[..]; // 3, 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Slice(int, int)", "error").WithLocation(24, 13)
+                );
+        }
+
+        [Fact, WorkItem(53418, "https://github.com/dotnet/roslyn/issues/53418")]
+        public void TestObsoleteIndexerSlice_ObsoleteIndexAndRangeAccessors()
+        {
+            var code = @"
+using System;
+
+public class C
+{
+    public int this[Range r]
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public int this[Index i]
+    {
+        [Obsolete(""error"", error: true)]
+        get => 0;
+    }
+
+    public int Count
+    {
+        [Obsolete(""unused"", error: true)]
+        get => 0;
+    }
+
+    public void M()
+    {
+        _ = this[^1];
+        _ = this[..];
+    }
+}
+";
+
+            CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (26,13): error CS0619: 'C.this[Index].get' is obsolete: 'error'
+                //         _ = this[^1];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.this[System.Index].get", "error").WithLocation(26, 13),
+                // (27,13): error CS0619: 'C.this[Range].get' is obsolete: 'error'
+                //         _ = this[..];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.this[System.Range].get", "error").WithLocation(27, 13)
                 );
         }
     }

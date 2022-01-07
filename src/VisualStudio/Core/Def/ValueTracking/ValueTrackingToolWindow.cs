@@ -8,13 +8,16 @@ using System.Windows.Controls;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
+using System.Windows;
+using System.Windows.Data;
+using System.Windows.Markup;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
     [Guid(Guids.ValueTrackingToolWindowIdString)]
     internal class ValueTrackingToolWindow : ToolWindowPane
     {
-        private readonly Grid _rootGrid = new();
+        private readonly ValueTrackingRoot _root = new();
 
         public static ValueTrackingToolWindow? Instance { get; set; }
 
@@ -30,8 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 }
 
                 _viewModel = value;
-                _rootGrid.Children.Clear();
-                _rootGrid.Children.Add(new ValueTrackingTree(_viewModel));
+                _root.SetChild(new ValueTrackingTree(_viewModel));
             }
         }
 
@@ -44,19 +46,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public ValueTrackingToolWindow() : base(null)
         {
             Caption = ServicesVSResources.Value_Tracking;
-
-            _rootGrid.Children.Add(new TextBlock()
-            {
-                Text = "Select an appropriate symbol to start value tracking"
-            });
-
-            Content = _rootGrid;
+            Content = _root;
         }
 
         public ValueTrackingToolWindow(ValueTrackingTreeViewModel viewModel)
             : base(null)
         {
-            Content = _rootGrid;
+            Caption = ServicesVSResources.Value_Tracking;
+            Content = _root;
             ViewModel = viewModel;
         }
 

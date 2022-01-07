@@ -11,8 +11,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis
             var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
 
             // return an iterator to avoid eagerly allocating all the document instances
-            return generatedDocumentStates.States.Select(state =>
+            return generatedDocumentStates.States.Values.Select(state =>
                 ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this)))!;
         }
 
@@ -336,20 +336,85 @@ namespace Microsoft.CodeAnalysis
             return ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
         }
 
-        internal async Task<bool> ContainsSymbolsWithNameAsync(string name, SymbolFilter filter, CancellationToken cancellationToken)
+        internal Task<bool> ContainsSymbolsWithNameAsync(
+            string name, CancellationToken cancellationToken)
         {
-            return this.SupportsCompilation &&
-                   await _solution.State.ContainsSymbolsWithNameAsync(Id, name, filter, cancellationToken).ConfigureAwait(false);
+            return ContainsSymbolsAsync(
+                (index, cancellationToken) => index.ProbablyContainsIdentifier(name) || index.ProbablyContainsEscapedIdentifier(name),
+                cancellationToken);
         }
 
-        internal async Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        internal Task<bool> ContainsSymbolsWithNameAsync(
+            string name, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            return this.SupportsCompilation &&
-                   await _solution.State.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false);
+            return ContainsSymbolsWithNameAsync(
+                typeName => name == typeName,
+                filter,
+                cancellationToken);
         }
 
-        internal async Task<IEnumerable<Document>> GetDocumentsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-            => (await _solution.State.GetDocumentsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false)).Select(s => _solution.GetDocument(s.Id)!);
+        internal Task<bool> ContainsSymbolsWithNameAsync(
+            Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            return ContainsSymbolsAsync(
+                (index, cancellationToken) =>
+                {
+                    foreach (var info in index.DeclaredSymbolInfos)
+                    {
+                        if (FilterMatches(info, filter) && predicate(info.Name))
+                            return true;
+                    }
+
+                    return false;
+                },
+                cancellationToken);
+
+            static bool FilterMatches(DeclaredSymbolInfo info, SymbolFilter filter)
+            {
+                switch (info.Kind)
+                {
+                    case DeclaredSymbolInfoKind.Namespace:
+                        return (filter & SymbolFilter.Namespace) != 0;
+                    case DeclaredSymbolInfoKind.Class:
+                    case DeclaredSymbolInfoKind.Delegate:
+                    case DeclaredSymbolInfoKind.Enum:
+                    case DeclaredSymbolInfoKind.Interface:
+                    case DeclaredSymbolInfoKind.Module:
+                    case DeclaredSymbolInfoKind.Record:
+                    case DeclaredSymbolInfoKind.RecordStruct:
+                    case DeclaredSymbolInfoKind.Struct:
+                        return (filter & SymbolFilter.Type) != 0;
+                    case DeclaredSymbolInfoKind.Constant:
+                    case DeclaredSymbolInfoKind.Constructor:
+                    case DeclaredSymbolInfoKind.EnumMember:
+                    case DeclaredSymbolInfoKind.Event:
+                    case DeclaredSymbolInfoKind.ExtensionMethod:
+                    case DeclaredSymbolInfoKind.Field:
+                    case DeclaredSymbolInfoKind.Indexer:
+                    case DeclaredSymbolInfoKind.Method:
+                    case DeclaredSymbolInfoKind.Property:
+                        return (filter & SymbolFilter.Member) != 0;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(info.Kind);
+                }
+            }
+        }
+
+        private async Task<bool> ContainsSymbolsAsync(
+            Func<SyntaxTreeIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
+        {
+            if (!this.SupportsCompilation)
+                return false;
+
+            var tasks = this.Documents.Select(async d =>
+            {
+                var index = await SyntaxTreeIndex.GetRequiredIndexAsync(d, cancellationToken).ConfigureAwait(false);
+                return predicate(index, cancellationToken);
+            });
+
+            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+            return results.Any(b => b);
+        }
 
         private static readonly Func<DocumentId, Project, Document?> s_tryCreateDocumentFunction =
             (documentId, project) => project._projectState.DocumentStates.TryGetState(documentId, out var state) ? new Document(project, state) : null;
@@ -432,6 +497,34 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
             => _projectState.GetSemanticVersionAsync(cancellationToken);
+
+        /// <summary>
+        /// Calculates a checksum that contains a project's checksum along with a checksum for each of the project's 
+        /// transitive dependencies.
+        /// </summary>
+        /// <remarks>
+        /// This checksum calculation can be used for cases where a feature needs to know if the semantics in this project
+        /// changed.  For example, for diagnostics or caching computed semantic data. The goal is to ensure that changes to
+        /// <list type="bullet">
+        ///    <item>Files inside the current project</item>
+        ///    <item>Project properties of the current project</item>
+        ///    <item>Visible files in referenced projects</item>
+        ///    <item>Project properties in referenced projects</item>
+        /// </list>
+        /// are reflected in the metadata we keep so that comparing solutions accurately tells us when we need to recompute
+        /// semantic work.   
+        /// 
+        /// <para>This method of checking for changes has a few important properties that differentiate it from other methods of determining project version.
+        /// <list type="bullet">
+        ///    <item>Changes to methods inside the current project will be reflected to compute updated diagnostics.
+        ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> does not change as it only returns top level changes.</item>
+        ///    <item>Reloading a project without making any changes will re-use cached diagnostics.
+        ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> changes as the project is removed, then added resulting in a version change.</item>
+        /// </list>   
+        /// </para>
+        /// </remarks>
+        internal Task<Checksum> GetDependentChecksumAsync(CancellationToken cancellationToken)
+            => _solution.State.GetDependentChecksumAsync(this.Id, cancellationToken);
 
         /// <summary>
         /// Creates a new instance of this project updated to have the new assembly name.

@@ -21,9 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             GetType(LabelSyntax))
 
         Public Overrides Sub AddClassifications(
-                workspace As Workspace,
                 syntax As SyntaxNode,
                 semanticModel As SemanticModel,
+                options As ClassificationOptions,
                 result As ArrayBuilder(Of ClassifiedSpan),
                 cancellationToken As CancellationToken)
 
@@ -73,12 +73,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Dim classifiedSpan As ClassifiedSpan
 
             Dim symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken)
-            Dim symbol = TryGetSymbol(node, symbolInfo, semanticModel)
+            Dim symbol = TryGetSymbol(node, symbolInfo)
 
             If symbol Is Nothing Then
                 If TryClassifyIdentifier(node, semanticModel, cancellationToken, classifiedSpan) Then
                     result.Add(classifiedSpan)
                 End If
+
                 Return
             End If
 

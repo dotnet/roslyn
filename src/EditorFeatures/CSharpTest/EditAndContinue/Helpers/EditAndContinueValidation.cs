@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -52,30 +52,30 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         internal static void VerifyLineEdits(
             this EditScript<SyntaxNode> editScript,
-            IEnumerable<SourceLineUpdate> expectedLineEdits,
-            IEnumerable<string> expectedNodeUpdates,
-            params RudeEditDiagnosticDescription[] expectedDiagnostics)
+            SourceLineUpdate[] lineEdits,
+            SemanticEditDescription[]? semanticEdits = null,
+            RudeEditDiagnosticDescription[]? diagnostics = null)
         {
-            Assert.NotEmpty(expectedLineEdits);
+            Assert.NotEmpty(lineEdits);
 
             VerifyLineEdits(
                 editScript,
-                new[] { new SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, expectedLineEdits.ToImmutableArray()) },
-                expectedNodeUpdates,
-                expectedDiagnostics);
+                new[] { new SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, lineEdits.ToImmutableArray()) },
+                semanticEdits,
+                diagnostics);
         }
 
         internal static void VerifyLineEdits(
             this EditScript<SyntaxNode> editScript,
-            IEnumerable<SequencePointUpdates> expectedLineEdits,
-            IEnumerable<string> expectedNodeUpdates,
-            params RudeEditDiagnosticDescription[] expectedDiagnostics)
+            SequencePointUpdates[] lineEdits,
+            SemanticEditDescription[]? semanticEdits = null,
+            RudeEditDiagnosticDescription[]? diagnostics = null)
         {
             new CSharpEditAndContinueTestHelpers().VerifyLineEdits(
                 editScript,
-                expectedLineEdits,
-                expectedNodeUpdates,
-                expectedDiagnostics);
+                lineEdits,
+                semanticEdits,
+                diagnostics);
         }
 
         internal static void VerifySemanticDiagnostics(

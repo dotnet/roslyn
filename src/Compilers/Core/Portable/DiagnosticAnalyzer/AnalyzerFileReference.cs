@@ -183,9 +183,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Adds the <see cref="ImmutableArray{T}"/> of <see cref="DiagnosticAnalyzer"/> defined in this assembly reference of given <paramref name="language"/>.
         /// </summary>
-        internal void AddAnalyzers(ImmutableArray<DiagnosticAnalyzer>.Builder builder, string language)
+        internal void AddAnalyzers(ImmutableArray<DiagnosticAnalyzer>.Builder builder, string language, Func<DiagnosticAnalyzer, bool>? shouldInclude = null)
         {
-            _diagnosticAnalyzers.AddExtensions(builder, language);
+            _diagnosticAnalyzers.AddExtensions(builder, language, shouldInclude);
         }
 
         /// <summary>
@@ -293,6 +293,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        // https://github.com/dotnet/roslyn/issues/53994 tracks re-enabling nullable and fixing this method
+#nullable disable
         private static IEnumerable<string> ReadLanguagesFromAttribute(ref BlobReader argsReader)
         {
             if (argsReader.Length > 4)
@@ -320,6 +322,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             return SpecializedCollections.EmptyEnumerable<string>();
         }
+
+#nullable enable
 
         private static ISourceGenerator? CoerceGeneratorType(object? generator)
         {
@@ -486,7 +490,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            internal void AddExtensions(ImmutableArray<TExtension>.Builder builder, string language)
+            internal void AddExtensions(ImmutableArray<TExtension>.Builder builder, string language, Func<TExtension, bool>? shouldInclude = null)
             {
                 ImmutableSortedDictionary<string, ImmutableSortedSet<string>> analyzerTypeNameMap;
                 Assembly analyzerAssembly;
@@ -514,16 +518,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                var initialCount = builder.Count;
                 var reportedError = false;
 
                 // Add language specific analyzers.
                 var analyzers = GetLanguageSpecificAnalyzers(analyzerAssembly, analyzerTypeNameMap, language, ref reportedError);
+                var hasAnalyzers = !analyzers.IsEmpty;
+
+                if (shouldInclude != null)
+                {
+                    analyzers = analyzers.WhereAsArray(shouldInclude);
+                }
+
                 builder.AddRange(analyzers);
 
                 // If there were types with the attribute but weren't an analyzer, generate a diagnostic.
                 // If we've reported errors already while trying to instantiate types, don't complain that there are no analyzers.
-                if (builder.Count == initialCount && !reportedError)
+                if (!hasAnalyzers && !reportedError)
                 {
                     _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, CodeAnalysisResources.NoAnalyzersFound));
                 }

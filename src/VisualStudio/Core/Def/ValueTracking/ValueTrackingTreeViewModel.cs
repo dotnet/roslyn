@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -26,9 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public ClassificationTypeMap ClassificationTypeMap { get; }
         public IEditorFormatMapService FormatMapService { get; }
         public ObservableCollection<TreeItemViewModel> Roots { get; } = new();
+        public string AutomationName => ServicesVSResources.Value_Tracking;
 
-        private TreeItemViewModel? _selectedItem;
-        public TreeItemViewModel? SelectedItem
+        private TreeViewItemBase? _selectedItem;
+        public TreeViewItemBase? SelectedItem
         {
             get => _selectedItem;
             set => SetProperty(ref _selectedItem, value);
@@ -62,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             set => SetProperty(ref _loadingCount, value);
         }
 
-        public bool ShowDetails => SelectedItem is not null;
+        public bool ShowDetails => SelectedItem is TreeItemViewModel;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -72,23 +74,44 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             ClassificationTypeMap = classificationTypeMap;
             FormatMapService = formatMapService;
 
-            var properties = FormatMapService.GetEditorFormatMap("text")
-                                          .GetProperties(ReferenceHighlightTag.TagId);
+            var editorMap = FormatMapService.GetEditorFormatMap("text");
+            SetHighlightBrush(editorMap);
 
-            HighlightBrush = properties["Background"] as Brush;
+            editorMap.FormatMappingChanged += (s, e) =>
+            {
+                SetHighlightBrush(editorMap);
+            };
 
             PropertyChanged += Self_PropertyChanged;
+        }
+
+        private void SetHighlightBrush(IEditorFormatMap editorMap)
+        {
+            var properties = editorMap.GetProperties(ReferenceHighlightTag.TagId);
+            HighlightBrush = properties["Background"] as Brush;
         }
 
         private void Self_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(SelectedItem))
             {
-                SelectedItemFile = SelectedItem?.FileName ?? "";
-                SelectedItemLine = SelectedItem?.LineNumber ?? 0;
-                NotifyPropertyChanged(nameof(ShowDetails));
+                if (SelectedItem is not null)
+                {
+                    SelectedItem.IsNodeSelected = true;
 
-                SelectedItem?.Select();
+                    if (SelectedItem is TreeItemViewModel itemWithInfo)
+                    {
+                        SelectedItemFile = itemWithInfo?.FileName ?? "";
+                        SelectedItemLine = itemWithInfo?.LineNumber ?? 0;
+                    }
+                    else
+                    {
+                        SelectedItemFile = string.Empty;
+                        SelectedItemLine = 0;
+                    }
+                }
+
+                NotifyPropertyChanged(nameof(ShowDetails));
             }
 
             if (e.PropertyName == nameof(LoadingCount))

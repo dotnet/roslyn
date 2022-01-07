@@ -303,6 +303,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a UnaryPatternSyntax node.</summary>
         public virtual TResult? VisitUnaryPattern(UnaryPatternSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a ListPatternSyntax node.</summary>
+        public virtual TResult? VisitListPattern(ListPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a SlicePatternSyntax node.</summary>
+        public virtual TResult? VisitSlicePattern(SlicePatternSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a InterpolatedStringTextSyntax node.</summary>
         public virtual TResult? VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
 
@@ -455,6 +461,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Called when the visitor visits a NamespaceDeclarationSyntax node.</summary>
         public virtual TResult? VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FileScopedNamespaceDeclarationSyntax node.</summary>
+        public virtual TResult? VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeListSyntax node.</summary>
         public virtual TResult? VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
@@ -692,6 +701,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Called when the visitor visits a LineDirectiveTriviaSyntax node.</summary>
         public virtual TResult? VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a LineDirectivePositionSyntax node.</summary>
+        public virtual TResult? VisitLineDirectivePosition(LineDirectivePositionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a LineSpanDirectiveTriviaSyntax node.</summary>
+        public virtual TResult? VisitLineSpanDirectiveTrivia(LineSpanDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PragmaWarningDirectiveTriviaSyntax node.</summary>
         public virtual TResult? VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
@@ -1002,6 +1017,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a UnaryPatternSyntax node.</summary>
         public virtual void VisitUnaryPattern(UnaryPatternSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a ListPatternSyntax node.</summary>
+        public virtual void VisitListPattern(ListPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a SlicePatternSyntax node.</summary>
+        public virtual void VisitSlicePattern(SlicePatternSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a InterpolatedStringTextSyntax node.</summary>
         public virtual void VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
 
@@ -1154,6 +1175,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Called when the visitor visits a NamespaceDeclarationSyntax node.</summary>
         public virtual void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FileScopedNamespaceDeclarationSyntax node.</summary>
+        public virtual void VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeListSyntax node.</summary>
         public virtual void VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
@@ -1391,6 +1415,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Called when the visitor visits a LineDirectiveTriviaSyntax node.</summary>
         public virtual void VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a LineDirectivePositionSyntax node.</summary>
+        public virtual void VisitLineDirectivePosition(LineDirectivePositionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a LineSpanDirectiveTriviaSyntax node.</summary>
+        public virtual void VisitLineSpanDirectiveTrivia(LineSpanDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PragmaWarningDirectiveTriviaSyntax node.</summary>
         public virtual void VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
@@ -1701,6 +1731,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxNode? VisitUnaryPattern(UnaryPatternSyntax node)
             => node.Update(VisitToken(node.OperatorToken), (PatternSyntax?)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"));
 
+        public override SyntaxNode? VisitListPattern(ListPatternSyntax node)
+            => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Patterns), VisitToken(node.CloseBracketToken), (VariableDesignationSyntax?)Visit(node.Designation));
+
+        public override SyntaxNode? VisitSlicePattern(SlicePatternSyntax node)
+            => node.Update(VisitToken(node.DotDotToken), (PatternSyntax?)Visit(node.Pattern));
+
         public override SyntaxNode? VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
             => node.Update(VisitToken(node.TextToken));
 
@@ -1854,6 +1890,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxNode? VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.NamespaceKeyword), (NameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.OpenBraceToken), VisitList(node.Externs), VisitList(node.Usings), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
+        public override SyntaxNode? VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.NamespaceKeyword), (NameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.SemicolonToken), VisitList(node.Externs), VisitList(node.Usings), VisitList(node.Members));
+
         public override SyntaxNode? VisitAttributeList(AttributeListSyntax node)
             => node.Update(VisitToken(node.OpenBracketToken), (AttributeTargetSpecifierSyntax?)Visit(node.Target), VisitList(node.Attributes), VisitToken(node.CloseBracketToken));
 
@@ -1975,7 +2014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Parameters), VisitToken(node.CloseBracketToken));
 
         public override SyntaxNode? VisitParameter(ParameterSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type), VisitToken(node.Identifier), (EqualsValueClauseSyntax?)Visit(node.Default));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type), VisitToken(node.Identifier), VisitToken(node.ExclamationExclamationToken), (EqualsValueClauseSyntax?)Visit(node.Default));
 
         public override SyntaxNode? VisitFunctionPointerParameter(FunctionPointerParameterSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
@@ -2090,6 +2129,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode? VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.LineKeyword), VisitToken(node.Line), VisitToken(node.File), VisitToken(node.EndOfDirectiveToken), node.IsActive);
+
+        public override SyntaxNode? VisitLineDirectivePosition(LineDirectivePositionSyntax node)
+            => node.Update(VisitToken(node.OpenParenToken), VisitToken(node.Line), VisitToken(node.CommaToken), VisitToken(node.Character), VisitToken(node.CloseParenToken));
+
+        public override SyntaxNode? VisitLineSpanDirectiveTrivia(LineSpanDirectiveTriviaSyntax node)
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.LineKeyword), (LineDirectivePositionSyntax?)Visit(node.Start) ?? throw new ArgumentNullException("start"), VisitToken(node.MinusToken), (LineDirectivePositionSyntax?)Visit(node.End) ?? throw new ArgumentNullException("end"), VisitToken(node.CharacterOffset), VisitToken(node.File), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode? VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.PragmaKeyword), VisitToken(node.WarningKeyword), VisitToken(node.DisableOrRestoreKeyword), VisitList(node.ErrorCodes), VisitToken(node.EndOfDirectiveToken), node.IsActive);
@@ -3693,6 +3738,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static UnaryPatternSyntax UnaryPattern(PatternSyntax pattern)
             => SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), pattern);
 
+        /// <summary>Creates a new ListPatternSyntax instance.</summary>
+        public static ListPatternSyntax ListPattern(SyntaxToken openBracketToken, SeparatedSyntaxList<PatternSyntax> patterns, SyntaxToken closeBracketToken, VariableDesignationSyntax? designation)
+        {
+            if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
+            if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
+            return (ListPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ListPattern((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, patterns.Node.ToGreenSeparatedList<Syntax.InternalSyntax.PatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!, designation == null ? null : (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new ListPatternSyntax instance.</summary>
+        public static ListPatternSyntax ListPattern(SeparatedSyntaxList<PatternSyntax> patterns, VariableDesignationSyntax? designation)
+            => SyntaxFactory.ListPattern(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), patterns, SyntaxFactory.Token(SyntaxKind.CloseBracketToken), designation);
+
+        /// <summary>Creates a new ListPatternSyntax instance.</summary>
+        public static ListPatternSyntax ListPattern(SeparatedSyntaxList<PatternSyntax> patterns = default)
+            => SyntaxFactory.ListPattern(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), patterns, SyntaxFactory.Token(SyntaxKind.CloseBracketToken), default);
+
+        /// <summary>Creates a new SlicePatternSyntax instance.</summary>
+        public static SlicePatternSyntax SlicePattern(SyntaxToken dotDotToken, PatternSyntax? pattern)
+        {
+            if (dotDotToken.Kind() != SyntaxKind.DotDotToken) throw new ArgumentException(nameof(dotDotToken));
+            return (SlicePatternSyntax)Syntax.InternalSyntax.SyntaxFactory.SlicePattern((Syntax.InternalSyntax.SyntaxToken)dotDotToken.Node!, pattern == null ? null : (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new SlicePatternSyntax instance.</summary>
+        public static SlicePatternSyntax SlicePattern(PatternSyntax? pattern = default)
+            => SyntaxFactory.SlicePattern(SyntaxFactory.Token(SyntaxKind.DotDotToken), pattern);
+
         /// <summary>Creates a new InterpolatedStringTextSyntax instance.</summary>
         public static InterpolatedStringTextSyntax InterpolatedStringText(SyntaxToken textToken)
         {
@@ -4620,6 +4692,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static NamespaceDeclarationSyntax NamespaceDeclaration(NameSyntax name)
             => SyntaxFactory.NamespaceDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), name, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, default, default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
 
+        /// <summary>Creates a new FileScopedNamespaceDeclarationSyntax instance.</summary>
+        public static FileScopedNamespaceDeclarationSyntax FileScopedNamespaceDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken semicolonToken, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members)
+        {
+            if (namespaceKeyword.Kind() != SyntaxKind.NamespaceKeyword) throw new ArgumentException(nameof(namespaceKeyword));
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            return (FileScopedNamespaceDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.FileScopedNamespaceDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)namespaceKeyword.Node!, (Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!, externs.Node.ToGreenList<Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), usings.Node.ToGreenList<Syntax.InternalSyntax.UsingDirectiveSyntax>(), members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>()).CreateRed();
+        }
+
+        /// <summary>Creates a new FileScopedNamespaceDeclarationSyntax instance.</summary>
+        public static FileScopedNamespaceDeclarationSyntax FileScopedNamespaceDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, NameSyntax name, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members)
+            => SyntaxFactory.FileScopedNamespaceDeclaration(attributeLists, modifiers, SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), name, SyntaxFactory.Token(SyntaxKind.SemicolonToken), externs, usings, members);
+
+        /// <summary>Creates a new FileScopedNamespaceDeclarationSyntax instance.</summary>
+        public static FileScopedNamespaceDeclarationSyntax FileScopedNamespaceDeclaration(NameSyntax name)
+            => SyntaxFactory.FileScopedNamespaceDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), name, SyntaxFactory.Token(SyntaxKind.SemicolonToken), default, default, default);
+
         /// <summary>Creates a new AttributeListSyntax instance.</summary>
         public static AttributeListSyntax AttributeList(SyntaxToken openBracketToken, AttributeTargetSpecifierSyntax? target, SeparatedSyntaxList<AttributeSyntax> attributes, SyntaxToken closeBracketToken)
         {
@@ -5470,7 +5559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.BracketedParameterList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), parameters, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         /// <summary>Creates a new ParameterSyntax instance.</summary>
-        public static ParameterSyntax Parameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
+        public static ParameterSyntax Parameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, SyntaxToken exclamationExclamationToken, EqualsValueClauseSyntax? @default)
         {
             switch (identifier.Kind())
             {
@@ -5478,12 +5567,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArgListKeyword: break;
                 default: throw new ArgumentException(nameof(identifier));
             }
-            return (ParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.Parameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, @default == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)@default.Green).CreateRed();
+            switch (exclamationExclamationToken.Kind())
+            {
+                case SyntaxKind.ExclamationExclamationToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(exclamationExclamationToken));
+            }
+            return (ParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.Parameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken?)exclamationExclamationToken.Node, @default == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)@default.Green).CreateRed();
         }
 
         /// <summary>Creates a new ParameterSyntax instance.</summary>
+        public static ParameterSyntax Parameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
+            => SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, default, @default);
+
+        /// <summary>Creates a new ParameterSyntax instance.</summary>
         public static ParameterSyntax Parameter(SyntaxToken identifier)
-            => SyntaxFactory.Parameter(default, default(SyntaxTokenList), default, identifier, default);
+            => SyntaxFactory.Parameter(default, default(SyntaxTokenList), default, identifier, default, default);
 
         /// <summary>Creates a new FunctionPointerParameterSyntax instance.</summary>
         public static FunctionPointerParameterSyntax FunctionPointerParameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type)
@@ -6089,6 +6188,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new LineDirectiveTriviaSyntax instance.</summary>
         public static LineDirectiveTriviaSyntax LineDirectiveTrivia(SyntaxToken line, bool isActive)
             => SyntaxFactory.LineDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.LineKeyword), line, default, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+
+        /// <summary>Creates a new LineDirectivePositionSyntax instance.</summary>
+        public static LineDirectivePositionSyntax LineDirectivePosition(SyntaxToken openParenToken, SyntaxToken line, SyntaxToken commaToken, SyntaxToken character, SyntaxToken closeParenToken)
+        {
+            if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
+            if (line.Kind() != SyntaxKind.NumericLiteralToken) throw new ArgumentException(nameof(line));
+            if (commaToken.Kind() != SyntaxKind.CommaToken) throw new ArgumentException(nameof(commaToken));
+            if (character.Kind() != SyntaxKind.NumericLiteralToken) throw new ArgumentException(nameof(character));
+            if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            return (LineDirectivePositionSyntax)Syntax.InternalSyntax.SyntaxFactory.LineDirectivePosition((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.SyntaxToken)line.Node!, (Syntax.InternalSyntax.SyntaxToken)commaToken.Node!, (Syntax.InternalSyntax.SyntaxToken)character.Node!, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new LineDirectivePositionSyntax instance.</summary>
+        public static LineDirectivePositionSyntax LineDirectivePosition(SyntaxToken line, SyntaxToken character)
+            => SyntaxFactory.LineDirectivePosition(SyntaxFactory.Token(SyntaxKind.OpenParenToken), line, SyntaxFactory.Token(SyntaxKind.CommaToken), character, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+
+        /// <summary>Creates a new LineSpanDirectiveTriviaSyntax instance.</summary>
+        public static LineSpanDirectiveTriviaSyntax LineSpanDirectiveTrivia(SyntaxToken hashToken, SyntaxToken lineKeyword, LineDirectivePositionSyntax start, SyntaxToken minusToken, LineDirectivePositionSyntax end, SyntaxToken characterOffset, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
+            if (lineKeyword.Kind() != SyntaxKind.LineKeyword) throw new ArgumentException(nameof(lineKeyword));
+            if (start == null) throw new ArgumentNullException(nameof(start));
+            if (minusToken.Kind() != SyntaxKind.MinusToken) throw new ArgumentException(nameof(minusToken));
+            if (end == null) throw new ArgumentNullException(nameof(end));
+            switch (characterOffset.Kind())
+            {
+                case SyntaxKind.NumericLiteralToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(characterOffset));
+            }
+            if (file.Kind() != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(file));
+            if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            return (LineSpanDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.LineSpanDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)lineKeyword.Node!, (Syntax.InternalSyntax.LineDirectivePositionSyntax)start.Green, (Syntax.InternalSyntax.SyntaxToken)minusToken.Node!, (Syntax.InternalSyntax.LineDirectivePositionSyntax)end.Green, (Syntax.InternalSyntax.SyntaxToken?)characterOffset.Node, (Syntax.InternalSyntax.SyntaxToken)file.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
+        }
+
+        /// <summary>Creates a new LineSpanDirectiveTriviaSyntax instance.</summary>
+        public static LineSpanDirectiveTriviaSyntax LineSpanDirectiveTrivia(LineDirectivePositionSyntax start, LineDirectivePositionSyntax end, SyntaxToken characterOffset, SyntaxToken file, bool isActive)
+            => SyntaxFactory.LineSpanDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.LineKeyword), start, SyntaxFactory.Token(SyntaxKind.MinusToken), end, characterOffset, file, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+
+        /// <summary>Creates a new LineSpanDirectiveTriviaSyntax instance.</summary>
+        public static LineSpanDirectiveTriviaSyntax LineSpanDirectiveTrivia(LineDirectivePositionSyntax start, LineDirectivePositionSyntax end, SyntaxToken file, bool isActive)
+            => SyntaxFactory.LineSpanDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.LineKeyword), start, SyntaxFactory.Token(SyntaxKind.MinusToken), end, default, file, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
 
         /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
         public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)

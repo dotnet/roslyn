@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                         assignmentToken.GetLocation(),
                         option.Notification.Severity,
                         additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
-                        properties: ImmutableDictionary.Create<string, string>()
+                        properties: ImmutableDictionary.Create<string, string?>()
                             .Add(UseCompoundAssignmentUtilities.Increment, UseCompoundAssignmentUtilities.Increment)));
                     return;
                 }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                         assignmentToken.GetLocation(),
                         option.Notification.Severity,
                         additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
-                        properties: ImmutableDictionary.Create<string, string>()
+                        properties: ImmutableDictionary.Create<string, string?>()
                             .Add(UseCompoundAssignmentUtilities.Decrement, UseCompoundAssignmentUtilities.Decrement)));
                     return;
                 }

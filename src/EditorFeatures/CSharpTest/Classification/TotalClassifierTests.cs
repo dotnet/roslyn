@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -55,7 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 ///<param name='_
 }",
                 testHost,
-                Identifier("_"),
+                ParseOptions(Options.Regular),
+                Method("_"),
                 Method("_"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
@@ -917,7 +916,7 @@ class Program : IReadOnlyCollection<int,string>
                 Keyword("class"),
                 Class("Program"),
                 Punctuation.Colon,
-                Identifier("IReadOnlyCollection"),
+                Interface("IReadOnlyCollection"),
                 Punctuation.OpenAngle,
                 Keyword("int"),
                 Punctuation.Comma,
@@ -2150,6 +2149,45 @@ class Person
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task BasicFileScopedNamespaceClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"namespace NS;
+
+class C { }",
+                testHost,
+                Keyword("namespace"),
+                Namespace("NS"),
+                Punctuation.Semicolon,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestStringEscape(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""{{{12:X}}}"";",
+                testHost,
+                Keyword("var"),
+                Local("goo"),
+                Operators.Equals,
+                Verbatim("$@\""),
+                Escape("{{"),
+                Punctuation.OpenCurly,
+                Number("12"),
+                Punctuation.Colon,
+                String("X"),
+                Punctuation.CloseCurly,
+                Escape("}}"),
+                Verbatim("\""),
+                Punctuation.Semicolon);
         }
     }
 }

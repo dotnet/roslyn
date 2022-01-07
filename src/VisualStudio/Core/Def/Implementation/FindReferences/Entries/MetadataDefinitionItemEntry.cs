@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -33,13 +34,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return null;
             }
 
-            bool ISupportsNavigation.TryNavigateTo(bool isPreview, CancellationToken cancellationToken)
-                => DefinitionBucket.DefinitionItem.TryNavigateTo(
-                    Presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview, cancellationToken); // Only activate the tab if not opening in preview
+            public bool CanNavigateTo()
+                => true;
+
+            public Task NavigateToAsync(bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
+                => DefinitionBucket.DefinitionItem.TryNavigateToAsync(
+                    Presenter._workspace, showInPreviewTab: isPreview, activateTab: shouldActivate, cancellationToken); // Only activate the tab if requested
 
             protected override IList<Inline> CreateLineTextInlines()
                 => DefinitionBucket.DefinitionItem.DisplayParts
-                .ToInlines(Presenter.ClassificationFormatMap, Presenter.TypeMap);
+                    .ToInlines(Presenter.ClassificationFormatMap, Presenter.TypeMap);
         }
     }
 }

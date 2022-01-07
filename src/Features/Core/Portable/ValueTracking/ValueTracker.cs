@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         await TrackVariableDefinitionsAsync(symbol, operationCollector, cancellationToken).ConfigureAwait(false);
                         await TrackVariableReferencesAsync(symbol, operationCollector, cancellationToken).ConfigureAwait(false);
                     }
+
                     break;
 
                 case IParameterSymbol parameterSymbol:
@@ -122,6 +123,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                             await TrackParameterSymbolAsync(parameterSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
                         }
                     }
+
                     break;
 
                 case IMethodSymbol methodSymbol:
@@ -129,6 +131,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         // The "output" is from a method, meaning it has a return or out param that is used. Track those 
                         await TrackMethodSymbolAsync(methodSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
                     }
+
                     break;
             }
         }
@@ -174,10 +177,10 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             OperationCollector collector,
             CancellationToken cancellationToken)
         {
-            var containingMethod = (IMethodSymbol)parameterSymbol.ContainingSymbol;
+            var containingSymbol = parameterSymbol.ContainingSymbol;
             var findReferenceProgressCollector = new FindReferencesProgress(collector);
             await SymbolFinder.FindReferencesAsync(
-                containingMethod,
+                containingSymbol,
                 collector.Solution,
                 findReferenceProgressCollector,
                 documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);

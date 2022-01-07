@@ -46,15 +46,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
             Contract.ThrowIfNull(context.Solution);
 
-            if (completionItem is not VSCompletionItem vsCompletionItem)
+            if (completionItem is not VSInternalCompletionItem vsCompletionItem)
             {
                 return completionItem;
             }
 
-            CompletionResolveData data;
+            CompletionResolveData? data;
             if (completionItem.Data is JToken token)
             {
                 data = token.ToObject<CompletionResolveData>();
+                Assumes.Present(data);
             }
             else
             {

@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Verify if the given type is a tuple of a given cardinality, or can be used to back a tuple type 
         /// with the given cardinality. 
         /// </summary>
-        public bool IsTupleTypeOfCardinality(int targetCardinality)
+        internal bool IsTupleTypeOfCardinality(int targetCardinality)
         {
             if (IsTupleType)
             {
@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Symbol implicitImpl = null;
             Symbol closestMismatch = null;
-            bool canBeImplementedImplicitly = interfaceMember.DeclaredAccessibility == Accessibility.Public && !interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor();
+            bool canBeImplementedImplicitlyInCSharp9 = interfaceMember.DeclaredAccessibility == Accessibility.Public && !interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor();
             TypeSymbol implementingBaseOpt = null; // Calculated only if canBeImplementedImplicitly == false
             bool implementingTypeImplementsInterface = false;
             CSharpCompilation compilation = implementingType.DeclaringCompilation;
@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 if (!seenTypeDeclaringInterface ||
-                    (!canBeImplementedImplicitly && (object)implementingBaseOpt == null))
+                    (!canBeImplementedImplicitlyInCSharp9 && (object)implementingBaseOpt == null))
                 {
                     if (currType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).ContainsKey(interfaceType))
                     {
@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             implementingTypeImplementsInterface = true;
                         }
-                        else if (!canBeImplementedImplicitly && (object)implementingBaseOpt == null)
+                        else if (!canBeImplementedImplicitlyInCSharp9 && (object)implementingBaseOpt == null)
                         {
                             implementingBaseOpt = currType;
                         }
@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            Debug.Assert(!canBeImplementedImplicitly || (object)implementingBaseOpt == null);
+            Debug.Assert(!canBeImplementedImplicitlyInCSharp9 || (object)implementingBaseOpt == null);
 
             bool tryDefaultInterfaceImplementation = !interfaceMember.IsStatic;
 
@@ -1002,24 +1002,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)implicitImpl != null)
                 {
-                    if (!canBeImplementedImplicitly)
+                    if (!canBeImplementedImplicitlyInCSharp9)
                     {
                         if (interfaceMember.Kind == SymbolKind.Method &&
                             (object)implementingBaseOpt == null) // Otherwise any approprite errors are going to be reported for the base.
                         {
-                            diagnostics.Add(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, GetInterfaceLocation(interfaceMember, implementingType),
-                                            implementingType, interfaceMember, implicitImpl);
+                            LanguageVersion requiredVersion = MessageID.IDS_FeatureImplicitImplementationOfNonPublicMembers.RequiredVersion();
+                            LanguageVersion? availableVersion = implementingType.DeclaringCompilation?.LanguageVersion;
+                            if (requiredVersion > availableVersion)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, GetInterfaceLocation(interfaceMember, implementingType),
+                                                implementingType, interfaceMember, implicitImpl,
+                                                availableVersion.GetValueOrDefault().ToDisplayString(), new CSharpRequiredLanguageVersion(requiredVersion));
+                            }
                         }
                     }
-                    else
-                    {
-                        ReportImplicitImplementationMatchDiagnostics(interfaceMember, implementingType, implicitImpl, diagnostics);
-                    }
+
+                    ReportImplicitImplementationMatchDiagnostics(interfaceMember, implementingType, implicitImpl, diagnostics);
                 }
                 else if ((object)closestMismatch != null)
                 {
-                    Debug.Assert(interfaceMember.DeclaredAccessibility == Accessibility.Public);
-                    Debug.Assert(!interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor());
                     ReportImplicitImplementationMismatchDiagnostics(interfaceMember, implementingType, closestMismatch, diagnostics);
                 }
             }
@@ -2063,11 +2065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     // If we haven't found a match, do a weaker comparison that ignores static-ness, accessibility, and return type.
-                    // But do this only if interface member is public because language doesn't allow implicit implementations for
-                    // non-public members and, since candidate's signature doesn't match, runtime will never pick it up either. 
-                    else if ((object)closeMismatch == null && implementingTypeIsFromSomeCompilation &&
-                             interfaceMember.DeclaredAccessibility == Accessibility.Public &&
-                             !interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor())
+                    else if ((object)closeMismatch == null && implementingTypeIsFromSomeCompilation)
                     {
                         // We can ignore custom modifiers here, because our goal is to improve the helpfulness
                         // of an error we're already giving, rather than to generate a new error.
@@ -2319,7 +2317,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public static bool Equals(TypeSymbol left, TypeSymbol right, TypeCompareKind comparison)
+#nullable enable
+        public static bool Equals(TypeSymbol? left, TypeSymbol? right, TypeCompareKind comparison)
         {
             if (left is null)
             {
@@ -2328,6 +2327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return left.Equals(right, comparison);
         }
+#nullable disable
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator ==(TypeSymbol left, TypeSymbol right)

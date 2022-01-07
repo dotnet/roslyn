@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -30,10 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
         public RemoteDiagnosticListTable(
-            SVsServiceProvider serviceProvider, RemoteLanguageServiceWorkspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider)
+            SVsServiceProvider serviceProvider,
+            RemoteLanguageServiceWorkspace workspace,
+            IGlobalOptionService globalOptions,
+            IDiagnosticService diagnosticService,
+            ITableManagerProvider provider)
             : base(workspace, provider)
         {
-            _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
+            _source = new LiveTableDataSource(workspace, globalOptions, diagnosticService, IdentifierString);
             AddInitialTableSource(workspace.CurrentSolution, _source);
 
             ConnectWorkspaceEvents();
@@ -54,6 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 return;
             }
+
             AddTableSource(_source);
         }
 

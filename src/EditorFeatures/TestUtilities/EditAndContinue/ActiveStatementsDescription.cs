@@ -9,10 +9,10 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             OldStatementsMap = new ActiveStatementsMap(
                 documentPathMap: oldDocumentMap.ToImmutableDictionary(e => e.Key, e => e.Value.OrderBy(ActiveStatementsMap.Comparer).ToImmutableArray()),
-                instructionMap: ActiveStatementsMap.Empty.InstructionMap);
+                instructionMap: OldStatements.ToDictionary(s => new ManagedInstructionId(new ManagedMethodId(Guid.NewGuid(), 0x060000001, version: 1), ilOffset: 0), s => s.Statement));
 
             var newActiveStatementMarkers = GetActiveSpans(newMarkedSource).ToArray();
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     var documentActiveStatements = documentMap.GetOrAdd(mappedSpan.Path, path => new List<ActiveStatement>());
 
                     var statementFlags = (flags != null) ? flags[ordinal] :
-                        ((ordinal == 0) ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame) | ActiveStatementFlags.MethodUpToDate;
+                        ((ordinal == 0) ? ActiveStatementFlags.LeafFrame : ActiveStatementFlags.NonLeafFrame) | ActiveStatementFlags.MethodUpToDate;
 
                     var exceptionRegions = (ordinal < exceptionRegionMarkers.Length) ?
                         exceptionRegionMarkers[ordinal].SelectAsArray(unmappedRegionSpan => (SourceFileSpan)tree.GetMappedLineSpan(unmappedRegionSpan)) :

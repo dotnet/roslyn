@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 'MethodParameters', 'MethodThisParameter' and 'AnalyzeOutParameters(...)' should be used
         /// instead. _symbol is null during speculative binding.
         /// </summary>
-        protected readonly Symbol _symbol;
+        protected Symbol _symbol;
 
         /// <summary>
         /// Reflects the enclosing member, lambda or local function at the current location (in the bound tree).
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// contents of the pendingBranches buffer to take into account the behavior of
         /// "intervening" finally clauses.
         /// </summary>
-        protected ArrayBuilder<PendingBranch> PendingBranches { get; private set; }
+        protected PendingBranchesCollection PendingBranches { get; private set; }
 
         /// <summary>
         /// The definite assignment and/or reachability state at the point currently being analyzed.
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.RegionSpan = new TextSpan(startLocation, length);
             }
 
-            PendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
+            PendingBranches = new PendingBranchesCollection();
             _labelsSeen = PooledHashSet<BoundStatement>.GetInstance();
             _labels = PooledDictionary<LabelSymbol, TLocalState>.GetInstance();
             this.Diagnostics = DiagnosticBag.GetInstance();
@@ -389,14 +390,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// pending branches to a label in that block we process the branch.  Otherwise we relay it
         /// up to the enclosing construct as a pending branch of the enclosing construct.
         /// </summary>
-        internal class PendingBranch
+        internal sealed class PendingBranch
         {
             public readonly BoundNode Branch;
             public bool IsConditionalState;
             public TLocalState State;
             public TLocalState StateWhenTrue;
             public TLocalState StateWhenFalse;
-            public readonly LabelSymbol Label;
+#nullable enable
+            public readonly LabelSymbol? Label;
+#nullable disable
 
             public PendingBranch(BoundNode branch, TLocalState state, LabelSymbol label, bool isConditionalState = false, TLocalState stateWhenTrue = default, TLocalState stateWhenFalse = default)
             {
@@ -707,38 +710,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         /// <summary>
         /// Used to resolve break statements in each statement form that has a break statement
         /// (loops, switch).
         /// </summary>
         private void ResolveBreaks(TLocalState breakState, LabelSymbol label)
         {
-            var pendingBranches = PendingBranches;
-            var count = pendingBranches.Count;
-
-            if (count != 0)
-            {
-                int stillPending = 0;
-                for (int i = 0; i < count; i++)
-                {
-                    var pending = pendingBranches[i];
-                    if (pending.Label == label)
-                    {
-                        Join(ref breakState, ref pending.State);
-                    }
-                    else
-                    {
-                        if (stillPending != i)
-                        {
-                            pendingBranches[stillPending] = pending;
-                        }
-                        stillPending++;
-                    }
-                }
-
-                pendingBranches.Clip(stillPending);
-            }
-
+            JoinPendingBranches(ref breakState, label);
             SetState(breakState);
         }
 
@@ -747,38 +726,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ResolveContinues(LabelSymbol continueLabel)
         {
-            var pendingBranches = PendingBranches;
-            var count = pendingBranches.Count;
+            // Technically, nothing in the language specification depends on the state
+            // at the continue label, so we could just discard them instead of merging
+            // the states. In fact, we need not have added continue statements to the
+            // pending jump queue in the first place if we were interested solely in the
+            // flow analysis.  However, region analysis (in support of extract method)
+            // and other forms of more precise analysis
+            // depend on continue statements appearing in the pending branch queue, so
+            // we process them from the queue here.
+            JoinPendingBranches(ref this.State, continueLabel);
+        }
 
-            if (count != 0)
+        private void JoinPendingBranches(ref TLocalState state, LabelSymbol label)
+        {
+            var pendingBranches = PendingBranches.GetAndRemoveBranches(label);
+            if (pendingBranches is { })
             {
-                int stillPending = 0;
-                for (int i = 0; i < count; i++)
+                foreach (var pending in pendingBranches)
                 {
-                    var pending = pendingBranches[i];
-                    if (pending.Label == continueLabel)
-                    {
-                        // Technically, nothing in the language specification depends on the state
-                        // at the continue label, so we could just discard them instead of merging
-                        // the states. In fact, we need not have added continue statements to the
-                        // pending jump queue in the first place if we were interested solely in the
-                        // flow analysis.  However, region analysis (in support of extract method)
-                        // and other forms of more precise analysis
-                        // depend on continue statements appearing in the pending branch queue, so
-                        // we process them from the queue here.
-                        Join(ref this.State, ref pending.State);
-                    }
-                    else
-                    {
-                        if (stillPending != i)
-                        {
-                            pendingBranches[stillPending] = pending;
-                        }
-                        stillPending++;
-                    }
+                    Join(ref state, ref pending.State);
                 }
-
-                pendingBranches.Clip(stillPending);
+                pendingBranches.Free();
             }
         }
 
@@ -797,41 +765,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="label">Target label</param>
         /// <param name="target">Statement containing the target label</param>
-        private bool ResolveBranches(LabelSymbol label, BoundStatement target)
+        private bool ResolveBranches(LabelSymbol label, BoundStatement? target)
         {
             target?.AssertIsLabeledStatementWithLabel(label);
 
             bool labelStateChanged = false;
-            var pendingBranches = PendingBranches;
-            var count = pendingBranches.Count;
 
-            if (count != 0)
+            var pendingBranches = PendingBranches.GetAndRemoveBranches(label);
+            if (pendingBranches is { })
             {
-                int stillPending = 0;
-                for (int i = 0; i < count; i++)
+                foreach (var pending in pendingBranches)
                 {
-                    var pending = pendingBranches[i];
-                    if (pending.Label == label)
-                    {
-                        ResolveBranch(pending, label, target, ref labelStateChanged);
-                    }
-                    else
-                    {
-                        if (stillPending != i)
-                        {
-                            pendingBranches[stillPending] = pending;
-                        }
-                        stillPending++;
-                    }
+                    ResolveBranch(pending, label, target, ref labelStateChanged);
                 }
-
-                pendingBranches.Clip(stillPending);
+                pendingBranches.Free();
             }
 
             return labelStateChanged;
         }
 
-        protected virtual void ResolveBranch(PendingBranch pending, LabelSymbol label, BoundStatement target, ref bool labelStateChanged)
+        protected virtual void ResolveBranch(PendingBranch pending, LabelSymbol label, BoundStatement? target, ref bool labelStateChanged)
         {
             var state = LabelState(label);
             if (target != null)
@@ -847,12 +800,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected struct SavedPending
+        protected readonly struct SavedPending
         {
-            public readonly ArrayBuilder<PendingBranch> PendingBranches;
+            public readonly PendingBranchesCollection PendingBranches;
             public readonly PooledHashSet<BoundStatement> LabelsSeen;
 
-            public SavedPending(ArrayBuilder<PendingBranch> pendingBranches, PooledHashSet<BoundStatement> labelsSeen)
+            public SavedPending(PendingBranchesCollection pendingBranches, PooledHashSet<BoundStatement> labelsSeen)
             {
                 this.PendingBranches = pendingBranches;
                 this.LabelsSeen = labelsSeen;
@@ -869,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!this.IsConditionalState);
             var result = new SavedPending(PendingBranches, _labelsSeen);
 
-            PendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
+            PendingBranches = new PendingBranchesCollection();
             _labelsSeen = PooledHashSet<BoundStatement>.GetInstance();
 
             return result;
@@ -926,6 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _labelsSeen.Free();
             _labelsSeen = oldPending.LabelsSeen;
         }
+#nullable disable
 
         #region visitors
 
@@ -1149,23 +1103,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected BoundNode VisitInterpolatedStringBase(BoundInterpolatedStringBase node)
+#nullable enable
+        protected BoundNode? VisitInterpolatedStringBase(BoundInterpolatedStringBase node, InterpolatedStringHandlerData? data)
         {
-            foreach (var expr in node.Parts)
+            // If there can be any branching, then we need to treat the expressions
+            // as optionally evaluated. Otherwise, we treat them as always evaluated
+            (BoundExpression? construction, bool useBoolReturns, bool firstPartIsConditional) = data switch
             {
-                VisitRvalue(expr);
+                null => (null, false, false),
+                { } d => (d.Construction, d.UsesBoolReturns, d.HasTrailingHandlerValidityParameter)
+            };
+
+            VisitInterpolatedStringHandlerConstructor(construction);
+            bool hasConditionalEvaluation = useBoolReturns || firstPartIsConditional;
+            TLocalState? shortCircuitState = hasConditionalEvaluation ? State.Clone() : default;
+
+            _ = VisitInterpolatedStringHandlerParts(node, useBoolReturns, firstPartIsConditional, ref shortCircuitState);
+
+            if (hasConditionalEvaluation)
+            {
+                Debug.Assert(shortCircuitState != null);
+                Join(ref this.State, ref shortCircuitState);
             }
+
             return null;
         }
 
+        protected virtual void VisitInterpolatedStringHandlerConstructor(BoundExpression? constructor)
+        {
+            VisitRvalue(constructor);
+        }
+#nullable disable
+
         public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
         {
-            return VisitInterpolatedStringBase(node);
+            return VisitInterpolatedStringBase(node, node.InterpolationData);
         }
 
         public override BoundNode VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
         {
-            return VisitInterpolatedStringBase(node);
+            // If the node is unconverted, we'll just treat it as if the contents are always evaluated
+            return VisitInterpolatedStringBase(node, data: null);
         }
 
         public override BoundNode VisitStringInsert(BoundStringInsert node)
@@ -1181,6 +1159,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(node.Format);
             }
 
+            return null;
+        }
+
+        public override BoundNode VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
+        {
             return null;
         }
 
@@ -1403,24 +1391,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        public override BoundNode VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
         {
-            // Index or Range pattern indexers evaluate the following in order:
+            // Index or Range implicit indexers evaluate the following in order:
             // 1. The receiver
-            // 1. The Count or Length method off the receiver
             // 2. The argument to the access
-            // 3. The pattern method
+            // 3. The Count or Length method off the receiver
+            // 4. The underlying indexer access or method call
             VisitRvalue(node.Receiver);
-            var method = GetReadMethod(node.LengthOrCountProperty);
-            VisitReceiverAfterCall(node.Receiver, method);
             VisitRvalue(node.Argument);
-            method = node.PatternSymbol switch
-            {
-                PropertySymbol p => GetReadMethod(p),
-                MethodSymbol m => m,
-                _ => throw ExceptionUtilities.UnexpectedValue(node.PatternSymbol)
-            };
-            VisitReceiverAfterCall(node.Receiver, method);
 
             return null;
         }
@@ -1511,7 +1490,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        // Can be called as part of a bad expression.
         public override BoundNode VisitArrayInitialization(BoundArrayInitialization node)
         {
             foreach (var child in node.Initializers)
@@ -1697,7 +1675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var tryAndCatchPending = SavePending();
                 var stateMovedUpInFinally = ReachableBottomState();
                 VisitFinallyBlockWithAnyTransferFunction(node.FinallyBlockOpt, ref stateMovedUpInFinally);
-                foreach (var pend in tryAndCatchPending.PendingBranches)
+                foreach (var pend in tryAndCatchPending.PendingBranches.AsEnumerable())
                 {
                     if (pend.Branch == null)
                     {
@@ -2180,6 +2158,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!node.OperatorKind.IsUserDefined());
                 VisitBinaryLogicalOperatorChildren(node);
             }
+            else if (node.InterpolatedStringHandlerData is { } data)
+            {
+                VisitBinaryInterpolatedStringAddition(node);
+            }
             else
             {
                 VisitBinaryOperatorChildren(node);
@@ -2331,7 +2313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stack.Push(binary);
                 binary = binary.Left as BoundBinaryOperator;
             }
-            while (binary != null && !binary.OperatorKind.IsLogical());
+            while (binary != null && !binary.OperatorKind.IsLogical() && binary.InterpolatedStringHandlerData is null);
 
             VisitBinaryOperatorChildren(stack);
             stack.Free();
@@ -2395,7 +2377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     || !learnFromOperator(binary))
                 {
                     Unsplit();
-                    Visit(binary.Right);
+                    VisitRvalue(binary.Right);
                 }
 
                 if (stack.Count == 0)
@@ -2463,6 +2445,79 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return false;
             }
+        }
+
+        protected void VisitBinaryInterpolatedStringAddition(BoundBinaryOperator node)
+        {
+            Debug.Assert(node.InterpolatedStringHandlerData.HasValue);
+            var parts = ArrayBuilder<BoundInterpolatedString>.GetInstance();
+            var data = node.InterpolatedStringHandlerData.GetValueOrDefault();
+
+            node.VisitBinaryOperatorInterpolatedString(
+                (parts, @this: this),
+                stringCallback: static (BoundInterpolatedString interpolatedString, (ArrayBuilder<BoundInterpolatedString> parts, AbstractFlowPass<TLocalState, TLocalFunctionState> @this) arg) =>
+                {
+                    arg.parts.Add(interpolatedString);
+                    return true;
+                },
+                binaryOperatorCallback: (op, arg) => arg.@this.VisitInterpolatedStringBinaryOperatorNode(op));
+
+            Debug.Assert(parts.Count >= 2);
+
+            VisitInterpolatedStringHandlerConstructor(data.Construction);
+
+            bool visitedFirst = false;
+            bool hasTrailingHandlerValidityParameter = data.HasTrailingHandlerValidityParameter;
+            bool hasConditionalEvaluation = data.UsesBoolReturns || hasTrailingHandlerValidityParameter;
+            TLocalState? shortCircuitState = hasConditionalEvaluation ? State.Clone() : default;
+
+            foreach (var part in parts)
+            {
+                visitedFirst |= VisitInterpolatedStringHandlerParts(part, data.UsesBoolReturns, firstPartIsConditional: visitedFirst || hasTrailingHandlerValidityParameter, ref shortCircuitState);
+            }
+
+            if (hasConditionalEvaluation)
+            {
+                Join(ref State, ref shortCircuitState);
+            }
+
+            parts.Free();
+        }
+
+        protected virtual void VisitInterpolatedStringBinaryOperatorNode(BoundBinaryOperator node) { }
+
+        protected virtual bool VisitInterpolatedStringHandlerParts(BoundInterpolatedStringBase node, bool usesBoolReturns, bool firstPartIsConditional, ref TLocalState? shortCircuitState)
+        {
+            Debug.Assert(shortCircuitState != null || (!usesBoolReturns && !firstPartIsConditional));
+            if (node.Parts.IsEmpty)
+            {
+                return false;
+            }
+
+            ReadOnlySpan<BoundExpression> parts;
+
+            if (firstPartIsConditional)
+            {
+                parts = node.Parts.AsSpan();
+            }
+            else
+            {
+                VisitRvalue(node.Parts[0]);
+                shortCircuitState = State.Clone();
+                parts = node.Parts.AsSpan()[1..];
+            }
+
+            foreach (var part in parts)
+            {
+                VisitRvalue(part);
+                if (usesBoolReturns)
+                {
+                    Debug.Assert(shortCircuitState != null);
+                    Join(ref shortCircuitState, ref State);
+                }
+            }
+
+            return true;
         }
 #nullable disable
 
@@ -2541,27 +2596,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(expr);
             }
 
-            if (node.InitializerOpt != null)
-            {
-                VisitArrayInitializationInternal(node, node.InitializerOpt);
-            }
-
+            VisitRvalue(node.InitializerOpt);
             return null;
-        }
-
-        private void VisitArrayInitializationInternal(BoundArrayCreation arrayCreation, BoundArrayInitialization node)
-        {
-            foreach (var child in node.Initializers)
-            {
-                if (child.Kind == BoundKind.ArrayInitialization)
-                {
-                    VisitArrayInitializationInternal(arrayCreation, (BoundArrayInitialization)child);
-                }
-                else
-                {
-                    VisitRvalue(child);
-                }
-            }
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)

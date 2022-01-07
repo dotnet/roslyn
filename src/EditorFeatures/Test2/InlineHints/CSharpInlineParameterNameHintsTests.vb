@@ -675,5 +675,51 @@ class A
 
             Await VerifyParamHints(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(46614, "https://github.com/dotnet/roslyn/issues/46614")>
+        Public Async Function TestIndexerParameter() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+public class TempRecord
+{
+    // Array of temperature values
+    float[] temps = new float[10]
+    {
+        56.2F, 56.7F, 56.5F, 56.9F, 58.8F,
+        61.3F, 65.9F, 62.1F, 59.2F, 57.5F
+    };
+
+    // To enable client code to validate input
+    // when accessing your indexer.
+    public int Length => temps.Length;
+    
+    // Indexer declaration.
+    // If index is out of range, the temps array will throw the exception.
+    public float this[int index]
+    {
+        get => temps[index];
+        set => temps[index] = value;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var tempRecord = new TempRecord();
+
+        // Use the indexer's set accessor
+        var temp = tempRecord[{|index:|}3];
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
     End Class
 End Namespace

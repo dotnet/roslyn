@@ -7,9 +7,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -112,22 +114,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsIUnknownConstant
             => GetDecodedWellKnownAttributeData()?.HasIUnknownConstantAttribute == true;
 
-        private bool HasCallerLineNumberAttribute
-            => GetEarlyDecodedWellKnownAttributeData()?.HasCallerLineNumberAttribute == true;
+        internal override bool IsCallerLineNumber => GetEarlyDecodedWellKnownAttributeData()?.HasCallerLineNumberAttribute == true;
 
-        private bool HasCallerFilePathAttribute
-            => GetEarlyDecodedWellKnownAttributeData()?.HasCallerFilePathAttribute == true;
+        internal override bool IsCallerFilePath => GetEarlyDecodedWellKnownAttributeData()?.HasCallerFilePathAttribute == true;
 
-        private bool HasCallerMemberNameAttribute
-            => GetEarlyDecodedWellKnownAttributeData()?.HasCallerMemberNameAttribute == true;
+        internal override bool IsCallerMemberName => GetEarlyDecodedWellKnownAttributeData()?.HasCallerMemberNameAttribute == true;
 
-        internal sealed override bool IsCallerLineNumber => HasCallerLineNumberAttribute;
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get
+            {
+                return GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex ?? -1;
+            }
+        }
 
-        internal sealed override bool IsCallerFilePath => !HasCallerLineNumberAttribute && HasCallerFilePathAttribute;
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes
+            => (GetDecodedWellKnownAttributeData()?.InterpolatedStringHandlerArguments).NullToEmpty();
 
-        internal sealed override bool IsCallerMemberName => !HasCallerLineNumberAttribute
-                                                  && !HasCallerFilePathAttribute
-                                                  && HasCallerMemberNameAttribute;
+        internal override bool HasInterpolatedStringHandlerArgumentError
+            => GetDecodedWellKnownAttributeData()?.InterpolatedStringHandlerArguments.IsDefault ?? false;
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
@@ -136,6 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return DecodeFlowAnalysisAttributes(GetDecodedWellKnownAttributeData());
             }
         }
+
+        public override bool IsNullChecked
+            => this.CSharpSyntaxNode?.ExclamationExclamationToken.Kind() == SyntaxKind.ExclamationExclamationToken;
 
         private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(ParameterWellKnownAttributeData attributeData)
         {
@@ -348,8 +356,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (parameterType.Type.IsNullableType())
                 {
                     convertedExpression = binder.GenerateConversionForAssignment(parameterType.Type.GetNullableUnderlyingType(),
-                        valueBeforeConversion, diagnostics, isDefaultParameter: true);
+                        valueBeforeConversion, diagnostics, Binder.ConversionForAssignmentFlags.DefaultParameter);
                 }
+            }
+
+            if (this.IsNullChecked && convertedExpression.ConstantValue?.IsNull == true)
+            {
+                diagnostics.Add(ErrorCode.WRN_NullCheckedHasDefaultNull, Locations.FirstOrNone(), this.Name);
             }
 
             // represent default(struct) by a Null constant:
@@ -573,7 +586,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.PostEarlyDecodeWellKnownAttributeTypes();
         }
 
-        internal override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+#nullable enable
+        internal override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.DefaultParameterValueAttribute))
             {
@@ -601,28 +615,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasCallerMemberNameAttribute = true;
                 }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerArgumentExpressionAttribute))
+                {
+                    var index = -1;
+                    var (attributeData, _) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out _);
+                    if (!attributeData.HasErrors)
+                    {
+                        var constructorArguments = attributeData.CommonConstructorArguments;
+                        Debug.Assert(constructorArguments.Length == 1);
+                        if (constructorArguments[0].TryDecodeValue(SpecialType.System_String, out string? parameterName))
+                        {
+                            var parameters = ContainingSymbol.GetParameters();
+                            for (int i = 0; i < parameters.Length; i++)
+                            {
+                                if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
+                                {
+                                    index = i;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().CallerArgumentExpressionParameterIndex = index;
+                }
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
 
-        private CSharpAttributeData EarlyDecodeAttributeForDefaultParameterValue(AttributeDescription description, ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        private (CSharpAttributeData?, BoundAttribute?) EarlyDecodeAttributeForDefaultParameterValue(AttributeDescription description, ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
             Debug.Assert(description.Equals(AttributeDescription.DefaultParameterValueAttribute) ||
                 description.Equals(AttributeDescription.DecimalConstantAttribute) ||
                 description.Equals(AttributeDescription.DateTimeConstantAttribute));
 
             bool hasAnyDiagnostics;
-            var attribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+            var (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
             ConstantValue value;
-            if (attribute.HasErrors)
+            if (attributeData.HasErrors)
             {
                 value = ConstantValue.Bad;
                 hasAnyDiagnostics = true;
             }
             else
             {
-                value = DecodeDefaultParameterValueAttribute(description, attribute, arguments.AttributeSyntax, diagnose: false, diagnosticsOpt: null);
+                value = DecodeDefaultParameterValueAttribute(description, attributeData, arguments.AttributeSyntax, diagnose: false, diagnosticsOpt: null);
             }
 
             var paramData = arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>();
@@ -631,8 +669,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 paramData.DefaultParameterValue = value;
             }
 
-            return !hasAnyDiagnostics ? attribute : null;
+            return !hasAnyDiagnostics ? (attributeData, boundAttribute) : (null, null);
         }
+#nullable disable
 
         internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
@@ -641,6 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
+            Debug.Assert(AttributeDescription.InterpolatedStringHandlerArgumentAttribute.Signatures.Length == 2);
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultParameterValueAttribute))
@@ -705,6 +745,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ValidateCallerMemberNameAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.CallerArgumentExpressionAttribute))
+            {
+                ValidateCallerArgumentExpressionAttribute(arguments.AttributeSyntaxOpt, attribute, diagnostics);
+            }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute))
             {
@@ -745,6 +789,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasEnumeratorCancellationAttribute = true;
                 ValidateCancellationTokenAttribute(arguments.AttributeSyntaxOpt, (BindingDiagnosticBag)arguments.Diagnostics);
+            }
+            else if (attribute.GetTargetAttributeSignatureIndex(this, AttributeDescription.InterpolatedStringHandlerArgumentAttribute) is (0 or 1) and var index)
+            {
+                DecodeInterpolatedStringHandlerArgumentAttribute(ref arguments, diagnostics, index);
             }
         }
 
@@ -976,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS4021: The CallerFilePathAttribute may only be applied to parameters with default values
                 diagnostics.Add(ErrorCode.ERR_BadCallerFilePathParamWithoutDefaultValue, node.Name.Location);
             }
-            else if (HasCallerLineNumberAttribute)
+            else if (IsCallerLineNumber)
             {
                 // CS7082: The CallerFilePathAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
@@ -1009,15 +1057,72 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS4022: The CallerMemberNameAttribute may only be applied to parameters with default values
                 diagnostics.Add(ErrorCode.ERR_BadCallerMemberNameParamWithoutDefaultValue, node.Name.Location);
             }
-            else if (HasCallerLineNumberAttribute)
+            else if (IsCallerLineNumber)
             {
                 // CS7081: The CallerMemberNameAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
-            else if (HasCallerFilePathAttribute)
+            else if (IsCallerFilePath)
             {
                 // CS7080: The CallerMemberNameAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+
+            diagnostics.Add(node.Name.Location, useSiteInfo);
+        }
+
+        private void ValidateCallerArgumentExpressionAttribute(AttributeSyntax node, CSharpAttributeData attribute, BindingDiagnosticBag diagnostics)
+        {
+            // We intentionally don't report an error for earlier language versions here. The attribute already existed
+            // before the feature was developed. The error is only reported when the binder supplies a value
+            // based on the attribute.
+            CSharpCompilation compilation = this.DeclaringCompilation;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
+
+            if (!IsValidCallerInfoContext(node))
+            {
+                // CS8966: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a
+                //         member that is used in contexts that do not allow optional arguments
+                diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+            else if (!compilation.Conversions.HasCallerInfoStringConversion(TypeWithAnnotations.Type, ref useSiteInfo))
+            {
+                // CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
+                TypeSymbol stringType = compilation.GetSpecialType(SpecialType.System_String);
+                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, node.Name.Location, stringType, TypeWithAnnotations.Type);
+            }
+            else if (!HasExplicitDefaultValue && !ContainingSymbol.IsPartialImplementation()) // attribute applied to parameter without default
+            {
+                // Unconsumed location checks happen first, so we require a default value.
+
+                // CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                diagnostics.Add(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, node.Name.Location);
+            }
+            else if (IsCallerLineNumber)
+            {
+                // CS8960: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.
+                diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+            else if (IsCallerFilePath)
+            {
+                // CS8961: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.
+                diagnostics.Add(ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+            else if (IsCallerMemberName)
+            {
+                // CS8962: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerMemberNameAttribute.
+                diagnostics.Add(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+            else if (attribute.CommonConstructorArguments.Length == 1 &&
+                GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex == -1)
+            {
+                // CS8963: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.
+                diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+            else if (GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex == Ordinal)
+            {
+                // CS8965: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.
+                diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
 
             diagnostics.Add(node.Name.Location, useSiteInfo);
@@ -1047,6 +1152,156 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
         }
+
+#nullable enable
+        private void DecodeInterpolatedStringHandlerArgumentAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, BindingDiagnosticBag diagnostics, int attributeIndex)
+        {
+            Debug.Assert(attributeIndex is 0 or 1);
+            Debug.Assert(arguments.Attribute.IsTargetAttribute(this, AttributeDescription.InterpolatedStringHandlerArgumentAttribute) && arguments.Attribute.CommonConstructorArguments.Length == 1);
+            Debug.Assert(arguments.AttributeSyntaxOpt is not null);
+
+            var errorLocation = arguments.AttributeSyntaxOpt.Location;
+
+            if (Type is not NamedTypeSymbol { IsInterpolatedStringHandlerType: true } handlerType)
+            {
+                // '{0}' is not an interpolated string handler type.
+                diagnostics.Add(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, errorLocation, Type);
+                setInterpolatedStringHandlerAttributeError(ref arguments);
+                return;
+            }
+
+            if (this is LambdaParameterSymbol)
+            {
+                // Lambda parameters will ignore this attribute at usage
+                diagnostics.Add(ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters, errorLocation);
+            }
+
+            TypedConstant constructorArgument = arguments.Attribute.CommonConstructorArguments[0];
+
+            ImmutableArray<ParameterSymbol> containingSymbolParameters = ContainingSymbol.GetParameters();
+
+            ImmutableArray<int> parameterOrdinals;
+            ArrayBuilder<ParameterSymbol?> parameters;
+            if (attributeIndex == 0)
+            {
+                if (decodeName(constructorArgument, ref arguments) is not (int ordinal, var parameter))
+                {
+                    // If an error needs to be reported, it will already have been reported by another step.
+                    setInterpolatedStringHandlerAttributeError(ref arguments);
+                    return;
+                }
+
+                parameterOrdinals = ImmutableArray.Create(ordinal);
+                parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(1);
+                parameters.Add(parameter);
+            }
+            else if (attributeIndex == 1)
+            {
+                if (constructorArgument.IsNull)
+                {
+                    setInterpolatedStringHandlerAttributeError(ref arguments);
+                    // null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
+                    diagnostics.Add(ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt!.Location);
+                    return;
+                }
+
+                bool hadError = false;
+                parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(constructorArgument.Values.Length);
+                var ordinalsBuilder = ArrayBuilder<int>.GetInstance(constructorArgument.Values.Length);
+                foreach (var nestedArgument in constructorArgument.Values)
+                {
+                    if (decodeName(nestedArgument, ref arguments) is (int ordinal, var parameter) && !hadError)
+                    {
+                        parameters.Add(parameter);
+                        ordinalsBuilder.Add(ordinal);
+                    }
+                    else
+                    {
+                        hadError = true;
+                    }
+                }
+
+                if (hadError)
+                {
+                    parameters.Free();
+                    ordinalsBuilder.Free();
+                    setInterpolatedStringHandlerAttributeError(ref arguments);
+                    return;
+                }
+
+                parameterOrdinals = ordinalsBuilder.ToImmutableAndFree();
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            var parameterWellKnownAttributeData = arguments.GetOrCreateData<ParameterWellKnownAttributeData>();
+            parameterWellKnownAttributeData.InterpolatedStringHandlerArguments = parameterOrdinals;
+
+            (int Ordinal, ParameterSymbol? Parameter)? decodeName(TypedConstant constant, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+            {
+                Debug.Assert(arguments.AttributeSyntaxOpt is not null);
+                if (constant.IsNull)
+                {
+                    // null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
+                    diagnostics.Add(ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location);
+                    return null;
+                }
+
+                if (constant.TypeInternal is not { SpecialType: SpecialType.System_String })
+                {
+                    // There has already been an error reported. Just return null.
+                    return null;
+                }
+
+                var name = constant.DecodeValue<string>(SpecialType.System_String);
+                Debug.Assert(name != null);
+                if (name == "")
+                {
+                    // Name refers to the "this" instance parameter.
+                    if (!ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke or MethodKind.LambdaMethod })
+                    {
+                        // '{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                        diagnostics.Add(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, ContainingSymbol);
+                        return null;
+                    }
+
+                    return (BoundInterpolatedStringArgumentPlaceholder.InstanceParameter, null);
+                }
+
+                var parameter = containingSymbolParameters.FirstOrDefault(static (param, name) => string.Equals(param.Name, name, StringComparison.Ordinal), name);
+                if (parameter is null)
+                {
+                    // '{0}' is not a valid parameter name from '{1}'.
+                    diagnostics.Add(ErrorCode.ERR_InvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, name, ContainingSymbol);
+                    return null;
+                }
+
+                if ((object)parameter == this)
+                {
+                    // InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.
+                    diagnostics.Add(ErrorCode.ERR_CannotUseSelfAsInterpolatedStringHandlerArgument, errorLocation);
+                    return null;
+                }
+
+                if (parameter.Ordinal > Ordinal)
+                {
+                    // Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions.
+                    // This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated
+                    // string handler parameter after all arguments involved.
+                    diagnostics.Add(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, errorLocation, parameter.Name, this.Name);
+                }
+
+                return (parameter.Ordinal, parameter);
+            }
+
+            static void setInterpolatedStringHandlerAttributeError(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().InterpolatedStringHandlerArguments = default;
+            }
+        }
+#nullable disable
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {

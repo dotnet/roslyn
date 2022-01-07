@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         groupingPriority: 0);
                     newColumnsStates.Add(newState);
                 }
+
                 tableControl.SetColumnStates(newColumnsStates);
 
                 // Force a refresh, if necessary. This doesn't re-run the Find References or
@@ -52,7 +53,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        public void NavigateTo(string windowCaption, Reference reference, bool isPreview)
+        public void NavigateTo(string windowCaption, Reference reference, bool isPreview, bool shouldActivate)
         {
             InvokeOnUIThread(cancellationToken =>
             {
@@ -62,7 +63,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     if (reference.Equals(CreateReference(item)))
                     {
-                        item.NavigateTo(isPreview);
+                        item.NavigateTo(isPreview, shouldActivate);
                     }
                 }
             });

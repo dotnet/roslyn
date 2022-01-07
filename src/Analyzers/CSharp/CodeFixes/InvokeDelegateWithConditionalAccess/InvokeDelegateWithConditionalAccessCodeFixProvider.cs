@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified, createChangedDocument)
+                : base(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified, createChangedDocument, nameof(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified))
             {
             }
         }

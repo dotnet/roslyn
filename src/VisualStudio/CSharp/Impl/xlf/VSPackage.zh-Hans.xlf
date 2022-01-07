@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../VSPackage.resx">
     <body>
@@ -83,7 +83,8 @@ regular expression;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">显示内联提示;
+        <target state="translated">为重新分配变量添加下划线;
+显示内联提示;
 显示对已关闭文件的诊断;
 对正则表达式着色;
 突出显示游标下的相关组件;
@@ -130,7 +131,8 @@ Using 指令;
 regex;
 正则表达式;
 使用增强色;
-编辑器配色方案;</target>
+编辑器配色方案;
+继承边距;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

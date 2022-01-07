@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../VSPackage.resx">
     <body>
@@ -83,54 +83,56 @@ regular expression;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">Afficher les indicateurs inline ;
-Afficher les diagnostics pour les fichiers fermés ;
-Mettre en couleurs l'expression régulière ; 
-Surligner les composants liés sous le curseur ; 
-Signaler les expressions régulières non valides ;
-Activer l'analyse complète de la solution ;
-Effectuer l'analyse des fonctionnalités de l'éditeur dans un processus externe ;
-Activer la navigation vers les sources décompilées ;
-Directives using ;
-Placer en premier les directives system au moment du tri des using ;
-Séparer les groupes de directives using ;
-Suggérer des using pour les types dans les assemblys de référence ;
-Suggérer des using pour les types dans les packages NuGet ;
-Mise en surbrillance ;
-Mettre en surbrillance les références au symbole sous le curseur ;
-Mettre en surbrillance les mots clés liés sous le curseur ;
-Mode Plan ;
-Passer en mode Plan à l'ouverture des fichiers ;
-Afficher les séparateurs de ligne de procédure ;
-Afficher le mode Plan pour les constructions au niveau des déclarations ;
-Afficher le mode Plan pour les constructions au niveau du code ;
-Afficher le mode Plan pour les commentaires et les régions du préprocesseur ;
-Réduire les régions au moment de la réduction aux définitions ;
-Atténuation ;
-Atténuer les using inutilisés ;
-Atténuer le code inaccessible ;
-Repères de structure de bloc ;
-Afficher les repères pour les constructions au niveau des déclarations ;
-Afficher les repères pour les constructions au niveau du code ;
-Aide de l'éditeur ;
-Générer des commentaires de documentation XML pour /// ;
-Insérer * au début des nouvelles lignes pour l'écriture de commentaires /* */ ;
-Afficher un aperçu pour le suivi des renommages ;
-Diviser les littéraux de chaîne avec Entrée ;
-Signaler les espaces réservés non valides dans les appels de string.Format ;
-Extraire la méthode ;
-Ne pas placer ref ou out dans un struct personnalisé ;
-Implémenter une interface ou une classe abstraite ;
-Au moment d'insérer des propriétés, des événements et des méthodes, les placer ;
-avec d'autres membres du même genre ;
-à la fin ;
-Durant la génération de propriétés ;
-préférer les propriétés de levée d'exceptions ;
-préférer les propriétés automatiques ;
-regex ;
-expression régulière ;
-Utiliser des couleurs améliorées ;
-Modèle de couleurs de l'éditeur ;</target>
+        <target state="translated">Souligner les variables réaffectées;
+Afficher les indicateurs inline;
+Afficher les diagnostics pour les fichiers fermés;
+Mettre en couleurs l'expression régulière; 
+Surligner les composants liés sous le curseur; 
+Signaler les expressions régulières non valides;
+Activer l'analyse complète de la solution;
+Effectuer l'analyse des fonctionnalités de l'éditeur dans un processus externe;
+Activer la navigation vers les sources décompilées;
+Directives using;
+Placer en premier les directives system au moment du tri des using;
+Séparer les groupes de directives using;
+Suggérer des using pour les types dans les assemblys de référence;
+Suggérer des using pour les types dans les packages NuGet;
+Mise en surbrillance;
+Mettre en surbrillance les références au symbole sous le curseur;
+Mettre en surbrillance les mots clés liés sous le curseur;
+Mode Plan;
+Passer en mode Plan à l'ouverture des fichiers;
+Afficher les séparateurs de ligne de procédure;
+Afficher le mode Plan pour les constructions au niveau des déclarations;
+Afficher le mode Plan pour les constructions au niveau du code;
+Afficher le mode Plan pour les commentaires et les régions du préprocesseur;
+Réduire les régions au moment de la réduction aux définitions;
+Atténuation;
+Atténuer les using inutilisés;
+Atténuer le code inaccessible;
+Repères de structure de bloc;
+Afficher les repères pour les constructions au niveau des déclarations;
+Afficher les repères pour les constructions au niveau du code;
+Aide de l'éditeur;
+Générer des commentaires de documentation XML pour ///;
+Insérer * au début des nouvelles lignes pour l'écriture de commentaires /* */;
+Afficher un aperçu pour le suivi des renommages;
+Diviser les littéraux de chaîne avec Entrée;
+Signaler les espaces réservés non valides dans les appels de string.Format;
+Extraire la méthode;
+Ne pas placer ref ou out dans un struct personnalisé;
+Implémenter une interface ou une classe abstraite;
+Au moment d'insérer des propriétés, des événements et des méthodes, les placer;
+avec d'autres membres du même genre;
+à la fin;
+Durant la génération de propriétés;
+préférer les propriétés de levée d'exceptions;
+préférer les propriétés automatiques;
+regex;
+expression régulière;
+Utiliser des couleurs améliorées;
+Modèle de couleurs de l'éditeur;
+Marge d'héritage;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

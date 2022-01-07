@@ -5607,6 +5607,118 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public UnaryPatternSyntax WithPattern(PatternSyntax pattern) => Update(this.OperatorToken, pattern);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ListPattern"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class ListPatternSyntax : PatternSyntax
+    {
+        private SyntaxNode? patterns;
+        private VariableDesignationSyntax? designation;
+
+        internal ListPatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ListPatternSyntax)this.Green).openBracketToken, Position, 0);
+
+        public SeparatedSyntaxList<PatternSyntax> Patterns
+        {
+            get
+            {
+                var red = GetRed(ref this.patterns, 1);
+                return red != null ? new SeparatedSyntaxList<PatternSyntax>(red, GetChildIndex(1)) : default;
+            }
+        }
+
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ListPatternSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+
+        public VariableDesignationSyntax? Designation => GetRed(ref this.designation, 3);
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                1 => GetRed(ref this.patterns, 1)!,
+                3 => GetRed(ref this.designation, 3),
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                1 => this.patterns,
+                3 => this.designation,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitListPattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitListPattern(this);
+
+        public ListPatternSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<PatternSyntax> patterns, SyntaxToken closeBracketToken, VariableDesignationSyntax? designation)
+        {
+            if (openBracketToken != this.OpenBracketToken || patterns != this.Patterns || closeBracketToken != this.CloseBracketToken || designation != this.Designation)
+            {
+                var newNode = SyntaxFactory.ListPattern(openBracketToken, patterns, closeBracketToken, designation);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public ListPatternSyntax WithOpenBracketToken(SyntaxToken openBracketToken) => Update(openBracketToken, this.Patterns, this.CloseBracketToken, this.Designation);
+        public ListPatternSyntax WithPatterns(SeparatedSyntaxList<PatternSyntax> patterns) => Update(this.OpenBracketToken, patterns, this.CloseBracketToken, this.Designation);
+        public ListPatternSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.Patterns, closeBracketToken, this.Designation);
+        public ListPatternSyntax WithDesignation(VariableDesignationSyntax? designation) => Update(this.OpenBracketToken, this.Patterns, this.CloseBracketToken, designation);
+
+        public ListPatternSyntax AddPatterns(params PatternSyntax[] items) => WithPatterns(this.Patterns.AddRange(items));
+    }
+
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SlicePattern"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class SlicePatternSyntax : PatternSyntax
+    {
+        private PatternSyntax? pattern;
+
+        internal SlicePatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public SyntaxToken DotDotToken => new SyntaxToken(this, ((Syntax.InternalSyntax.SlicePatternSyntax)this.Green).dotDotToken, Position, 0);
+
+        public PatternSyntax? Pattern => GetRed(ref this.pattern, 1);
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.pattern, 1) : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.pattern : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSlicePattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSlicePattern(this);
+
+        public SlicePatternSyntax Update(SyntaxToken dotDotToken, PatternSyntax? pattern)
+        {
+            if (dotDotToken != this.DotDotToken || pattern != this.Pattern)
+            {
+                var newNode = SyntaxFactory.SlicePattern(dotDotToken, pattern);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public SlicePatternSyntax WithDotDotToken(SyntaxToken dotDotToken) => Update(dotDotToken, this.Pattern);
+        public SlicePatternSyntax WithPattern(PatternSyntax? pattern) => Update(this.DotDotToken, pattern);
+    }
+
     public abstract partial class InterpolatedStringContentSyntax : CSharpSyntaxNode
     {
         internal InterpolatedStringContentSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -9128,13 +9240,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal abstract MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items);
     }
 
+    public abstract partial class BaseNamespaceDeclarationSyntax : MemberDeclarationSyntax
+    {
+        internal BaseNamespaceDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public abstract SyntaxToken NamespaceKeyword { get; }
+        public BaseNamespaceDeclarationSyntax WithNamespaceKeyword(SyntaxToken namespaceKeyword) => WithNamespaceKeywordCore(namespaceKeyword);
+        internal abstract BaseNamespaceDeclarationSyntax WithNamespaceKeywordCore(SyntaxToken namespaceKeyword);
+
+        public abstract NameSyntax Name { get; }
+        public BaseNamespaceDeclarationSyntax WithName(NameSyntax name) => WithNameCore(name);
+        internal abstract BaseNamespaceDeclarationSyntax WithNameCore(NameSyntax name);
+
+        public abstract SyntaxList<ExternAliasDirectiveSyntax> Externs { get; }
+        public BaseNamespaceDeclarationSyntax WithExterns(SyntaxList<ExternAliasDirectiveSyntax> externs) => WithExternsCore(externs);
+        internal abstract BaseNamespaceDeclarationSyntax WithExternsCore(SyntaxList<ExternAliasDirectiveSyntax> externs);
+
+        public BaseNamespaceDeclarationSyntax AddExterns(params ExternAliasDirectiveSyntax[] items) => AddExternsCore(items);
+        internal abstract BaseNamespaceDeclarationSyntax AddExternsCore(params ExternAliasDirectiveSyntax[] items);
+
+        public abstract SyntaxList<UsingDirectiveSyntax> Usings { get; }
+        public BaseNamespaceDeclarationSyntax WithUsings(SyntaxList<UsingDirectiveSyntax> usings) => WithUsingsCore(usings);
+        internal abstract BaseNamespaceDeclarationSyntax WithUsingsCore(SyntaxList<UsingDirectiveSyntax> usings);
+
+        public BaseNamespaceDeclarationSyntax AddUsings(params UsingDirectiveSyntax[] items) => AddUsingsCore(items);
+        internal abstract BaseNamespaceDeclarationSyntax AddUsingsCore(params UsingDirectiveSyntax[] items);
+
+        public abstract SyntaxList<MemberDeclarationSyntax> Members { get; }
+        public BaseNamespaceDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members) => WithMembersCore(members);
+        internal abstract BaseNamespaceDeclarationSyntax WithMembersCore(SyntaxList<MemberDeclarationSyntax> members);
+
+        public BaseNamespaceDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items) => AddMembersCore(items);
+        internal abstract BaseNamespaceDeclarationSyntax AddMembersCore(params MemberDeclarationSyntax[] items);
+
+        public new BaseNamespaceDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => (BaseNamespaceDeclarationSyntax)WithAttributeListsCore(attributeLists);
+        public new BaseNamespaceDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => (BaseNamespaceDeclarationSyntax)WithModifiersCore(modifiers);
+
+        public new BaseNamespaceDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => (BaseNamespaceDeclarationSyntax)AddAttributeListsCore(items);
+
+        public new BaseNamespaceDeclarationSyntax AddModifiers(params SyntaxToken[] items) => (BaseNamespaceDeclarationSyntax)AddModifiersCore(items);
+    }
+
     /// <remarks>
     /// <para>This node is associated with the following syntax kinds:</para>
     /// <list type="bullet">
     /// <item><description><see cref="SyntaxKind.NamespaceDeclaration"/></description></item>
     /// </list>
     /// </remarks>
-    public sealed partial class NamespaceDeclarationSyntax : MemberDeclarationSyntax
+    public sealed partial class NamespaceDeclarationSyntax : BaseNamespaceDeclarationSyntax
     {
         private SyntaxNode? attributeLists;
         private NameSyntax? name;
@@ -9158,17 +9314,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public SyntaxToken NamespaceKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.NamespaceDeclarationSyntax)this.Green).namespaceKeyword, GetChildPosition(2), GetChildIndex(2));
+        public override SyntaxToken NamespaceKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.NamespaceDeclarationSyntax)this.Green).namespaceKeyword, GetChildPosition(2), GetChildIndex(2));
 
-        public NameSyntax Name => GetRed(ref this.name, 3)!;
+        public override NameSyntax Name => GetRed(ref this.name, 3)!;
 
         public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NamespaceDeclarationSyntax)this.Green).openBraceToken, GetChildPosition(4), GetChildIndex(4));
 
-        public SyntaxList<ExternAliasDirectiveSyntax> Externs => new SyntaxList<ExternAliasDirectiveSyntax>(GetRed(ref this.externs, 5));
+        public override SyntaxList<ExternAliasDirectiveSyntax> Externs => new SyntaxList<ExternAliasDirectiveSyntax>(GetRed(ref this.externs, 5));
 
-        public SyntaxList<UsingDirectiveSyntax> Usings => new SyntaxList<UsingDirectiveSyntax>(GetRed(ref this.usings, 6));
+        public override SyntaxList<UsingDirectiveSyntax> Usings => new SyntaxList<UsingDirectiveSyntax>(GetRed(ref this.usings, 6));
 
-        public SyntaxList<MemberDeclarationSyntax> Members => new SyntaxList<MemberDeclarationSyntax>(GetRed(ref this.members, 7));
+        public override SyntaxList<MemberDeclarationSyntax> Members => new SyntaxList<MemberDeclarationSyntax>(GetRed(ref this.members, 7));
 
         public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NamespaceDeclarationSyntax)this.Green).closeBraceToken, GetChildPosition(8), GetChildIndex(8));
 
@@ -9223,12 +9379,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new NamespaceDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.OpenBraceToken, this.Externs, this.Usings, this.Members, this.CloseBraceToken, this.SemicolonToken);
         internal override MemberDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
         public new NamespaceDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.NamespaceKeyword, this.Name, this.OpenBraceToken, this.Externs, this.Usings, this.Members, this.CloseBraceToken, this.SemicolonToken);
-        public NamespaceDeclarationSyntax WithNamespaceKeyword(SyntaxToken namespaceKeyword) => Update(this.AttributeLists, this.Modifiers, namespaceKeyword, this.Name, this.OpenBraceToken, this.Externs, this.Usings, this.Members, this.CloseBraceToken, this.SemicolonToken);
-        public NamespaceDeclarationSyntax WithName(NameSyntax name) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, name, this.OpenBraceToken, this.Externs, this.Usings, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        internal override BaseNamespaceDeclarationSyntax WithNamespaceKeywordCore(SyntaxToken namespaceKeyword) => WithNamespaceKeyword(namespaceKeyword);
+        public new NamespaceDeclarationSyntax WithNamespaceKeyword(SyntaxToken namespaceKeyword) => Update(this.AttributeLists, this.Modifiers, namespaceKeyword, this.Name, this.OpenBraceToken, this.Externs, this.Usings, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        internal override BaseNamespaceDeclarationSyntax WithNameCore(NameSyntax name) => WithName(name);
+        public new NamespaceDeclarationSyntax WithName(NameSyntax name) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, name, this.OpenBraceToken, this.Externs, this.Usings, this.Members, this.CloseBraceToken, this.SemicolonToken);
         public NamespaceDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, openBraceToken, this.Externs, this.Usings, this.Members, this.CloseBraceToken, this.SemicolonToken);
-        public NamespaceDeclarationSyntax WithExterns(SyntaxList<ExternAliasDirectiveSyntax> externs) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.OpenBraceToken, externs, this.Usings, this.Members, this.CloseBraceToken, this.SemicolonToken);
-        public NamespaceDeclarationSyntax WithUsings(SyntaxList<UsingDirectiveSyntax> usings) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.OpenBraceToken, this.Externs, usings, this.Members, this.CloseBraceToken, this.SemicolonToken);
-        public NamespaceDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.OpenBraceToken, this.Externs, this.Usings, members, this.CloseBraceToken, this.SemicolonToken);
+        internal override BaseNamespaceDeclarationSyntax WithExternsCore(SyntaxList<ExternAliasDirectiveSyntax> externs) => WithExterns(externs);
+        public new NamespaceDeclarationSyntax WithExterns(SyntaxList<ExternAliasDirectiveSyntax> externs) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.OpenBraceToken, externs, this.Usings, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        internal override BaseNamespaceDeclarationSyntax WithUsingsCore(SyntaxList<UsingDirectiveSyntax> usings) => WithUsings(usings);
+        public new NamespaceDeclarationSyntax WithUsings(SyntaxList<UsingDirectiveSyntax> usings) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.OpenBraceToken, this.Externs, usings, this.Members, this.CloseBraceToken, this.SemicolonToken);
+        internal override BaseNamespaceDeclarationSyntax WithMembersCore(SyntaxList<MemberDeclarationSyntax> members) => WithMembers(members);
+        public new NamespaceDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.OpenBraceToken, this.Externs, this.Usings, members, this.CloseBraceToken, this.SemicolonToken);
         public NamespaceDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.OpenBraceToken, this.Externs, this.Usings, this.Members, closeBraceToken, this.SemicolonToken);
         public NamespaceDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.OpenBraceToken, this.Externs, this.Usings, this.Members, this.CloseBraceToken, semicolonToken);
 
@@ -9236,9 +9397,119 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new NamespaceDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
         internal override MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
         public new NamespaceDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
-        public NamespaceDeclarationSyntax AddExterns(params ExternAliasDirectiveSyntax[] items) => WithExterns(this.Externs.AddRange(items));
-        public NamespaceDeclarationSyntax AddUsings(params UsingDirectiveSyntax[] items) => WithUsings(this.Usings.AddRange(items));
-        public NamespaceDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items) => WithMembers(this.Members.AddRange(items));
+        internal override BaseNamespaceDeclarationSyntax AddExternsCore(params ExternAliasDirectiveSyntax[] items) => AddExterns(items);
+        public new NamespaceDeclarationSyntax AddExterns(params ExternAliasDirectiveSyntax[] items) => WithExterns(this.Externs.AddRange(items));
+        internal override BaseNamespaceDeclarationSyntax AddUsingsCore(params UsingDirectiveSyntax[] items) => AddUsings(items);
+        public new NamespaceDeclarationSyntax AddUsings(params UsingDirectiveSyntax[] items) => WithUsings(this.Usings.AddRange(items));
+        internal override BaseNamespaceDeclarationSyntax AddMembersCore(params MemberDeclarationSyntax[] items) => AddMembers(items);
+        public new NamespaceDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items) => WithMembers(this.Members.AddRange(items));
+    }
+
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.FileScopedNamespaceDeclaration"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class FileScopedNamespaceDeclarationSyntax : BaseNamespaceDeclarationSyntax
+    {
+        private SyntaxNode? attributeLists;
+        private NameSyntax? name;
+        private SyntaxNode? externs;
+        private SyntaxNode? usings;
+        private SyntaxNode? members;
+
+        internal FileScopedNamespaceDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
+
+        public override SyntaxTokenList Modifiers
+        {
+            get
+            {
+                var slot = this.Green.GetSlot(1);
+                return slot != null ? new SyntaxTokenList(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
+            }
+        }
+
+        public override SyntaxToken NamespaceKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.FileScopedNamespaceDeclarationSyntax)this.Green).namespaceKeyword, GetChildPosition(2), GetChildIndex(2));
+
+        public override NameSyntax Name => GetRed(ref this.name, 3)!;
+
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FileScopedNamespaceDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
+
+        public override SyntaxList<ExternAliasDirectiveSyntax> Externs => new SyntaxList<ExternAliasDirectiveSyntax>(GetRed(ref this.externs, 5));
+
+        public override SyntaxList<UsingDirectiveSyntax> Usings => new SyntaxList<UsingDirectiveSyntax>(GetRed(ref this.usings, 6));
+
+        public override SyntaxList<MemberDeclarationSyntax> Members => new SyntaxList<MemberDeclarationSyntax>(GetRed(ref this.members, 7));
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                3 => GetRed(ref this.name, 3)!,
+                5 => GetRed(ref this.externs, 5)!,
+                6 => GetRed(ref this.usings, 6)!,
+                7 => GetRed(ref this.members, 7)!,
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                0 => this.attributeLists,
+                3 => this.name,
+                5 => this.externs,
+                6 => this.usings,
+                7 => this.members,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFileScopedNamespaceDeclaration(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFileScopedNamespaceDeclaration(this);
+
+        public FileScopedNamespaceDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken semicolonToken, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || namespaceKeyword != this.NamespaceKeyword || name != this.Name || semicolonToken != this.SemicolonToken || externs != this.Externs || usings != this.Usings || members != this.Members)
+            {
+                var newNode = SyntaxFactory.FileScopedNamespaceDeclaration(attributeLists, modifiers, namespaceKeyword, name, semicolonToken, externs, usings, members);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+        public new FileScopedNamespaceDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.SemicolonToken, this.Externs, this.Usings, this.Members);
+        internal override MemberDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+        public new FileScopedNamespaceDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.NamespaceKeyword, this.Name, this.SemicolonToken, this.Externs, this.Usings, this.Members);
+        internal override BaseNamespaceDeclarationSyntax WithNamespaceKeywordCore(SyntaxToken namespaceKeyword) => WithNamespaceKeyword(namespaceKeyword);
+        public new FileScopedNamespaceDeclarationSyntax WithNamespaceKeyword(SyntaxToken namespaceKeyword) => Update(this.AttributeLists, this.Modifiers, namespaceKeyword, this.Name, this.SemicolonToken, this.Externs, this.Usings, this.Members);
+        internal override BaseNamespaceDeclarationSyntax WithNameCore(NameSyntax name) => WithName(name);
+        public new FileScopedNamespaceDeclarationSyntax WithName(NameSyntax name) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, name, this.SemicolonToken, this.Externs, this.Usings, this.Members);
+        public FileScopedNamespaceDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, semicolonToken, this.Externs, this.Usings, this.Members);
+        internal override BaseNamespaceDeclarationSyntax WithExternsCore(SyntaxList<ExternAliasDirectiveSyntax> externs) => WithExterns(externs);
+        public new FileScopedNamespaceDeclarationSyntax WithExterns(SyntaxList<ExternAliasDirectiveSyntax> externs) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.SemicolonToken, externs, this.Usings, this.Members);
+        internal override BaseNamespaceDeclarationSyntax WithUsingsCore(SyntaxList<UsingDirectiveSyntax> usings) => WithUsings(usings);
+        public new FileScopedNamespaceDeclarationSyntax WithUsings(SyntaxList<UsingDirectiveSyntax> usings) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.SemicolonToken, this.Externs, usings, this.Members);
+        internal override BaseNamespaceDeclarationSyntax WithMembersCore(SyntaxList<MemberDeclarationSyntax> members) => WithMembers(members);
+        public new FileScopedNamespaceDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.SemicolonToken, this.Externs, this.Usings, members);
+
+        internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
+        public new FileScopedNamespaceDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
+        internal override MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
+        public new FileScopedNamespaceDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
+        internal override BaseNamespaceDeclarationSyntax AddExternsCore(params ExternAliasDirectiveSyntax[] items) => AddExterns(items);
+        public new FileScopedNamespaceDeclarationSyntax AddExterns(params ExternAliasDirectiveSyntax[] items) => WithExterns(this.Externs.AddRange(items));
+        internal override BaseNamespaceDeclarationSyntax AddUsingsCore(params UsingDirectiveSyntax[] items) => AddUsings(items);
+        public new FileScopedNamespaceDeclarationSyntax AddUsings(params UsingDirectiveSyntax[] items) => WithUsings(this.Usings.AddRange(items));
+        internal override BaseNamespaceDeclarationSyntax AddMembersCore(params MemberDeclarationSyntax[] items) => AddMembers(items);
+        public new FileScopedNamespaceDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items) => WithMembers(this.Members.AddRange(items));
     }
 
     /// <summary>Class representing one or more attributes applied to a language construct.</summary>
@@ -12892,14 +13163,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>Gets the identifier.</summary>
         public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.ParameterSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
-        public EqualsValueClauseSyntax? Default => GetRed(ref this.@default, 4);
+        public SyntaxToken ExclamationExclamationToken
+        {
+            get
+            {
+                var slot = ((Syntax.InternalSyntax.ParameterSyntax)this.Green).exclamationExclamationToken;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(4), GetChildIndex(4)) : default;
+            }
+        }
+
+        public EqualsValueClauseSyntax? Default => GetRed(ref this.@default, 5);
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
                 0 => GetRedAtZero(ref this.attributeLists)!,
                 2 => GetRed(ref this.type, 2),
-                4 => GetRed(ref this.@default, 4),
+                5 => GetRed(ref this.@default, 5),
                 _ => null,
             };
 
@@ -12908,18 +13188,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 0 => this.attributeLists,
                 2 => this.type,
-                4 => this.@default,
+                5 => this.@default,
                 _ => null,
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParameter(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParameter(this);
 
-        public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
+        public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, SyntaxToken exclamationExclamationToken, EqualsValueClauseSyntax? @default)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || identifier != this.Identifier || @default != this.Default)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || identifier != this.Identifier || exclamationExclamationToken != this.ExclamationExclamationToken || @default != this.Default)
             {
-                var newNode = SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, @default);
+                var newNode = SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, exclamationExclamationToken, @default);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -12928,13 +13208,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         internal override BaseParameterSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
-        public new ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.Default);
+        public new ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.ExclamationExclamationToken, this.Default);
         internal override BaseParameterSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
-        public new ParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.Default);
+        public new ParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.ExclamationExclamationToken, this.Default);
         internal override BaseParameterSyntax WithTypeCore(TypeSyntax? type) => WithType(type);
-        public new ParameterSyntax WithType(TypeSyntax? type) => Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.Default);
-        public ParameterSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.Type, identifier, this.Default);
-        public ParameterSyntax WithDefault(EqualsValueClauseSyntax? @default) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, @default);
+        public new ParameterSyntax WithType(TypeSyntax? type) => Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.ExclamationExclamationToken, this.Default);
+        public ParameterSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.Type, identifier, this.ExclamationExclamationToken, this.Default);
+        public ParameterSyntax WithExclamationExclamationToken(SyntaxToken exclamationExclamationToken) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, exclamationExclamationToken, this.Default);
+        public ParameterSyntax WithDefault(EqualsValueClauseSyntax? @default) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, this.ExclamationExclamationToken, @default);
 
         internal override BaseParameterSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
         public new ParameterSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
@@ -15138,13 +15419,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public UndefDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.UndefKeyword, this.Name, this.EndOfDirectiveToken, isActive);
     }
 
+    public abstract partial class LineOrSpanDirectiveTriviaSyntax : DirectiveTriviaSyntax
+    {
+        internal LineOrSpanDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public abstract SyntaxToken LineKeyword { get; }
+        public LineOrSpanDirectiveTriviaSyntax WithLineKeyword(SyntaxToken lineKeyword) => WithLineKeywordCore(lineKeyword);
+        internal abstract LineOrSpanDirectiveTriviaSyntax WithLineKeywordCore(SyntaxToken lineKeyword);
+
+        public abstract SyntaxToken File { get; }
+        public LineOrSpanDirectiveTriviaSyntax WithFile(SyntaxToken file) => WithFileCore(file);
+        internal abstract LineOrSpanDirectiveTriviaSyntax WithFileCore(SyntaxToken file);
+
+        public new LineOrSpanDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken) => (LineOrSpanDirectiveTriviaSyntax)WithHashTokenCore(hashToken);
+        public new LineOrSpanDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken) => (LineOrSpanDirectiveTriviaSyntax)WithEndOfDirectiveTokenCore(endOfDirectiveToken);
+    }
+
     /// <remarks>
     /// <para>This node is associated with the following syntax kinds:</para>
     /// <list type="bullet">
     /// <item><description><see cref="SyntaxKind.LineDirectiveTrivia"/></description></item>
     /// </list>
     /// </remarks>
-    public sealed partial class LineDirectiveTriviaSyntax : DirectiveTriviaSyntax
+    public sealed partial class LineDirectiveTriviaSyntax : LineOrSpanDirectiveTriviaSyntax
     {
 
         internal LineDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -15154,11 +15454,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken LineKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).lineKeyword, GetChildPosition(1), GetChildIndex(1));
+        public override SyntaxToken LineKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).lineKeyword, GetChildPosition(1), GetChildIndex(1));
 
         public SyntaxToken Line => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).line, GetChildPosition(2), GetChildIndex(2));
 
-        public SyntaxToken File
+        public override SyntaxToken File
         {
             get
             {
@@ -15192,12 +15492,151 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
         public new LineDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken) => Update(hashToken, this.LineKeyword, this.Line, this.File, this.EndOfDirectiveToken, this.IsActive);
-        public LineDirectiveTriviaSyntax WithLineKeyword(SyntaxToken lineKeyword) => Update(this.HashToken, lineKeyword, this.Line, this.File, this.EndOfDirectiveToken, this.IsActive);
+        internal override LineOrSpanDirectiveTriviaSyntax WithLineKeywordCore(SyntaxToken lineKeyword) => WithLineKeyword(lineKeyword);
+        public new LineDirectiveTriviaSyntax WithLineKeyword(SyntaxToken lineKeyword) => Update(this.HashToken, lineKeyword, this.Line, this.File, this.EndOfDirectiveToken, this.IsActive);
         public LineDirectiveTriviaSyntax WithLine(SyntaxToken line) => Update(this.HashToken, this.LineKeyword, line, this.File, this.EndOfDirectiveToken, this.IsActive);
-        public LineDirectiveTriviaSyntax WithFile(SyntaxToken file) => Update(this.HashToken, this.LineKeyword, this.Line, file, this.EndOfDirectiveToken, this.IsActive);
+        internal override LineOrSpanDirectiveTriviaSyntax WithFileCore(SyntaxToken file) => WithFile(file);
+        public new LineDirectiveTriviaSyntax WithFile(SyntaxToken file) => Update(this.HashToken, this.LineKeyword, this.Line, file, this.EndOfDirectiveToken, this.IsActive);
         internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
         public new LineDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken) => Update(this.HashToken, this.LineKeyword, this.Line, this.File, endOfDirectiveToken, this.IsActive);
         public LineDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.LineKeyword, this.Line, this.File, this.EndOfDirectiveToken, isActive);
+    }
+
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LineDirectivePosition"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class LineDirectivePositionSyntax : CSharpSyntaxNode
+    {
+
+        internal LineDirectivePositionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).openParenToken, Position, 0);
+
+        public SyntaxToken Line => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).line, GetChildPosition(1), GetChildIndex(1));
+
+        public SyntaxToken CommaToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).commaToken, GetChildPosition(2), GetChildIndex(2));
+
+        public SyntaxToken Character => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).character, GetChildPosition(3), GetChildIndex(3));
+
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
+
+        internal override SyntaxNode? GetNodeSlot(int index) => null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLineDirectivePosition(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLineDirectivePosition(this);
+
+        public LineDirectivePositionSyntax Update(SyntaxToken openParenToken, SyntaxToken line, SyntaxToken commaToken, SyntaxToken character, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || line != this.Line || commaToken != this.CommaToken || character != this.Character || closeParenToken != this.CloseParenToken)
+            {
+                var newNode = SyntaxFactory.LineDirectivePosition(openParenToken, line, commaToken, character, closeParenToken);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public LineDirectivePositionSyntax WithOpenParenToken(SyntaxToken openParenToken) => Update(openParenToken, this.Line, this.CommaToken, this.Character, this.CloseParenToken);
+        public LineDirectivePositionSyntax WithLine(SyntaxToken line) => Update(this.OpenParenToken, line, this.CommaToken, this.Character, this.CloseParenToken);
+        public LineDirectivePositionSyntax WithCommaToken(SyntaxToken commaToken) => Update(this.OpenParenToken, this.Line, commaToken, this.Character, this.CloseParenToken);
+        public LineDirectivePositionSyntax WithCharacter(SyntaxToken character) => Update(this.OpenParenToken, this.Line, this.CommaToken, character, this.CloseParenToken);
+        public LineDirectivePositionSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.OpenParenToken, this.Line, this.CommaToken, this.Character, closeParenToken);
+    }
+
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LineSpanDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class LineSpanDirectiveTriviaSyntax : LineOrSpanDirectiveTriviaSyntax
+    {
+        private LineDirectivePositionSyntax? start;
+        private LineDirectivePositionSyntax? end;
+
+        internal LineSpanDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+
+        public override SyntaxToken LineKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).lineKeyword, GetChildPosition(1), GetChildIndex(1));
+
+        public LineDirectivePositionSyntax Start => GetRed(ref this.start, 2)!;
+
+        public SyntaxToken MinusToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).minusToken, GetChildPosition(3), GetChildIndex(3));
+
+        public LineDirectivePositionSyntax End => GetRed(ref this.end, 4)!;
+
+        public SyntaxToken CharacterOffset
+        {
+            get
+            {
+                var slot = ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).characterOffset;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(5), GetChildIndex(5)) : default;
+            }
+        }
+
+        public override SyntaxToken File => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).file, GetChildPosition(6), GetChildIndex(6));
+
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(7), GetChildIndex(7));
+
+        public override bool IsActive => ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).IsActive;
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                2 => GetRed(ref this.start, 2)!,
+                4 => GetRed(ref this.end, 4)!,
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                2 => this.start,
+                4 => this.end,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLineSpanDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLineSpanDirectiveTrivia(this);
+
+        public LineSpanDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken lineKeyword, LineDirectivePositionSyntax start, SyntaxToken minusToken, LineDirectivePositionSyntax end, SyntaxToken characterOffset, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || lineKeyword != this.LineKeyword || start != this.Start || minusToken != this.MinusToken || end != this.End || characterOffset != this.CharacterOffset || file != this.File || endOfDirectiveToken != this.EndOfDirectiveToken)
+            {
+                var newNode = SyntaxFactory.LineSpanDirectiveTrivia(hashToken, lineKeyword, start, minusToken, end, characterOffset, file, endOfDirectiveToken, isActive);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+        public new LineSpanDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken) => Update(hashToken, this.LineKeyword, this.Start, this.MinusToken, this.End, this.CharacterOffset, this.File, this.EndOfDirectiveToken, this.IsActive);
+        internal override LineOrSpanDirectiveTriviaSyntax WithLineKeywordCore(SyntaxToken lineKeyword) => WithLineKeyword(lineKeyword);
+        public new LineSpanDirectiveTriviaSyntax WithLineKeyword(SyntaxToken lineKeyword) => Update(this.HashToken, lineKeyword, this.Start, this.MinusToken, this.End, this.CharacterOffset, this.File, this.EndOfDirectiveToken, this.IsActive);
+        public LineSpanDirectiveTriviaSyntax WithStart(LineDirectivePositionSyntax start) => Update(this.HashToken, this.LineKeyword, start, this.MinusToken, this.End, this.CharacterOffset, this.File, this.EndOfDirectiveToken, this.IsActive);
+        public LineSpanDirectiveTriviaSyntax WithMinusToken(SyntaxToken minusToken) => Update(this.HashToken, this.LineKeyword, this.Start, minusToken, this.End, this.CharacterOffset, this.File, this.EndOfDirectiveToken, this.IsActive);
+        public LineSpanDirectiveTriviaSyntax WithEnd(LineDirectivePositionSyntax end) => Update(this.HashToken, this.LineKeyword, this.Start, this.MinusToken, end, this.CharacterOffset, this.File, this.EndOfDirectiveToken, this.IsActive);
+        public LineSpanDirectiveTriviaSyntax WithCharacterOffset(SyntaxToken characterOffset) => Update(this.HashToken, this.LineKeyword, this.Start, this.MinusToken, this.End, characterOffset, this.File, this.EndOfDirectiveToken, this.IsActive);
+        internal override LineOrSpanDirectiveTriviaSyntax WithFileCore(SyntaxToken file) => WithFile(file);
+        public new LineSpanDirectiveTriviaSyntax WithFile(SyntaxToken file) => Update(this.HashToken, this.LineKeyword, this.Start, this.MinusToken, this.End, this.CharacterOffset, file, this.EndOfDirectiveToken, this.IsActive);
+        internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+        public new LineSpanDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken) => Update(this.HashToken, this.LineKeyword, this.Start, this.MinusToken, this.End, this.CharacterOffset, this.File, endOfDirectiveToken, this.IsActive);
+        public LineSpanDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.LineKeyword, this.Start, this.MinusToken, this.End, this.CharacterOffset, this.File, this.EndOfDirectiveToken, isActive);
     }
 
     /// <remarks>

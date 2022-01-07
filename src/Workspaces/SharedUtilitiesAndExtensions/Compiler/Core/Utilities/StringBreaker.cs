@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             if (IsAscii(c))
             {
-                return c >= 'a' && c <= 'z';
+                return c is >= 'a' and <= 'z';
             }
 
             return char.IsLower(c);

@@ -62,14 +62,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // See extended comment in GetFormattingChangesAsync for more details on this.
             if (smartIndentOn)
             {
-                if (ch == '{' || ch == '}')
+                if (ch is '{' or '}')
                 {
                     return true;
                 }
             }
 
             // If format-on-typing is not on, then we don't support formatting on any other characters.
-            var autoFormattingOnTyping = options.GetOption(FormattingOptions2.AutoFormattingOnTyping, LanguageNames.CSharp);
+            var autoFormattingOnTyping = options.GetOption(FormattingBehaviorOptions.AutoFormattingOnTyping, LanguageNames.CSharp);
             if (!autoFormattingOnTyping)
             {
                 return false;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            if (ch == ';' && !options.GetOption(FormattingOptions2.AutoFormattingOnSemicolon, LanguageNames.CSharp))
+            if (ch == ';' && !options.GetOption(FormattingBehaviorOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp))
             {
                 return false;
             }
@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var inferredIndentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IInferredIndentationService>();
                 options = await inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, explicitFormat: true, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
+
             return Formatter.GetFormattedTextChanges(root,
                 SpecializedCollections.SingletonEnumerable(formattingSpan),
                 document.Project.Solution.Workspace, options, cancellationToken).ToImmutableArray();
@@ -280,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // User does not want auto-formatting (either in general, or for close braces in
             // specific).  So we only smart indent close braces when typed.
             return !options.GetOption(BraceCompletionOptions.AutoFormattingOnCloseBrace) ||
-                   !options.GetOption(FormattingOptions2.AutoFormattingOnTyping);
+                   !options.GetOption(FormattingBehaviorOptions.AutoFormattingOnTyping);
         }
 
         private static bool OnlySmartIndentOpenBrace(DocumentOptionSet options)
@@ -288,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // User does not want auto-formatting .  So we only smart indent open braces when typed.
             // Note: there is no specific option for controlling formatting on open brace.  So we
             // don't have the symmetry with OnlySmartIndentCloseBrace.
-            return !options.GetOption(FormattingOptions2.AutoFormattingOnTyping);
+            return !options.GetOption(FormattingBehaviorOptions.AutoFormattingOnTyping);
         }
 
         private static async Task<SyntaxToken> GetTokenBeforeTheCaretAsync(Document document, int caretPosition, CancellationToken cancellationToken)
@@ -417,8 +418,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // ```
             // 
             // This will have the desired effect of keeping these tokens on the same line, but only during typing scenarios.  
-            if (tokenBeforeCaret.Kind() == SyntaxKind.CloseBraceToken ||
-                tokenBeforeCaret.Kind() == SyntaxKind.EndOfFileToken)
+            if (tokenBeforeCaret.Kind() is SyntaxKind.CloseBraceToken or
+                SyntaxKind.EndOfFileToken)
             {
                 return SpecializedCollections.EmptyEnumerable<AbstractFormattingRule>();
             }
@@ -441,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static bool ValidSingleOrMultiCharactersTokenKind(char typedChar, SyntaxKind kind)
             => typedChar switch
             {
-                'n' => kind == SyntaxKind.RegionKeyword || kind == SyntaxKind.EndRegionKeyword,
+                'n' => kind is SyntaxKind.RegionKeyword or SyntaxKind.EndRegionKeyword,
                 't' => kind == SyntaxKind.SelectKeyword,
                 'e' => kind == SyntaxKind.WhereKeyword,
                 _ => true,

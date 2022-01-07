@@ -1093,5 +1093,109 @@ $@"public class C
     }
 }");
         }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementInExpressionContext()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(int i)
+    {
+        M(i [||]= i + 1);
+    }
+}",
+@"public class C
+{
+    void M(int i)
+    {
+        M(++i);
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData("switch($$) { }")]
+        [InlineData("while(($$) > 0) { }")]
+        [InlineData("_ = true ? $$ : 0;")]
+        [InlineData("_ = ($$);")]
+        public async Task TestPrefixIncrement1(string expressionContext)
+        {
+            var before = expressionContext.Replace("$$", "i [||]= i + 1");
+            var after = expressionContext.Replace("$$", "++i");
+            await TestInRegularAndScript1Async(
+@$"public class C
+{{
+    void M(int i)
+    {{
+        {before}
+    }}
+}}",
+@$"public class C
+{{
+    void M(int i)
+    {{
+        {after}
+    }}
+}}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData("return $$;")]
+        [InlineData("return true ? $$ : 0;")]
+        [InlineData("return ($$);")]
+        public async Task TestPrefixIncrement2(string expressionContext)
+        {
+            var before = expressionContext.Replace("$$", "i [||]= i + 1");
+            var after = expressionContext.Replace("$$", "++i");
+            await TestInRegularAndScript1Async(
+@$"public class C
+{{
+    int M(int i)
+    {{
+        {before}
+    }}
+}}",
+@$"public class C
+{{
+    int M(int i)
+    {{
+        {after}
+    }}
+}}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData(
+            "/* Before */ i [||]= i + 1; /* After */",
+            "/* Before */ i++; /* After */")]
+        [InlineData(
+            "M( /* Before */ i [||]= i + 1 /* After */ );",
+            "M( /* Before */ ++i /* After */ );")]
+        [InlineData(
+            "M( /* Before */ i [||]= i - 1 /* After */ );",
+            "M( /* Before */ --i /* After */ );")]
+        public async Task TestTriviaPreserved(string before, string after)
+        {
+            await TestInRegularAndScript1Async(
+@$"public class C
+{{
+    int M(int i)
+    {{
+        {before}
+    }}
+}}",
+@$"public class C
+{{
+    int M(int i)
+    {{
+        {after}
+    }}
+}}");
+        }
     }
 }

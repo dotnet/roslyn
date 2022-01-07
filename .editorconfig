@@ -63,7 +63,6 @@ dotnet_style_explicit_tuple_names = true:suggestion
 
 # Whitespace options
 dotnet_style_allow_multiple_blank_lines_experimental = false
-dotnet_style_allow_statement_immediately_after_block_experimental = true
 
 # Non-private static fields are PascalCase
 dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.severity = suggestion
@@ -242,6 +241,10 @@ csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
 
+# Currently only enabled for C# due to crash in VB analyzer.  VB can be enabled once
+# https://github.com/dotnet/roslyn/pull/54259 has been published.
+dotnet_style_allow_statement_immediately_after_block_experimental = false
+
 [src/CodeStyle/**.{cs,vb}]
 # warning RS0005: Do not use generic CodeAction.Create to create CodeAction
 dotnet_diagnostic.RS0005.severity = none
@@ -291,7 +294,7 @@ dotnet_diagnostic.IDE2001.severity = warning
 dotnet_diagnostic.IDE2002.severity = warning
 
 # dotnet_style_allow_statement_immediately_after_block_experimental
-dotnet_diagnostic.IDE2003.severity = none
+dotnet_diagnostic.IDE2003.severity = warning
 
 # csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental
 dotnet_diagnostic.IDE2004.severity = warning

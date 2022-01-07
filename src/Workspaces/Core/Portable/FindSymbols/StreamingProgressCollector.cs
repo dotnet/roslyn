@@ -4,10 +4,12 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -62,13 +64,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
         {
-            lock (_gate)
+            try
             {
-                foreach (var definition in group.Symbols)
-                    _symbolToLocations[definition] = new List<ReferenceLocation>();
-            }
+                lock (_gate)
+                {
+                    foreach (var definition in group.Symbols)
+                        _symbolToLocations[definition] = new List<ReferenceLocation>();
+                }
 
-            return _underlyingProgress.OnDefinitionFoundAsync(group, cancellationToken);
+                return _underlyingProgress.OnDefinitionFoundAsync(group, cancellationToken);
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation location, CancellationToken cancellationToken)

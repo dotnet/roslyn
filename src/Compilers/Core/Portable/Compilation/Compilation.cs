@@ -3096,7 +3096,7 @@ namespace Microsoft.CodeAnalysis
             Stream ilStream,
             Stream pdbStream,
             ArrayBuilder<MethodDefinitionHandle> updatedMethods,
-            ArrayBuilder<TypeDefinitionHandle> updatedTypes,
+            ArrayBuilder<TypeDefinitionHandle> changedTypes,
             DiagnosticBag diagnostics,
             Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
             string? pdbFilePath,
@@ -3132,12 +3132,11 @@ namespace Microsoft.CodeAnalysis
                         out MetadataSizes metadataSizes);
 
                     writer.GetUpdatedMethodTokens(updatedMethods);
-
-                    writer.GetUpdatedTypeTokens(updatedTypes);
+                    writer.GetChangedTypeTokens(changedTypes);
 
                     nativePdbWriter?.WriteTo(pdbStream);
 
-                    return diagnostics.HasAnyErrors() ? null : writer.GetDelta(baseline, this, encId, metadataSizes);
+                    return diagnostics.HasAnyErrors() ? null : writer.GetDelta(this, encId, metadataSizes);
                 }
                 catch (SymUnmanagedWriterException e)
                 {
@@ -3236,6 +3235,12 @@ namespace Microsoft.CodeAnalysis
         /// Can be used to get a total ordering on declarations, for example.
         /// </summary>
         internal abstract int CompareSourceLocations(SyntaxReference loc1, SyntaxReference loc2);
+
+        /// <summary>
+        /// Compare two source locations, using their containing trees, and then by Span.First within a tree.
+        /// Can be used to get a total ordering on declarations, for example.
+        /// </summary>
+        internal abstract int CompareSourceLocations(SyntaxNode loc1, SyntaxNode loc2);
 
         /// <summary>
         /// Return the lexically first of two locations.

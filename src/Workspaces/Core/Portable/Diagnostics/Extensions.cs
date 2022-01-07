@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (documentAnalysisScope != null)
             {
-                if (!(documentAnalysisScope.TextDocument is Document document))
+                if (documentAnalysisScope.TextDocument is not Document document)
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }

@@ -7,17 +7,18 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class DriverStateTable
     {
-        private readonly ImmutableDictionary<object, IStateTable> _tables;
+        private readonly ImmutableSegmentedDictionary<object, IStateTable> _tables;
 
-        internal static DriverStateTable Empty { get; } = new DriverStateTable(ImmutableDictionary<object, IStateTable>.Empty);
+        internal static DriverStateTable Empty { get; } = new DriverStateTable(ImmutableSegmentedDictionary<object, IStateTable>.Empty);
 
-        private DriverStateTable(ImmutableDictionary<object, IStateTable> tables)
+        private DriverStateTable(ImmutableSegmentedDictionary<object, IStateTable> tables)
         {
             _tables = tables;
         }
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis
 
         public sealed class Builder
         {
-            private readonly ImmutableDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableDictionary.CreateBuilder<object, IStateTable>();
+            private readonly ImmutableSegmentedDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableSegmentedDictionary.CreateBuilder<object, IStateTable>();
             private readonly ImmutableArray<ISyntaxInputNode> _syntaxInputNodes;
             private readonly ImmutableDictionary<ISyntaxInputNode, Exception>.Builder _syntaxExceptions = ImmutableDictionary.CreateBuilder<ISyntaxInputNode, Exception>();
             private readonly DriverStateTable _previousTable;
@@ -59,44 +60,69 @@ namespace Microsoft.CodeAnalysis
                 // when we don't have a value for this node, we update all the syntax inputs at once
                 if (!_tableBuilder.ContainsKey(syntaxInputNode))
                 {
+                    // CONSIDER: when the compilation is the same as previous, the syntax trees must also be the same.
+                    // if we have a previous state table for a node, we can just short circuit knowing that it is up to date
+                    // This step isn't part of the tree, so we can skip recording.
+                    var compilationIsCached = GetLatestStateTableForNode(SharedInputNodes.Compilation).IsCached;
+
                     // get a builder for each input node
-                    var builders = ArrayBuilder<ISyntaxInputBuilder>.GetInstance(_syntaxInputNodes.Length);
+                    var syntaxInputBuilders = ArrayBuilder<ISyntaxInputBuilder>.GetInstance(_syntaxInputNodes.Length);
                     foreach (var node in _syntaxInputNodes)
                     {
-                        builders.Add(node.GetBuilder(_previousTable));
-                    }
-
-                    // update each tree for the builders, sharing the semantic model
-                    foreach ((var tree, var state) in GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees))
-                    {
-                        var root = tree.GetRoot(_cancellationToken);
-                        var model = state != EntryState.Removed ? Compilation.GetSemanticModel(tree) : null;
-                        for (int i = 0; i < builders.Count; i++)
+                        // TODO: We don't cache the tracked incremental steps in a manner that we can easily rehydrate between runs,
+                        // so we'll disable the cached compilation perf optimization when incremental step tracking is enabled.
+                        if (compilationIsCached && !DriverState.TrackIncrementalSteps && _previousTable._tables.TryGetValue(node, out var previousStateTable))
                         {
-                            try
-                            {
-                                _cancellationToken.ThrowIfCancellationRequested();
-                                builders[i].VisitTree(root, state, model, _cancellationToken);
-                            }
-                            catch (UserFunctionException ufe)
-                            {
-                                // we're evaluating this node ahead of time, so we can't just throw the exception
-                                // instead we'll hold onto it, and throw the exception when a downstream node actually
-                                // attempts to read the value
-                                _syntaxExceptions[builders[i].SyntaxInputNode] = ufe;
-                                builders.RemoveAt(i);
-                                i--;
-                            }
+                            _tableBuilder.Add(node, previousStateTable);
+                        }
+                        else
+                        {
+                            syntaxInputBuilders.Add(node.GetBuilder(_previousTable, DriverState.TrackIncrementalSteps));
                         }
                     }
 
-                    // save the updated inputs
-                    foreach (var builder in builders)
+                    if (syntaxInputBuilders.Count == 0)
                     {
-                        builder.SaveStateAndFree(_tableBuilder);
-                        Debug.Assert(_tableBuilder.ContainsKey(builder.SyntaxInputNode));
+                        // bring over the previously cached syntax tree inputs
+                        _tableBuilder[SharedInputNodes.SyntaxTrees] = _previousTable._tables[SharedInputNodes.SyntaxTrees];
                     }
-                    builders.Free();
+                    else
+                    {
+                        GeneratorRunStateTable.Builder temporaryRunStateBuilder = new GeneratorRunStateTable.Builder(DriverState.TrackIncrementalSteps);
+                        NodeStateTable<SyntaxTree> syntaxTreeState = GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees);
+
+                        // update each tree for the builders, sharing the semantic model
+                        foreach ((var tree, var state, var syntaxTreeIndex, var stepInfo) in syntaxTreeState)
+                        {
+                            var root = new Lazy<SyntaxNode>(() => tree.GetRoot(_cancellationToken));
+                            var model = state != EntryState.Removed ? Compilation.GetSemanticModel(tree) : null;
+                            for (int i = 0; i < syntaxInputBuilders.Count; i++)
+                            {
+                                try
+                                {
+                                    _cancellationToken.ThrowIfCancellationRequested();
+                                    syntaxInputBuilders[i].VisitTree(root, state, model, _cancellationToken);
+                                }
+                                catch (UserFunctionException ufe)
+                                {
+                                    // we're evaluating this node ahead of time, so we can't just throw the exception
+                                    // instead we'll hold onto it, and throw the exception when a downstream node actually
+                                    // attempts to read the value
+                                    _syntaxExceptions[syntaxInputBuilders[i].SyntaxInputNode] = ufe;
+                                    syntaxInputBuilders.RemoveAt(i);
+                                    i--;
+                                }
+                            }
+                        }
+
+                        // save the updated inputs
+                        foreach (ISyntaxInputBuilder builder in syntaxInputBuilders)
+                        {
+                            builder.SaveStateAndFree(_tableBuilder);
+                            Debug.Assert(_tableBuilder.ContainsKey(builder.SyntaxInputNode));
+                        }
+                    }
+                    syntaxInputBuilders.Free();
                 }
 
                 // if we don't have an entry for this node, it must have thrown an exception
@@ -123,6 +149,11 @@ namespace Microsoft.CodeAnalysis
                 var newTable = source.UpdateStateTable(this, previousTable, _cancellationToken);
                 _tableBuilder[source] = newTable;
                 return newTable;
+            }
+
+            public NodeStateTable<T>.Builder CreateTableBuilder<T>(NodeStateTable<T> previousTable, string? stepName)
+            {
+                return previousTable.ToBuilder(stepName, DriverState.TrackIncrementalSteps);
             }
 
             public DriverStateTable ToImmutable()

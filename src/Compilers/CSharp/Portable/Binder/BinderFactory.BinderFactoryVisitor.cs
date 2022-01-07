@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Binder result;
                     if (!binderCache.TryGetValue(key, out result))
                     {
-                        SynthesizedSimpleProgramEntryPointSymbol simpleProgram = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(compilation, (CompilationUnitSyntax)node.Parent, fallbackToMainEntryPoint: false);
+                        SynthesizedSimpleProgramEntryPointSymbol simpleProgram = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(compilation, (CompilationUnitSyntax)node.Parent, fallbackToMainEntryPoint: false);
                         ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder(_factory._ignoreAccessibility);
                         result = bodyBinder.GetBinder(compilationUnit);
 
@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override Binder VisitRecordDeclaration(RecordDeclarationSyntax node)
                 => VisitTypeDeclarationCore(node);
 
-            public override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)
+            public sealed override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)
             {
                 if (!LookupPosition.IsInNamespaceDeclaration(_position, parent))
                 {
@@ -774,7 +774,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitNamespaceDeclaration(parent, _position, inBody, inUsing);
             }
 
-            internal Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent, int position, bool inBody, bool inUsing)
+            public override Binder VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax parent)
+            {
+                if (!LookupPosition.IsInNamespaceDeclaration(_position, parent))
+                {
+                    return VisitCore(parent.Parent);
+                }
+
+                // Anywhere after the `;` is in the 'body' of this namespace.
+                bool inBody = _position >= parent.SemicolonToken.EndPosition;
+
+                bool inUsing = IsInUsing(parent);
+
+                return VisitNamespaceDeclaration(parent, _position, inBody, inUsing);
+            }
+
+            internal Binder VisitNamespaceDeclaration(BaseNamespaceDeclarationSyntax parent, int position, bool inBody, bool inUsing)
             {
                 Debug.Assert(!inUsing || inBody, "inUsing => inBody");
 
@@ -840,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamespaceSymbol ns = ((NamespaceSymbol)container).GetNestedNamespace(name);
                 if ((object)ns == null) return outer;
 
-                if (node is NamespaceDeclarationSyntax namespaceDecl)
+                if (node is BaseNamespaceDeclarationSyntax namespaceDecl)
                 {
                     outer = AddInImportsBinders((SourceNamespaceSymbol)outer.Compilation.SourceModule.GetModuleNamespace(ns), namespaceDecl, outer, inUsing);
                 }
@@ -942,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = new InContainerBinder(globalNamespace, result);
 
                         if (!inUsing &&
-                            SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(compilation, compilationUnit, fallbackToMainEntryPoint: true) is SynthesizedSimpleProgramEntryPointSymbol simpleProgram)
+                            SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(compilation, compilationUnit, fallbackToMainEntryPoint: true) is SynthesizedSimpleProgramEntryPointSymbol simpleProgram)
                         {
                             ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder(_factory._ignoreAccessibility);
                             result = new SimpleProgramUnitBinder(result, (SimpleProgramBinder)bodyBinder.GetBinder(simpleProgram.SyntaxNode));
@@ -957,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static Binder AddInImportsBinders(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool inUsing)
             {
-                Debug.Assert(declarationSyntax.IsKind(SyntaxKind.CompilationUnit) || declarationSyntax.IsKind(SyntaxKind.NamespaceDeclaration));
+                Debug.Assert(declarationSyntax.Kind() is SyntaxKind.CompilationUnit or SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration);
 
                 if (inUsing)
                 {
