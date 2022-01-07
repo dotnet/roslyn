@@ -9699,7 +9699,7 @@ StructLogger#2:
         }
 
         [Fact, WorkItem(58514, "https://github.com/dotnet/roslyn/issues/58514")]
-        public void StructReceiver_Rvalue_ObjectCreationArgument()
+        public void StructArgument_Rvalue_ObjectCreationArgument()
         {
             var code = @"
 using System;
