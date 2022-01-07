@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-                AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
+                AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation!.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
             }
 
             internal override TypeWithAnnotations IteratorElementTypeWithAnnotations

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ThisParameterSymbol(MethodSymbol? forMethod, TypeSymbol containingType)
         {
+            Debug.Assert(containingType is not null);
             _containingMethod = forMethod;
             _containingType = containingType;
         }
