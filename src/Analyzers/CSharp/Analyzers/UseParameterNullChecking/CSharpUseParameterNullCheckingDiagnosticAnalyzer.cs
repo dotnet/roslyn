@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
             : base(IDEDiagnosticIds.UseParameterNullCheckingId,
                    EnforceOnBuildValues.UseParameterNullChecking,
                    CSharpCodeStyleOptions.PreferParameterNullChecking,
-                   CSharpAnalyzersResources.Use_parameter_null_checking,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
