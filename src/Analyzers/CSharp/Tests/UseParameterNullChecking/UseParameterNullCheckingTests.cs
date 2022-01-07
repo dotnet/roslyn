@@ -483,6 +483,34 @@ class C
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [InlineData("ref")]
+        [InlineData("in")]
+        [InlineData("out")]
+        public async Task TestRefParameter(string refKind)
+        {
+            // https://github.com/dotnet/roslyn/issues/58699
+            // When the implementation changes to permit ref/in parameters, we should also change the fixer.
+            var testCode = @"
+using System;
+
+class C
+{
+    public C(" + refKind + @" string s)
+    {
+        if (s is null)
+            throw new ArgumentNullException(nameof(s));
+    }
+}";
+            await new VerifyCS.Test()
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                CompilerDiagnostics = Testing.CompilerDiagnostics.None,
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         [InlineData("object")]
         [InlineData("C")]
         public async Task TestReferenceEqualsCheck(string className)

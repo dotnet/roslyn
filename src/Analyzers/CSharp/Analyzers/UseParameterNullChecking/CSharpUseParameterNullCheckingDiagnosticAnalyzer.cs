@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                     && (!parameter.Type.IsValueType
                         || parameter.Type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
                         || parameter.Type.TypeKind is TypeKind.Pointer or TypeKind.FunctionPointer)
+                    && parameter.RefKind == RefKind.None
                     && parameter.DeclaringSyntaxReferences.FirstOrDefault() is SyntaxReference reference
                     && reference.SyntaxTree.Equals(statement.SyntaxTree)
                     && reference.GetSyntax() is ParameterSyntax parameterSyntax)
