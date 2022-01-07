@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The <see cref="AnalyzerConfigSet"/> to be used for analyzer options for specific trees.
         /// </summary>
-        private readonly ValueSource<CachingAnalyzerConfigSet> _lazyAnalyzerConfigSet;
+        private readonly ValueSource<AnalyzerConfigOptionsCache> _lazyAnalyzerConfigSet;
 
         private AnalyzerOptions? _lazyAnalyzerOptions;
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
             TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates,
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
             AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion,
-            ValueSource<CachingAnalyzerConfigSet> lazyAnalyzerConfigSet)
+            ValueSource<AnalyzerConfigOptionsCache> lazyAnalyzerConfigSet)
         {
             _solutionServices = solutionServices;
             _languageServices = languageServices;
@@ -314,9 +314,9 @@ namespace Microsoft.CodeAnalysis
 
         private sealed class ProjectSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
         {
-            private readonly ValueSource<CachingAnalyzerConfigSet> _lazyAnalyzerConfigSet;
+            private readonly ValueSource<AnalyzerConfigOptionsCache> _lazyAnalyzerConfigSet;
 
-            public ProjectSyntaxTreeOptionsProvider(ValueSource<CachingAnalyzerConfigSet> lazyAnalyzerConfigSet)
+            public ProjectSyntaxTreeOptionsProvider(ValueSource<AnalyzerConfigOptionsCache> lazyAnalyzerConfigSet)
                 => _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
 
             public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
@@ -349,9 +349,9 @@ namespace Microsoft.CodeAnalysis
             public override int GetHashCode() => _lazyAnalyzerConfigSet.GetHashCode();
         }
 
-        private static ValueSource<CachingAnalyzerConfigSet> ComputeAnalyzerConfigSetValueSource(TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates)
+        private static ValueSource<AnalyzerConfigOptionsCache> ComputeAnalyzerConfigSetValueSource(TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates)
         {
-            return new AsyncLazy<CachingAnalyzerConfigSet>(
+            return new AsyncLazy<AnalyzerConfigOptionsCache>(
                 asynchronousComputeFunction: async cancellationToken =>
                 {
                     var tasks = analyzerConfigDocumentStates.States.Values.Select(a => a.GetAnalyzerConfigAsync(cancellationToken));
@@ -359,14 +359,33 @@ namespace Microsoft.CodeAnalysis
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    return new CachingAnalyzerConfigSet(AnalyzerConfigSet.Create(analyzerConfigs));
+                    return new AnalyzerConfigOptionsCache(AnalyzerConfigSet.Create(analyzerConfigs));
                 },
                 synchronousComputeFunction: cancellationToken =>
                 {
                     var analyzerConfigs = analyzerConfigDocumentStates.SelectAsArray(a => a.GetAnalyzerConfig(cancellationToken));
-                    return new CachingAnalyzerConfigSet(AnalyzerConfigSet.Create(analyzerConfigs));
+                    return new AnalyzerConfigOptionsCache(AnalyzerConfigSet.Create(analyzerConfigs));
                 },
                 cacheResult: true);
+        }
+
+        private readonly struct AnalyzerConfigOptionsCache
+        {
+            private readonly ConcurrentDictionary<string, AnalyzerConfigOptionsResult> _sourcePathToResult = new();
+            private readonly Func<string, AnalyzerConfigOptionsResult> _computeFunction;
+            private readonly AnalyzerConfigSet _configSet;
+
+            public AnalyzerConfigOptionsCache(AnalyzerConfigSet configSet)
+            {
+                _configSet = configSet;
+                _computeFunction = _configSet.GetOptionsForSourcePath;
+            }
+
+            public AnalyzerConfigOptionsResult GlobalConfigOptions
+                => _configSet.GlobalConfigOptions;
+
+            public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
+                => _sourcePathToResult.GetOrAdd(sourcePath, _computeFunction);
         }
 
         public Task<VersionStamp> GetLatestDocumentVersionAsync(CancellationToken cancellationToken)
@@ -461,7 +480,7 @@ namespace Microsoft.CodeAnalysis
             TextDocumentStates<AnalyzerConfigDocumentState>? analyzerConfigDocumentStates = null,
             AsyncLazy<VersionStamp>? latestDocumentVersion = null,
             AsyncLazy<VersionStamp>? latestDocumentTopLevelChangeVersion = null,
-            ValueSource<CachingAnalyzerConfigSet>? analyzerConfigSet = null)
+            ValueSource<AnalyzerConfigOptionsCache>? analyzerConfigSet = null)
         {
             return new ProjectState(
                 projectInfo ?? _projectInfo,
