@@ -452,7 +452,14 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestRedundantNullChecks()
         {
-            // TODO: what test framework settings do we use here?
+            // Produces the following error:
+            //             Message: 
+            // System.InvalidOperationException : GetCurrentNode returned null with the following node: string s - line 321
+            //  Stack Trace: 
+            // Contract.Fail(String message, Int32 lineNumber) line 115
+            // ReplaceChange.Apply(SyntaxNode root, SyntaxGenerator generator) line 321
+            // SyntaxEditor.GetChangedRoot() line 92
+            // <FixAllWithEditorAsync>d__5.MoveNext() line 71
             await new VerifyCS.Test()
             {
                 TestCode = @"
@@ -469,30 +476,17 @@ class C
             throw new ArgumentNullException(nameof(s));|]
     }
 }",
-                FixedState =
-                {
-                    Sources =
-                    {
-                        @"
+                FixedCode =
+@"
 using System;
 
 class C
 {
     public C(string s!!)
     {
-        if (s is null)
-            throw new ArgumentNullException(nameof(s));
     }
 }",
-                    },
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(8,9): info IDE0190: Null check can be simplified
-                        VerifyCS.Diagnostic("IDE0190").WithSeverity(DiagnosticSeverity.Info).WithSpan(8, 9, 9, 56).WithSpan(6, 14, 6, 24)
-                    }
-                },
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
-                NumberOfFixAllIterations = 1
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
             }.RunAsync();
         }
 
