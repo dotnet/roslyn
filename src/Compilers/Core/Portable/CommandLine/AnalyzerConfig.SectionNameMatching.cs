@@ -114,19 +114,67 @@ namespace Microsoft.CodeAnalysis
                 numberRangePairs.ToImmutableAndFree());
         }
 
-        internal static bool TryUnescapeSectionName(string sectionName, out string? escapedSectionName)
+        internal static bool TryUnescapeSectionName(string sectionName, out ReadOnlySpan<char> unescapedSectionName)
         {
-            var sb = new StringBuilder();
+            // When possible, the result is obtained as a substring from sectionName. If this is not possible, a builder
+            // is allocated to hold the result.
+            int firstPosition = -1;
+            int lastPositionExclusive = -1;
+            StringBuilder? lazyBuilder = null;
+
             SectionNameLexer lexer = new SectionNameLexer(sectionName);
             while (!lexer.IsDone)
             {
                 var tokenKind = lexer.Lex();
                 if (tokenKind == TokenKind.SimpleCharacter)
                 {
-                    sb.Append(lexer.EatCurrentCharacter());
+                    if (lazyBuilder is null)
+                    {
+                        if (firstPosition < 0)
+                        {
+                            firstPosition = lexer.Position;
+                            lastPositionExclusive = lexer.Position + 1;
+                            lexer.EatCurrentCharacter();
+                        }
+                        else if (lastPositionExclusive == lexer.Position)
+                        {
+                            lastPositionExclusive++;
+                            lexer.EatCurrentCharacter();
+                        }
+                        else
+                        {
+                            // We moved forward more than one position since the last character. A span sectionName is
+                            // no longer possible, so we allocate the builder. The maximum length is sectionName.Length,
+                            // but we already eliminated the characters prior to firstPosition and the character gap
+                            // between the previous and current position.
+                            //
+                            // The builder is initialized to all characters prior to the current character; the current
+                            // character is added in the next block.
+                            var gap = lexer.Position - lastPositionExclusive;
+                            lazyBuilder = new StringBuilder(sectionName.Length - firstPosition - gap);
+                            lazyBuilder.Append(sectionName, firstPosition, lastPositionExclusive - firstPosition);
+                        }
+                    }
+
+                    if (lazyBuilder is not null)
+                    {
+                        lazyBuilder.Append(lexer.EatCurrentCharacter());
+                    }
                 }
             }
-            escapedSectionName = sb.ToString();
+
+            if (lazyBuilder is null)
+            {
+                if (firstPosition >= 0)
+                    unescapedSectionName = sectionName.AsSpan()[firstPosition..lastPositionExclusive];
+                else
+                    unescapedSectionName = ReadOnlySpan<char>.Empty;
+            }
+            else
+            {
+                unescapedSectionName = lazyBuilder.ToString().AsSpan();
+            }
+
             return true;
         }
 

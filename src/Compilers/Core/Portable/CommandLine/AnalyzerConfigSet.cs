@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var section in _globalConfig.NamedSections)
             {
                 var escapedSectionName = TryUnescapeSectionName(section.Name, out var sectionName);
-                if (escapedSectionName && normalizedPath.Equals(sectionName, Section.NameComparer))
+                if (escapedSectionName && sectionName.Equals(normalizedPath.AsSpan(), Section.NameComparer))
                 {
                     sectionKey.Add(section);
                 }
