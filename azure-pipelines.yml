@@ -20,6 +20,7 @@ pr:
       - '/'
     exclude:
       - azure-pipelines.yml
+      - azure-pipelines-integration.yml
 
 
 # Windows Build and Test Jobs
