@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        Public Sub GetTypesByMetadtaName_NotInSourceNotInReferences()
+        Public Sub GetTypesByMetadataName_NotInSourceNotInReferences()
             Dim comp = CreateCompilation("")
             comp.AssertNoDiagnostics()
 
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         <Theory, CombinatorialData>
-        Public Sub GetTypesByMetadtaName_SingleInSourceNotInReferences(useMetadataReferences As Boolean, <CombinatorialValues("Public", "Friend")> accessibility As String)
+        Public Sub GetTypesByMetadataName_SingleInSourceNotInReferences(useMetadataReferences As Boolean, <CombinatorialValues("Public", "Friend")> accessibility As String)
             Dim referenceComp = CreateCompilation("")
 
             Dim source =
@@ -39,7 +39,7 @@ End Namespace"
         End Sub
 
         <Theory, CombinatorialData>
-        Public Sub GetTypesByMetadtaName_MultipleInSourceNotInReferences(useMetadataReferences As Boolean, <CombinatorialValues("Public", "Friend")> accessibility As String)
+        Public Sub GetTypesByMetadataName_MultipleInSourceNotInReferences(useMetadataReferences As Boolean, <CombinatorialValues("Public", "Friend")> accessibility As String)
             Dim referenceComp = CreateCompilation("")
 
             Dim source =
@@ -66,7 +66,7 @@ BC30179: class 'C' and class 'C' conflict in namespace 'N'.
         End Sub
 
         <Theory, CombinatorialData>
-        Public Sub GetTypesByMetadtaName_SingleInSourceSingleInReferences(useMetadataReference As Boolean, <CombinatorialValues("Public", "Friend")> accessibility As String)
+        Public Sub GetTypesByMetadataName_SingleInSourceSingleInReferences(useMetadataReference As Boolean, <CombinatorialValues("Public", "Friend")> accessibility As String)
             Dim source =
 $"Namespace N
     {accessibility} Class C(Of T)
@@ -90,7 +90,7 @@ End Namespace"
         End Sub
 
         <Theory, CombinatorialData>
-        Public Sub GetTypesByMetadtaName_NotInSourceSingleInReferences(useMetadataReference As Boolean, <CombinatorialValues("Public", "Friend")> accessibility As String)
+        Public Sub GetTypesByMetadataName_NotInSourceSingleInReferences(useMetadataReference As Boolean, <CombinatorialValues("Public", "Friend")> accessibility As String)
             Dim source =
 $"Namespace N
     {accessibility} Class C(Of T)
@@ -116,7 +116,7 @@ End Namespace"
         End Function
 
         <Theory, CombinatorialData>
-        Public Sub GetTypesByMetadtaName_NotInSourceMultipleInReferences(useMetadataReference As Boolean, <CombinatorialValues("Public", "Friend")> accessibility As String)
+        Public Sub GetTypesByMetadataName_NotInSourceMultipleInReferences(useMetadataReference As Boolean, <CombinatorialValues("Public", "Friend")> accessibility As String)
             Dim source =
 $"Namespace N
     {accessibility} Class C(Of T)
@@ -150,7 +150,7 @@ End Namespace"
         End Sub
 
         <Theory, CombinatorialData>
-        Public Sub GetTypesByMetadtaName_SingleInSourceMultipleInReferences(useMetadataReference As Boolean, <CombinatorialValues("Public", "Friend")> accessibility As String)
+        Public Sub GetTypesByMetadataName_SingleInSourceMultipleInReferences(useMetadataReference As Boolean, <CombinatorialValues("Public", "Friend")> accessibility As String)
             Dim source =
 $"Namespace N
     {accessibility} Class C(Of T)
