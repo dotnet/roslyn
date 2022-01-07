@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
 
                 Dim outWorkspace = TestWorkspace.Create(output)
                 Dim expectedDocument = outWorkspace.CurrentSolution.GetDocument(outWorkspace.Documents.Single().Id)
-                Await ValidateDoubleClick(annotatedDocument, expectedDocument, inlineHints)
+                Await ValidateDoubleClick(document, expectedDocument, inlineHints)
             End Using
         End Function
 
