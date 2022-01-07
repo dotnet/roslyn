@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Linq;
@@ -394,10 +395,11 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new();
+            var nullableAnalysisData = new NullableWalker.NullableAnalysisData();
+            comp.TestOnlyCompilationData = nullableAnalysisData;
             comp.VerifyDiagnostics();
 
-            int analyzed = comp.NullableAnalysisData.Data.Where(pair => pair.Value.RequiredAnalysis).Count();
+            int analyzed = nullableAnalysisData.Data.Where(pair => pair.Value.RequiredAnalysis).Count();
             Assert.Equal(nMethods / 2, analyzed);
         }
 
@@ -423,11 +425,12 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new();
+            var nullableAnalysisData = new NullableWalker.NullableAnalysisData();
+            comp.TestOnlyCompilationData = nullableAnalysisData;
             comp.VerifyDiagnostics();
 
             var method = comp.GetMember("Program.F2");
-            Assert.Equal(1, comp.NullableAnalysisData.Data[method].TrackedEntries);
+            Assert.Equal(1, nullableAnalysisData.Data[method].TrackedEntries);
         }
 
         [Fact]
@@ -452,11 +455,12 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new();
+            var nullableAnalysisData = new NullableWalker.NullableAnalysisData();
+            comp.TestOnlyCompilationData = nullableAnalysisData;
             comp.VerifyDiagnostics();
 
             var method = comp.GetMember("Program.F");
-            Assert.Equal(1, comp.NullableAnalysisData.Data[method].TrackedEntries);
+            Assert.Equal(1, nullableAnalysisData.Data[method].TrackedEntries);
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]
@@ -575,7 +579,7 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new(maxRecursionDepth: nestingLevel / 2);
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData(maxRecursionDepth: nestingLevel / 2);
             comp.VerifyDiagnostics(
                 // (7,15): error CS8078: An expression is too long or complex to compile
                 //         C c = new C()
@@ -611,7 +615,7 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new(maxRecursionDepth: nestingLevel / 2);
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData(maxRecursionDepth: nestingLevel / 2);
             comp.VerifyDiagnostics(
                 // (10,15): error CS8078: An expression is too long or complex to compile
                 //         C c = new C()

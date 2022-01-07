@@ -1211,7 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     hasErrors = hasErrors || (hasBody && loweredBodyOpt.HasErrors) || diagsForCurrentMethod.HasAnyErrors();
                     SetGlobalErrorIfTrue(hasErrors);
-
+                    CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
                     // don't emit if the resulting method would contain initializers with errors
                     if (!hasErrors && (hasBody || includeNonEmptyInitializersInBody))
                     {
@@ -1290,12 +1290,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 boundStatements = boundStatements.Concat(ImmutableArray.Create(loweredBodyOpt));
                             }
-                        }
 
+                            var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
+
+                            // Iterators handled in IteratorRewriter.cs
+                            if (!methodSymbol.IsIterator)
+                            {
+                                var boundStatementsWithNullCheck = LocalRewriter.TryConstructNullCheckedStatementList(methodSymbol.Parameters, boundStatements, factory);
+
+                                if (!boundStatementsWithNullCheck.IsDefault)
+                                {
+                                    boundStatements = boundStatementsWithNullCheck;
+                                    hasErrors = boundStatementsWithNullCheck.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
+                                    SetGlobalErrorIfTrue(hasErrors);
+                                    if (hasErrors)
+                                    {
+                                        _diagnostics.AddRange(diagsForCurrentMethod);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
                         if (_emitMethodBodies && (!(methodSymbol is SynthesizedStaticConstructor cctor) || cctor.ShouldEmit(processedInitializers.BoundInitializers)))
                         {
-                            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
-
                             var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
 
                             var emittedBody = GenerateMethodBody(

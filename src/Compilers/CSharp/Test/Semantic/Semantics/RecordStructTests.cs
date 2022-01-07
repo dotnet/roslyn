@@ -2985,7 +2985,7 @@ record struct C
         public void CS0574ERR_BadDestructorName()
         {
             var test = @"
-public record struct iii
+public record struct @iii
 {
     ~iiii(){}
 }
@@ -10615,6 +10615,350 @@ record struct Value(int I)
 ";
             var comp = CreateCompilation(src);
             CompileAndVerify(comp, expectedOutput: "Value { I = 42 }");
+        }
+
+        [Fact]
+        public void ExplicitConstructors_01()
+        {
+            var source =
+@"using static System.Console;
+record struct S1
+{
+}
+record struct S2
+{
+    public S2() { }
+}
+record struct S3
+{
+    public S3(object o) { }
+}
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new S1());
+        WriteLine(new S2());
+        WriteLine(new S3());
+        WriteLine(new S3(null));
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"S1 { }
+S2 { }
+S3 { }
+S3 { }
+");
+            verifier.VerifyMissing("S1..ctor()");
+            verifier.VerifyIL("S2..ctor()",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            verifier.VerifyMissing("S3..ctor()");
+            verifier.VerifyIL("S3..ctor(object)",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [Fact]
+        public void ExplicitConstructors_02()
+        {
+            var source =
+@"record struct S1
+{
+    public S1(object o) { }
+}
+record struct S2()
+{
+    public S2(object o) { }
+}
+record struct S3(char A)
+{
+    public S3(object o) { }
+}
+record struct S4(char A, char B)
+{
+    public S4(object o) { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public S2(object o) { }
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S2").WithLocation(7, 12),
+                // (11,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public S3(object o) { }
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S3").WithLocation(11, 12),
+                // (15,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public S4(object o) { }
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S4").WithLocation(15, 12));
+        }
+
+        [Fact]
+        public void ExplicitConstructors_03()
+        {
+            var source =
+@"using static System.Console;
+record struct S1
+{
+    public S1(object o) : this() { }
+}
+record struct S2()
+{
+    public S2(object o) : this() { }
+}
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new S1());
+        WriteLine(new S2());
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"S1 { }
+S2 { }
+");
+        }
+
+        [Fact]
+        public void ExplicitConstructors_04()
+        {
+            var source =
+@"using static System.Console;
+record struct S0
+{
+    internal object F = 0;
+    public S0() { }
+}
+record struct S1
+{
+    internal object F = 1;
+    public S1(object o) : this() { F = o; }
+}
+record struct S2()
+{
+    internal object F = 2;
+    public S2(object o) : this() { F = o; }
+}
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new S0().F);
+        WriteLine(new S1().F);
+        WriteLine(new S1(-1).F);
+        WriteLine(new S2().F);
+        WriteLine(new S2(-2).F);
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"0
+
+-1
+2
+-2
+");
+        }
+
+        [Fact]
+        [WorkItem(58328, "https://github.com/dotnet/roslyn/issues/58328")]
+        public void ExplicitConstructors_05()
+        {
+            var source =
+@"record struct S3(char A)
+{
+    public S3(object o) : this() { }
+}
+record struct S4(char A, char B)
+{
+    public S4(object o) : this() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,27): error CS8982: A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.
+                //     public S3(object o) : this() { }
+                Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(3, 27),
+                // (7,27): error CS8982: A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.
+                //     public S4(object o) : this() { }
+                Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(7, 27));
+        }
+
+        [Fact]
+        [WorkItem(58328, "https://github.com/dotnet/roslyn/issues/58328")]
+        public void ExplicitConstructors_06()
+        {
+            var source =
+@"record struct S3(char A)
+{
+    internal object F = 3;
+    public S3(object o) : this() { F = o; }
+}
+record struct S4(char A, char B)
+{
+    internal object F = 4;
+    public S4(object o) : this() { F = o; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,27): error CS8982: A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.
+                //     public S3(object o) : this() { F = o; }
+                Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 27),
+                // (9,27): error CS8982: A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.
+                //     public S4(object o) : this() { F = o; }
+                Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(9, 27));
+        }
+
+        [Fact]
+        public void ExplicitConstructors_07()
+        {
+            var source =
+@"using static System.Console;
+record struct S1
+{
+    public S1(object o) : this() { }
+    public S1() { }
+}
+record struct S3(char A)
+{
+    public S3(object o) : this() { }
+    public S3() : this('a') { }
+}
+record struct S4(char A, char B)
+{
+    public S4(object o) : this() { }
+    public S4() : this('a', 'b') { }
+}
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new S1());
+        WriteLine(new S1(1));
+        WriteLine(new S3());
+        WriteLine(new S3(3));
+        WriteLine(new S4());
+        WriteLine(new S4(4));
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"S1 { }
+S1 { }
+S3 { A = a }
+S3 { A = a }
+S4 { A = a, B = b }
+S4 { A = a, B = b }
+");
+            verifier.VerifyIL("S1..ctor()",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            verifier.VerifyIL("S1..ctor(object)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S1..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("S3..ctor()",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   97
+  IL_0003:  call       ""S3..ctor(char)""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("S3..ctor(object)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S3..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("S4..ctor()",
+@"{
+  // Code size       11 (0xb)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   97
+  IL_0003:  ldc.i4.s   98
+  IL_0005:  call       ""S4..ctor(char, char)""
+  IL_000a:  ret
+}");
+            verifier.VerifyIL("S4..ctor(object)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S4..ctor()""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void ExplicitConstructors_08()
+        {
+            var source =
+@"record struct S2()
+{
+    public S2(object o) : this() { }
+    public S2() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,27): error CS2121: The call is ambiguous between the following methods or properties: 'S2.S2()' and 'S2.S2()'
+                //     public S2(object o) : this() { }
+                Diagnostic(ErrorCode.ERR_AmbigCall, "this").WithArguments("S2.S2()", "S2.S2()").WithLocation(3, 27),
+                // (4,12): error CS2111: Type 'S2' already defines a member called 'S2' with the same parameter types
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "S2").WithArguments("S2", "S2").WithLocation(4, 12),
+                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S2").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void ExplicitConstructors_09()
+        {
+            var source =
+@"record struct S1
+{
+    public S1(object o) : base() { }
+}
+record struct S2()
+{
+    public S2(object o) : base() { }
+}
+record struct S3(char A)
+{
+    public S3(object o) : base() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,12): error CS0522: 'S1': structs cannot call base class constructors
+                //     public S1(object o) : base() { }
+                Diagnostic(ErrorCode.ERR_StructWithBaseConstructorCall, "S1").WithArguments("S1").WithLocation(3, 12),
+                // (7,12): error CS0522: 'S2': structs cannot call base class constructors
+                //     public S2(object o) : base() { }
+                Diagnostic(ErrorCode.ERR_StructWithBaseConstructorCall, "S2").WithArguments("S2").WithLocation(7, 12),
+                // (7,27): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public S2(object o) : base() { }
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(7, 27),
+                // (11,12): error CS0522: 'S3': structs cannot call base class constructors
+                //     public S3(object o) : base() { }
+                Diagnostic(ErrorCode.ERR_StructWithBaseConstructorCall, "S3").WithArguments("S3").WithLocation(11, 12),
+                // (11,27): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public S3(object o) : base() { }
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(11, 27));
         }
     }
 }
