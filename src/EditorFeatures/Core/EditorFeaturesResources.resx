@@ -975,9 +975,6 @@ Do you want to proceed?</value>
   <data name="Prefer_is_null_for_reference_equality_checks" xml:space="preserve">
     <value>Prefer 'is null' for reference equality checks</value>
   </data>
-  <data name="Prefer_parameter_null_checking" xml:space="preserve">
-    <value>Prefer parameter null checking</value>
-  </data>
   <data name="Prefer_this_or_Me" xml:space="preserve">
     <value>Prefer 'this.' or 'Me.'</value>
   </data>

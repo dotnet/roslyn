@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
         public CSharpUseParameterNullCheckingDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseParameterNullCheckingId,
                    EnforceOnBuildValues.UseParameterNullChecking,
-                   CodeStyleOptions2.PreferParameterNullChecking,
+                   CSharpCodeStyleOptions.PreferParameterNullChecking,
                    CSharpAnalyzersResources.Use_parameter_null_checking,
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
             var semanticModel = context.SemanticModel;
             var syntaxTree = semanticModel.SyntaxTree;
 
-            var option = context.Options.GetOption(CodeStyleOptions2.PreferParameterNullChecking, semanticModel.Language, syntaxTree, cancellationToken);
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferParameterNullChecking, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 return;

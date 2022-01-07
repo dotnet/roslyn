@@ -239,8 +239,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public string Style_PreferParameterNullChecking
         {
-            get { return GetXmlOption(CodeStyleOptions2.PreferParameterNullChecking); }
-            set { SetXmlOption(CodeStyleOptions2.PreferParameterNullChecking, value); }
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferParameterNullChecking); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferParameterNullChecking, value); }
         }
 
         public string Style_PreferNullCheckOverTypeCheck
