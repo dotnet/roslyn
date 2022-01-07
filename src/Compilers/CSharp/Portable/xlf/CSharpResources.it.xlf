@@ -1192,6 +1192,11 @@
         <target state="translated">è stato specificato l'argomento stdin '-', ma l'input non è stato reindirizzato dal flusso di input standard.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
+        <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
+        <target state="new">A 'struct' with field initializers must include an explicitly declared constructor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
         <target state="translated">Il criterio non è raggiungibile. È già stato gestito da un elemento precedente dell'espressione switch oppure non è possibile trovare una corrispondenza.</target>

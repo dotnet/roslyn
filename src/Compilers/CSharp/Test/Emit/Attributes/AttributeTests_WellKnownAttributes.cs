@@ -13362,7 +13362,7 @@ second",
         }
 
         [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
-        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute()
+        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute_01()
         {
             var code = @"
 namespace System.Runtime.CompilerServices
@@ -13383,13 +13383,10 @@ class Test
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
         }
 
-        /// <summary>
-        /// Verify that a synthesized (and emitted) parameterless constructor can be referenced
-        /// in metadata for an "attribute type", even if the attribute type is a struct. Compare
-        /// with previous test where no parameterless constructor is emitted for the struct type.
-        /// </summary>
-        [Theory]
-        [InlineData(
+        [Fact]
+        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute_02()
+        {
+            var sourceAttribute =
 @"#pragma warning disable 414
 namespace System.Runtime.CompilerServices
 {
@@ -13397,8 +13394,35 @@ namespace System.Runtime.CompilerServices
     {
         private int F = 1; // requires synthesized parameterless .ctor
     }
-}")]
-        [InlineData(
+}";
+            var sourceA =
+@"public class A
+{
+    public static void M(in int i)
+    {
+        System.Console.WriteLine(i);
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceAttribute, sourceA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                //     public struct IsReadOnlyAttribute
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "IsReadOnlyAttribute").WithLocation(4, 19),
+                // (6,21): warning CS0169: The field 'IsReadOnlyAttribute.F' is never used
+                //         private int F = 1; // requires synthesized parameterless .ctor
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute.F").WithLocation(6, 21));
+        }
+
+        /// <summary>
+        /// Verify that a parameterless constructor can be referenced
+        /// in metadata for an "attribute type", even if the attribute type is a struct.
+        /// Compare with WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute_01
+        /// where no parameterless constructor is emitted for the struct type.
+        /// </summary>
+        [Fact]
+        public void WellKnownTypeAsStruct_ExplicitParameterlessConstructor_IsReadOnlyAttribute()
+        {
+            var sourceAttribute =
 @"namespace System.Runtime.CompilerServices
 {
     public struct IsReadOnlyAttribute
@@ -13406,9 +13430,7 @@ namespace System.Runtime.CompilerServices
         // explicit parameterless .ctor
         public IsReadOnlyAttribute() { }
     }
-}")]
-        public void WellKnownTypeAsStruct_ParameterlessConstructor_IsReadOnlyAttribute(string sourceAttribute)
-        {
+}";
             var sourceA =
 @"public class A
 {
