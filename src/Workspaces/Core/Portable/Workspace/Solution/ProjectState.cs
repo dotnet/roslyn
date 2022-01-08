@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis
         private readonly ValueSource<ProjectStateChecksums> _lazyChecksums;
 
         /// <summary>
-        /// The <see cref="AnalyzerConfigSet"/> to be used for analyzer options for specific trees.
+        /// Analyzer config options to be used for specific trees.
         /// </summary>
-        private readonly ValueSource<AnalyzerConfigOptionsCache> _lazyAnalyzerConfigSet;
+        private readonly ValueSource<AnalyzerConfigOptionsCache> _lazyAnalyzerConfigOptions;
 
         private AnalyzerOptions? _lazyAnalyzerOptions;
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
             AnalyzerConfigDocumentStates = analyzerConfigDocumentStates;
             _lazyLatestDocumentVersion = lazyLatestDocumentVersion;
             _lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
-            _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
+            _lazyAnalyzerConfigOptions = lazyAnalyzerConfigSet;
 
             // ownership of information on document has moved to project state. clear out documentInfo the state is
             // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
@@ -103,14 +103,14 @@ namespace Microsoft.CodeAnalysis
             // We need to compute our AnalyerConfigDocumentStates first, since we use those to produce our DocumentStates
             AnalyzerConfigDocumentStates = new TextDocumentStates<AnalyzerConfigDocumentState>(projectInfoFixed.AnalyzerConfigDocuments, info => new AnalyzerConfigDocumentState(info, solutionServices));
 
-            _lazyAnalyzerConfigSet = ComputeAnalyzerConfigSetValueSource(AnalyzerConfigDocumentStates);
+            _lazyAnalyzerConfigOptions = ComputeAnalyzerConfigOptionsValueSource(AnalyzerConfigDocumentStates);
 
             // Add analyzer config information to the compilation options
             if (projectInfoFixed.CompilationOptions != null)
             {
                 projectInfoFixed = projectInfoFixed.WithCompilationOptions(
                     projectInfoFixed.CompilationOptions.WithSyntaxTreeOptionsProvider(
-                        new ProjectSyntaxTreeOptionsProvider(_lazyAnalyzerConfigSet)));
+                        new ProjectSyntaxTreeOptionsProvider(_lazyAnalyzerConfigOptions)));
             }
 
             var parseOptions = projectInfoFixed.ParseOptions;
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis
             string path,
             CancellationToken cancellationToken)
         {
-            var configSet = await _lazyAnalyzerConfigSet.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var configSet = await _lazyAnalyzerConfigOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return configSet.GetOptionsForSourcePath(path).AnalyzerOptions;
         }
 
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis
                     return null;
             }
 
-            return _lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath);
+            return _lazyAnalyzerConfigOptions.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath);
         }
 
         internal sealed class ProjectAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public AnalyzerConfigOptions GetOptionsForSourcePath(string path)
-                => new DictionaryAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(path).AnalyzerOptions);
+                => new DictionaryAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigOptions.GetValue(CancellationToken.None).GetOptionsForSourcePath(path).AnalyzerOptions);
         }
 
         private sealed class ProjectSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis
             public override int GetHashCode() => _lazyAnalyzerConfigSet.GetHashCode();
         }
 
-        private static ValueSource<AnalyzerConfigOptionsCache> ComputeAnalyzerConfigSetValueSource(TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates)
+        private static ValueSource<AnalyzerConfigOptionsCache> ComputeAnalyzerConfigOptionsValueSource(TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates)
         {
             return new AsyncLazy<AnalyzerConfigOptionsCache>(
                 asynchronousComputeFunction: async cancellationToken =>
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis
                 analyzerConfigDocumentStates ?? AnalyzerConfigDocumentStates,
                 latestDocumentVersion ?? _lazyLatestDocumentVersion,
                 latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion,
-                analyzerConfigSet ?? _lazyAnalyzerConfigSet);
+                analyzerConfigSet ?? _lazyAnalyzerConfigOptions);
         }
 
         private ProjectInfo.ProjectAttributes Attributes
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            var newProvider = new ProjectSyntaxTreeOptionsProvider(_lazyAnalyzerConfigSet);
+            var newProvider = new ProjectSyntaxTreeOptionsProvider(_lazyAnalyzerConfigOptions);
 
             return With(projectInfo: ProjectInfo.WithCompilationOptions(options.WithSyntaxTreeOptionsProvider(newProvider))
                        .WithVersion(Version.GetNewerVersion()));
@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis
 
         private ProjectState CreateNewStateForChangedAnalyzerConfigDocuments(TextDocumentStates<AnalyzerConfigDocumentState> newAnalyzerConfigDocumentStates)
         {
-            var newAnalyzerConfigSet = ComputeAnalyzerConfigSetValueSource(newAnalyzerConfigDocumentStates);
+            var newAnalyzerConfigSet = ComputeAnalyzerConfigOptionsValueSource(newAnalyzerConfigDocumentStates);
             var projectInfo = ProjectInfo.WithVersion(Version.GetNewerVersion());
 
             // Changing analyzer configs changes compilation options
@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis
             return With(
                 projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
                 documentStates: DocumentStates.RemoveRange(documentIds),
-                analyzerConfigSet: ComputeAnalyzerConfigSetValueSource(AnalyzerConfigDocumentStates));
+                analyzerConfigSet: ComputeAnalyzerConfigOptionsValueSource(AnalyzerConfigDocumentStates));
         }
 
         public ProjectState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis
             return With(
                 projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
                 documentStates: TextDocumentStates<DocumentState>.Empty,
-                analyzerConfigSet: ComputeAnalyzerConfigSetValueSource(AnalyzerConfigDocumentStates));
+                analyzerConfigSet: ComputeAnalyzerConfigOptionsValueSource(AnalyzerConfigDocumentStates));
         }
 
         public ProjectState UpdateDocument(DocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
