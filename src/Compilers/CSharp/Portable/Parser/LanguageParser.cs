@@ -3513,7 +3513,7 @@ parse_member_name:;
             if (opToken.Kind == SyntaxKind.GreaterThanToken && tk.Kind == SyntaxKind.GreaterThanToken)
             {
                 // no trailing trivia and no leading trivia
-                if (opToken.GetTrailingTriviaWidth() == 0 && tk.GetLeadingTriviaWidth() == 0)
+                if (NoTriviaBetween(opToken, tk))
                 {
                     var opToken2 = this.EatToken();
                     opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), SyntaxKind.GreaterThanGreaterThanToken, opToken2.GetTrailingTrivia());
@@ -4426,8 +4426,8 @@ tryAgain:
 #nullable enable
 
         /// <summary>
-        /// Parses out the <c>!!</c> following once the type and identifier has been parsed out already.  If the token
-        /// is followed by <c>!!=</c> or <c>! !=</c>, then the final equals will be returned out through <paramref
+        /// Parses the <c>!!</c> following a parameter type and identifier.  If the token
+        /// is followed by <c>!!=</c> or <c>! !=</c>, then the final equals will be returned through <paramref
         /// name="equalsToken"/>.
         /// </summary>
         private void ParseParameterNullCheck(
@@ -12980,7 +12980,9 @@ tryAgain:
                     }
 
                     if (arrow != null)
+                    {
                         arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
+                    }
 
                     var parameter = _syntaxFactory.Parameter(
                         attributeLists: default, modifiers: default, type: null, identifier, exclamationExclamationToken, @default: null);
