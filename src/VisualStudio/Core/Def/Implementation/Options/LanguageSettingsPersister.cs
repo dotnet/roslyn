@@ -76,6 +76,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     RefreshLanguageSettings(languagePreferences, languageName);
                     languageMap = languageMap.Add(languageName, Tuple.Create(languageGuid));
                 }
+                else
+                {
+                    FatalError.ReportWithDumpAndCatch(new InvalidOperationException("GetUserPreferences4 failed"), ErrorSeverity.Diagnostic);
+                }
             }
 
             _languageMap = languageMap;
@@ -235,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             if (_supportedOptions.Contains(optionKey.Option) && _languageMap.ContainsKey(optionKey.Language))
             {
-                FatalError.ReportWithDumpAndCatch(new InvalidOperationException(), ErrorSeverity.Diagnostic);
+                FatalError.ReportWithDumpAndCatch(new InvalidOperationException("Unexpected call to " + nameof(LanguageSettingsPersister) + "." + nameof(TryFetch)), ErrorSeverity.Diagnostic);
             }
 
             value = null;
