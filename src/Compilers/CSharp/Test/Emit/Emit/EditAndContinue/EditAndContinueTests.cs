@@ -4933,6 +4933,10 @@ struct S
 {
     int a = 1;
     int b = 2;
+    public S(int a)
+    {
+        this.a = a;
+    }
 }
 ";
             var source1 =
@@ -4941,7 +4945,10 @@ struct S
 {
     int a = 1;
     int b = 2;
-
+    public S(int a)
+    {
+        this.a = a;
+    }
     public S()
     {
         b = 3;
@@ -4952,8 +4959,8 @@ struct S
             var compilation0 = CreateCompilation(source0, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var ctor0 = compilation0.GetMember<MethodSymbol>("S..ctor");
-            var ctor1 = compilation1.GetMember<MethodSymbol>("S..ctor");
+            var ctor0 = compilation0.GetMember<NamedTypeSymbol>("S").InstanceConstructors.Single(m => m.ParameterCount == 0);
+            var ctor1 = compilation1.GetMember<NamedTypeSymbol>("S").InstanceConstructors.Single(m => m.ParameterCount == 0);
 
             var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
 
@@ -4970,7 +4977,7 @@ struct S
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1)));
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, ctor1)));
 
             // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();
@@ -4985,11 +4992,12 @@ struct S
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
                 Handle(6, TableIndex.TypeRef),
-                Handle(1, TableIndex.MethodDef),
+                Handle(2, TableIndex.MethodDef),
                 Handle(2, TableIndex.AssemblyRef));
         }
 
