@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                     return "destinationArray";
                 default:
                     Debug.Fail("The enum value is not defined, please check the ExceptionArgument Enum.");
-                    return "";
+                    return string.Empty;
             }
         }
 
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                     return SR.InvalidOperation_IComparerFailed;
                 default:
                     Debug.Fail("The enum value is not defined, please check the ExceptionResource Enum.");
-                    return "";
+                    return string.Empty;
             }
         }
     }
