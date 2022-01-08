@@ -702,6 +702,29 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNestedStatements()
+        {
+            var testCode = @"using System;
+
+class C
+{
+    void M(string s2)
+    {
+        {
+            if (s2 == null)
+                throw new ArgumentNullException(nameof(s2));
+        }
+    }
+}";
+            await new VerifyCS.Test()
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestConstrainedTypeParameter()
         {
             await new VerifyCS.Test()

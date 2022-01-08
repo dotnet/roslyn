@@ -37,10 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
         {
             var diagnostic = context.Diagnostics[0];
             context.RegisterCodeFix(
-                new MyCodeAction(CSharpAnalyzersResources.Use_parameter_null_checking,
-                c => FixAsync(context.Document, diagnostic, c)),
+                new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
                 context.Diagnostics);
-
             return Task.CompletedTask;
         }
 
@@ -83,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, equivalenceKey: nameof(CSharpAnalyzersResources.Use_parameter_null_checking))
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpAnalyzersResources.Use_parameter_null_checking, createChangedDocument, nameof(CSharpUseParameterNullCheckingCodeFixProvider))
             {
             }
         }

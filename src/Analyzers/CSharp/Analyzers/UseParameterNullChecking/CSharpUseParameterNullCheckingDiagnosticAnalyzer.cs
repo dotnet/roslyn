@@ -18,13 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string ArgumentNullExceptionName = $"{nameof(System)}.{nameof(ArgumentNullException)}";
+        private static readonly LocalizableResourceString s_resourceTitle = new(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
         public CSharpUseParameterNullCheckingDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseParameterNullCheckingId,
                    EnforceOnBuildValues.UseParameterNullChecking,
                    CSharpCodeStyleOptions.PreferParameterNullChecking,
                    LanguageNames.CSharp,
-                   new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+                   s_resourceTitle,
+                   s_resourceTitle)
         {
         }
 
