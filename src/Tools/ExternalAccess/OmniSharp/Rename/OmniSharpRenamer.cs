@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp
 {
     internal static class OmniSharpRenamer
     {
-        public static async Task<Solution> RenameSymbolAsync(
+        public readonly record struct RenameResult(Solution Solution, string? ErrorMessage);
+
+        public static async Task<RenameResult> RenameSymbolAsync(
             Solution solution,
             ISymbol symbol,
             string newName,
@@ -21,11 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp
             CancellationToken cancellationToken)
         {
             var resolution = await Renamer.RenameSymbolAsync(solution, symbol, newName, options.ToRenameOptions(), nonConflictSymbols, cancellationToken).ConfigureAwait(false);
-
-            if (resolution.ErrorMessage != null)
-                throw new ArgumentException(resolution.ErrorMessage);
-
-            return resolution.NewSolution;
+            return new RenameResult(resolution.NewSolution, resolution.ErrorMessage);
         }
     }
 }
