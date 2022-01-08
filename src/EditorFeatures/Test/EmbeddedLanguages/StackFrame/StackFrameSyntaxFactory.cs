@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public static readonly StackFrameToken GraveAccentToken = CreateToken(StackFrameKind.GraveAccentToken, "`");
         public static readonly StackFrameToken EOLToken = CreateToken(StackFrameKind.EndOfFrame, "");
         public static readonly StackFrameToken ColonToken = CreateToken(StackFrameKind.ColonToken, ":");
+        public static readonly StackFrameToken DollarToken = CreateToken(StackFrameKind.DollarToken, "$");
 
         public static readonly StackFrameTrivia AtTrivia = CreateTrivia(StackFrameKind.AtTrivia, "at ");
         public static readonly StackFrameTrivia LineTrivia = CreateTrivia(StackFrameKind.LineTrivia, "line ");
@@ -87,6 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         {
             return new StackFrameMethodDeclarationNode(memberAccessExpression, typeArguments, argumentList ?? ParameterList(OpenParenToken, CloseParenToken));
         }
+
+        public static StackFrameGeneratedNameNode GeneratedName(string name)
+            => new(LessThanToken, IdentifierToken(name), GreaterThanToken, DollarToken);
 
         public static StackFrameQualifiedNameNode QualifiedName(string s, StackFrameTrivia? leadingTrivia = null, StackFrameTrivia? trailingTrivia = null)
             => QualifiedName(s, leadingTrivia.ToImmutableArray(), trailingTrivia.ToImmutableArray());

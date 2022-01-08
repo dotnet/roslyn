@@ -406,6 +406,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 '`' => StackFrameKind.GraveAccentToken,
                 '\\' => StackFrameKind.BackslashToken,
                 '/' => StackFrameKind.ForwardSlashToken,
+                '$' => StackFrameKind.DollarToken,
                 _ => IsBlank(ch)
                     ? StackFrameKind.WhitespaceTrivia
                     : IsNumber(ch)

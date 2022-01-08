@@ -194,6 +194,40 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             };
     }
 
+    internal sealed class StackFrameGeneratedNameNode : StackFrameSimpleNameNode
+    {
+        public readonly StackFrameToken LessThanToken;
+        public readonly StackFrameToken GreaterThanToken;
+        public readonly StackFrameToken DollarToken;
+
+        internal override int ChildCount => 4;
+
+        public StackFrameGeneratedNameNode(StackFrameToken lessThanToken, StackFrameToken identifier, StackFrameToken greaterThanToken, StackFrameToken dollarToken)
+            : base(identifier, StackFrameKind.GeneratedIdentifier)
+        {
+            Debug.Assert(lessThanToken.Kind == StackFrameKind.LessThanToken);
+            Debug.Assert(greaterThanToken.Kind == StackFrameKind.GreaterThanToken);
+            Debug.Assert(dollarToken.Kind == StackFrameKind.DollarToken);
+
+            LessThanToken = lessThanToken;
+            GreaterThanToken = greaterThanToken;
+            DollarToken = dollarToken;
+        }
+
+        public override void Accept(IStackFrameNodeVisitor visitor)
+            => visitor.Visit(this);
+
+        internal override StackFrameNodeOrToken ChildAt(int index)
+            => index switch
+            {
+                0 => LessThanToken,
+                1 => Identifier,
+                2 => GreaterThanToken,
+                3 => DollarToken,
+                _ => throw new InvalidOperationException()
+            };
+    }
+
     /// <summary>
     /// Represents an array type declaration, such as string[,][]
     /// </summary>

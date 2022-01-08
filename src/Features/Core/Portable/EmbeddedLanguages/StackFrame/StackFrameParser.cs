@@ -191,13 +191,27 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return Result<StackFrameQualifiedNameNode>.Empty;
             }
 
+            // Check if this is a generated identifier
+            (var success, StackFrameSimpleNameNode? rhs) = TryScanGeneratedName();
+            if (!success)
+            {
+                return Result<StackFrameQualifiedNameNode>.Abort;
+            }
+
+            if (rhs is not null)
+            {
+                return new StackFrameQualifiedNameNode(lhs, dotToken, rhs);
+            }
+
+            // The identifier is not a generated name, parse as a normal identifier and check for generics
             var identifier = _lexer.TryScanIdentifier();
             if (!identifier.HasValue)
             {
                 return Result<StackFrameQualifiedNameNode>.Abort;
             }
 
-            var (success, rhs) = TryScanGenericTypeIdentifier(identifier.Value);
+            (success, rhs) = TryScanGenericTypeIdentifier(identifier.Value);
+
             if (!success)
             {
                 return Result<StackFrameQualifiedNameNode>.Abort;
@@ -205,6 +219,50 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             RoslynDebug.AssertNotNull(rhs);
             return new StackFrameQualifiedNameNode(lhs, dotToken, rhs);
+        }
+
+        /// <summary>
+        /// Generated names are unutterables made by the compiler. This can include async code, top level statement main, local
+        /// functions, anonymous types, etc. 
+        /// 
+        /// <code>
+        ///     ex: at Program.&lt;Main&gt;$
+        ///                    ^-------------- Beginning of generated name
+        ///                        ^---^------ Identifier "Main"
+        ///                             ^--^-- End of generated name with "&lt;$" 
+        /// </code>
+        /// </summary>
+        private Result<StackFrameGeneratedNameNode> TryScanGeneratedName()
+        {
+            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.LessThanToken, out var lessThanToken))
+            {
+                return Result<StackFrameGeneratedNameNode>.Empty;
+            }
+
+            if (_lexer.CurrentCharAsToken().Kind == StackFrameKind.LessThanToken)
+            {
+                // Nested generated names? Abort for now
+                // TODO: Actually handle this
+                return Result<StackFrameGeneratedNameNode>.Abort;
+            }
+
+            var identifier = _lexer.TryScanIdentifier();
+            if (!identifier.HasValue)
+            {
+                return Result<StackFrameGeneratedNameNode>.Abort;
+            }
+
+            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GreaterThanToken, out var greaterThanToken))
+            {
+                return Result<StackFrameGeneratedNameNode>.Abort;
+            }
+
+            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DollarToken, out var dollarToken))
+            {
+                return Result<StackFrameGeneratedNameNode>.Abort;
+            }
+
+            return new StackFrameGeneratedNameNode(lessThanToken, identifier.Value, greaterThanToken, dollarToken);
         }
 
         /// <summary>
