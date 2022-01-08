@@ -605,6 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitEnumeration:
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:
+                case ConversionKind.InterpolatedStringHandler:
 
                 // Not "standard".
                 case ConversionKind.ImplicitUserDefined:
@@ -634,6 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitConstant:
                 case ConversionKind.ImplicitPointerToVoid:
+                case ConversionKind.ImplicitPointer:
 
                 // Added to spec in Roslyn timeframe.
                 case ConversionKind.NullLiteral:

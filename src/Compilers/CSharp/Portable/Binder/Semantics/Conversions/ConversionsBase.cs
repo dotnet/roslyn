@@ -569,6 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:
+                case ConversionKind.InterpolatedStringHandler:
                     return true;
                 default:
                     return false;
