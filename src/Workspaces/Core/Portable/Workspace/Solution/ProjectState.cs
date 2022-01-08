@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public AnalyzerConfigOptions GetOptionsForSourcePath(string path)
-                => new AnalyzerConfigOptionsDictionary(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(path).AnalyzerOptions);
+                => new DictionaryAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(path).AnalyzerOptions);
         }
 
         private sealed class ProjectSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider

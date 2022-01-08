@@ -1525,7 +1525,7 @@ class NonGeneratedCode{0}
             analyzerConfigOptions = new AnalyzerConfigOptionsDictionary(ImmutableDictionary<string, string>.Empty.Add("generated_code", "auto"));
             analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
 
-            var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(analyzerConfigOptionsPerTreeBuilder.ToImmutable(), AnalyzerConfigOptionsDictionary.Empty);
+            var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(analyzerConfigOptionsPerTreeBuilder.ToImmutable(), DictionaryAnalyzerConfigOptions.Empty);
             var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
 
             // Verify no compiler diagnostics.

@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 // Really no idea where this is going, so bail
-                return Task.FromResult(AnalyzerConfigOptionsDictionary.EmptyDictionary);
+                return Task.FromResult(DictionaryAnalyzerConfigOptions.EmptyDictionary);
             }
         }
     }

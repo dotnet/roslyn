@@ -7,15 +7,15 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal sealed class AnalyzerConfigOptionsDictionary : AnalyzerConfigOptions
+    internal sealed class DictionaryAnalyzerConfigOptions : AnalyzerConfigOptions
     {
         internal static ImmutableDictionary<string, string> EmptyDictionary = ImmutableDictionary.Create<string, string>(KeyComparer);
 
-        public static AnalyzerConfigOptionsDictionary Empty { get; } = new AnalyzerConfigOptionsDictionary(EmptyDictionary);
+        public static DictionaryAnalyzerConfigOptions Empty { get; } = new DictionaryAnalyzerConfigOptions(EmptyDictionary);
 
         internal readonly ImmutableDictionary<string, string> Options;
 
-        public AnalyzerConfigOptionsDictionary(ImmutableDictionary<string, string> options)
+        public DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string> options)
             => Options = options;
 
         public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)

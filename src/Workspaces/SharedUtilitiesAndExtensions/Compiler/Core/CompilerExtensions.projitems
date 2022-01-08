@@ -556,7 +556,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DiagnosticCategory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IBuiltInAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IPragmaSuppressionsAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerConfigOptionsDictionary.cs">
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\DictionaryAnalyzerConfigOptions.cs">
       <Link>Diagnostics\AnalyzerConfigOptionsDictionary.cs</Link>
     </Compile>
   </ItemGroup>

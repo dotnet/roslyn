@@ -933,7 +933,7 @@ namespace Microsoft.CodeAnalysis
                 // Optimization: don't create a bunch of entries pointing to a no-op
                 if (options.Count > 0)
                 {
-                    Debug.Assert(existing.GetOptions(syntaxTree) == AnalyzerConfigOptionsDictionary.Empty);
+                    Debug.Assert(existing.GetOptions(syntaxTree) == DictionaryAnalyzerConfigOptions.Empty);
                     builder.Add(syntaxTree, new AnalyzerConfigOptionsDictionary(options));
                 }
                 i++;
@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis
                     // Optimization: don't create a bunch of entries pointing to a no-op
                     if (options.Count > 0)
                     {
-                        Debug.Assert(existing.GetOptions(additionalFiles[i]) == AnalyzerConfigOptionsDictionary.Empty);
+                        Debug.Assert(existing.GetOptions(additionalFiles[i]) == DictionaryAnalyzerConfigOptions.Empty);
                         builder.Add(additionalFiles[i], new AnalyzerConfigOptionsDictionary(options));
                     }
                 }

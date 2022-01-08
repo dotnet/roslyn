@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Options
         public static bool TryGetOption(this IEditorConfigStorageLocation editorConfigStorageLocation, AnalyzerConfigOptions analyzerConfigOptions, Type type, out object? value)
         {
             // This is a workaround until we have an API for enumeratings AnalyzerConfigOptions. See https://github.com/dotnet/roslyn/issues/41840
-            if (analyzerConfigOptions.GetType().FullName == typeof(AnalyzerConfigOptionsDictionary).FullName)
+            if (analyzerConfigOptions.GetType().FullName == typeof(DictionaryAnalyzerConfigOptions).FullName)
             {
-                var optionsField = analyzerConfigOptions.GetType().GetField(nameof(AnalyzerConfigOptionsDictionary.Options), BindingFlags.NonPublic | BindingFlags.Instance);
+                var optionsField = analyzerConfigOptions.GetType().GetField(nameof(DictionaryAnalyzerConfigOptions.Options), BindingFlags.NonPublic | BindingFlags.Instance);
                 Contract.ThrowIfNull(optionsField);
 
                 var options = optionsField.GetValue(analyzerConfigOptions);

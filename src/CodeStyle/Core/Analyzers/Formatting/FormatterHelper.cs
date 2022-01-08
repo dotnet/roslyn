@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var documentOptions = options ?? AnalyzerConfigOptionsDictionary.Empty;
+            var documentOptions = options ?? DictionaryAnalyzerConfigOptions.Empty;
             return syntaxTree.WithRootAndOptions(Format(root, syntaxFormattingService, spans, documentOptions, rules, cancellationToken), syntaxTree.Options);
         }
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return null;
             }
 
-            options ??= AnalyzerConfigOptionsDictionary.Empty;
+            options ??= DictionaryAnalyzerConfigOptions.Empty;
             rules ??= GetDefaultFormattingRules(syntaxFormattingService);
             spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
             return syntaxFormattingService.Format(node, spans, shouldUseFormattingSpanCollapse: false, options, rules, cancellationToken);
