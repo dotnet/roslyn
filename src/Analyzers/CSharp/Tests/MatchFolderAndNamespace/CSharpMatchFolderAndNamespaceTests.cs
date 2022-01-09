@@ -952,5 +952,30 @@ $@"namespace Test.Code
                 editorConfig: editorConfig,
                 defaultNamespace: defaultNamespace);
         }
+
+        [Fact]
+        public async Task InvalidRootNamespace_DocumentAtRoot_ChangeNamespace()
+        {
+            var editorConfig = @$"
+is_global=true
+build_property.ProjectDir = {Directory}
+build_property.RootNamespace = Test.Code # not an editorconfig comment even though it looks like one
+";
+
+            var folder = CreateFolderPath();
+
+            var code =
+$@"namespace Test.Code
+{{
+    class C {{ }}
+}}";
+
+            await RunTestAsync(
+                "Class1.cs",
+                fileContents: code,
+                directory: folder,
+                editorConfig: editorConfig,
+                defaultNamespace: "Invalid-Namespace");
+        }
     }
 }
