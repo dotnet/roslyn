@@ -446,25 +446,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 .ToList();
             AssertEx.SetEqual(expectedFields, members);
         }
-
-        /// <summary>
-        /// Useful for verifying the expected variables are hoisted for closures, async, and iterator methods.
-        /// Additionally this overload performs validations against the produced assembly.
-        /// </summary>
-        public void VerifySynthesizedFields(string containingTypeName, Func<IModuleSymbol, INamedTypeSymbol> findContainer, int arity, params string[] expectedFields)
-        {
-            VerifySynthesizedFields(containingTypeName, expectedFields);
-
-            CommonTestBase.RunValidators(this, assemblyValidator: null, symbolValidator: module =>
-            {
-                var container = findContainer(module);
-                AssertEx.NotNull(container);
-                Assert.Equal(arity, container.Arity);
-
-                var fields = container.GetMembers().OfType<IFieldSymbol>().Select(field => $"{field.Type} {field.Name}").ToArray();
-                AssertEx.SetEqual(expectedFields, fields);
-            });
-        }
-
     }
 }

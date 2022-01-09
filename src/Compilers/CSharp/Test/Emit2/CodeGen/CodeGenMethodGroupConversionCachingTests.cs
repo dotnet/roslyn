@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -31,8 +32,7 @@ class C
     static void Target() { Console.WriteLine(""FAIL""); }
     static void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS);
-        VerifyNoCacheContainers(verifier);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("C"));
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       30 (0x1e)
@@ -66,8 +66,7 @@ class C
     void Target() { Console.WriteLine(""FAIL""); }
     void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS);
-        VerifyNoCacheContainers(verifier);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("C"));
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
@@ -109,8 +108,7 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS);
-        VerifyNoCacheContainers(verifier);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("C"));
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
@@ -152,8 +150,7 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS);
-        VerifyNoCacheContainers(verifier);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("C"));
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       35 (0x23)
@@ -187,8 +184,7 @@ class C
     static int Target(int x) => 0;
 }
 ";
-        var verifier = CompileAndVerify(source);
-        VerifyNoCacheContainers(verifier);
+        var verifier = CompileAndVerify(source, symbolValidator: NoCacheContainers("C"));
         verifier.VerifyIL("C.Main", @"
 {
   // Code size      156 (0x9c)
@@ -258,8 +254,7 @@ class C
     static int Target(int x) => 0;
 }
 ";
-        var verifier = CompileAndVerify(source);
-        VerifyNoCacheContainers(verifier);
+        var verifier = CompileAndVerify(source, symbolValidator: NoCacheContainers("C"));
         verifier.VerifyIL("C.<>c.<Main>b__0_0", @"
 {
   // Code size      155 (0x9b)
@@ -323,8 +318,7 @@ class C
     static void Target() { }
 }
 ";
-        var verifier = CompileAndVerify(source);
-        VerifyNoCacheContainers(verifier);
+        var verifier = CompileAndVerify(source, symbolValidator: NoCacheContainers("C"));
         verifier.VerifyIL("C..cctor", @"
 {
   // Code size       18 (0x12)
@@ -354,8 +348,7 @@ struct C
     }
 }
 ";
-        var verifier = CompileAndVerify(source);
-        VerifyNoCacheContainers(verifier);
+        var verifier = CompileAndVerify(source, symbolValidator: NoCacheContainers("C"));
         verifier.VerifyIL("C..cctor", @"
 {
   // Code size       18 (0x12)
@@ -380,8 +373,7 @@ f();
 
 static void Target() { Console.WriteLine(""PASS""); }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS);
-        VerifyNoCacheContainers(verifier);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("Program"));
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       18 (0x12)
@@ -407,8 +399,7 @@ f();
 
 static void Target() { Console.WriteLine(""PASS""); }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS);
-        VerifyNoCacheContainers(verifier);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("Program"));
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       18 (0x12)
@@ -420,19 +411,6 @@ static void Target() { Console.WriteLine(""PASS""); }
   IL_0011:  ret
 }
 ");
-    }
-
-    private static void VerifyNoCacheContainers(CodeAnalysis.Test.Utilities.CompilationVerifier verifier)
-    {
-        Assert.DoesNotContain(verifier.TestData.Module!.GetAllSynthesizedMembers(), s => s.Key.Name.Contains(">O"));
-
-        RunValidators(verifier, assemblyValidator: null, symbolValidator: static iModule =>
-        {
-            var module = iModule.GetSymbol<ModuleSymbol>();
-            var types = module.GlobalNamespace.GetTypeMembers();
-
-            Assert.DoesNotContain(types, t => t.Name.Contains(">O"));
-        });
     }
 
     [Fact]
@@ -2746,10 +2724,9 @@ class D
     public static void Target<V>() { }
 }
 ";
-        var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("C<T>.<>O", ContainerFinder("C.<>O"), arity: 0
+        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<>O", arity: 0
             , "System.Action <0>__Target"
-        );
+        ));
         verifier.VerifyIL("C<T>.Test0", @"
 {
   // Code size       25 (0x19)
@@ -2790,10 +2767,9 @@ class C<T>
     static V Target<V>() { return default(V); }
 }
 ";
-        var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("C<T>.<>O", ContainerFinder("C.<>O"), arity: 0
+        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<>O", arity: 0
             , "System.Func<T> <0>__Target"
-        );
+        ));
         verifier.VerifyIL("C<T>.Test0", @"
 {
   // Code size       25 (0x19)
@@ -2835,10 +2811,9 @@ class C<T, V>
     static T Target() { return default(T); }
 }
 ";
-        var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("C<T, V>.<>O", ContainerFinder("C.<>O"), arity: 0
+        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<>O", arity: 0
             , "C<T, V>.MyFunc <0>__Target"
-        );
+        ));
         verifier.VerifyIL("C<T, V>.Test0", @"
 {
   // Code size       25 (0x19)
@@ -2885,10 +2860,9 @@ class D
     public static void Target<B>() { }
 }
 ";
-        var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("C.<Test>O__0_0<V>", ContainerFinder("C.<Test>O__0_0"), arity: 1
+        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<Test>O__0_0", arity: 1
             , "System.Action <0>__Target"
-        );
+        ));
         verifier.VerifyIL("C.Test<V>", @"
 {
   // Code size       49 (0x31)
@@ -2928,10 +2902,9 @@ class D<B>
     public static B Target<H>(H h) => default(B);
 }
 ";
-        var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("C<T>.<Test>O__0_0<V>", ContainerFinder("C.<Test>O__0_0"), arity: 1
+        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<Test>O__0_0", arity: 1
             , "System.Func<T, V> <0>__Target"
-        );
+        ));
         verifier.VerifyIL("C<T>.Test<V>", @"
 {
   // Code size       49 (0x31)
@@ -2973,10 +2946,9 @@ static class D
     public static B Target<B>(this int num) => default(B);
 }
 ";
-        var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("C<A, T>.<Test>O__2_0<V>", ContainerFinder("C.<Test>O__2_0"), arity: 1
+        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<Test>O__2_0", arity: 1
             , "C<A, T>.MyFunc <0>__Target"
-        );
+        ));
         verifier.VerifyIL("C<A, T>.Test<V>", @"
 {
   // Code size       49 (0x31)
@@ -3064,8 +3036,7 @@ static class E
     public static void Target5<N>(this N n) { }
 }
 ";
-        var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("A<T>.B<V>.<>O", ContainerFinder("A.B.<>O"), arity: 0
+        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("A.B.<>O", arity: 0
             , "System.Action<T> <0>__Target0"
             , "System.Action<T> <1>__Target1"
             , "System.Action<T> <2>__Target2"
@@ -3073,7 +3044,7 @@ static class E
             , "System.Action<T, V> <4>__Target4"
             , "System.Action<T> <5>__Target5"
             , "System.Action<V> <6>__Target5"
-        );
+        ));
         verifier.VerifyIL("A<T>.B<V>.Test0", @"
 {
   // Code size       49 (0x31)
@@ -3218,13 +3189,12 @@ static class E
     public static void Target3<V>(this C c) { }
 }
 ";
-        var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("C.<Test>O__0_0<T>", ContainerFinder("C.<Test>O__0_0"), arity: 1
+        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<Test>O__0_0", arity: 1
             , "System.Action <0>__Target0"
             , "System.Action<T> <1>__Target1"
             , "System.Action <2>__Target2"
             , "System.Action<C> <3>__Target3"
-        );
+        ));
         verifier.VerifyIL("C.Test<T>", @"
 {
   // Code size       97 (0x61)
@@ -3286,13 +3256,12 @@ static class E
     public static void Target3<T>(this C c) { }
 }
 ";
-        var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("E.<Test>O__0_0<T>", ContainerFinder("E.<Test>O__0_0"), arity: 1
+        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("E.<Test>O__0_0", arity: 1
             , "System.Action <0>__Target0"
             , "System.Action<T> <1>__Target1"
             , "System.Action <2>__Target2"
             , "System.Action<C> <3>__Target3"
-        );
+        ));
         verifier.VerifyIL("E.Test<T>", @"
 {
   // Code size       97 (0x61)
@@ -3361,10 +3330,9 @@ static class E
     }
 }
 ";
-        var verifier = CompileAndVerify(source);
-        verifier.VerifySynthesizedFields("E.<Test>O__0_0<T>", ContainerFinder("E.<Test>O__0_0"), arity: 1
+        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("E.<Test>O__0_0", arity: 1
             , "System.Action<T> <0>__Target"
-        );
+        ));
         verifier.VerifyIL("E.<Test>g__LF3|0_1<T, G>", @"
 {
   // Code size       30 (0x1e)
@@ -3443,11 +3411,10 @@ static class E
     static void Main(string[] args) { Test<int>(); }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS);
-        verifier.VerifySynthesizedFields("E.<Owner>O__0_0<T, G>", ContainerFinder("E.<Owner>O__0_0"), arity: 2
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: CacheContainer("E.<Owner>O__0_0", arity: 2
             , "System.Action <0>__LF2"
             , "System.Action <1>__LF2"
-        );
+        ));
         verifier.VerifyIL("E.<Test>g__LF1|0_1<T, G>", @"
 {
   // Code size       33 (0x21)
@@ -5684,5 +5651,28 @@ class Test
 ");
     }
 
-    private static Func<IModuleSymbol, INamedTypeSymbol> ContainerFinder(string name) => module => module.GlobalNamespace.GetMember<INamedTypeSymbol>(name);
+    private static Action<ModuleSymbol> CacheContainer(string typeName, int arity, params string[] expectedFields)
+    {
+        return module =>
+        {
+            var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>(typeName);
+            AssertEx.NotNull(container);
+            Assert.Equal(arity, container.Arity);
+
+            var fields = container.GetMembers().OfType<FieldSymbol>().Select(field => $"{field.Type.ToTestDisplayString()} {field.Name}").ToArray();
+            AssertEx.SetEqual(expectedFields, fields);
+        };
+    }
+
+    private static Action<ModuleSymbol> NoCacheContainers(string containingTypeName)
+    {
+        return module =>
+        {
+            var containingType = module.GlobalNamespace.GetMember<NamedTypeSymbol>(containingTypeName);
+            var nestedTypes = containingType.GetTypeMembers();
+
+            Assert.DoesNotContain(nestedTypes, t => t.Name.StartsWith("<") && t.Name.Contains(">O"));
+        };
+    }
+
 }
