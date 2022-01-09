@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -33,7 +32,7 @@ class C
     static void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
 }";
         var verifier = CompileAndVerify(source, expectedOutput: PASS);
-        Assert.Empty(verifier.TestData.Module!.GetAllSynthesizedMembers());
+        VerifyNoCacheContainers(verifier);
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       30 (0x1e)
@@ -68,7 +67,7 @@ class C
     void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
 }";
         var verifier = CompileAndVerify(source, expectedOutput: PASS);
-        Assert.Empty(verifier.TestData.Module!.GetAllSynthesizedMembers());
+        VerifyNoCacheContainers(verifier);
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
@@ -111,7 +110,7 @@ static class E
 }
 ";
         var verifier = CompileAndVerify(source, expectedOutput: PASS);
-        Assert.Empty(verifier.TestData.Module!.GetAllSynthesizedMembers());
+        VerifyNoCacheContainers(verifier);
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
@@ -154,7 +153,7 @@ static class E
 }
 ";
         var verifier = CompileAndVerify(source, expectedOutput: PASS);
-        Assert.Empty(verifier.TestData.Module!.GetAllSynthesizedMembers());
+        VerifyNoCacheContainers(verifier);
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       35 (0x23)
@@ -189,7 +188,7 @@ class C
 }
 ";
         var verifier = CompileAndVerify(source);
-        Assert.DoesNotContain(verifier.TestData.Module!.GetAllSynthesizedMembers(), s => s.Key.Name.Contains("<>O"));
+        VerifyNoCacheContainers(verifier);
         verifier.VerifyIL("C.Main", @"
 {
   // Code size      156 (0x9c)
@@ -260,7 +259,7 @@ class C
 }
 ";
         var verifier = CompileAndVerify(source);
-        Assert.DoesNotContain(verifier.TestData.Module!.GetAllSynthesizedMembers(), s => s.Key.Name.Contains("<>O"));
+        VerifyNoCacheContainers(verifier);
         verifier.VerifyIL("C.<>c.<Main>b__0_0", @"
 {
   // Code size      155 (0x9b)
@@ -325,7 +324,7 @@ class C
 }
 ";
         var verifier = CompileAndVerify(source);
-        Assert.Empty(verifier.TestData.Module!.GetAllSynthesizedMembers());
+        VerifyNoCacheContainers(verifier);
         verifier.VerifyIL("C..cctor", @"
 {
   // Code size       18 (0x12)
@@ -356,7 +355,7 @@ struct C
 }
 ";
         var verifier = CompileAndVerify(source);
-        Assert.Empty(verifier.TestData.Module!.GetAllSynthesizedMembers());
+        VerifyNoCacheContainers(verifier);
         verifier.VerifyIL("C..cctor", @"
 {
   // Code size       18 (0x12)
@@ -368,6 +367,72 @@ struct C
   IL_0011:  ret
 }
 ");
+    }
+
+    [Fact]
+    public void Not_TargetTypedNew0()
+    {
+        var source = @"
+using System;
+
+Action f = new(Target);
+f();
+
+static void Target() { Console.WriteLine(""PASS""); }
+";
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        VerifyNoCacheContainers(verifier);
+        verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.<<Main>$>g__Target|0_0()""
+  IL_0007:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_000c:  callvirt   ""void System.Action.Invoke()""
+  IL_0011:  ret
+}
+");
+    }
+
+    [Fact]
+    public void Not_TargetTypedNew1()
+    {
+        var source = @"
+#nullable enable
+using System;
+
+Action? f = new(Target);
+f();
+
+static void Target() { Console.WriteLine(""PASS""); }
+";
+        var verifier = CompileAndVerify(source, expectedOutput: PASS);
+        VerifyNoCacheContainers(verifier);
+        verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.<<Main>$>g__Target|0_0()""
+  IL_0007:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_000c:  callvirt   ""void System.Action.Invoke()""
+  IL_0011:  ret
+}
+");
+    }
+
+    private static void VerifyNoCacheContainers(CodeAnalysis.Test.Utilities.CompilationVerifier verifier)
+    {
+        Assert.DoesNotContain(verifier.TestData.Module!.GetAllSynthesizedMembers(), s => s.Key.Name.Contains(">O"));
+
+        RunValidators(verifier, assemblyValidator: null, symbolValidator: static iModule =>
+        {
+            var module = iModule.GetSymbol<ModuleSymbol>();
+            var types = module.GlobalNamespace.GetTypeMembers();
+
+            Assert.DoesNotContain(types, t => t.Name.Contains(">O"));
+        });
     }
 
     [Fact]

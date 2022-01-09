@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     return userFunction(input, token);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, token))
+#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
+                catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e, token))
+#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
                 {
                     throw new UserFunctionException(e);
                 }
@@ -50,7 +52,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     userAction(input);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
+                catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e))
+#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
                 {
                     throw new UserFunctionException(e);
                 }
@@ -65,7 +69,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     userAction(input1, input2);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
+                catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e))
+#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
                 {
                     throw new UserFunctionException(e);
                 }

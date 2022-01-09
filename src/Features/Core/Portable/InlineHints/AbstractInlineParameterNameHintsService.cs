@@ -41,10 +41,8 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
         protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
 
-        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, InlineParameterHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
-            var options = InlineParameterHintsOptions.From(document.Project);
-            var displayOptions = SymbolDescriptionOptions.From(document.Project);
             var displayAllOverride = _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
 
             var enabledForParameters = displayAllOverride || options.EnabledForParameters;
