@@ -6077,8 +6077,9 @@ class Test
         return module =>
         {
             var containingType = module.GlobalNamespace.GetMember<NamedTypeSymbol>(containingTypeName);
-            var nestedTypes = containingType.GetTypeMembers();
+            AssertEx.NotNull(containingType);
 
+            var nestedTypes = containingType.GetTypeMembers();
             Assert.DoesNotContain(nestedTypes, t => t.Name.StartsWith("<") && t.Name.Contains(">O"));
         };
     }
