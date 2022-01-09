@@ -16,10 +16,8 @@ using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
-    internal static class WatsonReporter
+    internal static class FaultReporter
     {
-        private static Dictionary<string, string>? s_capturedFileContent;
-
         private static readonly object _guard = new();
         private static ImmutableArray<TelemetrySession> s_telemetrySessions = ImmutableArray<TelemetrySession>.Empty;
         private static ImmutableArray<TraceSource> s_loggers = ImmutableArray<TraceSource>.Empty;
@@ -28,21 +26,21 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         public static void InitializeFatalErrorHandlers()
         {
-            // Set both handlers to non-fatal Watson. Never fail-fast the ServiceHub process.
-            // Any exception that is not recovered from shall be propagated and communicated to the client.
-            var nonFatalHandler = WatsonReporter.ReportNonFatal;
-            var fatalHandler = new Action<Exception>(static (exception) => ReportNonFatal(exception, forceDump: false));
+            FatalError.Handler = static (exception, severity, forceDump) => ReportFault(exception, ConvertSeverity(severity), forceDump);
+            FatalError.HandlerIsNonFatal = true;
+            FatalError.CopyHandlerTo(typeof(Compilation).Assembly);
+        }
 
-            FatalError.Handler = fatalHandler;
-            FatalError.NonFatalHandler = nonFatalHandler;
-
-            // We also must set the handlers for the compiler layer as well.
-            var compilerAssembly = typeof(Compilation).Assembly;
-            var compilerFatalErrorType = compilerAssembly.GetType(typeof(FatalError).FullName, throwOnError: true)!;
-            var compilerFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public)!;
-            var compilerNonFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.NonFatalHandler), BindingFlags.Static | BindingFlags.Public)!;
-            compilerFatalErrorHandlerProperty.SetValue(null, fatalHandler);
-            compilerNonFatalErrorHandlerProperty.SetValue(null, nonFatalHandler);
+        private static FaultSeverity ConvertSeverity(ErrorSeverity severity)
+        {
+            return severity switch
+            {
+                ErrorSeverity.Uncategorized => FaultSeverity.Uncategorized,
+                ErrorSeverity.Diagnostic => FaultSeverity.Diagnostic,
+                ErrorSeverity.General => FaultSeverity.General,
+                ErrorSeverity.Critical => FaultSeverity.Critical,
+                _ => FaultSeverity.Uncategorized
+            };
         }
 
         public static void RegisterTelemetrySesssion(TelemetrySession session)
@@ -83,11 +81,20 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <param name="exception">Exception that triggered this non-fatal error</param>
         /// <param name="forceDump">Force a dump to be created, even if the telemetry system is not
         /// requesting one; we will still do a client-side limit to avoid sending too much at once.</param>
-        public static void ReportNonFatal(Exception exception, bool forceDump)
+        public static void ReportFault(Exception exception, FaultSeverity severity, bool forceDump)
         {
             try
             {
-                var emptyCallstack = exception.SetCallstackIfEmpty();
+                if (exception is AggregateException aggregateException)
+                {
+                    // We (potentially) have multiple exceptions; let's just report each of them
+                    foreach (var innerException in aggregateException.Flatten().InnerExceptions)
+                        ReportFault(innerException, severity, forceDump);
+
+                    return;
+                }
+
+                exception.SetCallstackIfEmpty();
                 var currentProcess = Process.GetCurrentProcess();
 
                 // write the exception to a log file:
@@ -100,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 var faultEvent = new FaultEvent(
                     eventName: FunctionId.NonFatalWatson.GetEventName(),
                     description: GetDescription(exception),
-                    FaultSeverity.Diagnostic,
+                    severity,
                     exceptionObject: exception,
                     gatherEventDetails: faultUtility =>
                     {
@@ -126,11 +133,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                         // See https://aka.ms/roslynnfwdocs for more details
                         return 0;
                     });
-
-                // add extra bucket parameters to bucket better in NFW
-                // we do it here so that it gets bucketted better in both
-                // watson and telemetry. 
-                faultEvent.SetExtraParameters(exception, emptyCallstack);
 
                 foreach (var session in s_telemetrySessions)
                 {
@@ -235,35 +237,5 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
             return paths;
         }
-
-        private static void CaptureFilesInMemory(IEnumerable<string> paths)
-        {
-            s_capturedFileContent = new Dictionary<string, string>();
-
-            foreach (var path in paths)
-            {
-                try
-                {
-                    s_capturedFileContent[path] = File.ReadAllText(path);
-                }
-                catch
-                {
-                    // ignore file that can't be read
-                }
-            }
-        }
-    }
-
-    internal enum WatsonSeverity
-    {
-        /// <summary>
-        /// Indicate that this watson is informative and not urgent
-        /// </summary>
-        Default,
-
-        /// <summary>
-        /// Indicate that this watson is critical and need to be addressed soon
-        /// </summary>
-        Critical,
     }
 }

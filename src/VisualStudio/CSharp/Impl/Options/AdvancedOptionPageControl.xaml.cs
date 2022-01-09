@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 return optionStore.GetOption(SourceGeneratedFileManager.Options.EnableOpeningInWorkspaceFeatureFlag);
             });
 
-            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
+            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.Metadata.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
 
             BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptions.Metadata.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.CSharp);
             BindToOption(at_the_end, ImplementTypeOptions.Metadata.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd, LanguageNames.CSharp);

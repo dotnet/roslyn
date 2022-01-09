@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 telemetryService.InitializeTelemetrySession(telemetrySession);
                 telemetryService.RegisterUnexpectedExceptionLogger(TraceLogger);
-                WatsonReporter.InitializeFatalErrorHandlers();
+                FaultReporter.InitializeFatalErrorHandlers();
 
                 // log telemetry that service hub started
                 RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m =>
