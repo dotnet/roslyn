@@ -452,5 +452,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                             IdentifierToken("args")))
                     )
                 );
+
+        [Fact]
+        public void TestLocalMethod()
+            => Verify(@"C.<M>g__Local|0_0()",
+                methodDeclaration: MethodDeclaration(
+                    QualifiedName(
+                        Identifier("C"),
+                        LocalMethod(
+                            GeneratedName("M", endWithDollar: false),
+                            "Local",
+                            "0_0"))
+                    )
+                );
     }
 }

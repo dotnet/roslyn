@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
 
         /// <summary>
-        /// Returns a number token with the <see cref="StackFrameKind.LineTrivia"/> and remainging <see cref="StackFrameKind.SkippedTextTrivia"/>
+        /// Returns a number token with the <see cref="StackFrameKind.LineTrivia"/> and remaining <see cref="StackFrameKind.SkippedTextTrivia"/>
         /// attached to it. 
         /// </summary>
         /// <returns></returns>
@@ -288,6 +288,65 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return CreateToken(StackFrameKind.NumberToken, GetSubSequenceToCurrentPos(start));
         }
 
+        /// <summary>
+        /// Scans a form similar to g__, where g is a GeneratedNameKind (a single character)
+        /// and identifier is valid identifier characters as with <see cref="TryScanIdentifier()"/>
+        /// </summary>
+        public Result<StackFrameToken> TryScanRequiredGeneratedNameSeparator()
+        {
+            var start = Position;
+            if (IsCharacter(CurrentChar))
+            {
+                Position++;
+            }
+            else
+            {
+                return Result<StackFrameToken>.Abort;
+            }
+
+            if (IsStringAtPosition("__"))
+            {
+                Position += 2;
+            }
+            else
+            {
+                return Result<StackFrameToken>.Abort;
+            }
+
+            return CreateToken(StackFrameKind.GeneratedNameSeparatorToken, GetSubSequenceToCurrentPos(start));
+        }
+
+        /// <summary>
+        /// In a generated name for local functions the final portion is {numeric}_{numeric}
+        /// </summary>
+        public Result<StackFrameToken> TryScanRequiredGeneratedNameSuffix()
+        {
+            var start = Position;
+
+            var n1 = TryScanNumbers();
+            if (!n1.HasValue)
+            {
+                return Result<StackFrameToken>.Abort;
+            }
+
+            if (IsStringAtPosition("_"))
+            {
+                Position++;
+            }
+            else
+            {
+                return Result<StackFrameToken>.Abort;
+            }
+
+            var n2 = TryScanNumbers();
+            if (!n2.HasValue)
+            {
+                return Result<StackFrameToken>.Abort;
+            }
+
+            return CreateToken(StackFrameKind.GeneratedNameSuffixToken, GetSubSequenceToCurrentPos(start));
+        }
+
         public static bool IsBlank(VirtualChar ch)
         {
             // List taken from the native regex parser.
@@ -303,6 +362,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                     return false;
             }
         }
+
+        private static bool IsCharacter(VirtualChar ch)
+            => ch.Value switch
+            {
+                (>= 'a' and <= 'z') or
+                (>= 'A' and <= 'Z') => true,
+
+                _ => false
+            };
 
         public static StackFrameToken CreateToken(StackFrameKind kind, VirtualCharSequence virtualChars)
             => CreateToken(kind, ImmutableArray<StackFrameTrivia>.Empty, virtualChars);
@@ -407,6 +475,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 '\\' => StackFrameKind.BackslashToken,
                 '/' => StackFrameKind.ForwardSlashToken,
                 '$' => StackFrameKind.DollarToken,
+                '|' => StackFrameKind.PipeToken,
                 _ => IsBlank(ch)
                     ? StackFrameKind.WhitespaceTrivia
                     : IsNumber(ch)

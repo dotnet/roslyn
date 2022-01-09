@@ -194,20 +194,27 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             };
     }
 
-    internal sealed class StackFrameGeneratedNameNode : StackFrameSimpleNameNode
+    internal abstract class StackFrameSimpleGeneratedNameNode : StackFrameSimpleNameNode
+    {
+        protected StackFrameSimpleGeneratedNameNode(StackFrameToken identifier, StackFrameKind kind) : base(identifier, kind)
+        {
+        }
+    }
+
+    internal sealed class StackFrameGeneratedMethodNameNode : StackFrameSimpleGeneratedNameNode
     {
         public readonly StackFrameToken LessThanToken;
         public readonly StackFrameToken GreaterThanToken;
-        public readonly StackFrameToken DollarToken;
+        public readonly StackFrameToken? DollarToken;
 
         internal override int ChildCount => 4;
 
-        public StackFrameGeneratedNameNode(StackFrameToken lessThanToken, StackFrameToken identifier, StackFrameToken greaterThanToken, StackFrameToken dollarToken)
+        public StackFrameGeneratedMethodNameNode(StackFrameToken lessThanToken, StackFrameToken identifier, StackFrameToken greaterThanToken, StackFrameToken? dollarToken)
             : base(identifier, StackFrameKind.GeneratedIdentifier)
         {
             Debug.Assert(lessThanToken.Kind == StackFrameKind.LessThanToken);
             Debug.Assert(greaterThanToken.Kind == StackFrameKind.GreaterThanToken);
-            Debug.Assert(dollarToken.Kind == StackFrameKind.DollarToken);
+            Debug.Assert(!dollarToken.HasValue || dollarToken.Value.Kind == StackFrameKind.DollarToken);
 
             LessThanToken = lessThanToken;
             GreaterThanToken = greaterThanToken;
@@ -223,9 +230,52 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 0 => LessThanToken,
                 1 => Identifier,
                 2 => GreaterThanToken,
-                3 => DollarToken,
+                3 => DollarToken.HasValue ? DollarToken.Value : null,
                 _ => throw new InvalidOperationException()
             };
+    }
+
+    internal sealed class StackFrameLocalMethodNameNode : StackFrameSimpleGeneratedNameNode
+    {
+        internal readonly StackFrameGeneratedMethodNameNode EncapsulatingMethod;
+        internal readonly StackFrameToken GeneratedNameSeparator;
+        internal readonly StackFrameToken PipeToken;
+        internal readonly StackFrameToken Suffix;
+
+        internal override int ChildCount => 5;
+
+        public StackFrameLocalMethodNameNode(
+            StackFrameGeneratedMethodNameNode encapsulatngMethod,
+            StackFrameToken generatedNameSeparator,
+            StackFrameToken identifier,
+            StackFrameToken pipeToken,
+            StackFrameToken suffix)
+            : base(identifier, StackFrameKind.LocalMethodIdentifier)
+        {
+            Debug.Assert(generatedNameSeparator.Kind == StackFrameKind.GeneratedNameSeparatorToken);
+            Debug.Assert(identifier.Kind == StackFrameKind.IdentifierToken);
+            Debug.Assert(pipeToken.Kind == StackFrameKind.PipeToken);
+            Debug.Assert(suffix.Kind == StackFrameKind.GeneratedNameSuffixToken);
+
+            EncapsulatingMethod = encapsulatngMethod;
+            GeneratedNameSeparator = generatedNameSeparator;
+            PipeToken = pipeToken;
+            Suffix = suffix;
+        }
+
+        public override void Accept(IStackFrameNodeVisitor visitor)
+            => visitor.Visit(this);
+
+        internal override StackFrameNodeOrToken ChildAt(int index)
+        => index switch
+        {
+            0 => EncapsulatingMethod,
+            1 => GeneratedNameSeparator,
+            2 => Identifier,
+            3 => PipeToken,
+            4 => Suffix,
+            _ => throw new InvalidOperationException()
+        };
     }
 
     /// <summary>
