@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             // The root namespace can come directly from the project file name and/or
             // editor config file, so if its not valid we don't want to use it.
-            if (rootNamespace is not null &&
+            if (rootNamespace is { Length: > 0 } &&
                 !rootNamespace.Split(NamespaceSeparatorArray).All(syntaxFacts.IsValidIdentifier))
             {
                 rootNamespace = null;
