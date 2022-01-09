@@ -259,15 +259,18 @@ class C
     public static void Main(string[] args)
     {
         Expression<Func<int, Func<int, int>>> e = x => Target;
+        Console.WriteLine(e);
     }
 
     static int Target(int x) => 0;
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: NoCacheContainers("C"));
+        var verifier = CompileAndVerify(source
+            , expectedOutput: "x => Convert(Int32 Target(Int32).CreateDelegate(System.Func`2[System.Int32,System.Int32], null), Func`2)"
+            , symbolValidator: NoCacheContainers("C"));
         verifier.VerifyIL("C.Main", @"
 {
-  // Code size      156 (0x9c)
+  // Code size      160 (0xa0)
   .maxstack  7
   .locals init (System.Linq.Expressions.ParameterExpression V_0)
   IL_0000:  ldtoken    ""int""
@@ -312,8 +315,8 @@ class C
   IL_0093:  ldloc.0
   IL_0094:  stelem.ref
   IL_0095:  call       ""System.Linq.Expressions.Expression<System.Func<int, System.Func<int, int>>> System.Linq.Expressions.Expression.Lambda<System.Func<int, System.Func<int, int>>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
-  IL_009a:  pop
-  IL_009b:  ret
+  IL_009a:  call       ""void System.Console.WriteLine(object)""
+  IL_009f:  ret
 }
 ");
     }
@@ -329,12 +332,15 @@ class C
     public static void Main(string[] args)
     {
         Func<int, Expression<Func<int, Func<int, int>>>> f = x => y => Target;
+        Console.WriteLine(f(0));
     }
 
     static int Target(int x) => 0;
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: NoCacheContainers("C"));
+        var verifier = CompileAndVerify(source
+            , expectedOutput: "y => Convert(Int32 Target(Int32).CreateDelegate(System.Func`2[System.Int32,System.Int32], null), Func`2)"
+            , symbolValidator: NoCacheContainers("C"));
         verifier.VerifyIL("C.<>c.<Main>b__0_0", @"
 {
   // Code size      155 (0x9b)
