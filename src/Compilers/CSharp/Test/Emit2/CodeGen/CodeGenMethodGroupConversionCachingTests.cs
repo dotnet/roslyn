@@ -32,7 +32,7 @@ class C
     static void Target() { Console.WriteLine(""FAIL""); }
     static void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("C"));
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       30 (0x1e)
@@ -66,7 +66,7 @@ class C
     void Target() { Console.WriteLine(""FAIL""); }
     void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("C"));
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
@@ -104,7 +104,7 @@ class C
     void Target() { Console.WriteLine(""FAIL""); }
     void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("C"));
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
@@ -146,7 +146,7 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("C"));
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
@@ -188,7 +188,7 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("C"));
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
@@ -230,7 +230,7 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("C"));
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       35 (0x23)
@@ -271,7 +271,7 @@ class C
 #else
             , expectedOutput: "x => Convert(Int32 Target(Int32).CreateDelegate(System.Func`2[System.Int32,System.Int32], null), Func`2)"
 #endif
-            , symbolValidator: NoCacheContainers("C"));
+            , symbolValidator: VerifyNoCacheContainersIn("C"));
         verifier.VerifyIL("C.Main", @"
 {
   // Code size      160 (0xa0)
@@ -348,7 +348,7 @@ class C
 #else
             , expectedOutput: "y => Convert(Int32 Target(Int32).CreateDelegate(System.Func`2[System.Int32,System.Int32], null), Func`2)"
 #endif
-            , symbolValidator: NoCacheContainers("C"));
+            , symbolValidator: VerifyNoCacheContainersIn("C"));
         verifier.VerifyIL("C.<>c.<Main>b__0_0", @"
 {
   // Code size      155 (0x9b)
@@ -412,7 +412,7 @@ class C
     static void Target() { }
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: NoCacheContainers("C"));
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyNoCacheContainersIn("C"));
         verifier.VerifyIL("C..cctor", @"
 {
   // Code size       18 (0x12)
@@ -442,7 +442,7 @@ struct C
     }
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: NoCacheContainers("C"));
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyNoCacheContainersIn("C"));
         verifier.VerifyIL("C..cctor", @"
 {
   // Code size       18 (0x12)
@@ -467,7 +467,7 @@ f();
 
 static void Target() { Console.WriteLine(""PASS""); }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("Program"));
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("Program"));
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       18 (0x12)
@@ -493,7 +493,7 @@ f();
 
 static void Target() { Console.WriteLine(""PASS""); }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("Program"));
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("Program"));
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
   // Code size       18 (0x12)
@@ -2818,7 +2818,7 @@ class D
     public static void Target<V>() { }
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<>O", arity: 0
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<>O", arity: 0
             , "System.Action <0>__Target"
         ));
         verifier.VerifyIL("C<T>.Test0", @"
@@ -2861,7 +2861,7 @@ class C<T>
     static V Target<V>() { return default(V); }
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<>O", arity: 0
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<>O", arity: 0
             , "System.Func<T> <0>__Target"
         ));
         verifier.VerifyIL("C<T>.Test0", @"
@@ -2905,7 +2905,7 @@ class C<T, V>
     static T Target() { return default(T); }
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<>O", arity: 0
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<>O", arity: 0
             , "C<T, V>.MyFunc <0>__Target"
         ));
         verifier.VerifyIL("C<T, V>.Test0", @"
@@ -2954,7 +2954,7 @@ class D
     public static void Target<B>() { }
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<Test>O__0_0", arity: 1
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<Test>O__0_0", arity: 1
             , "System.Action <0>__Target"
         ));
         verifier.VerifyIL("C.Test<V>", @"
@@ -2996,7 +2996,7 @@ class D<B>
     public static B Target<H>(H h) => default(B);
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<Test>O__0_0", arity: 1
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<Test>O__0_0", arity: 1
             , "System.Func<T, V> <0>__Target"
         ));
         verifier.VerifyIL("C<T>.Test<V>", @"
@@ -3040,7 +3040,7 @@ static class D
     public static B Target<B>(this int num) => default(B);
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<Test>O__2_0", arity: 1
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<Test>O__2_0", arity: 1
             , "C<A, T>.MyFunc <0>__Target"
         ));
         verifier.VerifyIL("C<A, T>.Test<V>", @"
@@ -3130,7 +3130,7 @@ static class E
     public static void Target5<N>(this N n) { }
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("A.B.<>O", arity: 0
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("A.B.<>O", arity: 0
             , "System.Action<T> <0>__Target0"
             , "System.Action<T> <1>__Target1"
             , "System.Action<T> <2>__Target2"
@@ -3283,7 +3283,7 @@ static class E
     public static void Target3<V>(this C c) { }
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<Test>O__0_0", arity: 1
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<Test>O__0_0", arity: 1
             , "System.Action <0>__Target0"
             , "System.Action<T> <1>__Target1"
             , "System.Action <2>__Target2"
@@ -3350,7 +3350,7 @@ static class E
     public static void Target3<T>(this C c) { }
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("E.<Test>O__0_0", arity: 1
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("E.<Test>O__0_0", arity: 1
             , "System.Action <0>__Target0"
             , "System.Action<T> <1>__Target1"
             , "System.Action <2>__Target2"
@@ -3424,7 +3424,7 @@ static class E
     }
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("E.<Test>O__0_0", arity: 1
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("E.<Test>O__0_0", arity: 1
             , "System.Action<T> <0>__Target"
         ));
         verifier.VerifyIL("E.<Test>g__LF3|0_1<T, G>", @"
@@ -3505,7 +3505,7 @@ static class E
     static void Main(string[] args) { Test<int>(); }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: CacheContainer("E.<Owner>O__0_0", arity: 2
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyCacheContainer("E.<Owner>O__0_0", arity: 2
             , "System.Action <0>__LF2"
             , "System.Action <1>__LF2"
         ));
@@ -3564,8 +3564,8 @@ static void Target<T>() { }
 ";
         var verifier = CompileAndVerify(source, symbolValidator: static module =>
         {
-            CacheContainer("Program.<Owner>O__0_0", arity: 1, "System.Action <0>__Target")(module);
-            CacheContainer("Program.<Owner>O__0_1", arity: 1, "System.Action <0>__Target")(module);
+            VerifyCacheContainer("Program.<Owner>O__0_0", arity: 1, "System.Action <0>__Target")(module);
+            VerifyCacheContainer("Program.<Owner>O__0_1", arity: 1, "System.Action <0>__Target")(module);
         });
         verifier.VerifyIL("Program.<<Main>$>g__Owner|0_0<T>", @"
 {
@@ -3614,8 +3614,8 @@ class C
 ";
         var verifier = CompileAndVerify(source, symbolValidator: static module =>
         {
-            CacheContainer("C.<Owner>O__0_0", arity: 1, "System.Action <0>__Target")(module);
-            CacheContainer("C.<Owner>O__1_0", arity: 1, "System.Action <0>__Target")(module);
+            VerifyCacheContainer("C.<Owner>O__0_0", arity: 1, "System.Action <0>__Target")(module);
+            VerifyCacheContainer("C.<Owner>O__1_0", arity: 1, "System.Action <0>__Target")(module);
         });
         verifier.VerifyIL("C.Owner<T>(int)", @"
 {
@@ -3667,8 +3667,8 @@ class C
 ";
         var verifier = CompileAndVerify(source, symbolValidator: static module =>
         {
-            CacheContainer("C.<Owner>O__0_0", arity: 1, "System.Action <0>__Target")(module);
-            CacheContainer("C.<Owner>O__1_0", arity: 1, "System.Action <0>__Target")(module);
+            VerifyCacheContainer("C.<Owner>O__0_0", arity: 1, "System.Action <0>__Target")(module);
+            VerifyCacheContainer("C.<Owner>O__1_0", arity: 1, "System.Action <0>__Target")(module);
         });
         verifier.VerifyIL("C.Owner<T>(int)", @"
 {
@@ -3713,7 +3713,7 @@ void F1()
     static void Target() { }
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("Program.<>O", arity: 0
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("Program.<>O", arity: 0
             , "System.Action <0>__Target"
             , "System.Action <1>__Target"
         ));
@@ -3769,7 +3769,7 @@ class C
     }
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<Owner>O__0_0", arity: 1
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<Owner>O__0_0", arity: 1
             , "System.Action <0>__Target"
             , "System.Action <1>__Target"
         ));
@@ -3827,7 +3827,7 @@ class E<T>
     public static void Target(string i) { }
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<Owner>O__0_0", arity: 1
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<Owner>O__0_0", arity: 1
             , "System.Action<System.Int32> <0>__Target"
             , "System.Action<System.String> <1>__Target"
         ));
@@ -3877,7 +3877,7 @@ class C
     }
 }
 ";
-        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<>O", arity: 0
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<>O", arity: 0
             , "System.Action <0>__Target"
             , "System.Action <1>__Target"
         ));
@@ -6059,7 +6059,7 @@ class Test
 ");
     }
 
-    private static Action<ModuleSymbol> CacheContainer(string typeName, int arity, params string[] expectedFields)
+    private static Action<ModuleSymbol> VerifyCacheContainer(string typeName, int arity, params string[] expectedFields)
     {
         return module =>
         {
@@ -6072,7 +6072,7 @@ class Test
         };
     }
 
-    private static Action<ModuleSymbol> NoCacheContainers(string containingTypeName)
+    private static Action<ModuleSymbol> VerifyNoCacheContainersIn(string containingTypeName)
     {
         return module =>
         {
