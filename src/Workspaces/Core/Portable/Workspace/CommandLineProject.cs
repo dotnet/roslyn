@@ -49,8 +49,23 @@ namespace Microsoft.CodeAnalysis
             var xmlFileResolver = new XmlFileResolver(commandLineArguments.BaseDirectory);
             var strongNameProvider = new DesktopStrongNameProvider(commandLineArguments.KeyFileSearchPaths);
 
-            // resolve all metadata references.
-            var boundMetadataReferences = commandLineArguments.ResolveMetadataReferences(commandLineMetadataReferenceResolver);
+            // Resolve all metadata references.
+            //
+            // In the command line compiler, it's entirely possible that duplicate reference paths may appear in this list; in the compiler
+            // each MetadataReference object is a distinct instance, and the deduplication is ultimately performed in the ReferenceManager
+            // once the Compilation actually starts to read metadata. In this code however,  we're resolving with the IMetadataService, which
+            // has a default implementation to cache and return the same MetadataReference instance for a duplicate. This means duplicate
+            // reference path will create duplicate MetadataReference objects, which is disallowed by ProjectInfo.Create -- even though the
+            // compiler eventually would have dealt with it just fine. It's reasonable the Workspace APIs disallow duplicate reference objects
+            // since it makes the semantics of APIs like Add/RemoveMetadataReference tricky. But since we want to not break for command lines
+            // with duplicate references, we'll do a .Distinct() here, and let the Compilation do any further deduplication
+            // that isn't handled by this explicit instance check. This does mean that the Compilations produced through this API
+            // won't produce the "duplicate metadata reference" diagnostic like the real command line compiler would, but that's probably fine.
+            //
+            // Alternately, we could change the IMetadataService behavior to simply not cache, but that could theoretically break other
+            // callers that would now see references across projects not be the same, or hurt performance for users of MSBuildWorkspace. Given
+            // this is an edge case, it's not worth the larger fix here.
+            var boundMetadataReferences = commandLineArguments.ResolveMetadataReferences(commandLineMetadataReferenceResolver).Distinct().ToList();
             var unresolvedMetadataReferences = boundMetadataReferences.FirstOrDefault(r => r is UnresolvedMetadataReference);
             if (unresolvedMetadataReferences != null)
             {

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         d => GetSnippetsForDocumentAsync(d, position, cancellationToken)).ConfigureAwait(false));
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
