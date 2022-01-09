@@ -88,6 +88,44 @@ class C
     }
 
     [Fact]
+    public void Not_Conversions_Instance()
+    {
+        var source = @"
+using System;
+delegate void D();
+class C
+{
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.Invoke(c.Target, c.Target);
+    }
+
+    void Target() { Console.WriteLine(""FAIL""); }
+    void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
+}";
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("C"));
+        verifier.VerifyIL("C.Main", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  4
+  .locals init (C V_0) //c
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldftn      ""void C.Target()""
+  IL_000e:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_0013:  ldloc.0
+  IL_0014:  ldftn      ""void C.Target()""
+  IL_001a:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_001f:  callvirt   ""void C.Invoke(D, D)""
+  IL_0024:  ret
+}
+");
+    }
+
+    [Fact]
     public void Not_DelegateCreations_InstanceExtensionMethod()
     {
         var source = @"
@@ -99,6 +137,48 @@ class C
     {
         var c = new C();
         c.Invoke(new D(c.Target), new D(c.Target));
+    }
+
+    void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
+}
+static class E
+{
+    public static void Target(this C that) { Console.WriteLine(""FAIL""); }
+}
+";
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: NoCacheContainers("C"));
+        verifier.VerifyIL("C.Main", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  4
+  .locals init (C V_0) //c
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldftn      ""void E.Target(C)""
+  IL_000e:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_0013:  ldloc.0
+  IL_0014:  ldftn      ""void E.Target(C)""
+  IL_001a:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_001f:  callvirt   ""void C.Invoke(D, D)""
+  IL_0024:  ret
+}
+");
+    }
+
+    [Fact]
+    public void Not_Conversions_InstanceExtensionMethod()
+    {
+        var source = @"
+using System;
+delegate void D();
+class C
+{
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.Invoke(c.Target, c.Target);
     }
 
     void Invoke(D x, D y) { Console.Write(Object.ReferenceEquals(x, y) ? ""FAIL"" : ""PASS""); }
