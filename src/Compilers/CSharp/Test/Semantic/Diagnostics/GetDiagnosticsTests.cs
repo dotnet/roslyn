@@ -493,7 +493,7 @@ class C
             verifyDiagnostics(analyzerDiagnostics);
 
             // Verify CS0168 reported by CSharpCompilerDiagnosticAnalyzer is not affected by "dotnet_analyzer_diagnostic = none"
-            var analyzerConfigOptions = new AnalyzerConfigOptionsDictionary(ImmutableDictionary<string, string>.Empty.Add("dotnet_analyzer_diagnostic.severity", "none"));
+            var analyzerConfigOptions = new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("dotnet_analyzer_diagnostic.severity", "none"));
             var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(
                 ImmutableDictionary<object, AnalyzerConfigOptions>.Empty.Add(compilation.SyntaxTrees.Single(), analyzerConfigOptions),
                 DictionaryAnalyzerConfigOptions.Empty);
@@ -539,7 +539,7 @@ class C
                 AnalyzerOptions analyzerOptions;
                 if (options.HasValue)
                 {
-                    var analyzerConfigOptions = new AnalyzerConfigOptionsDictionary(ImmutableDictionary<string, string>.Empty.Add(options.Value.key, options.Value.value));
+                    var analyzerConfigOptions = new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add(options.Value.key, options.Value.value));
                     var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(
                         ImmutableDictionary<object, AnalyzerConfigOptions>.Empty.Add(compilation.SyntaxTrees.Single(), analyzerConfigOptions),
                         DictionaryAnalyzerConfigOptions.Empty);
