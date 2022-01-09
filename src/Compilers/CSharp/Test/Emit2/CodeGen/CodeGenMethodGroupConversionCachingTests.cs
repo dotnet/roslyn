@@ -3538,6 +3538,370 @@ static class E
     }
 
     [Fact]
+    public void NameAmbiguity_Containers0()
+    {
+        var source = @"
+void Owner<T>(int i)
+{
+    var f = Target<T>;
+}
+void X()
+{
+    void Owner<T>(string s)
+    {
+        var f = Target<T>;
+    }
+}
+static void Target<T>() { }
+";
+        var verifier = CompileAndVerify(source, symbolValidator: static module =>
+        {
+            CacheContainer("Program.<Owner>O__0_0", arity: 1, "System.Action <0>__Target")(module);
+            CacheContainer("Program.<Owner>O__0_1", arity: 1, "System.Action <0>__Target")(module);
+        });
+        verifier.VerifyIL("Program.<<Main>$>g__Owner|0_0<T>", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action Program.<Owner>O__0_0<T>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void Program.<<Main>$>g__Target|0_2<T>()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action Program.<Owner>O__0_0<T>.<0>__Target""
+  IL_0018:  ret
+}
+");
+        verifier.VerifyIL("Program.<<Main>$>g__Owner|0_3<T>", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action Program.<Owner>O__0_1<T>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void Program.<<Main>$>g__Target|0_2<T>()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action Program.<Owner>O__0_1<T>.<0>__Target""
+  IL_0018:  ret
+}
+");
+    }
+
+    [Fact]
+    public void NameAmbiguity_Containers1()
+    {
+        var source = @"
+class C
+{
+    void Owner<T>(int i)
+    {
+        var f = Target<T>;
+    }
+    void Owner<T>(string s)
+    {
+        var f = Target<T>;
+    }
+    static void Target<T>() { }
+}
+";
+        var verifier = CompileAndVerify(source, symbolValidator: static module =>
+        {
+            CacheContainer("C.<Owner>O__0_0", arity: 1, "System.Action <0>__Target")(module);
+            CacheContainer("C.<Owner>O__1_0", arity: 1, "System.Action <0>__Target")(module);
+        });
+        verifier.VerifyIL("C.Owner<T>(int)", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action C.<Owner>O__0_0<T>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void C.Target<T>()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action C.<Owner>O__0_0<T>.<0>__Target""
+  IL_0018:  ret
+}
+");
+        verifier.VerifyIL("C.Owner<T>(string)", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action C.<Owner>O__1_0<T>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void C.Target<T>()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action C.<Owner>O__1_0<T>.<0>__Target""
+  IL_0018:  ret
+}
+");
+    }
+
+    [Fact]
+    public void NameAmbiguity_Containers2()
+    {
+        var source = @"
+class C
+{
+    void Owner<T>(int i)
+    {
+        var f = Target<T>;
+    }
+    void F()
+    {
+        void Owner<T>(string s)
+        {
+            var f = Target<T>;
+        }
+    }
+    static void Target<T>() { }
+}
+";
+        var verifier = CompileAndVerify(source, symbolValidator: static module =>
+        {
+            CacheContainer("C.<Owner>O__0_0", arity: 1, "System.Action <0>__Target")(module);
+            CacheContainer("C.<Owner>O__1_0", arity: 1, "System.Action <0>__Target")(module);
+        });
+        verifier.VerifyIL("C.Owner<T>(int)", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action C.<Owner>O__0_0<T>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void C.Target<T>()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action C.<Owner>O__0_0<T>.<0>__Target""
+  IL_0018:  ret
+}
+");
+        verifier.VerifyIL("C.<F>g__Owner|1_0<T>", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action C.<Owner>O__1_0<T>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void C.Target<T>()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action C.<Owner>O__1_0<T>.<0>__Target""
+  IL_0018:  ret
+}
+");
+    }
+
+    [Fact]
+    public void NameAmbiguity_Fields0()
+    {
+        var source = @"
+void F0()
+{
+    var f = Target;
+    static void Target() { }
+}
+void F1()
+{
+    var f = Target;
+    static void Target() { }
+}
+";
+        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("Program.<>O", arity: 0
+            , "System.Action <0>__Target"
+            , "System.Action <1>__Target"
+        ));
+        verifier.VerifyIL("Program.<<Main>$>g__F0|0_0", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action Program.<>O.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void Program.<<Main>$>g__Target|0_2()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action Program.<>O.<0>__Target""
+  IL_0018:  ret
+}
+");
+        verifier.VerifyIL("Program.<<Main>$>g__F1|0_1", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action Program.<>O.<1>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void Program.<<Main>$>g__Target|0_3()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action Program.<>O.<1>__Target""
+  IL_0018:  ret
+}
+");
+    }
+
+    [Fact]
+    public void NameAmbiguity_Fields2()
+    {
+        var source = @"
+class C
+{
+    void F()
+    {
+        void Owner<T>()
+        {
+            void F0()
+            {
+                var f = Target<T>;
+                static void Target<G>() { }
+            }
+            void F1()
+            {
+                var f = Target<T>;
+                static void Target<G>() { }
+            }
+        }
+    }
+}
+";
+        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<Owner>O__0_0", arity: 1
+            , "System.Action <0>__Target"
+            , "System.Action <1>__Target"
+        ));
+        verifier.VerifyIL("C.<F>g__F0|0_1<T>", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action C.<Owner>O__0_0<T>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void C.<F>g__Target|0_3<T, T>()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action C.<Owner>O__0_0<T>.<0>__Target""
+  IL_0018:  ret
+}
+");
+        verifier.VerifyIL("C.<F>g__F1|0_2<T>", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action C.<Owner>O__0_0<T>.<1>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void C.<F>g__Target|0_4<T, T>()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action C.<Owner>O__0_0<T>.<1>__Target""
+  IL_0018:  ret
+}
+");
+    }
+
+    [Fact]
+    public void NameAmbiguity_Fields3()
+    {
+        var source = @"
+using System;
+class C
+{
+    void F()
+    {
+        void Owner<T>()
+        {
+            Action<int> f = E<T>.Target;
+
+            void F1()
+            {
+                Action<string> f = E<T>.Target;
+            }
+        }
+    }
+}
+class E<T>
+{
+    public static void Target(int i) { }
+    public static void Target(string i) { }
+}
+";
+        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<Owner>O__0_0", arity: 1
+            , "System.Action<System.Int32> <0>__Target"
+            , "System.Action<System.String> <1>__Target"
+        ));
+        verifier.VerifyIL("C.<F>g__Owner|0_0<T>", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action<int> C.<Owner>O__0_0<T>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void E<T>.Target(int)""
+  IL_000e:  newobj     ""System.Action<int>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action<int> C.<Owner>O__0_0<T>.<0>__Target""
+  IL_0018:  ret
+}
+");
+        verifier.VerifyIL("C.<F>g__F1|0_1<T>", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action<string> C.<Owner>O__0_0<T>.<1>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void E<T>.Target(string)""
+  IL_000e:  newobj     ""System.Action<string>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action<string> C.<Owner>O__0_0<T>.<1>__Target""
+  IL_0018:  ret
+}
+");
+    }
+
+    [Fact]
+    public void NameAmbiguity_Fields1()
+    {
+        var source = @"
+class C
+{
+    void F0()
+    {
+        var f = Target;
+        static void Target() { }
+    }
+    void F1()
+    {
+        var f = Target;
+        static void Target() { }
+    }
+}
+";
+        var verifier = CompileAndVerify(source, symbolValidator: CacheContainer("C.<>O", arity: 0
+            , "System.Action <0>__Target"
+            , "System.Action <1>__Target"
+        ));
+        verifier.VerifyIL("C.F0", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action C.<>O.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void C.<F0>g__Target|0_0()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action C.<>O.<0>__Target""
+  IL_0018:  ret
+}
+");
+        verifier.VerifyIL("C.F1", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action C.<>O.<1>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""void C.<F1>g__Target|1_0()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Action C.<>O.<1>__Target""
+  IL_0018:  ret
+}
+");
+    }
+
+    [Fact]
     public void EventHandlers_TypeScoped_CouldBeModuleScoped0()
     {
         var source = @"
