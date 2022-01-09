@@ -5355,66 +5355,15 @@ class Program
     static void Report(Delegate d) => Console.WriteLine($""{d.GetType().Namespace}.{d.GetType().Name}"");
 }";
 
-        var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics();
 
         var verifier = CompileAndVerify(comp, expectedOutput:
 @"System.Action
 System.Action
 System.Action");
-        verifier.VerifyIL("Program.Main",
-@"{
-  // Code size      100 (0x64)
-  .maxstack  2
-  .locals init (System.Action V_0, //d1
-                System.Action V_1, //d2
-                System.Action V_2) //d3
-  IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  ldftn      ""void Program.Main()""
-  IL_0008:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  call       ""void Program.Report(System.Delegate)""
-  IL_0014:  nop
-  IL_0015:  ldsfld     ""System.Action Program.<>c.<>9__0_0""
-  IL_001a:  dup
-  IL_001b:  brtrue.s   IL_0034
-  IL_001d:  pop
-  IL_001e:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0023:  ldftn      ""void Program.<>c.<Main>b__0_0()""
-  IL_0029:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_002e:  dup
-  IL_002f:  stsfld     ""System.Action Program.<>c.<>9__0_0""
-  IL_0034:  stloc.1
-  IL_0035:  ldloc.1
-  IL_0036:  call       ""void Program.Report(System.Delegate)""
-  IL_003b:  nop
-  IL_003c:  ldsfld     ""System.Action Program.<>c.<>9__0_1""
-  IL_0041:  dup
-  IL_0042:  brtrue.s   IL_005b
-  IL_0044:  pop
-  IL_0045:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_004a:  ldftn      ""void Program.<>c.<Main>b__0_1()""
-  IL_0050:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0055:  dup
-  IL_0056:  stsfld     ""System.Action Program.<>c.<>9__0_1""
-  IL_005b:  stloc.2
-  IL_005c:  ldloc.2
-  IL_005d:  call       ""void Program.Report(System.Delegate)""
-  IL_0062:  nop
-  IL_0063:  ret
-}");
-
-        comp = CreateCompilation(source, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics();
-
-        verifier = CompileAndVerify(comp, expectedOutput:
-@"System.Action
-System.Action
-System.Action");
-        verifier.VerifyIL("Program.Main",
-@"{
+        verifier.VerifyIL("Program.Main", @"
+{
   // Code size      115 (0x73)
   .maxstack  2
   .locals init (System.Action V_0, //d1
@@ -5461,7 +5410,8 @@ System.Action");
   IL_006c:  call       ""void Program.Report(System.Delegate)""
   IL_0071:  nop
   IL_0072:  ret
-}");
+}
+");
     }
 
     [Fact]
