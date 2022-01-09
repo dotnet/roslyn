@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -224,7 +225,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             await context.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
 
-            var progressAdapter = new FindLiteralsProgressAdapter(context, definition);
+            var classificationOptions = ClassificationOptions.From(document.Project);
+            var progressAdapter = new FindLiteralsProgressAdapter(context, definition, classificationOptions);
 
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
