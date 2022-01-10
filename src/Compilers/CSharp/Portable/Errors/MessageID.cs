@@ -238,6 +238,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureGenericAttributes = MessageBase + 12812,
 
+        // PROTOTYPE(req): here for avoiding merge conflicts. Move to the end and condense before merge.
+        IDS_FeatureRequiredMembers = MessageBase + 13000,
+
         IDS_FeatureNewLinesInInterpolations = MessageBase + 12813,
         IDS_FeatureListPattern = MessageBase + 12814,
         IDS_ParameterNullChecking = MessageBase + 12815,
@@ -354,6 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureGenericAttributes: // semantic check
                 case MessageID.IDS_FeatureNewLinesInInterpolations: // semantic check
                 case MessageID.IDS_FeatureListPattern: // semantic check
+                case MessageID.IDS_FeatureRequiredMembers: // semantic check
                 case MessageID.IDS_ParameterNullChecking: // syntax check
                     return LanguageVersion.Preview;
 

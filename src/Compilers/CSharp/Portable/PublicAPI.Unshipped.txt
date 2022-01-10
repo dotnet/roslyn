@@ -79,6 +79,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.SubpatternSyntax.WithExpressionColon(Micros
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExpressionColon = 9069 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.LineDirectivePosition = 9070 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.LineSpanDirectiveTrivia = 9071 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.RequiredKeyword = 8447 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax.Externs.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExternAliasDirectiveSyntax>
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax.Members.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax>
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax.Name.get -> Microsoft.CodeAnalysis.CSharp.Syntax.NameSyntax

@@ -1162,6 +1162,8 @@ tryAgain:
                             return DeclarationModifiers.Partial;
                         case SyntaxKind.AsyncKeyword:
                             return DeclarationModifiers.Async;
+                        case SyntaxKind.RequiredKeyword:
+                            return DeclarationModifiers.Required;
                     }
 
                     goto default;
@@ -1243,13 +1245,26 @@ tryAgain:
                         }
 
                     case DeclarationModifiers.Async:
-                        if (!ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        if (!ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                         {
                             return;
                         }
 
                         modTok = ConvertToKeyword(this.EatToken());
                         modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
+                        break;
+
+                    case DeclarationModifiers.Required:
+                        // In C# 11, required in a modifier position is always a keyword if not escaped. Otherwise, we reuse the async detection
+                        // machinery to make a conservative guess as to whether the user meant required to be a keyword, so that they get a good langver
+                        // diagnostic and all the machinery to upgrade their project kicks in.
+                        if (!IsFeatureEnabled(MessageID.IDS_FeatureRequiredMembers) && !ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        {
+                            return;
+                        }
+
+                        modTok = ConvertToKeyword(this.EatToken());
+
                         break;
 
                     default:
@@ -1280,16 +1295,16 @@ tryAgain:
             }
         }
 
-        private bool ShouldAsyncBeTreatedAsModifier(bool parsingStatementNotDeclaration)
+        private bool ShouldAsyncOrRequiredBeTreatedAsModifier(bool parsingStatementNotDeclaration)
         {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword);
+            Debug.Assert(this.CurrentToken.ContextualKind is SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword);
 
             // Adapted from CParser::IsAsyncMethod.
 
             if (IsNonContextualModifier(PeekToken(1)))
             {
                 // If the next token is a (non-contextual) modifier keyword, then this token is
-                // definitely the async keyword
+                // definitely the async or required keyword
                 return true;
             }
 
@@ -1300,7 +1315,7 @@ tryAgain:
 
             try
             {
-                this.EatToken(); //move past contextual 'async'
+                this.EatToken(); //move past contextual 'async' or 'required'
 
                 if (!parsingStatementNotDeclaration &&
                     (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword))
@@ -1317,6 +1332,8 @@ tryAgain:
                 // ... 'async' [partial] <typename> <membername> ...
                 // DEVNOTE: Although we parse async user defined conversions, operators, etc. here,
                 // anything other than async methods are detected as erroneous later, during the define phase
+                // The comments in general were not updated to add "async or required" everywhere to preserve
+                // history, but generally wherever async occurs, it can also be required.
 
                 if (!parsingStatementNotDeclaration)
                 {
@@ -2627,6 +2644,7 @@ parse_member_name:;
             if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
                 this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
                 this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
+                this.CurrentToken.ContextualKind != SyntaxKind.RequiredKeyword &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;
@@ -7906,7 +7924,7 @@ done:;
             tk = this.CurrentToken.ContextualKind;
 
             var isPossibleAttributeOrModifier = (IsAdditionalLocalFunctionModifier(tk) || tk == SyntaxKind.OpenBracketToken)
-                && (tk != SyntaxKind.AsyncKeyword || ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: true));
+                && (tk != SyntaxKind.AsyncKeyword || ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: true));
             if (isPossibleAttributeOrModifier)
             {
                 return true;
