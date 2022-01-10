@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static readonly TypeParameterConstraintSyntax s_structConstraint = SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint);
         private static readonly TypeParameterConstraintSyntax s_defaultConstraint = SyntaxFactory.DefaultConstraint();
 
-        internal static NamespaceDeclarationSyntax AddMethodTo(
+        internal static BaseNamespaceDeclarationSyntax AddMethodTo(
             BaseNamespaceDeclarationSyntax destination,
             IMethodSymbol method,
             CodeGenerationOptions options,
