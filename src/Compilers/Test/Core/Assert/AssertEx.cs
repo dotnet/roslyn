@@ -760,8 +760,6 @@ namespace Roslyn.Test.Utilities
 
             return message.ToString();
 
-            //  Local functions
-
             static string join(string itemSeparator, ReadOnlySpan<T> items, Func<T, string> itemInspector)
             {
                 var result = new StringBuilder();
