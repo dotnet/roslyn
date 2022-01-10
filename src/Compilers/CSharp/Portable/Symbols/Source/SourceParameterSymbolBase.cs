@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceParameterSymbolBase(Symbol containingSymbol, int ordinal)
         {
             Debug.Assert((object)containingSymbol != null);
+            Debug.Assert(containingSymbol.ContainingAssembly != null);
             _ordinal = (ushort)ordinal;
             _containingSymbol = containingSymbol;
         }
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _containingSymbol; }
         }
 
-        public sealed override AssemblySymbol? ContainingAssembly
+        public sealed override AssemblySymbol ContainingAssembly
         {
             get { return _containingSymbol.ContainingAssembly; }
         }
