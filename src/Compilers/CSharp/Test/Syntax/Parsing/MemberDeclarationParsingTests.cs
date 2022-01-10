@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return tree;
         }
 
-        private static readonly CSharpParseOptions RequiredMembersOptions = TestOptions.RegularPreview;
-        public static readonly IEnumerable<object[]> ParseOptionsDataWithPreview = new[] { new[] { TestOptions.Regular }, new[] { RequiredMembersOptions }, new[] { TestOptions.Script } };
-        public static readonly IEnumerable<object[]> ParseOptionsData = new[] { new[] { TestOptions.Regular }, new[] { TestOptions.Script } };
+        private static readonly CSharpParseOptions RequiredMembersOptions = TestOptions.RegularNext;
+        public static readonly IEnumerable<object[]> Regular10AndScriptAndRequiredMembersMinimum = new[] { new[] { TestOptions.Regular10 }, new[] { RequiredMembersOptions }, new[] { TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10) } };
+        public static readonly IEnumerable<object[]> Regular10AndScript = new[] { new[] { TestOptions.Regular10 }, new[] { TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10) } };
 
         [Fact]
         [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsDataWithPreview))]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
         public void RequiredModifierProperty_01(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("required string Prop { get; }", options: parseOptions);
@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsData))]
+        [MemberData(nameof(Regular10AndScript))]
         public void RequiredModifierProperty_02(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("required Prop { get; }", options: parseOptions);
@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsData))]
+        [MemberData(nameof(Regular10AndScript))]
         public void RequiredModifierProperty_04(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("required required { get; }", options: parseOptions);
@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsDataWithPreview))]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
         public void RequiredModifierField_01(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("required string Field;", options: parseOptions);
@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsData))]
+        [MemberData(nameof(Regular10AndScript))]
         public void RequiredModifierField_02(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("required Field;", options: parseOptions);
@@ -1101,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsData))]
+        [MemberData(nameof(Regular10AndScript))]
         public void RequiredModifierField_04(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("required required;", options: parseOptions);
@@ -1143,7 +1143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsDataWithPreview))]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
         public void RequiredModifierMethod_01(CSharpParseOptions parseOptions)
         {
             // Note this is a semantic error, not a syntactic one
@@ -1171,7 +1171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsData))]
+        [MemberData(nameof(Regular10AndScript))]
         public void RequiredModifierMethod_02(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("required M() {}", options: parseOptions);
@@ -1219,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsDataWithPreview))]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
         public void RequiredModifierOperator(CSharpParseOptions parseOptions)
         {
             // Note this is a semantic error, not a syntactic one
@@ -1266,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsDataWithPreview))]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
         public void RequiredModifierConversion_01(CSharpParseOptions parseOptions)
         {
             // Note this is a semantic error, not a syntactic one
@@ -1304,7 +1304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsData))]
+        [MemberData(nameof(Regular10AndScript))]
         public void RequiredModifierConversion_02(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("static implicit required operator C(S s) {}", options: parseOptions,
@@ -1355,7 +1355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsDataWithPreview))]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
         public void RequiredModifierIncompleteProperty_01(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("required string Prop { get;", options: parseOptions,
@@ -1386,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsDataWithPreview))]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
         public void RequiredModifierIncompleteProperty_02(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("required string Prop {", options: parseOptions,
@@ -1412,7 +1412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsDataWithPreview))]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
         public void RequiredModifierIncompleteMember_01(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("required string Prop", options: parseOptions,
@@ -1440,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsDataWithPreview))]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
         public void RequiredModifierIncompleteMember_02(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("required string", options: parseOptions,
@@ -1460,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsDataWithPreview))]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
         public void RequiredModifierIncompleteMember_03(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("required C", options: parseOptions,
@@ -1480,7 +1480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
-        [MemberData(nameof(ParseOptionsData))]
+        [MemberData(nameof(Regular10AndScript))]
         public void RequiredModifierIncompleteMember_04(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("required", options: parseOptions,
