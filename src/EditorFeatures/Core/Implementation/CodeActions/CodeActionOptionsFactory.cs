@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.CodeActions
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return new(
                 IsBlocking: isBlocking,
                 SearchReferenceAssemblies: options.GetOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, language),
-                HideAdvancedMembers: options.GetOption(CodeAnalysis.Completion.CompletionOptions.Metadata.HideAdvancedMembers, language));
+                HideAdvancedMembers: options.GetOption(CompletionOptions.Metadata.HideAdvancedMembers, language));
         }
     }
 }

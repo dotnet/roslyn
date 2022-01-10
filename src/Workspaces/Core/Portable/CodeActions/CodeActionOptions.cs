@@ -16,6 +16,5 @@ namespace Microsoft.CodeAnalysis.CodeActions
             IsBlocking: false,
             SearchReferenceAssemblies: true,
             HideAdvancedMembers: false);
-
     }
 }
