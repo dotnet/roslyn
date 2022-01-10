@@ -28,6 +28,16 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.ExclamationExclamationToken
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax!> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax? type, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.SyntaxToken exclamationExclamationToken, Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax? default) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.WithExclamationExclamationToken(Microsoft.CodeAnalysis.SyntaxToken exclamationExclamationToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax!
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExclamationExclamationToken = 8285 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedMultiLineRawStringEndToken = 9083 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedMultiLineRawStringStartToken = 9082 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedSingleLineRawStringEndToken = 9081 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedSingleLineRawStringStartToken = 9080 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.MultiLineRawStringLiteralExpression = 9075 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.MultiLineRawStringLiteralToken = 9073 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.SingleLineRawStringLiteralExpression = 9074 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.SingleLineRawStringLiteralToken = 9072 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.RawInterpolationOpenToken = 9084 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.RawInterpolationCloseToken = 9085 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.Syntax.ListPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ListPatternSyntax.AddPatterns(params Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ListPatternSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.ListPatternSyntax.CloseBracketToken.get -> Microsoft.CodeAnalysis.SyntaxToken

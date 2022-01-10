@@ -77,18 +77,19 @@ namespace Roslyn.Test.Utilities.CoreClr
             }
         }
 
-        public int Execute(string moduleName, string[] args, string expectedOutput)
+        public int Execute(string moduleName, string[] args, string expectedOutput, bool trimOutput = true)
         {
             var emitData = GetEmitData();
             emitData.RuntimeData.ExecuteRequested = true;
-            var (ExitCode, Output) = emitData.LoadContext.Execute(GetMainImage(), args, expectedOutput?.Length);
+            var (exitCode, output) = emitData.LoadContext.Execute(GetMainImage(), args, expectedOutput?.Length);
 
-            if (expectedOutput != null && expectedOutput.Trim() != Output.Trim())
+            if (expectedOutput != null)
             {
-                throw new ExecutionException(expectedOutput, Output, moduleName);
+                if (trimOutput ? (expectedOutput.Trim() != output.Trim()) : (expectedOutput != output))
+                    throw new ExecutionException(expectedOutput, output, moduleName);
             }
 
-            return ExitCode;
+            return exitCode;
         }
 
         private EmitData GetEmitData() => _emitData ?? throw new InvalidOperationException("Must call Emit before calling this method");

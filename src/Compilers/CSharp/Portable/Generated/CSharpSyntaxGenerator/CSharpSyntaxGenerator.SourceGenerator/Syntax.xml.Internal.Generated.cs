@@ -9962,7 +9962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.stringEndToken = stringEndToken;
         }
 
-        /// <summary>The first part of an interpolated string, $" or $@"</summary>
+        /// <summary>The first part of an interpolated string, <c>$"</c> or <c>$@"</c> or <c>$"""</c></summary>
         public SyntaxToken StringStartToken => this.stringStartToken;
         /// <summary>List of parts of the interpolated string, each one is either a literal part or an interpolation.</summary>
         public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> Contents => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax>(this.contents);
@@ -36270,6 +36270,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ArgListExpression:
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.MultiLineRawStringLiteralExpression:
+                case SyntaxKind.SingleLineRawStringLiteralExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:
@@ -36284,6 +36286,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.SingleLineRawStringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
@@ -37130,11 +37134,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (stringStartToken.Kind)
             {
                 case SyntaxKind.InterpolatedStringStartToken:
-                case SyntaxKind.InterpolatedVerbatimStringStartToken: break;
+                case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringStartToken: break;
                 default: throw new ArgumentException(nameof(stringStartToken));
             }
             if (stringEndToken == null) throw new ArgumentNullException(nameof(stringEndToken));
-            if (stringEndToken.Kind != SyntaxKind.InterpolatedStringEndToken) throw new ArgumentException(nameof(stringEndToken));
+            switch (stringEndToken.Kind)
+            {
+                case SyntaxKind.InterpolatedStringEndToken:
+                case SyntaxKind.InterpolatedSingleLineRawStringEndToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringEndToken: break;
+                default: throw new ArgumentException(nameof(stringEndToken));
+            }
 #endif
 
             int hash;
@@ -37547,10 +37559,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
 #if DEBUG
             if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
-            if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
+            switch (openBraceToken.Kind)
+            {
+                case SyntaxKind.OpenBraceToken:
+                case SyntaxKind.RawInterpolationOpenToken: break;
+                default: throw new ArgumentException(nameof(openBraceToken));
+            }
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
-            if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            switch (closeBraceToken.Kind)
+            {
+                case SyntaxKind.CloseBraceToken:
+                case SyntaxKind.RawInterpolationCloseToken: break;
+                default: throw new ArgumentException(nameof(closeBraceToken));
+            }
 #endif
 
             return new InterpolationSyntax(SyntaxKind.Interpolation, openBraceToken, expression, alignmentClause, formatClause, closeBraceToken, this.context);
@@ -41284,6 +41306,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ArgListExpression:
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.MultiLineRawStringLiteralExpression:
+                case SyntaxKind.SingleLineRawStringLiteralExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:
@@ -41298,6 +41322,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.SingleLineRawStringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
@@ -42144,11 +42170,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (stringStartToken.Kind)
             {
                 case SyntaxKind.InterpolatedStringStartToken:
-                case SyntaxKind.InterpolatedVerbatimStringStartToken: break;
+                case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringStartToken: break;
                 default: throw new ArgumentException(nameof(stringStartToken));
             }
             if (stringEndToken == null) throw new ArgumentNullException(nameof(stringEndToken));
-            if (stringEndToken.Kind != SyntaxKind.InterpolatedStringEndToken) throw new ArgumentException(nameof(stringEndToken));
+            switch (stringEndToken.Kind)
+            {
+                case SyntaxKind.InterpolatedStringEndToken:
+                case SyntaxKind.InterpolatedSingleLineRawStringEndToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringEndToken: break;
+                default: throw new ArgumentException(nameof(stringEndToken));
+            }
 #endif
 
             int hash;
@@ -42561,10 +42595,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
 #if DEBUG
             if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
-            if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
+            switch (openBraceToken.Kind)
+            {
+                case SyntaxKind.OpenBraceToken:
+                case SyntaxKind.RawInterpolationOpenToken: break;
+                default: throw new ArgumentException(nameof(openBraceToken));
+            }
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
-            if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            switch (closeBraceToken.Kind)
+            {
+                case SyntaxKind.CloseBraceToken:
+                case SyntaxKind.RawInterpolationCloseToken: break;
+                default: throw new ArgumentException(nameof(closeBraceToken));
+            }
 #endif
 
             return new InterpolationSyntax(SyntaxKind.Interpolation, openBraceToken, expression, alignmentClause, formatClause, closeBraceToken);
