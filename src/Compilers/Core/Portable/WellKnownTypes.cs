@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis
             "System.Text.StringBuilder",
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
             "System.ArgumentNullException",
-            
+
             "System.MemoryExtensions",
         };
 
