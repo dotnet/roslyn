@@ -29,9 +29,9 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(SourceGeneratorMicrosoftCodeAnalysisVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
   <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
-    <PackageReference Include="System.Collections.Immutable" Version="$(SourceBuildLiftedSystemCollectionsImmutableVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
-    <PackageReference Include="System.Reflection.Metadata" Version="$(SourceBuildLiftedSystemReflectionMetadataVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SourceBuildLiftedSystemRuntimeCompilerServicesUnsafeVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SourceBuildLiftedSystemTextEncodingCodePagesVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(RefOnlySystemCollectionsImmutableVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+    <PackageReference Include="System.Reflection.Metadata" Version="$(RefOnlySystemReflectionMetadataVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(RefOnlySystemRuntimeCompilerServicesUnsafeVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="$(RefOnlySystemTextEncodingCodePagesVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
 </Project>
