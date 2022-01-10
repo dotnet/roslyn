@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -127,7 +128,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                         return false;
                     }
 
-                    return await FixDocumentAsync(solution.GetRequiredDocument(documentId), context).ConfigureAwait(true);
+                    var document = solution.GetRequiredDocument(documentId);
+                    var options = CodeActionOptionsFactory.GetCodeActionOptions(document.Project, isBlocking: false);
+                    return await FixDocumentAsync(document, options, context).ConfigureAwait(true);
                 }
             }
 
@@ -157,14 +160,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             }
         }
 
-        private Task<bool> FixDocumentAsync(Document document, ICodeCleanUpExecutionContext context)
+        private Task<bool> FixDocumentAsync(Document document, CodeActionOptions options, ICodeCleanUpExecutionContext context)
         {
             return FixAsync(document.Project.Solution.Workspace, ApplyFixAsync, context);
 
             // Local function
             async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
             {
-                var newDocument = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, cancellationToken).ConfigureAwait(true);
+                var newDocument = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, options, cancellationToken).ConfigureAwait(true);
                 return newDocument.Project.Solution;
             }
         }
@@ -194,7 +197,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             {
                 var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 Contract.ThrowIfNull(document);
-                var newDoc = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, cancellationToken).ConfigureAwait(true);
+
+                var options = CodeActionOptionsFactory.GetCodeActionOptions(document.Project, isBlocking: false);
+                var newDoc = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, options, cancellationToken).ConfigureAwait(true);
                 return newDoc.Project.Solution;
             }
         }
@@ -280,6 +285,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 progressTracker.AddItems(project.DocumentIds.Count);
             }
 
+            var options = CodeActionOptionsFactory.GetCodeActionOptions(project, isBlocking: false);
+
             foreach (var documentId in project.DocumentIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -291,7 +298,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 // to the current document.
                 var documentProgressTracker = new ProgressTracker();
 
-                var fixedDocument = await FixDocumentAsync(document, enabledFixIds, documentProgressTracker, cancellationToken).ConfigureAwait(false);
+                var fixedDocument = await FixDocumentAsync(document, enabledFixIds, documentProgressTracker, options, cancellationToken).ConfigureAwait(false);
                 project = fixedDocument.Project;
                 progressTracker.ItemCompleted();
             }
@@ -306,6 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             Document document,
             FixIdContainer enabledFixIds,
             ProgressTracker progressTracker,
+            CodeActionOptions options,
             CancellationToken cancellationToken)
         {
             if (document.IsGeneratedCode(cancellationToken))
@@ -340,7 +348,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
 
             return await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
+                document, enabledDiagnostics, progressTracker, options, cancellationToken).ConfigureAwait(false);
         }
     }
 }

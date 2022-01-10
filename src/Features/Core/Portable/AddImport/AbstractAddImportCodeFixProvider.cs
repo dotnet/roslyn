@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             var searchNuGetPackages = solution.Options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language);
 
             var options = new AddImportOptions(
-                SearchReferenceAssemblies: solution.Options.GetOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, document.Project.Language),
-                HideAdvancedMembers: solution.Options.GetOption(CompletionOptions.Metadata.HideAdvancedMembers, document.Project.Language));
+                context.Options.SearchReferenceAssemblies,
+                context.Options.HideAdvancedMembers);
 
             var symbolSearchService = options.SearchReferenceAssemblies || searchNuGetPackages
                 ? _symbolSearchService ?? solution.Workspace.Services.GetService<ISymbolSearchService>()

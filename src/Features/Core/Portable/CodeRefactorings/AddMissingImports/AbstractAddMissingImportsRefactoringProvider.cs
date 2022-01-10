@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // Check pasted text span for missing imports
             var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
 
-            var options = new AddMissingImportsOptions(
-                HideAdvancedMembers: document.Project.Solution.Options.GetOption(CompletionOptions.Metadata.HideAdvancedMembers, document.Project.Language));
+            var options = new AddMissingImportsOptions(context.Options.HideAdvancedMembers);
 
             var analysis = await addMissingImportsService.AnalyzeAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
             if (!analysis.CanAddMissingImports)
