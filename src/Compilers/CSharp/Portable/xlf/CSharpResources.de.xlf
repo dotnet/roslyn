@@ -1194,7 +1194,7 @@
       </trans-unit>
       <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
         <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
-        <target state="new">A 'struct' with field initializers must include an explicitly declared constructor.</target>
+        <target state="translated">Eine „Struktur“ mit Feldinitialisierern muss einen explizit deklarierten Konstruktor enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
