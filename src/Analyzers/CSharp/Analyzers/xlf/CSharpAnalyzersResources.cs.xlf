@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Property_pattern_can_be_simplified">
         <source>Property pattern can be simplified</source>
-        <target state="new">Property pattern can be simplified</target>
+        <target state="translated">Vzor vlastnosti se dá zjednodušit.</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Simplify_property_pattern">
         <source>Simplify property pattern</source>
-        <target state="new">Simplify property pattern</target>
+        <target state="translated">Zjednodušit vzor vlastnosti</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
@@ -289,7 +289,7 @@
       </trans-unit>
       <trans-unit id="Use_tuple_to_swap_values">
         <source>Use tuple to swap values</source>
-        <target state="new">Use tuple to swap values</target>
+        <target state="translated">Prohození hodnot pomocí řazené kolekce členů</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">

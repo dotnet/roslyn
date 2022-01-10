@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
         <source>Stack Trace Explorer</source>
-        <target state="new">Stack Trace Explorer</target>
+        <target state="translated">堆疊追蹤總管</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|CommandName">
         <source>ShowStackTraceExplorerCommandName</source>
-        <target state="new">ShowStackTraceExplorerCommandName</target>
+        <target state="translated">ShowStackTraceExplorerCommandName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|LocCanonicalName">
         <source>ShowStackTraceExplorer</source>
-        <target state="new">ShowStackTraceExplorer</target>
+        <target state="translated">ShowStackTraceExplorer</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
@@ -539,7 +539,7 @@
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
         <source>ShowValueTracking</source>
-        <target state="new">ShowValueTracking</target>
+        <target state="translated">ShowValueTracking</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">
