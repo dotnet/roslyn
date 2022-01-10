@@ -987,6 +987,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(ParseOptionsData))]
+        public void RequiredModifierProperty_04(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required required { get; }", options: parseOptions);
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "required");
+                }
+                N(SyntaxKind.IdentifierToken, "required");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RequiredMembers)]
+        public void RequiredModifierProperty_05()
+        {
+            UsingDeclaration("required required { get; }", options: RequiredMembersOptions,
+                // (1,1): error CS1073: Unexpected token '{'
+                // required required { get; }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required").WithArguments("{").WithLocation(1, 1),
+                // (1,19): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                // required required { get; }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 19)
+                );
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.RequiredKeyword);
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
         [MemberData(nameof(ParseOptionsDataWithPreview))]
         public void RequiredModifierField_01(CSharpParseOptions parseOptions)
         {
@@ -1051,6 +1096,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.IdentifierToken, "Field");
                 }
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
+        [MemberData(nameof(ParseOptionsData))]
+        public void RequiredModifierField_04(CSharpParseOptions parseOptions)
+        {
+            UsingDeclaration("required required;", options: parseOptions);
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "required");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "required");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RequiredMembers)]
+        public void RequiredModifierField_05()
+        {
+            UsingDeclaration("required required;", options: RequiredMembersOptions,
+                // (1,1): error CS1073: Unexpected token ';'
+                // required required;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required").WithArguments(";").WithLocation(1, 1),
+                // (1,18): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                // required required;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, 18)
+                );
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.RequiredKeyword);
             }
             EOF();
         }

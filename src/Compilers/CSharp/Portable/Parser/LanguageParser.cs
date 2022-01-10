@@ -2642,6 +2642,7 @@ parse_member_name:;
             if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
                 this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
                 this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
+                this.CurrentToken.ContextualKind != SyntaxKind.RequiredKeyword &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;
