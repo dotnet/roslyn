@@ -2528,5 +2528,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
+
+        internal override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode declaredNode, ISymbol declaredSymbol)
+        {
+            // Skip the topmost record declaration syntax node when analyzing synthesized record declaration constructor
+            // to avoid duplicate syntax node callbacks.
+            // We will analyze this node when analyzing the record declaration type symbol.
+            if (declaredNode.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration &&
+                declaredSymbol.GetSymbol() is SynthesizedRecordConstructor)
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

@@ -874,8 +874,7 @@ namespace Microsoft.CodeAnalysis
         internal abstract void ComputeDeclarationsInNode(SyntaxNode node, ISymbol associatedSymbol, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null);
 
         internal virtual Func<SyntaxNode, bool>? GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol) => null;
-
-        internal abstract bool IsSynthesizedRecordConstructor(ISymbol symbol);
+        internal virtual bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode declaredNode, ISymbol declaredSymbol) => false;
 
         /// <summary>
         /// Takes a Symbol and syntax for one of its declaring syntax reference and returns the topmost syntax node to be used by syntax analyzer.
