@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
 
             // temp.HasValue
-            BoundExpression condition = MakeNullableHasValue(syntax, boundTemp);
+            BoundExpression condition = _factory.MakeNullableHasValue(syntax, boundTemp);
 
             // temp.GetValueOrDefault()
             BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault);
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol ctor = UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
 
             // temp.HasValue
-            BoundExpression condition = MakeNullableHasValue(node.Syntax, boundTemp);
+            BoundExpression condition = _factory.MakeNullableHasValue(node.Syntax, boundTemp);
 
             // temp.GetValueOrDefault()
             BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault);
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // do it now.
 
             // (int)(short)x
-            binaryOperand = MakeConversionNode(binaryOperand, binaryOperandType, @checked);
+            binaryOperand = MakeConversionNode(binaryOperand, binaryOperandType, @checked, markAsChecked: true);
 
             // Perform the addition.
 
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Generate the conversion back to the type of the unary operator.
 
             // (short)((int)(short)x + 1)
-            result = MakeConversionNode(binOp, unaryOperandType, @checked);
+            result = MakeConversionNode(binOp, unaryOperandType, @checked, markAsChecked: true);
             return result;
         }
 
@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol ctor = UnsafeGetNullableMethod(syntax, operand.Type, SpecialMember.System_Nullable_T__ctor);
 
             // x.HasValue
-            BoundExpression condition = MakeNullableHasValue(syntax, operand);
+            BoundExpression condition = _factory.MakeNullableHasValue(syntax, operand);
             // x.GetValueOrDefault()
             BoundExpression getValueCall = BoundCall.Synthesized(syntax, operand, getValueOrDefault);
             // op_Inc(x.GetValueOrDefault())

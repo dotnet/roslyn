@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     /// <summary>
     /// The singular completion provider that will hook into completion and will
-    /// provider all completions across all embedded languages.
+    /// provide all completions across all embedded languages.
     /// 
     /// Completions for an individual language are provided by
     /// <see cref="IEmbeddedLanguageFeatures.CompletionProvider"/>.
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override ImmutableHashSet<char> TriggerCharacters { get; }
 
-        internal override bool ShouldTriggerCompletion(HostLanguageServices? languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+        internal sealed override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options)
         {
             foreach (var language in GetLanguageProviders(languageServices))
             {
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
             => GetLanguage(item).CompletionProvider.GetChangeAsync(document, item, commitKey, cancellationToken);
 
-        public override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        internal override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
             => GetLanguage(item).CompletionProvider.GetDescriptionAsync(document, item, cancellationToken);
 
         private IEmbeddedLanguageFeatures GetLanguage(CompletionItem item)

@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 }
 
                 var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(
-                    document.Project, symbol, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
+                    document.Project, symbol, signaturesOnly: true, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
 
                 var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
 
@@ -281,10 +281,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 // General case
                 if (documentSpan != null)
                 {
+                    var document = documentSpan.Value.Document;
+                    var classificationOptions = ClassificationOptions.From(document.Project);
+
                     var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-                        documentSpan.Value, cancellationToken).ConfigureAwait(false);
+                        documentSpan.Value, classificationOptions, cancellationToken).ConfigureAwait(false);
+
                     var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
-                    var docText = await documentSpan.Value.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var docText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     var classifiedTextRuns = GetClassifiedTextRuns(id, definitionId, documentSpan.Value, isWrittenTo, classifiedSpans, docText);
 
                     return new ClassifiedTextElement(classifiedTextRuns.ToArray());

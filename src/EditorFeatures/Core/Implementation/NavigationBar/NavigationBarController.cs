@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// The last full information we have presented. If we end up wanting to present the same thing again, we can
         /// just skip doing that as the UI will already know about this.
         /// </summary>
-        private (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _lastPresentedInfo;
+        private (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel? model, NavigationBarSelectedTypeAndMember selectedInfo) _lastPresentedInfo;
 
         /// <summary>
         /// Source of events that should cause us to update the nav bar model with new information.
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// compute the model once for every batch.  The <c>bool</c> type parameter isn't used, but is provided as this
         /// type is generic.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool, NavigationBarModel> _computeModelQueue;
+        private readonly AsyncBatchingWorkQueue<bool, NavigationBarModel?> _computeModelQueue;
 
         /// <summary>
         /// Queue to batch up work to do to determine the selected item.  Used so we can batch up a lot of events and
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _asyncListener = asyncListener;
 
-            _computeModelQueue = new AsyncBatchingWorkQueue<bool, NavigationBarModel>(
+            _computeModelQueue = new AsyncBatchingWorkQueue<bool, NavigationBarModel?>(
                 TimeSpan.FromMilliseconds(TaggerConstants.ShortDelay),
                 ComputeModelAndSelectItemAsync,
                 EqualityComparer<bool>.Default,
@@ -114,6 +114,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // Kick off initial work to populate the navbars
             StartModelUpdateAndSelectedItemUpdateTasks();
         }
+
+        public TestAccessor GetTestAccessor() => new TestAccessor(this);
 
         private void OnEventSourceChanged(object? sender, TaggerEventArgs e)
         {
@@ -210,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             catch (OperationCanceledException)
             {
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Critical))
             {
             }
         }
@@ -250,6 +252,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             // Now that the edit has been done, refresh to make sure everything is up-to-date.
             StartModelUpdateAndSelectedItemUpdateTasks();
+        }
+
+        public struct TestAccessor
+        {
+            private readonly NavigationBarController _navigationBarController;
+
+            public TestAccessor(NavigationBarController navigationBarController)
+            {
+                _navigationBarController = navigationBarController;
+            }
+
+            public Task<NavigationBarModel?> GetModelAsync()
+                => _navigationBarController._computeModelQueue.WaitUntilCurrentBatchCompletesAsync();
         }
     }
 }

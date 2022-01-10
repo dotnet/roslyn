@@ -7573,6 +7573,70 @@ class Program
                 MainDescription($"({FeaturesResources.local_variable}) string? x"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVarPatternOnVarKeyword_InListPattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(char[] array)
+    {
+      if (array is [ va$$r one ])
+      {
+      }
+    }
+}",
+                MainDescription("struct System.Char"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVarPatternOnVariableItself_InListPattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(char[] array)
+    {
+      if (array is [ var o$$ne ])
+      {
+      }
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) char one"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVarPatternOnVarKeyword_InSlicePattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(char[] array)
+    {
+      if (array is [..va$$r one ])
+      {
+      }
+    }
+}" + TestSources.Index + TestSources.Range,
+                MainDescription("char[]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVarPatternOnVariableItself_InSlicePattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(char[] array)
+    {
+      if (array is [ ..var o$$ne ])
+      {
+      }
+    }
+}" + TestSources.Index + TestSources.Range,
+                MainDescription($"({FeaturesResources.local_variable}) char[]? one"));
+        }
+
         [WorkItem(53135, "https://github.com/dotnet/roslyn/issues/53135")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestDocumentationCData()
@@ -7615,6 +7679,43 @@ interface IGoo {  }";
 
 line 1
 line     2"));
+        }
+
+        [WorkItem(57262, "https://github.com/dotnet/roslyn/issues/57262")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task DoNotNormalizeLeadingWhitespaceForCode()
+        {
+            var markup =
+                @"using I$$ = IGoo;
+/// <summary>
+///       Normalize    this, and <c>Also        this</c>
+/// <code>
+/// line 1
+///     line     2
+/// </code>
+/// </summary>
+interface IGoo {  }";
+
+            await TestAsync(markup,
+                MainDescription("interface IGoo"),
+                Documentation(@"Normalize this, and Also this
+
+line 1
+    line     2"));
+        }
+
+        [WorkItem(57262, "https://github.com/dotnet/roslyn/issues/57262")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ParsesEmptySummary()
+        {
+            var markup =
+                @"using I$$ = IGoo;
+/// <summary></summary>
+interface IGoo {  }";
+
+            await TestAsync(markup,
+                MainDescription("interface IGoo"),
+                Documentation(""));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

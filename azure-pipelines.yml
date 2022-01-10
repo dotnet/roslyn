@@ -8,11 +8,17 @@ trigger:
 
 # Branches that trigger builds on PR
 pr:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+  paths:
+    exclude:
+      - docs/*
+      - .github/*
 
 # Windows Build and Test Jobs
 jobs:
@@ -21,23 +27,24 @@ jobs:
     jobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    queueName: BuildPool.Windows.10.Amd64.Open
+    queueName: Build.Windows.Amd64.VS2022.Pre.Open
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
     jobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    queueName: BuildPool.Windows.10.Amd64.Open
+    queueName: Build.Windows.Amd64.VS2022.Pre.Open
 
-- template: eng/pipelines/test-windows-job.yml
-  parameters:
-    testRunName: 'Test Windows Desktop Debug 32'
-    jobName: Test_Windows_Desktop_Debug_32
-    buildJobName: Build_Windows_Debug
-    testArtifactName: Transport_Artifacts_Windows_Debug
-    configuration: Debug
-    testArguments: -testDesktop -test32
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows Desktop Debug 32'
+      jobName: Test_Windows_Desktop_Debug_32
+      buildJobName: Build_Windows_Debug
+      testArtifactName: Transport_Artifacts_Windows_Debug
+      configuration: Debug
+      testArguments: -testDesktop -test32
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -57,14 +64,15 @@ jobs:
     configuration: Debug
     testArguments: -testCoreClr
 
-- template: eng/pipelines/test-windows-job-single-machine.yml
-  parameters:
-    testRunName: 'Test Windows CoreClr Debug Single Machine'
-    jobName: Test_Windows_CoreClr_Debug_Single_Machine
-    buildJobName: Build_Windows_Debug
-    testArtifactName: Transport_Artifacts_Windows_Debug
-    configuration: Debug
-    testArguments: -testCoreClr
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - template: eng/pipelines/test-windows-job-single-machine.yml
+    parameters:
+      testRunName: 'Test Windows CoreClr Debug Single Machine'
+      jobName: Test_Windows_CoreClr_Debug_Single_Machine
+      buildJobName: Build_Windows_Debug
+      testArtifactName: Transport_Artifacts_Windows_Debug
+      configuration: Debug
+      testArguments: -testCoreClr
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -77,21 +85,22 @@ jobs:
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
-    testRunName: 'Test Windows Desktop Spanish Release 32'
-    jobName: Test_Windows_Desktop_Spanish_Release_32
+    testRunName: 'Test Windows Desktop Spanish Release 64'
+    jobName: Test_Windows_Desktop_Spanish_Release_64
     buildJobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    testArguments: -testDesktop -test32 -helixQueueName Windows.10.Amd64.Server19H1.ES.Open
+    testArguments: -testDesktop -test64 -helixQueueName Windows.10.Amd64.Server19H1.ES.Open
 
-- template: eng/pipelines/test-windows-job.yml
-  parameters:
-    testRunName: 'Test Windows Desktop Release 64'
-    jobName: Test_Windows_Desktop_Release_64
-    buildJobName: Build_Windows_Release
-    testArtifactName: Transport_Artifacts_Windows_Release
-    configuration: Release
-    testArguments: -testDesktop -test64
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows Desktop Release 64'
+      jobName: Test_Windows_Desktop_Release_64
+      buildJobName: Build_Windows_Release
+      testArtifactName: Transport_Artifacts_Windows_Release
+      configuration: Release
+      testArguments: -testDesktop -test64
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -117,7 +126,7 @@ jobs:
     jobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    queueName: BuildPool.Ubuntu.1804.Amd64.Open
+    queueName: Build.Ubuntu.1804.Amd64.Open
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
@@ -128,15 +137,16 @@ jobs:
     configuration: Debug
     testArguments: --testCoreClr --helixQueueName Ubuntu.1804.Amd64.Open
 
-- template: eng/pipelines/test-unix-job-single-machine.yml
-  parameters:
-    testRunName: 'Test Linux Debug Single Machine'
-    jobName: Test_Linux_Debug_Single_Machine
-    buildJobName: Build_Unix_Debug
-    testArtifactName: Transport_Artifacts_Unix_Debug
-    configuration: Debug
-    testArguments: --testCoreClr
-    queueName: 'BuildPool.Ubuntu.1804.amd64.Open'
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - template: eng/pipelines/test-unix-job-single-machine.yml
+    parameters:
+      testRunName: 'Test Linux Debug Single Machine'
+      jobName: Test_Linux_Debug_Single_Machine
+      buildJobName: Build_Unix_Debug
+      testArtifactName: Transport_Artifacts_Unix_Debug
+      configuration: Debug
+      testArguments: --testCoreClr
+      queueName: 'Build.Ubuntu.1804.amd64.Open'
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
@@ -145,7 +155,7 @@ jobs:
     buildJobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    testArguments: --testCoreClr --helixQueueName OSX.1014.Amd64.Open
+    testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
 
 - template: eng/common/templates/jobs/source-build.yml
 
@@ -153,8 +163,8 @@ jobs:
 
 - job: Correctness_Determinism
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.VS2019.Open
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -169,8 +179,8 @@ jobs:
 
 - job: Correctness_Build
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.VS2019.Open
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -201,8 +211,8 @@ jobs:
 
 - job: Correctness_Rebuild
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.Open
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml

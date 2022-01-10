@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        internal override string Language => LanguageNames.CSharp;
         public override ImmutableHashSet<char> TriggerCharacters => CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
         /// <summary>
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 parent = localFunction;
             }
 
-            return parent.Ancestors().FirstOrDefault(node => node.IsAsyncSupportingFunctionSyntax());
+            return parent.AncestorsAndSelf().FirstOrDefault(node => node.IsAsyncSupportingFunctionSyntax());
         }
 
         protected override SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)

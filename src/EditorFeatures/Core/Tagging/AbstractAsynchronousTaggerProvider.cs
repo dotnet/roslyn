@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         private readonly object _uniqueKey = new();
 
         protected readonly IAsynchronousOperationListener AsyncListener;
+        protected readonly IGlobalOptionService GlobalOptions;
 
         /// <summary>
         /// The behavior the tagger engine will have when text changes happen to the subject buffer
@@ -57,8 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         /// <summary>
-        /// Options controlling this tagger.  The tagger infrastructure will check this option
-        /// against the buffer it is associated with to see if it should tag or not.
+        /// Global options controlling if the tagger should tag or not.
         /// 
         /// An empty enumerable can be returned to indicate that this tagger should 
         /// run unconditionally.
@@ -84,9 +84,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         protected AbstractAsynchronousTaggerProvider(
             IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListener asyncListener)
             : base(threadingContext)
         {
+            GlobalOptions = globalOptions;
             AsyncListener = asyncListener;
 
 #if DEBUG
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         protected ITagger<T>? CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
-            if (!subjectBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Tagger))
+            if (!GlobalOptions.GetOption(EditorComponentOnOffOptions.Tagger))
                 return null;
 
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
@@ -209,17 +211,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         }
 
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
-        {
-            // Keep legacy shape for TypeScript.  Once they adapt to the obsoletes and move to overriding this method
-            // we can remove once TypeScript finishes https://github.com/dotnet/roslyn/issues/57180.
-            context.CancellationToken = cancellationToken;
-            return ProduceTagsAsync(context, spanToTag, caretPosition);
-        }
-
-        /// <summary>
-        /// Remove once TypeScript finishes https://github.com/dotnet/roslyn/issues/57180.
-        /// </summary>
-        protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
             => Task.CompletedTask;
 
         internal TestAccessor GetTestAccessor()

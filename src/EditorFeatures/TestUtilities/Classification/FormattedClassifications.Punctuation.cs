@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             public static FormattedClassification Comma { get; } = New(",");
             public static FormattedClassification Semicolon { get; } = New(";");
             public static FormattedClassification Colon { get; } = New(":");
+            public static FormattedClassification DotDot { get; } = New("..");
 
             [DebuggerStepThrough]
             public static FormattedClassification Text(string text) => New(text);

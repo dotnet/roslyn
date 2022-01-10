@@ -10376,7 +10376,7 @@ namespace ClassLibrary9
             var service = new CSharpExtractMethodService();
             Assert.NotNull(await Record.ExceptionAsync(async () =>
             {
-                var tree = await service.ExtractMethodAsync(document: null, textSpan: default, localFunction: false, options: null, CancellationToken.None);
+                var tree = await service.ExtractMethodAsync(document: null, textSpan: default, localFunction: false, options: ExtractMethodOptions.Default, CancellationToken.None);
             }));
         }
 
@@ -10392,7 +10392,7 @@ namespace ClassLibrary9
 
             var service = new CSharpExtractMethodService() as IExtractMethodService;
 
-            await service.ExtractMethodAsync(document, textSpan: default, localFunction: false);
+            await service.ExtractMethodAsync(document, textSpan: default, localFunction: false, ExtractMethodOptions.Default, CancellationToken.None);
         }
 
         [WpfFact]

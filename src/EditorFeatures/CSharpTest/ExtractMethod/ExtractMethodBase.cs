@@ -126,11 +126,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             Assert.NotNull(document);
 
-            var originalOptions = await document.GetOptionsAsync();
-            var options = originalOptions.WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct);
-
+            var options = new ExtractMethodOptions(DontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
-            var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options);
+            var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), localFunction: false, options);
 
             var selectedCode = await validator.GetValidSelectionAsync(CancellationToken.None);
             if (!succeed && selectedCode.Status.FailedWithNoBestEffortSuggestion())
@@ -149,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 result.SucceededWithSuggestion ||
                 (allowBestEffort && result.Status.HasBestEffort()));
 
-            var doc = result.Document;
+            var (doc, _) = await result.GetFormattedDocumentAsync(CancellationToken.None);
             return doc == null
                 ? null
                 : await doc.GetSyntaxRootAsync();
@@ -164,10 +162,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             Assert.NotNull(document);
 
-            var options = await document.GetOptionsAsync(CancellationToken.None);
-
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
-            var validator = new CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), options);
+            var validator = new CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), localFunction: false, ExtractMethodOptions.Default);
             var result = await validator.GetValidSelectionAsync(CancellationToken.None);
 
             Assert.True(expectedFail ? result.Status.Failed() : result.Status.Succeeded());
@@ -188,11 +184,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var root = await document.GetSyntaxRootAsync();
             var iterator = root.DescendantNodesAndSelf().Cast<SyntaxNode>();
 
-            var originalOptions = await document.GetOptionsAsync();
-
             foreach (var node in iterator)
             {
-                var validator = new CSharpSelectionValidator(semanticDocument, node.Span, originalOptions);
+                var validator = new CSharpSelectionValidator(semanticDocument, node.Span, localFunction: false, ExtractMethodOptions.Default);
                 var result = await validator.GetValidSelectionAsync(CancellationToken.None);
 
                 // check the obvious case

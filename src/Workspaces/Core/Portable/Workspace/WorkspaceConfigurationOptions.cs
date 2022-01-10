@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis
 {
-    [ExportOptionProvider, Shared]
+    [ExportSolutionOptionProvider, Shared]
     internal class WorkspaceConfigurationOptions : IOptionProvider
     {
         /// <summary>
@@ -26,25 +26,9 @@ namespace Microsoft.CodeAnalysis
             nameof(WorkspaceConfigurationOptions), nameof(DisableProjectCacheService), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.DisableProjectCacheService"));
 
-        /// <summary>
-        /// Disables holding onto the assembly references for runtime (not user/nuget/etc.) dlls weakly.
-        /// </summary>
-        public static readonly Option<bool> DisableReferenceManagerWeakRuntimeReferences = new(
-            nameof(WorkspaceConfigurationOptions), nameof(DisableReferenceManagerWeakRuntimeReferences), defaultValue: false,
-            new FeatureFlagStorageLocation("Roslyn.DisableReferenceManagerWeakRuntimeReferences"));
-
-        /// <summary>
-        /// Disables holding onto the assembly references for runtime (not user/nuget/etc.) dlls weakly.
-        /// </summary>
-        public static readonly Option<bool> DisableCompilationTrackerWeakCompilationReferences = new(
-            nameof(WorkspaceConfigurationOptions), nameof(DisableCompilationTrackerWeakCompilationReferences), defaultValue: false,
-            new FeatureFlagStorageLocation("Roslyn.DisableCompilationTrackerWeakCompilationReferences"));
-
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
             DisableRecoverableTrees,
-            DisableProjectCacheService,
-            DisableReferenceManagerWeakRuntimeReferences,
-            DisableCompilationTrackerWeakCompilationReferences);
+            DisableProjectCacheService);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

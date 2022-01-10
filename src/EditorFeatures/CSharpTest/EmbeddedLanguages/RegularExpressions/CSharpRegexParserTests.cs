@@ -224,16 +224,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                         GetTextAttribute(text, d.Span))));
 
         private static XAttribute GetTextAttribute(SourceText text, TextSpan span)
-            => new XAttribute("Text", text.ToString(span));
+            => new("Text", text.ToString(span));
 
         private XElement NodeToElement(RegexNode node)
         {
+            if (node is RegexAlternationNode alternationNode)
+                return AlternationToElement(alternationNode, alternationNode.SequenceList.NodesAndTokens.Length);
+
             var element = new XElement(node.Kind.ToString());
             foreach (var child in node)
-            {
                 element.Add(child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token));
-            }
 
+            return element;
+        }
+
+        private XElement AlternationToElement(RegexAlternationNode alternationNode, int end)
+        {
+            // to keep tests in sync with how we used to structure alternations, we specially handle this node.
+            // First, if the node only has a single element, then just print that element as that's what would
+            // normally be inlined into the parent.
+            if (end == 1)
+                return NodeToElement(alternationNode.SequenceList.NodesAndTokens[0].Node);
+
+            var element = new XElement(alternationNode.Kind.ToString());
+            element.Add(AlternationToElement(alternationNode, end - 2));
+            element.Add(TokenToElement(alternationNode.SequenceList.NodesAndTokens[end - 2].Token));
+            element.Add(NodeToElement(alternationNode.SequenceList.NodesAndTokens[end - 1].Node));
             return element;
         }
 
@@ -325,6 +341,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 
             position += virtualChars.Length;
         }
+
+        private static string And(params string[] regexes)
+        {
+            var conj = $"({regexes[regexes.Length - 1]})";
+            for (var i = regexes.Length - 2; i >= 0; i--)
+                conj = $"(?({regexes[i]}){conj}|[0-[0]])";
+
+            return conj;
+        }
+
+        private static string Not(string regex)
+            => $"(?({regex})[0-[0]]|.*)";
 
         [Fact]
         public void TestDeepRecursion()

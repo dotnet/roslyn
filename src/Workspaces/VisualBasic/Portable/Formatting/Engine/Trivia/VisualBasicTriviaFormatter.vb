@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             ' line continuation
             If trivia2.Kind = SyntaxKind.LineContinuationTrivia Then
-                Return LineColumnRule.ForceSpacesOrUseAbsoluteIndentation(spacesOrIndentation:=1)
+                Return LineColumnRule.ForceSpacesOrUseFollowIndentation(indentation:=0)
             End If
 
             If IsStartOrEndOfFile(trivia1, trivia2) Then
@@ -299,5 +299,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return singlelineDocCommentTrivia.ElementAt(0)
         End Function
 
+        Protected Overrides Function LineContinuationFollowedByWhitespaceComment(trivia As SyntaxTrivia, nextTrivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.LineContinuationTrivia AndAlso nextTrivia.Kind = SyntaxKind.CommentTrivia
+        End Function
+
+        Protected Overrides Function IsVisualBasicComment(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.CommentTrivia
+        End Function
     End Class
 End Namespace

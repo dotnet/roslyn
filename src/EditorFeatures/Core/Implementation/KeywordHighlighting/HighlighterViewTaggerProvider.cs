@@ -47,8 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         public HighlighterViewTaggerProvider(
             IThreadingContext threadingContext,
             IHighlightingService highlightingService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
         {
             _highlightingService = highlightingService;
         }
@@ -79,8 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 return;
             }
 
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            if (!documentOptions.GetOption(FeatureOnOffOptions.KeywordHighlighting))
+            if (!GlobalOptions.GetOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language))
             {
                 return;
             }

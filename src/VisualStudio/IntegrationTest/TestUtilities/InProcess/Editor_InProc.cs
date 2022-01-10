@@ -18,10 +18,13 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -29,10 +32,10 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using UIAutomationClient;
-using Xunit;
 using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -820,5 +823,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var view = GetActiveVsTextView();
                 view.SendExplicitFocus();
             });
+
+        public void WaitForEditorOperations(TimeSpan timeout)
+        {
+            var joinableTaskCollection = InvokeOnUIThread(cancellationToken =>
+            {
+                var shell = GetGlobalService<SVsShell, IVsShell>();
+                if (shell.IsPackageLoaded(DefGuidList.guidEditorPkg, out var editorPackage) == VSConstants.S_OK)
+                {
+                    var asyncPackage = (AsyncPackage)editorPackage;
+                    var collection = asyncPackage.GetPropertyValue<JoinableTaskCollection>("JoinableTaskCollection");
+                    return collection;
+                }
+
+                return null;
+            });
+
+            if (joinableTaskCollection is not null)
+            {
+                using var cts = new CancellationTokenSource(timeout);
+                joinableTaskCollection.JoinTillEmptyAsync(cts.Token).Wait(cts.Token);
+            }
+        }
     }
 }

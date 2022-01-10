@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -58,9 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        internal override string Language => LanguageNames.CSharp;
+
         public override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
-        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
             => text[insertedCharacterPosition] == '.';
 
         /// <summary>
@@ -99,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var position = context.Position;
 
             // Escape hatch feature flag to let us disable this feature remotely if we run into any issues with it, 
-            if (context.Options.GetOption(CompletionOptions.UnnamedSymbolCompletionDisabledFeatureFlag))
+            if (context.CompletionOptions.UnnamedSymbolCompletionDisabled)
                 return;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -111,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var options = CodeAnalysis.Completion.Providers.CompletionUtilities.GetUpdatedRecommendationOptions(context.Options, document.Project.Language);
+            var options = context.CompletionOptions.ToRecommendationServiceOptions();
             var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, options, cancellationToken);
 
             AddUnnamedSymbols(context, position, semanticModel, recommendedSymbols.UnnamedSymbols, cancellationToken);
@@ -153,17 +156,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        public override async Task<CompletionDescription?> GetDescriptionAsync(
+        internal override async Task<CompletionDescription?> GetDescriptionAsync(
             Document document,
             CompletionItem item,
+            CompletionOptions options,
+            SymbolDescriptionOptions displayOptions,
             CancellationToken cancellationToken)
         {
             var kind = item.Properties[KindName];
             return kind switch
             {
-                IndexerKindName => await GetIndexerDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false),
-                OperatorKindName => await GetOperatorDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false),
-                ConversionKindName => await GetConversionDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false),
+                IndexerKindName => await GetIndexerDescriptionAsync(document, item, displayOptions, cancellationToken).ConfigureAwait(false),
+                OperatorKindName => await GetOperatorDescriptionAsync(document, item, displayOptions, cancellationToken).ConfigureAwait(false),
+                ConversionKindName => await GetConversionDescriptionAsync(document, item, displayOptions, cancellationToken).ConfigureAwait(false),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
         }

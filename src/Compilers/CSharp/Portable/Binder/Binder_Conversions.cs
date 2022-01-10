@@ -130,12 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
-                ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
-                if (conversion.Method is not null)
-                {
-                    ReportUseSite(conversion.Method, diagnostics, syntax.Location);
-                }
-                CheckConstraintLanguageVersionAndRuntimeSupportForConversion(syntax, conversion, diagnostics);
+                reportUseSiteDiagnostics(conversion);
 
                 if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
                 {
@@ -232,24 +227,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (conversion.IsObjectCreation)
                 {
-                    return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, isCast, destination, diagnostics);
+                    return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, conversion, isCast, destination, conversionGroupOpt, wasCompilerGenerated, diagnostics);
                 }
 
                 if (source.Kind == BoundKind.UnconvertedConditionalOperator)
                 {
-                    TypeSymbol? type = source.Type;
-                    if (type is null)
-                    {
-                        Debug.Assert(!conversion.Exists);
-                        type = CreateErrorType();
-                        hasErrors = true;
-                    }
+                    Debug.Assert(source.Type is null);
+                    Debug.Assert(!conversion.Exists);
+                    hasErrors = true;
 
-                    source = ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
-                    if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
-                    {
-                        return source;
-                    }
+                    source = ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, CreateErrorType(), conversionIfTargetTyped: null, diagnostics, hasErrors);
                 }
 
                 if (conversion.IsUserDefined)
@@ -266,6 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         .WithSuppression(source.IsSuppressed);
                 }
 
+                reportUseSiteDiagnosticsForUnderlyingConversions(conversion);
+
                 return new BoundConversion(
                     syntax,
                     BindToNaturalType(source, diagnostics),
@@ -277,6 +266,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: destination,
                     hasErrors: hasErrors)
                 { WasCompilerGenerated = wasCompilerGenerated };
+
+                void reportUseSiteDiagnostics(Conversion conversion)
+                {
+                    // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
+                    Debug.Assert(!conversion.IsMethodGroup);
+                    ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
+                    if (conversion.Method is not null)
+                    {
+                        ReportUseSite(conversion.Method, diagnostics, syntax.Location);
+                    }
+                    CheckConstraintLanguageVersionAndRuntimeSupportForConversion(syntax, conversion, diagnostics);
+                }
+
+                void reportUseSiteDiagnosticsForUnderlyingConversions(Conversion conversion)
+                {
+                    var underlyingConversions = conversion.UnderlyingConversions;
+
+                    if (!underlyingConversions.IsDefaultOrEmpty)
+                    {
+                        foreach (var underlying in underlyingConversions)
+                        {
+                            reportUseSiteDiagnosticsForSelfAndUnderlyingConversions(underlying);
+
+                            if (underlying.IsUserDefined)
+                            {
+                                reportUseSiteDiagnosticsForSelfAndUnderlyingConversions(underlying.UserDefinedFromConversion);
+                                reportUseSiteDiagnosticsForSelfAndUnderlyingConversions(underlying.UserDefinedToConversion);
+                                underlying.MarkUnderlyingConversionsChecked();
+                            }
+                        }
+
+                        conversion.MarkUnderlyingConversionsChecked();
+                    }
+
+                    void reportUseSiteDiagnosticsForSelfAndUnderlyingConversions(Conversion conversion)
+                    {
+                        reportUseSiteDiagnostics(conversion);
+                        reportUseSiteDiagnosticsForUnderlyingConversions(conversion);
+                    }
+                }
             }
         }
 
@@ -299,62 +328,68 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression ConvertObjectCreationExpression(SyntaxNode syntax, BoundUnconvertedObjectCreationExpression node, bool isCast, TypeSymbol destination, BindingDiagnosticBag diagnostics)
+        private BoundExpression ConvertObjectCreationExpression(
+            SyntaxNode syntax, BoundUnconvertedObjectCreationExpression node, Conversion conversion, bool isCast, TypeSymbol destination,
+            ConversionGroup? conversionGroupOpt, bool wasCompilerGenerated, BindingDiagnosticBag diagnostics)
         {
             var arguments = AnalyzedArguments.GetInstance(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
-            BoundExpression expr = BindObjectCreationExpression(node, destination.StrippedType(), arguments, diagnostics);
-            if (destination.IsNullableType())
-            {
-                // We manually create an ImplicitNullable conversion
-                // if the destination is nullable, in which case we
-                // target the underlying type e.g. `S? x = new();`
-                // is actually identical to `S? x = new S();`.
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var conversion = Conversions.ClassifyStandardConversion(null, expr.Type, destination, ref useSiteInfo);
-                expr = new BoundConversion(
-                    node.Syntax,
-                    operand: expr,
-                    conversion: conversion,
-                    @checked: false,
-                    explicitCastInCode: isCast,
-                    conversionGroupOpt: new ConversionGroup(conversion),
-                    constantValueOpt: expr.ConstantValue,
-                    type: destination);
-
-                diagnostics.Add(syntax, useSiteInfo);
-            }
+            BoundExpression expr = bindObjectCreationExpression(node, destination.StrippedType(), arguments, diagnostics);
             arguments.Free();
-            return expr;
-        }
 
-        private BoundExpression BindObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, TypeSymbol type, AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
-        {
-            var syntax = node.Syntax;
-            switch (type.TypeKind)
+            Debug.Assert(expr is BoundObjectCreationExpressionBase { WasTargetTyped: true } or
+                                 BoundDelegateCreationExpression { WasTargetTyped: true } or
+                                 BoundBadExpression);
+
+            // Assert that the shape of the BoundBadExpression is sound and is not going to confuse NullableWalker for target-typed 'new'.
+            Debug.Assert(expr is not BoundBadExpression { ChildBoundNodes: var children } || !children.Any((child, node) => child.Syntax == node.Syntax, node));
+
+            if (wasCompilerGenerated)
             {
-                case TypeKind.Enum:
-                case TypeKind.Struct:
-                case TypeKind.Class when !type.IsAnonymousType: // We don't want to enable object creation with unspeakable types
-                    return BindClassCreationExpression(syntax, type.Name, typeNode: syntax, (NamedTypeSymbol)type, arguments, diagnostics, node.InitializerOpt, wasTargetTyped: true);
-                case TypeKind.TypeParameter:
-                    return BindTypeParameterCreationExpression(syntax, (TypeParameterSymbol)type, arguments, node.InitializerOpt, typeSyntax: syntax, diagnostics);
-                case TypeKind.Delegate:
-                    return BindDelegateCreationExpression(syntax, (NamedTypeSymbol)type, arguments, node.InitializerOpt, diagnostics);
-                case TypeKind.Interface:
-                    return BindInterfaceCreationExpression(syntax, (NamedTypeSymbol)type, diagnostics, typeNode: syntax, arguments, node.InitializerOpt, wasTargetTyped: true);
-                case TypeKind.Array:
-                case TypeKind.Class:
-                case TypeKind.Dynamic:
-                    Error(diagnostics, ErrorCode.ERR_ImplicitObjectCreationIllegalTargetType, syntax, type);
-                    goto case TypeKind.Error;
-                case TypeKind.Pointer:
-                case TypeKind.FunctionPointer:
-                    Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, type);
-                    goto case TypeKind.Error;
-                case TypeKind.Error:
-                    return MakeBadExpressionForObjectCreation(syntax, type, arguments, node.InitializerOpt, typeSyntax: syntax, diagnostics);
-                case var v:
-                    throw ExceptionUtilities.UnexpectedValue(v);
+                expr.MakeCompilerGenerated();
+            }
+
+            expr = new BoundConversion(
+                                  syntax,
+                                  expr,
+                                  expr is BoundBadExpression ? Conversion.NoConversion : conversion,
+                                  CheckOverflowAtRuntime,
+                                  explicitCastInCode: isCast && !wasCompilerGenerated,
+                                  conversionGroupOpt,
+                                  expr.ConstantValue,
+                                  destination)
+            { WasCompilerGenerated = wasCompilerGenerated };
+
+            return expr;
+
+            BoundExpression bindObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, TypeSymbol type, AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
+            {
+                var syntax = node.Syntax;
+                switch (type.TypeKind)
+                {
+                    case TypeKind.Enum:
+                    case TypeKind.Struct:
+                    case TypeKind.Class when !type.IsAnonymousType: // We don't want to enable object creation with unspeakable types
+                        return BindClassCreationExpression(syntax, type.Name, typeNode: syntax, (NamedTypeSymbol)type, arguments, diagnostics, node.InitializerOpt, wasTargetTyped: true);
+                    case TypeKind.TypeParameter:
+                        return BindTypeParameterCreationExpression(syntax, (TypeParameterSymbol)type, arguments, node.InitializerOpt, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
+                    case TypeKind.Delegate:
+                        return BindDelegateCreationExpression(syntax, (NamedTypeSymbol)type, arguments, node.InitializerOpt, wasTargetTyped: true, diagnostics);
+                    case TypeKind.Interface:
+                        return BindInterfaceCreationExpression(syntax, (NamedTypeSymbol)type, diagnostics, typeNode: syntax, arguments, node.InitializerOpt, wasTargetTyped: true);
+                    case TypeKind.Array:
+                    case TypeKind.Class:
+                    case TypeKind.Dynamic:
+                        Error(diagnostics, ErrorCode.ERR_ImplicitObjectCreationIllegalTargetType, syntax, type);
+                        goto case TypeKind.Error;
+                    case TypeKind.Pointer:
+                    case TypeKind.FunctionPointer:
+                        Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, type);
+                        goto case TypeKind.Error;
+                    case TypeKind.Error:
+                        return MakeBadExpressionForObjectCreation(syntax, type, arguments, node.InitializerOpt, typeSyntax: syntax, diagnostics);
+                    case var v:
+                        throw ExceptionUtilities.UnexpectedValue(v);
+                }
             }
         }
 
@@ -443,6 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversionGroup != null);
             Debug.Assert(conversion.IsUserDefined);
 
+            conversion.MarkUnderlyingConversionsChecked();
             if (!conversion.IsValid)
             {
                 if (!hasErrors)
@@ -730,6 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 destinationWithoutNullable = destination.GetNullableUnderlyingType();
                 conversionWithoutNullable = conversion.UnderlyingConversions[0];
+                conversion.MarkUnderlyingConversionsChecked();
             }
 
             Debug.Assert(conversionWithoutNullable.IsTupleLiteralConversion);
@@ -772,6 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var targetElementTypes = targetType.TupleElementTypesWithAnnotations;
             Debug.Assert(targetElementTypes.Length == arguments.Length, "converting a tuple literal to incompatible type?");
             var underlyingConversions = conversionWithoutNullable.UnderlyingConversions;
+            conversionWithoutNullable.MarkUnderlyingConversionsChecked();
 
             for (int i = 0; i < arguments.Length; i++)
             {
