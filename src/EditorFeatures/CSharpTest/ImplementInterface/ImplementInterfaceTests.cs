@@ -9434,7 +9434,7 @@ class D : I
     {
         throw new System.NotImplementedException();
     }
-}", index: 1);
+}", codeAction: ("", 1));
         }
 
         [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
@@ -9467,7 +9467,7 @@ class D : I
     {
         throw new System.NotImplementedException();
     }
-}", index: 1);
+}", codeAction: ("", 1));
         }
 
         [WorkItem(51779, "https://github.com/dotnet/roslyn/issues/51779")]
