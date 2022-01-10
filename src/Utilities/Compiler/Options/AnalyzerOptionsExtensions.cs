@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Analyzer.Utilities.Extensions;
@@ -579,7 +578,7 @@ namespace Analyzer.Utilities
         private static ICategorizedAnalyzerConfigOptions GetOrComputeCategorizedAnalyzerConfigOptions(
             this AnalyzerOptions options, Compilation compilation)
         {
-            if (options.AdditionalFiles.Any(f => Path.GetFileName(f.Path).Equals(".editorconfig", StringComparison.OrdinalIgnoreCase)))
+            if (options.AdditionalFiles.Any(f => PathHelper.GetFileName(f.Path).Equals(".editorconfig".AsSpan(), StringComparison.OrdinalIgnoreCase)))
             {
                 throw new InvalidOperationException("Passing '.editorconfig' files as additional files is no longer needed. It will be implicitly discovered (if the file is in the project's directory or any ancestor directory), or it should be converted into a 'globalconfig'. See 'https://docs.microsoft.com/dotnet/fundamentals/code-analysis/configuration-files'.");
             }
