@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 => new(parseOptions, compilationOptions, options, codeActionOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
 
             public TestParameters WithWorkspaceKind(string workspaceKind)
-                => new(parseOptions, compilationOptions, options, codeActionOptions,  fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, codeActionOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
         }
 
 #pragma warning disable IDE0052 // Remove unread private members (unused when CODE_STYLE is set)
