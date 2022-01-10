@@ -16,10 +16,13 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
@@ -61,6 +64,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             // information in the Border_ToolTipOpening event handler
             adornment.ToolTip = "Quick info";
             adornment.ToolTipOpening += Border_ToolTipOpening;
+
+            if (_hint.ReplacementTextChange is not null)
+            {
+                adornment.MouseLeftButtonDown += Adornment_MouseLeftButtonDown;
+            }
         }
 
         /// <summary>
@@ -252,6 +260,26 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(threadingContext.DisposalToken);
 
             toolTipPresenter.StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);
+        }
+
+        private void Adornment_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 2)
+            {
+                e.Handled = true;
+                var replacementValue = _hint.ReplacementTextChange!.Value;
+                var subjectBuffer = _span.Snapshot.TextBuffer;
+
+                if (subjectBuffer.CurrentSnapshot.Length > replacementValue.Span.End)
+                {
+                    subjectBuffer.Replace(new VisualStudio.Text.Span(replacementValue.Span.Start, replacementValue.Span.Length), replacementValue.NewText);
+                }
+                else
+                {
+                    Internal.Log.Logger.Log(FunctionId.Inline_Hints_DoubleClick,
+                        $"replacement span end:{replacementValue.Span.End} is greater than or equal to current snapshot length:{subjectBuffer.CurrentSnapshot.Length}");
+                }
+            }
         }
     }
 }
