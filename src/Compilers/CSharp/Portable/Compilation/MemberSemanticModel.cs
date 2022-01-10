@@ -580,6 +580,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override INamespaceSymbol GetDeclaredSymbol(FileScopedNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // Can't defined namespace inside a member.
+            return null;
+        }
+
         public override INamedTypeSymbol GetDeclaredSymbol(BaseTypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Can't define type inside a member.
@@ -899,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException("node.Kind==" + node.Kind());
             }
 
-            var bound = GetUpperBoundNode(node);
+            var bound = GetLowerBoundNode(node);
             BoundAwaitableInfo awaitableInfo = (((bound as BoundExpressionStatement)?.Expression ?? bound) as BoundAwaitExpression)?.AwaitableInfo;
             if (awaitableInfo == null)
             {
@@ -942,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to pointer types.
             if (enumeratorInfoOpt.ElementType.IsPointerType())
             {
-                Debug.Assert(!enumeratorInfoOpt.CurrentConversion.IsValid);
+                Debug.Assert(enumeratorInfoOpt.CurrentConversion is null);
                 return default(ForEachStatementInfo);
             }
 
@@ -971,8 +977,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 currentProperty: ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol).GetPublicSymbol(),
                 disposeMethod.GetPublicSymbol(),
                 enumeratorInfoOpt.ElementType.GetPublicSymbol(),
-                boundForEach.ElementConversion,
-                enumeratorInfoOpt.CurrentConversion);
+                BoundNode.GetConversion(boundForEach.ElementConversion, boundForEach.ElementPlaceholder),
+                BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder));
         }
 
         public override DeconstructionInfo GetDeconstructionInfo(AssignmentExpressionSyntax node)
@@ -1992,24 +1998,7 @@ done:
 
             BoundNode bind(CSharpSyntaxNode root, out Binder binder)
             {
-                if (root is CompilationUnitSyntax)
-                {
-                    // Top level statements are unique among our nodes: if there are no syntax nodes before local functions,
-                    // then that means the start of the span of the top-level statement is the same as the start of the local
-                    // function. Therefore, GetEnclosingBinder can't tell the difference, and it will get the binder for the
-                    // local function, not for the CompilationUnitSyntax. This is desirable in almost all cases but this one:
-                    // There are no locals or invocations before this, meaning there's nothing to call GetDeclaredSymbol,
-                    // GetTypeInfo, or GetSymbolInfo on. GetDeclaredSymbol(CompilationUnitSyntax) goes down another path that
-                    // does not need to do any binding whatsoever, so it also doesn't care about this behavior. The only place
-                    // that actually needs to get the enclosing binding for a CompilationUnitSyntax in such a scenario is this
-                    // method. So, if our root is the CompilationUnitSyntax, directly get the binder for it.
-                    binder = RootBinder.GetBinder(root);
-                    Debug.Assert(binder is SimpleProgramBinder);
-                }
-                else
-                {
-                    binder = GetEnclosingBinder(GetAdjustedNodePosition(root));
-                }
+                binder = GetBinderToBindNode(root);
                 return Bind(binder, root, BindingDiagnosticBag.Discarded);
             }
 
@@ -2030,6 +2019,31 @@ done:
                 diagnostics.Free();
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
             }
+        }
+
+        private Binder GetBinderToBindNode(CSharpSyntaxNode nodeToBind)
+        {
+            Binder binder;
+            if (nodeToBind is CompilationUnitSyntax)
+            {
+                // Top level statements are unique among our nodes: if there are no syntax nodes before local functions,
+                // then that means the start of the span of the top-level statement is the same as the start of the local
+                // function. Therefore, GetEnclosingBinder can't tell the difference, and it will get the binder for the
+                // local function, not for the CompilationUnitSyntax. This is desirable in almost all cases but this one:
+                // There are no locals or invocations before this, meaning there's nothing to call GetDeclaredSymbol,
+                // GetTypeInfo, or GetSymbolInfo on. GetDeclaredSymbol(CompilationUnitSyntax) goes down another path that
+                // does not need to do any binding whatsoever, so it also doesn't care about this behavior. The only place
+                // that actually needs to get the enclosing binding for a CompilationUnitSyntax in such a scenario is this
+                // method. So, if our root is the CompilationUnitSyntax, directly get the binder for it.
+                binder = RootBinder.GetBinder(nodeToBind);
+                Debug.Assert(binder is SimpleProgramBinder);
+            }
+            else
+            {
+                binder = GetEnclosingBinder(GetAdjustedNodePosition(nodeToBind));
+            }
+
+            return binder;
         }
 
 #nullable enable
@@ -2099,7 +2113,7 @@ done:
             // If we didn't find in the cached bound nodes, find a binding root and bind it.
             // This will cache bound nodes under the binding root.
             CSharpSyntaxNode nodeToBind = GetBindingRoot(node);
-            var statementBinder = GetEnclosingBinder(GetAdjustedNodePosition(nodeToBind));
+            var statementBinder = GetBinderToBindNode(nodeToBind);
             Binder incrementalBinder = new IncrementalBinder(this, statementBinder);
 
             using (_nodeMapLock.DisposableWrite())
@@ -2120,7 +2134,7 @@ done:
             // In this case, however, we only add the single bound node we found to the map, not any child bound nodes,
             // to avoid duplicates in the map if a parent of this node comes through this code path also.
 
-            var binder = GetEnclosingBinder(GetAdjustedNodePosition(node));
+            var binder = GetBinderToBindNode(node);
             incrementalBinder = new IncrementalBinder(this, binder);
 
             using (_nodeMapLock.DisposableRead())
@@ -2456,7 +2470,7 @@ foundParent:;
                 return null;
             }
 
-            public override BoundNode BindMethodBody(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
+            public override BoundNode BindMethodBody(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics, bool includeInitializersInBody)
             {
                 BoundNode boundNode = TryGetBoundNodeFromMap(node);
 
@@ -2465,7 +2479,7 @@ foundParent:;
                     return boundNode;
                 }
 
-                boundNode = base.BindMethodBody(node, diagnostics);
+                boundNode = base.BindMethodBody(node, diagnostics, includeInitializersInBody);
 
                 return boundNode;
             }

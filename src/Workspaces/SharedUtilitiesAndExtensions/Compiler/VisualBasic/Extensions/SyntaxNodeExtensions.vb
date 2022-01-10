@@ -221,6 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 SyntaxKind.SingleLineSubLambdaExpression
                     Return True
             End Select
+
             Return False
         End Function
 
@@ -435,32 +436,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function GetLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As ImmutableArray(Of SyntaxTrivia)
-            Return VisualBasicSyntaxFacts.Instance.GetLeadingBlankLines(node)
+            Return VisualBasicFileBannerFacts.Instance.GetLeadingBlankLines(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode
-            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBlankLines(node)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBlankLines(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode, ByRef strippedTrivia As ImmutableArray(Of SyntaxTrivia)) As TSyntaxNode
-            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBlankLines(node, strippedTrivia)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBlankLines(node, strippedTrivia)
         End Function
 
         <Extension()>
         Public Function GetLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As ImmutableArray(Of SyntaxTrivia)
-            Return VisualBasicSyntaxFacts.Instance.GetLeadingBannerAndPreprocessorDirectives(node)
+            Return VisualBasicFileBannerFacts.Instance.GetLeadingBannerAndPreprocessorDirectives(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode
-            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode, ByRef strippedTrivia As ImmutableArray(Of SyntaxTrivia)) As TSyntaxNode
-            Return VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, strippedTrivia)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, strippedTrivia)
         End Function
 
         ''' <summary>
@@ -1238,6 +1239,89 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Case Else
                     Return Nothing
             End Select
+        End Function
+
+        ''' <summary>
+        ''' If "node" is the begin statement of a declaration block, return that block, otherwise
+        ''' return node.
+        ''' </summary>
+        <Extension>
+        Public Function GetBlockFromBegin(node As SyntaxNode) As SyntaxNode
+            Dim parent As SyntaxNode = node.Parent
+            Dim begin As SyntaxNode = Nothing
+
+            If parent IsNot Nothing Then
+                Select Case parent.Kind
+                    Case SyntaxKind.NamespaceBlock
+                        begin = DirectCast(parent, NamespaceBlockSyntax).NamespaceStatement
+
+                    Case SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ClassBlock
+                        begin = DirectCast(parent, TypeBlockSyntax).BlockStatement
+
+                    Case SyntaxKind.EnumBlock
+                        begin = DirectCast(parent, EnumBlockSyntax).EnumStatement
+
+                    Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock,
+                         SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock,
+                         SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
+                        begin = DirectCast(parent, MethodBlockBaseSyntax).BlockStatement
+
+                    Case SyntaxKind.PropertyBlock
+                        begin = DirectCast(parent, PropertyBlockSyntax).PropertyStatement
+
+                    Case SyntaxKind.EventBlock
+                        begin = DirectCast(parent, EventBlockSyntax).EventStatement
+
+                    Case SyntaxKind.VariableDeclarator
+                        If DirectCast(parent, VariableDeclaratorSyntax).Names.Count = 1 Then
+                            begin = node
+                        End If
+                End Select
+            End If
+
+            If begin Is node Then
+                Return parent
+            Else
+                Return node
+            End If
+        End Function
+
+        <Extension>
+        Public Function GetDeclarationBlockFromBegin(node As DeclarationStatementSyntax) As DeclarationStatementSyntax
+            Dim parent As SyntaxNode = node.Parent
+            Dim begin As SyntaxNode = Nothing
+
+            If parent IsNot Nothing Then
+                Select Case parent.Kind
+                    Case SyntaxKind.NamespaceBlock
+                        begin = DirectCast(parent, NamespaceBlockSyntax).NamespaceStatement
+
+                    Case SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ClassBlock
+                        begin = DirectCast(parent, TypeBlockSyntax).BlockStatement
+
+                    Case SyntaxKind.EnumBlock
+                        begin = DirectCast(parent, EnumBlockSyntax).EnumStatement
+
+                    Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock,
+                         SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock,
+                         SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
+                        begin = DirectCast(parent, MethodBlockBaseSyntax).BlockStatement
+
+                    Case SyntaxKind.PropertyBlock
+                        begin = DirectCast(parent, PropertyBlockSyntax).PropertyStatement
+
+                    Case SyntaxKind.EventBlock
+                        begin = DirectCast(parent, EventBlockSyntax).EventStatement
+                End Select
+            End If
+
+            If begin Is node Then
+                ' Every one of these parent casts is of a subtype of DeclarationStatementSyntax
+                ' So if the cast worked above, it will work here
+                Return DirectCast(parent, DeclarationStatementSyntax)
+            Else
+                Return node
+            End If
         End Function
     End Module
 End Namespace

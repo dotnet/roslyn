@@ -7,15 +7,19 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -35,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private readonly AsyncBatchingWorkQueue<DocumentId> _documentsToFireEventsFor;
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ProjectCodeModelFactory(
             VisualStudioWorkspace visualStudioWorkspace,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
@@ -53,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // for the same documents.  Once enough time has passed, take the documents that were changed and run
             // through them, firing their latest events.
             _documentsToFireEventsFor = new AsyncBatchingWorkQueue<DocumentId>(
-                TimeSpan.FromMilliseconds(visualStudioWorkspace.Options.GetOption(InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS)),
+                InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpan,
                 ProcessNextDocumentBatchAsync,
                 // We only care about unique doc-ids, so pass in this comparer to collapse streams of changes for a
                 // single document down to one notification.
@@ -66,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal IAsynchronousOperationListener Listener { get; }
 
-        private async Task ProcessNextDocumentBatchAsync(
+        private async ValueTask ProcessNextDocumentBatchAsync(
             ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             // This logic preserves the previous behavior we had with IForegroundNotificationService.
@@ -75,6 +79,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // legacy, and otherwise have no special meaning.
             const int MaxTimeSlice = 15;
             var delayBetweenProcessing = TimeSpan.FromMilliseconds(50);
+
+            Debug.Assert(!_threadingContext.JoinableTaskContext.IsOnMainThread, "The following context switch is not expected to cause runtime overhead.");
+            await TaskScheduler.Default;
+
+            // Ensure MEF services used by the code model are initially obtained on a background thread.
+            // This code avoids allocations where possible.
+            // https://github.com/dotnet/roslyn/issues/54159
+            string? previousLanguage = null;
+            foreach (var (_, projectState) in _visualStudioWorkspace.CurrentSolution.State.ProjectStates)
+            {
+                if (projectState.Language == previousLanguage)
+                {
+                    // Avoid duplicate calls if the language did not change
+                    continue;
+                }
+
+                previousLanguage = projectState.Language;
+                projectState.LanguageServices.GetService<ICodeModelService>();
+                projectState.LanguageServices.GetService<ISyntaxFactsService>();
+                projectState.LanguageServices.GetService<ICodeGenerationService>();
+            }
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -192,6 +217,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public EnvDTE.FileCodeModel GetOrCreateFileCodeModel(ProjectId id, string filePath)
             => GetProjectCodeModel(id).GetOrCreateFileCodeModel(filePath).Handle;
+
+        public EnvDTE.FileCodeModel CreateFileCodeModel(SourceGeneratedDocument sourceGeneratedDocument)
+            => GetProjectCodeModel(sourceGeneratedDocument.Project.Id).CreateFileCodeModel(sourceGeneratedDocument);
 
         public void ScheduleDeferredCleanupTask(Action<CancellationToken> a)
         {

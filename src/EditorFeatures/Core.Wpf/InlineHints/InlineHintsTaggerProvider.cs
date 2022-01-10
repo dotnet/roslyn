@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
@@ -31,9 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         public readonly IClassificationFormatMapService ClassificationFormatMapService;
         public readonly IClassificationTypeRegistryService ClassificationTypeRegistryService;
         public readonly IThreadingContext ThreadingContext;
+        public readonly IUIThreadOperationExecutor OperationExecutor;
+        public readonly IAsynchronousOperationListener AsynchronousOperationListener;
         public readonly IToolTipService ToolTipService;
         public readonly ClassificationTypeMap TypeMap;
         public readonly Lazy<IStreamingFindUsagesPresenter> StreamingFindUsagesPresenter;
+        public readonly IGlobalOptionService GlobalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -42,17 +47,24 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService classificationTypeRegistryService,
             IThreadingContext threadingContext,
+            IUIThreadOperationExecutor operationExecutor,
+            IAsynchronousOperationListenerProvider listenerProvider,
             IToolTipService toolTipService,
             ClassificationTypeMap typeMap,
-            Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter)
+            Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter,
+            IGlobalOptionService globalOptions)
         {
             _viewTagAggregatorFactoryService = viewTagAggregatorFactoryService;
-            this.ClassificationFormatMapService = classificationFormatMapService;
-            this.ClassificationTypeRegistryService = classificationTypeRegistryService;
-            this.ThreadingContext = threadingContext;
-            this.ToolTipService = toolTipService;
-            this.StreamingFindUsagesPresenter = streamingFindUsagesPresenter;
-            this.TypeMap = typeMap;
+            ClassificationFormatMapService = classificationFormatMapService;
+            ClassificationTypeRegistryService = classificationTypeRegistryService;
+            ThreadingContext = threadingContext;
+            OperationExecutor = operationExecutor;
+            ToolTipService = toolTipService;
+            StreamingFindUsagesPresenter = streamingFindUsagesPresenter;
+            TypeMap = typeMap;
+            GlobalOptions = globalOptions;
+
+            AsynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
         }
 
         public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag

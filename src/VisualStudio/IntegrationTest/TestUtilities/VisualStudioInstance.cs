@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -35,6 +33,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public AddParameterDialog_OutOfProc AddParameterDialog { get; }
 
         public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
+
+        public CodeDefinitionWindow_OutOfProc CodeDefinitionWindow { get; }
 
         public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
 
@@ -134,6 +134,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             AddParameterDialog = new AddParameterDialog_OutOfProc(this);
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
+            CodeDefinitionWindow = new CodeDefinitionWindow_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
             Debugger = new Debugger_OutOfProc(this);
@@ -265,7 +266,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        private static DTE GetDebuggerHostDte()
+        private static DTE? GetDebuggerHostDte()
         {
             var currentProcessId = Process.GetCurrentProcess().Id;
             foreach (var process in Process.GetProcessesByName("devenv"))

@@ -7,6 +7,11 @@
         <target state="translated">Init only 属性 "{0}" 只能由对象成员初始值设定项分配，或在实例构造函数中的 "Me"、"MyClass" 或 "MyBase" 上分配。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract interface member cannot be accessed.</source>
+        <target state="translated">无法访问共享摘要接口成员。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">命令行语法错误:“{0}”不是“{1}”选项的有效值。值的格式必须为 "{2}"。</target>
@@ -57,9 +62,19 @@
         <target state="translated">共享 WithEvents 变量的事件不能由其他类型的方法处理。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
+        <target state="translated">{0}“{1}”无法实现接口“{3}”因为其包含共享摘要“{2}”。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
-        <target state="new">'UnmanagedCallersOnly' attribute is not supported.</target>
+        <target state="translated">不支持 "UnmanagedCallersOnly" 属性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">调用方参数表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -501,6 +516,26 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">加载的程序集引用了 .NET Framework，而此操作不受支持。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">应用于参数“{0}”的 CallerArgumentExpressionAttribute 将不起任何作用。它采用了无效的参数名。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">应用于参数的 CallerArgumentExpressionAttribute 将不起任何作用。它采用了无效的参数名。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">应用于参数“{0}”的 CallerArgumentExpressionAttribute 将不起任何作用，因为它是自引用的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">应用于参数的 CallerArgumentExpressionAttribute 将不起任何作用，因为它是自引用的。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
@@ -5539,7 +5574,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewWithTupleTypeSyntax">
         <source>'New' cannot be used with tuple type. Use a tuple literal expression instead.</source>
-        <target state="translated">'"New" 不能用于元组类型。请改用元组文本表达式。</target>
+        <target state="translated">"New" 不能与元组类型共同使用。请改用元组字面量表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PredefinedValueTupleTypeMustBeStruct">

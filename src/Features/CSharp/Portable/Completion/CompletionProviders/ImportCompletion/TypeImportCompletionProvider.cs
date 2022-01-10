@@ -34,7 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
@@ -45,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             CancellationToken cancellationToken)
             => ImportCompletionProviderHelper.GetImportedNamespaces(location, semanticModel);
 
-        protected override Task<SyntaxContext> CreateContextAsync(Document document, int position, bool usePartialSemantic, CancellationToken cancellationToken)
-            => ImportCompletionProviderHelper.CreateContextAsync(document, position, usePartialSemantic, cancellationToken);
+        protected override Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
+            => ImportCompletionProviderHelper.CreateContextAsync(document, position, cancellationToken);
 
         protected override bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token)
         {

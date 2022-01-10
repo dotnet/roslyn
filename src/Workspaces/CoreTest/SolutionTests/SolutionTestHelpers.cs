@@ -32,17 +32,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return workspace;
         }
 
-        public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp)
-        {
-            var id = ProjectId.CreateNewId();
-            return solution.AddProject(
-                ProjectInfo.Create(
-                    id,
-                    VersionStamp.Default,
-                    name: "TestProject",
-                    assemblyName: "TestProject",
-                    language: languageName)).GetRequiredProject(id);
-        }
+        public static Workspace CreateWorkspaceWithPartialSemanticsAndWeakCompilations()
+            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(new[] { typeof(TestProjectCacheService), typeof(TestTemporaryStorageService) });
 
 #nullable disable
 
@@ -106,7 +97,5 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Throws<ArgumentException>(() => factory(instanceWithNoItem, new TValue[] { item, item }));
             }
         }
-
-#nullable enable
     }
 }

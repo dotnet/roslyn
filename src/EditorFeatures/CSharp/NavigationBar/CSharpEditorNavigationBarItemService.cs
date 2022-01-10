@@ -4,16 +4,14 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigationBar;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 {
@@ -27,24 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         {
         }
 
-        protected override async Task<VirtualTreePoint?> GetSymbolNavigationPointAsync(
-            Document document, ISymbol symbol, CancellationToken cancellationToken)
+        protected override async Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, ITextVersion textVersion, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var location =
-                symbol.Locations.FirstOrDefault(l => Equals(l.SourceTree, syntaxTree)) ??
-                symbol.Locations.FirstOrDefault(l => l.SourceTree != null);
-
-            if (location == null)
-                return null;
-
-            var tree = location.SourceTree;
-            Contract.ThrowIfNull(tree);
-
-            return new VirtualTreePoint(tree, tree.GetText(cancellationToken), location.SourceSpan.Start);
+            await NavigateToSymbolItemAsync(document, item, (RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, textVersion, cancellationToken).ConfigureAwait(false);
+            return true;
         }
-
-        protected override Task NavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-            => NavigateToSymbolItemAsync(document, (RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, cancellationToken);
     }
 }

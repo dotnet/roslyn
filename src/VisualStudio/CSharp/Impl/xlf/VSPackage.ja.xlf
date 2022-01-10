@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline hints;
+        <source>Underline reassigned variables;
+Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -80,8 +81,10 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="translated">インラインのヒントを表示する;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">再割り当てされる変数に下線を引く;
+インラインのヒントを表示する;
 閉じているファイルの診断結果を表示する;
 正規表現をカラー化する;
 カーソルの下にある関連コンポーネントを強調表示する;
@@ -125,10 +128,11 @@ string.Format の呼び出しで無効なプレースホルダーをレポート
 プロパティの生成時;
 スロー プロパティを優先する;
 自動プロパティを優先する;
-正規表現;
+RegEx;
 正規表現;
 拡張された色を使用する;
-エディターの配色;</target>
+エディターの配色;
+継承余白;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -290,12 +294,13 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する; 入力候補一覧;
+        <target state="translated">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する; 入力候補一覧;
 文字が入力された後に入力候補一覧を表示する;
 文字が削除された後に入力候補一覧を表示する;
 引数リストに入力候補一覧を自動的に表示する (試験段階);
 入力候補一覧の項目の一致している部分を強調表示する;
 入力候補の項目フィルターを表示する;
+セミコロンでステートメントをオートコンプリートに設定する;
 スニペットの動作;
 スニペットを含めない;
 常にスニペットを含める;

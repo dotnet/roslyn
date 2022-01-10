@@ -20,8 +20,22 @@ namespace Microsoft.CodeAnalysis.Host
         Task<Stream?> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default);
         Task<Stream?> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Returns <see langword="true"/> if the data was successfully persisted to the storage subsystem.  Subsequent
+        /// calls to read the same keys should succeed if called within the same session.
+        /// </summary>
         Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns <see langword="true"/> if the data was successfully persisted to the storage subsystem.  Subsequent
+        /// calls to read the same keys should succeed if called within the same session.
+        /// </summary>
         Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns <see langword="true"/> if the data was successfully persisted to the storage subsystem.  Subsequent
+        /// calls to read the same keys should succeed if called within the same session.
+        /// </summary>
         Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default);
     }
 }

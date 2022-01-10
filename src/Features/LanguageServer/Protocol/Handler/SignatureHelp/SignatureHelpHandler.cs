@@ -13,11 +13,12 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(LSP.Methods.TextDocumentSignatureHelpName)]
     internal class SignatureHelpHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
     {
@@ -41,18 +42,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             var document = context.Document;
             if (document == null)
-            {
                 return null;
-            }
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var providers = _allProviders.Where(p => p.Metadata.Language == document.Project.Language);
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
+            var options = SignatureHelpOptions.From(document.Project);
 
             foreach (var provider in providers)
             {
-                var items = await provider.Value.GetItemsAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+                var items = await provider.Value.GetItemsAsync(document, position, triggerInfo, options, cancellationToken).ConfigureAwait(false);
 
                 if (items != null)
                 {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         LSP.SignatureInformation sigInfo;
                         if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
                         {
-                            sigInfo = new LSP.VSSignatureInformation
+                            sigInfo = new LSP.VSInternalSignatureInformation
                             {
                                 ColorizedLabel = GetSignatureClassifiedText(item)
                             };

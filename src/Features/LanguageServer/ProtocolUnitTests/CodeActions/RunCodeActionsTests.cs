@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -37,8 +38,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
     }
 }";
 
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var caretLocation = locations["caret"].Single();
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var caretLocation = testLspServer.GetLocations("caret").Single();
 
             var commandArgument = new CodeActionResolveData(string.Format(FeaturesResources.Move_type_to_0, "B.cs"), customTags: ImmutableArray<string>.Empty, caretLocation.Range, new LSP.TextDocumentIdentifier
             {
@@ -67,6 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 
             var result = await testLspServer.ExecuteRequestAsync<LSP.ExecuteCommandParams, object>(
                 LSP.Methods.WorkspaceExecuteCommandName, command, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            Contract.ThrowIfNull(result);
             return (bool)result;
         }
     }

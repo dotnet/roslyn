@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var returnType = SelectionResult.GetContainingScopeType() ?? compilation.GetSpecialType(SpecialType.System_Object);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
-                    return (parameters, returnType, (VariableInfo?)null, unsafeAddressTakenUsed);
+                    return (parameters, returnType, null, unsafeAddressTakenUsed);
                 }
                 else
                 {
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return true;
                 }
 
-                if (UserDefinedValueType(model.Compilation, type) && !SelectionResult.DontPutOutOrRefOnStruct)
+                if (UserDefinedValueType(model.Compilation, type) && !SelectionResult.Options.DontPutOutOrRefOnStruct)
                 {
                     variableStyle = AlwaysReturn(variableStyle);
                     return true;

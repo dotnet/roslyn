@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
-        <target state="new">Allow blank line after colon in constructor initializer</target>
+        <target state="translated">コンストラクター初期化子のコロンの後に空白行を許可する</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
         <source>Allow blank lines between consecutive braces</source>
-        <target state="new">Allow blank lines between consecutive braces</target>
+        <target state="translated">連続する中かっこの間に空白行を許可する</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_embedded_statements_on_same_line">
         <source>Allow embedded statements on same line</source>
-        <target state="new">Allow embedded statements on same line</target>
+        <target state="translated">同一の行に複数の埋め込みステートメントを許可する</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
@@ -29,12 +29,17 @@
       </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
         <source>Automatically complete statement on semicolon</source>
-        <target state="new">Automatically complete statement on semicolon</target>
+        <target state="translated">セミコロンでステートメントをオートコンプリートに設定する</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
-        <target state="needs-review-translation">入力候補一覧を引数リストに自動的に表示する (試験段階)</target>
+        <target state="translated">引数リストに入力候補一覧を自動的に表示する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="translated">範囲指定されたブロック</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -54,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Completion">
         <source>Completion</source>
-        <target state="new">Completion</target>
+        <target state="translated">入力候補</target>
         <note />
       </trans-unit>
       <trans-unit id="Discard">
@@ -65,6 +70,11 @@
       <trans-unit id="Edit_color_scheme">
         <source>Edit color scheme</source>
         <target state="translated">配色の編集</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="translated">範囲指定されたファイル</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -109,8 +119,13 @@
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
         <source>Place open brace on new line for object, collection, array, and with initializers</source>
-        <target state="new">Place open brace on new line for object, collection, array, and with initializers</target>
+        <target state="translated">新しい行にオブジェクト、コレクション、配列、with 初期化子用の始めかっこを配置する</target>
         <note>{Locked="with"}</note>
+      </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="new">Prefer extended property pattern</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
@@ -121,6 +136,11 @@
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">参照の等値性のチェックには 'is null' を優先する</target>
         <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">型のチェックよりも 'null 値' チェックを優先する</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>

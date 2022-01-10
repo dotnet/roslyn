@@ -169,14 +169,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var graphBuilder in graphBuilders)
                 {
-                    graphBuilder.ApplyToGraph(context.Graph);
+                    graphBuilder.ApplyToGraph(context.Graph, cancellationToken);
 
-                    context.OutputNodes.AddAll(graphBuilder.CreatedNodes);
+                    context.OutputNodes.AddAll(graphBuilder.GetCreatedNodes(cancellationToken));
                 }
 
                 transaction.Complete();
             }
-            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Diagnostic))
             {
                 throw ExceptionUtilities.Unreachable;
             }

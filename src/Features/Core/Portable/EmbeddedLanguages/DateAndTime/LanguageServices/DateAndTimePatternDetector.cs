@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
 {
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
             if (argName != "")
                 return (argName, null);
 
-            var arguments = syntaxFacts.GetArgumentsOfArgumentList(argument.Parent);
+            var arguments = syntaxFacts.GetArgumentsOfArgumentList(argument.GetRequiredParent());
             var index = arguments.IndexOf(argument);
             if (index >= 0)
                 return (null, index);

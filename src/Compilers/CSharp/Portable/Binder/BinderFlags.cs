@@ -107,6 +107,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         SuppressTypeArgumentBinding = 1 << 29,
 
+        /// <summary>
+        /// The current context is an expression tree
+        /// </summary>
+        InExpressionTree = 1 << 30,
+
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,

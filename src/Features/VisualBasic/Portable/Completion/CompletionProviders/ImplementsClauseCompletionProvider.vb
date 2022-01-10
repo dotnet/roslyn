@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
-        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
@@ -37,11 +37,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return True
         End Function
 
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
         Protected Overrides Async Function GetSymbolsAsync(
                 completionContext As CompletionContext,
                 syntaxContext As VisualBasicSyntaxContext,
                 position As Integer,
-                options As OptionSet,
+                options As CompletionOptions,
                 cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)))
 
             Dim symbols = Await GetSymbolsAsync(syntaxContext, position, cancellationToken).ConfigureAwait(False)
@@ -65,10 +71,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If methodDeclaration IsNot Nothing Then
                 memberKindKeyword = methodDeclaration.DeclarationKeyword.Kind
             End If
+
             Dim propertyDeclaration = context.TargetToken.GetAncestor(Of PropertyStatementSyntax)()
             If propertyDeclaration IsNot Nothing Then
                 memberKindKeyword = propertyDeclaration.DeclarationKeyword.Kind
             End If
+
             Dim eventDeclaration = context.TargetToken.GetAncestor(Of EventStatementSyntax)()
             If eventDeclaration IsNot Nothing Then
                 memberKindKeyword = eventDeclaration.DeclarationKeyword.Kind
@@ -115,6 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 If Not method.ReturnsVoid Then
                     Return memberKindKeyword = SyntaxKind.FunctionKeyword
                 End If
+
                 Return memberKindKeyword = SyntaxKind.SubKeyword
             End If
 
@@ -164,6 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If container Is Nothing Then
                 Return ImmutableArray(Of ISymbol).Empty
             End If
+
             Dim symbols = semanticModel.LookupSymbols(position, container)
 
             Dim hashSet = New HashSet(Of ISymbol)(symbols.ToArray() _
@@ -208,6 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     defaultListing.Add(containingType.ContainingNamespace)
                     AddAliasesAndContainers(containingType.ContainingNamespace, defaultListing, node, semanticModel)
                 End If
+
                 Return defaultListing.ToImmutableArray()
             End If
 

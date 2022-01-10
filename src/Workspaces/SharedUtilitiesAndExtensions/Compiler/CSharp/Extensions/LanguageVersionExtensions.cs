@@ -10,9 +10,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Shared.Extensions
             => languageVersion >= LanguageVersion.CSharp9;
 
         public static bool IsCSharp10OrAbove(this LanguageVersion languageVersion)
-            => languageVersion >= LanguageVersion.Preview;
+            => languageVersion >= LanguageVersion.CSharp10;
 
         public static bool HasConstantInterpolatedStrings(this LanguageVersion languageVersion)
             => languageVersion.IsCSharp10OrAbove();
+
+        /// <remarks>
+        /// Corresponds to Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.CSharpNext.
+        /// </remarks>
+        internal const LanguageVersion CSharpNext = LanguageVersion.Preview;
     }
 }

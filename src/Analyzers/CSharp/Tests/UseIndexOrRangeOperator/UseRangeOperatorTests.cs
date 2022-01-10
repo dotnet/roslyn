@@ -94,7 +94,43 @@ class C
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp20,
                 TestCode = source,
                 FixedCode = source,
-                LanguageVersion = LanguageVersion.CSharp7,
+                LanguageVersion = LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestNotWithInaccessibleSystemRange()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring(1, s.Length - 1);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp20,
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalProjects =
+                    {
+                        ["AdditionalProject"] =
+                        {
+                            Sources =
+                            {
+                                "namespace System { internal struct Range { } }"
+                            }
+                        }
+                    },
+                    AdditionalProjectReferences = { "AdditionalProject" },
+                },
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp8,
             }.RunAsync();
         }
 
@@ -1033,6 +1069,130 @@ class C
     public C Slice(int start, int length) => this;
 
     public C Foo(int x) => this[1..x];
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestStartingFromZero()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([|0|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s[..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestStartingFromAribtraryPosition()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([|5|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s[5..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestStartingFromZeroToArbitraryEnd()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([|0, 5|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s[..5];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestStartingFromZeroGoingToLength()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([|0, s.Length|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s[..];
+    }
 }";
 
             await new VerifyCS.Test

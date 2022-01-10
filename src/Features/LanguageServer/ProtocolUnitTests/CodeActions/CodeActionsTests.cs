@@ -35,19 +35,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var caretLocation = locations["caret"].Single();
+            var caretLocation = testLspServer.GetLocations("caret").Single();
             var expected = CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSCodeAction>(),
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
                 data: CreateCodeActionResolveData(
                     CSharpAnalyzersResources.Use_implicit_type,
                     caretLocation,
                     customTags: new[] { PredefinedCodeRefactoringProviderNames.UseImplicitType }),
-                priority: PriorityLevel.Low,
-                groupName: "Roslyn4",
+                priority: VSInternalPriorityLevel.Low,
+                groupName: "Roslyn1",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null);
 
@@ -68,17 +68,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         int {|caret:|}i = 1;
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var caretLocation = locations["caret"].Single();
+            var caretLocation = testLspServer.GetLocations("caret").Single();
             var expected = CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSCodeAction>(),
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     caretLocation),
-                priority: PriorityLevel.Normal,
+                priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 12 }, End = new Position { Line = 4, Character = 12 } },
                 diagnostics: null);
@@ -102,14 +102,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
             var cache = GetCodeActionsCache(testLspServer);
             var testAccessor = cache.GetTestAccessor();
 
             // This test assumes that the maximum cache size is 3, and will have to modified if this number changes.
             Assert.True(CodeActionsCache.TestAccessor.MaximumCacheSize == 3);
 
-            var caretLocation = locations["caret"].Single();
+            var caretLocation = testLspServer.GetLocations("caret").Single();
             var document = GetDocument(testLspServer.TestWorkspace, CreateTextDocumentIdentifier(caretLocation.Uri));
 
             // 1. Invoking code actions on document with empty cache.
@@ -147,8 +147,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             // 4. Changing the document should generate a new cached item.
             var currentDocText = await document.GetTextAsync();
             var changedSourceText = currentDocText.WithChanges(new TextChange(new TextSpan(0, 0), "class D { } \n"));
+            testLspServer.TestWorkspace.TryApplyChanges(document.WithText(changedSourceText).Project.Solution);
+
             var docId = testLspServer.TestWorkspace.Documents.First().Id;
-            testLspServer.TestWorkspace.ChangeDocument(docId, changedSourceText);
+            await testLspServer.TestWorkspace.ChangeDocumentAsync(docId, changedSourceText);
+
             var updatedDocument = GetDocument(testLspServer.TestWorkspace, CreateTextDocumentIdentifier(caretLocation.Uri));
 
             await RunCodeActionsAndAssertActionsInCacheAsync(testLspServer, cache, caretLocation, updatedDocument);
@@ -199,14 +202,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             Assert.Equal(range.End, actualDocAndRange.Range.End);
         }
 
-        private static async Task<LSP.VSCodeAction[]> RunGetCodeActionsAsync(
+        private static async Task<LSP.VSInternalCodeAction[]> RunGetCodeActionsAsync(
             TestLspServer testLspServer,
             LSP.Location caret,
             LSP.ClientCapabilities clientCapabilities = null)
         {
             var result = await testLspServer.ExecuteRequestAsync<LSP.CodeActionParams, LSP.CodeAction[]>(
                 LSP.Methods.TextDocumentCodeActionName, CreateCodeActionParams(caret), clientCapabilities, null, CancellationToken.None);
-            return result.Cast<LSP.VSCodeAction>().ToArray();
+            return result.Cast<LSP.VSInternalCodeAction>().ToArray();
         }
 
         internal static LSP.CodeActionParams CreateCodeActionParams(LSP.Location caret)
@@ -220,13 +223,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 }
             };
 
-        internal static LSP.VSCodeAction CreateCodeAction(
-            string title, LSP.CodeActionKind kind, LSP.VSCodeAction[] children,
+        internal static LSP.VSInternalCodeAction CreateCodeAction(
+            string title, LSP.CodeActionKind kind, LSP.VSInternalCodeAction[] children,
             CodeActionResolveData data, LSP.Diagnostic[] diagnostics,
-            LSP.PriorityLevel? priority, string groupName, LSP.Range applicableRange,
+            LSP.VSInternalPriorityLevel? priority, string groupName, LSP.Range applicableRange,
             LSP.WorkspaceEdit edit = null, LSP.Command command = null)
         {
-            var action = new LSP.VSCodeAction
+            var action = new LSP.VSInternalCodeAction
             {
                 Title = title,
                 Kind = kind,

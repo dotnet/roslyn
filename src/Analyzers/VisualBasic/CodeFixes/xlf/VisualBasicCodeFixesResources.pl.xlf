@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Simplify_object_creation">
         <source>Simplify object creation</source>
-        <target state="new">Simplify object creation</target>
+        <target state="translated">Upraszczanie tworzenia obiektu</target>
         <note />
       </trans-unit>
     </body>

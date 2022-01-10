@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -53,11 +54,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             ProjectId projectId,
             IEnumerable<string> folders,
             INamedTypeSymbol newSymbol,
-            ImmutableArray<SyntaxTrivia> fileBanner,
+            Document hintDocument,
             CancellationToken cancellationToken)
         {
             var newDocumentId = DocumentId.CreateNewId(projectId, debugName: fileName);
-            var solutionWithInterfaceDocument = solution.AddDocument(newDocumentId, fileName, text: "", folders: folders);
+            var newDocumentPath = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(hintDocument.FilePath), fileName);
+
+            var solutionWithInterfaceDocument = solution.AddDocument(newDocumentId, fileName, text: "", folders: folders, filePath: newDocumentPath);
             var newDocument = solutionWithInterfaceDocument.GetRequiredDocument(newDocumentId);
             var newSemanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var options = new CodeGenerationOptions(
@@ -65,7 +68,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 generateMethodBodies: true,
                 options: await newDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
 
-            var namespaceParts = containingNamespaceDisplay.Split('.').Where(s => !string.IsNullOrEmpty(s));
+            // need to remove the root namespace from the containing namespace display because it is implied
+            // For C# this does nothing as there is no root namespace (root namespace is empty string)
+            var generateTypeService = newDocument.GetRequiredLanguageService<IGenerateTypeService>();
+            var rootNamespace = generateTypeService.GetRootNamespace(newDocument.Project.CompilationOptions);
+            var index = rootNamespace.IsEmpty() ? -1 : containingNamespaceDisplay.IndexOf(rootNamespace);
+            // if we did find the root namespace as the first element, then we remove it
+            // this may leave us with an extra "." character at the start, but when we split it shouldn't matter
+            var namespaceWithoutRoot = index == 0
+                ? containingNamespaceDisplay.Remove(index, rootNamespace.Length)
+                : containingNamespaceDisplay;
+
+            var namespaceParts = namespaceWithoutRoot.Split('.').Where(s => !string.IsNullOrEmpty(s));
             var newTypeDocument = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
                 newDocument.Project.Solution,
                 newSemanticModel.GetEnclosingNamespace(0, cancellationToken),
@@ -73,14 +87,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 options: options,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
+            var formattingSerivce = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
+            if (formattingSerivce is not null)
+            {
+                newTypeDocument = await formattingSerivce.FormatNewDocumentAsync(newTypeDocument, hintDocument, cancellationToken).ConfigureAwait(false);
+            }
+
             var syntaxRoot = await newTypeDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var rootWithBanner = syntaxRoot.WithPrependedLeadingTrivia(fileBanner);
 
             var typeAnnotation = new SyntaxAnnotation();
             var syntaxFacts = newTypeDocument.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var declarationNode = rootWithBanner.DescendantNodes().First(syntaxFacts.IsTypeDeclaration);
-            var annotatedRoot = rootWithBanner.ReplaceNode(declarationNode, declarationNode.WithAdditionalAnnotations(typeAnnotation));
+            var declarationNode = syntaxRoot.DescendantNodes().First(syntaxFacts.IsTypeDeclaration);
+            var annotatedRoot = syntaxRoot.ReplaceNode(declarationNode, declarationNode.WithAdditionalAnnotations(typeAnnotation));
 
             newTypeDocument = newTypeDocument.WithSyntaxRoot(annotatedRoot);
 

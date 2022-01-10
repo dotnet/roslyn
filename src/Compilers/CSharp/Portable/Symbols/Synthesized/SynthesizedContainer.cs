@@ -16,21 +16,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// A container synthesized for a lambda, iterator method, async method, or dynamic-sites.
+    /// A container synthesized for a lambda, iterator method, or async method.
     /// </summary>
     internal abstract class SynthesizedContainer : NamedTypeSymbol
     {
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<TypeParameterSymbol> _constructedFromTypeParameters;
-
-        protected SynthesizedContainer(string name, int parameterCount, bool returnsVoid)
-        {
-            Debug.Assert(name != null);
-            Name = name;
-            TypeMap = TypeMap.Empty;
-            _typeParameters = CreateTypeParameters(parameterCount, returnsVoid);
-            _constructedFromTypeParameters = default(ImmutableArray<TypeParameterSymbol>);
-        }
 
         protected SynthesizedContainer(string name, MethodSymbol containingMethod)
         {
@@ -58,22 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeMap = typeMap;
         }
 
-        private ImmutableArray<TypeParameterSymbol> CreateTypeParameters(int parameterCount, bool returnsVoid)
-        {
-            var typeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance(parameterCount + (returnsVoid ? 0 : 1));
-            for (int i = 0; i < parameterCount; i++)
-            {
-                typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(this, i, "T" + (i + 1)));
-            }
-
-            if (!returnsVoid)
-            {
-                typeParameters.Add(new AnonymousTypeManager.AnonymousTypeParameterSymbol(this, parameterCount, "TResult"));
-            }
-
-            return typeParameters.ToImmutableAndFree();
-        }
-
         internal TypeMap TypeMap { get; }
 
         internal virtual MethodSymbol Constructor => null;
@@ -84,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (ContainingSymbol.Kind == SymbolKind.NamedType && (ContainingSymbol.IsImplicitlyDeclared || ContainingSymbol is SimpleProgramNamedTypeSymbol))
+            if (ContainingSymbol.Kind == SymbolKind.NamedType && ContainingSymbol.IsImplicitlyDeclared)
             {
                 return;
             }
@@ -102,9 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
             => throw ExceptionUtilities.Unreachable;
 
-        /// <summary>
-        /// Note: Can be default if this SynthesizedContainer was constructed with <see cref="SynthesizedContainer(string, int, bool)"/>
-        /// </summary>
         internal ImmutableArray<TypeParameterSymbol> ConstructedFromTypeParameters => _constructedFromTypeParameters;
 
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters => _typeParameters;
@@ -129,6 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
+        internal sealed override bool IsInterpolatedStringHandlerType => false;
 
         public override ImmutableArray<Symbol> GetMembers()
         {
@@ -221,5 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
     }
 }

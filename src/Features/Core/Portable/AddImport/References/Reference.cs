@@ -101,10 +101,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public abstract Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken);
+                Document document, SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken);
 
             protected async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken)
             {
                 var originalDocument = document;
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     node, document, cancellationToken).ConfigureAwait(false);
 
                 var newDocument = await provider.AddImportAsync(
-                    node, SearchResult.NameParts, document, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
+                    node, SearchResult.NameParts, document, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
 
                 var cleanedDocument = await CodeAction.CleanupDocumentAsync(
                     newDocument, cancellationToken).ConfigureAwait(false);
