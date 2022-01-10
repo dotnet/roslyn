@@ -15,7 +15,6 @@
 //       see instructions on how to do that below.
 // #define XML10_FIFTH_EDITION
 
-using System;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
