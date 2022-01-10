@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
@@ -28,9 +29,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         protected abstract ImmutableArray<string> FixableDiagnosticIds { get; }
 
         /// <inheritdoc/>
-        public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, AddMissingImportsOptions options, CancellationToken cancellationToken)
         {
-            var analysisResult = await AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var analysisResult = await AnalyzeAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
             return await AddMissingImportsAsync(document, analysisResult, cancellationToken).ConfigureAwait(false);
         }
 
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         }
 
         /// <inheritdoc/>
-        public async Task<AddMissingImportsAnalysisResult> AnalyzeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<AddMissingImportsAnalysisResult> AnalyzeAsync(Document document, TextSpan textSpan, AddMissingImportsOptions options, CancellationToken cancellationToken)
         {
             // Get the diagnostics that indicate a missing import.
             var addImportFeatureService = document.GetRequiredLanguageService<IAddImportFeatureService>();
@@ -59,9 +60,13 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // Since we are not currently considering NuGet packages, pass an empty array
             var packageSources = ImmutableArray<PackageSource>.Empty;
 
+            var addImportOptions = new AddImportOptions(
+                SearchReferenceAssemblies: true,
+                HideAdvancedMembers: options.HideAdvancedMembers);
+
             var unambiguousFixes = await addImportFeatureService.GetUniqueFixesAsync(
                 document, textSpan, FixableDiagnosticIds, symbolSearchService,
-                searchReferenceAssemblies: true, packageSources, cancellationToken).ConfigureAwait(false);
+                addImportOptions, packageSources, cancellationToken).ConfigureAwait(false);
 
             // We do not want to add project or framework references without the user's input, so filter those out.
             var usableFixes = unambiguousFixes.WhereAsArray(fixData => DoesNotAddReference(fixData, document.Project.Id));
