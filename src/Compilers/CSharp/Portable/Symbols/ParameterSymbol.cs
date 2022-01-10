@@ -101,8 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                object? o = null;
-                Console.WriteLine(o);
                 switch (this.MarshallingType)
                 {
                     case UnmanagedType.Interface:

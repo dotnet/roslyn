@@ -116,7 +116,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        /// <remarks>
+        /// This override is done for performance reasons. Lacking the override this would redirect to 
+        /// <see cref="RetargetingModuleSymbol.DeclaringCompilation"/> which returns null. The override 
+        /// short circuits the overhead in <see cref="Symbol.DeclaringCompilation"/> and the extra virtual
+        /// dispatch and just returns null.
+        /// </remarks>
+        internal sealed override CSharpCompilation? DeclaringCompilation
         {
             get { return null; }
         }
