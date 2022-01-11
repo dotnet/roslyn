@@ -244,29 +244,29 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ///                                           ^--------^- "(String s)" identifiers the method paramters
         /// </code>
         /// </summary>
-        private Result<StackFrameSimpleGeneratedNameNode> TryScanGeneratedName()
+        private Result<StackFrameGeneratedNameNode> TryScanGeneratedName()
         {
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.LessThanToken, out var lessThanToken))
             {
-                return Result<StackFrameSimpleGeneratedNameNode>.Empty;
+                return Result<StackFrameGeneratedNameNode>.Empty;
             }
 
             if (_lexer.CurrentCharAsToken().Kind == StackFrameKind.LessThanToken)
             {
                 // Nested generated names? Abort for now
                 // TODO: Actually handle this
-                return Result<StackFrameSimpleGeneratedNameNode>.Abort;
+                return Result<StackFrameGeneratedNameNode>.Abort;
             }
 
             var identifier = _lexer.TryScanIdentifier();
             if (!identifier.HasValue)
             {
-                return Result<StackFrameSimpleGeneratedNameNode>.Abort;
+                return Result<StackFrameGeneratedNameNode>.Abort;
             }
 
             if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GreaterThanToken, out var greaterThanToken))
             {
-                return Result<StackFrameSimpleGeneratedNameNode>.Abort;
+                return Result<StackFrameGeneratedNameNode>.Abort;
             }
 
             if (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DollarToken, out var dollarToken))
@@ -285,31 +285,31 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 var (success, generatedNameSeparator) = _lexer.TryScanRequiredGeneratedNameSeparator();
                 if (!success)
                 {
-                    return Result<StackFrameSimpleGeneratedNameNode>.Abort;
+                    return Result<StackFrameGeneratedNameNode>.Abort;
                 }
 
                 var generatedIdentifier = _lexer.TryScanIdentifier();
                 if (!generatedIdentifier.HasValue)
                 {
-                    return Result<StackFrameSimpleGeneratedNameNode>.Abort;
+                    return Result<StackFrameGeneratedNameNode>.Abort;
                 }
 
                 if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.PipeToken, out var suffixSeparator))
                 {
-                    return Result<StackFrameSimpleGeneratedNameNode>.Abort;
+                    return Result<StackFrameGeneratedNameNode>.Abort;
                 }
 
                 (success, var suffix) = _lexer.TryScanRequiredGeneratedNameSuffix();
                 if (!success)
                 {
-                    return Result<StackFrameSimpleGeneratedNameNode>.Abort;
+                    return Result<StackFrameGeneratedNameNode>.Abort;
                 }
 
                 return new StackFrameLocalMethodNameNode(encapsulatingMethod, generatedNameSeparator, generatedIdentifier.Value, suffixSeparator, suffix);
             }
             else
             {
-                return Result<StackFrameSimpleGeneratedNameNode>.Abort;
+                return Result<StackFrameGeneratedNameNode>.Abort;
             }
         }
 

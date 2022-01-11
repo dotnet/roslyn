@@ -194,14 +194,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             };
     }
 
-    internal abstract class StackFrameSimpleGeneratedNameNode : StackFrameSimpleNameNode
+    internal abstract class StackFrameGeneratedNameNode : StackFrameSimpleNameNode
     {
-        protected StackFrameSimpleGeneratedNameNode(StackFrameToken identifier, StackFrameKind kind) : base(identifier, kind)
+        protected StackFrameGeneratedNameNode(StackFrameToken identifier, StackFrameKind kind) : base(identifier, kind)
         {
         }
     }
 
-    internal sealed class StackFrameGeneratedMethodNameNode : StackFrameSimpleGeneratedNameNode
+    /// <summary>
+    /// Generated methods follow the pattern Namespace.ClassName.&gt;MethodName$&lt;(), where 
+    /// the "$" is optional.
+    /// </summary>
+    internal sealed class StackFrameGeneratedMethodNameNode : StackFrameGeneratedNameNode
     {
         public readonly StackFrameToken LessThanToken;
         public readonly StackFrameToken GreaterThanToken;
@@ -235,7 +239,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             };
     }
 
-    internal sealed class StackFrameLocalMethodNameNode : StackFrameSimpleGeneratedNameNode
+    /// <summary>
+    /// Local method names are identifiers for local functions. They follow the pattern
+    /// <code>
+    /// Namespace.ClassName.&gt;ContainingMember&lt;g__LocalMethodName|0_0()
+    ///                     ^----------------------^-------------------------- EncapsulatingMethod
+    ///                                             ^-^----------------------- GeneratedNameSeparator
+    ///                                                ^--------------^------- Identifier 
+    ///                                                                ^------ PipeToken
+    ///                                                                 ^--^-- Suffix
+    /// </code>                                                               
+    /// </summary>
+    internal sealed class StackFrameLocalMethodNameNode : StackFrameGeneratedNameNode
     {
         internal readonly StackFrameGeneratedMethodNameNode EncapsulatingMethod;
         internal readonly StackFrameToken GeneratedNameSeparator;
