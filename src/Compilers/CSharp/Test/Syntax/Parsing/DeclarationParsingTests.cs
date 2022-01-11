@@ -7435,9 +7435,9 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgList1()
         {
             UsingStatement(@"void M(__arglist!) { }", options: TestOptions.RegularPreview,
-                    // (1,17): error CS1003: Syntax error, '!!' expected
+                    // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist!) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 17));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7467,9 +7467,9 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgList2()
         {
             UsingStatement(@"void M(__arglist!!) { }", options: TestOptions.RegularPreview,
-                    // (1,17): error CS1073: Unexpected token '!!'
+                    // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist!!) { }
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "!!").WithArguments("!!").WithLocation(1, 17));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7499,12 +7499,9 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgList3()
         {
             UsingStatement(@"void M(__arglist!! = null) { }", options: TestOptions.RegularPreview,
-                    // (1,17): error CS1073: Unexpected token '!!'
+                    // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist!! = null) { }
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "!!").WithArguments("!!").WithLocation(1, 17),
-                    // (1,20): error CS1065: Default values are not valid in this context.
-                    // void M(__arglist!! = null) { }
-                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 20));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7534,12 +7531,9 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgList4()
         {
             UsingStatement(@"void M(__arglist!!= null) { }", options: TestOptions.RegularPreview,
-                    // (1,17): error CS1073: Unexpected token '!!'
+                    // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist!!= null) { }
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "!!").WithArguments("!!").WithLocation(1, 17),
-                    // (1,19): error CS1065: Default values are not valid in this context.
-                    // void M(__arglist!!= null) { }
-                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 19));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7569,15 +7563,18 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgList5()
         {
             UsingStatement(@"void M(__arglist[]!!= null) { }", options: TestOptions.RegularPreview,
-                    // (1,17): error CS1552: Array type specifier, [], must appear before parameter name
-                    // void M(__arglist[]!!= null) { }
-                    Diagnostic(ErrorCode.ERR_BadArraySyntax, "[").WithLocation(1, 17),
-                    // (1,19): error CS1073: Unexpected token '!!'
-                    // void M(__arglist[]!!= null) { }
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "!!").WithArguments("!!").WithLocation(1, 19),
-                    // (1,21): error CS1065: Default values are not valid in this context.
-                    // void M(__arglist[]!!= null) { }
-                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 21));
+                // (1,17): error CS1003: Syntax error, ',' expected
+                // void M(__arglist[]!!= null) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",", "[").WithLocation(1, 17),
+                // (1,18): error CS1001: Identifier expected
+                // void M(__arglist[]!!= null) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 18),
+                // (1,19): error CS1031: Type expected
+                // void M(__arglist[]!!= null) { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "!").WithLocation(1, 19),
+                // (1,19): error CS1001: Identifier expected
+                // void M(__arglist[]!!= null) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "!").WithLocation(1, 19));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7591,6 +7588,36 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.ArgListKeyword);
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            M(SyntaxKind.Attribute);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7607,9 +7634,18 @@ class C<T> where T : struct? {}
         public void TestArgListWithBrackets()
         {
             UsingStatement(@"void M(__arglist[]) { }", options: TestOptions.RegularPreview,
-                // (1,17): error CS1552: Array type specifier, [], must appear before parameter name
-                // void M(__arglist[]) { }
-                Diagnostic(ErrorCode.ERR_BadArraySyntax, "[").WithLocation(1, 17));
+                    // (1,17): error CS1003: Syntax error, ',' expected
+                    // void M(__arglist[]) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",", "[").WithLocation(1, 17),
+                    // (1,18): error CS1001: Identifier expected
+                    // void M(__arglist[]) { }
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 18),
+                    // (1,19): error CS1031: Type expected
+                    // void M(__arglist[]) { }
+                    Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(1, 19),
+                    // (1,19): error CS1001: Identifier expected
+                    // void M(__arglist[]) { }
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 19));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7623,6 +7659,27 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.ArgListKeyword);
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            M(SyntaxKind.Attribute);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7639,9 +7696,9 @@ class C<T> where T : struct? {}
         public void TestArgListWithDefaultValue()
         {
             UsingStatement(@"void M(__arglist = null) { }", options: TestOptions.RegularPreview,
-                    // (1,18): error CS1065: Default values are not valid in this context.
+                    // (1,18): error CS1003: Syntax error, ',' expected
                     // void M(__arglist = null) { }
-                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(1, 18));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",", "=").WithLocation(1, 18));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);

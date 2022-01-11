@@ -4373,6 +4373,8 @@ tryAgain:
             return true;
         }
 
+#nullable enable
+
         private ParameterSyntax ParseParameter()
         {
             if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameter(this.CurrentNode as CSharp.Syntax.ParameterSyntax))
@@ -4387,21 +4389,16 @@ tryAgain:
             {
                 this.ParseParameterModifiers(modifiers);
 
-                TypeSyntax type;
-                SyntaxToken identifier;
-
                 if (this.CurrentToken.Kind == SyntaxKind.ArgListKeyword)
                 {
                     // We store an __arglist parameter as a parameter with null type and whose 
                     // .Identifier has the kind ArgListKeyword.
-                    type = null;
-                    identifier = this.EatToken(SyntaxKind.ArgListKeyword);
+                    return _syntaxFactory.Parameter(
+                        attributes, modifiers.ToList(), type: null, this.EatToken(SyntaxKind.ArgListKeyword), exclamationExclamationToken: null, @default: null);
                 }
-                else
-                {
-                    type = this.ParseType(mode: ParseTypeMode.Parameter);
-                    identifier = this.ParseIdentifierToken();
-                }
+
+                var type = this.ParseType(mode: ParseTypeMode.Parameter);
+                var identifier = this.ParseIdentifierToken();
 
                 // When the user type "int goo[]", give them a useful error
                 if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken)
@@ -4416,30 +4413,9 @@ tryAgain:
                 // If we didn't already consume an equals sign as part of !!=, then try to scan one out now.
                 equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
 
-                EqualsValueClauseSyntax equalsValueClause = null;
-                if (equalsToken != null)
-                    equalsValueClause = CheckFeatureAvailability(_syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()), MessageID.IDS_FeatureOptionalParameter);
-
-                if (type == null)
-                {
-                    // in the __arglist case, all other parameter pieces are not legal.  So attach anything else we get
-                    // to the identifier.
-                    if (exclamationExclamationToken != null)
-                    {
-                        if (!exclamationExclamationToken.ContainsDiagnostics)
-                            exclamationExclamationToken = AddError(exclamationExclamationToken, ErrorCode.ERR_UnexpectedToken, exclamationExclamationToken.ToString());
-
-                        identifier = AddTrailingSkippedSyntax(identifier, exclamationExclamationToken);
-                        exclamationExclamationToken = null;
-                    }
-
-                    if (equalsValueClause != null)
-                    {
-                        identifier = AddTrailingSkippedSyntax(identifier,
-                            AddErrorToFirstToken(equalsValueClause, ErrorCode.ERR_DefaultValueNotAllowed));
-                        equalsValueClause = null;
-                    }
-                }
+                var equalsValueClause = equalsToken == null
+                    ? null
+                    : CheckFeatureAvailability(_syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()), MessageID.IDS_FeatureOptionalParameter);
 
                 return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, identifier, exclamationExclamationToken, equalsValueClause);
             }
@@ -4448,8 +4424,6 @@ tryAgain:
                 _pool.Free(modifiers);
             }
         }
-
-#nullable enable
 
         /// <summary>
         /// Parses the <c>!!</c> following a parameter type and identifier.  If the token
