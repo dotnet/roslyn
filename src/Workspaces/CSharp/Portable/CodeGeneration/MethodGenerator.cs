@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -19,6 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class MethodGenerator
     {
+        private static readonly TypeParameterConstraintSyntax s_classConstraint = SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint);
+        private static readonly TypeParameterConstraintSyntax s_structConstraint = SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint);
+        private static readonly TypeParameterConstraintSyntax s_defaultConstraint = SyntaxFactory.DefaultConstraint();
+
         internal static BaseNamespaceDeclarationSyntax AddMethodTo(
             BaseNamespaceDeclarationSyntax destination,
             IMethodSymbol method,
@@ -206,7 +211,40 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return !method.ExplicitInterfaceImplementations.Any() && !method.IsOverride
                 ? method.TypeParameters.GenerateConstraintClauses()
-                : default;
+                : GenerateDefaultConstraints(method);
+        }
+
+        private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateDefaultConstraints(IMethodSymbol method)
+        {
+            Debug.Assert(method.ExplicitInterfaceImplementations.Any() || method.IsOverride);
+
+            using var _1 = PooledHashSet<string>.GetInstance(out var seenTypeParameters);
+            using var _2 = ArrayBuilder<TypeParameterConstraintClauseSyntax>.GetInstance(out var listOfClauses);
+            foreach (var parameter in method.Parameters)
+            {
+                if (parameter.Type is not ITypeParameterSymbol { NullableAnnotation: NullableAnnotation.Annotated } typeParameter)
+                {
+                    continue;
+                }
+
+                if (!seenTypeParameters.Add(parameter.Type.Name))
+                {
+                    continue;
+                }
+
+                var constraint = typeParameter switch
+                {
+                    { HasReferenceTypeConstraint: true } => s_classConstraint,
+                    { HasValueTypeConstraint: true } => s_structConstraint,
+                    _ => s_defaultConstraint
+                };
+
+                listOfClauses.Add(SyntaxFactory.TypeParameterConstraintClause(
+                    name: parameter.Type.Name.ToIdentifierName(),
+                    constraints: SyntaxFactory.SingletonSeparatedList(constraint)));
+            }
+
+            return SyntaxFactory.List(listOfClauses);
         }
 
         private static TypeParameterListSyntax GenerateTypeParameterList(
