@@ -6872,7 +6872,7 @@ interface IInner
     }
 
     [Fact]
-    public void Subsumption_Slice_04()
+    public void Subsumption_Slice_03()
     {
         var source = @"
 #nullable enable
