@@ -474,7 +474,7 @@ const int z = 3;
         [Fact]
         public async Task StaticDelegate0()
         {
-            var state0 = await CSharpScript.RunAsync("static int Add(int x, int y) => x + y;");
+            var state0 = await CSharpScript.RunAsync("static int Add(int x, int y) => x + y;", options: ScriptOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
             var state1 = await state0.ContinueWithAsync("System.Func<int, int, int> adder = Add;");
             var state2 = await state1.ContinueWithAsync("adder(1, 1)");
             Assert.Equal(2, state2.ReturnValue);

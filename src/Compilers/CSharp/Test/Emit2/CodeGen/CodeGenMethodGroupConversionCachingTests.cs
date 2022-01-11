@@ -5457,7 +5457,7 @@ class C
         return 0;
     }
 }";
-        var comp = CompileAndVerify(source);
+        var comp = CompileAndVerify(source, parseOptions: TestOptions.RegularNext);
         comp.VerifyDiagnostics();
         comp.VerifyIL("C.Main", @"
 {
@@ -5540,7 +5540,7 @@ class D
     }
 }
 ";
-        var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
+        var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseWinMD);
 
         verifier.VerifyIL("D.InstanceAdd", @"
 {
@@ -5657,7 +5657,7 @@ class C
     }
 }
 ";
-        var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
+        var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseWinMD);
 
         verifier.VerifyIL("C.InstanceAssign", @"
 {
@@ -5738,7 +5738,7 @@ partial class Test
 }
 ";
 
-        CompileAndVerify(text, expectedOutput: PASS).VerifyIL("Test.Main", @"
+        CompileAndVerify(text, parseOptions: TestOptions.RegularNext, expectedOutput: PASS).VerifyIL("Test.Main", @"
 {
   // Code size       64 (0x40)
   .maxstack  2
@@ -5797,7 +5797,7 @@ public class C
     }
     static void TestMethod() => Console.WriteLine(""In TestMethod"");
 }
-", expectedOutput: @"
+", parseOptions: TestOptions.RegularNext, expectedOutput: @"
 In TestMethod
 In TestMethod
 ").VerifyIL("C.Main()", @"
@@ -5862,7 +5862,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine($""{d.GetType().Namespace}.{d.GetType().Name}"");
 }";
 
-        var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics();
 
         var verifier = CompileAndVerify(comp, expectedOutput:
