@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
@@ -106,7 +107,7 @@ internal sealed partial class DelegateCreationRewriter
         }
         else
         {
-            var containers = _genericCacheContainers ??= new Dictionary<MethodSymbol, DelegateCacheContainer>();
+            var containers = _genericCacheContainers ??= new Dictionary<MethodSymbol, DelegateCacheContainer>(ReferenceEqualityComparer.Instance);
 
             if (containers.TryGetValue(ownerFunction, out container))
             {
