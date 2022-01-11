@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (span.HasValue && !this.Root.FullSpan.Contains(span.Value))
             {
-                throw new ArgumentException("span");
+                throw new ArgumentException(null, nameof(span));
             }
         }
 
