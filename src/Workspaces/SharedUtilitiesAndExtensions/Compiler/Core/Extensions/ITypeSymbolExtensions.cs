@@ -9,7 +9,10 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -738,6 +741,41 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return symbol;
+        }
+
+        public static ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(
+            this ITypeSymbol? typeSymbol,
+            ISyntaxFactsService syntaxFacts,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+        {
+            if (typeSymbol is null || compilation.Language != LanguageNames.CSharp)
+            {
+                return ImmutableArray<IMethodSymbol>.Empty;
+            }
+
+            var members = typeSymbol.GetMembers();
+            using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
+
+            foreach (var member in members)
+            {
+                foreach (var syntaxReference in member.DeclaringSyntaxReferences)
+                {
+                    var semanticModel = compilation.GetSemanticModel(syntaxReference.SyntaxTree);
+                    var node = syntaxReference.GetSyntax(cancellationToken);
+
+                    foreach (var localFunction in node.DescendantNodes().Where(syntaxFacts.IsLocalFunctionStatement))
+                    {
+                        var symbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
+                        if (symbol is IMethodSymbol methodSymbol)
+                        {
+                            builder.Add(methodSymbol);
+                        }
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
         }
     }
 }

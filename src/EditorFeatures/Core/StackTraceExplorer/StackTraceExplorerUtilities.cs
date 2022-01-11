@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Roslyn.Utilities;
@@ -33,11 +35,12 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 
             RoslynDebug.AssertNotNull(fullyQualifiedTypeName);
 
-            var methodIdentifier = compilationUnit.MethodDeclaration.MemberAccessExpression.Right;
+            var methodIdentifier = compilationUnit.MethodDeclaration.MemberAccessExpression.Right.Identifier;
             var methodTypeArguments = compilationUnit.MethodDeclaration.TypeArguments;
             var methodArguments = compilationUnit.MethodDeclaration.ArgumentList;
 
             var methodName = methodIdentifier.ToString();
+            var isLocalFunction = compilationUnit.MethodDeclaration.MemberAccessExpression.Right.Kind == StackFrameKind.LocalMethodIdentifier;
 
             //
             // Do a first pass to find projects with the type name to check first 
@@ -97,9 +100,11 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
                     return ImmutableArray<IMethodSymbol>.Empty;
                 }
 
-                var members = type.GetMembers();
-                return members
-                    .OfType<IMethodSymbol>()
+                var methods = isLocalFunction
+                    ? GetLocalFunctionSymbols(type, compilation, project.GetRequiredLanguageService<ISyntaxFactsService>())
+                    : type.GetMembers().OfType<IMethodSymbol>();
+
+                return methods
                     .Where(m => m.Name == methodName)
                     .Where(m => MatchTypeArguments(m.TypeArguments, methodTypeArguments))
                     .Where(m => MatchParameters(m.Parameters, methodArguments))
@@ -115,6 +120,17 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
                 }
 
                 return symbol.ToNonClassifiedDefinitionItemAsync(solution, includeHiddenLocations: true, cancellationToken);
+            }
+
+            ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(ITypeSymbol type, Compilation compilation, ISyntaxFactsService syntaxFacts)
+            {
+                var localFunctions = type.GetLocalFunctionSymbols(syntaxFacts, compilation, cancellationToken);
+                var localMethodNameNode = (StackFrameLocalMethodNameNode)compilationUnit.MethodDeclaration.MemberAccessExpression.Right;
+                var containingMethodName = localMethodNameNode.EncapsulatingMethod.Identifier.ToString();
+
+                return localFunctions
+                    .Where(m => m.ContainingSymbol.Name == containingMethodName)
+                    .ToImmutableArray();
             }
         }
 

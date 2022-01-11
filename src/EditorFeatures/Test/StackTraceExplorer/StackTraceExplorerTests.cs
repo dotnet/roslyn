@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
     {
         private static async Task TestSymbolFoundAsync(string inputLine, string code)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = TestWorkspace.CreateCSharp(code); 
             var result = await StackTraceAnalyzer.AnalyzeAsync(inputLine, CancellationToken.None);
             Assert.Single(result.ParsedFrames);
 
@@ -508,7 +508,7 @@ namespace ConsoleApp4
 }");
         }
 
-        [Fact(Skip = "Generated types/methods are not supported")]
+        [Fact]
         public Task TestSymbolFound_ExceptionLine_PropertySet()
         {
             return TestSymbolFoundAsync(
@@ -528,7 +528,7 @@ namespace ConsoleApp4
 }");
         }
 
-        [Fact(Skip = "Generated types/methods are not supported")]
+        [Fact]
         public Task TestSymbolFound_ExceptionLine_PropertyGet()
         {
             return TestSymbolFoundAsync(
@@ -548,7 +548,7 @@ namespace ConsoleApp4
 }");
         }
 
-        [Fact(Skip = "Generated types/methods are not supported")]
+        [Fact]
         public Task TestSymbolFound_ExceptionLine_IndexerSet()
         {
             return TestSymbolFoundAsync(
@@ -568,7 +568,7 @@ namespace ConsoleApp4
 }");
         }
 
-        [Fact(Skip = "Generated types/methods are not supported")]
+        [Fact]
         public Task TestSymbolFound_ExceptionLine_IndexerGet()
         {
             return TestSymbolFoundAsync(
@@ -588,11 +588,73 @@ namespace ConsoleApp4
 }");
         }
 
-        [Fact(Skip = "Generated types/methods are not supported")]
+        [Fact]
         public Task TestSymbolFound_ExceptionLine_LocalFunction()
         {
             return TestSymbolFoundAsync(
                 @"at ConsoleApp4.MyClass.<M>g__LocalFunction|0_0()",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        public void M()
+        {
+            LocalFunction();
+
+            void [|LocalFunction|]()
+            {
+                throw new Exception();
+            }
+        }
+
+        public void LocalFunction()
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_ExceptionLine_MultipleLocalFunctions()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.<M>g__LocalFunction|0_0()",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        public void M()
+        {
+            LocalFunction();
+
+            void [|LocalFunction|]()
+            {
+                throw new Exception();
+            }
+        }
+
+        public void M2()
+        {
+            LocalFunction();
+
+            void LocalFunction()
+            {
+                throw new Exception();
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public Task TestSymbolFound_ExceptionLine_MultipleLocalFunctions2()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.<M2>g__LocalFunction|0_0()",
                 @"using System;
 
 namespace ConsoleApp4
@@ -608,11 +670,49 @@ namespace ConsoleApp4
                 throw new Exception();
             }
         }
+
+        public void M2()
+        {
+            LocalFunction();
+
+            void [|LocalFunction()|]
+            {
+                throw new Exception();
+            }
+        }
     }
 }");
         }
 
-        [Fact(Skip = "Generated types/methods are not supported")]
+        [Fact]
+        public Task TestSymbolFound_ExceptionLine_MemberFunctionSameNameAsFunction()
+        {
+            return TestSymbolFoundAsync(
+                @"at ConsoleApp4.MyClass.LocalFunction()",
+                @"using System;
+
+namespace ConsoleApp4
+{
+    class MyClass
+    {
+        public void M()
+        {
+            LocalFunction();
+
+            void LocalFunction()
+            {
+                throw new Exception();
+            }
+        }
+
+        public void [|LocalFunction|]()
+        {
+        }
+    }
+}");
+        }
+
+        [Fact(Skip = "Top level local functions are not supported")]
         public Task TestSymbolFound_ExceptionLine_LocalInTopLevelStatement()
         {
             return TestSymbolFoundAsync(
