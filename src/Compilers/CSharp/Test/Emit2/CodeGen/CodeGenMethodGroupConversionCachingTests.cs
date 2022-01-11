@@ -508,6 +508,28 @@ static void Target() { Console.WriteLine(""PASS""); }
     }
 
     [Fact]
+    public void Not_CSharp10()
+    {
+        var source = @"
+var f = Target;
+f();
+static void Target() { }
+";
+        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular10, symbolValidator: VerifyNoCacheContainersIn("Program"));
+        verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.<<Main>$>g__Target|0_0()""
+  IL_0007:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_000c:  callvirt   ""void System.Action.Invoke()""
+  IL_0011:  ret
+}
+");
+    }
+
+    [Fact]
     public void CacheExplicitConversions_TypeScoped_CouldBeModuleScoped0()
     {
         var source = @"
@@ -3024,6 +3046,62 @@ class C<T>
     }
 
     [Fact]
+    public void SameTypeAndSymbolResultsSameField_TypeScoped5_AnonymousDelegate()
+    {
+        var source = @"
+class C
+{
+    void Test0<T>(T t) { G0(Target<int>); }
+    void Test1<T>(T t) { G1(Target<int>); }
+
+    void G0(System.Delegate d) { }
+    void G1(System.Delegate d) { }
+
+    static dynamic Target<G>(ref G g) => 0;
+}
+";
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<>O", arity: 0
+            , "<>F{00000001}<System.Int32, System.Object> <0>__Target"
+        ));
+        verifier.VerifyIL("C.Test0<T>", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldsfld     ""<anonymous delegate> C.<>O.<0>__Target""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_001c
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  ldftn      ""dynamic C.Target<int>(ref int)""
+  IL_0011:  newobj     ""<>F{00000001}<int, dynamic>..ctor(object, System.IntPtr)""
+  IL_0016:  dup
+  IL_0017:  stsfld     ""<anonymous delegate> C.<>O.<0>__Target""
+  IL_001c:  call       ""void C.G0(System.Delegate)""
+  IL_0021:  ret
+}
+");
+        verifier.VerifyIL("C.Test1<T>", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldsfld     ""<anonymous delegate> C.<>O.<0>__Target""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_001c
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  ldftn      ""dynamic C.Target<int>(ref int)""
+  IL_0011:  newobj     ""<>F{00000001}<int, dynamic>..ctor(object, System.IntPtr)""
+  IL_0016:  dup
+  IL_0017:  stsfld     ""<anonymous delegate> C.<>O.<0>__Target""
+  IL_001c:  call       ""void C.G1(System.Delegate)""
+  IL_0021:  ret
+}
+");
+    }
+
+    [Fact]
     public void SameTypeAndSymbolResultsSameField_MethodScoped0()
     {
         var source = @"
@@ -3189,6 +3267,58 @@ class D<B>
   IL_0026:  newobj     ""System.Func<dynamic, T, V>..ctor(object, System.IntPtr)""
   IL_002b:  stsfld     ""System.Func<object, T, V> C<T>.<Test>O__0_0<V>.<0>__Target""
   IL_0030:  ret
+}
+");
+    }
+
+    [Fact]
+    public void SameTypeAndSymbolResultsSameField_MethodScoped4_AnonymousDelegate()
+    {
+        var source = @"
+class C
+{
+    void Test<T>(T t)
+    {
+        G0(Target<T>);
+        G1(Target<T>);
+    }
+
+    void G0(System.Delegate d) { }
+    void G1(System.Delegate d) { }
+
+    static dynamic Target<G>(ref G g) => 0;
+}
+";
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<Test>O__0_0", arity: 1
+            , "<>F{00000001}<T, System.Object> <0>__Target"
+        ));
+        verifier.VerifyIL("C.Test<T>", @"
+{
+  // Code size       67 (0x43)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldsfld     ""<anonymous delegate> C.<Test>O__0_0<T>.<0>__Target""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_001c
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  ldftn      ""dynamic C.Target<T>(ref T)""
+  IL_0011:  newobj     ""<>F{00000001}<T, dynamic>..ctor(object, System.IntPtr)""
+  IL_0016:  dup
+  IL_0017:  stsfld     ""<anonymous delegate> C.<Test>O__0_0<T>.<0>__Target""
+  IL_001c:  call       ""void C.G0(System.Delegate)""
+  IL_0021:  ldarg.0
+  IL_0022:  ldsfld     ""<anonymous delegate> C.<Test>O__0_0<T>.<0>__Target""
+  IL_0027:  dup
+  IL_0028:  brtrue.s   IL_003d
+  IL_002a:  pop
+  IL_002b:  ldnull
+  IL_002c:  ldftn      ""dynamic C.Target<T>(ref T)""
+  IL_0032:  newobj     ""<>F{00000001}<T, dynamic>..ctor(object, System.IntPtr)""
+  IL_0037:  dup
+  IL_0038:  stsfld     ""<anonymous delegate> C.<Test>O__0_0<T>.<0>__Target""
+  IL_003d:  call       ""void C.G1(System.Delegate)""
+  IL_0042:  ret
 }
 ");
     }
