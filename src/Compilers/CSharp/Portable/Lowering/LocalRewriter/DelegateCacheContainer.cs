@@ -15,7 +15,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
 {
     private readonly Symbol _containingSymbol;
     private readonly NamedTypeSymbol? _constructedContainer;
-    private readonly Dictionary<(TypeSymbol, MethodSymbol), FieldSymbol> _delegateFields = new(ConversionCLRSignatureComparer.Instance);
+    private readonly Dictionary<(TypeSymbol, MethodSymbol), FieldSymbol> _delegateFields = new(CLRSignatureComparer.Instance);
 
     /// <summary>Creates a type-scope concrete delegate cache container.</summary>
     internal DelegateCacheContainer(TypeSymbol containingType, int generationOrdinal)
@@ -78,9 +78,9 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
         return field;
     }
 
-    private sealed class ConversionCLRSignatureComparer : IEqualityComparer<(TypeSymbol delegateType, MethodSymbol targetMethod)>
+    private sealed class CLRSignatureComparer : IEqualityComparer<(TypeSymbol delegateType, MethodSymbol targetMethod)>
     {
-        public static readonly ConversionCLRSignatureComparer Instance = new();
+        public static readonly CLRSignatureComparer Instance = new();
 
         public bool Equals((TypeSymbol delegateType, MethodSymbol targetMethod) x, (TypeSymbol delegateType, MethodSymbol targetMethod) y)
         {
