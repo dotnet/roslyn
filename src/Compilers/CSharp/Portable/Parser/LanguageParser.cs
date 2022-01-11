@@ -13112,8 +13112,8 @@ tryAgain:
             ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
 
             // If we didn't already consume an equals sign as part of !!=, then try to scan one out now. Note: this is
-            // not legal code.  But we detect it so that we can give the user a good message, and so we don't completely
-            // off the rails.
+            // not legal code.  But we detect it so that we can give the user a good message, and so we don't go
+            // completely off the rails.
             //
             // Note: we add the `= value` as skipped trivia to either the identifier or `!!` (if we have the latter).
             // This allows us to handle this code without ever showing it the binding phases.  We could consider
