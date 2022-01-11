@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Roslyn.Utilities;
@@ -19,6 +15,13 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 {
     internal static class StackTraceExplorerUtilities
     {
+        // Order is important here. Resolution should happen from most specific to least specific. 
+        private static readonly AbstractStackTraceSymbolResolver[] _resolvers = new AbstractStackTraceSymbolResolver[]
+            {
+                new StackFrameLocalMethodResolver(),
+                new StackFrameMethodSymbolResolver(),
+            };
+
         public static async Task<DefinitionItem?> GetDefinitionAsync(Solution solution, StackFrameCompilationUnit compilationUnit, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)
         {
             // MemberAccessExpression is [Expression].[Identifier], and Identifier is the 
@@ -35,12 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 
             RoslynDebug.AssertNotNull(fullyQualifiedTypeName);
 
-            var methodIdentifier = compilationUnit.MethodDeclaration.MemberAccessExpression.Right.Identifier;
+            var methodNode = compilationUnit.MethodDeclaration.MemberAccessExpression.Right;
             var methodTypeArguments = compilationUnit.MethodDeclaration.TypeArguments;
             var methodArguments = compilationUnit.MethodDeclaration.ArgumentList;
-
-            var methodName = methodIdentifier.ToString();
-            var isLocalFunction = compilationUnit.MethodDeclaration.MemberAccessExpression.Right.Kind == StackFrameKind.LocalMethodIdentifier;
 
             //
             // Do a first pass to find projects with the type name to check first 
@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 
                 if (containsSymbol)
                 {
-                    var matchingMethods = await GetMatchingMembersFromCompilationAsync(project).ConfigureAwait(false);
-                    if (matchingMethods.Any())
+                    var method = await TryGetBestMatchAsync(project, fullyQualifiedTypeName, methodNode, methodArguments, methodTypeArguments, cancellationToken).ConfigureAwait(false);
+                    if (method is not null)
                     {
-                        return await GetDefinitionAsync(matchingMethods[0]).ConfigureAwait(false);
+                        return await GetDefinitionAsync(method).ConfigureAwait(false);
                     }
                 }
                 else
@@ -78,10 +78,10 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
             //
             foreach (var project in candidateProjects)
             {
-                var matchingMethods = await GetMatchingMembersFromCompilationAsync(project).ConfigureAwait(false);
-                if (matchingMethods.Any())
+                var method = await TryGetBestMatchAsync(project, fullyQualifiedTypeName, methodNode, methodArguments, methodTypeArguments, cancellationToken).ConfigureAwait(false);
+                if (method is not null)
                 {
-                    return await GetDefinitionAsync(matchingMethods[0]).ConfigureAwait(false);
+                    return await GetDefinitionAsync(method).ConfigureAwait(false);
                 }
             }
 
@@ -90,26 +90,6 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
             //
             // Local Functions
             //
-
-            async Task<ImmutableArray<IMethodSymbol>> GetMatchingMembersFromCompilationAsync(Project project)
-            {
-                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var type = compilation.GetTypeByMetadataName(fullyQualifiedTypeName);
-                if (type is null)
-                {
-                    return ImmutableArray<IMethodSymbol>.Empty;
-                }
-
-                var methods = isLocalFunction
-                    ? GetLocalFunctionSymbols(type, compilation, project.GetRequiredLanguageService<ISyntaxFactsService>())
-                    : type.GetMembers().OfType<IMethodSymbol>();
-
-                return methods
-                    .Where(m => m.Name == methodName)
-                    .Where(m => MatchTypeArguments(m.TypeArguments, methodTypeArguments))
-                    .Where(m => MatchParameters(m.Parameters, methodArguments))
-                    .ToImmutableArrayOrEmpty();
-            }
 
             Task<DefinitionItem> GetDefinitionAsync(IMethodSymbol method)
             {
@@ -121,103 +101,27 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 
                 return symbol.ToNonClassifiedDefinitionItemAsync(solution, includeHiddenLocations: true, cancellationToken);
             }
-
-            ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(ITypeSymbol type, Compilation compilation, ISyntaxFactsService syntaxFacts)
-            {
-                var localFunctions = type.GetLocalFunctionSymbols(syntaxFacts, compilation, cancellationToken);
-                var localMethodNameNode = (StackFrameLocalMethodNameNode)compilationUnit.MethodDeclaration.MemberAccessExpression.Right;
-                var containingMethodName = localMethodNameNode.EncapsulatingMethod.Identifier.ToString();
-
-                return localFunctions
-                    .Where(m => m.ContainingSymbol.Name == containingMethodName)
-                    .ToImmutableArray();
-            }
         }
 
-        private static bool MatchParameters(ImmutableArray<IParameterSymbol> parameters, StackFrameParameterList stackFrameParameters)
+        private static async Task<IMethodSymbol?> TryGetBestMatchAsync(Project project, string fullyQualifiedTypeName, StackFrameSimpleNameNode methodNode, StackFrameParameterList methodArguments, StackFrameTypeArgumentList? methodTypeArguments, CancellationToken cancellationToken)
         {
-            if (parameters.Length != stackFrameParameters.Parameters.Length)
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var type = compilation.GetTypeByMetadataName(fullyQualifiedTypeName);
+            if (type is null)
             {
-                return false;
+                return null;
             }
 
-            for (var i = 0; i < stackFrameParameters.Parameters.Length; i++)
+            foreach (var resolver in _resolvers)
             {
-                var stackFrameParameter = stackFrameParameters.Parameters[i];
-                var paramSymbol = parameters[i];
-
-                if (paramSymbol.Name != stackFrameParameter.Identifier.ToString())
+                var matchingMethod = await resolver.TryGetBestMatchAsync(project, type, methodNode, methodArguments, methodTypeArguments, cancellationToken).ConfigureAwait(false);
+                if (matchingMethod is not null)
                 {
-                    return false;
-                }
-
-                if (!MatchType(paramSymbol.Type, stackFrameParameter.Type))
-                {
-                    return false;
+                    return matchingMethod;
                 }
             }
 
-            return true;
-        }
-
-        private static bool MatchTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, StackFrameTypeArgumentList? stackFrameTypeArgumentList)
-        {
-            if (stackFrameTypeArgumentList is null)
-            {
-                return typeArguments.IsEmpty;
-            }
-
-            if (typeArguments.IsEmpty)
-            {
-                return false;
-            }
-
-            var stackFrameTypeArguments = stackFrameTypeArgumentList.TypeArguments;
-            return typeArguments.Length == stackFrameTypeArguments.Length;
-        }
-
-        private static bool MatchType(ITypeSymbol type, StackFrameTypeNode stackFrameType)
-        {
-            if (type is IArrayTypeSymbol arrayType)
-            {
-                if (stackFrameType is not StackFrameArrayTypeNode arrayTypeNode)
-                {
-                    return false;
-                }
-
-                ITypeSymbol currentType = arrayType;
-
-                // Iterate through each array expression and make sure the dimensions
-                // match the element types in an array.
-                // Ex: string[,][] 
-                // [,] is a 2 dimension array with element type string[]
-                // [] is a 1 dimension array with element type string
-                foreach (var arrayExpression in arrayTypeNode.ArrayRankSpecifiers)
-                {
-                    if (currentType is not IArrayTypeSymbol currentArrayType)
-                    {
-                        return false;
-                    }
-
-                    if (currentArrayType.Rank != arrayExpression.CommaTokens.Length + 1)
-                    {
-                        return false;
-                    }
-
-                    currentType = currentArrayType.ElementType;
-                }
-
-                // All array types have been exchausted from the
-                // stackframe identifier and the type is still an array
-                if (currentType is IArrayTypeSymbol)
-                {
-                    return false;
-                }
-
-                return MatchType(currentType, arrayTypeNode.TypeIdentifier);
-            }
-
-            return type.Name == stackFrameType.ToString();
+            return null;
         }
     }
 }
