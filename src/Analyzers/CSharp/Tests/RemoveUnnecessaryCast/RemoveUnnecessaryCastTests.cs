@@ -12396,5 +12396,52 @@ class C
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [WorkItem(58718, "https://github.com/dotnet/roslyn/issues/58718")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task FunctionPointerWithImplicitOperator()
+        {
+            var source = @"
+unsafe
+{
+    PointerDelegate<int, int> dp = (PointerDelegate<int, int>)(&Mtd);
+}
+
+static int Mtd(int arg) => arg;
+
+public readonly struct PointerDelegate<T, TResult>
+{
+    private unsafe readonly delegate*<T,TResult> _pointer;
+
+    public unsafe PointerDelegate(delegate*<T, TResult> pointer)
+    {
+        this._pointer = pointer;
+    }
+
+    public TResult Invoke(T param)
+    {
+        unsafe
+        {
+            return this._pointer(param);
+        }
+    }
+
+    public unsafe static implicit operator PointerDelegate<T, TResult>(delegate*<T, TResult> pointer)
+    {
+        return new(pointer);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
     }
 }
