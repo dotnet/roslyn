@@ -6757,6 +6757,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureListPattern" xml:space="preserve">
     <value>list pattern</value>
   </data>
+  <data name="IDS_FeatureLengthPattern" xml:space="preserve">
+    <value>length pattern</value>
+  </data>
   <data name="ERR_UnsupportedTypeForListPattern" xml:space="preserve">
     <value>List patterns may not be used for a value of type '{0}'.</value>
   </data>
@@ -6928,12 +6931,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureNewLinesInInterpolations" xml:space="preserve">
     <value>newlines in interpolations</value>
-  </data>
-  <data name="WRN_AnnotationOnSliceReturnType" xml:space="preserve">
-    <value>The annotation on the output type '{0}' is ignored.</value>
-  </data>
-  <data name="WRN_AnnotationOnSliceReturnType_Title" xml:space="preserve">
-    <value>The annotation on the output type is ignored.</value>
   </data>
   <data name="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers" xml:space="preserve">
     <value>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</value>
