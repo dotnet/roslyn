@@ -363,14 +363,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             }
         }
 
-        private static bool IsCharacter(VirtualChar ch)
-            => ch.Value switch
-            {
-                (>= 'a' and <= 'z') or
-                (>= 'A' and <= 'Z') => true,
-
-                _ => false
-            };
+        private static bool IsAsciiAlphaCharacter(VirtualChar ch)
+            => ch.Value is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z');
 
         public static StackFrameToken CreateToken(StackFrameKind kind, VirtualCharSequence virtualChars)
             => CreateToken(kind, ImmutableArray<StackFrameTrivia>.Empty, virtualChars);
