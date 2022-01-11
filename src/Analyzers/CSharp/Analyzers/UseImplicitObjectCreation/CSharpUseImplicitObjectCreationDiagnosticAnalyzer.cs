@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -64,7 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             //    apparent.
             // 3. Array initializer.  i.e. `new Foo[] { new ... }`
             // 4. Simple collection initializer.  i.e `new List<Foo> { new ... }`
-            // 5. Complex collection initializer.  i.e `new Dictionary<X, Y> { { new ..., new ... } }`
 
             var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
@@ -119,28 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                         context,
                         collectionTypeSymbol,
                         argumentTypeSymbols,
-                        targetIndex);
-                }
-            }
-            else if (objectCreation.Parent.IsKind(SyntaxKind.ComplexElementInitializerExpression) &&
-                objectCreation.Parent.Parent.IsKind(SyntaxKind.CollectionInitializerExpression) &&
-                objectCreation.Parent.Parent.Parent is ObjectCreationExpressionSyntax complexCollectionObjectCreation)
-            {
-                var complexInitializerExpression = (InitializerExpressionSyntax)objectCreation.Parent;
-
-                var collectionTypeSymbol = semanticModel.GetTypeInfo(complexCollectionObjectCreation, cancellationToken).Type;
-                var argumentTypeSymbols = complexInitializerExpression.Expressions
-                    .Select(e => semanticModel.GetTypeInfo(e, cancellationToken).ConvertedType)
-                    .ToList();
-
-                if (collectionTypeSymbol != null && argumentTypeSymbols.All(symbol => symbol != null))
-                {
-                    var targetIndex = complexInitializerExpression.Expressions.IndexOf(objectCreation);
-
-                    typeSymbol = CSharpUseImplicitTypeHelper.GetTypeSymbolThatSatisfiesCollectionInitializer(
-                        context,
-                        collectionTypeSymbol,
-                        argumentTypeSymbols!,
                         targetIndex);
                 }
             }
