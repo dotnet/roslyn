@@ -17,12 +17,6 @@
     <ProjectReference Include="..\..\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Emit\Emit\EditAndContinue\EditAndContinueTestBase.cs">
-      <Link>Emit\EditAndContinue\EditAndContinueTestBase.cs</Link>
-    </Compile>
-    <Compile Include="..\Emit\Emit\EditAndContinue\SemanticEditDescription.cs">
-      <Link>Emit\EditAndContinue\SemanticEditDescription.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Core\MSBuildTask\MvidReader.cs">
       <Link>Emit\MvidReader.cs</Link>
     </Compile>
