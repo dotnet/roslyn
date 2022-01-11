@@ -11,17 +11,21 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    [ExportSolutionOptionProvider, Shared]
-    internal class ExtractMethodOptionsProvider : IOptionProvider
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class ExtractMethodPresentationOptions : IOptionProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ExtractMethodOptionsProvider()
+        public ExtractMethodPresentationOptions()
         {
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            ExtractMethodOptions.AllowBestEffort,
-            ExtractMethodOptions.DontPutOutOrRefOnStruct);
+            AllowBestEffort);
+
+        private const string FeatureName = "ExtractMethodOptions";
+
+        public static readonly PerLanguageOption2<bool> AllowBestEffort = new(FeatureName, "AllowBestEffort", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Allow Best Effort"));
     }
 }

@@ -311,11 +311,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
 
                     case BoundKind.Sequence:
-                        // neither the side-effects nor the value of the sequence contains await 
-                        // (otherwise it would be converted to a SpillSequenceBuilder).
                         if (refKind != RefKind.None)
                         {
-                            return expression;
+                            var sequence = (BoundSequence)expression;
+
+                            PromoteAndAddLocals(builder, sequence.Locals);
+                            builder.AddExpressions(sequence.SideEffects);
+                            expression = sequence.Value;
+                            continue;
+                        }
+
+                        goto default;
+
+                    case BoundKind.AssignmentOperator:
+                        var assignment = (BoundAssignmentOperator)expression;
+                        if (assignment.IsRef &&
+                            assignment is not { Left.Kind: BoundKind.Local, Right.Kind: BoundKind.ArrayAccess }) // Optimize for some known to be safe scenarios.
+                        {
+                            var left = Spill(builder, assignment.Left, RefKind.Ref);
+                            var right = Spill(builder, assignment.Right, RefKind.Ref);
+                            expression = assignment.Update(left, right, assignment.IsRef, assignment.Type);
                         }
 
                         goto default;

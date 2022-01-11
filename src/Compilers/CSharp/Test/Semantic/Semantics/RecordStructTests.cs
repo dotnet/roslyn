@@ -1139,7 +1139,7 @@ record struct S6(string other)
         }
 
         [Fact]
-        public void TypeDeclaration_InstanceInitializers()
+        public void TypeDeclaration_InstanceInitializers_01()
         {
             var src = @"
 public record struct S
@@ -1154,12 +1154,70 @@ public record struct S
                 // (2,15): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // public record struct S
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 15),
+                // (2,22): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // public record struct S
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(2, 22),
                 // (4,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int field = 42;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "field").WithArguments("struct field initializers", "10.0").WithLocation(4, 16),
                 // (5,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int Property { get; set; } = 43;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Property").WithArguments("struct field initializers", "10.0").WithLocation(5, 16));
+
+            comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,22): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // public record struct S
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(2, 22));
+        }
+
+        [Fact]
+        public void TypeDeclaration_InstanceInitializers_02()
+        {
+            var src = @"
+public record struct S
+{
+    public S() { }
+    public int field = 42;
+    public int Property { get; set; } = 43;
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public record struct S
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 15),
+                // (4,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S").WithArguments("parameterless struct constructors", "10.0").WithLocation(4, 12),
+                // (5,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public int field = 42;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "field").WithArguments("struct field initializers", "10.0").WithLocation(5, 16),
+                // (6,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public int Property { get; set; } = 43;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Property").WithArguments("struct field initializers", "10.0").WithLocation(6, 16));
+
+            comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeDeclaration_InstanceInitializers_03()
+        {
+            var src = @"
+public record struct S()
+{
+    public int field = 42;
+    public int Property { get; set; } = 43;
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public record struct S()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 15));
 
             comp = CreateCompilation(src);
             comp.VerifyDiagnostics();

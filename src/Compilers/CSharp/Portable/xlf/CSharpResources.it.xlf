@@ -407,6 +407,11 @@
         <target state="translated">Un'istruzione non può iniziare con 'else'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
+        <source>Cannot update because an inferred delegate type has changed.</source>
+        <target state="new">Cannot update because an inferred delegate type has changed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Non è possibile aggiungere ai punti di ingresso dell'applicazione l'attributo 'UnmanagedCallersOnly'.</target>
@@ -1190,6 +1195,11 @@
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
         <target state="translated">è stato specificato l'argomento stdin '-', ma l'input non è stato reindirizzato dal flusso di input standard.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
+        <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
+        <target state="new">A 'struct' with field initializers must include an explicitly declared constructor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">

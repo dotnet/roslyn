@@ -407,6 +407,11 @@
         <target state="translated">Příkaz nemůže začínat na else.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
+        <source>Cannot update because an inferred delegate type has changed.</source>
+        <target state="new">Cannot update because an inferred delegate type has changed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Vstupní body aplikací nemůžou mít atribut UnmanagedCallersOnly.</target>
@@ -1190,6 +1195,11 @@
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
         <target state="translated">Zadal se argument stdin -, ale vstup se nepřesměroval na stream standardního vstupu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
+        <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
+        <target state="new">A 'struct' with field initializers must include an explicitly declared constructor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
