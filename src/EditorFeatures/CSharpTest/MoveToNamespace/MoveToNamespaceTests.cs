@@ -1086,6 +1086,7 @@ namespace [||]Two
 expectedMarkup: @"namespace One
 {
     using Three;
+
     class C1
     {
         private C2 c2;
@@ -1140,8 +1141,8 @@ class MyClass
 expectedMarkup: @$"namespace {{|Warning:A|}}
 {{
     {typeKeyword} MyType
-    {{
-    }}
+{{
+}}
 }}",
 targetNamespace: "A",
 expectedSymbolChanges: new Dictionary<string, string>()
