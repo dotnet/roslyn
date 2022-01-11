@@ -748,6 +748,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ISyntaxFactsService syntaxFacts,
             Compilation compilation,
             CancellationToken cancellationToken)
+            => GetLocalFunctionSymbols(
+                typeSymbol,
+                lookInMemberForLocalFunctions: _ => true,
+                syntaxFacts,
+                compilation,
+                cancellationToken);
+
+        public static ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(
+            this ITypeSymbol? typeSymbol,
+            Func<ISymbol, bool> lookInMemberForLocalFunctions,
+            ISyntaxFactsService syntaxFacts,
+            Compilation compilation,
+            CancellationToken cancellationToken)
         {
             if (typeSymbol is null || compilation.Language != LanguageNames.CSharp)
             {
@@ -759,6 +772,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             foreach (var member in members)
             {
+                if (!lookInMemberForLocalFunctions(member))
+                {
+                    continue;
+                }
+
                 foreach (var syntaxReference in member.DeclaringSyntaxReferences)
                 {
                     var semanticModel = compilation.GetSemanticModel(syntaxReference.SyntaxTree);

@@ -27,13 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
                 return null;
             }
 
-            var syntaxFacts = project.GetRequiredLanguageService<ISyntaxFactsService>();
-            var localFunctions = type.GetLocalFunctionSymbols(syntaxFacts, compilation, cancellationToken);
             var containingMethodName = localMethodNameNode.EncapsulatingMethod.Identifier.ToString();
+            var syntaxFacts = project.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var candidateFunctions = localFunctions
-                .Where(m => m.ContainingSymbol.Name == containingMethodName)
-                .ToImmutableArray();
+            var candidateFunctions = type.GetLocalFunctionSymbols(
+                member => member.Name == containingMethodName,
+                syntaxFacts,
+                compilation,
+                cancellationToken).ToImmutableArray();
 
             return TryGetBestMatch(candidateFunctions, methodTypeArguments, methodArguments);
         }
