@@ -349,7 +349,6 @@ class X
                         case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
                         case ErrorCode.WRN_CompileTimeCheckedOverflow:
                         case ErrorCode.WRN_MethGrpToNonDel:
-                        case ErrorCode.WRN_AnnotationOnSliceReturnType:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
