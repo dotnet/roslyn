@@ -6757,9 +6757,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureListPattern" xml:space="preserve">
     <value>list pattern</value>
   </data>
-  <data name="IDS_FeatureLengthPattern" xml:space="preserve">
-    <value>length pattern</value>
-  </data>
   <data name="ERR_UnsupportedTypeForListPattern" xml:space="preserve">
     <value>List patterns may not be used for a value of type '{0}'.</value>
   </data>
