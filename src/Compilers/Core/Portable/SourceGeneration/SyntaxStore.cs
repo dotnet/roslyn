@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
                     var compilationIsCached = _compilation == _previous._compilation;
 
                     // get a builder for each input node
-                    var syntaxInputBuilders = ArrayBuilder<ISyntaxInputBuilder>.GetInstance(_syntaxInputNodes.Length);
+                    var syntaxInputBuilders = ArrayBuilder<(ISyntaxInputNode node, ISyntaxInputBuilder builder)>.GetInstance(_syntaxInputNodes.Length);
                     foreach (var node in _syntaxInputNodes)
                     {
                         // TODO: We don't cache the tracked incremental steps in a manner that we can easily rehydrate between runs,
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            syntaxInputBuilders.Add(node.GetBuilder(_previous._tables, _enableTracking));
+                            syntaxInputBuilders.Add((node, node.GetBuilder(_previous._tables, _enableTracking)));
                         }
                     }
 
@@ -87,14 +87,14 @@ namespace Microsoft.CodeAnalysis
                                 try
                                 {
                                     _cancellationToken.ThrowIfCancellationRequested();
-                                    syntaxInputBuilders[i].VisitTree(root, state, model, _cancellationToken);
+                                    syntaxInputBuilders[i].builder.VisitTree(root, state, model, _cancellationToken);
                                 }
                                 catch (UserFunctionException ufe)
                                 {
                                     // we're evaluating this node ahead of time, so we can't just throw the exception
                                     // instead we'll hold onto it, and throw the exception when a downstream node actually
                                     // attempts to read the value
-                                    _syntaxExceptions[syntaxInputBuilders[i].SyntaxInputNode] = ufe;
+                                    _syntaxExceptions[syntaxInputBuilders[i].node] = ufe;
                                     syntaxInputBuilders.RemoveAt(i);
                                     i--;
                                 }
@@ -102,10 +102,10 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         // save the updated inputs
-                        foreach (ISyntaxInputBuilder builder in syntaxInputBuilders)
+                        foreach ((var node, ISyntaxInputBuilder builder) in syntaxInputBuilders)
                         {
                             builder.SaveStateAndFree(_tableBuilder);
-                            Debug.Assert(_tableBuilder.Contains(builder.SyntaxInputNode));
+                            Debug.Assert(_tableBuilder.Contains(node));
                         }
                     }
                     syntaxInputBuilders.Free();

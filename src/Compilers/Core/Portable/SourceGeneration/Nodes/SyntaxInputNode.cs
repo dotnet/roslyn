@@ -23,34 +23,32 @@ namespace Microsoft.CodeAnalysis
             _filterFunc = filterFunc;
         }
 
-        public ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer, ISyntaxInputNode parent) => new Builder(this, table, trackIncrementalSteps, name, (IEqualityComparer<T>?)comparer ?? EqualityComparer<T>.Default, parent);
+        public ISyntaxInputBuilder GetBuilder(StateTableStore table, object key, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer) => new Builder(this, key, table, trackIncrementalSteps, name, (IEqualityComparer<T>?)comparer ?? EqualityComparer<T>.Default);
 
         private sealed class Builder : ISyntaxInputBuilder
         {
             private readonly SyntaxInputNode<T> _owner;
             private readonly string? _name;
             private readonly IEqualityComparer<T> _comparer;
-            private readonly ISyntaxInputNode _parent;
+            private readonly object _key;
             private readonly NodeStateTable<SyntaxNode>.Builder _filterTable;
 
             private readonly NodeStateTable<T>.Builder _transformTable;
 
-            public Builder(SyntaxInputNode<T> owner, StateTableStore table, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer, ISyntaxInputNode parent)
+            public Builder(SyntaxInputNode<T> owner, object key, StateTableStore table, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer)
             {
                 _owner = owner;
                 _name = name;
                 _comparer = comparer;
-                _parent = parent;
+                _key = key;
                 _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner._filterKey).ToBuilder(stepName: null, trackIncrementalSteps);
-                _transformTable = table.GetStateTableOrEmpty<T>(_parent).ToBuilder(_name, trackIncrementalSteps);
+                _transformTable = table.GetStateTableOrEmpty<T>(_key).ToBuilder(_name, trackIncrementalSteps);
             }
-
-            public ISyntaxInputNode SyntaxInputNode { get => _parent; }
 
             public void SaveStateAndFree(StateTableStore.Builder tables)
             {
                 tables.SetTable(_owner._filterKey, _filterTable.ToImmutableAndFree());
-                tables.SetTable(_parent, _transformTable.ToImmutableAndFree());
+                tables.SetTable(_key, _transformTable.ToImmutableAndFree());
             }
 
             public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)

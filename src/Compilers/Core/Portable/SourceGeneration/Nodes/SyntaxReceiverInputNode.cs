@@ -21,22 +21,22 @@ namespace Microsoft.CodeAnalysis
             _registerOutput = registerOutput;
         }
 
-        public ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps, string? name, IEqualityComparer<T>? comparer, ISyntaxInputNode parent) => new Builder(this, table, trackIncrementalSteps, parent);
+        public ISyntaxInputBuilder GetBuilder(StateTableStore table, object key, bool trackIncrementalSteps, string? name, IEqualityComparer<T>? comparer) => new Builder(this, key, table, trackIncrementalSteps);
 
         private sealed class Builder : ISyntaxInputBuilder
         {
             private readonly SyntaxReceiverInputNode<T> _owner;
-            private readonly ISyntaxInputNode _parent;
+            private readonly object _key;
             private readonly NodeStateTable<ISyntaxContextReceiver?>.Builder _nodeStateTable;
             private readonly ISyntaxContextReceiver? _receiver;
             private readonly GeneratorSyntaxWalker? _walker;
             private TimeSpan lastElapsedTime;
 
-            public Builder(SyntaxReceiverInputNode<T> owner, StateTableStore driverStateTable, bool trackIncrementalSteps, ISyntaxInputNode parent)
+            public Builder(SyntaxReceiverInputNode<T> owner,  object key, StateTableStore driverStateTable, bool trackIncrementalSteps)
             {
                 _owner = owner;
-                _parent = parent;
-                _nodeStateTable = driverStateTable.GetStateTableOrEmpty<ISyntaxContextReceiver?>(_owner).ToBuilder(stepName: null, trackIncrementalSteps);
+                _key = key;
+                _nodeStateTable = driverStateTable.GetStateTableOrEmpty<ISyntaxContextReceiver?>(_key).ToBuilder(stepName: null, trackIncrementalSteps);
                 try
                 {
                     _receiver = owner._receiverCreator();
@@ -52,14 +52,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public ISyntaxInputNode SyntaxInputNode { get => _parent; }
-
             private bool TrackIncrementalSteps => _nodeStateTable.TrackIncrementalSteps;
 
             public void SaveStateAndFree(StateTableStore.Builder tables)
             {
                 _nodeStateTable.AddEntry(_receiver, EntryState.Modified, lastElapsedTime, TrackIncrementalSteps ? System.Collections.Immutable.ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default, EntryState.Modified);
-                tables.SetTable(_parent, _nodeStateTable.ToImmutableAndFree());
+                tables.SetTable(_key, _nodeStateTable.ToImmutableAndFree());
             }
 
             public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)

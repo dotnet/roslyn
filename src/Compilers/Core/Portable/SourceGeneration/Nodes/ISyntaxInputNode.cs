@@ -16,13 +16,11 @@ namespace Microsoft.CodeAnalysis
 
     internal interface ISyntaxInputNodeInner<T>
     {
-        ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer, ISyntaxInputNode parent);
+        ISyntaxInputBuilder GetBuilder(StateTableStore table, object key, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer);
     }
 
     internal interface ISyntaxInputBuilder
     {
-        ISyntaxInputNode SyntaxInputNode { get; }
-
         void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken);
 
         void SaveStateAndFree(StateTableStore.Builder tables);

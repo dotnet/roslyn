@@ -34,6 +34,6 @@ namespace Microsoft.CodeAnalysis
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutput(this, output);
 
-        public ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps) => _inputNode.GetBuilder(table, trackIncrementalSteps, _name, _comparer, this);
+        public ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps) => _inputNode.GetBuilder(table, this, trackIncrementalSteps, _name, _comparer);
     }
 }
