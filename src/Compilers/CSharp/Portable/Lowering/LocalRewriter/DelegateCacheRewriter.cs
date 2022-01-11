@@ -52,7 +52,7 @@ internal sealed partial class DelegateCreationRewriter
         var cacheContainer = GetOrAddCacheContainer(delegateType, targetMethod);
         var cacheField = cacheContainer.GetOrAddCacheField(_factory, delegateType, targetMethod);
 
-        var boundCacheField = _factory.Field(null, cacheField);
+        var boundCacheField = _factory.Field(receiver: null, cacheField);
         var rewrittenNode = _factory.Coalesce(boundCacheField, _factory.AssignmentExpression(boundCacheField, boundDelegateCreation));
 
         _factory.Syntax = oldSyntax;

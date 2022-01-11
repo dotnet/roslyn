@@ -458,10 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 builder.Append(IdSeparator).Append(ownerUniqueId);
             }
 
-            if (generation > 0)
-            {
-                builder.Append(GenerationSeparator).Append(generation);
-            }
+            AppendOptionalGeneration(builder, generation);
 
             return result.ToStringAndFree();
         }

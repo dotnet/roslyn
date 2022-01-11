@@ -17,7 +17,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
     private readonly NamedTypeSymbol? _constructedContainer;
     private readonly Dictionary<(TypeSymbol, MethodSymbol), FieldSymbol> _delegateFields = new(ConversionCLRSignatureComparer.Instance);
 
-    /// <summary>Creates a type scoped concrete delegate cache container.</summary>
+    /// <summary>Creates a type-scope concrete delegate cache container.</summary>
     internal DelegateCacheContainer(TypeSymbol containingType, int generationOrdinal)
         : base(GeneratedNames.DelegateCacheContainerType(generationOrdinal), containingMethod: null)
     {
@@ -26,7 +26,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
         _containingSymbol = containingType;
     }
 
-    /// <summary>Creates a method scoped generic delegate cache container.</summary>
+    /// <summary>Creates a method-scope generic delegate cache container.</summary>
     internal DelegateCacheContainer(MethodSymbol ownerMethod, int topLevelMethodOrdinal, int ownerUniqueId, int generationOrdinal)
         : base(GeneratedNames.DelegateCacheContainerType(generationOrdinal, ownerMethod.Name, topLevelMethodOrdinal, ownerUniqueId), ownerMethod)
     {
