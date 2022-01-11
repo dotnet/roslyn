@@ -14,7 +14,13 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 {
     internal class StackFrameLocalMethodResolver : AbstractStackTraceSymbolResolver
     {
-        public override async Task<IMethodSymbol?> TryGetBestMatchAsync(Project project, INamedTypeSymbol type, StackFrameSimpleNameNode methodNode, StackFrameParameterList methodArguments, StackFrameTypeArgumentList? methodTypeArguments, CancellationToken cancellationToken)
+        public override async Task<IMethodSymbol?> TryGetBestMatchAsync(
+            Project project,
+            INamedTypeSymbol type,
+            StackFrameSimpleNameNode methodNode,
+            StackFrameParameterList methodArguments,
+            StackFrameTypeArgumentList? methodTypeArguments,
+            CancellationToken cancellationToken)
         {
             if (methodNode is not StackFrameLocalMethodNameNode localMethodNameNode)
             {

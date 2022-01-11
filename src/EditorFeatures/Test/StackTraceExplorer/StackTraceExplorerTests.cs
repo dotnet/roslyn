@@ -712,6 +712,17 @@ namespace ConsoleApp4
 }");
         }
 
+        /// <summary>
+        /// Behavior for this test needs some explanation. Note that if there are multiple
+        /// local functions within a container, they will be uniquely identified by the 
+        /// suffix. In this case we have g__Local|0_0 and g__Local|0_1 as the two local functions.
+        /// Resolution doesn't try to reverse engineer how these suffixes get produced, which means
+        /// that the first applicable symbol with the name "Local" inside the method "M" will be found.
+        /// Since local function resolution is done by searching the descendents of the method "M", the top
+        /// most local function matching the name will be the first the resolver sees and considers applicable.
+        /// This should get the user close to what they want, and hopefully is rare enough that it won't
+        /// be frequently encountered. 
+        /// </summary>
         [Fact]
         public Task TestSymbolFound_ExceptionLine_NestedLocalFunctions()
         {
@@ -725,11 +736,11 @@ class C
     {
         Local();
         
-        void Local()
+        void [|Local|]()
         {
             Local();
             
-            void [|Local|]()
+            void Local()
             {
                 throw new Exception();
             }

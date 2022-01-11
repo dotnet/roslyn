@@ -15,7 +15,13 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 {
     internal abstract class AbstractStackTraceSymbolResolver
     {
-        public abstract Task<IMethodSymbol?> TryGetBestMatchAsync(Project project, INamedTypeSymbol type, StackFrameSimpleNameNode methodNode, StackFrameParameterList methodArguments, StackFrameTypeArgumentList? methodTypeArguments, CancellationToken cancellationToken);
+        public abstract Task<IMethodSymbol?> TryGetBestMatchAsync(
+            Project project,
+            INamedTypeSymbol type,
+            StackFrameSimpleNameNode methodNode,
+            StackFrameParameterList methodArguments,
+            StackFrameTypeArgumentList? methodTypeArguments,
+            CancellationToken cancellationToken);
 
         protected static bool MatchTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, StackFrameTypeArgumentList? stackFrameTypeArgumentList)
         {
@@ -103,7 +109,9 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
             return true;
         }
 
-        protected static IMethodSymbol? TryGetBestMatch(ImmutableArray<IMethodSymbol> candidateFunctions, StackFrameTypeArgumentList? methodTypeArguments, StackFrameParameterList methodArguments) 
+        protected static IMethodSymbol? TryGetBestMatch(ImmutableArray<IMethodSymbol> candidateFunctions,
+            StackFrameTypeArgumentList? methodTypeArguments,
+            StackFrameParameterList methodArguments)
             => candidateFunctions
                 .Where(m => MatchTypeArguments(m.TypeArguments, methodTypeArguments))
                 .FirstOrDefault(m => MatchParameters(m.Parameters, methodArguments));
