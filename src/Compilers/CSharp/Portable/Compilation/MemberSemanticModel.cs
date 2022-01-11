@@ -2352,9 +2352,9 @@ foundParent:;
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode declaredNode, ISymbol declaredSymbol)
+        internal override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol)
         {
-            throw new NotImplementedException();
+            throw ExceptionUtilities.Unreachable;
         }
 
         /// <summary>
