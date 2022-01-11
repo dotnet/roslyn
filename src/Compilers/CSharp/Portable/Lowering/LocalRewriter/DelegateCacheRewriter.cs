@@ -150,6 +150,8 @@ internal sealed partial class DelegateCreationRewriter
             return false;
         }
 
+        Debug.Assert(targetMethod.MethodKind == MethodKind.Ordinary);
+
         var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
         try
         {
