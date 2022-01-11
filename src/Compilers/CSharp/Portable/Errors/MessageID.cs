@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureDefaultTypeParameterConstraint:
                 case MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers: // semantic check
                     return LanguageVersion.CSharp9;
-                
+
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings: // semantic check
                 case MessageID.IDS_FeatureCoalesceAssignmentExpression:
