@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var sourceModuleSymbol = this.ContainingModule as SourceModuleSymbol;
-                return sourceModuleSymbol == null ? null : sourceModuleSymbol.DeclaringCompilation;
+                return (object)sourceModuleSymbol == null ? null : sourceModuleSymbol.DeclaringCompilation;
             }
         }
 
