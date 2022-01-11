@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private Workspace _emptyWorkspace;
 
         private Workspace EmptyWorkspace
-            => _emptyWorkspace ?? (_emptyWorkspace = new AdhocWorkspace());
+            => _emptyWorkspace ??= new AdhocWorkspace();
 
         private void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         }
 
         private SyntaxEditor GetEditor(SyntaxNode root)
-            => new SyntaxEditor(root, EmptyWorkspace);
+            => new SyntaxEditor(root, EmptyWorkspace.Services);
 
         [Fact]
         public void TestReplaceNode()
