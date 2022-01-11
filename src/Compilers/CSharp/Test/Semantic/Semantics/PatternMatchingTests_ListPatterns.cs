@@ -3879,13 +3879,13 @@ class C<T>
         else
             rest.ToString(); // 1
 
-        if (new C<int?>() is [1, ..var rest2]) // ignored 2
-            rest2.Value.ToString(); // 2 (no warning)
+        if (new C<int?>() is [1, ..var rest2])
+            rest2.Value.ToString(); // 2
         else
             rest2.Value.ToString(); // 3, 4
 
-        if (new C<string?>() is [1, ..var rest3]) // ignored 5
-            rest3.ToString(); // 5 (no warning)
+        if (new C<string?>() is [1, ..var rest3])
+            rest3.ToString(); // 5
         else
             rest3.ToString(); // 6, 7
 
@@ -3897,9 +3897,9 @@ class C<T>
         else
             rest4.ToString(); // 8, 9
 
-        if (new C<T>() is [1, ..var rest5]) // ignored 10
+        if (new C<T>() is [1, ..var rest5])
         {
-            rest5.ToString(); // 10; (no warning)
+            rest5.ToString(); // 10
             rest5 = default;
         }
     }
@@ -3911,7 +3911,7 @@ class C<T>
             //             rest.ToString(); // 1
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest").WithArguments("rest").WithLocation(14, 13),
             // (17,13): warning CS8629: Nullable value type may be null.
-            //             rest2.Value.ToString(); // 2 (no warning)
+            //             rest2.Value.ToString(); // 2
             Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(17, 13),
             // (19,13): warning CS8629: Nullable value type may be null.
             //             rest2.Value.ToString(); // 3, 4
@@ -3920,7 +3920,7 @@ class C<T>
             //             rest2.Value.ToString(); // 3, 4
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest2").WithArguments("rest2").WithLocation(19, 13),
             // (22,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest3.ToString(); // 5 (no warning)
+            //             rest3.ToString(); // 5
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(22, 13),
             // (24,13): warning CS8602: Dereference of a possibly null reference.
             //             rest3.ToString(); // 6, 7
@@ -3935,7 +3935,7 @@ class C<T>
             //             rest4.ToString(); // 8, 9
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest4").WithArguments("rest4").WithLocation(32, 13),
             // (36,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest5.ToString(); // 10; (no warning)
+            //             rest5.ToString(); // 10
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest5").WithLocation(36, 13)
             );
 
@@ -4031,13 +4031,13 @@ class C<T>
         else
             rest.ToString(); // 1
 
-        if (new C<int?>() is [1, ..var rest2]) // ignored 2
-            rest2.Value.ToString(); // 2 (no warning)
+        if (new C<int?>() is [1, ..var rest2])
+            rest2.Value.ToString(); // 2
         else
             rest2.Value.ToString(); // 3, 4
 
-        if (new C<string?>() is [1, ..var rest3]) // ignored 5
-            rest3.ToString(); // 5 (no warning)
+        if (new C<string?>() is [1, ..var rest3])
+            rest3.ToString(); // 5
         else
             rest3.ToString(); // 6, 7
 
@@ -4057,7 +4057,7 @@ class C<T>
             //             rest.ToString(); // 1
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest").WithArguments("rest").WithLocation(15, 13),
             // (18,13): warning CS8629: Nullable value type may be null.
-            //             rest2.Value.ToString(); // 2 (no warning)
+            //             rest2.Value.ToString(); // 2
             Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(18, 13),
             // (20,13): warning CS8629: Nullable value type may be null.
             //             rest2.Value.ToString(); // 3, 4
@@ -4066,7 +4066,7 @@ class C<T>
             //             rest2.Value.ToString(); // 3, 4
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest2").WithArguments("rest2").WithLocation(20, 13),
             // (23,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest3.ToString(); // 5 (no warning)
+            //             rest3.ToString(); // 5
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(23, 13),
             // (25,13): warning CS8602: Dereference of a possibly null reference.
             //             rest3.ToString(); // 6, 7
