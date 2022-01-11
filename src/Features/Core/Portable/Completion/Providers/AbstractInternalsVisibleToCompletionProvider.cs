@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }

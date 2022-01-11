@@ -130,14 +130,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme)
 
             ' Extract method
-            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.VisualBasic)
+            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.Metadata.DontPutOutOrRefOnStruct, LanguageNames.VisualBasic)
 
             ' Implement Interface or Abstract Class
-            BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.VisualBasic)
-            BindToOption(at_the_end, ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd, LanguageNames.VisualBasic)
+            BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptions.Metadata.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.VisualBasic)
+            BindToOption(at_the_end, ImplementTypeOptions.Metadata.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd, LanguageNames.VisualBasic)
 
-            BindToOption(prefer_throwing_properties, ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferThrowingProperties, LanguageNames.VisualBasic)
-            BindToOption(prefer_auto_properties, ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties, LanguageNames.VisualBasic)
+            BindToOption(prefer_throwing_properties, ImplementTypeOptions.Metadata.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferThrowingProperties, LanguageNames.VisualBasic)
+            BindToOption(prefer_auto_properties, ImplementTypeOptions.Metadata.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties, LanguageNames.VisualBasic)
 
             ' Inline hints
             BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsViewOptions.DisplayAllHintsWhilePressingAltF1)

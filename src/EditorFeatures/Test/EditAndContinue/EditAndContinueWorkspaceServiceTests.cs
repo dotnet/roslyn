@@ -1792,6 +1792,11 @@ class C { int Y => 2; }
             }
 
             EndDebuggingSession(debuggingSession);
+
+            AssertEx.Equal(new[]
+            {
+                $"Debugging_EncSession: SolutionSessionId={{00000000-AAAA-AAAA-AAAA-000000000000}}|SessionId=1|SessionCount=0|EmptySessionCount={(breakState ? 3 : 0)}|HotReloadSessionCount=0|EmptyHotReloadSessionCount={(breakState ? 4 : 3)}"
+            }, _telemetryLog);
         }
 
         [Fact]

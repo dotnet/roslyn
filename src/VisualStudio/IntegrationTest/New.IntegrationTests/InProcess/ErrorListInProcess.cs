@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.VisualStudio.Extensibility.Testing;
+
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal class ErrorListInProcess : InProcComponent
+    [TestService]
+    internal partial class ErrorListInProcess
     {
-        public ErrorListInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
     }
 }

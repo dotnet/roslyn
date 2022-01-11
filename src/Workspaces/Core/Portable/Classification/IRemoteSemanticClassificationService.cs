@@ -9,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -17,7 +19,26 @@ namespace Microsoft.CodeAnalysis.Classification
     internal interface IRemoteSemanticClassificationService
     {
         ValueTask<SerializableClassifiedSpans> GetSemanticClassificationsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan span, ClassificationOptions options, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo,
+            DocumentId documentId,
+            TextSpan span,
+            ClassificationOptions options,
+            StorageDatabase database,
+            bool isFullyLoaded,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Tries to get cached semantic classifications for the specified document and the specified <paramref
+        /// name="textSpan"/>.  Will return an empty array not able to.
+        /// </summary>
+        /// <param name="checksum">Pass in <see cref="DocumentStateChecksums.Text"/>.  This will ensure that the cached
+        /// classifications are only returned if they match the content the file currently has.</param>
+        ValueTask<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
+            DocumentKey documentKey,
+            TextSpan textSpan,
+            Checksum checksum,
+            StorageDatabase database,
+            CancellationToken cancellationToken);
     }
 
     /// <summary>

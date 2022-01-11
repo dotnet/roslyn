@@ -165,10 +165,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                         var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
+                            var classificationOptions = ClassificationOptions.From(document.Project);
+
                             var documentLocation = !includeClassifiedSpans
                                 ? new DocumentSpan(document, location.SourceSpan)
                                 : await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
-                                    document, location.SourceSpan, cancellationToken).ConfigureAwait(false);
+                                    document, location.SourceSpan, classificationOptions, cancellationToken).ConfigureAwait(false);
 
                             sourceLocations.Add(documentLocation);
                         }
@@ -239,9 +241,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var document = referenceLocation.Document;
             var sourceSpan = location.SourceSpan;
+            var options = ClassificationOptions.From(document.Project);
 
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
-                document, sourceSpan, cancellationToken).ConfigureAwait(false);
+                document, sourceSpan, options, cancellationToken).ConfigureAwait(false);
 
             return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo, referenceLocation.AdditionalProperties);
         }

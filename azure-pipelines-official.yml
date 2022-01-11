@@ -66,13 +66,16 @@ stages:
 
 - stage: build
   displayName: Build and Test
+  pool:
+    name: NetCore1ESPool-Svc-Internal
+    demands: ImageOverride -equals Build.Server.Amd64.VS2019
 
   jobs:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.0-vs-deps') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.1-vs-deps') }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
-        MirrorBranch: release/dev17.0-vs-deps
+        MirrorBranch: release/dev17.1-vs-deps
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -81,9 +84,6 @@ stages:
   - job: OfficialBuild
     displayName: Official Build
     timeoutInMinutes: 360
-    pool:
-      name: NetCore1ESPool-Internal
-      demands: ImageOverride -equals Build.Server.Amd64.VS2019
 
     steps:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
@@ -296,7 +296,7 @@ stages:
       dependsOn:
         - OfficialBuild
       pool:
-        vmImage: vs2017-win2016
+        vmImage: windows-2019
 
 - stage: insert
   dependsOn:
