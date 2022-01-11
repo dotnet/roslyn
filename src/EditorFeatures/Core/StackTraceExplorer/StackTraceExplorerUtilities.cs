@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
             {
                 new StackFrameLocalMethodResolver(),
                 new StackFrameMethodSymbolResolver(),
-                new StackFramePropertyMethodResolver(),
             };
 
         public static async Task<DefinitionItem?> GetDefinitionAsync(Solution solution, StackFrameCompilationUnit compilationUnit, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)

@@ -532,7 +532,7 @@ namespace ConsoleApp4
         public Task TestSymbolFound_ExceptionLine_PropertyGet()
         {
             return TestSymbolFoundAsync(
-                @"at ConsoleApp4.MyClass.get_I(Int32 value)",
+                @"at ConsoleApp4.MyClass.get_I()",
                 @"using System;
 
 namespace ConsoleApp4

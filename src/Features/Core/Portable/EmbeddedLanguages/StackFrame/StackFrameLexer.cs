@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         public Result<StackFrameToken> TryScanRequiredGeneratedNameSeparator()
         {
             var start = Position;
-            if (IsCharacter(CurrentChar))
+            if (IsAsciiAlphaCharacter(CurrentChar))
             {
                 Position++;
             }
