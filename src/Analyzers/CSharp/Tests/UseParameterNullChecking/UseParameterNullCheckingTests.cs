@@ -395,7 +395,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestLeadingAndTrailingTrivia()
+        public async Task TestLeadingAndTrailingTrivia1()
         {
             await new VerifyCS.Test()
             {
@@ -414,6 +414,72 @@ class C
 class C
 {
     public C(string s!!)
+    {
+    }
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestLeadingAndTrailingTrivia2()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+
+class C
+{
+    public C(
+          string x // comment
+        , string y // comment,
+        , string z // comment
+        )
+    {
+        [|if (x is null) throw new ArgumentNullException(nameof(x));|]
+        [|if (y is null) throw new ArgumentNullException(nameof(y));|]
+        [|if (z is null) throw new ArgumentNullException(nameof(z));|]
+    }
+}",
+                FixedCode = @"using System;
+
+class C
+{
+    public C(
+          string x!! // comment
+        , string y!! // comment,
+        , string z!! // comment
+        )
+    {
+    }
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestLeadingAndTrailingTrivia3()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+
+class C
+{
+    public C(
+          string x /* comment */ !!
+        )
+    {
+        [|if (x is null) throw new ArgumentNullException(nameof(x));|]
+    }
+}",
+                FixedCode = @"using System;
+
+class C
+{
+    public C(
+          string x /* comment */ !!
+        )
     {
     }
 }",
@@ -587,6 +653,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestNotEqualitySwapped()
         {
+            // https://github.com/dotnet/roslyn/issues/58699
             var testCode = @"using System;
 
 class C
@@ -883,6 +950,35 @@ class C
             {
                 TestCode = testCode,
                 FixedCode = testCode,
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestOptionalParameter()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    void M(string s = ""a"")
+    {
+        [|if ((object)s == null)
+            throw new ArgumentNullException(nameof(s));|]
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    void M(string s!! = ""a"")
+    {
+    }
+}",
                 LanguageVersion = LanguageVersionExtensions.CSharpNext
             }.RunAsync();
         }

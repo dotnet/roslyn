@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                     return;
                 }
 
-                var argumentNullException = compilation.GetTypeByMetadataName(ArgumentNullExceptionName);
+                var argumentNullException = compilation.GetBestTypeByMetadataName(ArgumentNullExceptionName);
                 if (argumentNullException is null)
                 {
                     return;
@@ -140,11 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
             foreach (var statement in block.Statements)
             {
                 var parameter = TryGetParameterNullCheckedByStatement(statement);
-                if (parameter is not null
-                    && (!parameter.Type.IsValueType
-                        || parameter.Type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
-                        || parameter.Type.TypeKind is TypeKind.Pointer or TypeKind.FunctionPointer)
-                    && parameter.RefKind == RefKind.None
+                if (ParameterCanUseNullChecking(parameter)
                     && parameter.DeclaringSyntaxReferences.FirstOrDefault() is SyntaxReference reference
                     && reference.SyntaxTree.Equals(statement.SyntaxTree)
                     && reference.GetSyntax() is ParameterSyntax parameterSyntax)
@@ -159,6 +157,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
             }
 
             return;
+
+            bool ParameterCanUseNullChecking([NotNullWhen(true)] IParameterSymbol? parameter)
+            {
+                if (parameter is null)
+                    return false;
+
+                if (parameter.RefKind != RefKind.None)
+                    return false;
+
+                if (parameter.Type.IsValueType)
+                {
+                    return parameter.Type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
+                        || parameter.Type.TypeKind is TypeKind.Pointer or TypeKind.FunctionPointer;
+                }
+
+                return true;
+            }
 
             IParameterSymbol? TryGetParameterNullCheckedByStatement(StatementSyntax statement)
             {
@@ -271,10 +286,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                     return false;
                 }
 
-                if (arguments.Count == 0)
+                // 'new ArgumentNullException()'
+                if (argumentNullExceptionConstructor.Equals(semanticModel.GetSymbolInfo(exceptionCreation, cancellationToken).Symbol))
                 {
-                    // 'new ArgumentNullException()'
-                    return argumentNullExceptionConstructor.Equals(semanticModel.GetSymbolInfo(exceptionCreation, cancellationToken).Symbol);
+                    return arguments.Count == 0;
+                }
+
+                // 'new ArgumentNullException(nameof(param))' (or equivalent)
+                if (!argumentNullExceptionStringConstructor.Equals(semanticModel.GetSymbolInfo(exceptionCreation, cancellationToken).Symbol))
+                {
+                    return false;
                 }
 
                 if (arguments.Count != 1)
@@ -282,14 +303,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                     return false;
                 }
 
-                // 'new ArgumentNullException(nameof(param))' (or equivalent)
                 var constantValue = semanticModel.GetConstantValue(arguments[0].Expression, cancellationToken);
                 if (constantValue.Value is not string constantString || !string.Equals(constantString, parameterSymbol.Name, StringComparison.Ordinal))
                 {
                     return false;
                 }
 
-                return argumentNullExceptionStringConstructor.Equals(semanticModel.GetSymbolInfo(exceptionCreation, cancellationToken).Symbol);
+                return true;
             }
         }
     }

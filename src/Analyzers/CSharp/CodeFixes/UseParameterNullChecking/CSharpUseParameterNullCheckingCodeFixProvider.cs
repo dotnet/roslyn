@@ -72,7 +72,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 if (fixedParameterLocations.Add(parameterLocation))
                 {
                     var parameterSyntax = (ParameterSyntax)parameterLocation.FindNode(cancellationToken);
-                    editor.ReplaceNode(parameterSyntax, parameterSyntax.WithExclamationExclamationToken(SyntaxFactory.Token(SyntaxKind.ExclamationExclamationToken)));
+                    if (parameterSyntax.ExclamationExclamationToken.IsKind(SyntaxKind.None))
+                    {
+                        var identifier = parameterSyntax.Identifier;
+                        var newIdentifier = identifier.WithoutTrailingTrivia();
+                        var newExclamationExclamationToken = SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.ExclamationExclamationToken, identifier.TrailingTrivia);
+                        editor.ReplaceNode(parameterSyntax, parameterSyntax.Update(
+                            parameterSyntax.AttributeLists,
+                            parameterSyntax.Modifiers,
+                            parameterSyntax.Type,
+                            newIdentifier,
+                            newExclamationExclamationToken,
+                            parameterSyntax.Default));
+                    }
                 }
             }
 
