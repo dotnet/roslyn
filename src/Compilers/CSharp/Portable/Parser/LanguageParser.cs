@@ -4422,7 +4422,7 @@ tryAgain:
 
                 if (type == null)
                 {
-                    // in the __arglist case, all other parameter pieces are not legal.  So attach anything else we get
+                    // In the __arglist case, none of the other parameter pieces are legal, so attach anything else we get
                     // to the identifier.
                     if (exclamationExclamationToken != null)
                     {
