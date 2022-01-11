@@ -134,13 +134,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
             finally
             {
-                // providing this extra information will make UI to show indication to users
-                // that result might not contain full data
-                _callback.Done(isFullyLoaded);
-
                 // Ensure that we actually complete all our remaining progress items so that the progress bar completes.
                 await ProgressItemsCompletedAsync(_remainingProgressItems, cancellationToken).ConfigureAwait(false);
                 Debug.Assert(_remainingProgressItems == 0);
+
+                // Pass along isFullyLoaded so that the UI can show indication to users that results may be incomplete.
+                _callback.Done(isFullyLoaded);
             }
         }
 
