@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="ShouldSkipSyntaxNodeAnalysis(SyntaxNode, ISymbol)"/>.
         /// </summary>
         internal virtual Func<SyntaxNode, bool>? GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol) => null;
-        
+
         /// <summary>
         /// Determines if the given syntax node with the given containing symbol should be analyzed or not.
         /// Note that only the given syntax node will be filtered out from analysis, this API will be invoked separately
