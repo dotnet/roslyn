@@ -712,14 +712,40 @@ namespace ConsoleApp4
 }");
         }
 
+        [Fact]
+        public Task TestSymbolFound_ExceptionLine_NestedLocalFunctions()
+        {
+            return TestSymbolFoundAsync(
+                @"at C.<M>g__Local|0_1()",
+                @"using System;
+
+class C 
+{
+    public void M()
+    {
+        Local();
+        
+        void Local()
+        {
+            Local();
+            
+            void [|Local|]()
+            {
+                throw new Exception();
+            }
+        }
+    }
+}");
+        }
+
         [Fact(Skip = "Top level local functions are not supported")]
         public Task TestSymbolFound_ExceptionLine_LocalInTopLevelStatement()
         {
             return TestSymbolFoundAsync(
-                @"at ConsoleApp4.MyClass.<M>g__LocalFunction|0_0()",
+                @"at ConsoleApp4.Program.<Main$>g__LocalInTopLevelStatement|0_0()",
                 @"using System;
 
-LoaclInTopLevelStatement();
+LocalInTopLevelStatement();
 
 void [|LocalInTopLevelStatement|]()
 {
