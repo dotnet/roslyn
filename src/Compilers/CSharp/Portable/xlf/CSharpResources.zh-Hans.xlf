@@ -1199,7 +1199,7 @@
       </trans-unit>
       <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
         <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
-        <target state="new">A 'struct' with field initializers must include an explicitly declared constructor.</target>
+        <target state="translated">具有字段初始值设定项的“结构”必须包含显式声明的构造函数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
