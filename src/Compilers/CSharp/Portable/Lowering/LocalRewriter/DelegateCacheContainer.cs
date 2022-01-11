@@ -15,7 +15,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
 {
     private readonly Symbol _containingSymbol;
     private readonly NamedTypeSymbol? _constructedContainer;
-    private readonly Dictionary<(TypeSymbol, MethodSymbol), FieldSymbol> _delegateFields = new();
+    private readonly Dictionary<(TypeSymbol, MethodSymbol), FieldSymbol> _delegateFields = new(ConversionCLRSignatureComparer.Instance);
 
     /// <summary>Creates a type scoped concrete delegate cache container.</summary>
     internal DelegateCacheContainer(TypeSymbol containingType, int generationOrdinal)
@@ -76,5 +76,24 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
         _delegateFields.Add((delegateType, targetMethod), field);
 
         return field;
+    }
+
+    private sealed class ConversionCLRSignatureComparer : IEqualityComparer<(TypeSymbol delegateType, MethodSymbol targetMethod)>
+    {
+        public static readonly ConversionCLRSignatureComparer Instance = new();
+
+        public bool Equals((TypeSymbol delegateType, MethodSymbol targetMethod) x, (TypeSymbol delegateType, MethodSymbol targetMethod) y)
+        {
+            var symbolComparer = SymbolEqualityComparer.CLRSignature;
+
+            return symbolComparer.Equals(x.delegateType, y.delegateType) && symbolComparer.Equals(x.targetMethod, y.targetMethod);
+        }
+
+        public int GetHashCode((TypeSymbol delegateType, MethodSymbol targetMethod) conversion)
+        {
+            var symbolComparer = SymbolEqualityComparer.CLRSignature;
+
+            return Hash.Combine(symbolComparer.GetHashCode(conversion.delegateType), symbolComparer.GetHashCode(conversion.targetMethod));
+        }
     }
 }

@@ -2937,6 +2937,93 @@ class C<T, V>
     }
 
     [Fact]
+    public void SameTypeAndSymbolResultsSameField_TypeScoped3_CLRSignature()
+    {
+        var source = @"
+#nullable enable
+using System;
+class C<T>
+{
+    void Test0() { var t = (Func<T?>)Target<T?>; }
+    void Test1() { Func<T> t = Target<T>; }
+    static V Target<V>() { return default(V); }
+}
+";
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<>O", arity: 0
+            , "System.Func<T?> <0>__Target"
+        ));
+        verifier.VerifyIL("C<T>.Test0", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<T> C<T>.<>O.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""T C<T>.Target<T>()""
+  IL_000e:  newobj     ""System.Func<T>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Func<T> C<T>.<>O.<0>__Target""
+  IL_0018:  ret
+}
+");
+        verifier.VerifyIL("C<T>.Test1", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<T> C<T>.<>O.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""T C<T>.Target<T>()""
+  IL_000e:  newobj     ""System.Func<T>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Func<T> C<T>.<>O.<0>__Target""
+  IL_0018:  ret
+}
+");
+    }
+
+    [Fact]
+    public void SameTypeAndSymbolResultsSameField_TypeScoped4_CLRSignature()
+    {
+        var source = @"
+using System;
+class C<T>
+{
+    void Test0() { var t = (Func<(T x, T y)>)Target<(T x, T y)>; }
+    void Test1() { Func<(T a, T b)> t = Target<(T c, T d)>; }
+    static V Target<V>() { return default(V); }
+}
+";
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<>O", arity: 0
+            , "System.Func<(T x, T y)> <0>__Target"
+        ));
+        verifier.VerifyIL("C<T>.Test0", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<System.ValueTuple<T, T>> C<T>.<>O.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""System.ValueTuple<T, T> C<T>.Target<System.ValueTuple<T, T>>()""
+  IL_000e:  newobj     ""System.Func<System.ValueTuple<T, T>>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Func<System.ValueTuple<T, T>> C<T>.<>O.<0>__Target""
+  IL_0018:  ret
+}
+");
+        verifier.VerifyIL("C<T>.Test1", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<System.ValueTuple<T, T>> C<T>.<>O.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""System.ValueTuple<T, T> C<T>.Target<System.ValueTuple<T, T>>()""
+  IL_000e:  newobj     ""System.Func<System.ValueTuple<T, T>>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Func<System.ValueTuple<T, T>> C<T>.<>O.<0>__Target""
+  IL_0018:  ret
+}
+");
+    }
+
+    [Fact]
     public void SameTypeAndSymbolResultsSameField_MethodScoped0()
     {
         var source = @"
@@ -3059,6 +3146,48 @@ static class D
   IL_0020:  ldftn      ""V D.Target<V>(int)""
   IL_0026:  newobj     ""C<A, T>.MyFunc..ctor(object, System.IntPtr)""
   IL_002b:  stsfld     ""C<A, T>.MyFunc C<A, T>.<Test>O__2_0<V>.<0>__Target""
+  IL_0030:  ret
+}
+");
+    }
+
+    [Fact]
+    public void SameTypeAndSymbolResultsSameField_MethodScoped3_CLRSignature()
+    {
+        var source = @"
+using System;
+class C<T>
+{
+    void Test<V>()
+    {
+        var t0 = (Func<object, T, V>)D<V>.Target<T>;
+        Func<dynamic, T, V> t1 = D<V>.Target<T>;
+    }
+}
+class D<B>
+{
+    public static B Target<H>(dynamic o, H h) => default(B);
+}
+";
+        var verifier = CompileAndVerify(source, symbolValidator: VerifyCacheContainer("C.<Test>O__0_0", arity: 1
+            , "System.Func<System.Object, T, V> <0>__Target"
+        ));
+        verifier.VerifyIL("C<T>.Test<V>", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<object, T, V> C<T>.<Test>O__0_0<V>.<0>__Target""
+  IL_0005:  brtrue.s   IL_0018
+  IL_0007:  ldnull
+  IL_0008:  ldftn      ""V D<V>.Target<T>(dynamic, T)""
+  IL_000e:  newobj     ""System.Func<object, T, V>..ctor(object, System.IntPtr)""
+  IL_0013:  stsfld     ""System.Func<object, T, V> C<T>.<Test>O__0_0<V>.<0>__Target""
+  IL_0018:  ldsfld     ""System.Func<object, T, V> C<T>.<Test>O__0_0<V>.<0>__Target""
+  IL_001d:  brtrue.s   IL_0030
+  IL_001f:  ldnull
+  IL_0020:  ldftn      ""V D<V>.Target<T>(dynamic, T)""
+  IL_0026:  newobj     ""System.Func<dynamic, T, V>..ctor(object, System.IntPtr)""
+  IL_002b:  stsfld     ""System.Func<object, T, V> C<T>.<Test>O__0_0<V>.<0>__Target""
   IL_0030:  ret
 }
 ");
