@@ -101,10 +101,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             await _progress_doNotAccessDirectly.ItemsCompletedAsync(count, cancellationToken).ConfigureAwait(false);
         }
 
-        internal Task SearchAsync(bool searchCurrentDocument, CancellationToken cancellationToken)
+        public Task SearchAsync(bool searchCurrentDocument, CancellationToken cancellationToken)
             => SearchAsync(searchCurrentDocument, NavigateToSearchScope.AllDocuments, cancellationToken);
 
-        internal async Task SearchAsync(
+        public async Task SearchAsync(
             bool searchCurrentDocument,
             NavigateToSearchScope scope,
             CancellationToken cancellationToken)
