@@ -772,7 +772,7 @@ namespace goo
         [Fact]
         public void TestNormalizeLineSpanDirectiveTrivia()
         {
-            TestNormalizeTrivia("  #  line(1,2)-(3,4)5\"a.txt\"", "#line (1, 2) - (3, 4) 5 \"a.txt\"\r\n");
+            TestNormalizeTrivia("  #  line( 1,2 )-(3,4)5\"a.txt\"", "#line (1, 2) - (3, 4) 5 \"a.txt\"\r\n");
         }
 
         [WorkItem(538115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538115")]
