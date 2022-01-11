@@ -4413,9 +4413,36 @@ tryAgain:
                 // If we didn't already consume an equals sign as part of !!=, then try to scan one out now.
                 equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
 
+<<<<<<< HEAD
                 var equalsValueClause = equalsToken == null
                     ? null
                     : CheckFeatureAvailability(_syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()), MessageID.IDS_FeatureOptionalParameter);
+=======
+                EqualsValueClauseSyntax equalsValueClause = null;
+                if (equalsToken != null)
+                    equalsValueClause = CheckFeatureAvailability(_syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()), MessageID.IDS_FeatureOptionalParameter);
+
+                if (type == null)
+                {
+                    // In the __arglist case, none of the other parameter pieces are legal, so attach anything else we get
+                    // to the identifier.
+                    if (exclamationExclamationToken != null)
+                    {
+                        if (!exclamationExclamationToken.ContainsDiagnostics)
+                            exclamationExclamationToken = AddError(exclamationExclamationToken, ErrorCode.ERR_UnexpectedToken, exclamationExclamationToken.ToString());
+
+                        identifier = AddTrailingSkippedSyntax(identifier, exclamationExclamationToken);
+                        exclamationExclamationToken = null;
+                    }
+
+                    if (equalsValueClause != null)
+                    {
+                        identifier = AddTrailingSkippedSyntax(identifier,
+                            AddErrorToFirstToken(equalsValueClause, ErrorCode.ERR_DefaultValueNotAllowed));
+                        equalsValueClause = null;
+                    }
+                }
+>>>>>>> 349d9cc7d6a23ebb7c0c6319c37abb3a533494d5
 
                 return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, identifier, exclamationExclamationToken, equalsValueClause);
             }
