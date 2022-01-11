@@ -4837,7 +4837,7 @@ class C
     }
 
     [Fact]
-    public void TopLevel_LocalFunctions_TypeScoped0()
+    public void TopLevelMethod_LocalFunctions_TypeScoped0()
     {
         var source = @"
 using System;
@@ -4874,7 +4874,7 @@ class C
     }
 
     [Fact]
-    public void TopLevel_LocalFunctions_NotStatic()
+    public void TopLevelMethod_LocalFunctions_NotStatic()
     {
         var source = @"
 using System;
@@ -4905,7 +4905,7 @@ class C
     }
 
     [Fact]
-    public void TopLevel_LocalFunctions_MethodScoped0()
+    public void TopLevelMethod_LocalFunctions_MethodScoped0()
     {
         var source = @"
 using System;
@@ -5300,6 +5300,36 @@ static void Test<T>(T t)
     (System.Func<T, (T, T)> a, int _) = (Target<T>, 0);
     static (T, G) Target<G>(G g) => (default(T), g);
 }
+";
+        CompileAndVerify(source).VerifyIL("Program.<<Main>$>g__Test|0_0<T>", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<T, System.ValueTuple<T, T>> Program.<Test>O__0_0<T>.<0>__Target""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""System.ValueTuple<T, T> Program.<<Main>$>g__Target|0_1<T, T>(T)""
+  IL_0010:  newobj     ""System.Func<T, System.ValueTuple<T, T>>..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""System.Func<T, System.ValueTuple<T, T>> Program.<Test>O__0_0<T>.<0>__Target""
+  IL_001b:  pop
+  IL_001c:  ret
+}
+");
+    }
+
+    [Fact]
+    public void TopLevelStatement_Tuples_LocalFunction_MethodScoped3()
+    {
+        var source = @"
+Test(0);
+static void Test<T>(T t)
+{
+    (System.Func<T, (T, T)> a, int _) = (Target<T, T>, 0);
+}
+static (T, G) Target<T, G>(G g) => (default(T), g);
 ";
         CompileAndVerify(source).VerifyIL("Program.<<Main>$>g__Test|0_0<T>", @"
 {
