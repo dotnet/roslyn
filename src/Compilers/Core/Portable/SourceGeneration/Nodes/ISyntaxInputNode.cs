@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 
@@ -11,6 +12,11 @@ namespace Microsoft.CodeAnalysis
     internal interface ISyntaxInputNode
     {
         ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps);
+    }
+
+    internal interface ISyntaxInputNodeInner<T>
+    {
+        ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer, ISyntaxInputNode parent);
     }
 
     internal interface ISyntaxInputBuilder

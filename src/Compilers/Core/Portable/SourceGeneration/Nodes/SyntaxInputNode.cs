@@ -13,49 +13,46 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class SyntaxInputNode<T> : ISyntaxInputNode
+    internal sealed class SyntaxInputNode<T> : ISyntaxInputNodeInner<T>
     {
         private readonly Func<GeneratorSyntaxContext, CancellationToken, T> _transformFunc;
         private readonly Func<SyntaxNode, CancellationToken, bool> _filterFunc;
-        private readonly IEqualityComparer<T> _comparer;
         private readonly object _filterKey = new object();
 
-        internal SyntaxInputNode(Func<SyntaxNode, CancellationToken, bool> filterFunc, Func<GeneratorSyntaxContext, CancellationToken, T> transformFunc, IEqualityComparer<T>? comparer = null, string? name = null)
+        internal SyntaxInputNode(Func<SyntaxNode, CancellationToken, bool> filterFunc, Func<GeneratorSyntaxContext, CancellationToken, T> transformFunc)
         {
             _transformFunc = transformFunc;
             _filterFunc = filterFunc;
-            _comparer = comparer ?? EqualityComparer<T>.Default;
-            Name = name;
         }
 
-        public SyntaxInputNode<T> WithTrackingName(string name) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, _comparer, name);
-
-        public SyntaxInputNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, comparer, Name);
-
-        public ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps) => new Builder(this, table, trackIncrementalSteps);
-
-        private string? Name { get; }
+        public ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer, ISyntaxInputNode parent) => new Builder(this, table, trackIncrementalSteps, name, (IEqualityComparer<T>?)comparer ?? EqualityComparer<T>.Default, parent);
 
         private sealed class Builder : ISyntaxInputBuilder
         {
             private readonly SyntaxInputNode<T> _owner;
+            private readonly string? _name;
+            private readonly IEqualityComparer<T> _comparer;
+            private readonly ISyntaxInputNode _parent;
             private readonly NodeStateTable<SyntaxNode>.Builder _filterTable;
 
             private readonly NodeStateTable<T>.Builder _transformTable;
 
-            public Builder(SyntaxInputNode<T> owner, StateTableStore table, bool trackIncrementalSteps)
+            public Builder(SyntaxInputNode<T> owner, StateTableStore table, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer, ISyntaxInputNode parent)
             {
                 _owner = owner;
+                _name = name;
+                _comparer = comparer;
+                _parent = parent;
                 _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner._filterKey).ToBuilder(stepName: null, trackIncrementalSteps);
-                _transformTable = table.GetStateTableOrEmpty<T>(_owner).ToBuilder(_owner.Name, trackIncrementalSteps);
+                _transformTable = table.GetStateTableOrEmpty<T>(_parent).ToBuilder(_name, trackIncrementalSteps);
             }
 
-            public ISyntaxInputNode SyntaxInputNode { get => _owner; }
+            public ISyntaxInputNode SyntaxInputNode { get => _parent; }
 
             public void SaveStateAndFree(StateTableStore.Builder tables)
             {
                 tables.SetTable(_owner._filterKey, _filterTable.ToImmutableAndFree());
-                tables.SetTable(_owner, _transformTable.ToImmutableAndFree());
+                tables.SetTable(_parent, _transformTable.ToImmutableAndFree());
             }
 
             public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
@@ -96,7 +93,7 @@ namespace Microsoft.CodeAnalysis
                         // so we never consider the input to the transform as cached.
                         var transformInputState = state == EntryState.Cached ? EntryState.Modified : state;
 
-                        if (transformInputState == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer, stopwatch.Elapsed, noInputStepsStepInfo, transformInputState))
+                        if (transformInputState == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _comparer, stopwatch.Elapsed, noInputStepsStepInfo, transformInputState))
                         {
                             _transformTable.AddEntry(transformed, EntryState.Added, stopwatch.Elapsed, noInputStepsStepInfo, EntryState.Added);
                         }

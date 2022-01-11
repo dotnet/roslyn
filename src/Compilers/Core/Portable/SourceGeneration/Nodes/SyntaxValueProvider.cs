@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal IncrementalValueProvider<ISyntaxContextReceiver?> CreateSyntaxReceiverProvider(SyntaxContextReceiverCreator creator)
         {
-            var node = new SyntaxReceiverInputNode(creator, _registerOutput);
+            var node = new SyntaxInputNode2<ISyntaxContextReceiver?>(new SyntaxReceiverInputNode<ISyntaxContextReceiver?>(creator, _registerOutput), RegisterOutputAndDeferredInput);
             _inputNodes.Add(node);
             return new IncrementalValueProvider<ISyntaxContextReceiver?>(node);
         }
