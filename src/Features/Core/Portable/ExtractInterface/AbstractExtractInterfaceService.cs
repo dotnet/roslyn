@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             {
                 var document = solution.GetDocument(documentId);
                 var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var editor = new SyntaxEditor(currentRoot, solution.Workspace);
+                var editor = new SyntaxEditor(currentRoot, solution.Workspace.Services);
 
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
                 var typeReference = syntaxGenerator.TypeExpression(extractedInterfaceSymbol);
