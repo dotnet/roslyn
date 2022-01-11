@@ -12,11 +12,17 @@ trigger:
 # Automatic building of all PRs is disabled in the pipeline's trigger page.
 # See https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/github?view=azure-devops&tabs=yaml#comment-triggers
 pr:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+  paths:
+    exclude:
+      - docs/*
+      - .github/*
 
 jobs:
 - job: VS_Integration_CoreHost_Debug
