@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.Text
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public readonly struct TextChange : IEquatable<TextChange>
     {
+        [DataMember(Order = 1)]
+        private readonly string? _newText;
+
         /// <summary>
         /// The original span of the changed text. 
         /// </summary>
@@ -26,8 +29,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// The new text.
         /// </summary>
-        [DataMember(Order = 1)]
-        public string? NewText { get; }
+        public string NewText => _newText ?? "";
 
         /// <summary>
         /// Initializes a new instance of <see cref="TextChange"/>
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             this.Span = span;
-            this.NewText = newText;
+            this._newText = newText;
         }
 
         /// <summary>
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.Span.GetHashCode(), this.NewText?.GetHashCode() ?? 0);
+            return Hash.Combine(this.Span.GetHashCode(), this.NewText.GetHashCode());
         }
 
         public static bool operator ==(TextChange left, TextChange right)
@@ -87,7 +89,6 @@ namespace Microsoft.CodeAnalysis.Text
         /// <param name="change"></param>
         public static implicit operator TextChangeRange(TextChange change)
         {
-            Debug.Assert(change.NewText is object);
             return new TextChangeRange(change.Span, change.NewText.Length);
         }
 
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         internal string GetDebuggerDisplay()
         {
-            var newTextDisplay = NewText switch
+            var newTextDisplay = _newText switch
             {
                 null => "null",
                 { Length: < 10 } => $"\"{NewText}\"",

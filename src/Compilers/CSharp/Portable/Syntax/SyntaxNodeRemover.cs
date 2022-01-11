@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal static class SyntaxNodeRemover
     {
-        internal static TRoot? RemoveNodes<TRoot>(TRoot root,
+        internal static TRoot RemoveNodes<TRoot>(TRoot root,
                 IEnumerable<SyntaxNode> nodes,
                 SyntaxRemoveOptions options)
             where TRoot : SyntaxNode
@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             var residualTrivia = remover.ResidualTrivia;
 
             // the result of the SyntaxRemover will be null when the root node is removed.
-            if (result != null && residualTrivia.Count > 0)
+            if (residualTrivia.Count > 0)
             {
                 result = result.WithTrailingTrivia(result.GetTrailingTrivia().Concat(residualTrivia));
             }
 
-            return (TRoot?)result;
+            return (TRoot)result;
         }
 
         private class SyntaxRemover : CSharpSyntaxRewriter
