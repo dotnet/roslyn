@@ -1352,11 +1352,6 @@
         <target state="translated">zwracany typ lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureLengthPattern">
-        <source>length pattern</source>
-        <target state="translated">wzorzec długości</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureLineSpanDirective">
         <source>line span directive</source>
         <target state="translated">dyrektywa zakresu wierszy</target>

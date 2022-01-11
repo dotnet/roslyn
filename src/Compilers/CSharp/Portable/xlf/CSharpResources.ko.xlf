@@ -1352,11 +1352,6 @@
         <target state="translated">람다 반환 유형</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureLengthPattern">
-        <source>length pattern</source>
-        <target state="translated">길이 패턴</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureLineSpanDirective">
         <source>line span directive</source>
         <target state="translated">라인 범위 지시문</target>
