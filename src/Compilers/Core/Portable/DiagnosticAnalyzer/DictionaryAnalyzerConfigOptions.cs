@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal sealed class DictionaryAnalyzerConfigOptions : AnalyzerConfigOptions
     {
-        internal readonly static ImmutableDictionary<string, string> EmptyDictionary = ImmutableDictionary.Create<string, string>(KeyComparer);
+        internal static readonly ImmutableDictionary<string, string> EmptyDictionary = ImmutableDictionary.Create<string, string>(KeyComparer);
 
         public static DictionaryAnalyzerConfigOptions Empty { get; } = new DictionaryAnalyzerConfigOptions(EmptyDictionary);
 
