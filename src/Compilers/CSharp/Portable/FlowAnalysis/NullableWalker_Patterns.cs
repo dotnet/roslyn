@@ -513,7 +513,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
                                         var outputSlot = makeDagTempSlot(type, output);
                                         Debug.Assert(outputSlot > 0);
-                                        ignoreAnnotationAndReport(outputSlot, type, ref this.State, e);
                                         addToTempMap(output, outputSlot, type.Type);
                                         break;
                                     }
@@ -665,18 +664,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             tempMap.Free();
             nodeStateMap.Free();
             return labelStateMap;
-
-            void ignoreAnnotationAndReport(int outputSlot, TypeWithAnnotations outputType, ref LocalState state, BoundDagSliceEvaluation e)
-            {
-                if (PossiblyNullableType(outputType.Type))
-                {
-                    if (state[outputSlot] == NullableFlowState.MaybeNull)
-                    {
-                        ReportDiagnostic(ErrorCode.WRN_AnnotationOnSliceReturnType, e.Syntax, outputType);
-                        state[outputSlot] = NullableFlowState.NotNull;
-                    }
-                }
-            }
 
             void learnFromNonNullTest(int inputSlot, ref LocalState state)
             {
