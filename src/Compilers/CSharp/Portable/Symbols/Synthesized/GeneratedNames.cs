@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The arity is appended via `N suffix in MetadataName calculation since the delegate is generic.
         /// </summary>
         /// <remarks>
-        /// Logic here should match <see cref="TryParseSynthesizedDelegateName" /> below.
+        /// Logic here should match <see cref="TryParseSynthesizedDelegateName" />.
         /// </remarks>
         internal static string MakeSynthesizedDelegateName(RefKindVector byRefs, bool returnsVoid, int generation)
         {
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Parses the name of a synthesized delegate out into the things it represents.
         /// </summary>
         /// <remarks>
-        /// Logic here should match <see cref="MakeSynthesizedDelegateName" /> below.
+        /// Logic here should match <see cref="MakeSynthesizedDelegateName" />.
         /// </remarks>
         internal static bool TryParseSynthesizedDelegateName(string name, out RefKindVector byRefs, out bool returnsVoid, out int generation, out int parameterCount)
         {
