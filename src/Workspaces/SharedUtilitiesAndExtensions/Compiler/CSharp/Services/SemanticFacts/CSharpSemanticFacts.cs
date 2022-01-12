@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var localFunction in node.DescendantNodes().Where(CSharpSyntaxFacts.Instance.IsLocalFunctionStatement))
                 {
                     var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
-                    if (symbol is IMethodSymbol methodSymbol)
+                    if (localFunctionSymbol is IMethodSymbol methodSymbol)
                     {
                         builder.Add(methodSymbol);
                     }
