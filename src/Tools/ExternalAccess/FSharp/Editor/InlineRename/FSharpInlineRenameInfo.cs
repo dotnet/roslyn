@@ -10,33 +10,34 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 {
-    internal abstract class VSTypeScriptInlineRenameInfo : IInlineRenameInfo
+    internal abstract class FSharpInlineRenameInfo : IInlineRenameInfo
     {
         public abstract bool CanRename { get; }
         public abstract string DisplayName { get; }
         public abstract string FullDisplayName { get; }
-        public abstract VSTypeScriptGlyph Glyph { get; }
+        public abstract FSharpGlyph Glyph { get; }
         public abstract bool HasOverloads { get; }
         public abstract bool ForceRenameOverloads { get; }
         public abstract string LocalizedErrorMessage { get; }
         public abstract TextSpan TriggerSpan { get; }
-        public abstract ImmutableArray<VSTypeScriptDocumentSpan> DefinitionLocations { get; }
-        public abstract Task<VSTypeScriptInlineRenameLocationSet> FindRenameLocationsAsync(bool renameInStrings, bool renameInComments, CancellationToken cancellationToken);
-        public abstract TextSpan? GetConflictEditSpan(VSTypeScriptInlineRenameLocationWrapper location, string replacementText, CancellationToken cancellationToken);
+        public abstract ImmutableArray<FSharpInlineRenameLocation> DefinitionLocations { get; }
+        public abstract Task<FSharpInlineRenameLocationSet> FindRenameLocationsAsync(bool renameInStrings, bool renameInComments, CancellationToken cancellationToken);
+        public abstract TextSpan? GetConflictEditSpan(FSharpInlineRenameLocation location, string replacementText, CancellationToken cancellationToken);
         public abstract string GetFinalSymbolName(string replacementText);
-        public abstract TextSpan GetReferenceEditSpan(VSTypeScriptInlineRenameLocationWrapper location, CancellationToken cancellationToken);
+        public abstract TextSpan GetReferenceEditSpan(FSharpInlineRenameLocation location, CancellationToken cancellationToken);
 
         Glyph IInlineRenameInfo.Glyph
-            => VSTypeScriptGlyphHelpers.ConvertTo(Glyph);
+            => FSharpGlyphHelpers.ConvertTo(Glyph);
 
         ImmutableArray<DocumentSpan> IInlineRenameInfo.DefinitionLocations
-            => DefinitionLocations.SelectAsArray(l => new DocumentSpan(l.Document, l.SourceSpan));
+            => DefinitionLocations.SelectAsArray(l => new DocumentSpan(l.Document, l.TextSpan));
 
         async Task<IInlineRenameLocationSet> IInlineRenameInfo.FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
             => await FindRenameLocationsAsync(
@@ -45,12 +46,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
                 cancellationToken).ConfigureAwait(false);
 
         TextSpan? IInlineRenameInfo.GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)
-            => GetConflictEditSpan(new VSTypeScriptInlineRenameLocationWrapper(
-                new InlineRenameLocation(location.Document, location.TextSpan)), replacementText, cancellationToken);
+            => GetConflictEditSpan(new FSharpInlineRenameLocation(location.Document, location.TextSpan), replacementText, cancellationToken);
 
         TextSpan IInlineRenameInfo.GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken)
-            => GetReferenceEditSpan(new VSTypeScriptInlineRenameLocationWrapper(
-                new InlineRenameLocation(location.Document, location.TextSpan)), cancellationToken);
+            => GetReferenceEditSpan(new FSharpInlineRenameLocation(location.Document, location.TextSpan), cancellationToken);
 
         bool IInlineRenameInfo.TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
             => true;
