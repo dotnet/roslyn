@@ -38,6 +38,31 @@ Microsoft.CodeAnalysis.GeneratorSyntaxContext.SemanticModel.get -> Microsoft.Cod
 Microsoft.CodeAnalysis.IIncrementalGenerator
 Microsoft.CodeAnalysis.IIncrementalGenerator.Initialize(Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext context) -> void
 Microsoft.CodeAnalysis.IMethodSymbol.IsPartialDefinition.get -> bool
+Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperation.OperationList
+Microsoft.CodeAnalysis.IOperation.OperationList
+Microsoft.CodeAnalysis.IOperation.OperationList.Any() -> bool
+Microsoft.CodeAnalysis.IOperation.OperationList.OperationList() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Count.get -> int
+Microsoft.CodeAnalysis.IOperation.OperationList.First() -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.OperationList.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator
+Microsoft.CodeAnalysis.IOperation.OperationList.Last() -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.OperationList.Reverse() -> Microsoft.CodeAnalysis.IOperation.OperationList.Reversed
+Microsoft.CodeAnalysis.IOperation.OperationList.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.Enumerator() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.IOperation.OperationList.Enumerator.Reset() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.Enumerator() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator.Reset() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Reversed() -> void
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Count.get -> int
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator
+Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.AdditionalTextsProvider.get -> Microsoft.CodeAnalysis.IncrementalValuesProvider<Microsoft.CodeAnalysis.AdditionalText!>
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.AnalyzerConfigOptionsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!>
