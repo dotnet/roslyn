@@ -434,9 +434,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (_factory.Compilation.LanguageVersion >= MessageID.IDS_FeatureCacheStaticMethodGroupConversion.RequiredVersion()
                             && !_inExpressionLambda // The tree structure / meaning for expression trees should remain untouched.
                             && _factory.TopLevelMethod.MethodKind != MethodKind.StaticConstructor // Avoid caching twice if people do it manually.
-                            && DelegateCreationRewriter.CanRewrite(boundDelegateCreation))
+                            && DelegateCacheRewriter.CanRewrite(boundDelegateCreation))
                         {
-                            var rewriter = _lazyDelegateCacheRewriter ??= new DelegateCreationRewriter(_factory, _topLevelMethodOrdinal);
+                            var rewriter = _lazyDelegateCacheRewriter ??= new DelegateCacheRewriter(_factory, _topLevelMethodOrdinal);
                             return rewriter.Rewrite(boundDelegateCreation);
                         }
                         else

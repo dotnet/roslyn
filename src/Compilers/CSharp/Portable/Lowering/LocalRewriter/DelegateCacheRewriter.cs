@@ -16,14 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// <summary>
 /// This type helps rewrite the delegate creations that target static method groups to use a cached instance of delegate.
 /// </summary>
-internal sealed partial class DelegateCreationRewriter
+internal sealed class DelegateCacheRewriter
 {
     private readonly SyntheticBoundNodeFactory _factory;
     private readonly int _topLevelMethodOrdinal;
 
     private Dictionary<MethodSymbol, DelegateCacheContainer>? _genericCacheContainers;
 
-    internal DelegateCreationRewriter(SyntheticBoundNodeFactory factory, int topLevelMethodOrdinal)
+    internal DelegateCacheRewriter(SyntheticBoundNodeFactory factory, int topLevelMethodOrdinal)
     {
         Debug.Assert(factory.TopLevelMethod is { });
 
@@ -151,6 +151,12 @@ internal sealed partial class DelegateCreationRewriter
             return false;
         }
 
+        // @AlekseyTs: It is Ok to create delegates for other method kinds as well.
+        // @jcouv: We'd likely want to pay attention to this code if this happens.
+        // What we really cared above was,
+        // - "Are there any type parameters from the target method that we cannot discover simply from it's signature?"
+        // As of C# 10, we only observe local functions could potentially answer yes, so we used that.
+        // If this is hit, feel free to change but please also add tests.
         Debug.Assert(targetMethod.MethodKind == MethodKind.Ordinary);
 
         var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
