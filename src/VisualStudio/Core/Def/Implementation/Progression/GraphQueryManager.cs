@@ -167,17 +167,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     transaction1.Complete();
                 }
 
-                var graphBuilderTasks = graphQueries.Select(q => Task.Run(() => q.GetGraphAsync(solution, context, cancellationToken), cancellationToken)).ToSet();
-
-                while (graphBuilderTasks.Count > 0)
+                foreach (var query in graphQueries)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var completedTask = await Task.WhenAny(graphBuilderTasks).ConfigureAwait(false);
-                    graphBuilderTasks.Remove(completedTask);
-
-                    var graphBuilder = await completedTask.ConfigureAwait(false);
-
+                    var graphBuilder = await query.GetGraphAsync(solution, context, cancellationToken).ConfigureAwait(false);
+                    
                     using var transaction2 = new GraphTransactionScope();
 
                     graphBuilder.ApplyToGraph(context.Graph, cancellationToken);
