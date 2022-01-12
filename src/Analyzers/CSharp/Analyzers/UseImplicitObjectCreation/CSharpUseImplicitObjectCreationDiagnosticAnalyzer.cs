@@ -66,8 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
 
             var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
-            ITypeSymbol? typeSymbol = null;
-            TypeSyntax? typeNode = null;
+            TypeSyntax? typeNode;
 
             if (objectCreation.Parent.IsKind(SyntaxKind.EqualsValueClause) &&
                 objectCreation.Parent.Parent.IsKind(SyntaxKind.VariableDeclarator) &&
@@ -103,22 +102,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                 typeNode = arrayCreation.Type.ElementType;
             }
             else if (objectCreation.Parent.IsKind(SyntaxKind.CollectionInitializerExpression) &&
-                objectCreation.Parent.Parent is ObjectCreationExpressionSyntax collectionObjectCreation)
+                objectCreation.Parent.Parent is ObjectCreationExpressionSyntax collectionObjectCreation &&
+                collectionObjectCreation.Type is QualifiedNameSyntax qualifiedNameSyntax &&
+                qualifiedNameSyntax.Right is GenericNameSyntax genericNameSyntax &&
+                genericNameSyntax.TypeArgumentList.Arguments.Count == 1)
             {
-                var collectionTypeSymbol = semanticModel.GetTypeInfo(collectionObjectCreation, cancellationToken).Type;
-                var targetTypeSymbol = semanticModel.GetTypeInfo(objectCreation, cancellationToken).ConvertedType;
+                var collectionElementType = genericNameSyntax.TypeArgumentList.Arguments[0];
+                var collectionElementTypeSymbol = semanticModel.GetTypeInfo(collectionElementType, cancellationToken).Type;
+                var objectCreatedTypeSymbol = semanticModel.GetTypeInfo(objectCreation, cancellationToken).Type;
 
-                if (collectionTypeSymbol != null && targetTypeSymbol != null)
-                {
-                    var targetIndex = 0;
-                    var argumentTypeSymbols = new List<ITypeSymbol>(capacity: 1) { targetTypeSymbol };
-
-                    typeSymbol = CSharpUseImplicitTypeHelper.GetTypeSymbolThatSatisfiesCollectionInitializer(
-                        context,
-                        collectionTypeSymbol,
-                        argumentTypeSymbols,
-                        targetIndex);
-                }
+                typeNode = collectionElementTypeSymbol == objectCreatedTypeSymbol
+                    ? collectionElementType
+                    : null;
             }
             else
             {
@@ -126,17 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                 return;
             }
 
-            if (typeNode != null)
-            {
-                typeSymbol = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
-            }
-
-            if (typeSymbol == null)
+            if (typeNode == null)
                 return;
 
             // Only offer if the type being constructed is the exact same as the type being assigned into.  We don't
             // want to change semantics by trying to instantiate something else.
-            var leftType = typeSymbol;
+            var leftType = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
             var rightType = semanticModel.GetTypeInfo(objectCreation, cancellationToken).Type;
 
             if (leftType is null || rightType is null)
