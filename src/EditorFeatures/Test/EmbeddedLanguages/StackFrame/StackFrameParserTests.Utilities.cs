@@ -86,7 +86,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
         private static void VerifyCharacterSpans(string originalText, StackFrameTree tree)
         {
-            // Use the ToFullString to verify
             AssertEx.EqualOrDiff(originalText, tree.Root.ToFullString());
 
             // Manually enumerate to verify that it works as expected and the spans align.

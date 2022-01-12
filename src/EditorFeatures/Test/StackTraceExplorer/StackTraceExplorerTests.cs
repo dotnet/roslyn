@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
     {
         private static async Task TestSymbolFoundAsync(string inputLine, string code)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code); 
+            using var workspace = TestWorkspace.CreateCSharp(code);
             var result = await StackTraceAnalyzer.AnalyzeAsync(inputLine, CancellationToken.None);
             Assert.Single(result.ParsedFrames);
 

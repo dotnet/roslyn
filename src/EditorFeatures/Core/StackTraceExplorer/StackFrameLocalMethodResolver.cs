@@ -34,13 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
             }
 
             var containingMethodName = localMethodNameNode.EncapsulatingMethod.Identifier.ToString();
-            var syntaxFacts = project.GetRequiredLanguageService<ISyntaxFactsService>();
-
-            var candidateFunctions = type.GetLocalFunctionSymbols(
-                member => member.Name == containingMethodName,
-                syntaxFacts,
-                compilation,
-                cancellationToken).ToImmutableArray();
+            var semanticFacts = project.GetRequiredLanguageService<ISemanticFactsService>();
+            var candidateFunctions = type.GetMembers()
+                .Where(member => member.Name == containingMethodName)
+                .SelectMany(member => semanticFacts.GetLocalFunctionSymbols(compilation, member, cancellationToken))
+                .ToImmutableArray();
 
             return TryGetBestMatch(candidateFunctions, methodTypeArguments, methodArguments);
         }

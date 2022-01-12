@@ -742,58 +742,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return symbol;
         }
-
-        public static ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(
-            this ITypeSymbol? typeSymbol,
-            ISyntaxFactsService syntaxFacts,
-            Compilation compilation,
-            CancellationToken cancellationToken)
-            => GetLocalFunctionSymbols(
-                typeSymbol,
-                lookInMemberForLocalFunctions: _ => true,
-                syntaxFacts,
-                compilation,
-                cancellationToken);
-
-        public static ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(
-            this ITypeSymbol? typeSymbol,
-            Func<ISymbol, bool> lookInMemberForLocalFunctions,
-            ISyntaxFactsService syntaxFacts,
-            Compilation compilation,
-            CancellationToken cancellationToken)
-        {
-            if (typeSymbol is null || compilation.Language != LanguageNames.CSharp)
-            {
-                return ImmutableArray<IMethodSymbol>.Empty;
-            }
-
-            var members = typeSymbol.GetMembers();
-            using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
-
-            foreach (var member in members)
-            {
-                if (!lookInMemberForLocalFunctions(member))
-                {
-                    continue;
-                }
-
-                foreach (var syntaxReference in member.DeclaringSyntaxReferences)
-                {
-                    var semanticModel = compilation.GetSemanticModel(syntaxReference.SyntaxTree);
-                    var node = syntaxReference.GetSyntax(cancellationToken);
-
-                    foreach (var localFunction in node.DescendantNodes().Where(syntaxFacts.IsLocalFunctionStatement))
-                    {
-                        var symbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
-                        if (symbol is IMethodSymbol methodSymbol)
-                        {
-                            builder.Add(methodSymbol);
-                        }
-                    }
-                }
-            }
-
-            return builder.ToImmutable();
-        }
     }
 }
