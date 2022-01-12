@@ -106,13 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                 qualifiedNameSyntax.Right is GenericNameSyntax genericNameSyntax &&
                 genericNameSyntax.TypeArgumentList.Arguments.Count == 1)
             {
-                var collectionElementType = genericNameSyntax.TypeArgumentList.Arguments[0];
-                var collectionElementTypeSymbol = semanticModel.GetTypeInfo(collectionElementType, cancellationToken).Type;
-                var objectCreatedTypeSymbol = semanticModel.GetTypeInfo(objectCreation, cancellationToken).Type;
-
-                typeNode = collectionElementTypeSymbol == objectCreatedTypeSymbol
-                    ? collectionElementType
-                    : null;
+                typeNode = genericNameSyntax.TypeArgumentList.Arguments[0];
             }
             else
             {
