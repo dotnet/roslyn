@@ -300,8 +300,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             if (analyzerInfoCache != null && analyzerInfoCache.TryGetDescriptorForDiagnosticId(errorId, out var descriptor))
             {
-                title = descriptor.Title.ToString(CultureInfo.CurrentCulture);
-                description = descriptor.Description.ToString(CultureInfo.CurrentCulture);
+                title = descriptor.Title.ToString(CultureInfo.CurrentUICulture);
+                description = descriptor.Description.ToString(CultureInfo.CurrentUICulture);
                 category = descriptor.Category;
                 defaultSeverity = descriptor.DefaultSeverity;
                 isEnabledByDefault = descriptor.IsEnabledByDefault;
