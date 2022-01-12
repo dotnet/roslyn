@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 int.MaxValue when !Children.IsEmpty => (true, 0, Children.Length - 1),
                 0 when previousIndex > 0 => (true, 0, previousIndex - 1),
-                0 or -1 => (false, -1, 0),
+                int.MaxValue or 0 or -1 => (false, -1, 0),
                 _ => throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex))
             };
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 int.MaxValue when !Children.IsEmpty => (true, 0, Children.Length - 1),
                 0 when previousIndex > 0 => (true, 0, previousIndex - 1),
-                0 or -1 => (false, -1, 0),
+                int.MaxValue or 0 or -1 => (false, -1, 0),
                 _ => throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex))
             };
 
