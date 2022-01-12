@@ -8,14 +8,14 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class SyntaxInputNode2<T> : IIncrementalGeneratorNode<T>, ISyntaxInputNode
+    internal class SyntaxInputNode<T> : IIncrementalGeneratorNode<T>, ISyntaxInputNode
     {
-        private readonly ISyntaxInputNodeInner<T> _inputNode;
+        private readonly ISyntaxSelectionStrategy<T> _inputNode;
         private readonly Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> _registerOutput;
         private readonly IEqualityComparer<T> _comparer;
         private readonly string? _name;
 
-        internal SyntaxInputNode2(ISyntaxInputNodeInner<T> inputNode, Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> registerOutput, IEqualityComparer<T>? comparer = null, string? name = null)
+        internal SyntaxInputNode(ISyntaxSelectionStrategy<T> inputNode, Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> registerOutput, IEqualityComparer<T>? comparer = null, string? name = null)
         {
             _inputNode = inputNode;
             _registerOutput = registerOutput;
@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis
             return (NodeStateTable<T>)graphState.SyntaxStore.GetSyntaxInputTable(this, graphState.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees));
         }
 
-        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode2<T>(_inputNode, _registerOutput, comparer, _name);
+        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_inputNode, _registerOutput, comparer, _name);
 
-        public IIncrementalGeneratorNode<T> WithTrackingName(string name) => new SyntaxInputNode2<T>(_inputNode, _registerOutput, _comparer, name);
+        public IIncrementalGeneratorNode<T> WithTrackingName(string name) => new SyntaxInputNode<T>(_inputNode, _registerOutput, _comparer, name);
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutput(this, output);
 

@@ -11,13 +11,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class SyntaxInputNode<T> : ISyntaxInputNodeInner<T>
+    internal sealed class PredicateSyntaxStrategy<T> : ISyntaxSelectionStrategy<T>
     {
         private readonly Func<GeneratorSyntaxContext, CancellationToken, T> _transformFunc;
         private readonly Func<SyntaxNode, CancellationToken, bool> _filterFunc;
         private readonly object _filterKey = new object();
 
-        internal SyntaxInputNode(Func<SyntaxNode, CancellationToken, bool> filterFunc, Func<GeneratorSyntaxContext, CancellationToken, T> transformFunc)
+        internal PredicateSyntaxStrategy(Func<SyntaxNode, CancellationToken, bool> filterFunc, Func<GeneratorSyntaxContext, CancellationToken, T> transformFunc)
         {
             _transformFunc = transformFunc;
             _filterFunc = filterFunc;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
 
         private sealed class Builder : ISyntaxInputBuilder
         {
-            private readonly SyntaxInputNode<T> _owner;
+            private readonly PredicateSyntaxStrategy<T> _owner;
             private readonly string? _name;
             private readonly IEqualityComparer<T> _comparer;
             private readonly object _key;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
 
             private readonly NodeStateTable<T>.Builder _transformTable;
 
-            public Builder(SyntaxInputNode<T> owner, object key, StateTableStore table, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer)
+            public Builder(PredicateSyntaxStrategy<T> owner, object key, StateTableStore table, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer)
             {
                 _owner = owner;
                 _name = name;

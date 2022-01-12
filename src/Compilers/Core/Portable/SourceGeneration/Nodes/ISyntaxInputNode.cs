@@ -11,18 +11,18 @@ namespace Microsoft.CodeAnalysis
 {
     internal interface ISyntaxInputNode
     {
-        ISyntaxInputBuilder GetBuilder(StateTableStore table, bool trackIncrementalSteps);
+        ISyntaxInputBuilder GetBuilder(StateTableStore tableStore, bool trackIncrementalSteps);
     }
 
-    internal interface ISyntaxInputNodeInner<T>
+    internal interface ISyntaxSelectionStrategy<T>
     {
-        ISyntaxInputBuilder GetBuilder(StateTableStore table, object key, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer);
+        ISyntaxInputBuilder GetBuilder(StateTableStore tableStore, object key, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer);
     }
 
     internal interface ISyntaxInputBuilder
     {
         void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken);
 
-        void SaveStateAndFree(StateTableStore.Builder tables);
+        void SaveStateAndFree(StateTableStore.Builder tableStoreBuilder);
     }
 }

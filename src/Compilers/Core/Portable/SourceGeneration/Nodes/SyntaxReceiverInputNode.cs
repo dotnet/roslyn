@@ -10,12 +10,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class SyntaxReceiverInputNode<T> : ISyntaxInputNodeInner<T>
+    internal sealed class SyntaxReceiverStrategy<T> : ISyntaxSelectionStrategy<T>
     {
         private readonly SyntaxContextReceiverCreator _receiverCreator;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
 
-        public SyntaxReceiverInputNode(SyntaxContextReceiverCreator receiverCreator, Action<IIncrementalGeneratorOutputNode> registerOutput)
+        public SyntaxReceiverStrategy(SyntaxContextReceiverCreator receiverCreator, Action<IIncrementalGeneratorOutputNode> registerOutput)
         {
             _receiverCreator = receiverCreator;
             _registerOutput = registerOutput;
@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis
 
         private sealed class Builder : ISyntaxInputBuilder
         {
-            private readonly SyntaxReceiverInputNode<T> _owner;
+            private readonly SyntaxReceiverStrategy<T> _owner;
             private readonly object _key;
             private readonly NodeStateTable<ISyntaxContextReceiver?>.Builder _nodeStateTable;
             private readonly ISyntaxContextReceiver? _receiver;
             private readonly GeneratorSyntaxWalker? _walker;
             private TimeSpan lastElapsedTime;
 
-            public Builder(SyntaxReceiverInputNode<T> owner,  object key, StateTableStore driverStateTable, bool trackIncrementalSteps)
+            public Builder(SyntaxReceiverStrategy<T> owner,  object key, StateTableStore driverStateTable, bool trackIncrementalSteps)
             {
                 _owner = owner;
                 _key = key;

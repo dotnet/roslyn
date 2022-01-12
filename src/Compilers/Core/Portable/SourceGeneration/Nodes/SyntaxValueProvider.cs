@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         public IncrementalValuesProvider<T> CreateSyntaxProvider<T>(Func<SyntaxNode, CancellationToken, bool> predicate, Func<GeneratorSyntaxContext, CancellationToken, T> transform)
         {
             // registration of the input is deferred until we know the node is used
-            return new IncrementalValuesProvider<T>(new SyntaxInputNode2<T>(new SyntaxInputNode<T>(predicate.WrapUserFunction(), transform.WrapUserFunction()), RegisterOutputAndDeferredInput));
+            return new IncrementalValuesProvider<T>(new SyntaxInputNode<T>(new PredicateSyntaxStrategy<T>(predicate.WrapUserFunction(), transform.WrapUserFunction()), RegisterOutputAndDeferredInput));
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal IncrementalValueProvider<ISyntaxContextReceiver?> CreateSyntaxReceiverProvider(SyntaxContextReceiverCreator creator)
         {
-            var node = new SyntaxInputNode2<ISyntaxContextReceiver?>(new SyntaxReceiverInputNode<ISyntaxContextReceiver?>(creator, _registerOutput), RegisterOutputAndDeferredInput);
+            var node = new SyntaxInputNode<ISyntaxContextReceiver?>(new SyntaxReceiverStrategy<ISyntaxContextReceiver?>(creator, _registerOutput), RegisterOutputAndDeferredInput);
             _inputNodes.Add(node);
             return new IncrementalValueProvider<ISyntaxContextReceiver?>(node);
         }
