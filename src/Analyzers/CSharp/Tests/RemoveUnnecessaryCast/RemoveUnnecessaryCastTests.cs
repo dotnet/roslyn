@@ -12443,5 +12443,26 @@ public readonly struct PointerDelegate<T, TResult>
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [WorkItem(58709, "https://github.com/dotnet/roslyn/issues/58709")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task NotOnNarrowingIntCastInTernary()
+        {
+            var source = @"
+class C
+{
+    protected sbyte ExtractInt8(object data)
+    {
+	    return (data is sbyte value) ? value : (sbyte)0;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
     }
 }
