@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis.Telemetry
         bool HasActiveSession { get; }
 
         /// <summary>
-        /// Serialized the current telemetry settings. Returns <see langword="null"/> if session hasn't started.
-        /// </summary>
-        string? SerializeCurrentSessionSettings();
-
-        /// <summary>
         /// Adds a <see cref="TraceSource"/> used to log unexpected exceptions.
         /// </summary>
         void RegisterUnexpectedExceptionLogger(TraceSource logger);

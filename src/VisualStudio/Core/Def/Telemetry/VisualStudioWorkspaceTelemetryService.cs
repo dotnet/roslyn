@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -51,12 +52,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                     return;
                 }
 
-                var settings = SerializeCurrentSessionSettings();
-                Contract.ThrowIfNull(settings);
+                Contract.ThrowIfNull(CurrentSession);
+
+                var settings = CurrentSession.SerializeSettings();
+                var sharedProperties = ImmutableDictionary.CreateBuilder<string, string>();
+                sharedProperties.Add("VS.Core.Version", (string)CurrentSession.GetSharedPropertyAsObject("VS.Core.ExeVersion"));
 
                 // initialize session in the remote service
                 _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
-                    (service, cancellationToken) => service.InitializeTelemetrySessionAsync(Process.GetCurrentProcess().Id, settings, cancellationToken),
+                    (service, cancellationToken) => service.InitializeTelemetrySessionAsync(Process.GetCurrentProcess().Id, settings, sharedProperties.ToImmutable(), cancellationToken),
                     CancellationToken.None).ConfigureAwait(false);
             });
         }

@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Initializes telemetry session.
         /// </summary>
-        ValueTask InitializeTelemetrySessionAsync(int hostProcessId, string serializedSession, CancellationToken cancellationToken);
+        ValueTask InitializeTelemetrySessionAsync(int hostProcessId, string serializedSession, ImmutableDictionary<string, string> sharedProperties, CancellationToken cancellationToken);
     }
 }
