@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
             private readonly GeneratorSyntaxWalker? _walker;
             private TimeSpan lastElapsedTime;
 
-            public Builder(SyntaxReceiverStrategy<T> owner,  object key, StateTableStore driverStateTable, bool trackIncrementalSteps)
+            public Builder(SyntaxReceiverStrategy<T> owner, object key, StateTableStore driverStateTable, bool trackIncrementalSteps)
             {
                 _owner = owner;
                 _key = key;

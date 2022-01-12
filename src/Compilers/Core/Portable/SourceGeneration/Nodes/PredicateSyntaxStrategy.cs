@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
                 if (state == EntryState.Removed)
                 {
                     // mark both syntax *and* transform nodes removed
-                     if (_filterTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo, out ImmutableArray<SyntaxNode> removedNodes))
+                    if (_filterTable.TryRemoveEntries(TimeSpan.Zero, noInputStepsStepInfo, out ImmutableArray<SyntaxNode> removedNodes))
                     {
                         for (int i = 0; i < removedNodes.Length; i++)
                         {
