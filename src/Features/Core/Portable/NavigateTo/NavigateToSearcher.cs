@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             if (searchGeneratedDocuments)
                 await SearchGeneratedDocumentsAsync(seenItems, cancellationToken).ConfigureAwait(false);
 
-            // Report a telemetry even to track if we found uncached items after failing to find cached items.
+            // Report a telemetry event to track if we found uncached items after failing to find cached items.
             // In practice if we see that we are always finding uncached items, then it's likely something
             // has broken in the caching system since we would expect to normally find values there.  Specifically
             // we expect: foundFullItems <<< not foundFullItems.
