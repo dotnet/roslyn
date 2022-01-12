@@ -503,7 +503,6 @@ Microsoft.CodeAnalysis.Compilation.GetMetadataReference(Microsoft.CodeAnalysis.I
 Microsoft.CodeAnalysis.Compilation.GetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree! syntaxTree, bool ignoreAccessibility = false) -> Microsoft.CodeAnalysis.SemanticModel!
 Microsoft.CodeAnalysis.Compilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType specialType) -> Microsoft.CodeAnalysis.INamedTypeSymbol!
 Microsoft.CodeAnalysis.Compilation.GetTypeByMetadataName(string! fullyQualifiedMetadataName) -> Microsoft.CodeAnalysis.INamedTypeSymbol?
-Microsoft.CodeAnalysis.Compilation.GetTypesByMetadataName(string! fullyQualifiedMetadataName) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
 Microsoft.CodeAnalysis.Compilation.GetUnreferencedAssemblyIdentities(Microsoft.CodeAnalysis.Diagnostic! diagnostic) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AssemblyIdentity!>
 Microsoft.CodeAnalysis.Compilation.GlobalNamespace.get -> Microsoft.CodeAnalysis.INamespaceSymbol!
 Microsoft.CodeAnalysis.Compilation.HasImplicitConversion(Microsoft.CodeAnalysis.ITypeSymbol? fromType, Microsoft.CodeAnalysis.ITypeSymbol? toType) -> bool
