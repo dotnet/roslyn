@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild PopulateSwitchStatement = /*IDE0010*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild UseInferredMemberName = /*IDE0037*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild UseIsNullCheck = /*IDE0041*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild UseParameterNullChecking = /*IDE0190*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild AddRequiredParentheses = /*IDE0048*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ExpressionValueIsUnused = /*IDE0058*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild MakeStructFieldsWritable = /*IDE0064*/ EnforceOnBuild.WhenExplicitlyEnabled;
