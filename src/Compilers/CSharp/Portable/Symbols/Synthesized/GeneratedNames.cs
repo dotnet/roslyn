@@ -359,6 +359,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Produces name of the synthesized delegate symbol that encodes the parameter byref-ness and return type of the delegate.
         /// The arity is appended via `N suffix in MetadataName calculation since the delegate is generic.
         /// </summary>
+        /// <remarks>
+        /// Logic here should match <see cref="TryParseSynthesizedDelegateName" /> below.
+        /// </remarks>
         internal static string MakeSynthesizedDelegateName(RefKindVector byRefs, bool returnsVoid, int generation)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
@@ -375,6 +378,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return pooledBuilder.ToStringAndFree();
         }
 
+        /// <summary>
+        /// Parses the name of a synthesized delegate out into the things it represents.
+        /// </summary>
+        /// <remarks>
+        /// Logic here should match <see cref="MakeSynthesizedDelegateName" /> below.
+        /// </remarks>
         internal static bool TryParseSynthesizedDelegateName(string name, out RefKindVector byRefs, out bool returnsVoid, out int generation, out int parameterCount)
         {
             byRefs = default;
@@ -397,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var nameEndIndex = name.LastIndexOf('}');
             if (nameEndIndex < 0)
             {
-                nameEndIndex = DelegateNamePrefixLength;
+                nameEndIndex = DelegateNamePrefixLength - 1;
             }
             else
             {
