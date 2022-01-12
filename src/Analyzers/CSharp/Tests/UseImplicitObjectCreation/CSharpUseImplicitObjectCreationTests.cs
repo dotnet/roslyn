@@ -728,5 +728,29 @@ class C
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestNotWithCollectionInitializerExpressionWithDifferentTypes()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    void bar()
+    {
+        var a = new System.Collections.Generic.List<C>
+        {
+            new Y(),
+        };
+    }
+}
+
+class Y : C
+{
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
