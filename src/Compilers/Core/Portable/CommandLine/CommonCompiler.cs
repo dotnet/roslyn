@@ -1738,9 +1738,19 @@ namespace Microsoft.CodeAnalysis
                 // Find the node in the final tree corresponding to the node in the original tree.
                 if (!TryFindSourceNodeInFinalSyntaxTree(sourceSyntaxNode, finalTree, out var finalNode))
                 {
-                    // The diagnostic was reported on a node that has been removed by another transformation.
-                    // It can be skipped.
-                    continue;
+                    // The diagnostic was reported on a node that has been removed by another transformation,
+                    // or we have a defect in the mapping logic.
+                    if (diagnostic.Severity == DiagnosticSeverity.Error)
+                    {
+                        // Errors need to be reported, even with a wrong location.
+                        finalNode = finalTree.GetRoot();
+                    }
+                    else
+                    {
+                        // The rest can be skipped.
+                        continue;
+                    }
+                    
                 }
 
                 targetDiagnostics.Add(diagnostic.WithLocation(finalNode.Location));
