@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     var access = (BoundPropertyAccess)node;
 
-                    if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol))
+                    if (Binder.IsPropertyAssignableFromConstructor(access, _symbol)) // PROTOTYPE(semi-auto-props): Revise this method call is the behavior we want and add unit tests..
                     {
                         var backingField = (access.PropertySymbol as SourcePropertySymbolBase)?.BackingField;
                         if (backingField != null)
@@ -1915,7 +1915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _symbol);
+            return !Binder.IsPropertyAssignableFromConstructor((BoundPropertyAccess)expr, _symbol); // PROTOTYPE(semi-auto-props): Revise this method call is the behavior we want and add unit tests..
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -2051,7 +2051,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var property = node.PropertySymbol;
 
-            if (Binder.AccessingAutoPropertyFromConstructor(node, _symbol))
+            if (Binder.IsPropertyAssignableFromConstructor(node, _symbol)) // PROTOTYPE(semi-auto-props): Revise this method call is the behavior we want and add unit tests..
             {
                 var backingField = (property as SourcePropertySymbolBase)?.BackingField;
                 if (backingField != null)
