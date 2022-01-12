@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -107,6 +108,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                     }
                 };
             }
+
+            var regexExpression = string.Join("|", InlineCompletionsHandler.BuiltInSnippets);
+            var regex = new System.Text.RegularExpressions.Regex(regexExpression);
+            serverCapabilities.InlineCompletionOptions = new VSInternalInlineCompletionOptions
+            {
+                Pattern = regex
+            };
 
             return serverCapabilities;
         }
