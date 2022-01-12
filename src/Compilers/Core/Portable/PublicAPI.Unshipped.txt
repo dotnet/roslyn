@@ -67,7 +67,7 @@ Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.AdditionalTexts
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.AnalyzerConfigOptionsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!>
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.CompilationProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.Compilation!>
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.IncrementalGeneratorInitializationContext() -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.MetadataReferencesProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.MetadataReference!>
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.MetadataReferencesProvider.get -> Microsoft.CodeAnalysis.IncrementalValuesProvider<Microsoft.CodeAnalysis.MetadataReference!>
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.ParseOptionsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.ParseOptions!>
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterImplementationSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValueProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, TSource>! action) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterImplementationSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, TSource>! action) -> void
