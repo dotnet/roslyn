@@ -392,8 +392,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             parameterCount = arity - (returnsVoid ? 0 : 1);
 
-            // If there are more than 16 type parameters then the synthesized delegate doesn't ref kinds encoded
-            // (and therefore no braces) so we use the end of the prefix instead.
+            // If there are no ref kinds encoded
+            // (and therefore no braces), use the end of the prefix instead.
             var nameEndIndex = name.LastIndexOf('}');
             if (nameEndIndex < 0)
             {
