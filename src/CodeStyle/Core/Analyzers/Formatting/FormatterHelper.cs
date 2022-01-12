@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 using static Microsoft.CodeAnalysis.Formatting.FormattingExtensions;
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var documentOptions = options ?? CompilerAnalyzerConfigOptions.Empty;
+            var documentOptions = options ?? DictionaryAnalyzerConfigOptions.Empty;
             return syntaxTree.WithRootAndOptions(Format(root, syntaxFormattingService, spans, documentOptions, rules, cancellationToken), syntaxTree.Options);
         }
 
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return null;
             }
 
-            options ??= CompilerAnalyzerConfigOptions.Empty;
+            options ??= DictionaryAnalyzerConfigOptions.Empty;
             rules ??= GetDefaultFormattingRules(syntaxFormattingService);
             spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
             return syntaxFormattingService.Format(node, spans, shouldUseFormattingSpanCollapse: false, options, rules, cancellationToken);
