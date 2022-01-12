@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
         <source>Automatically open Stack Trace Explorer on focus</source>
-        <target state="new">Automatically open Stack Trace Explorer on focus</target>
+        <target state="translated">Aprire automaticamente Stack Trace Explorer sullo stato attivo</target>
         <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
@@ -204,12 +204,12 @@
       </trans-unit>
       <trans-unit id="Clear">
         <source>Clear</source>
-        <target state="new">Clear</target>
+        <target state="translated">Cancella</target>
         <note>Clear content action</note>
       </trans-unit>
       <trans-unit id="Close_tab">
         <source>Close Tab</source>
-        <target state="new">Close Tab</target>
+        <target state="translated">Chiudi scheda</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Style">
@@ -314,7 +314,7 @@
       </trans-unit>
       <trans-unit id="Display_diagnostics_inline_experimental">
         <source>Display diagnostics inline (experimental)</source>
-        <target state="new">Display diagnostics inline (experimental)</target>
+        <target state="translated">Visualizza diagnostica inline (sperimentale)</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -497,14 +497,14 @@
         <target state="translated">Margine di ereditarietà</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Diagnostics_experimental">
-        <source>Inline Diagnostics (experimental)</source>
-        <target state="new">Inline Diagnostics (experimental)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inherited_interfaces">
         <source>Inherited interfaces</source>
         <target state="translated">Interfacce ereditate</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="translated">Diagnostica inline (sperimentale)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints">
@@ -534,7 +534,7 @@
       </trans-unit>
       <trans-unit id="Invalid_type_name">
         <source>Invalid type name</source>
-        <target state="new">Invalid type name</target>
+        <target state="translated">Nome di tipo non valido</target>
         <note />
       </trans-unit>
       <trans-unit id="Item_origin">
@@ -609,7 +609,7 @@
       </trans-unit>
       <trans-unit id="Move_static_members_to_another_type_colon">
         <source>Move Static Members to Another Type:</source>
-        <target state="new">Move Static Members to Another Type:</target>
+        <target state="translated">Sposta membri statici in un altro tipo:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -807,6 +807,11 @@
         <target state="translated">Passa a '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_to_external_sources">
+        <source>Navigate to External Sources</source>
+        <target state="translated">Passa a origini esterne</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
         <target state="translated">Mai</target>
@@ -954,12 +959,12 @@
       </trans-unit>
       <trans-unit id="Paste">
         <source>Paste</source>
-        <target state="new">Paste</target>
+        <target state="translated">Incolla</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a valid stack trace to view and navigate it's values</source>
-        <target state="new">Paste a valid stack trace to view and navigate it's values</target>
+        <target state="translated">Incolla un'analisi dello stack valida per visualizzare e spostarti tra i relativi valori</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
@@ -1024,7 +1029,7 @@
       </trans-unit>
       <trans-unit id="Prefer_tuple_swap">
         <source>Prefer tuple swap</source>
-        <target state="new">Prefer tuple swap</target>
+        <target state="translated">Preferisci lo scambio di tuple</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects">
@@ -1069,7 +1074,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
-        <target state="new">Remove unnecessary usings</target>
+        <target state="translated">Rimuovi istruzioni using non necessarie</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -1249,17 +1254,17 @@
       </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
-        <target state="new">Sort usings</target>
+        <target state="translated">Ordina using</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">
         <source>Stack Trace Explorer</source>
-        <target state="new">Stack Trace Explorer</target>
+        <target state="translated">Esplora analisi dello stack</target>
         <note>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</note>
       </trans-unit>
       <trans-unit id="Stack_trace_0">
         <source>Stack Trace {0}</source>
-        <target state="new">Stack Trace {0}</target>
+        <target state="translated">Analisi dello stack {0}</target>
         <note>Header for numbered stack trace view tabs</note>
       </trans-unit>
       <trans-unit id="Suggestion">
@@ -1269,7 +1274,7 @@
       </trans-unit>
       <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
         <source>Suppress hints when argument matches parameter name</source>
-        <target state="new">Suppress hints when argument matches parameter name</target>
+        <target state="translated">Elimina hint quando l'argomento corrisponde al nome del parametro</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
@@ -1614,7 +1619,7 @@
       </trans-unit>
       <trans-unit id="at_the_end_of_the_line_of_code">
         <source>at the end of the line of code</source>
-        <target state="new">at the end of the line of code</target>
+        <target state="translated">alla fine della riga di codice</target>
         <note />
       </trans-unit>
       <trans-unit id="generated_by_0_suffix">
@@ -2640,7 +2645,7 @@ Informazioni aggiuntive: {1}</target>
       </trans-unit>
       <trans-unit id="on_the_right_edge_of_the_editor_window">
         <source>on the right edge of the editor window</source>
-        <target state="new">on the right edge of the editor window</target>
+        <target state="translated">sul bordo destro della finestra dell'editor</target>
         <note />
       </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">
