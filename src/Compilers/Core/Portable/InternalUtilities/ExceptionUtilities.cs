@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Roslyn.Utilities
 {
@@ -27,5 +28,26 @@ namespace Roslyn.Utilities
         {
             get { return new InvalidOperationException("This program location is thought to be unreachable."); }
         }
+
+        /// <summary>
+        /// Determine if an exception was not an <see cref="OperationCanceledException"/>, and optionally check that the provided token was cancelled.
+        /// </summary>
+        /// <remarks>
+        /// Used in exception filters to determine if the exception should be handled or not.
+        /// </remarks>
+        /// <param name="exception">The exception to test.</param>
+        /// <param name="cancellationToken">Optional. Checked to see if the cancellation was caused by the provided token and considered not cancelled if not.</param>
+        /// <returns><see langword="true"/> if the exception should be handled by the caller, or <see langword="false"/> if the exception was caused by cancellation.</returns>
+        internal static bool IsNotCancelled(Exception exception, CancellationToken? cancellationToken = null)
+            => !IsCurrentOperationBeingCancelled(exception, cancellationToken ?? new CancellationToken(true));
+
+         /// <summary>
+        /// Determine if an exception was an <see cref="OperationCanceledException"/>, and that the token was cancelled.
+        /// </summary>
+        /// <param name="exception">The exception to test.</param>
+        /// <param name="cancellationToken">Checked to see if the provided token was cancelled.</param>
+        /// <returns><see langword="true"/> if the exception was an <see cref="OperationCanceledException" /> and the token was canceled.</returns>
+        internal static bool IsCurrentOperationBeingCancelled(Exception exception, CancellationToken cancellationToken)
+            => exception is OperationCanceledException && cancellationToken.IsCancellationRequested;
     }
 }

@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.ErrorReporting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     return userFunction(input, token);
                 }
-#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
-                catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e, token))
-#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
+                catch (Exception e) when (ExceptionUtilities.IsNotCancelled(e, token))
                 {
                     throw new UserFunctionException(e);
                 }
@@ -52,9 +50,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     userAction(input);
                 }
-#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
-                catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e))
-#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
+                catch (Exception e) when (ExceptionUtilities.IsNotCancelled(e))
                 {
                     throw new UserFunctionException(e);
                 }
@@ -69,9 +65,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     userAction(input1, input2);
                 }
-#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
-                catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e))
-#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
+                catch (Exception e) when (ExceptionUtilities.IsNotCancelled(e))
                 {
                     throw new UserFunctionException(e);
                 }
