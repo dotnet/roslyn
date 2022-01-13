@@ -2,66 +2,38 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
-using Contracts = Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
 {
     internal sealed class GlassTestsHotReloadService
     {
-        private sealed class DebuggerService : Contracts.IManagedHotReloadService
-        {
-            private readonly ImmutableArray<string> _capabilities;
+        private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
+           (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
-            public DebuggerService(ImmutableArray<string> capabilities)
-            {
-                _capabilities = capabilities;
-            }
-
-            public ValueTask<ImmutableArray<Contracts.ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-                => ValueTaskFactory.FromResult(ImmutableArray<Contracts.ManagedActiveStatementDebugInfo>.Empty);
-
-            public ValueTask<Contracts.ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
-                => ValueTaskFactory.FromResult(new Contracts.ManagedHotReloadAvailability(Contracts.ManagedHotReloadAvailabilityStatus.Available));
-
-            public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-                => ValueTaskFactory.FromResult(_capabilities);
-
-            public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
-                => ValueTaskFactory.CompletedTask;
-        }
-
-        private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
-            (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
-
-        private static readonly ImmutableArray<ManagedModuleUpdate> EmptyUpdate = ImmutableArray.Create<ManagedModuleUpdate>();
-        private static readonly ImmutableArray<Diagnostic> EmptyDiagnostic = ImmutableArray.Create<Diagnostic>();
+        private readonly IManagedHotReloadService _debuggerService;
 
         private readonly IEditAndContinueWorkspaceService _encService;
         private DebuggingSessionId _sessionId;
 
-        public GlassTestsHotReloadService(HostWorkspaceServices services)
-            => _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        public GlassTestsHotReloadService(HostWorkspaceServices services, IManagedHotReloadService debuggerService)
+        {
+            _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>();
+            _debuggerService = debuggerService;
+        }
 
-        /// <summary>
-        /// Starts the watcher.
-        /// </summary>
-        /// <param name="solution">Solution that represents sources that match the built binaries on disk.</param>
-        /// <param name="capabilities">Array of capabilities retrieved from the runtime to dictate supported rude edits.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        public async Task StartSessionAsync(Solution solution, ImmutableArray<string> capabilities, CancellationToken cancellationToken)
+        public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
         {
             var newSessionId = await _encService.StartDebuggingSessionAsync(
                 solution,
-                new DebuggerService(capabilities),
+                new ManagedHotReloadServiceImpl(_debuggerService),
                 captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: false,
@@ -71,70 +43,79 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             _sessionId = newSessionId;
         }
 
-        /// <summary>
-        /// Emits updates for all projects that differ between the given <paramref name="solution"/> snapshot and the one given to the previous successful call 
-        /// where <paramref name="commitUpdates"/> was `true` or the one passed to <see cref="StartSessionAsync(Solution, ImmutableArray{string}, CancellationToken)"/>
-        /// for the first invocation.
-        /// </summary>
-        /// <param name="solution">Solution snapshot.</param>
-        /// <param name="commitUpdates">commits changes if true, discards if false</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>
-        /// Updates (one for each changed project) and Rude Edit diagnostics. Does not include syntax or semantic diagnostics.
-        /// </returns>
-        public async Task<(ImmutableArray<ManagedModuleUpdate> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, bool commitUpdates, CancellationToken cancellationToken)
+        public void EnterBreakState()
         {
             var sessionId = _sessionId;
             Contract.ThrowIfFalse(sessionId != default, "Session has not started");
 
-            var results = await _encService
-                .EmitSolutionUpdateAsync(sessionId, solution, s_solutionActiveStatementSpanProvider, cancellationToken)
-                .ConfigureAwait(false);
-
-            if (results.ModuleUpdates.Status == Contracts.ManagedModuleUpdateStatus.Ready)
-            {
-                if (commitUpdates)
-                {
-                    _encService.CommitSolutionUpdate(sessionId, out _);
-                }
-                else
-                {
-                    _encService.DiscardSolutionUpdate(sessionId);
-                }
-            }
-
-            if (results.SyntaxError is not null)
-            {
-                // We do not need to acquire any updates or other
-                // diagnostics if there is a syntax error.
-                return (EmptyUpdate, EmptyDiagnostic.Add(results.SyntaxError));
-            }
-
-            var updates = results.ModuleUpdates.FromContract().Updates;
-
-            var diagnostics = await results.GetAllDiagnosticsAsync(solution, cancellationToken).ConfigureAwait(false);
-
-            return (updates, diagnostics);
+            _encService.BreakStateOrCapabilitiesChanged(sessionId, inBreakState: true, out _);
         }
 
-        public void EndSession()
+        public void ExitBreakState()
         {
-            Contract.ThrowIfFalse(_sessionId != default, "Session has not started");
-            _encService.EndDebuggingSession(_sessionId, out _);
+            var sessionId = _sessionId;
+            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
+
+            _encService.BreakStateOrCapabilitiesChanged(sessionId, inBreakState: false, out _);
         }
 
-        internal TestAccessor GetTestAccessor()
-            => new(this);
-
-        internal readonly struct TestAccessor
+        public void OnCapabilitiesChanged()
         {
-            private readonly GlassTestsHotReloadService _instance;
+            var sessionId = _sessionId;
+            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
 
-            internal TestAccessor(GlassTestsHotReloadService instance)
-                => _instance = instance;
+            _encService.BreakStateOrCapabilitiesChanged(sessionId, inBreakState: null, out _);
+        }
 
-            public DebuggingSessionId SessionId
-                => _instance._sessionId;
+        public void CommitSolutionUpdate()
+        {
+            var sessionId = _sessionId;
+            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
+
+            _encService.CommitSolutionUpdate(sessionId, out _);
+        }
+
+        public void DiscardSolutionUpdate()
+        {
+            var sessionId = _sessionId;
+            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
+
+            _encService.DiscardSolutionUpdate(sessionId);
+        }
+
+        public void EndDebuggingSession()
+        {
+            var sessionId = _sessionId;
+            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
+
+            _encService.EndDebuggingSession(sessionId, out _);
+            _sessionId = default;
+        }
+
+        public async ValueTask<bool> HasChangesAsync(Solution solution, string? sourceFilePath, CancellationToken cancellationToken)
+        {
+            var sessionId = _sessionId;
+            if (sessionId == default)
+            {
+                return false;
+            }
+
+            return await _encService.HasChangesAsync(sessionId, solution, s_noActiveStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async ValueTask<ManagedHotReloadUpdates> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            var sessionId = _sessionId;
+            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
+
+            var result = await _encService.EmitSolutionUpdateAsync(sessionId, solution, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+
+            var updates = result.ModuleUpdates.Updates.SelectAsArray(
+                update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta, update.UpdatedTypes));
+
+            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, result.GetDiagnosticData(solution), result.RudeEdits, result.GetSyntaxErrorData(solution), cancellationToken).ConfigureAwait(false);
+
+            return new ManagedHotReloadUpdates(updates, diagnostics.FromContract());
         }
     }
 }
