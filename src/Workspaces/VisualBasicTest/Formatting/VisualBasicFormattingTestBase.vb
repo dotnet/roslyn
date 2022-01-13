@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(code))
                 Dim syntaxTree = Await document.GetSyntaxTreeAsync()
-                Dim options = SyntaxFormattingOptions.Create(DictionaryAnalyzerConfigOptions.Empty)
+                Dim options = SyntaxFormattingOptions.Default
 
                 ' Test various entry points into the formatter
 
