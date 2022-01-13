@@ -353,7 +353,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar)
         {
-            if (!token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken))
+            if (!token.IsKind(
+                SyntaxKind.StringLiteralToken,
+                SyntaxKind.CharacterLiteralToken,
+                SyntaxKind.SingleLineRawStringLiteralToken,
+                SyntaxKind.MultiLineRawStringLiteralToken))
             {
                 throw new ArgumentException(CSharpCompilerExtensionsResources.Expected_string_or_char_literal, nameof(token));
             }
@@ -362,6 +366,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (token.IsVerbatimStringLiteral())
             {
                 startLength = 2;
+            }
+
+            if (token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken, SyntaxKind.MultiLineRawStringLiteralToken))
+            {
+                var tokenStart = token.ToString().TakeWhile(s => s == '"');
+                startLength = tokenStart.Count();
+
+                return position == token.Span.End &&
+                    (token.Span.Length == startLength || (token.Span.Length > startLength && !token.ToString().EndsWith(string.Concat(tokenStart))));
             }
 
             return position == token.Span.End &&
