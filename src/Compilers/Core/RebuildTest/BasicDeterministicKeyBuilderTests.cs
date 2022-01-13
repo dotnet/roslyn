@@ -172,6 +172,13 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""TRACE"": ""42""
 }", ("TRACE", 42), ("DEBUG", 13));
 
+            assert(@"
+{
+  ""DEBUG"": ""4.2"",
+  ""TRACE"": true
+}", ("TRACE", true), ("DEBUG", 4.2));
+
+
             void assert(string? expected, params (string Key, object? Value)[] values)
             {
                 var parseOptions = VisualBasicParseOptions.Default.WithPreprocessorSymbols(values.Select(x => new KeyValuePair<string, object>(x.Key, x.Value!)));

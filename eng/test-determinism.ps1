@@ -26,7 +26,7 @@ $script:skipList = @(
   # Added to work around https://github.com/dotnet/roslyn/issues/48417
   "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll",
 
-  # TOOD: file XLF additional files bug before merge
+  # Work around XLF issues https://github.com/dotnet/roslyn/issues/58840
   "Roslyn.VisualStudio.DiagnosticsWindow.dll.key"
 )
 
