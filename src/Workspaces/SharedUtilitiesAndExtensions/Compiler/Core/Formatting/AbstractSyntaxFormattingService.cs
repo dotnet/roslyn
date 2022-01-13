@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.Formatting
     internal abstract class AbstractSyntaxFormattingService : ISyntaxFormattingService
     {
         private static readonly Func<TextSpan, bool> s_notEmpty = s => !s.IsEmpty;
-        private static readonly Func<TextSpan, int> s_spanLength = s => s.Length;
 
         protected AbstractSyntaxFormattingService()
         {
