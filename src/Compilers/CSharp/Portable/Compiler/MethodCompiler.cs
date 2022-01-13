@@ -748,8 +748,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var factory = new SyntheticBoundNodeFactory(method, methodWithBody.Body.Syntax, compilationState, diagnosticsThisMethod);
-                        var nullCheckStatements = LocalRewriter.TryConstructNullCheckedStatementList(method.Parameters, factory);
-                        if (!nullCheckStatements.IsDefault)
+                        var nullCheckStatements = LocalRewriter.ConstructNullCheckedStatementList(method.Parameters, factory);
+                        if (!nullCheckStatements.IsEmpty)
                         {
                             loweredBody = factory.StatementList(nullCheckStatements.Concat(loweredBody));
                         }
@@ -1301,18 +1301,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
 
-                            var nullCheckStatements = LocalRewriter.TryConstructNullCheckedStatementList(methodSymbol.Parameters, factory);
-
-                            if (!nullCheckStatements.IsDefault)
+                            var nullCheckStatements = LocalRewriter.ConstructNullCheckedStatementList(methodSymbol.Parameters, factory);
+                            boundStatements = nullCheckStatements.Concat(boundStatements);
+                            hasErrors = nullCheckStatements.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
+                            SetGlobalErrorIfTrue(hasErrors);
+                            if (hasErrors)
                             {
-                                boundStatements = nullCheckStatements.Concat(boundStatements);
-                                hasErrors = nullCheckStatements.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
-                                SetGlobalErrorIfTrue(hasErrors);
-                                if (hasErrors)
-                                {
-                                    _diagnostics.AddRange(diagsForCurrentMethod);
-                                    return;
-                                }
+                                _diagnostics.AddRange(diagsForCurrentMethod);
+                                return;
                             }
                         }
                         if (_emitMethodBodies && (!(methodSymbol is SynthesizedStaticConstructor cctor) || cctor.ShouldEmit(processedInitializers.BoundInitializers)))

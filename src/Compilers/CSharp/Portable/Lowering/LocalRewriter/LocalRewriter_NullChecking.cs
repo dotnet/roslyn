@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        internal static ImmutableArray<BoundStatement> TryConstructNullCheckedStatementList(
+        internal static ImmutableArray<BoundStatement> ConstructNullCheckedStatementList(
             ImmutableArray<ParameterSymbol> parameters,
             SyntheticBoundNodeFactory factory)
         {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return statementList?.ToImmutableAndFree() ?? default;
+            return statementList?.ToImmutableAndFree() ?? ImmutableArray<BoundStatement>.Empty;
         }
 
         private static BoundStatement ConstructNullCheckHelperCall(ParameterSymbol parameter, ref MethodSymbol? throwIfNullMethod, SyntheticBoundNodeFactory factory)
