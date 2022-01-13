@@ -747,6 +747,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             stateMachine = stateMachine ?? asyncStateMachine;
                         }
 
+                        var factory = new SyntheticBoundNodeFactory(method, methodWithBody.Body.Syntax, compilationState, diagnosticsThisMethod);
+                        var nullCheckStatements = LocalRewriter.TryConstructNullCheckedStatementList(method.Parameters, factory);
+                        if (!nullCheckStatements.IsDefault)
+                        {
+                            loweredBody = factory.StatementList(nullCheckStatements.Concat(loweredBody));
+                        }
+                        SetGlobalErrorIfTrue(nullCheckStatements.HasErrors() || diagnosticsThisMethod.HasAnyErrors());
+
                         if (_emitMethodBodies && !diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                         {
                             emittedBody = GenerateMethodBody(
@@ -1293,21 +1301,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
 
-                            // Iterators handled in IteratorRewriter.cs
-                            if (!methodSymbol.IsIterator)
-                            {
-                                var boundStatementsWithNullCheck = LocalRewriter.TryConstructNullCheckedStatementList(methodSymbol.Parameters, boundStatements, factory);
+                            var nullCheckStatements = LocalRewriter.TryConstructNullCheckedStatementList(methodSymbol.Parameters, factory);
 
-                                if (!boundStatementsWithNullCheck.IsDefault)
+                            if (!nullCheckStatements.IsDefault)
+                            {
+                                boundStatements = nullCheckStatements.Concat(boundStatements);
+                                hasErrors = nullCheckStatements.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
+                                SetGlobalErrorIfTrue(hasErrors);
+                                if (hasErrors)
                                 {
-                                    boundStatements = boundStatementsWithNullCheck;
-                                    hasErrors = boundStatementsWithNullCheck.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
-                                    SetGlobalErrorIfTrue(hasErrors);
-                                    if (hasErrors)
-                                    {
-                                        _diagnostics.AddRange(diagsForCurrentMethod);
-                                        return;
-                                    }
+                                    _diagnostics.AddRange(diagsForCurrentMethod);
+                                    return;
                                 }
                             }
                         }

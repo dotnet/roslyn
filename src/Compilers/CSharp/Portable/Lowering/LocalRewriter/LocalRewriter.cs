@@ -260,12 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
                 }
 
-                var visited = (BoundLambda)base.VisitLambda(node)!;
-                if (RewriteNullChecking(visited.Body) is BoundBlock newBody)
-                {
-                    visited = visited.Update(visited.UnboundLambda, visited.Symbol, newBody, visited.Diagnostics, visited.Binder, visited.Type);
-                }
-                return visited;
+                return base.VisitLambda(node)!;
             }
             finally
             {
@@ -330,13 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, localFunctionOrdinal);
                 }
 
-                var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node)!;
-
-                if (!localFunction.IsIterator && RewriteNullChecking(visited.Body) is BoundBlock newBody)
-                {
-                    visited = visited.Update(localFunction, newBody, null);
-                }
-                return visited;
+                return (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node)!;
             }
             finally
             {
