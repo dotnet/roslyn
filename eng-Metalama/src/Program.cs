@@ -15,8 +15,8 @@ var product = new Product
     EngineeringDirectory = "eng-Metalama",
     VersionsFile = "eng\\Versions.props",
     GenerateArcadeProperties = true,
-    AdditionalDirectoriesToClean = ImmutableArray.Create( "artifacts" ),
-    Solutions = ImmutableArray.Create<Solution>( new RoslynSolution() ),
+    AdditionalDirectoriesToClean = new [] { "artifacts" },
+    Solutions = new [] { new RoslynSolution() },
     PublicArtifacts = Pattern.Create( "Metalama.Compiler.$(PackageVersion).nupkg", "Metalama.Compiler.Sdk.$(PackageVersion).nupkg" ),
     PrivateArtifacts = Pattern.Create(
          "Metalama.RoslynUtilities.$(PackageVersion).nupkg",
@@ -34,8 +34,8 @@ var product = new Product
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Features.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(PackageVersion).nupkg" ),
-    Dependencies = ImmutableArray.Create( Dependencies.PostSharpEngineering, Dependencies.PostSharpBackstageSettings, Dependencies.Roslyn ),
-    SupportedProperties = ImmutableDictionary.Create<string, string>().Add( "TestAll", "Supported by the 'test' command. Run all tests instead of just Metalama's unit tests." ),
+    Dependencies = new[] { Dependencies.PostSharpEngineering, Dependencies.PostSharpBackstageSettings, Dependencies.Roslyn },
+    SupportedProperties = new() { ["TestAll"] = "Supported by the 'test' command. Run all tests instead of just Metalama's unit tests." },
     KeepEditorConfig = true,
 };
 product.BuildCompleted += OnBuildCompleted;
