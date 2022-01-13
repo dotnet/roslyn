@@ -17,19 +17,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly SourceFileSpan Span;
 
         /// <summary>
-        /// Difference between new span and pre-remap span (new = old + delta).
+        /// New PDB span.
         /// </summary>
-        public readonly int LineDelta;
+        public readonly SourceFileSpan NewSpan;
 
         /// <summary>
         /// True if the region represents an exception region, false if it represents an active statement.
         /// </summary>
         public readonly bool IsExceptionRegion;
 
-        public NonRemappableRegion(SourceFileSpan span, int lineDelta, bool isExceptionRegion)
+        public NonRemappableRegion(SourceFileSpan span, SourceFileSpan newSpan, bool isExceptionRegion)
         {
             Span = span;
-            LineDelta = lineDelta;
+            NewSpan = newSpan;
             IsExceptionRegion = isExceptionRegion;
         }
 
@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public bool Equals(NonRemappableRegion other)
             => Span.Equals(other.Span) &&
-               LineDelta == other.LineDelta &&
+               NewSpan.Equals(other.NewSpan) &&
                IsExceptionRegion == other.IsExceptionRegion;
 
         public override int GetHashCode()
-            => Hash.Combine(Span.GetHashCode(), Hash.Combine(IsExceptionRegion, LineDelta));
+            => Hash.Combine(Span.GetHashCode(), Hash.Combine(IsExceptionRegion, NewSpan.GetHashCode()));
 
         public static bool operator ==(NonRemappableRegion left, NonRemappableRegion right)
             => left.Equals(right);
@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public static bool operator !=(NonRemappableRegion left, NonRemappableRegion right)
             => !(left == right);
 
-        public NonRemappableRegion WithLineDelta(int value)
-            => new(Span, value, IsExceptionRegion);
+        public NonRemappableRegion WithNewSpan(SourceFileSpan newSpan)
+            => new(Span, newSpan, IsExceptionRegion);
 
         internal string GetDebuggerDisplay()
-            => $"{(IsExceptionRegion ? "ER" : "AS")} {Span} δ={LineDelta}";
+            => $"{(IsExceptionRegion ? "ER" : "AS")} {Span} => {NewSpan.Span}";
     }
 }

@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     if (region.Span.Span.Contains(activeSpan) && activeStatementInfo.DocumentName == region.Span.Path)
                     {
-                        newSpan = activeSpan.AddLineDelta(region.LineDelta);
+                        newSpan = region.NewSpan.Span;
                         return true;
                     }
                 }
