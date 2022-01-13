@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var backingField = (access.PropertySymbol as SourcePropertySymbolBase)?.BackingField;
                         if (backingField != null)
                         {
-                            VisitFieldAccessInternal(access.ReceiverOpt, backingField);
+                            //VisitFieldAccessInternal(access.ReceiverOpt, backingField);
                             break;
                         }
                     }
