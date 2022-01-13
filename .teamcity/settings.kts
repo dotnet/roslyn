@@ -19,7 +19,7 @@ object DebugBuild : BuildType({
 
     name = "Build [Debug]"
 
-    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public;+:artifacts/packages/Debug/Shipping/**/*=>artifacts/packages/Debug/Shipping"
+    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Debug/Shipping/**/*=>artifacts/packages/Debug/Shipping"
 
     vcs {
         root(DslContext.settingsRoot)
@@ -57,13 +57,15 @@ object DebugBuild : BuildType({
                 }
 
 
-  })
+     }
+
+})
 
 object ReleaseBuild : BuildType({
 
     name = "Build [Release]"
 
-    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public;+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping"
+    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping"
 
     vcs {
         root(DslContext.settingsRoot)
@@ -92,13 +94,15 @@ object ReleaseBuild : BuildType({
                 }
 
 
-  })
+     }
+
+})
 
 object PublicBuild : BuildType({
 
     name = "Build [Public]"
 
-    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public;+:artifacts/packages/Public/Shipping/**/*=>artifacts/packages/Public/Shipping"
+    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Public/Shipping/**/*=>artifacts/packages/Public/Shipping"
 
     vcs {
         root(DslContext.settingsRoot)
@@ -127,7 +131,9 @@ object PublicBuild : BuildType({
                 }
 
 
-  })
+     }
+
+})
 
 // Publish the release build to public feeds
 object Deploy : BuildType({
