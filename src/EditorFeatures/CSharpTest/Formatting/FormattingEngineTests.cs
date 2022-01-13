@@ -430,102 +430,6 @@ class Program
             Assert.Equal(expected, node.ToFullString());
         }
 
-        [WorkItem(987373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/987373")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatSpansWithCollapsing()
-        {
-            var code = @"class C
-{
-    public void M()
-    {
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        while(true){}
-        [|if(true){}|]
-    }
-}";
-            var expected = @"class C
-{
-    public void M()
-    {
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        while (true) { }
-        if (true) { }
-    }
-}";
-            using var workspace = TestWorkspace.CreateCSharp(code);
-            var subjectDocument = workspace.Documents.Single();
-            var spans = subjectDocument.SelectedSpans;
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingBehaviorOptions.AllowDisjointSpanMerging, true)));
-
-            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-            var syntaxRoot = await document.GetSyntaxRootAsync();
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None);
-
-            var node = Formatter.Format(syntaxRoot, spans, workspace.Services, options, rules: null, CancellationToken.None);
-            Assert.Equal(expected, node.ToFullString());
-        }
-
         [WorkItem(1044118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044118")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void SemicolonInCommentOnLastLineDoesNotFormat()
@@ -2289,9 +2193,7 @@ namespace TestApp
 
             using var workspace = new AdhocWorkspace();
 
-            var options = new SyntaxFormattingOptions(
-                DictionaryAnalyzerConfigOptions.Empty,
-                ShouldUseFormattingSpanCollapse: false);
+            var options = SyntaxFormattingOptions.Default;
 
             var formattedRoot = Formatter.Format(root, workspace.Services, options, CancellationToken.None);
             var annotatedTrivia = formattedRoot.GetAnnotatedTrivia("marker");

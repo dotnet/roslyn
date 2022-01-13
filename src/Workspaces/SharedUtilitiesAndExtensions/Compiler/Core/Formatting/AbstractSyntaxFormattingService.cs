@@ -53,43 +53,16 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             rules ??= GetDefaultFormattingRules();
 
-            // check what kind of formatting strategy to use
-            var result = AllowDisjointSpanMerging(spansToFormat, options.ShouldUseFormattingSpanCollapse) ? 
-                FormatMergedSpan(node, options.Options, rules, spansToFormat, cancellationToken) :
-                FormatIndividually(node, options.Options, rules, spansToFormat, cancellationToken);
-
-            return result;
-        }
-
-        private IFormattingResult FormatMergedSpan(
-            SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> rules, IReadOnlyList<TextSpan> spansToFormat, CancellationToken cancellationToken)
-        {
-            var spanToFormat = TextSpan.FromBounds(spansToFormat[0].Start, spansToFormat[spansToFormat.Count - 1].End);
-            var pair = node.ConvertToTokenPair(spanToFormat);
-
-            if (node.IsInvalidTokenRange(pair.Item1, pair.Item2))
-            {
-                return CreateAggregatedFormattingResult(node, SpecializedCollections.EmptyList<AbstractFormattingResult>());
-            }
-
-            // more expensive case
-            var result = Format(node, options, rules, pair.Item1, pair.Item2, cancellationToken);
-            return CreateAggregatedFormattingResult(node, new List<AbstractFormattingResult>(1) { result }, SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), spanToFormat));
-        }
-
-        private IFormattingResult FormatIndividually(
-            SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> rules, IReadOnlyList<TextSpan> spansToFormat, CancellationToken cancellationToken)
-        {
             List<AbstractFormattingResult>? results = null;
-            foreach (var pair in node.ConvertToTokenPairs(spansToFormat))
+            foreach (var (startToken, endToken) in node.ConvertToTokenPairs(spansToFormat))
             {
-                if (node.IsInvalidTokenRange(pair.Item1, pair.Item2))
+                if (node.IsInvalidTokenRange(startToken, endToken))
                 {
                     continue;
                 }
 
                 results ??= new List<AbstractFormattingResult>();
-                results.Add(Format(node, options, rules, pair.Item1, pair.Item2, cancellationToken));
+                results.Add(Format(node, options.Options, rules, startToken, endToken, cancellationToken));
             }
 
             // quick simple case check
@@ -105,39 +78,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // more expensive case
             return CreateAggregatedFormattingResult(node, results);
-        }
-
-        private static bool AllowDisjointSpanMerging(IReadOnlyList<TextSpan> list, bool shouldUseFormattingSpanCollapse)
-        {
-            // If the user is specific about the formatting specific spans then honor users settings
-            if (!shouldUseFormattingSpanCollapse)
-            {
-                return false;
-            }
-
-            // most common case. it is either just formatting a whole file, a selection or some generate XXX refactoring.
-            if (list.Count <= 3)
-            {
-                // don't collapse formatting spans
-                return false;
-            }
-
-            // too many formatting spans, just collapse them and format at once
-            if (list.Count > 30)
-            {
-                // figuring out base indentation at random place in a file takes about 2ms.
-                // doing 30 times will make it cost about 60ms. that is about same cost, for the same file, engine will
-                // take to create full formatting context. basically after that, creating full context is cheaper than
-                // doing bottom up base indentation calculation for each span.
-                return true;
-            }
-
-            // check how much area we are formatting
-            var formattingSpan = TextSpan.FromBounds(list[0].Start, list[list.Count - 1].End);
-            var actualFormattingSize = list.Sum(s_spanLength);
-
-            // we are formatting more than half of the collapsed span.
-            return (formattingSpan.Length / Math.Max(actualFormattingSize, 1)) < 2;
         }
     }
 }

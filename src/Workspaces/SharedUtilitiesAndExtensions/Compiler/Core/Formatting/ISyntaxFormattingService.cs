@@ -27,19 +27,16 @@ namespace Microsoft.CodeAnalysis.Formatting
     }
 
     internal readonly record struct SyntaxFormattingOptions(
-        AnalyzerConfigOptions Options,
-        bool ShouldUseFormattingSpanCollapse)
+        AnalyzerConfigOptions Options)
     {
         public static readonly SyntaxFormattingOptions Default = Create(DictionaryAnalyzerConfigOptions.Empty);
 
         public static SyntaxFormattingOptions Create(AnalyzerConfigOptions options)
-            => new(options, ShouldUseFormattingSpanCollapse: false);
+            => new(options);
 
 #if !CODE_STYLE
-        public static SyntaxFormattingOptions Create(OptionSet options, HostWorkspaceServices services, string language, bool? shouldUseFormattingSpanCollapse = null)
-            => new(
-                options.AsAnalyzerConfigOptions(services.GetRequiredService<IOptionService>(), language),
-                shouldUseFormattingSpanCollapse ?? options.GetOption(FormattingBehaviorOptions.AllowDisjointSpanMerging));
+        public static SyntaxFormattingOptions Create(OptionSet options, HostWorkspaceServices services, string language)
+            => new(options.AsAnalyzerConfigOptions(services.GetRequiredService<IOptionService>(), language));
 
         public static async Task<SyntaxFormattingOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
