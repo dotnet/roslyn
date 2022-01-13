@@ -400,7 +400,7 @@ $$
 ", assertCaretPosition: true);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/56394")]
+        [WpfFact]
         public void SmartBreakLineWithTabTabCompletion2()
         {
             SetUpEditor(@"
