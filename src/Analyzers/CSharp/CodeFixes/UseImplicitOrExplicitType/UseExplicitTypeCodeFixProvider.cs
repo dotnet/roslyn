@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -19,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
@@ -63,11 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             Document document, SyntaxEditor editor,
             SyntaxNode node, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declarationContext = node.Parent;
 
-            TypeSyntax typeSyntax = null;
-            ParenthesizedVariableDesignationSyntax parensDesignation = null;
+            TypeSyntax? typeSyntax = null;
+            ParenthesizedVariableDesignationSyntax? parensDesignation = null;
             if (declarationContext is RefTypeSyntax refType)
             {
                 declarationContext = declarationContext.Parent;
@@ -84,14 +83,14 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             else if (declarationContext is DeclarationExpressionSyntax declarationExpression)
             {
                 typeSyntax = declarationExpression.Type;
-                if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation, out ParenthesizedVariableDesignationSyntax variableDesignation))
+                if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation, out ParenthesizedVariableDesignationSyntax? variableDesignation))
                 {
                     parensDesignation = variableDesignation;
                 }
             }
             else
             {
-                throw ExceptionUtilities.UnexpectedValue(declarationContext.Kind());
+                throw ExceptionUtilities.UnexpectedValue(declarationContext?.Kind());
             }
 
             if (parensDesignation is null)
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 // that would defeat the purpose of this refactoring entirely).
                 var newTypeSyntax =
                     semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType
-                                 .GenerateTypeSyntax(allowVar: false)
+                                 !.GenerateTypeSyntax(allowVar: false)
                                  .WithTriviaFrom(typeSyntax);
 
                 Debug.Assert(!newTypeSyntax.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
@@ -111,7 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
             else
             {
-                var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent, cancellationToken).ConvertedType;
+                RoslynDebug.AssertNotNull(typeSyntax);
+                var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent!, cancellationToken).ConvertedType;
+
+                RoslynDebug.AssertNotNull(tupleTypeSymbol);
 
                 var leadingTrivia = node.GetLeadingTrivia()
                     .Concat(parensDesignation.GetAllPrecedingTriviaToPreviousToken().Where(t => !t.IsWhitespace()).Select(t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));
