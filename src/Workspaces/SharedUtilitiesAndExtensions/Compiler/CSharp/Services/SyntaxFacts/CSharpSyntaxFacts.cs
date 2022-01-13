@@ -591,17 +591,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] SyntaxNode? node)
             => (node as IdentifierNameSyntax).IsAttributeNamedArgumentIdentifier();
 
-        public SyntaxNode? GetContainingTypeDeclaration(SyntaxNode? root, int position)
+        public SyntaxNode? GetContainingTypeDeclaration(SyntaxNode root, int position)
         {
-            if (root == null)
-            {
-                throw new ArgumentNullException(nameof(root));
-            }
-
-            if (position < 0 || position > root.Span.End)
-            {
-                throw new ArgumentOutOfRangeException(nameof(position));
-            }
+            Contract.ThrowIfNull(root, "root");
+            Contract.ThrowIfTrue(position < 0 || position > root.FullSpan.End, "position");
 
             return root
                 .FindToken(position)
@@ -665,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsIndexerMemberCRef(SyntaxNode? node)
             => node.IsKind(SyntaxKind.IndexerMemberCref);
 
-        public SyntaxNode? GetContainingMemberDeclaration(SyntaxNode? root, int position, bool useFullSpan = true)
+        public SyntaxNode? GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true)
         {
             Contract.ThrowIfNull(root, "root");
             Contract.ThrowIfTrue(position < 0 || position > root.FullSpan.End, "position");

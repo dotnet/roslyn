@@ -630,13 +630,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetContainingTypeDeclaration(root As SyntaxNode, position As Integer) As SyntaxNode Implements ISyntaxFacts.GetContainingTypeDeclaration
-            If root Is Nothing Then
-                Throw New ArgumentNullException(NameOf(root))
-            End If
-
-            If position < 0 OrElse position > root.Span.End Then
-                Throw New ArgumentOutOfRangeException(NameOf(position))
-            End If
+            Contract.ThrowIfNull(root, NameOf(root))
+            Contract.ThrowIfTrue(position < 0 OrElse position > root.FullSpan.End, NameOf(position))
 
             Return root.
                 FindToken(position).
