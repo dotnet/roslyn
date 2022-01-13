@@ -131,11 +131,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return string.Empty;
         }
 
-        private bool TryGetTextForSpecialCharacters(SyntaxToken token, out string text)
+        private static bool TryGetTextForSpecialCharacters(SyntaxToken token, out string text)
         {
             if (token.IsKind(SyntaxKind.InterpolatedStringStartToken) ||
                 token.IsKind(SyntaxKind.InterpolatedStringEndToken) ||
-                token.IsKind(SyntaxKind.InterpolatedStringTextToken))
+                token.IsKind(SyntaxKind.InterpolatedStringTextToken) ||
+                token.IsKind(SyntaxKind.InterpolatedSingleLineRawStringStartToken) ||
+                token.IsKind(SyntaxKind.InterpolatedSingleLineRawStringEndToken) ||
+                token.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken) ||
+                token.IsKind(SyntaxKind.InterpolatedMultiLineRawStringEndToken))
             {
                 text = "$_CSharpKeyword";
                 return true;

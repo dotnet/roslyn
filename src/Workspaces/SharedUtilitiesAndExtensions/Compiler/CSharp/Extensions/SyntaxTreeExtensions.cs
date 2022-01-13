@@ -388,7 +388,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
             }
 
-            if (token.IsKind(SyntaxKind.StringLiteralToken))
+            if (token.IsKind(
+                SyntaxKind.StringLiteralToken,
+                SyntaxKind.SingleLineRawStringLiteralToken,
+                SyntaxKind.MultiLineRawStringLiteralToken))
             {
                 var span = token.Span;
 
@@ -399,7 +402,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     || AtEndOfIncompleteStringOrCharLiteral(token, position, '"');
             }
 
-            if (token.IsKind(SyntaxKind.InterpolatedStringStartToken, SyntaxKind.InterpolatedStringTextToken, SyntaxKind.InterpolatedStringEndToken))
+            if (token.IsKind(
+                SyntaxKind.InterpolatedStringStartToken,
+                SyntaxKind.InterpolatedStringTextToken,
+                SyntaxKind.InterpolatedStringEndToken,
+                SyntaxKind.InterpolatedSingleLineRawStringStartToken,
+                SyntaxKind.InterpolatedSingleLineRawStringEndToken,
+                SyntaxKind.InterpolatedMultiLineRawStringStartToken,
+                SyntaxKind.InterpolatedMultiLineRawStringEndToken))
             {
                 return token.SpanStart < position && token.Span.End > position;
             }
