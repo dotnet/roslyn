@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 ParameterGenerator.GenerateParameterList(method.Parameters, options),
                 SyntaxFactory.SimpleAsClause(method.ReturnType.GenerateTypeSyntax()))
 
-            Dim hasNoBody = Not options.GenerateMethodBodies OrElse
+            Dim hasNoBody = Not options.Context.GenerateMethodBodies OrElse
                             method.IsExtern
 
             If hasNoBody Then

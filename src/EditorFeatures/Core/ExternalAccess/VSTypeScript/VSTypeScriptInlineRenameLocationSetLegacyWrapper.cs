@@ -4,21 +4,24 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    internal sealed class VSTypeScriptInlineRenameLocationSet : IInlineRenameLocationSet
+    [Obsolete]
+    internal sealed class VSTypeScriptInlineRenameLocationSetLegacyWrapper : IInlineRenameLocationSet
     {
         private readonly IVSTypeScriptInlineRenameLocationSet _set;
 
-        public VSTypeScriptInlineRenameLocationSet(IVSTypeScriptInlineRenameLocationSet set)
+        public VSTypeScriptInlineRenameLocationSetLegacyWrapper(IVSTypeScriptInlineRenameLocationSet set)
         {
             Contract.ThrowIfNull(set);
             _set = set;
@@ -32,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             var info = await _set.GetReplacementsAsync(replacementText, optionSet, cancellationToken).ConfigureAwait(false);
             if (info != null)
             {
-                return new VSTypeScriptInlineRenameReplacementInfo(info);
+                return new VSTypeScriptInlineRenameReplacementInfoLegacyWrapper(info);
             }
             else
             {

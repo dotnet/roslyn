@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
-
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class CompilationExtensions
@@ -35,33 +33,42 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <returns>The symbol to use for code analysis; otherwise, <see langword="null"/>.</returns>
         public static INamedTypeSymbol? GetBestTypeByMetadataName(this Compilation compilation, string fullyQualifiedMetadataName)
         {
-            INamedTypeSymbol? type = null;
+            // Try to get the unique type with this name, ignoring accessibility
+            var type = compilation.GetTypeByMetadataName(fullyQualifiedMetadataName);
 
-            foreach (var currentType in compilation.GetTypesByMetadataName(fullyQualifiedMetadataName))
+            // Otherwise, try to get the unique type with this name originally defined in 'compilation'
+            type ??= compilation.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName);
+
+            // Otherwise, try to get the unique accessible type with this name from a reference
+            if (type is null)
             {
-                if (ReferenceEquals(currentType.ContainingAssembly, compilation.Assembly))
+                foreach (var module in compilation.Assembly.Modules)
                 {
-                    Debug.Assert(type is null);
-                    return currentType;
+                    foreach (var referencedAssembly in module.ReferencedAssemblySymbols)
+                    {
+                        var currentType = referencedAssembly.GetTypeByMetadataName(fullyQualifiedMetadataName);
+                        if (currentType is null)
+                            continue;
+
+                        switch (currentType.GetResultantVisibility())
+                        {
+                            case Utilities.SymbolVisibility.Public:
+                            case Utilities.SymbolVisibility.Internal when referencedAssembly.GivesAccessTo(compilation.Assembly):
+                                break;
+
+                            default:
+                                continue;
+                        }
+
+                        if (type is object)
+                        {
+                            // Multiple visible types with the same metadata name are present
+                            return null;
+                        }
+
+                        type = currentType;
+                    }
                 }
-
-                switch (currentType.GetResultantVisibility())
-                {
-                    case Utilities.SymbolVisibility.Public:
-                    case Utilities.SymbolVisibility.Internal when currentType.ContainingAssembly.GivesAccessTo(compilation.Assembly):
-                        break;
-
-                    default:
-                        continue;
-                }
-
-                if (type is object)
-                {
-                    // Multiple visible types with the same metadata name are present
-                    return null;
-                }
-
-                type = currentType;
             }
 
             return type;
