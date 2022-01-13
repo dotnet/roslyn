@@ -322,11 +322,46 @@ public class Test
             VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
             VisualStudio.Editor.Verify.CurrentLineText("object.Equals(null$$)", assertCaretPosition: true);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
-            VisualStudio.Editor.Verify.CurrentLineText("object.Equals(null)$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys(';');
+            VisualStudio.Editor.Verify.CurrentLineText("object.Equals(null);$$", assertCaretPosition: true);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/56394")]
+        /// <summary>
+        /// Argument completion with exactly one argument.
+        /// </summary>
+        [WpfFact]
+        public void SemicolonWithTabTabCompletion3()
+        {
+            SetUpEditor(@"
+public class Test
+{
+    private object f;
+
+    public void Method(int value)
+    {$$
+    }
+
+    public void Method2(int value)
+    {
+    }
+}
+");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("this.M2");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("this.Method2$$", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+            VisualStudio.Editor.Verify.CurrentLineText("this.Method2(value$$)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(';');
+            VisualStudio.Editor.Verify.CurrentLineText("this.Method2(value);$$", assertCaretPosition: true);
+        }
+
+        [WpfFact]
         public void SmartBreakLineWithTabTabCompletion1()
         {
             SetUpEditor(@"
