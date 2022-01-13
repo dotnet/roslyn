@@ -2100,7 +2100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (uiContext == null || uiContext.IsZombie)
                 return;
 
-            // Note: it's safe to read CurrentSolution here outside of any sort of lock.  We do all work here on hte UI
+            // Note: it's safe to read CurrentSolution here outside of any sort of lock.  We do all work here on the UI
             // thread, so that acts as a natural ordering mechanism here.  If, say, a BG piece of work was mutating this
             // solution (either adding or removing a project) then that work will also have enqueued the next refresh
             // operation on the UI thread.  So we'll always eventually reach a fixed point where the task for that
