@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 foreach (var query in graphQueries)
                 {
                     var graphBuilder = await query.GetGraphAsync(solution, context, cancellationToken).ConfigureAwait(false);
-                    
+
                     using var transaction2 = new GraphTransactionScope();
 
                     graphBuilder.ApplyToGraph(context.Graph, cancellationToken);
