@@ -45,6 +45,7 @@ stages:
     push_to_ci: true
     NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
     SignTypeSelection: ${{ parameters.SignTypeSelection }}
+    Packaging.EnableSBOMSigning: true
 
   jobs:
   - template: build.yml
