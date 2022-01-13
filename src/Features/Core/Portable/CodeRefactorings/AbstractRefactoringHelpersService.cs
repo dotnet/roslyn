@@ -34,11 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // block's Node. That is because in addition to LocalFunctionStatement the selection would also contain trailing trivia 
             // (whitespace) of following statement.
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (root == null)
-            {
-                return ImmutableArray<TSyntaxNode>.Empty;
-            }
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var headerFacts = document.GetRequiredLanguageService<IHeaderFactsService>();
@@ -315,13 +311,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         break;
                     }
 
-                    relevantNodesBuilder.Add(nonHiddenExtractedNode);
+                    AddIfNotMissing(relevantNodesBuilder, nonHiddenExtractedNode);
                 }
 
                 prevNode = selectionNode;
                 selectionNode = selectionNode.Parent;
             }
             while (selectionNode != null && prevNode.FullWidth() == selectionNode.FullWidth());
+        }
+
+        private static void AddIfNotMissing<TSyntaxNode>(
+            ArrayBuilder<TSyntaxNode> relevantNodesBuilder, TSyntaxNode node) where TSyntaxNode : SyntaxNode
+        {
+            if (node.Span.Length > 0)
+                relevantNodesBuilder.Add(node);
         }
 
         /// <summary>
@@ -483,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                     if (argumentStartLine == caretLine && !correctTypeNode.OverlapsHiddenPosition(cancellationToken))
                     {
-                        relevantNodesBuilder.Add(correctTypeNode);
+                        AddIfNotMissing(relevantNodesBuilder, correctTypeNode);
                     }
                     else if (argumentStartLine < caretLine)
                     {
@@ -502,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var correctTypeNonHiddenNodes = nodes.OfType<TSyntaxNode>().Where(n => !n.OverlapsHiddenPosition(cancellationToken));
             foreach (var nodeToBeAdded in correctTypeNonHiddenNodes)
             {
-                resultBuilder.Add(nodeToBeAdded);
+                AddIfNotMissing(resultBuilder, nodeToBeAdded);
             }
         }
 

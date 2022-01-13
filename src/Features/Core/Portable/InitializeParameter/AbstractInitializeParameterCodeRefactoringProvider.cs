@@ -83,20 +83,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
-            // https://github.com/dotnet/roslyn/issues/58811
-            // We had a parameter that we couldn't round trip using its span.
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var foundNode = root.FindNode(selectedParameter.Span);
-            if (foundNode is not TParameterSyntax)
-            {
-                var message = $@"Could not roundtrip parameter '{selectedParameter}'@{selectedParameter.Span}
-Found: '{foundNode}'@{foundNode?.Span}
-In:
-{selectedParameter?.Parent?.Parent}";
-                FatalError.ReportWithDumpAndCatch(new InvalidOperationException(message), ErrorSeverity.Critical);
-                return;
-            }
-
             var generator = SyntaxGenerator.GetGenerator(document);
             var parameterNodes = generator.GetParameters(functionDeclaration);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
