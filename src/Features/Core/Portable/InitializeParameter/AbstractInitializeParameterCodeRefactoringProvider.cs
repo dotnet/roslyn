@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -79,6 +80,20 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var functionDeclaration = selectedParameter.FirstAncestorOrSelf(_isFunctionDeclarationFunc);
             if (functionDeclaration is null)
             {
+                return;
+            }
+
+            // https://github.com/dotnet/roslyn/issues/58811
+            // We had a parameter that we couldn't round trip using its span.
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var foundNode = root.FindNode(selectedParameter.Span);
+            if (foundNode is not TParameterSyntax)
+            {
+                var message = $@"Could not roundtrip parameter '{selectedParameter}'@{selectedParameter.Span}
+Found: '{foundNode}'@{foundNode?.Span}
+In:
+{selectedParameter?.Parent?.Parent}";
+                FatalError.ReportWithDumpAndCatch(new InvalidOperationException(message), ErrorSeverity.Critical);
                 return;
             }
 
