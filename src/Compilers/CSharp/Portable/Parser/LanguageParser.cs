@@ -4258,7 +4258,7 @@ parse_member_name:;
             SyntaxKind closeKind)
         {
             open = this.EatToken(openKind);
-
+            Debug.Assert(!open.IsMissing);
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfParameterList;
 
