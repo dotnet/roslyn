@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             HashSet<INavigateToSearchResult> seenItems,
             CancellationToken cancellationToken)
         {
-            // We searched cached information in parallel.  This is because there's no syncing step when searching cached
+            // We search cached information in parallel.  This is because there's no syncing step when searching cached
             // docs.  As such, we can just send a request for all projects in parallel to our OOP host and have it read
             // and search the local DB easily.  The DB can easily scale to feed all the threads trying to read from it
             // and we can get high throughput just processing everything in parallel.
