@@ -145,6 +145,9 @@ try {
         'Library'=$LibraryName
         'COMPANY-PLACEHOLDER'=$Author
     }
+    Replace-Placeholders -Path "src/AssemblyInfo.cs" -Replacements @{
+        'COMPANY-PLACEHOLDER'=$Author
+    }
     Replace-Placeholders -Path "LICENSE" -Replacements @{
         'COMPANY-PLACEHOLDER'=$Author
     }
