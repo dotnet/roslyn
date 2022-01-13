@@ -131,7 +131,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             });
 
-            _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguage(language);
+            // Ensure that other VS contexts get accurate information that the UIContext for this language is now active.
+            // This is not cancellable as we have already mutated the solution.
+            await _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguageAsync(language, CancellationToken.None).ConfigureAwait(false);
 
             return project;
 

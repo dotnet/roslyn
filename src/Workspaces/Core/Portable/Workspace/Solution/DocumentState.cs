@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis
             ValueSource<TreeAndVersion>? treeSource)
             : base(solutionServices, documentServiceProvider, attributes, sourceText, textSource)
         {
+            Contract.ThrowIfFalse(_options is null == _treeSource is null);
+
             _languageServices = languageServices;
             _options = options;
             _treeSource = treeSource;

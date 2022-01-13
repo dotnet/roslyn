@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             var originalRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var typeDeclaration = originalRoot.GetAnnotatedNodes(symbolMapping.TypeNodeAnnotation).Single();
-            var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Workspace);
+            var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Workspace.Services);
 
-            var options = new CodeGenerationOptions(
-                generateMethodBodies: true,
-                options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
+            var context = new CodeGenerationContext(generateMethodBodies: true);
+            var options = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
+
             var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var newTypeNode = codeGenService.CreateNamedTypeDeclaration(newType, options: options, cancellationToken: cancellationToken)
+            var newTypeNode = codeGenService.CreateNamedTypeDeclaration(newType, CodeGenerationDestination.Unspecified, options, cancellationToken)
                 .WithAdditionalAnnotations(SimplificationHelpers.SimplifyModuleNameAnnotation);
 
             var typeAnnotation = new SyntaxAnnotation();
@@ -63,10 +63,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var solutionWithInterfaceDocument = solution.AddDocument(newDocumentId, fileName, text: "", folders: folders, filePath: newDocumentPath);
             var newDocument = solutionWithInterfaceDocument.GetRequiredDocument(newDocumentId);
             var newSemanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var options = new CodeGenerationOptions(
+
+            var context = new CodeGenerationContext(
                 contextLocation: newSemanticModel.SyntaxTree.GetLocation(new TextSpan()),
-                generateMethodBodies: true,
-                options: await newDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
+                generateMethodBodies: true);
 
             // need to remove the root namespace from the containing namespace display because it is implied
             // For C# this does nothing as there is no root namespace (root namespace is empty string)
@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 newDocument.Project.Solution,
                 newSemanticModel.GetEnclosingNamespace(0, cancellationToken),
                 newSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
-                options: options,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                context,
+                cancellationToken).ConfigureAwait(false);
 
             var formattingSerivce = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
             if (formattingSerivce is not null)

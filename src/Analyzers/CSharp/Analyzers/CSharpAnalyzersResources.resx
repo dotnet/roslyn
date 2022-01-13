@@ -340,4 +340,7 @@
   <data name="Use_tuple_to_swap_values" xml:space="preserve">
     <value>Use tuple to swap values</value>
   </data>
+  <data name="Use_parameter_null_checking" xml:space="preserve">
+    <value>Use parameter null checking</value>
+  </data>
 </root>

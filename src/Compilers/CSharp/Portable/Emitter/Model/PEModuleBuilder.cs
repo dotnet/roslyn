@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return ImmutableArray<AnonymousTypeKey>.Empty;
         }
 
-        internal virtual ImmutableArray<SynthesizedDelegateKey> GetPreviousSynthesizedDelegates()
+        internal virtual ImmutableArray<SynthesizedDelegateKey> GetPreviousAnonymousDelegates()
         {
             return ImmutableArray<SynthesizedDelegateKey>.Empty;
         }
