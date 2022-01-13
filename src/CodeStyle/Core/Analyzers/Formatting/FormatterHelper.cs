@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             => GetFormattingResult(node, spans, syntaxFormattingService, options, rules, cancellationToken).GetTextChanges(cancellationToken);
 
         internal static IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan> spans, ISyntaxFormattingService syntaxFormattingService, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
-            => syntaxFormattingService.GetFormattingResult(node, spans, options with { ShouldUseFormattingSpanCollapse = false }, rules, cancellationToken);
+            => syntaxFormattingService.GetFormattingResult(node, spans, options, rules, cancellationToken);
 
         /// <summary>
         /// Determines the changes necessary to format the whitespace of a syntax tree.
