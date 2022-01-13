@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             Debug.Assert(count >= 0);
             Debug.Assert(_remainingProgressItems >= 0);
-            Interlocked.Increment(ref _remainingProgressItems);
+            Interlocked.Add(ref _remainingProgressItems, count);
             await _progress_doNotAccessDirectly.AddItemsAsync(count, cancellationToken).ConfigureAwait(false);
         }
 
