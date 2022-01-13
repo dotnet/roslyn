@@ -83,7 +83,7 @@ End Class
         {
             using var workspace = new AdhocWorkspace();
 
-            var options = SyntaxFormattingOptions.Create(DictionaryAnalyzerConfigOptions.Empty);
+            var options = SyntaxFormattingOptions.Default;
             var formattedRoot = Formatter.Format(tree.GetRoot(), workspace.Services, options, CancellationToken.None);
             var actualFormattedText = formattedRoot.ToFullString();
 

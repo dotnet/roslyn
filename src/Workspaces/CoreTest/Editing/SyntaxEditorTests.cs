@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         {
             Assert.IsAssignableFrom<TSyntax>(node);
 
-            var options = SyntaxFormattingOptions.Create(DictionaryAnalyzerConfigOptions.Empty);
+            var options = SyntaxFormattingOptions.Default;
             var formatted = Formatter.Format(node, EmptyWorkspace.Services, options, CancellationToken.None);
             var actualText = formatted.ToFullString();
             Assert.Equal(expectedText, actualText);
