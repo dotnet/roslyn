@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
 {
     internal abstract class AbstractSnippetCompletionProvider : CommonCompletionProvider
     {
+        private readonly SyntaxAnnotation _annotation = new();
+
         public AbstractSnippetCompletionProvider()
         {
 
@@ -21,7 +25,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
+            var newDocument = await DetermineNewDocumentAsync(document, item, cancellationToken).ConfigureAwait(false);
+            var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
+            int? newPosition = null;
+
+            // Attempt to find the inserted node and move the caret appropriately
+            if (newRoot != null)
+            {
+                var caretTarget = newRoot.GetAnnotatedNodes(_annotation).FirstOrDefault();
+                if (caretTarget != null)
+                {
+                    var targetPosition = GetTargetCaretPosition(caretTarget);
+
+                    // Something weird happened and we failed to get a valid position.
+                    // Bail on moving the caret.
+                    if (targetPosition > 0 && targetPosition <= newText.Length)
+                    {
+                        newPosition = targetPosition;
+                    }
+                }
+            }
+
+            var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+            var changesArray = changes.ToImmutableArray();
+            var change = Utilities.Collapse(newText, changesArray);
+
+            return CompletionChange.Create(change, changesArray, newPosition, includesCommitCharacter: true);
         }
 
         private async Task<Document> DetermineNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)
