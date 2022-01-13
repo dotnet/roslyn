@@ -49,3 +49,12 @@ stages:
               AutoCompleteMergeStrategy: Squash
           - task: MicroBuildCleanup@1
             displayName: Send Telemetry
+          - powershell: |
+              $contentType = 'application/json';
+              $headers = @{ Authorization = 'Bearer $(System.AccessToken)' };
+              $rawRequest = @{ daysValid = 365 * 2; definitionId = $(resources.pipeline.CI.pipelineID); ownerId = 'User:$(Build.RequestedForId)'; protectPipeline = $false; runId = $(resources.pipeline.CI.runId) };
+              $request = ConvertTo-Json @($rawRequest);
+              Write-Host $request
+              $uri = "$(System.CollectionUri)$(System.TeamProject)/_apis/build/retention/leases?api-version=6.0-preview.1";
+              Invoke-RestMethod -uri $uri -method POST -Headers $headers -ContentType $contentType -Body $request;
+            displayName: Retain inserted builds
