@@ -2089,8 +2089,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
-            _foregroundObject.AssertIsForeground();
-
             var uiContext = _languageToProjectExistsUIContext.GetOrAdd(
                 language,
                 language => Services.GetLanguageServices(language).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
