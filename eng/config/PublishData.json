@@ -210,7 +210,7 @@
       "channels": [],
       "vsBranch": "rel/d17.1",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
+      "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.1p3]"
     },
     "main": {
@@ -223,7 +223,8 @@
       "channels": [],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[Validation]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.2p1]"
     },
     "features/NullableReferenceTypes": {
       "nugetKind": "PerBuildPreRelease",
