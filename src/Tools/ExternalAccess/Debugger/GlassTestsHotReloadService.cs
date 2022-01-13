@@ -43,52 +43,42 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             _sessionId = newSessionId;
         }
 
-        public void EnterBreakState()
+        private DebuggingSessionId GetSessionId()
         {
             var sessionId = _sessionId;
             Contract.ThrowIfFalse(sessionId != default, "Session has not started");
 
-            _encService.BreakStateOrCapabilitiesChanged(sessionId, inBreakState: true, out _);
+            return sessionId;
+        }
+
+        public void EnterBreakState()
+        {
+            _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: true, out _);
         }
 
         public void ExitBreakState()
         {
-            var sessionId = _sessionId;
-            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
-
-            _encService.BreakStateOrCapabilitiesChanged(sessionId, inBreakState: false, out _);
+            _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: false, out _);
         }
 
         public void OnCapabilitiesChanged()
         {
-            var sessionId = _sessionId;
-            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
-
-            _encService.BreakStateOrCapabilitiesChanged(sessionId, inBreakState: null, out _);
+            _encService.BreakStateOrCapabilitiesChanged(GetSessionId(), inBreakState: null, out _);
         }
 
         public void CommitSolutionUpdate()
         {
-            var sessionId = _sessionId;
-            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
-
-            _encService.CommitSolutionUpdate(sessionId, out _);
+            _encService.CommitSolutionUpdate(GetSessionId(), out _);
         }
 
         public void DiscardSolutionUpdate()
         {
-            var sessionId = _sessionId;
-            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
-
-            _encService.DiscardSolutionUpdate(sessionId);
+            _encService.DiscardSolutionUpdate(GetSessionId());
         }
 
         public void EndDebuggingSession()
         {
-            var sessionId = _sessionId;
-            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
-
-            _encService.EndDebuggingSession(sessionId, out _);
+            _encService.EndDebuggingSession(GetSessionId(), out _);
             _sessionId = default;
         }
 
@@ -105,10 +95,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
 
         public async ValueTask<ManagedHotReloadUpdates> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var sessionId = _sessionId;
-            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
-
-            var result = await _encService.EmitSolutionUpdateAsync(sessionId, solution, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            var result = await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
             var updates = result.ModuleUpdates.Updates.SelectAsArray(
                 update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta, update.UpdatedTypes));
