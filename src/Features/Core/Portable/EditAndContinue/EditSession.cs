@@ -1086,8 +1086,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         {
                             // all spans must be of the same size:
                             Debug.Assert(newSpan.Span.End.Line - newSpan.Span.Start.Line == baseSpan.Span.End.Line - baseSpan.Span.Start.Line);
-                            Debug.Assert(region.Span.Span.End.Line - region.Span.Span.Start.Line == baseSpan.Span.End.Line - baseSpan.Span.Start.Line);
-                            Debug.Assert(newSpan.Path == region.Span.Path);
+                            Debug.Assert(region.OldSpan.Span.End.Line - region.OldSpan.Span.Start.Line == baseSpan.Span.End.Line - baseSpan.Span.Start.Line);
+                            Debug.Assert(newSpan.Path == region.OldSpan.Path);
 
                             newRegion = region.WithNewSpan(newSpan);
                         }
@@ -1122,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 r => r.Region.IsExceptionRegion,
                 r => new ManagedExceptionRegionUpdate(
                     r.Method,
-                    -r.Region.Span.Span.GetLineDelta(r.Region.NewSpan.Span),
+                    -r.Region.OldSpan.Span.GetLineDelta(r.Region.NewSpan.Span),
                     r.Region.NewSpan.Span.ToSourceSpan()));
         }
     }

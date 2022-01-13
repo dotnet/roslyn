@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Pre-remap PDB span.
         /// </summary>
-        public readonly SourceFileSpan Span;
+        public readonly SourceFileSpan OldSpan;
 
         /// <summary>
         /// New PDB span.
@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         public readonly bool IsExceptionRegion;
 
-        public NonRemappableRegion(SourceFileSpan span, SourceFileSpan newSpan, bool isExceptionRegion)
+        public NonRemappableRegion(SourceFileSpan oldSpan, SourceFileSpan newSpan, bool isExceptionRegion)
         {
-            Span = span;
+            OldSpan = oldSpan;
             NewSpan = newSpan;
             IsExceptionRegion = isExceptionRegion;
         }
@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => obj is NonRemappableRegion region && Equals(region);
 
         public bool Equals(NonRemappableRegion other)
-            => Span.Equals(other.Span) &&
+            => OldSpan.Equals(other.OldSpan) &&
                NewSpan.Equals(other.NewSpan) &&
                IsExceptionRegion == other.IsExceptionRegion;
 
         public override int GetHashCode()
-            => Hash.Combine(Span.GetHashCode(), Hash.Combine(IsExceptionRegion, NewSpan.GetHashCode()));
+            => Hash.Combine(OldSpan.GetHashCode(), Hash.Combine(IsExceptionRegion, NewSpan.GetHashCode()));
 
         public static bool operator ==(NonRemappableRegion left, NonRemappableRegion right)
             => left.Equals(right);
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => !(left == right);
 
         public NonRemappableRegion WithNewSpan(SourceFileSpan newSpan)
-            => new(Span, newSpan, IsExceptionRegion);
+            => new(OldSpan, newSpan, IsExceptionRegion);
 
         internal string GetDebuggerDisplay()
-            => $"{(IsExceptionRegion ? "ER" : "AS")} {Span} => {NewSpan.Span}";
+            => $"{(IsExceptionRegion ? "ER" : "AS")} {OldSpan} => {NewSpan.Span}";
     }
 }

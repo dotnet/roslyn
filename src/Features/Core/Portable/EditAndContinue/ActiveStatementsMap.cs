@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 foreach (var region in regionsInMethod)
                 {
-                    if (region.Span.Span.Contains(activeSpan) && activeStatementInfo.DocumentName == region.Span.Path)
+                    if (region.OldSpan.Span.Contains(activeSpan) && activeStatementInfo.DocumentName == region.OldSpan.Path)
                     {
                         newSpan = region.NewSpan.Span;
                         return true;
