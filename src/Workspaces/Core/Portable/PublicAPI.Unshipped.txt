@@ -20,3 +20,4 @@ static Microsoft.CodeAnalysis.CommandLineProject.CreateProjectInfo(string projec
 static readonly Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
 virtual Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetFixAllTitle(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext) -> string
 static Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.Document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync) -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
+*REMOVED*abstract Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction.GetDescription(System.Globalization.CultureInfo culture = null) -> string
