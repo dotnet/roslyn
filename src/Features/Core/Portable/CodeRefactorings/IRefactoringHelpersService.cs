@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// <para>
         /// Returns an array of <typeparamref name="TSyntaxNode"/> instances for refactoring given specified selection
-        /// in document. The nodes returned will all have non-empty spans.
+        /// in document. <paramref name="allowEmptyNodes"/> determines if the returned nodes will can have empty spans
+        /// or not.
         /// </para>
         /// <para>
         /// A <typeparamref name="TSyntaxNode"/> instance is returned if: - Selection is zero-width and inside/touching
@@ -52,6 +53,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// handled correctly. 
         /// </para>
         /// </summary>
-        Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
+        Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(Document document, TextSpan selection, bool allowEmptyNodes, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
+    }
+
+    internal static class IRefactoringHelpersServiceExtensions
+    {
+        public static Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
+            this IRefactoringHelpersService service, Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        {
+            return service.GetRelevantNodesAsync<TSyntaxNode>(document, selection, allowEmptyNodes: false, cancellationToken);
+        }
     }
 }

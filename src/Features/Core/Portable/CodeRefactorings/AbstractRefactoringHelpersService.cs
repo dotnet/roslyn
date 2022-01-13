@@ -26,8 +26,26 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public abstract bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
 
         public async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
-            Document document, TextSpan selectionRaw,
-            CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+            Document document, TextSpan selectionRaw, bool allowEmptyNodes, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        {
+            using var _1 = ArrayBuilder<TSyntaxNode>.GetInstance(out var relevantNodesBuilder);
+            await AddRelevantNodesAsync<TSyntaxNode>(document, selectionRaw, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
+
+            if (allowEmptyNodes)
+                return relevantNodesBuilder.ToImmutable();
+
+            using var _2 = ArrayBuilder<TSyntaxNode>.GetInstance(out var nonEmptyNodes);
+            foreach (var node in relevantNodesBuilder)
+            {
+                if (node.Span.Length > 0)
+                    nonEmptyNodes.Add(node);
+            }
+
+            return nonEmptyNodes.ToImmutable();
+        }
+
+        private async Task AddRelevantNodesAsync<TSyntaxNode>(
+            Document document, TextSpan selectionRaw, ArrayBuilder<TSyntaxNode> relevantNodesBuilder, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
             // Given selection is trimmed first to enable over-selection that spans multiple lines. Since trailing whitespace ends
             // at newline boundary over-selection to e.g. a line after LocalFunctionStatement would cause FindNode to find enclosing
@@ -46,11 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // Option 1) can't be used all the time and 2) can be confusing for users. Therefore bailing out is the
             // most consistent option.
             if (selectionTrimmed.IsEmpty && !selectionRaw.IsEmpty)
-            {
-                return ImmutableArray<TSyntaxNode>.Empty;
-            }
-
-            using var relevantNodesBuilderDisposer = ArrayBuilder<TSyntaxNode>.GetInstance(out var relevantNodesBuilder);
+                return;
 
             // Every time a Node is considered an extractNodes method is called to add all nodes around the original one
             // that should also be considered.
@@ -120,8 +134,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     await AddNodesDeepInAsync(document, location, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
                 }
             }
-
-            return relevantNodesBuilder.ToImmutable();
         }
 
         private static bool IsWantedTypeExpressionLike<TSyntaxNode>() where TSyntaxNode : SyntaxNode
@@ -226,7 +238,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private void AddNodesForTokenToLeft<TSyntaxNode>(ISyntaxFactsService syntaxFacts, ArrayBuilder<TSyntaxNode> relevantNodesBuilder, int location, SyntaxToken tokenToLeft, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        private void AddNodesForTokenToLeft<TSyntaxNode>(
+            ISyntaxFactsService syntaxFacts,
+            ArrayBuilder<TSyntaxNode> relevantNodesBuilder,
+            int location,
+            SyntaxToken tokenToLeft,
+            CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
             // there could be multiple (n) tokens to the left if first n-1 are Empty -> iterate over all of them
             while (tokenToLeft != default)
@@ -253,7 +270,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private void AddNodesForTokenToRightOrIn<TSyntaxNode>(ISyntaxFactsService syntaxFacts, SyntaxNode root, ArrayBuilder<TSyntaxNode> relevantNodesBuilder, int location, SyntaxToken tokenToRightOrIn, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        private void AddNodesForTokenToRightOrIn<TSyntaxNode>(
+            ISyntaxFactsService syntaxFacts,
+            SyntaxNode root,
+            ArrayBuilder<TSyntaxNode> relevantNodesBuilder,
+            int location,
+            SyntaxToken tokenToRightOrIn,
+            CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
             if (tokenToRightOrIn != default)
             {
@@ -291,7 +314,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private void AddRelevantNodesForSelection<TSyntaxNode>(ISyntaxFactsService syntaxFacts, SyntaxNode root, TextSpan selectionTrimmed, ArrayBuilder<TSyntaxNode> relevantNodesBuilder, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        private void AddRelevantNodesForSelection<TSyntaxNode>(
+            ISyntaxFactsService syntaxFacts,
+            SyntaxNode root,
+            TextSpan selectionTrimmed,
+            ArrayBuilder<TSyntaxNode> relevantNodesBuilder,
+            CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
             var selectionNode = root.FindNode(selectionTrimmed, getInnermostNodeForTie: true);
             var prevNode = selectionNode;
@@ -311,20 +339,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         break;
                     }
 
-                    AddIfNotMissing(relevantNodesBuilder, nonHiddenExtractedNode);
+                    relevantNodesBuilder.Add(nonHiddenExtractedNode);
                 }
 
                 prevNode = selectionNode;
                 selectionNode = selectionNode.Parent;
             }
             while (selectionNode != null && prevNode.FullWidth() == selectionNode.FullWidth());
-        }
-
-        private static void AddIfNotMissing<TSyntaxNode>(
-            ArrayBuilder<TSyntaxNode> relevantNodesBuilder, TSyntaxNode node) where TSyntaxNode : SyntaxNode
-        {
-            if (node.Span.Length > 0)
-                relevantNodesBuilder.Add(node);
         }
 
         /// <summary>
@@ -459,7 +480,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         protected virtual async Task AddNodesDeepInAsync<TSyntaxNode>(
-            Document document, int position,
+            Document document,
+            int position,
             ArrayBuilder<TSyntaxNode> relevantNodesBuilder,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
@@ -486,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                     if (argumentStartLine == caretLine && !correctTypeNode.OverlapsHiddenPosition(cancellationToken))
                     {
-                        AddIfNotMissing(relevantNodesBuilder, correctTypeNode);
+                        relevantNodesBuilder.Add(correctTypeNode);
                     }
                     else if (argumentStartLine < caretLine)
                     {
@@ -499,14 +521,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private static void AddNonHiddenCorrectTypeNodes<TSyntaxNode>(IEnumerable<SyntaxNode> nodes, ArrayBuilder<TSyntaxNode> resultBuilder, CancellationToken cancellationToken)
-            where TSyntaxNode : SyntaxNode
+        private static void AddNonHiddenCorrectTypeNodes<TSyntaxNode>(
+            IEnumerable<SyntaxNode> nodes, ArrayBuilder<TSyntaxNode> resultBuilder, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
             var correctTypeNonHiddenNodes = nodes.OfType<TSyntaxNode>().Where(n => !n.OverlapsHiddenPosition(cancellationToken));
             foreach (var nodeToBeAdded in correctTypeNonHiddenNodes)
-            {
-                AddIfNotMissing(resultBuilder, nodeToBeAdded);
-            }
+                resultBuilder.Add(nodeToBeAdded);
         }
 
         public bool IsOnTypeHeader(SyntaxNode root, int position, bool fullHeader, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
