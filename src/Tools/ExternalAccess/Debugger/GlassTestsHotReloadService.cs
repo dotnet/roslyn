@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
 
@@ -91,6 +92,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             }
 
             return await _encService.HasChangesAsync(sessionId, solution, s_noActiveStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async ValueTask<ManagedModuleUpdates> GetEditAndContinueUpdatesAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            var result = await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+
+            return result.ModuleUpdates.FromContract();
         }
 
         public async ValueTask<ManagedHotReloadUpdates> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
