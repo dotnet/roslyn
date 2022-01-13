@@ -2105,8 +2105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // solution (either adding or removing a project) then that work will also have enqueued the next refresh
             // operation on the UI thread.  So we'll always eventually reach a fixed point where the task for that
             // language will check the latest CurrentSolution we have and will set the IsActive bit accordingly.
-            var solution = this.CurrentSolution;
-            uiContext.IsActive = CurrentSolution.Projects.Any(p => p.Language == language);
+            uiContext.IsActive = this.CurrentSolution.Projects.Any(p => p.Language == language);
         }
     }
 }
