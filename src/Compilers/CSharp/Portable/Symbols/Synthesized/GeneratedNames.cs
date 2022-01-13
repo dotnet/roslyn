@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaDisplayClass, methodOrdinal, generation, suffix: "DisplayClass", entityOrdinal: closureOrdinal, entityGeneration: closureGeneration);
         }
 
-        internal static string MakeAnonymousTypeTemplateName(int index, int submissionSlotIndex, string moduleId)
+        internal static string MakeAnonymousTypeOrDelegateTemplateName(int index, int submissionSlotIndex, string moduleId, bool isDelegate)
         {
-            var name = "<" + moduleId + ">f__AnonymousType" + StringExtensions.GetNumeral(index);
+            var name = "<" + moduleId + (isDelegate ? ">f__AnonymousDelegate" : ">f__AnonymousType") + StringExtensions.GetNumeral(index);
             if (submissionSlotIndex >= 0)
             {
                 name += "#" + StringExtensions.GetNumeral(submissionSlotIndex);
@@ -437,6 +437,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Microsoft.VisualStudio.VIL.VisualStudioHost.AsyncReturnStackFrame depends on this name.
             Debug.Assert((char)GeneratedNameKind.AsyncBuilderField == 't');
             return "<>t__builder";
+        }
+
+        internal static string DelegateCacheContainerType(int generation, string? methodName = null, int methodOrdinal = -1, int ownerUniqueId = -1)
+        {
+            const char NameKind = (char)GeneratedNameKind.DelegateCacheContainerType;
+
+            var result = PooledStringBuilder.GetInstance();
+            var builder = result.Builder;
+
+            builder.Append('<').Append(methodName).Append('>').Append(NameKind);
+
+            if (methodOrdinal > -1)
+            {
+                builder.Append(GeneratedNameConstants.SuffixSeparator).Append(methodOrdinal);
+            }
+
+            if (ownerUniqueId > -1)
+            {
+                builder.Append(IdSeparator).Append(ownerUniqueId);
+            }
+
+            AppendOptionalGeneration(builder, generation);
+
+            return result.ToStringAndFree();
+        }
+
+        internal static string DelegateCacheContainerFieldName(int id, string targetMethod)
+        {
+            var result = PooledStringBuilder.GetInstance();
+            var builder = result.Builder;
+
+            builder.Append('<').Append(id).Append(">__").Append(targetMethod);
+
+            return result.ToStringAndFree();
         }
 
         internal static string ReusableHoistedLocalFieldName(int number)

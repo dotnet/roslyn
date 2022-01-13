@@ -3,12 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
@@ -17,7 +21,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 using static Microsoft.VisualStudio.VSConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
@@ -26,6 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     internal class StackTraceExplorerToolWindow : ToolWindowPane, IOleCommandTarget
     {
         private bool _initialized;
+
+        [MemberNotNullWhen(true, nameof(_initialized))]
         public StackTraceExplorerRoot? Root { get; private set; }
 
         public StackTraceExplorerToolWindow() : base(null)
@@ -38,10 +43,42 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
             dockPanel.CommandBindings.Add(new CommandBinding(ApplicationCommands.Paste, (s, e) =>
             {
-                Root?.OnPaste();
+                Root?.ViewModel.DoPasteAsync(default).Start();
             }));
 
             Content = dockPanel;
+        }
+
+        /// <summary>
+        /// Checks the contents of the clipboard for a valid stack trace and 
+        /// opens stack trace explorer if anything parses correctly
+        /// </summary>
+        public async Task<bool> ShouldShowOnActivatedAsync(CancellationToken cancellationToken)
+        {
+            if (Root is null)
+            {
+                return false;
+            }
+
+            var text = Clipboard.GetText();
+            if (string.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+
+            if (Root.ViewModel.ContainsTab(text))
+            {
+                return false;
+            }
+
+            var result = await StackTraceAnalyzer.AnalyzeAsync(text, cancellationToken).ConfigureAwait(false);
+            if (result.ParsedFrames.Any(static frame => frame.IsStackFrame))
+            {
+                await Root.ViewModel.AddNewTabAsync(result, text, cancellationToken).ConfigureAwait(false);
+                return true;
+            }
+
+            return false;
         }
 
         public void InitializeIfNeeded(RoslynPackage roslynPackage)
@@ -70,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             contextMenu.Items.Add(new MenuItem()
             {
                 Header = ServicesVSResources.Paste,
-                Command = new DelegateCommand(_ => Root.OnPaste()),
+                Command = new DelegateCommand(_ => Root.ViewModel.DoPasteSynchronously(default)),
                 Icon = new CrispImage()
                 {
                     Moniker = KnownMonikers.Paste
@@ -109,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 switch (command)
                 {
                     case VSStd97CmdID.Paste:
-                        Root?.OnPaste();
+                        Root?.ViewModel.DoPasteSynchronously(default);
                         break;
                 }
             }

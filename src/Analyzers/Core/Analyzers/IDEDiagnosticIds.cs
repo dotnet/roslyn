@@ -167,6 +167,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseTupleSwapDiagnosticId = "IDE0180";
 
+        public const string UseParameterNullCheckingId = "IDE0190";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

@@ -159,6 +159,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => SemanticFacts.IsInsideNameOfExpression(semanticModel, node, cancellationToken);
+
+        public ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken)
+            => SemanticFacts.GetLocalFunctionSymbols(compilation, symbol, cancellationToken);
         #endregion
     }
 }

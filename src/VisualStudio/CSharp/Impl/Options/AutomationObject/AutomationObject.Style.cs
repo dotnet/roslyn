@@ -237,6 +237,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, value); }
         }
 
+        public string Style_PreferParameterNullChecking
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferParameterNullChecking); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferParameterNullChecking, value); }
+        }
+
         public string Style_PreferNullCheckOverTypeCheck
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck); }
