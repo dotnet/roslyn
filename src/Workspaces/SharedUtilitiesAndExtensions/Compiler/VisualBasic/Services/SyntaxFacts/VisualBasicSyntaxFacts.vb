@@ -630,9 +630,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetContainingTypeDeclaration(root As SyntaxNode, position As Integer) As SyntaxNode Implements ISyntaxFacts.GetContainingTypeDeclaration
-            Contract.ThrowIfNull(root, NameOf(root))
-            Contract.ThrowIfTrue(position < 0 OrElse position > root.FullSpan.End, NameOf(position))
-
             Return root.
                 FindToken(position).
                 GetAncestors(Of SyntaxNode)().
@@ -697,9 +694,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetContainingMemberDeclaration(root As SyntaxNode, position As Integer, Optional useFullSpan As Boolean = True) As SyntaxNode Implements ISyntaxFacts.GetContainingMemberDeclaration
-            Contract.ThrowIfNull(root, NameOf(root))
-            Contract.ThrowIfTrue(position < 0 OrElse position > root.FullSpan.End, NameOf(position))
-
             Dim [end] = root.FullSpan.End
             If [end] = 0 Then
                 ' empty file
