@@ -9205,7 +9205,7 @@ public struct S
 }";
             var compilationPIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, CSharpRef });
+            var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular10, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, CSharpRef });
             var compilation1A = compilation0.WithSource(source1A);
             var compilation1B = compilation0.WithSource(source1B);
 
