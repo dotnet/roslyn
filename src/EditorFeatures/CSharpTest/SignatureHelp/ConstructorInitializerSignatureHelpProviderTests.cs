@@ -243,13 +243,13 @@ class D
 {
     D() [|: this(i: 1$$|]) { }
 
-    D(D other) => throw null;
+    D(D filtered) => throw null;
     D(string i) => throw null;
     D(int i) => throw null;
 }";
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("D(D other)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("D(D filtered)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("D(int i)", currentParameterIndex: 0, isSelected: true),
                 new SignatureHelpTestItem("D(string i)", currentParameterIndex: 0),
             };
@@ -266,13 +266,13 @@ class D
 {
     D() [|: this(i: null$$|]) { }
 
-    D(D other) => throw null;
+    D(D filtered) => throw null;
     D(string i) => throw null;
     D(int i) => throw null;
 }";
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("D(D other)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("D(D filtered)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("D(int i)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("D(string i)", currentParameterIndex: 0, isSelected: true),
             };

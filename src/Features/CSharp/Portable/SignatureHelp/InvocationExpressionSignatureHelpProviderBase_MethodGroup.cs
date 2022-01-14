@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             Document document,
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
-            IMethodSymbol currentSymbol,
+            IMethodSymbol? currentSymbol,
             CancellationToken cancellationToken)
         {
             return Task.FromResult(

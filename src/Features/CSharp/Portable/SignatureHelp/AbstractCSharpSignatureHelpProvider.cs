@@ -97,6 +97,22 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 #pragma warning restore CA1822 // Mark members as static
             => SpecializedCollections.EmptyList<TaggedText>();
 
+        protected static void RefineOverloadAndPickParameter(Document document, int position, SemanticModel semanticModel,
+            ImmutableArray<IMethodSymbol> accessibleOverloads, SeparatedSyntaxList<ArgumentSyntax> arguments,
+            ref IMethodSymbol? currentSymbol, out int parameterIndex)
+        {
+            var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
+            if (currentSymbol is null)
+            {
+                (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, accessibleOverloads, position, semanticModel, semanticFactsService);
+            }
+            else
+            {
+                // The compiler told us the correct overload, but we need to find out the parameter to highlight given cursor position
+                _ = FindParameterIndexIfCompatibleMethod(arguments, currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
+            }
+        }
+
         /// <summary>
         /// If the symbol could not be bound, we could be dealing with a partial invocation, we'll try to find a possible overload.
         /// </summary>
@@ -121,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         /// <summary>
         /// Simulates overload resolution with the arguments provided so far and determines if you might be calling this overload.
-        /// Returns true if an overload is acceptable. In that case, we output the parameter should be highlighted given the cursor's
+        /// Returns true if an overload is acceptable. In that case, we output the parameter that should be highlighted given the cursor's
         /// position in the partial invocation.
         /// </summary>
         protected static bool FindParameterIndexIfCompatibleMethod(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method, int position,
@@ -186,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             // parameter, we will highlight the first unspecified parameter.
             static int FirstUnspecifiedParameter(ArrayBuilder<int> argToParamMap, int argumentCount)
             {
-                var specified = ArrayBuilder<bool>.GetInstance(argumentCount, false);
+                using var _ = ArrayBuilder<bool>.GetInstance(argumentCount, false, out var specified);
                 for (var i = 0; i < argumentCount; i++)
                 {
                     var parameterIndex = argToParamMap[i];
@@ -197,7 +213,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 var first = specified.FindIndex(s => !s);
-                specified.Free();
                 return first;
             }
 
@@ -209,11 +224,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 {
                     if (IsEmptyArgument(argument.Expression))
                     {
+                        // An argument left empty is considered to match any parameter
+                        // M(1, $$)
+                        // M(1, , 2$$)
                         return true;
                     }
 
                     var type = parameter.Type;
-                    if (parameter.IsParams && HasImplicitConversion(argument.Expression, ((IArrayTypeSymbol)type).ElementType))
+                    if (parameter.IsParams
+                        && type is IArrayTypeSymbol arrayType
+                        && HasImplicitConversion(argument.Expression, arrayType.ElementType))
                     {
                         return true;
                     }
@@ -224,6 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 var argumentRefKind = argument.GetRefKind();
                 if (parameterRefKind == RefKind.In && argumentRefKind == RefKind.None)
                 {
+                    // A by-value argument matches an `in` parameter
                     return true;
                 }
 
@@ -243,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         /// <summary>
-        /// Find the parameter index corresponding to each argument provided 
+        /// Find the parameter index corresponding to each argument provided
         /// </summary>
         private static ArrayBuilder<int>? PrepareArgToParamMap(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method)
         {

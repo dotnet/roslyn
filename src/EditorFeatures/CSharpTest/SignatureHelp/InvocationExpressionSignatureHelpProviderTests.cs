@@ -1873,14 +1873,14 @@ class D
     {
         [|M(i: 42$$|]);
     }
-    static void M(D other) { }
+    static void M(D filtered) { }
     static void M(int i) { }
     static void M(string i) { }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("void D.M(D other)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("void D.M(D filtered)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
                 new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0),
             };
@@ -1899,7 +1899,7 @@ class D
     {
         [|M(i: 42$$|]);
     }
-    static void M(D other) { }
+    static void M(D filtered) { }
     static void M(int i) { }
     static void M(string i) { }
     static implicit operator D(int i) => throw null;
@@ -1907,7 +1907,7 @@ class D
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("void D.M(D other)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("void D.M(D filtered)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
                 new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0),
             };
@@ -1928,12 +1928,12 @@ class D
     }
     static void M(string i) { }
     static void M(int i) { }
-    static void M(D other) { }
+    static void M(D filtered) { }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("void D.M(D other)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("void D.M(D filtered)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
                 new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0),
             };
@@ -1952,14 +1952,14 @@ class D
     {
         [|M(i: null$$|]);
     }
-    static void M(D other) { }
+    static void M(D filtered) { }
     static void M(int i) { }
     static void M(string i) { }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("void D.M(D other)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("void D.M(D filtered)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0, isSelected: true),
             };
@@ -2131,6 +2131,27 @@ class Program
             };
 
             await TestAsync(markup.Replace("ARGUMENTS", arguments), expectedOrderedItems);
+        }
+
+        [Fact]
+        public async Task PickCorrectOverload_Params_NonArrayType()
+        {
+            var source = @"
+class Program
+{
+    void Main()
+    {
+        [|M(1, 2$$|]);
+    }
+    void M(int i1, params int i2) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void Program.M(int i1, params int i2)", currentParameterIndex: 1, isSelected: true),
+            };
+
+            await TestAsync(source, expectedOrderedItems);
         }
 
         [Fact]

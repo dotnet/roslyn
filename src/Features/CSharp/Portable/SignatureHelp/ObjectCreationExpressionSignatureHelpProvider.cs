@@ -102,18 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             // guess the best candidate if needed and determine parameter index
             var currentSymbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol as IMethodSymbol;
-            var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
             var arguments = objectCreationExpression.ArgumentList.Arguments;
-            int parameterIndex;
-            if (currentSymbol is null)
-            {
-                (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, methods, position, semanticModel, semanticFactsService);
-            }
-            else
-            {
-                // The compiler told us the correct overload, but we need to find out the parameter to highlight given cursor position
-                _ = FindParameterIndexIfCompatibleMethod(arguments, currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
-            }
+            RefineOverloadAndPickParameter(document, position, semanticModel, methods, arguments, ref currentSymbol, out var parameterIndex);
 
             // present items and select
             ImmutableArray<SignatureHelpItem> items;
