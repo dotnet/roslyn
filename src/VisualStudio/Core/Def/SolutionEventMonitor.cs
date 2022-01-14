@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private const string SolutionOpening = "Solution Opening";
         private const string SolutionClosing = "Solution Closing";
 
-        private readonly UIContext? _solutionClosingContext;
+        private readonly UIContext _solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
         private IGlobalOperationNotificationService? _notificationService;
         private readonly Dictionary<string, GlobalOperationRegistration> _operations = new();
 
@@ -46,8 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                 KnownUIContexts.SolutionOpeningContext.UIContextChanged += SolutionOpeningContextChanged;
 
-                _solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
-
                 // make sure we set initial state correctly. otherwise, we can get into a race where we might miss the very first events
                 if (_solutionClosingContext.IsActive)
                 {
@@ -72,9 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 _notificationService = null;
                 KnownUIContexts.SolutionBuildingContext.UIContextChanged -= SolutionBuildingContextChanged;
                 KnownUIContexts.SolutionOpeningContext.UIContextChanged -= SolutionOpeningContextChanged;
-
-                if (_solutionClosingContext != null)
-                    _solutionClosingContext.UIContextChanged -= SolutionClosingContextChanged;
+                _solutionClosingContext.UIContextChanged -= SolutionClosingContextChanged;
             }
         }
 
