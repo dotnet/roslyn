@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.Completion
             public ConcatImmutableArray<CompletionProvider> GetFilteredProviders(
                 Project? project, ImmutableHashSet<string>? roles, CompletionTrigger trigger, in CompletionOptions options)
             {
+                // We need to call `GetProviders` from the service since it could be overridden by its subclasses.
                 var allCompletionProviders = FilterProviders(_service.GetProviders(roles, trigger), trigger, options);
                 var projectCompletionProviders = FilterProviders(GetProjectCompletionProviders(project), trigger, options);
                 return allCompletionProviders.ConcatFast(projectCompletionProviders);
