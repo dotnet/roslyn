@@ -109,27 +109,6 @@ namespace Microsoft.CodeAnalysis.Completion
             var defaultItemSpan = GetDefaultCompletionListSpan(text, caretPosition);
 
             var providers = _providerManager.GetFilteredProviders(document.Project, roles, trigger, options);
-            var triggeredProviders = ImmutableArray<CompletionProvider>.Empty;
-
-            switch (trigger.Kind)
-            {
-                case CompletionTriggerKind.Insertion:
-                case CompletionTriggerKind.Deletion:
-                    if (ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options, roles))
-                    {
-                        triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.LanguageServices, text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
-                        Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition, options));
-                        if (triggeredProviders.Length == 0)
-                        {
-                            triggeredProviders = providers.ToImmutableArray();
-                        }
-                    }
-
-                    break;
-                default:
-                    triggeredProviders = providers.ToImmutableArray();
-                    break;
-            }
 
             // Phase 1: Completion Providers decide if they are triggered based on textual analysis
             // Phase 2: Completion Providers use syntax to confirm they are triggered, or decide they are not actually triggered and should become an augmenting provider
@@ -137,18 +116,9 @@ namespace Microsoft.CodeAnalysis.Completion
             // Phase 4: If any items were provided, all augmenting providers are asked for items
             // This allows a provider to be textually triggered but later decide to be an augmenting provider based on deeper syntactic analysis.
 
-            var additionalAugmentingProviders = new List<CompletionProvider>();
-            if (trigger.Kind == CompletionTriggerKind.Insertion)
-            {
-                foreach (var provider in triggeredProviders)
-                {
-                    if (!await provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false))
-                    {
-                        additionalAugmentingProviders.Add(provider);
-                    }
-                }
-            }
+            var triggeredProviders = GetTriggeredProviders(document, providers, caretPosition, options, trigger, roles, text);
 
+            var additionalAugmentingProviders = await GetAugmentingProviders(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
             triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
 
             // Now, ask all the triggered providers, in parallel, to populate a completion context.
@@ -183,7 +153,89 @@ namespace Microsoft.CodeAnalysis.Completion
 
             return MergeAndPruneCompletionLists(allContexts, defaultItemSpan, options, isExclusive: false)
                 .WithExpandItemsAvailable(triggeredContexts.ExpandItemsAvailable || augmentingContexts.ExpandItemsAvailable);
+
+            ImmutableArray<CompletionProvider> GetTriggeredProviders(
+                Document document, ConcatImmutableArray<CompletionProvider> allProviders, int caretPosition, CompletionOptions options, CompletionTrigger trigger, ImmutableHashSet<string>? roles, SourceText text)
+            {
+                switch (trigger.Kind)
+                {
+                    case CompletionTriggerKind.Insertion:
+                    case CompletionTriggerKind.Deletion:
+                        if (!ShouldTypingTriggerCompletionWithoutAskingProviders(trigger, options))
+                            return ImmutableArray<CompletionProvider>.Empty;
+
+                        var triggeredProviders = allProviders.Where(p => p.ShouldTriggerCompletion(document.Project.LanguageServices, text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
+                        Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition, options));
+
+                        return triggeredProviders.Length == 0
+                            ? allProviders.ToImmutableArray()
+                            : triggeredProviders;
+
+                    default:
+                        return allProviders.ToImmutableArray();
+                }
+            }
+
+            static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProviders(
+                Document document, ImmutableArray<CompletionProvider> triggeredProviders, int caretPosition, CompletionTrigger trigger, CompletionOptions options, CancellationToken cancellationToken)
+            {
+                var additionalAugmentingProviders = ArrayBuilder<CompletionProvider>.GetInstance(triggeredProviders.Length);
+                if (trigger.Kind == CompletionTriggerKind.Insertion)
+                {
+                    foreach (var provider in triggeredProviders)
+                    {
+                        if (!await provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false))
+                        {
+                            additionalAugmentingProviders.Add(provider);
+                        }
+                    }
+                }
+
+                return additionalAugmentingProviders.ToImmutableAndFree();
+            }
         }
+
+        /// <summary>
+        /// Backward compatibility only.
+        /// </summary>
+        public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string>? roles = null, OptionSet? options = null)
+        {
+            var document = text.GetOpenDocumentInCurrentContextWithChanges();
+            var languageServices = document?.Project.LanguageServices ?? _workspace.Services.GetLanguageServices(Language);
+            var completionOptions = CompletionOptions.From(options ?? document?.Project.Solution.Options ?? _workspace.CurrentSolution.Options, document?.Project.Language ?? Language);
+            return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, roles);
+        }
+
+        /// <summary>
+        /// A preliminary quick check to see if we should trigger completion before asking each individual providers.
+        /// </summary>
+        private bool ShouldTypingTriggerCompletionWithoutAskingProviders(CompletionTrigger trigger, CompletionOptions options)
+        {
+            if (!options.TriggerOnTyping)
+            {
+                return false;
+            }
+
+            if (trigger.Kind == CompletionTriggerKind.Deletion && SupportsTriggerOnDeletion(options))
+            {
+                return char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
+            }
+
+            return true;
+        }
+
+        internal sealed override bool ShouldTriggerCompletion(
+            Project? project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, ImmutableHashSet<string>? roles = null)
+        {
+            if (!ShouldTypingTriggerCompletionWithoutAskingProviders(trigger, options))
+                return false;
+
+            var providers = _providerManager.GetFilteredProviders(project, roles, trigger, options);
+            return providers.Any(p => p.ShouldTriggerCompletion(languageServices, text, caretPosition, trigger, options));
+        }
+
+        internal virtual bool SupportsTriggerOnDeletion(CompletionOptions options)
+            => options.TriggerOnDeletion == true;
 
         private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
             Document document, SourceText text, int caretPosition, in CompletionOptions options)
@@ -343,37 +395,6 @@ namespace Microsoft.CodeAnalysis.Completion
             GC.KeepAlive(semanticModel);
             return description;
         }
-
-        /// <summary>
-        /// Backward compatibility only.
-        /// </summary>
-        public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string>? roles = null, OptionSet? options = null)
-        {
-            var document = text.GetOpenDocumentInCurrentContextWithChanges();
-            var languageServices = document?.Project.LanguageServices ?? _workspace.Services.GetLanguageServices(Language);
-            var completionOptions = CompletionOptions.From(options ?? document?.Project.Solution.Options ?? _workspace.CurrentSolution.Options, document?.Project.Language ?? Language);
-            return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, roles);
-        }
-
-        internal sealed override bool ShouldTriggerCompletion(
-            Project? project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, ImmutableHashSet<string>? roles = null)
-        {
-            if (!options.TriggerOnTyping)
-            {
-                return false;
-            }
-
-            if (trigger.Kind == CompletionTriggerKind.Deletion && SupportsTriggerOnDeletion(options))
-            {
-                return char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
-            }
-
-            var providers = _providerManager.GetFilteredProviders(project, roles, trigger, options);
-            return providers.Any(p => p.ShouldTriggerCompletion(languageServices, text, caretPosition, trigger, options));
-        }
-
-        internal virtual bool SupportsTriggerOnDeletion(CompletionOptions options)
-            => options.TriggerOnDeletion == true;
 
         public override async Task<CompletionChange> GetChangeAsync(
             Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
