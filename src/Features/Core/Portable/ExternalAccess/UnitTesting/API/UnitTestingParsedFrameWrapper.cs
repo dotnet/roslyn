@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal readonly struct UnitTestingParsedFrameWrapper
     {
