@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             var result = await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
             var updates = result.ModuleUpdates.Updates.SelectAsArray(
-                update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta, update.UpdatedTypes));
+                update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes));
 
             var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, result.GetDiagnosticData(solution), result.RudeEdits, result.GetSyntaxErrorData(solution), cancellationToken).ConfigureAwait(false);
 
