@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -293,10 +293,8 @@ namespace Microsoft.CodeAnalysis.Completion
             var defaultItemSpan = GetDefaultCompletionListSpan(text, caretPosition);
 
             var providers = GetFilteredProviders(document.Project, roles, trigger, options);
-
-            var completionProviderToIndex = GetCompletionProviderToIndex(providers);
-
             var triggeredProviders = ImmutableArray<CompletionProvider>.Empty;
+
             switch (trigger.Kind)
             {
                 case CompletionTriggerKind.Insertion:
@@ -339,35 +337,16 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Now, ask all the triggered providers, in parallel, to populate a completion context.
             // Note: we keep any context with items *or* with a suggested item.  
-            var (triggeredCompletionContexts, expandItemsAvailableFromTriggeredProviders) = await ComputeNonEmptyCompletionContextsAsync(
-                document, caretPosition, trigger, options,
-                defaultItemSpan, triggeredProviders,
-                cancellationToken).ConfigureAwait(false);
+            var triggeredContexts = await ComputeNonEmptyCompletionContextsAsync(
+                document, caretPosition, trigger, options, defaultItemSpan, triggeredProviders, cancellationToken).ConfigureAwait(false);
 
-            // If we didn't even get any back with items, then there's nothing to do.
-            // i.e. if only got items back that had only suggestion items, then we don't
-            // want to show any completion.
-            if (!triggeredCompletionContexts.Any(cc => cc.Items.Count > 0))
-            {
-                return CompletionList.Empty
-                    .WithExpandItemsAvailable(expandItemsAvailableFromTriggeredProviders);
-            }
+            // Nothing to do if we didn't even get any regular items back (i.e. 0 items or suggestion item only.)
+            if (!triggeredContexts.ContainsNonSuggestionModeItem)
+                return CompletionList.Empty.WithExpandItemsAvailable(triggeredContexts.ExpandItemsAvailable);
 
-            // All the contexts should be non-empty or have a suggestion item.
-            Debug.Assert(triggeredCompletionContexts.All(HasAnyItems));
-
-            // See if there were completion contexts provided that were exclusive. If so, then
-            // that's all we'll return.
-            var exclusiveContexts = triggeredCompletionContexts.Where(t => t.IsExclusive);
-
-            if (exclusiveContexts.Any())
-            {
-                return MergeAndPruneCompletionLists(exclusiveContexts, defaultItemSpan, options, isExclusive: true)
-                    .WithExpandItemsAvailable(expandItemsAvailableFromTriggeredProviders);
-            }
-
-            // Shouldn't be any exclusive completion contexts at this point.
-            Debug.Assert(triggeredCompletionContexts.All(cc => !cc.IsExclusive));
+            // See if there were completion contexts provided that were exclusive. If so, then that's all we'll return.
+            if (triggeredContexts.ContainsExclusiveContext)
+                return MergeAndPruneCompletionLists(triggeredContexts.GetExclusiveContexts(), defaultItemSpan, options, isExclusive: true);
 
             // Great!  We had some items.  Now we want to see if any of the other providers 
             // would like to augment the completion list.  For example, we might trigger
@@ -375,21 +354,19 @@ namespace Microsoft.CodeAnalysis.Completion
             // we'll want to augment the list with all the regular symbol completion items.
             var augmentingProviders = providers.Except(triggeredProviders).ToImmutableArray();
 
-            var (augmentingCompletionContexts, expandItemsAvailableFromAugmentingProviders) = await ComputeNonEmptyCompletionContextsAsync(
-                document, caretPosition, trigger, options, defaultItemSpan,
-                augmentingProviders, cancellationToken).ConfigureAwait(false);
+            var augmentingContexts = await ComputeNonEmptyCompletionContextsAsync(
+                document, caretPosition, trigger, options, defaultItemSpan, augmentingProviders, cancellationToken).ConfigureAwait(false);
 
             GC.KeepAlive(semanticModel);
 
-            var allContexts = triggeredCompletionContexts.Concat(augmentingCompletionContexts);
-            Debug.Assert(allContexts.Length > 0);
-
             // Providers are ordered, but we processed them in our own order.  Ensure that the
             // groups are properly ordered based on the original providers.
-            allContexts = allContexts.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
+            var completionProviderToIndex = GetCompletionProviderToIndex(providers);
+            var allContexts = triggeredContexts.NonEmptyContexts.Concat(augmentingContexts.NonEmptyContexts)
+                .Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
 
             return MergeAndPruneCompletionLists(allContexts, defaultItemSpan, options, isExclusive: false)
-                .WithExpandItemsAvailable(expandItemsAvailableFromTriggeredProviders || expandItemsAvailableFromAugmentingProviders);
+                .WithExpandItemsAvailable(triggeredContexts.ExpandItemsAvailable || augmentingContexts.ExpandItemsAvailable);
         }
 
         private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
@@ -431,10 +408,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return true;
         }
 
-        private static bool HasAnyItems(CompletionContext cc)
-            => cc.Items.Count > 0 || cc.SuggestionModeItem != null;
-
-        private async Task<(ImmutableArray<CompletionContext>, bool)> ComputeNonEmptyCompletionContextsAsync(
+        private static async Task<AggregatedCompletionContextsData> ComputeNonEmptyCompletionContextsAsync(
             Document document, int caretPosition, CompletionTrigger trigger,
             CompletionOptions options, TextSpan defaultItemSpan,
             ImmutableArray<CompletionProvider> providers,
@@ -449,13 +423,11 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             var completionContexts = await Task.WhenAll(completionContextTasks).ConfigureAwait(false);
-            var nonEmptyContexts = completionContexts.Where(HasAnyItems).ToImmutableArray();
-            var shouldShowExpander = completionContexts.Any(context => context.ExpandItemsAvailable);
-            return (nonEmptyContexts, shouldShowExpander);
+            return new(completionContexts);
         }
 
         private CompletionList MergeAndPruneCompletionLists(
-            IEnumerable<CompletionContext> completionContexts,
+            ImmutableArray<CompletionContext> completionContexts,
             TextSpan defaultSpan,
             in CompletionOptions options,
             bool isExclusive)
@@ -469,8 +441,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
             foreach (var context in completionContexts)
             {
-                Debug.Assert(context != null);
-
                 foreach (var item in context.Items)
                 {
                     Debug.Assert(item != null);
@@ -531,22 +501,16 @@ namespace Microsoft.CodeAnalysis.Completion
             return result;
         }
 
-        private async Task<CompletionContext> GetContextAsync(
+        private static async Task<CompletionContext> GetContextAsync(
             CompletionProvider provider,
             Document document,
             int position,
             CompletionTrigger triggerInfo,
             CompletionOptions options,
-            TextSpan? defaultSpan,
+            TextSpan defaultSpan,
             CancellationToken cancellationToken)
         {
-            if (defaultSpan == null)
-            {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                defaultSpan = GetDefaultCompletionListSpan(text, position);
-            }
-
-            var context = new CompletionContext(provider, document, position, defaultSpan.Value, triggerInfo, options, cancellationToken);
+            var context = new CompletionContext(provider, document, position, defaultSpan, triggerInfo, options, cancellationToken);
             await provider.ProvideCompletionsAsync(context).ConfigureAwait(false);
             return context;
         }
@@ -741,6 +705,52 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
+        private readonly struct AggregatedCompletionContextsData
+        {
+            public ImmutableArray<CompletionContext> NonEmptyContexts { get; }
+
+            public bool ExpandItemsAvailable { get; }
+            public bool ContainsNonSuggestionModeItem { get; }
+            public bool ContainsExclusiveContext { get; }
+
+            public bool IsEmpty => NonEmptyContexts.Length == 0;
+
+            public AggregatedCompletionContextsData(CompletionContext[] allContexts)
+            {
+                var expandItemsAvailable = false;
+                var containsNonSuggestionModeItem = false;
+                var containsExclusiveContext = false;
+                var builder = ArrayBuilder<CompletionContext>.GetInstance(allContexts.Length);
+
+                foreach (var context in allContexts)
+                {
+                    if (context.Items.Count > 0)
+                    {
+                        containsNonSuggestionModeItem = true;
+                        builder.Add(context);
+                    }
+                    else if (context.SuggestionModeItem != null)
+                    {
+                        builder.Add(context);
+                    }
+
+                    if (context.ExpandItemsAvailable)
+                        expandItemsAvailable = true;
+
+                    if (context.IsExclusive)
+                        containsExclusiveContext = true;
+                }
+
+                NonEmptyContexts = builder.ToImmutableAndFree();
+                ExpandItemsAvailable = expandItemsAvailable;
+                ContainsNonSuggestionModeItem = containsNonSuggestionModeItem;
+                ContainsExclusiveContext = containsExclusiveContext;
+            }
+
+            public ImmutableArray<CompletionContext> GetExclusiveContexts()
+                => ContainsExclusiveContext ? NonEmptyContexts.WhereAsArray(c => c.IsExclusive) : ImmutableArray<CompletionContext>.Empty;
+        }
+
         internal TestAccessor GetTestAccessor()
             => new(this);
 
@@ -754,7 +764,7 @@ namespace Microsoft.CodeAnalysis.Completion
             internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
                 => _completionServiceWithProviders.GetAllProviders(roles);
 
-            internal Task<CompletionContext> GetContextAsync(
+            internal async Task<CompletionContext> GetContextAsync(
                 CompletionProvider provider,
                 Document document,
                 int position,
@@ -762,14 +772,17 @@ namespace Microsoft.CodeAnalysis.Completion
                 CompletionOptions options,
                 CancellationToken cancellationToken)
             {
-                return _completionServiceWithProviders.GetContextAsync(
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var defaultItemSpan = _completionServiceWithProviders.GetDefaultCompletionListSpan(text, position);
+
+                return await CompletionServiceWithProviders.GetContextAsync(
                     provider,
                     document,
                     position,
                     triggerInfo,
                     options,
-                    defaultSpan: null,
-                    cancellationToken);
+                    defaultItemSpan,
+                    cancellationToken).ConfigureAwait(false);
             }
 
             public void SuppressPartialSemantics()
