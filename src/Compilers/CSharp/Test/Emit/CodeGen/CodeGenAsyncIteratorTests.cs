@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -130,7 +131,9 @@ class C
         }
 
         private CSharpCompilation CreateCompilationWithAsyncIterator(CSharpTestSource source, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
-            => CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: options, parseOptions: parseOptions);
+            // Instrumented to investigate CI failure: https://github.com/dotnet/roslyn/issues/34207
+            => CreateCompilationWithTasksExtensions(new[] { (CSharpTestSource)source.GetSyntaxTrees(parseOptions, "source"), CSharpTestBase.Parse(AsyncStreamsTypes, filename: "AsyncStreamsTypes", parseOptions) },
+                options: options, parseOptions: parseOptions);
 
         [Fact]
         [WorkItem(38961, "https://github.com/dotnet/roslyn/issues/38961")]
