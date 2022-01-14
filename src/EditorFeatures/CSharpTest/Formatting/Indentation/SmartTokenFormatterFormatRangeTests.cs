@@ -3589,7 +3589,7 @@ class Program{
             }
 
             Assert.Equal(tokenKind, endToken.Kind());
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None);
+            var options = await document.GetOptionsAsync();
             var formatter = new CSharpSmartTokenFormatter(options, rules, root);
 
             var tokenRange = FormattingRangeHelper.FindAppropriateRange(endToken);

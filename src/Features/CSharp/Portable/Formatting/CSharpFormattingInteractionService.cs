@@ -222,8 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 documentOptions = await inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, explicitFormat: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
-            var options = SyntaxFormattingOptions.Create(documentOptions, services, document.Project.Language);
-
             // Do not attempt to format on open/close brace if autoformat on close brace feature is
             // off, instead just smart indent.
             //
@@ -253,42 +251,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // However, we won't touch any of the other code in that block, unlike if we were
             // formatting.
             var onlySmartIndent =
-                (token.IsKind(SyntaxKind.CloseBraceToken) && OnlySmartIndentCloseBrace(options)) ||
-                (token.IsKind(SyntaxKind.OpenBraceToken) && OnlySmartIndentOpenBrace(options));
+                (token.IsKind(SyntaxKind.CloseBraceToken) && OnlySmartIndentCloseBrace(documentOptions)) ||
+                (token.IsKind(SyntaxKind.OpenBraceToken) && OnlySmartIndentOpenBrace(documentOptions));
 
             if (onlySmartIndent)
             {
                 // if we're only doing smart indent, then ignore all edits to this token that occur before
                 // the span of the token. They're irrelevant and may screw up other code the user doesn't 
                 // want touched.
-                var tokenEdits = await FormatTokenAsync(document, options, token, formattingRules, cancellationToken).ConfigureAwait(false);
+                var tokenEdits = await FormatTokenAsync(document, documentOptions, token, formattingRules, cancellationToken).ConfigureAwait(false);
                 return tokenEdits.Where(t => t.Span.Start >= token.FullSpan.Start).ToImmutableArray();
             }
 
             // if formatting range fails, do format token one at least
-            var changes = await FormatRangeAsync(document, options, token, formattingRules, cancellationToken).ConfigureAwait(false);
+            var changes = await FormatRangeAsync(document, documentOptions, token, formattingRules, cancellationToken).ConfigureAwait(false);
             if (changes.Length > 0)
             {
                 return changes;
             }
 
-            return (await FormatTokenAsync(document, options, token, formattingRules, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
+            return (await FormatTokenAsync(document, documentOptions, token, formattingRules, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
         }
 
-        private static bool OnlySmartIndentCloseBrace(in SyntaxFormattingOptions options)
+        private static bool OnlySmartIndentCloseBrace(DocumentOptionSet options)
         {
             // User does not want auto-formatting (either in general, or for close braces in
             // specific).  So we only smart indent close braces when typed.
-            return !options.Options.GetOption(BraceCompletionOptions.AutoFormattingOnCloseBrace) ||
-                   !options.Options.GetOption(FormattingBehaviorOptions.AutoFormattingOnTyping);
+            return !options.GetOption(BraceCompletionOptions.AutoFormattingOnCloseBrace) ||
+                   !options.GetOption(FormattingBehaviorOptions.AutoFormattingOnTyping);
         }
 
-        private static bool OnlySmartIndentOpenBrace(in SyntaxFormattingOptions options)
+        private static bool OnlySmartIndentOpenBrace(DocumentOptionSet options)
         {
             // User does not want auto-formatting .  So we only smart indent open braces when typed.
             // Note: there is no specific option for controlling formatting on open brace.  So we
             // don't have the symmetry with OnlySmartIndentCloseBrace.
-            return !options.Options.GetOption(FormattingBehaviorOptions.AutoFormattingOnTyping);
+            return !options.GetOption(FormattingBehaviorOptions.AutoFormattingOnTyping);
         }
 
         private static async Task<SyntaxToken> GetTokenBeforeTheCaretAsync(Document document, int caretPosition, CancellationToken cancellationToken)
@@ -301,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return token;
         }
 
-        private static async Task<IList<TextChange>> FormatTokenAsync(Document document, SyntaxFormattingOptions options, SyntaxToken token, IEnumerable<AbstractFormattingRule> formattingRules, CancellationToken cancellationToken)
+        private static async Task<IList<TextChange>> FormatTokenAsync(Document document, OptionSet options, SyntaxToken token, IEnumerable<AbstractFormattingRule> formattingRules, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var formatter = CreateSmartTokenFormatter(options, formattingRules, root);
@@ -309,12 +307,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return changes;
         }
 
-        private static ISmartTokenFormatter CreateSmartTokenFormatter(SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
+        private static ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
             => new CSharpSmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)root);
 
         private static async Task<ImmutableArray<TextChange>> FormatRangeAsync(
             Document document,
-            SyntaxFormattingOptions options,
+            OptionSet options,
             SyntaxToken endToken,
             IEnumerable<AbstractFormattingRule> formattingRules,
             CancellationToken cancellationToken)
