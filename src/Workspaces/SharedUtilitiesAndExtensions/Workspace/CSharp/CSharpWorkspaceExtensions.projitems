@@ -60,6 +60,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CSharpSimplificationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NullableHelpers\NullableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntaxKindSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\NullableHelpers\NullableHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpWorkspaceExtensionsResources.resx" GenerateSource="true" Link="CSharpWorkspaceExtensionsResources.resx" />

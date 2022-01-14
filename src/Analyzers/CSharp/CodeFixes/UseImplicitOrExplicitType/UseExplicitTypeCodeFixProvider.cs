@@ -166,6 +166,83 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
         }
 
+        private static async Task HandleForEachStatementAsync(Document document, SyntaxEditor editor, ForEachStatementSyntax forEach, CancellationToken cancellationToken)
+        {
+            var typeSyntax = forEach.Type.StripRefIfNeeded();
+            var declarationSyntax = forEach.Identifier.Parent;
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
+
+            RoslynDebug.AssertNotNull(typeSymbol);
+            RoslynDebug.AssertNotNull(declarationSyntax);
+
+            typeSymbol = AdjustNullabilityOfTypeSymbol(
+                typeSymbol,
+                semanticModel,
+                declarationSyntax,
+                cancellationToken);
+
+            editor.ReplaceNode(typeSyntax, GenerateTypeDeclaration(typeSyntax, typeSymbol));
+        }
+
+        private static async Task HandleVariableDeclarationAsync(Document document, SyntaxEditor editor, VariableDeclarationSyntax varDecl, CancellationToken cancellationToken)
+        {
+            var typeSyntax = varDecl.Type.StripRefIfNeeded();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
+            RoslynDebug.AssertNotNull(typeSymbol);
+
+            // Since we're only dealing with variable declaration using var, we know
+            // that implicitly typed variables cannot have multiple declarators in
+            // a single declaration (CS0819). Only one variable should be present
+            var declarationSyntax = varDecl.Variables.Single().Identifier.Parent;
+            RoslynDebug.AssertNotNull(declarationSyntax);
+
+            typeSymbol = AdjustNullabilityOfTypeSymbol(
+                typeSymbol,
+                semanticModel,
+                declarationSyntax,
+                cancellationToken);
+
+            editor.ReplaceNode(typeSyntax, GenerateTypeDeclaration(typeSyntax, typeSymbol));
+        }
+
+        private static ITypeSymbol AdjustNullabilityOfTypeSymbol(
+            ITypeSymbol typeSymbol,
+            SemanticModel semanticModel,
+            SyntaxNode declarationSyntax,
+            CancellationToken cancellationToken)
+        {
+            if (typeSymbol.NullableAnnotation == NullableAnnotation.Annotated)
+            {
+                // It's possible that the var shouldn't be annotated nullable, check assignments to the variable and 
+                // determine if it needs to be null
+                var isPossiblyAssignedNull = NullableHelpers.IsDeclaredSymbolAssignedPossiblyNullValue(semanticModel, declarationSyntax, cancellationToken);
+                if (!isPossiblyAssignedNull)
+                {
+                    // If the symbol is never assigned null we can update the type symbol to also be non-null
+                    return typeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+                }
+            }
+
+            return typeSymbol;
+        }
+
+        private static SyntaxNode GenerateTypeDeclaration(TypeSyntax typeSyntax, ITypeSymbol newTypeSymbol)
+        {
+            // We're going to be passed through the simplifier.  Tell it to not just convert this back to var (as
+            // that would defeat the purpose of this refactoring entirely).
+            var newTypeSyntax = newTypeSymbol
+                         .GenerateTypeSyntax(allowVar: false)
+                         .WithTriviaFrom(typeSyntax);
+
+            Debug.Assert(!newTypeSyntax.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
+
+            return newTypeSyntax;
+        }
+
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)

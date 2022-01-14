@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType;
@@ -420,6 +418,462 @@ class C
     {
         string?[]?[,][,,]? v = s_data;
     }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment1()
+        {
+            var code = @"
+#nullable enable
+
+class C
+{
+    private static string s_data;
+
+    static void Main()
+    {
+        var[||] v = s_data;
+    }
+}";
+
+            var expected = @"
+#nullable enable
+
+class C
+{
+    private static string s_data;
+
+    static void Main()
+    {
+        string v = s_data;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment2()
+        {
+            var code = @"
+#nullable enable
+
+class C
+{
+    private static string s_data;
+
+    static void Main()
+    {
+        var[||] v = s_data;
+        v = null;
+    }
+}";
+
+            var expected = @"
+#nullable enable
+
+class C
+{
+    private static string s_data;
+
+    static void Main()
+    {
+        string? v = s_data;
+        v = null;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment3()
+        {
+            var code = @"
+#nullable enable
+
+class C
+{
+    private static string s_data;
+
+    static void Main()
+    {
+        var[||] v = s_data;
+        v = GetNullableString();
+    }
+
+    static string? GetNullableString() => null;
+}";
+
+            var expected = @"
+#nullable enable
+
+class C
+{
+    private static string s_data;
+
+    static void Main()
+    {
+        string? v = s_data;
+        v = GetNullableString();
+    }
+
+    static string? GetNullableString() => null;
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment_Foreach1()
+        {
+            var code = @"
+#nullable enable
+
+using System.Collections;
+
+class C
+{
+    static void Main()
+    {
+        foreach (var[||] item in new string?[] { """", null })
+        {
+        }
+    }
+}";
+
+            var expected = @"
+#nullable enable
+
+using System.Collections;
+
+class C
+{
+    static void Main()
+    {
+        foreach (string? item in new string?[] { """", null })
+        {
+        }
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment_Foreach2()
+        {
+            var code = @"
+#nullable enable
+
+using System.Collections;
+
+class C
+{
+    static void Main()
+    {
+        foreach (var[||] item in new string[] { """" })
+        {
+        }
+    }
+}";
+
+            var expected = @"
+#nullable enable
+
+using System.Collections;
+
+class C
+{
+    static void Main()
+    {
+        foreach (string item in new string[] { """" })
+        {
+        }
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment_Lambda1()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    private static string s_data = """";
+
+    static void Main()
+    {
+        Action a = () => {
+            var[||] v = s_data;
+            v = GetNullableString();
+        };
+    }
+
+    static string? GetNullableString() => null;
+}";
+
+            var expected = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    private static string s_data = """";
+
+    static void Main()
+    {
+        Action a = () => {
+            string? v = s_data;
+            v = GetNullableString();
+        };
+    }
+
+    static string? GetNullableString() => null;
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment_Lambda2()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Action a = () => {
+            var[||] v = """";
+            v = GetString();
+        };
+    }
+
+    static string GetString() => """";
+}";
+
+            var expected = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Action a = () => {
+            string v = """";
+            v = GetString();
+        };
+    }
+
+    static string GetString() => """";
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment_Lambda3()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    static void Main()
+    {
+        [||]var v = """";
+        Action a = () => {
+            v = GetString();
+        };
+    }
+
+    static string GetString() => """";
+}";
+
+            var expected = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    static void Main()
+    {
+        string v = """";
+        Action a = () => {
+            v = GetString();
+        };
+    }
+
+    static string GetString() => """";
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment_Lambda4()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    static void Main()
+    {
+        var[||] v = """";
+        Action a = () => {
+            v = GetString();
+        };
+    }
+
+    static string? GetString() => null;
+}";
+
+            var expected = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    static void Main()
+    {
+        string? v = """";
+        Action a = () => {
+            v = GetString();
+        };
+    }
+
+    static string? GetString() => null;
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment_Property1()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    string S
+    {
+        get 
+        {
+            var[||] v = """";
+            v = GetString();
+            return v;
+        }
+    }
+
+    static void Main()
+    {
+    }
+
+    static string GetString() => """";
+}";
+
+            var expected = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    string S
+    {
+        get 
+        {
+            string v = """";
+            v = GetString();
+            return v;
+        }
+    }
+
+    static void Main()
+    {
+    }
+
+    static string GetString() => """";
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment_Property2()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    string? S
+    {
+        get 
+        {
+            var[||] v = """";
+            v = GetString();
+            return v;
+        }
+    }
+
+    static void Main()
+    {
+    }
+
+    static string? GetString() => null;
+}";
+
+            var expected = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    string? S
+    {
+        get 
+        {
+            string? v = """";
+            v = GetString();
+            return v;
+        }
+    }
+
+    static void Main()
+    {
+    }
+
+    static string? GetString() => null;
 }";
 
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
