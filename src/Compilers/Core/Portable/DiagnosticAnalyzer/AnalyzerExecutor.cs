@@ -1657,9 +1657,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     diagnosticIds = diagnosticIds.Add(diagnostic.Id);
                 }
             }
-#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
-            catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e))
-#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
+            catch (Exception)
             {
                 // Intentionally empty
             }

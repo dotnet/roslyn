@@ -75,19 +75,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public IOperation? GetOperation(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
-            try
-            {
-                return GetOperationCore(node, cancellationToken);
-            }
-#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
-            catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e, cancellationToken))
-#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
-            {
-                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
-                Debug.Assert(false, "\n" + e.ToString());
-            }
-
-            return null;
+            return GetOperationCore(node, cancellationToken);
         }
 
         protected abstract IOperation? GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
