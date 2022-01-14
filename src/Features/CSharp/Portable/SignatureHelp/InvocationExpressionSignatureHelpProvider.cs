@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             else
             {
                 (items, selectedItem) = await GetMethodGroupItemsAndSelectionAsync(
-                    methods, document, invocationExpression, semanticModel, currentSymbol is null ? default : new SymbolInfo(currentSymbol), cancellationToken).ConfigureAwait(false);
+                    methods, document, invocationExpression, semanticModel, currentSymbol, cancellationToken).ConfigureAwait(false);
             }
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);

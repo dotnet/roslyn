@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             Document document,
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
-            SymbolInfo currentSymbol,
+            IMethodSymbol currentSymbol,
             CancellationToken cancellationToken)
         {
             return Task.FromResult(
                 (accessibleMethods.SelectAsArray(m => ConvertMethodGroupMethod(document, m, invocationExpression.SpanStart, semanticModel)),
-                TryGetSelectedIndex(accessibleMethods, currentSymbol.Symbol)));
+                TryGetSelectedIndex(accessibleMethods, currentSymbol)));
         }
 
         private static ImmutableArray<IMethodSymbol> GetAccessibleMethods(

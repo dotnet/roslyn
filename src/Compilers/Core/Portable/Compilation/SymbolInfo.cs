@@ -58,8 +58,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CandidateReason CandidateReason { get; }
 
-        // TODO2 confirm whether this is the right change, or we should change GetMethodGroupItemsAndSelectionAsync to take an ISymbol instead
-        public SymbolInfo(ISymbol symbol)
+        internal SymbolInfo(ISymbol symbol)
             : this(symbol, ImmutableArray<ISymbol>.Empty, CandidateReason.None)
         {
         }

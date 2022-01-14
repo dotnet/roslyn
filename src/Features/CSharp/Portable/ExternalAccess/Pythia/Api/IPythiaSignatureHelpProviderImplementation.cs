@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
     internal interface IPythiaSignatureHelpProviderImplementation
     {
-        Task<(ImmutableArray<PythiaSignatureHelpItemWrapper> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(ImmutableArray<IMethodSymbol> accessibleMethods, Document document, InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, SymbolInfo currentSymbol, CancellationToken cancellationToken);
+        Task<(ImmutableArray<PythiaSignatureHelpItemWrapper> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(ImmutableArray<IMethodSymbol> accessibleMethods, Document document, InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, IMethodSymbol currentSymbol, CancellationToken cancellationToken);
     }
 }

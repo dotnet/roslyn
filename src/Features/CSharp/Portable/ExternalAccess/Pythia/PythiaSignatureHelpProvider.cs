@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia
             Document document,
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
-            SymbolInfo currentSymbol,
+            IMethodSymbol currentSymbol,
             CancellationToken cancellationToken)
         {
             var (items, selectedItemIndex) = await _lazyImplementation.Value.GetMethodGroupItemsAndSelectionAsync(accessibleMethods, document, invocationExpression, semanticModel, currentSymbol, cancellationToken).ConfigureAwait(false);
