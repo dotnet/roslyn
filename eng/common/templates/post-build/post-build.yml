@@ -263,6 +263,5 @@ stages:
             -AzdoToken '$(publishing-dnceng-devdiv-code-r-build-re)'
             -MaestroToken '$(MaestroApiAccessToken)'
             -WaitPublishingFinish true
-            -PublishInstallersAndChecksums ${{ parameters.publishInstallersAndChecksums }}
             -ArtifactsPublishingAdditionalParameters '${{ parameters.artifactsPublishingAdditionalParameters }}'
             -SymbolPublishingAdditionalParameters '${{ parameters.symbolPublishingAdditionalParameters }}'
