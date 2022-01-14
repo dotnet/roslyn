@@ -10,9 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)AnalyzersResources.resx" GenerateSource="true" Link="AnalyzersResources.resx" />
-    <None Include="$(MSBuildThisFileDirectory)AnalyzersResources.resx">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="$(MSBuildThisFileDirectory)AnalyzersResources.resx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer.cs" />
