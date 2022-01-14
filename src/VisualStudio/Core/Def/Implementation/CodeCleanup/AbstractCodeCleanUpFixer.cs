@@ -302,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         private static bool CanCleanupProject(Project project)
             => project.LanguageServices.GetService<ICodeCleanupService>() != null;
 
-        private async Task<Document> FixDocumentAsync(
+        private static async Task<Document> FixDocumentAsync(
             Document document,
             FixIdContainer enabledFixIds,
             ProgressTracker progressTracker,
