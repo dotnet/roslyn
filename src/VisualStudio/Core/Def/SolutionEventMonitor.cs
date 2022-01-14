@@ -20,39 +20,24 @@ namespace Microsoft.VisualStudio.LanguageServices
         private const string SolutionClosing = "Solution Closing";
 
         private readonly UIContext _solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
-        private IGlobalOperationNotificationService? _notificationService;
+        private readonly IGlobalOperationNotificationService _notificationService;
         private readonly Dictionary<string, GlobalOperationRegistration> _operations = new();
 
         public SolutionEventMonitor(VisualStudioWorkspace workspace)
         {
-            if (workspace.Services.GetService<IGlobalOperationNotificationService>() is GlobalOperationNotificationService notificationService)
+            _notificationService = workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
+
+            RegisterEventHandler(KnownUIContexts.SolutionBuildingContext, SolutionBuildingContextChanged);
+            RegisterEventHandler(KnownUIContexts.SolutionOpeningContext, SolutionOpeningContextChanged);
+            RegisterEventHandler(_solutionClosingContext, SolutionClosingContextChanged);
+
+            static void RegisterEventHandler(UIContext context, EventHandler<UIContextChangedEventArgs> handler)
             {
-                // subscribe to events only if it is normal service. if it is one from unit test or other, don't bother to subscribe
-                _notificationService = notificationService;
-
                 // make sure we set initial state correctly. otherwise, we can get into a race where we might miss the very first events
-                if (KnownUIContexts.SolutionBuildingContext.IsActive)
-                {
-                    ContextChanged(active: true, operation: SolutionBuilding);
-                }
+                if (context.IsActive)
+                    handler(sender: null, UIContextChangedEventArgs.From(activated: true));
 
-                KnownUIContexts.SolutionBuildingContext.UIContextChanged += SolutionBuildingContextChanged;
-
-                // make sure we set initial state correctly. otherwise, we can get into a race where we might miss the very first events
-                if (KnownUIContexts.SolutionOpeningContext.IsActive)
-                {
-                    ContextChanged(active: true, operation: SolutionOpening);
-                }
-
-                KnownUIContexts.SolutionOpeningContext.UIContextChanged += SolutionOpeningContextChanged;
-
-                // make sure we set initial state correctly. otherwise, we can get into a race where we might miss the very first events
-                if (_solutionClosingContext.IsActive)
-                {
-                    ContextChanged(active: true, operation: SolutionClosing);
-                }
-
-                _solutionClosingContext.UIContextChanged += SolutionClosingContextChanged;
+                context.UIContextChanged += handler;
             }
         }
 
@@ -65,31 +50,22 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             _operations.Clear();
 
-            if (_notificationService != null)
-            {
-                _notificationService = null;
-                KnownUIContexts.SolutionBuildingContext.UIContextChanged -= SolutionBuildingContextChanged;
-                KnownUIContexts.SolutionOpeningContext.UIContextChanged -= SolutionOpeningContextChanged;
-                _solutionClosingContext.UIContextChanged -= SolutionClosingContextChanged;
-            }
+            KnownUIContexts.SolutionBuildingContext.UIContextChanged -= SolutionBuildingContextChanged;
+            KnownUIContexts.SolutionOpeningContext.UIContextChanged -= SolutionOpeningContextChanged;
+            _solutionClosingContext.UIContextChanged -= SolutionClosingContextChanged;
         }
 
-        private void SolutionBuildingContextChanged(object sender, UIContextChangedEventArgs e)
+        private void SolutionBuildingContextChanged(object? sender, UIContextChangedEventArgs e)
             => ContextChanged(e.Activated, SolutionBuilding);
 
-        private void SolutionOpeningContextChanged(object sender, UIContextChangedEventArgs e)
+        private void SolutionOpeningContextChanged(object? sender, UIContextChangedEventArgs e)
             => ContextChanged(e.Activated, SolutionOpening);
 
-        private void SolutionClosingContextChanged(object sender, UIContextChangedEventArgs e)
+        private void SolutionClosingContextChanged(object? sender, UIContextChangedEventArgs e)
             => ContextChanged(e.Activated, SolutionClosing);
 
         private void ContextChanged(bool active, string operation)
         {
-            if (_notificationService == null)
-            {
-                return;
-            }
-
             TryCancelPendingNotification(operation);
 
             if (active)
