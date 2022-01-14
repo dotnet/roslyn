@@ -198,4 +198,10 @@
   <data name="ArgumentException_OtherNotArrayOfCorrectLength" xml:space="preserve">
     <value>Object is not a array with the same number of elements as the array to compare it to.</value>
   </data>
+  <data name="Arg_BogusIComparer" xml:space="preserve">
+    <value>Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</value>
+  </data>
+  <data name="CannotFindOldValue" xml:space="preserve">
+    <value>Cannot find the old value</value>
+  </data>
 </root>

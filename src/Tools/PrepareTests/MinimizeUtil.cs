@@ -15,23 +15,42 @@ internal static class MinimizeUtil
 {
     internal record FilePathInfo(string RelativeDirectory, string Directory, string RelativePath, string FullPath);
 
-    internal static void Run(string sourceDirectory, string destinationDirectory)
+    internal static void Run(string sourceDirectory, string destinationDirectory, bool isUnix)
     {
-        // Map of all PE files MVID to the path information
-        var idToFilePathMap = new Dictionary<Guid, List<FilePathInfo>>();
-
         const string duplicateDirectoryName = ".duplicate";
         var duplicateDirectory = Path.Combine(destinationDirectory, duplicateDirectoryName);
         Directory.CreateDirectory(duplicateDirectory);
 
-        initialWalk();
+        // https://github.com/dotnet/roslyn/issues/49486
+        // we should avoid copying the files under Resources.
+        Directory.CreateDirectory(Path.Combine(destinationDirectory, "src/Workspaces/MSBuildTest/Resources"));
+        var individualFiles = new[]
+        {
+            "global.json",
+            "NuGet.config",
+            "src/Workspaces/MSBuildTest/Resources/global.json",
+            "src/Workspaces/MSBuildTest/Resources/Directory.Build.props",
+            "src/Workspaces/MSBuildTest/Resources/Directory.Build.targets",
+            "src/Workspaces/MSBuildTest/Resources/Directory.Build.rsp",
+            "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
+        };
+
+        foreach (var individualFile in individualFiles)
+        {
+            var outputPath = Path.Combine(destinationDirectory, individualFile);
+            var outputDirectory = Path.GetDirectoryName(outputPath)!;
+            CreateHardLink(outputPath, Path.Combine(sourceDirectory, individualFile));
+        }
+
+        // Map of all PE files MVID to the path information
+        var idToFilePathMap = initialWalk();
         resolveDuplicates();
         writeHydrateFile();
 
         // The goal of initial walk is to
         //  1. Record any PE files as they are eligable for de-dup
         //  2. Hard link all other files into destination directory
-        void initialWalk()
+        Dictionary<Guid, List<FilePathInfo>> initialWalk()
         {
             IEnumerable<string> directories = new[] {
                 Path.Combine(sourceDirectory, "eng")
@@ -40,61 +59,45 @@ internal static class MinimizeUtil
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "*.UnitTests"));
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "RunTests"));
 
-            foreach (var unitDirPath in directories)
+            var idToFilePathMap = directories.AsParallel()
+                .SelectMany(unitDirPath => walkDirectory(unitDirPath, sourceDirectory, destinationDirectory))
+                .GroupBy(pair => pair.mvid)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Select(pair => pair.pathInfo).ToList());
+
+            return idToFilePathMap;
+        }
+
+        static IEnumerable<(Guid mvid, FilePathInfo pathInfo)> walkDirectory(string unitDirPath, string sourceDirectory, string destinationDirectory)
+        {
+            string? lastOutputDirectory = null;
+            foreach (var sourceFilePath in Directory.EnumerateFiles(unitDirPath, "*", SearchOption.AllDirectories))
             {
-                foreach (var sourceFilePath in Directory.EnumerateFiles(unitDirPath, "*", SearchOption.AllDirectories))
-                {
-                    var currentDirName = Path.GetDirectoryName(sourceFilePath)!;
-                    var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName);
-                    var currentOutputDirectory = Path.Combine(destinationDirectory, currentRelativeDirectory);
-                    Directory.CreateDirectory(currentOutputDirectory);
-                    var fileName = Path.GetFileName(sourceFilePath);
-
-                    if (fileName.EndsWith(".dll") && TryGetMvid(sourceFilePath, out var mvid))
-                    {
-                        if (!idToFilePathMap.TryGetValue(mvid, out var list))
-                        {
-                            list = new List<FilePathInfo>();
-                            idToFilePathMap[mvid] = list;
-                        }
-
-                        var filePathInfo = new FilePathInfo(
-                            RelativeDirectory: currentRelativeDirectory,
-                            Directory: currentDirName,
-                            RelativePath: Path.Combine(currentRelativeDirectory, fileName),
-                            FullPath: sourceFilePath);
-                        list.Add(filePathInfo);
-                    }
-                    else
-                    {
-                        var destFilePath = Path.Combine(currentOutputDirectory, fileName);
-                        CreateHardLink(destFilePath, sourceFilePath);
-                    }
-                }
-            }
-
-            // https://github.com/dotnet/roslyn/issues/49486
-            // we should avoid copying the files under Resources.
-            var individualFiles = new[]
-            {
-                "./global.json",
-                "src/Workspaces/MSBuildTest/Resources/.editorconfig",
-                "src/Workspaces/MSBuildTest/Resources/global.json",
-                "src/Workspaces/MSBuildTest/Resources/Directory.Build.props",
-                "src/Workspaces/MSBuildTest/Resources/Directory.Build.targets",
-                "src/Workspaces/MSBuildTest/Resources/Directory.Build.rsp",
-                "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
-            };
-
-            foreach (var individualFile in individualFiles)
-            {
-                var currentDirName = Path.GetDirectoryName(individualFile)!;
+                var currentDirName = Path.GetDirectoryName(sourceFilePath)!;
                 var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName);
                 var currentOutputDirectory = Path.Combine(destinationDirectory, currentRelativeDirectory);
-                Directory.CreateDirectory(currentOutputDirectory);
+                if (currentOutputDirectory != lastOutputDirectory)
+                {
+                    Directory.CreateDirectory(currentOutputDirectory);
+                    lastOutputDirectory = currentOutputDirectory;
+                }
+                var fileName = Path.GetFileName(sourceFilePath);
 
-                var destGlobalJsonPath = Path.Combine(destinationDirectory, individualFile);
-                CreateHardLink(destGlobalJsonPath, Path.Combine(sourceDirectory, individualFile));
+                if (fileName.EndsWith(".dll", StringComparison.Ordinal) && TryGetMvid(sourceFilePath, out var mvid))
+                {
+                    var filePathInfo = new FilePathInfo(
+                        RelativeDirectory: currentRelativeDirectory,
+                        Directory: currentDirName,
+                        RelativePath: Path.Combine(currentRelativeDirectory, fileName),
+                        FullPath: sourceFilePath);
+                    yield return (mvid, filePathInfo);
+                }
+                else
+                {
+                    var destFilePath = Path.Combine(currentOutputDirectory, fileName);
+                    CreateHardLink(destFilePath, sourceFilePath);
+                }
             }
         }
 
@@ -116,7 +119,7 @@ internal static class MinimizeUtil
             }
         }
 
-        string getPeFileName(Guid mvid) => mvid.ToString();
+        static string getPeFileName(Guid mvid) => mvid.ToString();
 
         string getPeFilePath(Guid mvid) => Path.Combine(duplicateDirectory, getPeFileName(mvid));
 
@@ -126,26 +129,136 @@ internal static class MinimizeUtil
             var grouping = idToFilePathMap
                 .Where(x => x.Value.Count > 1)
                 .SelectMany(pair => pair.Value.Select(fp => (Id: pair.Key, FilePath: fp)))
-                .GroupBy(fp => fp.FilePath.RelativeDirectory);
+                .GroupBy(fp => getGroupDirectory(fp.FilePath.RelativeDirectory));
+
+            // The "rehydrate-all" script assumes we are running all tests on a single machine instead of on Helix.
+            var rehydrateAllBuilder = new StringBuilder();
+            if (isUnix)
+            {
+                writeUnixHeaderContent(rehydrateAllBuilder);
+                rehydrateAllBuilder.AppendLine("export HELIX_CORRELATION_PAYLOAD=$scriptroot/.duplicate");
+            }
+            else
+            {
+                rehydrateAllBuilder.AppendLine(@"set HELIX_CORRELATION_PAYLOAD=%~dp0\.duplicate");
+            }
+
             var builder = new StringBuilder();
-            var count = 0;
             foreach (var group in grouping)
             {
+                string filename;
+                builder.Clear();
+                if (isUnix)
+                {
+                    filename = "rehydrate.sh";
+                    writeUnixRehydrateContent(builder, group);
+                    rehydrateAllBuilder.AppendLine(@"bash """ + Path.Combine("$scriptroot", group.Key, "rehydrate.sh") + @"""");
+                }
+                else
+                {
+                    filename = "rehydrate.cmd";
+                    writeWindowsRehydrateContent(builder, group);
+                    rehydrateAllBuilder.AppendLine("call " + Path.Combine("%~dp0", group.Key, "rehydrate.cmd"));
+                }
+
+                File.WriteAllText(Path.Combine(destinationDirectory, group.Key, filename), builder.ToString());
+            }
+
+            string rehydrateAllFilename = isUnix ? "rehydrate-all.sh" : "rehydrate-all.cmd";
+            File.WriteAllText(Path.Combine(destinationDirectory, rehydrateAllFilename), rehydrateAllBuilder.ToString());
+
+            static void writeWindowsRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
+            {
+                builder.AppendLine("@echo off");
+                var count = 0;
                 foreach (var tuple in group)
                 {
-                    var source = Path.Combine(duplicateDirectoryName, getPeFileName(tuple.Id));
-                    var destFileName = Path.Combine(group.Key, Path.GetFileName(tuple.FilePath.FullPath));
-                    builder.AppendLine($@"New-Item -ItemType HardLink -Name {destFileName} -Value {source} -ErrorAction Stop | Out-Null");
+                    var source = getPeFileName(tuple.Id);
+                    var destFileName = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
+                    if (Path.GetDirectoryName(destFileName) is { Length: not 0 } directory)
+                    {
+                        builder.AppendLine($@"mkdir %~dp0\{directory} 2> nul");
+                    }
+                    builder.AppendLine($@"
+mklink /h %~dp0\{destFileName} %HELIX_CORRELATION_PAYLOAD%\{source} > nul
+if %errorlevel% neq 0 (
+    echo Cmd failed: mklink /h %~dp0\{destFileName} %HELIX_CORRELATION_PAYLOAD%\{source}
+    exit /b 1
+)");
+                    count++;
+                    if (count % 1_000 == 0)
+                    {
+                        builder.AppendLine($"echo {count:n0} hydrated");
+                    }
+                }
+                builder.AppendLine("@echo on"); // so the rest of the commands show up in helix logs
+            }
+
+            static void writeUnixHeaderContent(StringBuilder builder)
+            {
+                builder.AppendLine(@"#!/bin/bash
+
+source=""${BASH_SOURCE[0]}""
+
+# resolve $source until the file is no longer a symlink
+while [[ -h ""$source"" ]]; do
+scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
+source=""$(readlink ""$source"")""
+# if $source was a relative symlink, we need to resolve it relative to the path where the
+# symlink file was located
+[[ $source != /* ]] && source=""$scriptroot/$source""
+done
+scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
+");
+            }
+
+            static void writeUnixRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
+            {
+                writeUnixHeaderContent(builder);
+
+                var count = 0;
+                foreach (var tuple in group)
+                {
+                    var source = getPeFileName(tuple.Id);
+                    var destFilePath = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
+                    if (Path.GetDirectoryName(destFilePath) is { Length: not 0 } directory)
+                    {
+                        builder.AppendLine($@"mkdir -p ""$scriptroot/{directory}""");
+                    }
+                    builder.AppendLine($@"ln ""$HELIX_CORRELATION_PAYLOAD/{source}"" ""$scriptroot/{destFilePath}"" || exit $?");
 
                     count++;
                     if (count % 1_000 == 0)
                     {
-                        builder.AppendLine($"Write-Host '{count:n0} hydrated'");
+                        builder.AppendLine($"echo '{count:n0} hydrated'");
                     }
                 }
+
+                // Working around an AzDo file permissions bug.
+                // We want this to happen at the end so we can be agnostic about whether ilasm was already in the directory, or was linked in from the .duplicate directory.
+                builder.AppendLine();
+                builder.AppendLine(@"find $scriptroot -name ilasm -exec chmod 755 {} +");
             }
 
-            File.WriteAllText(Path.Combine(destinationDirectory, "rehydrate.ps1"), builder.ToString());
+            static string getGroupDirectory(string relativePath)
+            {
+                // artifacts/TestProject/Debug/net472/whatever/etc should become:
+                // artifacts/TestProject/Debug/net472
+
+                var groupDirectory = relativePath;
+                while (Path.GetFileName(Path.GetDirectoryName(groupDirectory)) is not (null or "Debug" or "Release"))
+                    groupDirectory = Path.GetDirectoryName(groupDirectory);
+
+                if (groupDirectory is null)
+                {
+                    // So far, this scenario doesn't seem to happen.
+                    // If it *did* happen, we'd want to know, but it isn't necessarily a problem.
+                    Console.WriteLine("Directory not grouped under configuration/TFM: " + relativePath);
+                    return relativePath;
+                }
+
+                return groupDirectory;
+            }
         }
     }
 
@@ -157,7 +270,7 @@ internal static class MinimizeUtil
             if (!success)
             {
                 // for debugging: https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes
-                throw new IOException($"Failed to create hard link from {fileName} to {existingFileName} with exception 0x{Marshal.GetLastWin32Error():X}");
+                throw new IOException($"Failed to create hard link from {existingFileName} to {fileName} with exception 0x{Marshal.GetLastWin32Error():X}");
             }
         }
         else

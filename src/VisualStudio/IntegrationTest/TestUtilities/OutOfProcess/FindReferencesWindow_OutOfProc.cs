@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -41,9 +39,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _inProc.GetContents(windowCaption);
         }
 
-        public void NavigateTo(string windowCaption, Reference reference, bool isPreview)
+        public void NavigateTo(string windowCaption, Reference reference, bool isPreview, bool shouldActivate)
         {
-            _inProc.NavigateTo(windowCaption, reference, isPreview);
+            _inProc.NavigateTo(windowCaption, reference, isPreview, shouldActivate);
+            WaitForNavigate();
+        }
+
+        private void WaitForNavigate()
+        {
+            // Navigation operations handled by Roslyn are tracked by FeatureAttribute.FindReferences
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.FindReferences);
+
+            // Navigation operations handled by the editor are tracked within its own JoinableTaskFactory instance
+            VisualStudioInstance.Editor.WaitForEditorOperations(Helper.HangMitigatingTimeout);
         }
     }
 }

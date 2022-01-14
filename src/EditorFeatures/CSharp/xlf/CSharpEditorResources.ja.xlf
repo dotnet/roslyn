@@ -72,6 +72,11 @@
         <target state="translated">モジュールが見つかりません</target>
         <note />
       </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="translated">namespace 外</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">(Tab キーを押して挿入)</target>

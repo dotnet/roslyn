@@ -30,7 +30,6 @@ using Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
@@ -300,38 +299,6 @@ End Class";
             }
 
             public override Workspace Workspace => _workspace;
-        }
-
-        private sealed class InvokeThrowsCancellationConnection : RemoteServiceConnection
-        {
-            private readonly CancellationTokenSource _source;
-
-            public InvokeThrowsCancellationConnection(CancellationTokenSource source)
-            {
-                _source = source;
-            }
-
-            public override void Dispose()
-            {
-            }
-
-            public override Task RunRemoteAsync(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            {
-                // cancel and throw cancellation exception
-                _source.Cancel();
-                _source.Token.ThrowIfCancellationRequested();
-
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            public override Task<T> RunRemoteAsync<T>(string targetName, Solution solution, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
-            {
-                // cancel and throw cancellation exception
-                _source.Cancel();
-                _source.Token.ThrowIfCancellationRequested();
-
-                throw ExceptionUtilities.Unreachable;
-            }
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract class AbstractSuppressionDiagnosticTest : AbstractUserDiagnosticTest
     {
-        public AbstractSuppressionDiagnosticTest(ITestOutputHelper logger = null)
+        protected AbstractSuppressionDiagnosticTest(ITestOutputHelper logger = null)
             : base(logger)
         {
         }

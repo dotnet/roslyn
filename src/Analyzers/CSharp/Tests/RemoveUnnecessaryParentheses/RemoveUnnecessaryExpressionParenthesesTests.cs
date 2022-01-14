@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         }
 
         internal override bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
-            => descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary) && descriptor.DefaultSeverity == DiagnosticSeverity.Hidden;
+            => descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary) && descriptor.DefaultSeverity == DiagnosticSeverity.Hidden;
 
         private static DiagnosticDescription GetRemoveUnnecessaryParenthesesDiagnostic(string text, int line, int column)
             => TestHelpers.Diagnostic(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, text, startLocation: new LinePosition(line, column));
@@ -2119,7 +2120,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 {
     void M()
     {
-#ifA || B
+#if A || B
 #endif
     }
 }",
@@ -2148,6 +2149,32 @@ offeredWhenRequireForClarityIsEnabled: true);
     }
 }",
 offeredWhenRequireForClarityIsEnabled: true, index: 1);
+        }
+
+        [WorkItem(57768, "https://github.com/dotnet/roslyn/issues/57768")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundPPDirective3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+#if C
+#elif$$(A || B)
+#endif
+    }
+}",
+@"class C
+{
+    void M()
+    {
+#if C
+#elif A || B
+#endif
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
@@ -2625,6 +2652,54 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         bool x = o is 1 or 2;
     }
 }", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [WorkItem(50025, "https://github.com/dotnet/roslyn/issues/50025")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestDoNotRemoveWithConstantAndTypeAmbiguity()
+        {
+            await TestMissingAsync(
+@"
+public class C
+{    
+    public const int Goo = 1;  
+    
+    public void M(Goo o)
+    {
+        if (o is $$(Goo)) M(1);
+    }
+}
+
+public class Goo { }");
+        }
+
+        [WorkItem(50025, "https://github.com/dotnet/roslyn/issues/50025")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestDoRemoveWithNoConstantAndTypeAmbiguity()
+        {
+            await TestAsync(
+@"
+public class C
+{    
+    public const int Goo = 1;  
+    
+    public void M(object o)
+    {
+        if (o is $$(Goo)) M(1);
+    }    
+}
+",
+@"
+public class C
+{    
+    public const int Goo = 1;  
+    
+    public void M(object o)
+    {
+        if (o is Goo) M(1);
+    }    
+}
+", offeredWhenRequireForClarityIsEnabled: true);
         }
     }
 }

@@ -212,6 +212,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitListPattern(BoundListPattern node)
+            {
+                VisitList(node.Subpatterns);
+                Visit(node.VariableAccess);
+                // Ignore indexer access (just a node to hold onto some symbols)
+                return null;
+            }
+
+            public override BoundNode? VisitSlicePattern(BoundSlicePattern node)
+            {
+                this.Visit(node.Pattern);
+                // Ignore indexer access (just a node to hold onto some symbols)
+                return null;
+            }
+
             public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
             {
                 this.Visit(node.Pattern);
@@ -226,15 +241,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
+            public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
             {
-                // We're not handling nopia object creations correctly
-                // https://github.com/dotnet/roslyn/issues/45082
-                if (node.InitializerExpressionOpt is object)
-                {
-                    VerifyExpression(node.InitializerExpressionOpt, overrideSkippedExpression: true);
-                }
+                // These nodes are only involved in return type inference for unbound lambdas. We don't analyze their subnodes, and no
+                // info is exposed to consumers.
                 return null;
+            }
+
+            public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
+            {
+                Visit(node.Receiver);
+                Visit(node.Argument);
+                Visit(node.IndexerOrSliceAccess);
+                return null;
+            }
+
+            public override BoundNode? VisitConversion(BoundConversion node)
+            {
+                if (node.ConversionKind == ConversionKind.InterpolatedStringHandler)
+                {
+                    Visit(node.Operand.GetInterpolatedStringHandlerData().Construction);
+                }
+
+                return base.VisitConversion(node);
             }
         }
 #endif

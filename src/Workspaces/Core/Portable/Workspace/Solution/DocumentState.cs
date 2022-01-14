@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis
             ValueSource<TreeAndVersion>? treeSource)
             : base(solutionServices, documentServiceProvider, attributes, sourceText, textSource)
         {
+            Contract.ThrowIfFalse(_options is null == _treeSource is null);
+
             _languageServices = languageServices;
             _options = options;
             _treeSource = treeSource;
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis
                 : "";
         }
 
-        private static ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(
+        protected static ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(
             ValueSource<TextAndVersion> newTextSource,
             ProjectId cacheKey,
             string? filePath,
@@ -133,7 +135,17 @@ namespace Microsoft.CodeAnalysis
             using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, s_fullParseLog, filePath, mode, cancellationToken))
             {
                 var textAndVersion = await newTextSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                return CreateTreeAndVersion(newTextSource, cacheKey, filePath, options, languageServices, mode, textAndVersion, cancellationToken);
+                var treeAndVersion = CreateTreeAndVersion(newTextSource, cacheKey, filePath, options, languageServices, mode, textAndVersion, cancellationToken);
+
+                // The tree may be a RecoverableSyntaxTree. In its initial state, the RecoverableSyntaxTree keeps a
+                // strong reference to the root SyntaxNode, and only transitions to a weak reference backed by temporary
+                // storage after the first time GetRoot (or GetRootAsync) is called. Since we know we are creating a
+                // RecoverableSyntaxTree for the purpose of avoiding problematic memory overhead, we call GetRoot
+                // immediately to force the object to weakly hold its data from the start.
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1307180
+                await treeAndVersion.Tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+                return treeAndVersion;
             }
         }
 
@@ -149,7 +161,17 @@ namespace Microsoft.CodeAnalysis
             using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, s_fullParseLog, filePath, mode, cancellationToken))
             {
                 var textAndVersion = newTextSource.GetValue(cancellationToken);
-                return CreateTreeAndVersion(newTextSource, cacheKey, filePath, options, languageServices, mode, textAndVersion, cancellationToken);
+                var treeAndVersion = CreateTreeAndVersion(newTextSource, cacheKey, filePath, options, languageServices, mode, textAndVersion, cancellationToken);
+
+                // The tree may be a RecoverableSyntaxTree. In its initial state, the RecoverableSyntaxTree keeps a
+                // strong reference to the root SyntaxNode, and only transitions to a weak reference backed by temporary
+                // storage after the first time GetRoot (or GetRootAsync) is called. Since we know we are creating a
+                // RecoverableSyntaxTree for the purpose of avoiding problematic memory overhead, we call GetRoot
+                // immediately to force the object to weakly hold its data from the start.
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1307180
+                treeAndVersion.Tree.GetRoot(cancellationToken);
+
+                return treeAndVersion;
             }
         }
 
@@ -207,7 +229,7 @@ namespace Microsoft.CodeAnalysis
                     return IncrementallyParse(newTextAndVersion, oldTreeAndVersion, cancellationToken);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -228,7 +250,7 @@ namespace Microsoft.CodeAnalysis
                     return IncrementallyParse(newTextAndVersion, oldTreeAndVersion, cancellationToken);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -715,8 +737,8 @@ namespace Microsoft.CodeAnalysis
             var oldTextContent = oldText?.ToString();
 
             // we time to time see (incremental) parsing bug where text <-> tree round tripping is broken.
-            // send NFW for those cases
-            FatalError.ReportAndCatch(new Exception($"tree and text has different length {newTree.Length} vs {newText.Length}"));
+            // send NFW for those cases, since we'll be in a very broken state at that point
+            FatalError.ReportAndCatch(new Exception($"tree and text has different length {newTree.Length} vs {newText.Length}"), ErrorSeverity.Critical);
 
             // this will make sure that these variables are not thrown away in the dump
             GC.KeepAlive(newTreeContent);

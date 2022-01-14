@@ -7,14 +7,39 @@
         <target state="translated">粘贴时添加缺少的 using 指令</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+        <source>Allow blank line after colon in constructor initializer</source>
+        <target state="translated">允许在构造函数初始值设定项中的冒号后面使用空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_lines_between_consecutive_braces">
+        <source>Allow blank lines between consecutive braces</source>
+        <target state="translated">允许在连续大括号之间使用空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_embedded_statements_on_same_line">
+        <source>Allow embedded statements on same line</source>
+        <target state="translated">允许将嵌入的语句放在同一行上</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
         <target state="translated">应用所有 C# 格式规则(缩进、换行、间隔)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_complete_statement_on_semicolon">
+        <source>Automatically complete statement on semicolon</source>
+        <target state="translated">以分号自动补全语句</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
-        <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">自动显示参数列表中的完成列表(实验性)</target>
+        <source>Automatically show completion list in argument lists</source>
+        <target state="translated">自动显示参数列表中的补全列表</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="translated">块范围限定</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -32,6 +57,11 @@
         <target state="translated">C# 格式规则</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="translated">完成</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
         <target state="translated">放弃</target>
@@ -42,9 +72,9 @@
         <target state="translated">编辑配色方案</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">设置文档的格式</target>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="translated">文件范围限定</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -87,6 +117,16 @@
         <target state="translated">在格式设置期间执行其他代码清理</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
+        <source>Place open brace on new line for object, collection, array, and with initializers</source>
+        <target state="translated">对于对象、集合、数组和 with 初始值设定项，另起一行放置左花括号</target>
+        <note>{Locked="with"}</note>
+      </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="translated">首选扩展属性模式</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">类型明显时首选隐式对象创建</target>
@@ -96,6 +136,16 @@
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">引用相等检查偏好 “is null”</target>
         <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">与类型检查相比，首选 Null 检查</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_parameter_null_checking">
+        <source>Prefer parameter null checking</source>
+        <target state="new">Prefer parameter null checking</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
@@ -265,11 +315,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
         <source>Place open brace on new line for methods and local functions</source>
         <target state="translated">将方法和本地函数的左大括号置于新行</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_and_array_initializers">
-        <source>Place open brace on new line for object, collection and array initializers</source>
-        <target state="translated">将对象、集合和数组初始值设定项的左大括号置于新行</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_types">
@@ -570,11 +615,6 @@
       <trans-unit id="Place_code_snippets_in_completion_lists">
         <source>Place _code snippets in completion lists</source>
         <target state="translated">将片段放入完成列表(_C)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Completion_Lists">
-        <source>Completion Lists</source>
-        <target state="translated">完成列表</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_In_Completion_List">

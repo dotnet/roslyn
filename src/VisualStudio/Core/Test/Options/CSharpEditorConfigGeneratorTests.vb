@@ -64,6 +64,7 @@ dotnet_style_require_accessibility_modifiers = for_non_interface_members
 dotnet_style_coalesce_expression = true
 dotnet_style_collection_initializer = true
 dotnet_style_explicit_tuple_names = true
+dotnet_style_namespace_match_folder = true
 dotnet_style_null_propagation = true
 dotnet_style_object_initializer = true
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
@@ -86,6 +87,10 @@ dotnet_code_quality_unused_parameters = all
 # Suppression preferences
 dotnet_remove_unnecessary_suppression_exclusions = none
 
+# New line preferences
+dotnet_style_allow_multiple_blank_lines_experimental = true
+dotnet_style_allow_statement_immediately_after_block_experimental = true
+
 #### C# Coding Conventions ####
 
 # var preferences
@@ -106,12 +111,14 @@ csharp_style_expression_bodied_properties = true
 # Pattern matching preferences
 csharp_style_pattern_matching_over_as_with_null_check = true
 csharp_style_pattern_matching_over_is_with_cast_check = true
+csharp_style_prefer_extended_property_pattern = true
 csharp_style_prefer_not_pattern = true
 csharp_style_prefer_pattern_matching = true
 csharp_style_prefer_switch_expression = true
 
 # Null-checking preferences
 csharp_style_conditional_delegate_call = true
+csharp_style_prefer_parameter_null_checking = true
 
 # Modifier preferences
 csharp_prefer_static_local_function = true
@@ -120,21 +127,29 @@ csharp_preferred_modifier_order = public,private,protected,internal,static,exter
 # Code-block preferences
 csharp_prefer_braces = true
 csharp_prefer_simple_using_statement = true
+csharp_style_namespace_declarations = block_scoped
 
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true
 csharp_style_deconstructed_variable_declaration = true
 csharp_style_implicit_object_creation_when_type_is_apparent = true
 csharp_style_inlined_variable_declaration = true
-csharp_style_pattern_local_over_anonymous_function = true
 csharp_style_prefer_index_operator = true
+csharp_style_prefer_local_over_anonymous_function = true
+csharp_style_prefer_null_check_over_type_check = true
 csharp_style_prefer_range_operator = true
+csharp_style_prefer_tuple_swap = true
 csharp_style_throw_expression = true
 csharp_style_unused_value_assignment_preference = discard_variable
 csharp_style_unused_value_expression_statement_preference = discard_variable
 
 # 'using' directive preferences
 csharp_using_directive_placement = outside_namespace
+
+# New line preferences
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true
+csharp_style_allow_embedded_statements_on_same_line_experimental = true
 
 #### C# Formatting Rules ####
 
@@ -283,6 +298,7 @@ dotnet_style_require_accessibility_modifiers = for_non_interface_members
 dotnet_style_coalesce_expression = true
 dotnet_style_collection_initializer = true
 dotnet_style_explicit_tuple_names = false:error
+dotnet_style_namespace_match_folder = true
 dotnet_style_null_propagation = true
 dotnet_style_object_initializer = true
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
@@ -305,6 +321,10 @@ dotnet_code_quality_unused_parameters = all
 # Suppression preferences
 dotnet_remove_unnecessary_suppression_exclusions = none
 
+# New line preferences
+dotnet_style_allow_multiple_blank_lines_experimental = true
+dotnet_style_allow_statement_immediately_after_block_experimental = true
+
 #### C# Coding Conventions ####
 
 # var preferences
@@ -325,12 +345,14 @@ csharp_style_expression_bodied_properties = true
 # Pattern matching preferences
 csharp_style_pattern_matching_over_as_with_null_check = true
 csharp_style_pattern_matching_over_is_with_cast_check = true
+csharp_style_prefer_extended_property_pattern = true
 csharp_style_prefer_not_pattern = true
 csharp_style_prefer_pattern_matching = true
 csharp_style_prefer_switch_expression = true
 
 # Null-checking preferences
 csharp_style_conditional_delegate_call = true
+csharp_style_prefer_parameter_null_checking = true
 
 # Modifier preferences
 csharp_prefer_static_local_function = true
@@ -339,21 +361,29 @@ csharp_preferred_modifier_order = public,private,protected,internal,static,exter
 # Code-block preferences
 csharp_prefer_braces = true
 csharp_prefer_simple_using_statement = true
+csharp_style_namespace_declarations = block_scoped
 
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true
 csharp_style_deconstructed_variable_declaration = true
 csharp_style_implicit_object_creation_when_type_is_apparent = true
 csharp_style_inlined_variable_declaration = true
-csharp_style_pattern_local_over_anonymous_function = true
 csharp_style_prefer_index_operator = true
+csharp_style_prefer_local_over_anonymous_function = true
+csharp_style_prefer_null_check_over_type_check = true
 csharp_style_prefer_range_operator = true
+csharp_style_prefer_tuple_swap = true
 csharp_style_throw_expression = true
 csharp_style_unused_value_assignment_preference = discard_variable
 csharp_style_unused_value_expression_statement_preference = discard_variable
 
 # 'using' directive preferences
 csharp_using_directive_placement = outside_namespace
+
+# New line preferences
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true
+csharp_style_allow_embedded_statements_on_same_line_experimental = true
 
 #### C# Formatting Rules ####
 

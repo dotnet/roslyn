@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -50,17 +52,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             IThreadingContext threadingContext,
             IInlineRenameService inlineRenameService,
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
             _inlineRenameService = inlineRenameService;
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
+            _globalOptions = globalOptions;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.RenameTracking);
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(_threadingContext, buffer, _inlineRenameService, _asyncListener, _diagnosticAnalyzerService));
+            var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(_threadingContext, buffer, _inlineRenameService, _diagnosticAnalyzerService, _globalOptions, _asyncListener));
             return new Tagger(stateMachine) as ITagger<T>;
         }
 
@@ -125,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 return default;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable;
             }

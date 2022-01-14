@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -22,6 +25,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly StreamingFindUsagesPresenter _presenter;
 
             public readonly DefinitionItem DefinitionItem;
+
+            /// <summary>
+            /// Due to linked files, we may have results for several locations that are all effectively
+            /// the same file/span.  So we represent this as one entry with several project flavors.  If
+            /// we get more than one flavor, we'll show that the user in the UI.
+            /// </summary>
+            private readonly Dictionary<(string? filePath, TextSpan span), DocumentSpanEntry> _locationToEntry = new();
 
             public RoslynDefinitionBucket(
                 string name,
@@ -41,7 +51,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public static RoslynDefinitionBucket Create(
                 StreamingFindUsagesPresenter presenter,
                 AbstractTableDataSourceFindUsagesContext context,
-                DefinitionItem definitionItem)
+                DefinitionItem definitionItem,
+                bool expandedByDefault)
             {
                 var isPrimary = definitionItem.Properties.ContainsKey(DefinitionItem.Primary);
 
@@ -49,12 +60,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var name = $"{(isPrimary ? 0 : 1)} {definitionItem.DisplayParts.JoinText()} {definitionItem.GetHashCode()}";
 
                 return new RoslynDefinitionBucket(
-                    name, expandedByDefault: true, presenter, context, definitionItem);
+                    name, expandedByDefault, presenter, context, definitionItem);
             }
 
-            public bool TryNavigateTo(bool isPreview)
-                => DefinitionItem.TryNavigateTo(
-                    _presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview); // Only activate the tab if not opening in preview
+            public bool CanNavigateTo()
+                => true;
+
+            public Task NavigateToAsync(bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
+                => DefinitionItem.TryNavigateToAsync(
+                    _presenter._workspace, showInPreviewTab: isPreview, activateTab: shouldActivate, cancellationToken); // Only activate the tab if requested
 
             public override bool TryGetValue(string key, out object? content)
             {
@@ -102,6 +116,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
 
                 return null;
+            }
+
+            public DocumentSpanEntry GetOrAddEntry(string? filePath, TextSpan sourceSpan, DocumentSpanEntry entry)
+            {
+                var key = (filePath, sourceSpan);
+                lock (_locationToEntry)
+                {
+                    return _locationToEntry.GetOrAdd(key, entry);
+                }
             }
         }
     }

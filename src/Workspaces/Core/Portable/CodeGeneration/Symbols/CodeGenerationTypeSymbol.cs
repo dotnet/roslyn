@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsReferenceType => false;
 
-        public bool IsValueType => TypeKind == TypeKind.Struct || TypeKind == TypeKind.Enum;
+        public bool IsValueType => TypeKind is TypeKind.Struct or TypeKind.Enum;
 
         public bool IsAnonymousType => false;
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         bool ITypeSymbol.IsReadOnly => Modifiers.IsReadOnly;
 
-        bool ITypeSymbol.IsRecord => throw new System.NotImplementedException();
+        public virtual bool IsRecord => false;
 
         public NullableAnnotation NullableAnnotation { get; }
 

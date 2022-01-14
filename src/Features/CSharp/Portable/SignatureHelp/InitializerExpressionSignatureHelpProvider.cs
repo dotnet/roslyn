@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Linq;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         public override bool IsTriggerCharacter(char ch)
-            => ch == '{' || ch == ',';
+            => ch is '{' or ',';
 
         public override bool IsRetriggerCharacter(char ch)
             => ch == '}';
@@ -46,31 +44,31 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         private static bool IsInitializerExpressionToken(InitializerExpressionSyntax expression, SyntaxToken token)
             => expression.Span.Contains(token.SpanStart) && token != expression.CloseBraceToken;
 
-        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!TryGetInitializerExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var initializerExpression))
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (!TryGetInitializerExpression(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var initializerExpression))
             {
                 return null;
             }
 
             var addMethods = await CommonSignatureHelpUtilities.GetCollectionInitializerAddMethodsAsync(
-                document, initializerExpression, cancellationToken).ConfigureAwait(false);
+                document, initializerExpression, options, cancellationToken).ConfigureAwait(false);
             if (addMethods.IsDefaultOrEmpty)
             {
                 return null;
             }
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(initializerExpression);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return CreateCollectionInitializerSignatureHelpItems(addMethods.Select(s =>
                 ConvertMethodGroupMethod(document, s, initializerExpression.OpenBraceToken.SpanStart, semanticModel)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 
-        public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
+        public override SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             if (TryGetInitializerExpression(
                     root,

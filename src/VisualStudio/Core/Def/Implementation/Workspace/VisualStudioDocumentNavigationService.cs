@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -61,7 +59,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _sourceGeneratedFileManager = sourceGeneratedFileManager;
         }
 
-        public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan)
+        public async Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+        {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            return CanNavigateToSpan(workspace, documentId, textSpan, cancellationToken);
+        }
+
+        public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             // Navigation should not change the context of linked files and Shared Projects.
             documentId = workspace.GetDocumentIdInCurrentContext(documentId);
@@ -71,8 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return true;
             }
 
-            var document = workspace.CurrentSolution.GetDocument(documentId);
-            var text = document.GetTextSynchronously(CancellationToken.None);
+            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
+            var text = document.GetTextSynchronously(cancellationToken);
 
             var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
             if (boundedTextSpan != textSpan)
@@ -93,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
         }
 
-        public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset)
+        public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
         {
             // Navigation should not change the context of linked files and Shared Projects.
             documentId = workspace.GetDocumentIdInCurrentContext(documentId);
@@ -103,14 +107,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return true;
             }
 
-            var document = workspace.CurrentSolution.GetDocument(documentId);
-            var text = document.GetTextSynchronously(CancellationToken.None);
+            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
+            var text = document.GetTextSynchronously(cancellationToken);
             var vsTextSpan = text.GetVsTextSpanForLineOffset(lineNumber, offset);
 
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
         }
 
-        public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0)
+        public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
             // Navigation should not change the context of linked files and Shared Projects.
             documentId = workspace.GetDocumentIdInCurrentContext(documentId);
@@ -120,8 +124,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return true;
             }
 
-            var document = workspace.CurrentSolution.GetDocument(documentId);
-            var text = document.GetTextSynchronously(CancellationToken.None);
+            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
+            var text = document.GetTextSynchronously(cancellationToken);
 
             var boundedPosition = GetPositionWithinDocumentBounds(position, text.Length);
             if (boundedPosition != position)
@@ -142,18 +146,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
         }
 
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options)
+        public async Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet? options, bool allowInvalidSpan, CancellationToken cancellationToken)
+        {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            return TryNavigateToSpan(workspace, documentId, textSpan, options, allowInvalidSpan, cancellationToken);
+        }
+
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet? options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             return TryNavigateToLocation(workspace,
                 documentId,
                 _ => textSpan,
-                text => GetVsTextSpan(text, textSpan),
-                options);
+                text => GetVsTextSpan(text, textSpan, allowInvalidSpan),
+                options,
+                cancellationToken);
 
-            static VsTextSpan GetVsTextSpan(SourceText text, TextSpan textSpan)
+            static VsTextSpan GetVsTextSpan(SourceText text, TextSpan textSpan, bool allowInvalidSpan)
             {
                 var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
-                if (boundedTextSpan != textSpan)
+                if (boundedTextSpan != textSpan && !allowInvalidSpan)
                 {
                     try
                     {
@@ -168,17 +179,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options)
+        public bool TryNavigateToLineAndOffset(
+            Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet? options, CancellationToken cancellationToken)
         {
             return TryNavigateToLocation(workspace,
                 documentId,
-                (document) => GetTextSpanFromLineAndOffset(document, lineNumber, offset),
-                (text) => GetVsTextSpan(text, lineNumber, offset),
-                options);
+                document => GetTextSpanFromLineAndOffset(document, lineNumber, offset, cancellationToken),
+                text => GetVsTextSpan(text, lineNumber, offset),
+                options,
+                cancellationToken);
 
-            static TextSpan GetTextSpanFromLineAndOffset(Document document, int lineNumber, int offset)
+            static TextSpan GetTextSpanFromLineAndOffset(Document document, int lineNumber, int offset, CancellationToken cancellationToken)
             {
-                var text = document.GetTextSynchronously(CancellationToken.None);
+                var text = document.GetTextSynchronously(cancellationToken);
 
                 var linePosition = new LinePosition(lineNumber, offset);
                 return text.Lines.GetTextSpan(new LinePositionSpan(linePosition, linePosition));
@@ -190,17 +203,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options)
+        public bool TryNavigateToPosition(
+            Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet? options, CancellationToken cancellationToken)
         {
             return TryNavigateToLocation(workspace,
                 documentId,
-                (document) => GetTextSpanFromPosition(document, position, virtualSpace),
-                (text) => GetVsTextSpan(text, position, virtualSpace),
-                options);
+                document => GetTextSpanFromPosition(document, position, virtualSpace, cancellationToken),
+                text => GetVsTextSpan(text, position, virtualSpace),
+                options,
+                cancellationToken);
 
-            static TextSpan GetTextSpanFromPosition(Document document, int position, int virtualSpace)
+            static TextSpan GetTextSpanFromPosition(Document document, int position, int virtualSpace, CancellationToken cancellationToken)
             {
-                var text = document.GetTextSynchronously(CancellationToken.None);
+                var text = document.GetTextSynchronously(cancellationToken);
                 text.GetLineAndOffset(position, out var lineNumber, out var offset);
 
                 offset += virtualSpace;
@@ -227,7 +242,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private bool TryNavigateToLocation(Workspace workspace, DocumentId documentId, Func<Document, TextSpan> getTextSpanForMapping, Func<SourceText, VsTextSpan> getVsTextSpan, OptionSet options)
+        private bool TryNavigateToLocation(
+            Workspace workspace,
+            DocumentId documentId,
+            Func<Document, TextSpan> getTextSpanForMapping,
+            Func<SourceText, VsTextSpan> getVsTextSpan,
+            OptionSet? options,
+            CancellationToken cancellationToken)
         {
             // Navigation should not change the context of linked files and Shared Projects.
             documentId = workspace.GetDocumentIdInCurrentContext(documentId);
@@ -237,53 +258,62 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 throw new InvalidOperationException(ServicesVSResources.Navigation_must_be_performed_on_the_foreground_thread);
             }
 
-            using (OpenNewDocumentStateScope(options ?? workspace.Options))
-            {
-                if (workspace.CurrentSolution.GetDocument(documentId) == null)
-                {
-                    // We unfortunately don't have a cancellation token to pass here right now; we don't expect this to be expensive though,
-                    // because if a feature is asking to navigate to this file, it's because they already know this file contains something interesting;
-                    // that probably means generators have already ran so this should be a no-op. If this proves to be wrong, we may want to refactor
-                    // this further to have the SourceGeneratedFileManager instead open the file asynchronously.
-                    var generatedDocument = workspace.CurrentSolution.GetProject(documentId.ProjectId)
-                                                                     .GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None)
-                                                                     .GetAwaiter().GetResult();
+            var solution = workspace.CurrentSolution;
 
+            using (OpenNewDocumentStateScope(options ?? solution.Options))
+            {
+                var document = solution.GetDocument(documentId);
+                if (document == null)
+                {
+                    var project = solution.GetProject(documentId.ProjectId);
+                    if (project is null)
+                    {
+                        // This is a source generated document shown in Solution Explorer, but is no longer valid since
+                        // the configuration and/or platform changed since the last generation completed.
+                        return false;
+                    }
+
+                    var generatedDocument = project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).AsTask().GetAwaiter().GetResult();
                     if (generatedDocument != null)
                     {
-                        _sourceGeneratedFileManager.Value.NavigateToSourceGeneratedFile(generatedDocument, getTextSpanForMapping(generatedDocument));
+                        _sourceGeneratedFileManager.Value.NavigateToSourceGeneratedFile(generatedDocument, getTextSpanForMapping(generatedDocument), cancellationToken);
                         return true;
                     }
+
+                    return false;
                 }
 
                 // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
-                var document = workspace.CurrentSolution.GetDocument(documentId);
-                var spanMappingService = document?.Services.GetService<ISpanMappingService>();
+                var spanMappingService = document.Services.GetService<ISpanMappingService>();
                 if (spanMappingService != null)
                 {
-                    var mappedSpan = GetMappedSpan(spanMappingService, document, getTextSpanForMapping(document));
+                    var mappedSpan = GetMappedSpan(spanMappingService, document, getTextSpanForMapping(document), cancellationToken);
                     if (mappedSpan.HasValue)
                     {
                         // Check if the mapped file matches one already in the workspace.
                         // If so use the workspace APIs to navigate to it.  Otherwise use VS APIs to navigate to the file path.
-                        var documentIdsForFilePath = workspace.CurrentSolution.GetDocumentIdsWithFilePath(mappedSpan.Value.FilePath);
+                        var documentIdsForFilePath = solution.GetDocumentIdsWithFilePath(mappedSpan.Value.FilePath);
                         if (!documentIdsForFilePath.IsEmpty)
                         {
                             // If the mapped file maps to the same document that was passed in, then re-use the documentId to preserve context.
                             // Otherwise, just pick one of the ids to use for navigation.
                             var documentIdToNavigate = documentIdsForFilePath.Contains(documentId) ? documentId : documentIdsForFilePath.First();
-                            return NavigateToFileInWorkspace(documentIdToNavigate, workspace, getVsTextSpan);
+                            return NavigateToFileInWorkspace(documentIdToNavigate, workspace, getVsTextSpan, cancellationToken);
                         }
 
-                        return TryNavigateToMappedFile(workspace, document, mappedSpan.Value);
+                        return TryNavigateToMappedFile(workspace, document, mappedSpan.Value, cancellationToken);
                     }
                 }
 
-                return NavigateToFileInWorkspace(documentId, workspace, getVsTextSpan);
+                return NavigateToFileInWorkspace(documentId, workspace, getVsTextSpan, cancellationToken);
             }
         }
 
-        private bool NavigateToFileInWorkspace(DocumentId documentId, Workspace workspace, Func<SourceText, VsTextSpan> getVsTextSpan)
+        private bool NavigateToFileInWorkspace(
+            DocumentId documentId,
+            Workspace workspace,
+            Func<SourceText, VsTextSpan> getVsTextSpan,
+            CancellationToken cancellationToken)
         {
             var document = OpenDocument(workspace, documentId);
             if (document == null)
@@ -291,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            var text = document.GetTextSynchronously(CancellationToken.None);
+            var text = document.GetTextSynchronously(cancellationToken);
             var textBuffer = text.Container.GetTextBuffer();
 
             var vsTextSpan = getVsTextSpan(text);
@@ -301,10 +331,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            return NavigateTo(textBuffer, vsTextSpan);
+            return NavigateTo(textBuffer, vsTextSpan, cancellationToken);
         }
 
-        private bool TryNavigateToMappedFile(Workspace workspace, Document generatedDocument, MappedSpanResult mappedSpanResult)
+        private bool TryNavigateToMappedFile(Workspace workspace, Document generatedDocument, MappedSpanResult mappedSpanResult, CancellationToken cancellationToken)
         {
             var vsWorkspace = (VisualStudioWorkspaceImpl)workspace;
             // TODO - Move to IOpenDocumentService - https://github.com/dotnet/roslyn/issues/45954
@@ -321,13 +351,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     iEndLine = mappedSpanResult.LinePositionSpan.End.Line
                 };
 
-                return NavigateTo(textBuffer, vsTextSpan);
+                return NavigateTo(textBuffer, vsTextSpan, cancellationToken);
             }
 
             return false;
         }
 
-        private MappedSpanResult? GetMappedSpan(ISpanMappingService spanMappingService, Document generatedDocument, TextSpan textSpan)
+        private MappedSpanResult? GetMappedSpan(ISpanMappingService spanMappingService, Document generatedDocument, TextSpan textSpan, CancellationToken cancellationToken)
         {
             // Mappings for opened razor files are retrieved via the LSP client making a request to the razor server.
             // If we wait for the result on the UI thread, we will hit a bug in the LSP client that brings us to a code path
@@ -335,7 +365,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Instead, we invoke this in JTF run which will mitigate deadlocks when the ConfigureAwait(true)
             // tries to switch back to the main thread in the LSP client.
             // Link to LSP client bug for ConfigureAwait(true) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1216657
-            var results = _threadingContext.JoinableTaskFactory.Run(() => spanMappingService.MapSpansAsync(generatedDocument, SpecializedCollections.SingletonEnumerable(textSpan), CancellationToken.None));
+            var results = _threadingContext.JoinableTaskFactory.Run(() => spanMappingService.MapSpansAsync(generatedDocument, SpecializedCollections.SingletonEnumerable(textSpan), cancellationToken));
 
             if (!results.IsDefaultOrEmpty)
             {
@@ -371,7 +401,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private static TextSpan GetSpanWithinDocumentBounds(TextSpan span, int documentLength)
             => TextSpan.FromBounds(GetPositionWithinDocumentBounds(span.Start, documentLength), GetPositionWithinDocumentBounds(span.End, documentLength));
 
-        private static Document OpenDocument(Workspace workspace, DocumentId documentId)
+        private static Document? OpenDocument(Workspace workspace, DocumentId documentId)
         {
             // Always open the document again, even if the document is already open in the 
             // workspace. If a document is already open in a preview tab and it is opened again 
@@ -389,9 +419,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return workspace.CurrentSolution.GetDocument(documentId);
         }
 
-        public bool NavigateTo(ITextBuffer textBuffer, VsTextSpan vsTextSpan)
+        public bool NavigateTo(ITextBuffer textBuffer, VsTextSpan vsTextSpan, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.NavigationService_VSDocumentNavigationService_NavigateTo, CancellationToken.None))
+            using (Logger.LogBlock(FunctionId.NavigationService_VSDocumentNavigationService_NavigateTo, cancellationToken))
             {
                 var vsTextBuffer = _editorAdaptersFactoryService.GetBufferAdapter(textBuffer);
                 if (vsTextBuffer == null)
@@ -421,7 +451,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private static bool IsSecondaryBuffer(Workspace workspace, DocumentId documentId)
         {
-            if (!(workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
+            if (workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace)
             {
                 return false;
             }

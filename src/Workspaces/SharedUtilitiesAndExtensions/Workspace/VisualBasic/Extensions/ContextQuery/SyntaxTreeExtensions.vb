@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             If targetToken.Parent.IsKind(SyntaxKind.ArgumentList) AndAlso
                TypeOf targetToken.Parent.Parent Is NewExpressionSyntax Then
 
-                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(targetToken.Parent.Parent, NewExpressionSyntax).Type())
+                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(targetToken.Parent.Parent, NewExpressionSyntax).Type(), cancellationToken)
                 Dim objectCreationType = TryCast(symbolInfo.Symbol, ITypeSymbol)
                 If objectCreationType IsNot Nothing AndAlso
                    objectCreationType.TypeKind = TypeKind.Delegate Then
@@ -788,7 +788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return False
             End If
 
-            Dim leftHandBinding = semanticModel.GetSymbolInfo(leftExpression)
+            Dim leftHandBinding = semanticModel.GetSymbolInfo(leftExpression, cancellationToken)
             Dim symbol = leftHandBinding.GetBestOrAllSymbols().FirstOrDefault()
 
             If symbol Is Nothing Then

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Xunit;
@@ -19,28 +20,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
         public static Workspace CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations()
-        {
-            var workspace = CreateWorkspace(new[]
+            => CreateWorkspace(new[]
             {
                 typeof(TestProjectCacheService),
                 typeof(TestTemporaryStorageService)
             });
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0)));
-            return workspace;
-        }
-
-        public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp)
-        {
-            return solution.AddProject(
-                ProjectInfo.Create(
-                    ProjectId.CreateNewId(),
-                    VersionStamp.Default,
-                    name: "TestProject",
-                    assemblyName: "TestProject",
-                    language: languageName)).Projects.Single();
-        }
+        public static Workspace CreateWorkspaceWithPartialSemanticsAndWeakCompilations()
+            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(new[] { typeof(TestProjectCacheService), typeof(TestTemporaryStorageService) });
 
 #nullable disable
 
@@ -104,7 +91,5 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Throws<ArgumentException>(() => factory(instanceWithNoItem, new TValue[] { item, item }));
             }
         }
-
-#nullable enable
     }
 }

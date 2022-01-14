@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="0_directive">
+        <source>#{0} directive</source>
+        <target state="translated">Direktiva #{0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AM_PM_abbreviated">
         <source>AM/PM (abbreviated)</source>
         <target state="translated">AM/PM (zkráceno)</target>
@@ -34,6 +39,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <source>A subtraction must be the last element in a character class</source>
         <target state="translated">Odčítání musí být posledním prvkem ve třídě znaků.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
+      </trans-unit>
+      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application">
+        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</source>
+        <target state="translated">Přístup k zachycené proměnné {0}, ke které se v {1} nepovedlo získat přístup, vyžaduje restartování aplikace.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
@@ -90,19 +100,94 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Přidat název elementu řazené kolekce členů {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání prvku {0} do metody rozhraní zabrání v pokračování relace ladění.</target>
+      <trans-unit id="Adding_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Adding {0} around an active statement requires restarting the application.</source>
+        <target state="translated">Přidání {0} kolem aktivního příkazu vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání prvku {0} do rozhraní zabrání v pokračování relace ladění.</target>
+      <trans-unit id="Adding_0_into_a_1_requires_restarting_the_application">
+        <source>Adding {0} into a {1} requires restarting the application.</source>
+        <target state="translated">Přidání {0} do {1} vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
-        <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání metody s explicitním specifikátorem rozhraní zabrání v pokračování relace ladění.</target>
+      <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_requires_restarting_the_application">
+        <source>Adding {0} into a class with explicit or sequential layout requires restarting the application.</source>
+        <target state="translated">Přidání {0} do třídy s explicitním nebo sekvenčním rozložením vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_requires_restarting_the_application">
+        <source>Adding {0} into a generic type requires restarting the application.</source>
+        <target state="translated">Přidání {0} do obecného typu vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_method_requires_restarting_the_application">
+        <source>Adding {0} into an interface method requires restarting the application.</source>
+        <target state="translated">Přidání {0} do metody rozhraní vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_requires_restarting_the_application">
+        <source>Adding {0} into an interface requires restarting the application.</source>
+        <target state="translated">Přidání {0} do rozhraní vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_requires_restarting_the_application">
+        <source>Adding {0} requires restarting the application.</source>
+        <target state="translated">Přidání {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
+        <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
+        <target state="translated">Přidání {0} s přístupem k zachyceným proměnným {1} a {2} deklarovaným v jiných oborech vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
+        <source>Adding {0} with the Handles clause requires restarting the application.</source>
+        <target state="translated">Přidání {0} s klauzulí Handles vyžaduje restartování aplikace.</target>
+        <note>{Locked="Handles"} "Handles" is VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adding_a_MustOverride_0_or_overriding_an_inherited_0_requires_restarting_the_application">
+        <source>Adding a MustOverride {0} or overriding an inherited {0} requires restarting the application.</source>
+        <target state="translated">Přidání {0} MustOverride nebo přepsání zděděného {0} vyžaduje restartování aplikace.</target>
+        <note>{Locked="MustOverride"} "MustOverride" is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_requires_restarting_the_application">
+        <source>Adding a constructor to a type with a field or property initializer that contains an anonymous function requires restarting the application.</source>
+        <target state="translated">Přidání konstruktoru k typu s inicializátorem pole nebo vlastnosti, který obsahuje anonymní funkci, vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_generic_0_requires_restarting_the_application">
+        <source>Adding a generic {0} requires restarting the application.</source>
+        <target state="translated">Přidání obecného {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_method_with_an_explicit_interface_specifier_requires_restarting_the_application">
+        <source>Adding a method with an explicit interface specifier requires restarting the application.</source>
+        <target state="translated">Přidání metody s explicitním specifikátorem rozhraní vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_new_file_requires_restarting_the_application">
+        <source>Adding a new file requires restarting the application.</source>
+        <target state="translated">Přidání nového souboru vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_user_defined_0_requires_restarting_the_application">
+        <source>Adding a user defined {0} requires restarting the application.</source>
+        <target state="translated">Přidání {0} definovaného uživatelem vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application">
+        <source>Adding an abstract {0} or overriding an inherited {0} requires restarting the application.</source>
+        <target state="translated">Přidání abstraktního {0} nebo přepsání zděděného {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_an_extern_0_requires_restarting_the_application">
+        <source>Adding an extern {0} requires restarting the application.</source>
+        <target state="translated">Přidání {0} extern vyžaduje restartování aplikace.</target>
+        <note>{Locked="extern"} "extern" is C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adding_an_imported_method_requires_restarting_the_application">
+        <source>Adding an imported method requires restarting the application.</source>
+        <target state="translated">Přidání importované metody vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -124,6 +209,46 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <source>Alternation conditions do not capture and cannot be named</source>
         <target state="translated">Podmínky alternativního výrazu nezachytávají a nejde je pojmenovat.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
+      </trans-unit>
+      <trans-unit id="An_update_that_causes_the_return_type_of_implicit_main_to_change_requires_restarting_the_application">
+        <source>An update that causes the return type of the implicit Main method to change requires restarting the application.</source>
+        <target state="translated">Aktualizace, která způsobí změnu návratového typu implicitní metody Main, vyžaduje restartování aplikace.</target>
+        <note>{Locked="Main"} is C# keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Apply_file_header_preferences">
+        <source>Apply file header preferences</source>
+        <target state="translated">Použít předvolby hlaviček souborů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_collection_initialization_preferences">
+        <source>Apply object/collection initialization preferences</source>
+        <target state="translated">Použít předvolby inicializace objektu/kolekce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
+        <source>Applying source changes while the application is running is not supported by the runtime.</source>
+        <target state="translated">Použití změn zdroje v době, kdy je aplikace spuštěna, není podporováno modulem runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_requires_restarting_the_application">
+        <source>Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</source>
+        <target state="translated">Atribut {0} chybí. Aktualizace asynchronní metody nebo iterátoru vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
+        <source>Asynchronously waits for the task to finish.</source>
+        <target state="translated">Asynchronně čeká na dokončení úlohy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Await_the_preceding_expression">
+        <source>Await the preceding expression</source>
+        <target state="translated">Počkat na předchozí výraz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
+        <source>Await the preceding expression and add ConfigureAwait({0}).</source>
+        <target state="translated">Počkejte na předchozí výraz a přidejte ConfigureAwait({0}).</target>
+        <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
@@ -160,6 +285,21 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Počet zachytávání nemůže být nulový</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
+      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
+        <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
+        <target state="translated">Zachycení proměnné {0}, která se předtím nezachytila, vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
+        <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
+        <target state="translated">Ukončení přístupu k zachycené proměnné {0} v {1} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
+        <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
+        <target state="translated">Ukončení zachytávání proměnné {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
         <source>&lt;infer&gt;</source>
         <target state="translated">&lt;vyvodit&gt;</target>
@@ -195,14 +335,74 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Změny provedené v projektu {0} se nepoužijí, dokud je aplikace spuštěná.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
-        <source>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</source>
-        <target state="translated">Pokud se změní {0} z asynchronního na synchronní, relace ladění nebude moct pokračovat.</target>
+      <trans-unit id="ChangesRequiredSynthesizedType">
+        <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
+        <target state="translated">Výsledkem jedné nebo více změn je, že kompilátor vytvoří nový typ, což vyžaduje restartování aplikace, protože tuto akci modul runtime nepodporuje.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
-        <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
-        <target state="translated">Pokud se změní {0} na {1}, relace ladění nebude moct pokračovat, protože dojde ke změně tvaru stavového počítače.</target>
+      <trans-unit id="Changing_0_from_asynchronous_to_synchronous_requires_restarting_the_application">
+        <source>Changing {0} from asynchronous to synchronous requires restarting the application.</source>
+        <target state="translated">Změna {0} z asynchronního na synchronní vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine">
+        <source>Changing '{0}' to '{1}' requires restarting the application because it changes the shape of the state machine.</source>
+        <target state="translated">Změna {0} na {1} vyžaduje restartování aplikace, protože mění tvar stavového stroje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_a_field_to_an_event_or_vice_versa_requires_restarting_the_application">
+        <source>Changing a field to an event or vice versa requires restarting the application.</source>
+        <target state="translated">Změna pole na událost nebo naopak vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
+        <source>Changing constraints of {0} requires restarting the application.</source>
+        <target state="translated">Změna omezení pro {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_parameter_types_of_0_requires_restarting_the_application">
+        <source>Changing parameter types of {0} requires restarting the application.</source>
+        <target state="translated">Změna typů parametrů u {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
+        <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
+        <target state="translated">Změna pseudovlastního atributu {0} u {1} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
+        <source>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</source>
+        <target state="translated">Změna oboru deklarace zachycené proměnné {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_parameters_of_0_requires_restarting_the_application">
+        <source>Changing the parameters of {0} requires restarting the application.</source>
+        <target state="translated">Změna parametrů {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_return_type_of_0_requires_restarting_the_application">
+        <source>Changing the return type of {0} requires restarting the application.</source>
+        <target state="translated">Změna návratového typu {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_type_of_0_requires_restarting_the_application">
+        <source>Changing the type of {0} requires restarting the application.</source>
+        <target state="translated">Změna typu {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
+        <source>Changing the type of a captured variable '{0}' previously of type '{1}' requires restarting the application.</source>
+        <target state="translated">Změna typu zachycené proměnné {0}, která měla dříve typ {1}, vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_type_parameters_of_0_requires_restarting_the_application">
+        <source>Changing type parameters of {0} requires restarting the application.</source>
+        <target state="translated">Změna parametrů obecného typu u {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_requires_restarting_the_application">
+        <source>Changing visibility of {0} requires restarting the application.</source>
+        <target state="translated">Změna viditelnosti {0} vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -245,14 +445,39 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Převést na LINQ (volání formuláře)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record">
+        <source>Convert to record</source>
+        <target state="translated">Převést na záznam</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_record_struct">
+        <source>Convert to record struct</source>
+        <target state="translated">Převést na strukturu záznamu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">Převést na strukturu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="translated">Převést na řazenou kolekci členů</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_type_to_0">
         <source>Convert type to '{0}'</source>
         <target state="translated">Převést typ na {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
+        <source>Could not find portable PDB on disk or embedded.</source>
+        <target state="translated">Na disku nebo vloženém disku se nepovedlo najít přenosný soubor PDB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded_or_server">
+        <source>Could not find PDB on disk, or embedded, or on a symbol server.</source>
+        <target state="translated">Soubor PDB nelze najít na disku, vloženém nebo na serveru symbolů.</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
@@ -273,6 +498,21 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">Vytvořit a přiřadit zbývající položky jako vlastnosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Deleting {0} around an active statement requires restarting the application.</source>
+        <target state="translated">Odstranění {0} kolem aktivního příkazu vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_0_requires_restarting_the_application">
+        <source>Deleting {0} requires restarting the application.</source>
+        <target state="translated">Odstranění {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
+        <source>Deleting captured variable '{0}' requires restarting the application.</source>
+        <target state="translated">Odstranění zachycené proměnné {0} vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -301,8 +541,8 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
-        <source>Changes made in project '{0}' will prevent the debug session from continuing: {1}</source>
-        <target state="translated">Změny provedené v projektu {0} znemožní relaci ladění pokračovat dále: {1}</target>
+        <source>Changes made in project '{0}' require restarting the application: {1}</source>
+        <target state="translated">Změny provedené v projektu {0} vyžadují restartování aplikace: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -320,6 +560,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Při vytváření instance CodeFixProvider {0} došlo k chybě.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_reading_PDB_0">
+        <source>Error reading PDB: '{0}'</source>
+        <target state="translated">Chyba při čtení PDB: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="translated">Příklad:</target>
@@ -329,6 +574,16 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <source>Examples:</source>
         <target state="translated">Příklady:</target>
         <note>Plural form when we have multiple examples to show.</note>
+      </trans-unit>
+      <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
+        <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
+        <target state="translated">Explicitně implementované metody záznamů musí mít názvy parametrů, které odpovídají kompilátorem vygenerovanému ekvivalentu {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="translated">Explicitně dědit dokumentaci</target>
+        <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
@@ -365,14 +620,54 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Opravit překlep {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="translated">Formátovat dokument</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">Formátuje se dokument.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Found_PDB_file_at_0">
+        <source>Found PDB file at '{0}'</source>
+        <target state="translated">V {0} se našel soubor PDB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server">
+        <source>Found PDB on symbol server.</source>
+        <target state="translated">Soubor PDB byl nalezen na serveru symbolů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server_but_could_not_read_file">
+        <source>Found PDB on symbol server but could not read file.</source>
+        <target state="translated">Soubor PDB se našel na serveru symbolů, ale nepovedlo se přečíst soubor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_embedded_PDB_file">
+        <source>Found embedded PDB file.</source>
+        <target state="translated">Byl nalezen vložený soubor PDB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_method_0">
+        <source>Generate abstract method '{0}'</source>
+        <target state="translated">Generovat abstraktní metodu {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_property_0">
+        <source>Generate abstract property '{0}'</source>
+        <target state="translated">Generovat abstraktní vlastnost {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Vygenerovat operátory porovnání</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constant_0">
+        <source>Generate constant '{0}'</source>
+        <target state="translated">Generovat konstantu {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -385,9 +680,24 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Vygenerovat konstruktor v {0} (s vlastnostmi)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_enum_member_0">
+        <source>Generate enum member '{0}'</source>
+        <target state="translated">Generovat člena výčtu {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_0">
+        <source>Generate field '{0}'</source>
+        <target state="translated">Generovat pole {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">Vygenerovat pro {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_method_0">
+        <source>Generate method '{0}'</source>
+        <target state="translated">Generovat metodu {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -398,6 +708,21 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
         <target state="translated">Generovat parametr {0} (a přepsání/implementace)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_property_0">
+        <source>Generate property '{0}'</source>
+        <target state="translated">Generovat vlastnost {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_field_0">
+        <source>Generate read-only field '{0}'</source>
+        <target state="translated">Generovat pole {0} jen pro čtení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_property_0">
+        <source>Generate read-only property '{0}'</source>
+        <target state="translated">Generovat vlastnost {0} jen pro čtení</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -460,6 +785,16 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Implementovat přes {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application">
+        <source>Implementing a record positional parameter '{0}' as read only requires restarting the application,</source>
+        <target state="translated">Implementace parametru pozičního záznamu {0} jako jen pro čtení vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application">
+        <source>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</source>
+        <target state="translated">Implementace parametru pozičního záznamu {0} s přístupovým objektem set vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">Neúplné uvození znaků \p{X}</target>
@@ -515,6 +850,21 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Zavést místní</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_parameter">
+        <source>Introduce parameter</source>
+        <target state="translated">Zavést parametr</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_0">
+        <source>Introduce parameter for '{0}'</source>
+        <target state="translated">Zavést parametr pro{0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_all_occurrences_of_0">
+        <source>Introduce parameter for all occurrences of '{0}'</source>
+        <target state="translated">Zavést parametr pro všechny výskyty položky {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_query_variable">
         <source>Introduce query variable</source>
         <target state="translated">Zavést proměnnou dotazu</target>
@@ -524,6 +874,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <source>Invalid group name: Group names must begin with a word character</source>
         <target state="translated">Neplatný název skupiny: Názvy skupin musí začínat znakem slova.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
+      </trans-unit>
+      <trans-unit id="Invalid_selection">
+        <source>Invalid selection.</source>
+        <target state="translated">Neplatný výběr</target>
+        <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
@@ -538,6 +893,16 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">Převrátit podmínku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application">
+        <source>Making a method an iterator requires restarting the application.</source>
+        <target state="translated">Změna metody na iterátor vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_asynchronous_requires_restarting_the_application">
+        <source>Making a method asynchronous requires restarting the application.</source>
+        <target state="translated">Změna metody na asynchronní vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -580,29 +945,99 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Metoda {0} musí vrátit stream, který podporuje operace čtení a hledání.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Miscellaneous_Files">
+        <source>Miscellaneous Files</source>
+        <target state="translated">Různé soubory</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Missing_control_character">
         <source>Missing control character</source>
         <target state="translated">Chybí řídicí znak</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
       </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">Pokud se změní {0} obsahující výraz switch, relace ladění nebude moct pokračovat.</target>
+      <trans-unit id="Modifying_0_which_contains_a_static_variable_requires_restarting_the_application">
+        <source>Modifying {0} which contains a static variable requires restarting the application.</source>
+        <target state="translated">Úprava {0} se statickou proměnnou vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
-        <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
-        <target state="translated">Když se upraví tělo funkce {0}, ladicí relace nebude moct pokračovat, protože tělo má příliš mnoho příkazů.</target>
+      <trans-unit id="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_requires_restarting_the_application">
+        <source>Modifying {0} which contains an Aggregate, Group By, or Join query clauses requires restarting the application.</source>
+        <target state="translated">Úprava {0} s klauzulí dotazu Aggregate, Group By nebo Join vyžaduje restartování aplikace.</target>
+        <note>{Locked="Aggregate"}{Locked="Group By"}{Locked="Join"} are VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_the_stackalloc_operator_requires_restarting_the_application">
+        <source>Modifying {0} which contains the stackalloc operator requires restarting the application.</source>
+        <target state="translated">Úprava {0} s operátorem stackalloc vyžaduje restartování aplikace.</target>
+        <note>{Locked="stackalloc"} "stackalloc" is C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_requires_restarting_the_application">
+        <source>Modifying a catch/finally handler with an active statement in the try block requires restarting the application.</source>
+        <target state="translated">Úprava obslužné rutiny catch/finally aktivním příkazem v bloku try vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">Po změně těla funkce {0} nebude moct ladicí relace pokračovat z důvodu interní chyby: {1}</target>
-        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
+      <trans-unit id="Modifying_a_catch_handler_around_an_active_statement_requires_restarting_the_application">
+        <source>Modifying a catch handler around an active statement requires restarting the application.</source>
+        <target state="translated">Úprava obslužné rutiny catch kolem aktivního příkazu vyžaduje restartování aplikace.</target>
+        <note />
       </trans-unit>
-      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
-        <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
-        <target state="translated">Když se upraví zdrojový soubor {0}, ladicí relace nebude moct pokračovat, protože soubor je příliš velký.</target>
+      <trans-unit id="Modifying_a_generic_method_requires_restarting_the_application">
+        <source>Modifying a generic method requires restarting the application.</source>
+        <target state="translated">Úprava obecné metody vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_method_inside_the_context_of_a_generic_type_requires_restarting_the_application">
+        <source>Modifying a method inside the context of a generic type requires restarting the application.</source>
+        <target state="translated">Úprava metody uvnitř kontextu obecného typu vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_requires_restarting_the_application">
+        <source>Modifying a try/catch/finally statement when the finally block is active requires restarting the application.</source>
+        <target state="translated">Úprava příkazu try/catch/finally, když je aktivní blok finally, vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application">
+        <source>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</source>
+        <target state="translated">Úprava aktivního {0} s příkazy On Error nebo Resume vyžaduje restartování aplikace.</target>
+        <note>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements">
+        <source>Modifying the body of {0} requires restarting the application because the body has too many statements.</source>
+        <target state="translated">Úprava těla {0} vyžaduje restartování aplikace, protože je v něm příliš mnoho příkazů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_due_to_internal_error_1">
+        <source>Modifying the body of {0} requires restarting the application due to internal error: {1}</source>
+        <target state="translated">Úprava těla {0} vyžaduje restartování aplikace kvůli vnitřní chybě: {1}</target>
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don't add any punctation after or around {1}</note>
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big">
+        <source>Modifying source file '{0}' requires restarting the application because the file is too big.</source>
+        <target state="translated">Změna zdrojového souboru {0} vyžaduje restartování aplikace, protože soubor je příliš velký.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1">
+        <source>Modifying source file '{0}' requires restarting the application due to internal error: {1}</source>
+        <target state="translated">Úprava zdrojového souboru {0} vyžaduje restartování aplikace kvůli vnitřní chybě: {1}</target>
+        <note>{2} is a multi-line exception message including a stacktrace. Place it at the end of the message and don't add any punctation after or around {1}</note>
+      </trans-unit>
+      <trans-unit id="Modifying_source_with_experimental_language_features_enabled_requires_restarting_the_application">
+        <source>Modifying source with experimental language features enabled requires restarting the application.</source>
+        <target state="translated">Úprava zdroje s povolenými experimentálními jazykovými funkcemi vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_requires_restarting_the_application">
+        <source>Modifying the initializer of {0} in a generic type requires restarting the application.</source>
+        <target state="translated">Úprava inicializátoru {0} v obecném typu vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_requires_restarting_the_application">
+        <source>Modifying whitespace or comments in {0} inside the context of a generic type requires restarting the application.</source>
+        <target state="translated">Úprava prázdných znaků nebo komentářů v {0} uvnitř kontextu obecného typu vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_whitespace_or_comments_in_a_generic_0_requires_restarting_the_application">
+        <source>Modifying whitespace or comments in a generic {0} requires restarting the application.</source>
+        <target state="translated">Úprava prázdných znaků nebo komentářů v obecném {0} vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -620,30 +1055,60 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Přesunout soubor do kořenové složky projektu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type">
+        <source>Move static members to another type...</source>
+        <target state="translated">Přesunout statické členy do jiného typu…</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to namespace...</source>
         <target state="translated">Přesunout do oboru názvů...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">Když se upraví zdrojový soubor {0}, ladicí relace nebude moct pokračovat kvůli vnitřní chybě: {1}</target>
-        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
+      <trans-unit id="Moving_0_requires_restarting_the_application">
+        <source>Moving {0} requires restarting the application.</source>
+        <target state="translated">Přesunutí {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating_to_symbol_0_from_1">
+        <source>Navigating to symbol '{0}' from '{1}'.</source>
+        <target state="translated">Přechází se na symbol {0} z {1}.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
         <target state="translated">Vnořený kvantifikátor {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
+      <trans-unit id="No_common_root_node_for_extraction">
+        <source>No common root node for extraction.</source>
+        <target state="translated">Žádný společný kořenový uzel pro extrakci</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_source_document_info_found_in_PDB">
+        <source>No source document info found in PDB.</source>
+        <target state="translated">V souboru PDB se nenašly žádné informace o zdrojovém dokumentu.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
         <source>No valid location to insert method call.</source>
         <target state="translated">Není k dispozici žádné platné umístění, kam vložit volání metody.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_valid_selection_to_perform_extraction">
+        <source>No valid selection to perform extraction.</source>
+        <target state="translated">Žádný platný výběr k provedení extrakce</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
         <source>Not enough )'s</source>
         <target state="translated">Nedostatek znaků )</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
+      </trans-unit>
+      <trans-unit id="Operators">
+        <source>Operators</source>
+        <target state="translated">Operátory</target>
+        <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
@@ -806,12 +1271,12 @@ Tato možnost se doporučuje, pokud víte, že zpětné vyhledávání nepovede 
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
         <source>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
         <target state="translated">Definice vyrovnávací skupiny odstraní definici dříve definované skupiny a uloží interval mezi dříve definovanou skupinou a aktuální skupinou do aktuální skupiny.
-    
+
 Skupina name1 je aktuální skupina (volitelná), skupina name2 je dříve definovaná skupina a subexpression je libovolný platný vzor regulárního výrazu. Definice vyrovnávací skupiny odstraní definici skupiny name2 a uloží interval mezi skupinami name2 a name1 do skupiny name1. Pokud není definována žádná skupina name2, porovnávání se vrátí zpět. Vzhledem k tomu, že odstraněním poslední definice skupiny name2 se odkryje předchozí definice skupiny name2, umožňuje tento konstruktor použít zásobník zachycení pro skupinu name2 jako čítač pro uchování přehledu o vnořených konstruktorech, jako jsou kulaté nebo hranaté otevírací a uzavírací závorky.
 
 Definice vyrovnávací skupiny používá jako zásobník skupinu name2. Počáteční znak každého vnořeného konstruktoru se umístí do této skupiny a do její kolekce Group.Captures. Po nalezení uzavíracího znaku se odpovídající otevírací znak odebere ze skupiny a kolekce Captures se zmenší o jednu položku. Po nalezení otevíracích a uzavíracích znaků všech vnořených konstruktorů bude skupina name1 prázdná.</target>
@@ -1825,6 +2290,41 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Odebrat modifikátor async</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_casts">
+        <source>Remove unnecessary casts</source>
+        <target state="translated">Odebrat nepotřebná přetypování</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_variables">
+        <source>Remove unused variables</source>
+        <target state="translated">Odebrat nepoužívané proměnné</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
+        <source>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
+        <target state="translated">Odebrání {0} s přístupem k zachyceným proměnným {1} a {2} deklarovaným v jiných oborech vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">
+        <source>Removing {0} that contains an active statement requires restarting the application.</source>
+        <target state="translated">Odstranění {0} s aktivním příkazem vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_requires_restarting_the_application">
+        <source>Renaming {0} requires restarting the application.</source>
+        <target state="translated">Přejmenování {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Renaming {0} requires restarting the application because it is not supported by the runtime.</source>
+        <target state="translated">Změna názvu {0} vyžaduje restartování aplikace, protože tuto akci modul runtime nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_a_captured_variable_from_0_to_1_requires_restarting_the_application">
+        <source>Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</source>
+        <target state="translated">Změna názvu zachycené proměnné z {0} na {1} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Místo {0} použijte {1}</target>
@@ -1838,6 +2338,36 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Hrubá úprava</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_does_not_contain_a_valid_token">
+        <source>Selection does not contain a valid token.</source>
+        <target state="translated">Výběr neobsahuje platný token.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_not_contained_inside_a_type">
+        <source>Selection not contained inside a type.</source>
+        <target state="translated">Výběr není obsažený v typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Silent">
+        <source>Silent</source>
+        <target state="translated">Silent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_accessibility_modifiers">
+        <source>Sort accessibility modifiers</source>
+        <target state="translated">Seřadit modifikátory dostupnosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_code_language_information_was_not_found_in_PDB">
+        <source>Source code language information was not found in PDB.</source>
+        <target state="translated">Informace o jazyku zdrojového kódu nebyly v souboru PDB nalezeny.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_is_a_reference_assembly">
+        <source>Source is a reference assembly, not enough information to find PDB.</source>
+        <target state="translated">Zdroj je referenční sestavení, nedostatek informací pro vyhledání souboru PDB.</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -1858,6 +2388,16 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">Potlačit {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Switching_between_lambda_and_local_function_requires_restarting_the_application">
+        <source>Switching between a lambda and a local function requires restarting the application.</source>
+        <target state="translated">Přepnutí mezi funkcí lambda a místní funkcí vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="translated">V cestě sestavení {0} byl nalezen symbol.</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
@@ -1885,6 +2425,16 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Výběr obsahuje volání lokální funkce, aniž by byla deklarovaná.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Timeout_SourceLink">
+        <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
+        <target state="translated">Při pokusu o stažení zdrojového kódu ze zdrojového odkazu vypršel časový limit. Následné žádosti můžou být úspěšné.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Timeout_symbol_server">
+        <source>Timed out trying to download PDB from symbol server. Subsequent requests may succeed.</source>
+        <target state="translated">Při pokusu o stažení souboru PDB ze serveru symbolů vypršel časový limit. Následné žádosti můžou být úspěšné.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Too_many_bars_in_conditional_grouping">
         <source>Too many | in (?()|)</source>
         <target state="translated">Příliš mnoho znaků | ve výrazu (?()|)</target>
@@ -1894,6 +2444,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <source>Too many )'s</source>
         <target state="translated">Příliš mnoho znaků )</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
+      </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="translated">Typy:</target>
+        <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
@@ -1975,9 +2530,104 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Zrušit zalomení seznamu parametrů</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Pokud se aktualizuje {0} v okolí aktivního příkazu, relace ladění nebude moct pokračovat.</target>
+      <trans-unit id="Updating_0_requires_restarting_the_application">
+        <source>Updating '{0}' requires restarting the application.</source>
+        <target state="translated">Aktualizace {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating a {0} around an active statement requires restarting the application.</source>
+        <target state="translated">Aktualizace {0} kolem aktivního příkazu vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_requires_restarting_the_application">
+        <source>Updating a complex statement containing an await expression requires restarting the application.</source>
+        <target state="translated">Aktualizace komplexního příkazu obsahujícího výraz await vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_an_active_statement_requires_restarting_the_application">
+        <source>Updating an active statement requires restarting the application.</source>
+        <target state="translated">Aktualizace aktivního příkazu vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
+        <target state="translated">Aktualizace modifikátoru async nebo iterator kolem aktivního příkazu vyžaduje restartování aplikace.</target>
+        <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Updating a reloadable type (marked by {0}) or its member requires restarting the application because is not supported by the runtime.</source>
+        <target state="translated">Aktualizace typu pro opětovné načtení (označeného {0}) nebo jeho člena vyžaduje restartování aplikace, protože tuto akci modul runtime nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_Handles_clause_of_0_requires_restarting_the_application">
+        <source>Updating the Handles clause of {0} requires restarting the application.</source>
+        <target state="translated">Aktualizace klauzule Handles {0} vyžaduje restartování aplikace.</target>
+        <note>{Locked="Handles"} "Handles" is VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_Implements_clause_of_a_0_requires_restarting_the_application">
+        <source>Updating the Implements clause of a {0} requires restarting the application.</source>
+        <target state="translated">Aktualizace klauzule Implements pro {0} vyžaduje restartování aplikace.</target>
+        <note>{Locked="Implements"} "Implements" is VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_alias_of_Declare_statement_requires_restarting_the_application">
+        <source>Updating the alias of Declare statement requires restarting the application.</source>
+        <target state="translated">Aktualizace aliasu příkazu Declare vyžaduje restartování aplikace.</target>
+        <note>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Updating the attributes of {0} requires restarting the application because it is not supported by the runtime.</source>
+        <target state="translated">Aktualizace atributů {0} vyžaduje restartování aplikace, protože tuto akci modul runtime nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_requires_restarting_the_application">
+        <source>Updating the base class and/or base interface(s) of {0} requires restarting the application.</source>
+        <target state="translated">Aktualizace základní třídy nebo základních rozhraní {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_initializer_of_0_requires_restarting_the_application">
+        <source>Updating the initializer of {0} requires restarting the application.</source>
+        <target state="translated">Aktualizace inicializátoru pro {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_kind_of_a_property_event_accessor_requires_restarting_the_application">
+        <source>Updating the kind of a property/event accessor requires restarting the application.</source>
+        <target state="translated">Aktualizace druhu přístupového objektu vlastnosti nebo události vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_kind_of_a_type_requires_restarting_the_application">
+        <source>Updating the kind of a type requires restarting the application.</source>
+        <target state="translated">Aktualizace typu vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_library_name_of_Declare_statement_requires_restarting_the_application">
+        <source>Updating the library name of Declare statement requires restarting the application.</source>
+        <target state="translated">Aktualizace názvu knihovny příkazu Declare vyžaduje restartování aplikace.</target>
+        <note>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_modifiers_of_0_requires_restarting_the_application">
+        <source>Updating the modifiers of {0} requires restarting the application.</source>
+        <target state="translated">Aktualizace modifikátorů pro {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_size_of_a_0_requires_restarting_the_application">
+        <source>Updating the size of a {0} requires restarting the application.</source>
+        <target state="translated">Aktualizace velikosti {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
+        <source>Updating the type of {0} requires restarting the application.</source>
+        <target state="translated">Aktualizace typu {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_underlying_type_of_0_requires_restarting_the_application">
+        <source>Updating the underlying type of {0} requires restarting the application.</source>
+        <target state="translated">Aktualizace základního typu {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_variance_of_0_requires_restarting_the_application">
+        <source>Updating the variance of {0} requires restarting the application.</source>
+        <target state="translated">Aktualizace variance {0} vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -2065,6 +2715,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Zalamování</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
+        <source>You can use the navigation bar to switch contexts.</source>
+        <target state="translated">Pro přepínání kontextů můžete použít navigační panel.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
         <target state="translated">Hodnota {0} nemůže být nulová a toto pole nemůže být prázdné.</target>
@@ -2077,7 +2732,47 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="_0_dash_1">
         <source>{0} - {1}</source>
-        <target state="new">{0} - {1}</target>
+        <target state="translated">{0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB">
+        <source>'{0}' found in embedded PDB.</source>
+        <target state="translated">Ve vloženém souboru PDB se našel {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_checksum_failed">
+        <source>'{0}' found in embedded PDB but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">Ve vloženém souboru PDB byl nalezen {0}, ale kontrolní součet byl chybný nebo nešlo přečíst dočasný soubor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_could_not_write_file_1">
+        <source>'{0}' found in embedded PDB but could not write to temp file: '{1}'</source>
+        <target state="translated">Ve vloženém souboru PDB se našel {0}, ale nebylo možné zapisovat do dočasného souboru: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_cached_source_file">
+        <source>'{0}' found in embedded PDB and found cached source file.</source>
+        <target state="translated">Ve vloženém souboru PDB se našel {0} a zdrojový soubor uložený v mezipaměti.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location">
+        <source>'{0}' found in original location.</source>
+        <target state="translated">{0} se našel v původním umístění.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location_but_checksum_failed">
+        <source>'{0}' found in original location but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">V původním umístění byl nalezen {0}, ale kontrolní součet byl chybný nebo nešlo přečíst dočasný soubor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink">
+        <source>'{0}' found via SourceLink.</source>
+        <target state="translated">{0} se našel přes SourceLink.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink_but_couldnt_read_file">
+        <source>'{0}' found via SourceLink but couldn't read temp file.</source>
+        <target state="translated">{0} se našel přes SourceLink, ale nepovedlo se přečíst dočasný soubor.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -2252,13 +2947,13 @@ Ačkoli je možné tuto část sekundy hodnoty času zobrazit, nemusí tato hodn
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="translated">Specifikátor vlastního formátu f představuje platné číslici zlomku sekund. To znamená, že v hodnotě data a času představuje desetiny sekundy.
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+        <target state="translated">Specifikátor vlastního formátu "f" představuje platné číslici zlomku sekund. To znamená, že v hodnotě data a času představuje desetiny sekundy.
 
-Pokud se specifikátor formátu f použije bez jiných specifikátorů formátu, interpretuje se jako standardní specifikátor formátu data a času f.
+Pokud se specifikátor formátu "f" použije bez jiných specifikátorů formátu, interpretuje se jako standardní specifikátor formátu data a času "f".
 
-Když specifikátor formátu f použijete v rámci řetězce formátu, který se předává metodám ParseExact, TryParseExact, ParseExact nebo TryParseExact, počet specifikátorů formátu f určuje počet platných číslic zlomku sekundy, který musí být k dispozici pro úspěšné parsování řetězce.</target>
-        <note />
+Když specifikátor formátu "f" použijete v rámci řetězce formátu, který se předává metodám ParseExact nebo TryParseExact, počet specifikátorů formátu "f" určuje počet platných číslic zlomku sekundy, který musí být k dispozici pro úspěšné parsování řetězce.</target>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
@@ -2324,6 +3019,21 @@ Pokud se specifikátor formátu H použije bez dalších specifikátorů vlastn�
       <trans-unit id="_24_hour_clock_2_digits_description">
         <source>The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</source>
         <target state="translated">Specifikátor vlastního formátu HH reprezentuje hodinu jako číslo od 00 do 23. To znamená, že hodina je reprezentována ve 24hodinovém formátu, který začíná na nule a počítá hodiny od půlnoci. Hodina s jednou číslicí se formátuje s nulou na začátku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="all_anonymous_types_in_container">
+        <source>all anonymous types in container</source>
+        <target state="translated">všechny anonymní typy v kontejneru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="and_update_call_sites_directly">
+        <source>and update call sites directly</source>
+        <target state="translated">a aktualizovat místa volání přímo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="code">
+        <source>code</source>
+        <target state="translated">code</target>
         <note />
       </trans-unit>
       <trans-unit id="date_separator">
@@ -2393,6 +3103,16 @@ Pokud se specifikátor formátu d použije bez dalších specifikátorů vlastn�
         <target state="translated">proměnná typu discard</target>
         <note />
       </trans-unit>
+      <trans-unit id="embedded">
+        <source>embedded</source>
+        <target state="translated">zapuštěná</target>
+        <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
+      </trans-unit>
+      <trans-unit id="external">
+        <source>external</source>
+        <target state="translated">external</target>
+        <note>External means "external source", meaning source files that are not part of the current solution</note>
+      </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>
         <target state="translated">z metadat</target>
@@ -2454,12 +3174,27 @@ Specifikátor standardního formátu f představuje kombinaci vzorů dlouhého d
       </trans-unit>
       <trans-unit id="in_0_1_2">
         <source>in {0} ({1} - {2})</source>
-        <target state="new">in {0} ({1} - {2})</target>
+        <target state="translated">v {0} ({1}–{2})</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">in Source (atribut)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
+        <source>into extracted method to invoke at call sites</source>
+        <target state="translated">do extrahované metody pro vyvolání na místech volání</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_new_overload">
+        <source>into new overload</source>
+        <target state="translated">do nového přetížení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="just_this_anonymous_type">
+        <source>just this anonymous type</source>
+        <target state="translated">jenom tento anonymní typ</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
@@ -2481,6 +3216,11 @@ Specifikátor standardního formátu f představuje kombinaci vzorů dlouhého d
         <source>The "T" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.LongTimePattern property. For example, the custom format string for the invariant culture is "HH:mm:ss".</source>
         <target state="translated">Specifikátor standardního formátu T představuje řetězec vlastního formátu data a času, který se definuje pomocí vlastnosti DateTimeFormatInfo.LongTimePattern konkrétní jazykové verze. Například řetězec vlastního formátu pro invariantní jazykovou verzi je HH:mm:ss.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="translated">{0} {1}</target>
+        <note>e.g. "method 'M'"</note>
       </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
@@ -2695,36 +3435,6 @@ Pokud se specifikátor formátu M použije bez dalších specifikátorů vlastn�
         <target state="translated">Generovat všechno</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_enum_member_1_0">
-        <source>Generate enum member '{1}.{0}'</source>
-        <target state="translated">Generovat člena výčtu {1}.{0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constant_1_0">
-        <source>Generate constant '{1}.{0}'</source>
-        <target state="translated">Generovat konstantu {1}.{0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_1_0">
-        <source>Generate read-only property '{1}.{0}'</source>
-        <target state="translated">Generovat vlastnost jen pro čtení {1}.{0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_1_0">
-        <source>Generate property '{1}.{0}'</source>
-        <target state="translated">Generovat vlastnost {1}.{0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_1_0">
-        <source>Generate read-only field '{1}.{0}'</source>
-        <target state="translated">Generovat pole jen pro čtení {1}.{0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_1_0">
-        <source>Generate field '{1}.{0}'</source>
-        <target state="translated">Generovat pole {1}.{0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_local_0">
         <source>Generate local '{0}'</source>
         <target state="translated">Generovat místní: {0}</target>
@@ -2810,11 +3520,6 @@ Pokud se specifikátor formátu M použije bez dalších specifikátorů vlastn�
         <target state="translated">Zavést proměnnou dotazu pro {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">Anonymní typy:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="is_">
         <source>is</source>
         <target state="translated">je</target>
@@ -2862,6 +3567,11 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">Specifikátory vlastního formátu g nebo gg (a libovolný počet dalších specifikátorů g) představují období, třeba př. n. l. Pokud datum, které se má formátovat, nemá přidružený řetězec období, operace formátování tento specifikátor ignoruje.
 
 Pokud se specifikátor formátu g použije bez dalších specifikátorů vlastního formátu, interpretuje se jako standardní specifikátor formátu data a času g.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="property_accessor">
+        <source>property accessor</source>
+        <target state="translated">Přistupující objekt vlastnosti</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
@@ -2924,351 +3634,6 @@ Pokud se specifikátor formátu g použije bez dalších specifikátorů vlastn�
         <target state="translated">neznámé umístění</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace prvku {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a complex statement containing an await expression will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace komplexního příkazu, který obsahuje výraz await, znemožní relaci ladění pokračovat.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">Změna viditelnosti konstruktoru znemožní relaci ladění pokračovat.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
-        <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
-        <target state="translated">Zachycení proměnné {0}, která se nezachytila dřív, zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_capture_variable_0_will_prevent_the_debug_session_from_continuing">
-        <source>Ceasing to capture variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Ukončení zachycování proměnné {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting captured variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Odstranění zachycené proměnné {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the type of a captured variable '{0}' previously of type '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">Změna typu zachycené proměnné {0}, která měla dřív typ {1}, zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_parameters_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the parameters of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Změna parametrů pro {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_return_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the return type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Změna návratového typu pro {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Změna typu pro {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the declaration scope of a captured variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Změna oboru deklarace zachycené proměnné {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing">
-        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} will prevent the debug session from continuing.</source>
-        <target state="translated">Přístup k zachycené proměnné {0}, ke které se nepřistupovalo dřív v {1}, zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_will_prevent_the_debug_session_from_continuing">
-        <source>Ceasing to access captured variable '{0}' in {1} will prevent the debug session from continuing.</source>
-        <target state="translated">Ukončení přístupu k zachycené proměnné {0} v {1} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' that accesses captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</source>
-        <target state="translated">Pokud se přidá {0} (přistupující k zachyceným proměnným {1} a {2} deklarovaným v různých oborech), zabrání se tím v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing">
-        <source>Removing '{0}' that accessed captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</source>
-        <target state="translated">Pokud se odebere {0} (dříve přistupující k zachyceným proměnným {1} a {2} deklarovaným v různých oborech), zabrání se tím v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání prvku {0} do {1} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání prvku {0} do třídy s explicitním nebo sekvenčním rozložením zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the modifiers of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace modifikátorů pro {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the Handles clause of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace klauzule Handles pro {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_with_the_Handles_clause_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' with the Handles clause will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání prvku {0} s klauzulí Handles zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the Implements clause of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace klauzule Implements pro {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">Změna omezení z {0} na {1} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace odchylky pro {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace typu pro {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_initializer_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the initializer of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace inicializátoru pro {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_size_of_a_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the size of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace velikosti pro {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_underlying_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the underlying type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace základního typu pro {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace základní třídy nebo základních rozhraní pro {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a field to an event or vice versa will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace pole na událost nebo naopak zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_type_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a type will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace tohoto druhu typu zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace druhu přistupujícího objektu pro vlastnost/událost zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace tohoto druhu metody (Sub/Function) zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the library name of Declare Statement will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace názvu knihovny pro deklaraci příkazu zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_alias_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the alias of Declare Statement will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace aliasu pro deklaraci příkazu zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Renaming_0_will_prevent_the_debug_session_from_continuing">
-        <source>Renaming '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Přejmenování prvku {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání prvku {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding an abstract '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání abstraktu {0} nebo přepsání zděděného {0} znemožní relaci ladění pokračovat.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_MustOverride_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a MustOverride '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání MustOverride {0} nebo přepsání zděděného {0} znemožní relaci ladění pokračovat.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_an_extern_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding an extern '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání externího prvku {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_an_imported_method_will_prevent_the_debug_session_from_continuing">
-        <source>Adding an imported method will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání importované metody zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_user_defined_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a user defined '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání uživatelem definovaného prvku {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_generic_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a generic '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání obecného prvku {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání prvku {0} v okolí aktivního příkazu zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Moving_0_will_prevent_the_debug_session_from_continuing">
-        <source>Moving '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Přesunutí prvku {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Odstranění prvku {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Odstranění prvku {0} v okolí aktivního příkazu zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">Přidání těla metody zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a method body will prevent the debug session from continuing.</source>
-        <target state="translated">Odstranění těla metody zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
-        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
-        <target state="translated">Aktivní příkaz je odstraněný z jeho původní metody. Pro pokračování musíte vzít zpátky změny nebo restartovat ladicí relaci.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace modifikátoru async nebo iterator kolem aktivního příkazu bude bránit relaci ladění v tom, aby pokračovala.</target>
-        <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a generic method will prevent the debug session from continuing.</source>
-        <target state="translated">Modifikace obecné metody zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_whitespace_or_comments_in_a_generic_0_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying whitespace or comments in a generic '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Modifikace prázdné mezery nebo komentářů v obecné metodě {0} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_method_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a method inside the context of a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">Modifikace metody v kontextu obecného typu zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying whitespace or comments in '{0}' inside the context of a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">Modifikace prázdné mezery nebo komentářů v {0} v kontextu obecného typu zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">Modifikace inicializátoru pro {0} v obecném typu zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_the_initializer_of_0_in_a_partial_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</source>
-        <target state="translated">Modifikace inicializátoru pro {0} v částečném typu zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing.</source>
-        <target state="translated">Přidáním konstruktoru do typu s inicializátorem pole nebo vlastnosti obsahujícím anonymní funkci zabráníte ladicí relaci v pokračování.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Renaming_a_captured_variable_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Renaming a captured variable, from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">Přejmenováním zachycené proměnné z {0} na {1} zabráníte ladicí relaci v pokračování.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing.</source>
-        <target state="translated">Modifikace obslužné rutiny catch/finally pomocí aktivního příkazu v bloku try zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a try/catch/finally statement when the finally block is active will prevent the debug session from continuing.</source>
-        <target state="translated">Modifikace příkazu try/catch/finally, když je aktivní blok finally, zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_catch_handler_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a catch handler around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Modifikace obslužné rutiny catch kolem aktivního příkazu zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</source>
-        <target state="translated">Modifikace prvku {0}, který obsahuje operátor stackalloc, zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</source>
-        <target state="translated">Modifikace aktivního prvku {0}, který obsahuje příkazy On Error nebo Resume, zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing.</source>
-        <target state="translated">Pokud se změní {0} obsahující klauzule dotazu Aggregate, Group By nebo Join, zabrání se tím v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_source_with_experimental_language_features_enabled_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying source with experimental language features enabled will prevent the debug session from continuing.</source>
-        <target state="translated">Modifikace zdroje s aktivovanými experimentálními jazykovými funkcemi zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace aktivního příkazu zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Removing '{0}' that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Odebrání prvku {0}, který obsahuje aktivní příkaz, zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a new file will prevent the debug session from continuing.</source>
-        <target state="translated">Když přidáte nový soubor, relace ladění nebude moct pokračovat.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_will_prevent_the_debug_session_from_continuing">
-        <source>Attribute '{0}' is missing. Updating an async method or an iterator will prevent the debug session from continuing.</source>
-        <target state="translated">Chybí atribut {0}. Aktualizace asynchronní metody nebo iterátoru zabrání relaci ladění v pokračování.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unexpected_interface_member_kind_colon_0">
         <source>Unexpected interface member kind: {0}</source>
         <target state="translated">Neočekávaný druh člena rozhraní: {0}</target>
@@ -3277,21 +3642,6 @@ Pokud se specifikátor formátu g použije bez dalších specifikátorů vlastn�
       <trans-unit id="Unknown_symbol_kind">
         <source>Unknown symbol kind</source>
         <target state="translated">Neznámý druh symbolu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_property_1_0">
-        <source>Generate abstract property '{1}.{0}'</source>
-        <target state="translated">Generovat abstraktní vlastnost {1}.{0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_method_1_0">
-        <source>Generate abstract method '{1}.{0}'</source>
-        <target state="translated">Generovat abstraktní metodu {1}.{0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_method_1_0">
-        <source>Generate method '{1}.{0}'</source>
-        <target state="translated">Generovat metodu {1}.{0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
@@ -3381,18 +3731,13 @@ Chcete pokračovat?</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_Available">
-        <source>Not Available</source>
-        <target state="translated">Není k dispozici</target>
+        <source>Not Available ⚠</source>
+        <target state="translated">Není k dispozici ⚠</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
         <source>    {0} - {1}</source>
         <target state="translated">    {0} – {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_can_use_the_navigation_bar_to_switch_context">
-        <source>You can use the navigation bar to switch context.</source>
-        <target state="translated">Pro přepínání kontextu můžete použít navigační panel.</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
@@ -3488,11 +3833,6 @@ Chcete pokračovat?</target>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
         <source>TODO: set large fields to null</source>
         <target state="translated">TODO: Nastavte velká pole na hodnotu null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</source>
-        <target state="translated">Pokud se změní {0} obsahující statickou proměnnou, zabrání se tím v pokračování relace ladění.</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">
@@ -3655,6 +3995,11 @@ When this standard format specifier is used, the formatting or parsing operation
 Když se tento specifikátor standardního formátu použije, operace formátování nebo parsování vždy použije invariantní jazykovou verzi.</target>
         <note />
       </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="translated">statický konstruktor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'Symbol nemůže být obor názvů.</target>
@@ -3706,6 +4051,11 @@ If the "K" format specifier is used without other custom format specifiers, it's
 Pro hodnoty DateTimeOffset je specifikátor formátu K ekvivalentní specifikátoru formátu zzz a vytváří výsledný řetězec, který obsahuje posun hodnoty DateTimeOffset proti UTC.
 
 Pokud se specifikátor formátu K použije bez dalších specifikátorů vlastního formátu, interpretuje se jako standardní specifikátor formátu data a času a vyvolá FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type">
+        <source>type</source>
+        <target state="translated">typ</target>
         <note />
       </trans-unit>
       <trans-unit id="type_constraint">
@@ -3965,16 +4315,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Přidat chybějící uzly parametrů</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_containing_scope_async">
-        <source>Make containing scope async</source>
-        <target state="translated">Převést obsažený obor na asynchronní</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async_return_Task">
-        <source>Make containing scope async (return Task)</source>
-        <target state="translated">Převést obsažený obor na asynchronní (návratová hodnota Task)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(neznámé)</target>
@@ -4218,11 +4558,6 @@ Tato verze se používá zde: {2}.</target>
       <trans-unit id="Use_0">
         <source>Use {0}</source>
         <target state="translated">Použít {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing">
-        <source>Switching between a lambda and a local function will prevent the debug session from continuing.</source>
-        <target state="translated">Přepínání mezi lambda a lokální funkcí zabrání v pokračování ladicí relace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">

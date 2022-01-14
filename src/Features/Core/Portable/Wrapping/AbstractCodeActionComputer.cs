@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -80,10 +81,11 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 UseTabs = options.GetOption(FormattingOptions.UseTabs);
                 TabSize = options.GetOption(FormattingOptions.TabSize);
                 NewLine = options.GetOption(FormattingOptions.NewLine);
-                WrappingColumn = options.GetOption(FormattingOptions2.PreferredWrappingColumn);
+                WrappingColumn = options.GetOption(FormattingBehaviorOptions.PreferredWrappingColumn);
 
                 var generator = SyntaxGenerator.GetGenerator(document);
-                NewLineTrivia = new SyntaxTriviaList(generator.EndOfLine(NewLine));
+                var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+                NewLineTrivia = new SyntaxTriviaList(generatorInternal.EndOfLine(NewLine));
                 SingleWhitespaceTrivia = new SyntaxTriviaList(generator.Whitespace(" "));
             }
 
@@ -103,13 +105,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     FormattingOptions.IndentStyle.Smart,
                     CancellationToken);
 
-                var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
-                var baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start;
-
-                var indent = baseOffsetInLine + desiredIndentation.Offset;
-
-                var indentString = indent.CreateIndentationString(UseTabs, TabSize);
-                return indentString;
+                return desiredIndentation.GetIndentationString(newSourceText, UseTabs, TabSize);
             }
 
             /// <summary>

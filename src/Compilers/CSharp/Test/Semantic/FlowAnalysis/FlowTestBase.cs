@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     continue;
                 }
 
-                var boundBody = MethodCompiler.BindMethodBody(sourceSymbol, new TypeCompilationState(sourceSymbol.ContainingType, compilation, null), new DiagnosticBag());
+                var boundBody = MethodCompiler.BindMethodBody(sourceSymbol, new TypeCompilationState(sourceSymbol.ContainingType, compilation, null), new BindingDiagnosticBag(new DiagnosticBag()));
                 if (boundBody != null)
                 {
                     FlowAnalysisPass.Rewrite(sourceSymbol, boundBody, flowDiagnostics, hasTrailingExpression: false, originalBodyNested: false);
@@ -83,6 +83,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return CompileAndGetModelAndExpression(program, (model, expression) => model.AnalyzeDataFlow(expression), references);
         }
 
+        protected DataFlowAnalysis CompileAndAnalyzeDataFlowConstructorInitializer(string program, params MetadataReference[] references)
+        {
+            return CompileAndGetModelAndConstructorInitializer(program, (model, constructorInitializer) => model.AnalyzeDataFlow(constructorInitializer), references);
+        }
+
+        protected DataFlowAnalysis CompileAndAnalyzeDataFlowPrimaryConstructorInitializer(string program, params MetadataReference[] references)
+        {
+            return CompileAndGetModelAndPrimaryConstructorInitializer(program, (model, primaryConstructorInitializer) => model.AnalyzeDataFlow(primaryConstructorInitializer), references);
+        }
+
         protected DataFlowAnalysis CompileAndAnalyzeDataFlowStatements(string program)
         {
             return CompileAndGetModelAndStatements(program, (model, stmt1, stmt2) => model.AnalyzeDataFlow(stmt1, stmt2));
@@ -91,6 +101,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         protected (ControlFlowAnalysis controlFlowAnalysis, DataFlowAnalysis dataFlowAnalysis) CompileAndAnalyzeControlAndDataFlowStatements(string program)
         {
             return CompileAndGetModelAndStatements(program, (model, stmt1, stmt2) => (model.AnalyzeControlFlow(stmt1, stmt2), model.AnalyzeDataFlow(stmt1, stmt2)));
+        }
+
+        protected T CompileAndGetModelAndConstructorInitializer<T>(string program, Func<SemanticModel, ConstructorInitializerSyntax, T> analysisDelegate, params MetadataReference[] references)
+        {
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularPreview, references: references);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            int start = program.IndexOf(StartString, StringComparison.Ordinal) + StartString.Length;
+            int end = program.IndexOf(EndString, StringComparison.Ordinal);
+            ConstructorInitializerSyntax syntaxToBind = null;
+            foreach (var expr in GetSyntaxNodeList(tree).OfType<ConstructorInitializerSyntax>())
+            {
+                if (expr.SpanStart >= start && expr.Span.End <= end)
+                {
+                    syntaxToBind = expr;
+                    break;
+                }
+            }
+
+            Assert.NotNull(syntaxToBind);
+            return analysisDelegate(model, syntaxToBind);
+        }
+
+        protected T CompileAndGetModelAndPrimaryConstructorInitializer<T>(string program, Func<SemanticModel, PrimaryConstructorBaseTypeSyntax, T> analysisDelegate, params MetadataReference[] references)
+        {
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularPreview, references: references);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            int start = program.IndexOf(StartString, StringComparison.Ordinal) + StartString.Length;
+            int end = program.IndexOf(EndString, StringComparison.Ordinal);
+            PrimaryConstructorBaseTypeSyntax syntaxToBind = null;
+            foreach (var expr in GetSyntaxNodeList(tree).OfType<PrimaryConstructorBaseTypeSyntax>())
+            {
+                if (expr.SpanStart >= start && expr.Span.End <= end)
+                {
+                    syntaxToBind = expr;
+                    break;
+                }
+            }
+
+            Assert.NotNull(syntaxToBind);
+            return analysisDelegate(model, syntaxToBind);
         }
 
         protected T CompileAndGetModelAndExpression<T>(string program, Func<SemanticModel, ExpressionSyntax, T> analysisDelegate, params MetadataReference[] references)

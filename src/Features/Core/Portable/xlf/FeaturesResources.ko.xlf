@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="0_directive">
+        <source>#{0} directive</source>
+        <target state="translated">#{0} 지시문</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AM_PM_abbreviated">
         <source>AM/PM (abbreviated)</source>
         <target state="translated">AM/PM(약식)</target>
@@ -34,6 +39,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>A subtraction must be the last element in a character class</source>
         <target state="translated">빼기는 문자 클래스의 마지막 요소여야 합니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
+      </trans-unit>
+      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application">
+        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</source>
+        <target state="translated">{1}에서 이전에 액세스하지 않은 캡처된 변수 '{0}'에 액세스하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
@@ -90,19 +100,94 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">튜플 요소 이름 '{0}' 추가</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
-        <target state="translated">인터페이스 메서드에 '{0}'을(를) 추가하면 디버그 세션을 계속할 수 없습니다.</target>
+      <trans-unit id="Adding_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Adding {0} around an active statement requires restarting the application.</source>
+        <target state="translated">활성 문 주위에 {0}을(를) 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
-        <target state="translated">인터페이스에 '{0}'을(를) 추가하면 디버그 세션을 계속할 수 없습니다.</target>
+      <trans-unit id="Adding_0_into_a_1_requires_restarting_the_application">
+        <source>Adding {0} into a {1} requires restarting the application.</source>
+        <target state="translated">{0}을(를) {1}에 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
-        <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
-        <target state="translated">명시적 인터페이스 지정자를 사용하여 메서드를 추가하면 디버그 세션을 계속할 수 없습니다.</target>
+      <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_requires_restarting_the_application">
+        <source>Adding {0} into a class with explicit or sequential layout requires restarting the application.</source>
+        <target state="translated">명시적 또는 순차 레이아웃이 있는 클래스에 {0}을(를) 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_requires_restarting_the_application">
+        <source>Adding {0} into a generic type requires restarting the application.</source>
+        <target state="translated">제네릭 형식에 {0}을(를) 추가하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_method_requires_restarting_the_application">
+        <source>Adding {0} into an interface method requires restarting the application.</source>
+        <target state="translated">인터페이스 메소드에 {0}을(를) 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_requires_restarting_the_application">
+        <source>Adding {0} into an interface requires restarting the application.</source>
+        <target state="translated">인터페이스에 {0}을(를) 추가하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_requires_restarting_the_application">
+        <source>Adding {0} requires restarting the application.</source>
+        <target state="translated">{0}을(를) 추가하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
+        <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
+        <target state="translated">다른 범위에서 선언된 캡처된 변수 '{1}' 및 '{2}'에 액세스하는 {0}을 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
+        <source>Adding {0} with the Handles clause requires restarting the application.</source>
+        <target state="translated">Handles 절과 함께 {0}을(를) 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note>{Locked="Handles"} "Handles" is VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adding_a_MustOverride_0_or_overriding_an_inherited_0_requires_restarting_the_application">
+        <source>Adding a MustOverride {0} or overriding an inherited {0} requires restarting the application.</source>
+        <target state="translated">MustOverride {0}를 추가하거나 상속된 {0}를 재정의하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note>{Locked="MustOverride"} "MustOverride" is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_requires_restarting_the_application">
+        <source>Adding a constructor to a type with a field or property initializer that contains an anonymous function requires restarting the application.</source>
+        <target state="translated">익명 함수가 포함된 필드 또는 속성 이니셜라이저가 있는 형식에 생성자를 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_generic_0_requires_restarting_the_application">
+        <source>Adding a generic {0} requires restarting the application.</source>
+        <target state="translated">제네릭 {0}을(를) 추가하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_method_with_an_explicit_interface_specifier_requires_restarting_the_application">
+        <source>Adding a method with an explicit interface specifier requires restarting the application.</source>
+        <target state="translated">명시적 인터페이스 지정자를 사용하여 메서드를 추가하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_new_file_requires_restarting_the_application">
+        <source>Adding a new file requires restarting the application.</source>
+        <target state="translated">새 파일을 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_user_defined_0_requires_restarting_the_application">
+        <source>Adding a user defined {0} requires restarting the application.</source>
+        <target state="translated">사용자 정의 {0}을(를) 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application">
+        <source>Adding an abstract {0} or overriding an inherited {0} requires restarting the application.</source>
+        <target state="translated">추상 {0}을(를) 추가하거나 상속된 {0}을(를) 재정의하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_an_extern_0_requires_restarting_the_application">
+        <source>Adding an extern {0} requires restarting the application.</source>
+        <target state="translated">extern {0}을(를) 추가하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note>{Locked="extern"} "extern" is C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adding_an_imported_method_requires_restarting_the_application">
+        <source>Adding an imported method requires restarting the application.</source>
+        <target state="translated">가져온 메서드를 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -124,6 +209,46 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Alternation conditions do not capture and cannot be named</source>
         <target state="translated">교체 조건은 캡처하지 않고 이름을 지정할 수 없습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
+      </trans-unit>
+      <trans-unit id="An_update_that_causes_the_return_type_of_implicit_main_to_change_requires_restarting_the_application">
+        <source>An update that causes the return type of the implicit Main method to change requires restarting the application.</source>
+        <target state="translated">암시적 Main 메서드의 반환 유형이 변경되도록 하는 업데이트는 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note>{Locked="Main"} is C# keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Apply_file_header_preferences">
+        <source>Apply file header preferences</source>
+        <target state="translated">파일 헤더 기본 설정 적용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_collection_initialization_preferences">
+        <source>Apply object/collection initialization preferences</source>
+        <target state="translated">개체/컬렉션 초기화 기본 설정 적용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
+        <source>Applying source changes while the application is running is not supported by the runtime.</source>
+        <target state="translated">애플리케이션이 실행되는 동안 원본 변경 사항을 적용하는 것은 런타임에서 지원되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_requires_restarting_the_application">
+        <source>Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</source>
+        <target state="translated">특성 '{0}'이(가) 없습니다. 비동기 메서드 또는 반복기를 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
+        <source>Asynchronously waits for the task to finish.</source>
+        <target state="translated">작업이 완료될 때까지 비동기적으로 기다립니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Await_the_preceding_expression">
+        <source>Await the preceding expression</source>
+        <target state="translated">이전 식을 기다립니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
+        <source>Await the preceding expression and add ConfigureAwait({0}).</source>
+        <target state="translated">이전 식을 기다리고 ConfigureAwait({0})를 추가합니다.</target>
+        <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
@@ -160,6 +285,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">캡처 번호는 0일 수 없습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
+      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
+        <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
+        <target state="translated">이전에 캡처되지 않은 '{0}' 변수를 캡처하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
+        <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
+        <target state="translated">{1}에서 캡처된 변수 '{0}'에 대한 액세스를 중지하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
+        <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
+        <target state="translated">변수 '{0}' 캡처를 중지하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
         <source>&lt;infer&gt;</source>
         <target state="translated">&lt;유추&gt;</target>
@@ -195,14 +335,74 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">애플리케이션이 실행되는 동안에는 '{0}' 프로젝트의 변경 내용이 적용되지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
-        <source>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'을(를) 비동기에서 동기로 변경하면 디버그 세션을 계속할 수 없습니다.</target>
+      <trans-unit id="ChangesRequiredSynthesizedType">
+        <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
+        <target state="translated">하나 이상의 변경으로 인해 컴파일러에서 새 유형이 생성되며 런타임에서 지원하지 않기 때문에 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
-        <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
-        <target state="translated">'{0}'을(를) '{1}'(으)로 변경하면 상태 시스템의 셰이프가 변경되므로 디버그 세션을 계속할 수 없습니다.</target>
+      <trans-unit id="Changing_0_from_asynchronous_to_synchronous_requires_restarting_the_application">
+        <source>Changing {0} from asynchronous to synchronous requires restarting the application.</source>
+        <target state="translated">비동기에서 동기로 {0}을(를) 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine">
+        <source>Changing '{0}' to '{1}' requires restarting the application because it changes the shape of the state machine.</source>
+        <target state="translated">'{0}'을(를) '{1}'(으)로 변경하려면 상태 시스템의 모양을 변경하므로 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_a_field_to_an_event_or_vice_versa_requires_restarting_the_application">
+        <source>Changing a field to an event or vice versa requires restarting the application.</source>
+        <target state="translated">필드를 이벤트로 변경하거나 그 반대로 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
+        <source>Changing constraints of {0} requires restarting the application.</source>
+        <target state="translated">{0} 제약 조건을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_parameter_types_of_0_requires_restarting_the_application">
+        <source>Changing parameter types of {0} requires restarting the application.</source>
+        <target state="translated">{0}의 매개 변수 유형을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
+        <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
+        <target state="translated">{1}의 허위 사용자 지정 특성 '{0}'을(를) 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
+        <source>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</source>
+        <target state="translated">캡처된 변수 '{0}'의 선언 범위를 변경하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_parameters_of_0_requires_restarting_the_application">
+        <source>Changing the parameters of {0} requires restarting the application.</source>
+        <target state="translated">{0}의 매개 변수를 변경하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_return_type_of_0_requires_restarting_the_application">
+        <source>Changing the return type of {0} requires restarting the application.</source>
+        <target state="translated">{0}의 반환 형식을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_type_of_0_requires_restarting_the_application">
+        <source>Changing the type of {0} requires restarting the application.</source>
+        <target state="translated">{0} 유형을 변경하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
+        <source>Changing the type of a captured variable '{0}' previously of type '{1}' requires restarting the application.</source>
+        <target state="translated">이전에 '{1}' 형식의 캡처된 변수 '{0}' 형식을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_type_parameters_of_0_requires_restarting_the_application">
+        <source>Changing type parameters of {0} requires restarting the application.</source>
+        <target state="translated">{0}의 유형 매개 변수를 변경하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_requires_restarting_the_application">
+        <source>Changing visibility of {0} requires restarting the application.</source>
+        <target state="translated">{0} 표시 유형을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -245,14 +445,39 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">LINQ로 변환(통화 양식)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record">
+        <source>Convert to record</source>
+        <target state="translated">레코드로 변환</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_record_struct">
+        <source>Convert to record struct</source>
+        <target state="translated">레코드 구조체로 변환</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">구조체로 변환</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="translated">튜플로 변환</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_type_to_0">
         <source>Convert type to '{0}'</source>
         <target state="translated">형식을 '{0}'(으)로 변환</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
+        <source>Could not find portable PDB on disk or embedded.</source>
+        <target state="translated">디스크 또는 포함에서 이식 가능한 PDB를 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded_or_server">
+        <source>Could not find PDB on disk, or embedded, or on a symbol server.</source>
+        <target state="translated">디스크에서 PDB를 찾거나 포함된 PDB 또는 기호 서버에서 PDB를 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
@@ -273,6 +498,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">나머지를 만들고 속성으로 할당합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Deleting {0} around an active statement requires restarting the application.</source>
+        <target state="translated">활성 문 주변의 {0}을(를) 삭제하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_0_requires_restarting_the_application">
+        <source>Deleting {0} requires restarting the application.</source>
+        <target state="translated">{0}을(를) 삭제하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
+        <source>Deleting captured variable '{0}' requires restarting the application.</source>
+        <target state="translated">캡처된 변수 '{0}'을(를) 삭제하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -301,8 +541,8 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
-        <source>Changes made in project '{0}' will prevent the debug session from continuing: {1}</source>
-        <target state="translated">'{0}' 프로젝트에서 수행한 변경으로 디버그 세션을 계속할 수 없습니다. {1}</target>
+        <source>Changes made in project '{0}' require restarting the application: {1}</source>
+        <target state="translated">' {0}' 프로젝트에서 변경한 내용을 적용하려면 응용 프로그램 ‘{1}’을(를) 다시 시작 해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -320,6 +560,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">CodeFixProvider '{0}' 인스턴스를 만드는 동안 오류가 발생했습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_reading_PDB_0">
+        <source>Error reading PDB: '{0}'</source>
+        <target state="translated">PDB를 읽는 동안 오류 발생: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="translated">예:</target>
@@ -329,6 +574,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Examples:</source>
         <target state="translated">예:</target>
         <note>Plural form when we have multiple examples to show.</note>
+      </trans-unit>
+      <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
+        <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
+        <target state="translated">명시적으로 구현된 레코드 메서드에는 컴파일러에서 생성된 것과 일치하는 매개 변수 이름 '{0}'이 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="translated">명시적으로 상속 문서</target>
+        <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
@@ -365,14 +620,54 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">오타 '{0}' 수정</target>
         <note />
       </trans-unit>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="translated">문서 서식</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">문서 서식을 지정하는 중</target>
         <note />
       </trans-unit>
+      <trans-unit id="Found_PDB_file_at_0">
+        <source>Found PDB file at '{0}'</source>
+        <target state="translated">'{0}'에서 PDB 파일을 찾음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server">
+        <source>Found PDB on symbol server.</source>
+        <target state="translated">기호 서버에서 PDB를 찾았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server_but_could_not_read_file">
+        <source>Found PDB on symbol server but could not read file.</source>
+        <target state="translated">기호 서버에서 PDB를 찾았지만 파일을 읽을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_embedded_PDB_file">
+        <source>Found embedded PDB file.</source>
+        <target state="translated">포함된 PDB 파일을 찾았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_method_0">
+        <source>Generate abstract method '{0}'</source>
+        <target state="translated">'{0}' 요약 메서드 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_property_0">
+        <source>Generate abstract property '{0}'</source>
+        <target state="translated">'{0}' 요약 속성 생성</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">비교 연산자 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constant_0">
+        <source>Generate constant '{0}'</source>
+        <target state="translated">'{0}' 상수 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -385,9 +680,24 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'{0}'에 생성자 생성(속성 포함)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_enum_member_0">
+        <source>Generate enum member '{0}'</source>
+        <target state="translated">'{0}' 열거형 멤버 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_0">
+        <source>Generate field '{0}'</source>
+        <target state="translated">'{0}' 필드 생성</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">'{0}'에 대해 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_method_0">
+        <source>Generate method '{0}'</source>
+        <target state="translated">‘{0}’ 메서드 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -398,6 +708,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
         <target state="translated">'{0}' 매개 변수(및 재정의/구현) 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_property_0">
+        <source>Generate property '{0}'</source>
+        <target state="translated">'{0}' 속성 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_field_0">
+        <source>Generate read-only field '{0}'</source>
+        <target state="translated">'{0}' 읽기 전용 필드 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_property_0">
+        <source>Generate read-only property '{0}'</source>
+        <target state="translated">'{0}' 읽기 전용 속성 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -460,6 +785,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'{0}'을(를) 통해 구현</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application">
+        <source>Implementing a record positional parameter '{0}' as read only requires restarting the application,</source>
+        <target state="translated">레코드 위치 매개 변수 '{0}'을(를) 구현하려면 읽기 전용으로 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application">
+        <source>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</source>
+        <target state="translated">설정된 접근자를 사용하여 레코드 위치 매개 변수 '{0}'를 구현하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">불완전한 \p{X} 문자 이스케이프</target>
@@ -515,6 +850,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">로컬 소개</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_parameter">
+        <source>Introduce parameter</source>
+        <target state="translated">매개 변수 지정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_0">
+        <source>Introduce parameter for '{0}'</source>
+        <target state="translated">'{0}'에 대한 매개 변수 지정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_all_occurrences_of_0">
+        <source>Introduce parameter for all occurrences of '{0}'</source>
+        <target state="translated">'{0}'의 모든 항목에 대한 매개 변수를 지정합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_query_variable">
         <source>Introduce query variable</source>
         <target state="translated">쿼리 변수 지정</target>
@@ -524,6 +874,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Invalid group name: Group names must begin with a word character</source>
         <target state="translated">잘못된 그룹 이름: 그룹 이름은 단어 문자로 시작해야 합니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
+      </trans-unit>
+      <trans-unit id="Invalid_selection">
+        <source>Invalid selection.</source>
+        <target state="translated">잘못된 선택 항목입니다.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
@@ -538,6 +893,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">조건 반전</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application">
+        <source>Making a method an iterator requires restarting the application.</source>
+        <target state="translated">메서드를 반복자로 만들려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_asynchronous_requires_restarting_the_application">
+        <source>Making a method asynchronous requires restarting the application.</source>
+        <target state="translated">메서드를 비동기식으로 만들려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -580,29 +945,99 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0}은(는) 읽기 및 검색 작업을 지원하는 스트림을 반환해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Miscellaneous_Files">
+        <source>Miscellaneous Files</source>
+        <target state="translated">기타 파일</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Missing_control_character">
         <source>Missing control character</source>
         <target state="translated">제어 문자가 없습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
       </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">switch 식을 포함하는 '{0}'을(를) 수정하면 디버그 세션을 계속할 수 없습니다.</target>
+      <trans-unit id="Modifying_0_which_contains_a_static_variable_requires_restarting_the_application">
+        <source>Modifying {0} which contains a static variable requires restarting the application.</source>
+        <target state="translated">정적 변수를 포함하는 {0}을(를) 수정하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
-        <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
-        <target state="translated">본문에 문이 너무 많아 '{0}'의 본문을 수정하면 디버그 세션을 계속 진행할 수 없습니다.</target>
+      <trans-unit id="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_requires_restarting_the_application">
+        <source>Modifying {0} which contains an Aggregate, Group By, or Join query clauses requires restarting the application.</source>
+        <target state="translated">Aggregate, Group By 또는 Join 쿼리 절이 포함된 {0}을(를) 수정하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note>{Locked="Aggregate"}{Locked="Group By"}{Locked="Join"} are VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_the_stackalloc_operator_requires_restarting_the_application">
+        <source>Modifying {0} which contains the stackalloc operator requires restarting the application.</source>
+        <target state="translated">stackalloc 연산자를 포함하는 {0}을(를) 수정하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note>{Locked="stackalloc"} "stackalloc" is C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_requires_restarting_the_application">
+        <source>Modifying a catch/finally handler with an active statement in the try block requires restarting the application.</source>
+        <target state="translated">try 블록에서 활성 문으로 catch/finally 처리기를 수정하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">'{0}'의 본문을 수정하면 다음 내부 오류로 인해 디버그 세션을 계속 진행할 수 없습니다. {1}</target>
-        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
+      <trans-unit id="Modifying_a_catch_handler_around_an_active_statement_requires_restarting_the_application">
+        <source>Modifying a catch handler around an active statement requires restarting the application.</source>
+        <target state="translated">활성 문 주위에 catch 처리기를 수정하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
       </trans-unit>
-      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
-        <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
-        <target state="translated">'{0}' 소스 파일을 수정하면 파일이 너무 커서 디버그 세션을 계속 진행할 수 없습니다.</target>
+      <trans-unit id="Modifying_a_generic_method_requires_restarting_the_application">
+        <source>Modifying a generic method requires restarting the application.</source>
+        <target state="translated">일반 메서드를 수정하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_method_inside_the_context_of_a_generic_type_requires_restarting_the_application">
+        <source>Modifying a method inside the context of a generic type requires restarting the application.</source>
+        <target state="translated">제네릭 형식의 컨텍스트 내에서 메서드를 수정하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_requires_restarting_the_application">
+        <source>Modifying a try/catch/finally statement when the finally block is active requires restarting the application.</source>
+        <target state="translated">finally 블록이 활성 상태일 때 try/catch/finally 문을 수정하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application">
+        <source>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</source>
+        <target state="translated">On Error 또는 Resume 문이 포함된 활성 {0}을 수정하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements">
+        <source>Modifying the body of {0} requires restarting the application because the body has too many statements.</source>
+        <target state="translated">본문에 문이 너무 많기 때문에 {0}의 본문을 수정하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_due_to_internal_error_1">
+        <source>Modifying the body of {0} requires restarting the application due to internal error: {1}</source>
+        <target state="translated">{0}의 본문을 수정하려면 내부 오류로 인해 애플리케이션을 다시 시작해야 합니다. {1}</target>
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don't add any punctation after or around {1}</note>
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big">
+        <source>Modifying source file '{0}' requires restarting the application because the file is too big.</source>
+        <target state="translated">원본 파일 '{0}'을(를) 수정하려면 파일이 너무 크므로 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1">
+        <source>Modifying source file '{0}' requires restarting the application due to internal error: {1}</source>
+        <target state="translated">원본 파일 '{0}'을(를) 수정하려면 내부 오류로 인해 응용 프로그램을 다시 시작해야 합니다. {1}</target>
+        <note>{2} is a multi-line exception message including a stacktrace. Place it at the end of the message and don't add any punctation after or around {1}</note>
+      </trans-unit>
+      <trans-unit id="Modifying_source_with_experimental_language_features_enabled_requires_restarting_the_application">
+        <source>Modifying source with experimental language features enabled requires restarting the application.</source>
+        <target state="translated">실험 언어 기능이 활성화된 원본를 수정하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_requires_restarting_the_application">
+        <source>Modifying the initializer of {0} in a generic type requires restarting the application.</source>
+        <target state="translated">제네릭 형식의 {0}의 이니셜라이저를 수정하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_requires_restarting_the_application">
+        <source>Modifying whitespace or comments in {0} inside the context of a generic type requires restarting the application.</source>
+        <target state="translated">제네릭 형식의 컨텍스트 내에서 {0}의 공백 또는 주석을 수정하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_whitespace_or_comments_in_a_generic_0_requires_restarting_the_application">
+        <source>Modifying whitespace or comments in a generic {0} requires restarting the application.</source>
+        <target state="translated">제네릭 {0}에서 공백 또는 주석을 수정하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -620,30 +1055,60 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">파일을 프로젝트 루트 폴더로 이동</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type">
+        <source>Move static members to another type...</source>
+        <target state="translated">정적 멤버를 다른 형식으로 이동...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to namespace...</source>
         <target state="translated">네임스페이스로 이동...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">'{0}' 소스 파일을 수정하면 다음 내부 오류로 인해 디버그 세션을 계속 진행할 수 없습니다. {1}</target>
-        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
+      <trans-unit id="Moving_0_requires_restarting_the_application">
+        <source>Moving {0} requires restarting the application.</source>
+        <target state="translated">{0}을(를) 이동하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating_to_symbol_0_from_1">
+        <source>Navigating to symbol '{0}' from '{1}'.</source>
+        <target state="translated">'{1}'에서 기호 '{0}'(으)로 이동하는 중입니다.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
         <target state="translated">중첩 수량자 {0}입니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
+      <trans-unit id="No_common_root_node_for_extraction">
+        <source>No common root node for extraction.</source>
+        <target state="translated">추출에 필요한 일반 루트 노드가 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_source_document_info_found_in_PDB">
+        <source>No source document info found in PDB.</source>
+        <target state="translated">PDB에서 원본 문서 정보를 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
         <source>No valid location to insert method call.</source>
         <target state="translated">메서드 호출을 삽입할 유효한 위치가 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_valid_selection_to_perform_extraction">
+        <source>No valid selection to perform extraction.</source>
+        <target state="translated">추출을 수행할 선택 항목이 잘못되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
         <source>Not enough )'s</source>
         <target state="translated">부족 )'s</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
+      </trans-unit>
+      <trans-unit id="Operators">
+        <source>Operators</source>
+        <target state="translated">연산자</target>
+        <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
@@ -806,12 +1271,12 @@ This option is recommended if you know that backtracking will not succeed. Preve
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
         <source>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
         <target state="translated">균형 조정 그룹 정의는 이전에 정의된 그룹의 정의를 삭제하고, 이전에 정의된 그룹과 현재 그룹 사이의 간격을 현재 그룹에 저장합니다.
-    
+
 'name1'은 현재 그룹이고(선택 사항), 'name2'는 이전에 정의된 그룹이며, 'subexpression'은 유효한 정규식 패턴입니다. 균형 조정 그룹 정의는 name2의 정의를 삭제하고 name2와 name1 사이의 간격을 name1에 저장합니다. name2 그룹이 정의되어 있지 않으면 일치에서 역추적합니다. name2의 마지막 정의를 삭제하면 name2의 이전 정의가 표시되므로 이 구문을 통해 name2 그룹에 대한 캡처 스택을 괄호 또는 여는 대괄호 및 닫는 대괄호와 같은 중첩 구문을 추적하기 위한 카운터로 사용할 수 있습니다.
 
 균형 조정 그룹 정의에서는 'name2'를 스택으로 사용합니다. 각 중첩 구문의 시작 문자는 그룹 및 해당 Group.Captures 컬렉션에 배치됩니다. 닫는 문자가 일치되면 해당하는 여는 문자가 그룹에서 제거되고 Captures 컬렉션이 하나 감소합니다. 모든 중첩 구문의 여는 문자와 닫는 문자가 일치되고 나면 'name1'은 비어 있는 상태가 됩니다.</target>
@@ -1825,6 +2290,41 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">'async' 한정자 제거</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_casts">
+        <source>Remove unnecessary casts</source>
+        <target state="translated">불필요한 캐스트 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_variables">
+        <source>Remove unused variables</source>
+        <target state="translated">사용하지 않는 변수 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
+        <source>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
+        <target state="translated">다른 범위에서 선언된 캡처된 변수 '{1}' 및 '{2}'에 액세스한 {0}을(를) 제거하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">
+        <source>Removing {0} that contains an active statement requires restarting the application.</source>
+        <target state="translated">활성 문이 포함된 {0}을(를) 제거하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_requires_restarting_the_application">
+        <source>Renaming {0} requires restarting the application.</source>
+        <target state="translated">{0} 이름을 바꾸려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Renaming {0} requires restarting the application because it is not supported by the runtime.</source>
+        <target state="translated">런타임에서 지원하지 않기 때문에 {0}의 이름을 바꾸려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_a_captured_variable_from_0_to_1_requires_restarting_the_application">
+        <source>Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</source>
+        <target state="translated">캡처된 변수의 이름을 '{0}'에서 '{1}'(으)로 바꾸려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">'{0}'을(를) '{1}'(으)로 바꾸기</target>
@@ -1838,6 +2338,36 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">편집 다시 실행</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_does_not_contain_a_valid_token">
+        <source>Selection does not contain a valid token.</source>
+        <target state="translated">선택 항목에 유효한 토큰이 포함되어 있지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_not_contained_inside_a_type">
+        <source>Selection not contained inside a type.</source>
+        <target state="translated">선택 항목이 형식 내에 포함되어 있지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Silent">
+        <source>Silent</source>
+        <target state="translated">침묵</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_accessibility_modifiers">
+        <source>Sort accessibility modifiers</source>
+        <target state="translated">접근성 한정자 정렬</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_code_language_information_was_not_found_in_PDB">
+        <source>Source code language information was not found in PDB.</source>
+        <target state="translated">PDB에서 원본 코드 언어 정보를 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_is_a_reference_assembly">
+        <source>Source is a reference assembly, not enough information to find PDB.</source>
+        <target state="translated">원본은 참조 어셈블리이며 PDB를 찾을 수 있는 정보가 부족합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -1858,6 +2388,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">{0}을(를) 표시하지 않음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Switching_between_lambda_and_local_function_requires_restarting_the_application">
+        <source>Switching between a lambda and a local function requires restarting the application.</source>
+        <target state="translated">람다 함수와 로컬 함수 간에 전환하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="translated">어셈블리 경로 '{0}'에서 기호를 찾음</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
@@ -1885,6 +2425,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">선언이 없는 로컬 함수 호출이 선택 영역에 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Timeout_SourceLink">
+        <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
+        <target state="translated">SourceLink에서 원본 코드를 다운로드하는 동안 시간이 초과되었습니다. 후속 요청이 성공할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Timeout_symbol_server">
+        <source>Timed out trying to download PDB from symbol server. Subsequent requests may succeed.</source>
+        <target state="translated">기호 서버에서 PDB를 다운로드하는 동안 시간이 초과되었습니다. 후속 요청이 성공할 수 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Too_many_bars_in_conditional_grouping">
         <source>Too many | in (?()|)</source>
         <target state="translated">(?()|)에 |가 너무 많습니다.</target>
@@ -1894,6 +2444,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Too many )'s</source>
         <target state="translated">)가 너무 많습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
+      </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="translated">형식:</target>
+        <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
@@ -1975,9 +2530,104 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">매개 변수 목록 래핑 해제</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">활성 문 주위에서 '{0}'을(를) 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
+      <trans-unit id="Updating_0_requires_restarting_the_application">
+        <source>Updating '{0}' requires restarting the application.</source>
+        <target state="translated">'{0}'을(를) 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating a {0} around an active statement requires restarting the application.</source>
+        <target state="translated">활성 문 주변의 {0}을(를) 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_requires_restarting_the_application">
+        <source>Updating a complex statement containing an await expression requires restarting the application.</source>
+        <target state="translated">await 식을 포함하는 복잡한 문을 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_an_active_statement_requires_restarting_the_application">
+        <source>Updating an active statement requires restarting the application.</source>
+        <target state="translated">활성 명령문을 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
+        <target state="translated">활성 문 주변의 async 또는 iterator 수정자를 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Updating a reloadable type (marked by {0}) or its member requires restarting the application because is not supported by the runtime.</source>
+        <target state="translated">런타임에서 지원되지 않으므로 다시 로드할 수 있는 형식({0}(으)로 표시) 또는 해당 멤버를 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_Handles_clause_of_0_requires_restarting_the_application">
+        <source>Updating the Handles clause of {0} requires restarting the application.</source>
+        <target state="translated">{0}의 Handles 절을 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note>{Locked="Handles"} "Handles" is VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_Implements_clause_of_a_0_requires_restarting_the_application">
+        <source>Updating the Implements clause of a {0} requires restarting the application.</source>
+        <target state="translated">{0}의 Implements 절을 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note>{Locked="Implements"} "Implements" is VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_alias_of_Declare_statement_requires_restarting_the_application">
+        <source>Updating the alias of Declare statement requires restarting the application.</source>
+        <target state="translated">Declare 문의 별칭을 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Updating the attributes of {0} requires restarting the application because it is not supported by the runtime.</source>
+        <target state="translated">{0}의 특성을 업데이트하려면 런타임에서 지원되지 않으므로 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_requires_restarting_the_application">
+        <source>Updating the base class and/or base interface(s) of {0} requires restarting the application.</source>
+        <target state="translated">{0}의 기본 클래스 및/또는 기본 인터페이스를 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_initializer_of_0_requires_restarting_the_application">
+        <source>Updating the initializer of {0} requires restarting the application.</source>
+        <target state="translated">{0}의 이니셜라이저를 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_kind_of_a_property_event_accessor_requires_restarting_the_application">
+        <source>Updating the kind of a property/event accessor requires restarting the application.</source>
+        <target state="translated">속성/이벤트 접근자의 종류를 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_kind_of_a_type_requires_restarting_the_application">
+        <source>Updating the kind of a type requires restarting the application.</source>
+        <target state="translated">형식 종류를 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_library_name_of_Declare_statement_requires_restarting_the_application">
+        <source>Updating the library name of Declare statement requires restarting the application.</source>
+        <target state="translated">Declare 문의 라이브러리 이름을 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_modifiers_of_0_requires_restarting_the_application">
+        <source>Updating the modifiers of {0} requires restarting the application.</source>
+        <target state="translated">{0}의 한정자를 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_size_of_a_0_requires_restarting_the_application">
+        <source>Updating the size of a {0} requires restarting the application.</source>
+        <target state="translated">{0}의 크기를 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
+        <source>Updating the type of {0} requires restarting the application.</source>
+        <target state="translated">{0} 유형을 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_underlying_type_of_0_requires_restarting_the_application">
+        <source>Updating the underlying type of {0} requires restarting the application.</source>
+        <target state="translated">{0}의 기본 유형을 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_variance_of_0_requires_restarting_the_application">
+        <source>Updating the variance of {0} requires restarting the application.</source>
+        <target state="translated">{0}의 분산을 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -2065,6 +2715,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">래핑</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
+        <source>You can use the navigation bar to switch contexts.</source>
+        <target state="translated">탐색 모음을 사용하여 컨텍스트를 전환할 수 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
         <target state="translated">'{0}'은(는) Null이거나 비워 둘 수 없습니다.</target>
@@ -2077,7 +2732,47 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_dash_1">
         <source>{0} - {1}</source>
-        <target state="new">{0} - {1}</target>
+        <target state="translated">{0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB">
+        <source>'{0}' found in embedded PDB.</source>
+        <target state="translated">포함된 PDB에서 '{0}'을(를) 찾았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_checksum_failed">
+        <source>'{0}' found in embedded PDB but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">포함된 PDB에서 '{0}'을(를) 찾았지만 체크섬이 잘못되었거나 임시 파일을 읽을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_could_not_write_file_1">
+        <source>'{0}' found in embedded PDB but could not write to temp file: '{1}'</source>
+        <target state="translated">포함된 PDB에서 '{0}'을 찾았지만 임시 파일 '{1}'에 쓸 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_cached_source_file">
+        <source>'{0}' found in embedded PDB and found cached source file.</source>
+        <target state="translated">포함된 PDB에서 '{0}'을(를) 찾았으며 캐시된 원본 파일을 찾았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location">
+        <source>'{0}' found in original location.</source>
+        <target state="translated">원래 위치에 '{0}'이(가) 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location_but_checksum_failed">
+        <source>'{0}' found in original location but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">'{0}'이(가) 원래 위치에서 발견되었지만 체크섬이 잘못되었거나 임시 파일을 읽을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink">
+        <source>'{0}' found via SourceLink.</source>
+        <target state="translated">SourceLink를 통해 '{0}'을(를) 찾았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink_but_couldnt_read_file">
+        <source>'{0}' found via SourceLink but couldn't read temp file.</source>
+        <target state="translated">SourceLink를 통해 '{0}'을(를) 찾았지만 임시 파일을 읽을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -2252,13 +2947,13 @@ Although it's possible to display the ten thousandths of a second component of a
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
         <target state="translated">"f" 사용자 지정 형식 지정자는 초 부분의 가장 유효한 숫자를 나타냅니다. 즉, 날짜 및 시간 값에서 10분의 1초를 나타냅니다.
 
 다른 형식 지정자 없이 "f" 형식 지정자를 사용하면 "f" 표준 날짜 및 시간 형식 지정자로 해석됩니다.
 
-ParseExact, TryParseExact, ParseExact 또는 TryParseExact 메서드로 제공되는 형식 문자열의 일부로 "f" 형식 지정자를 사용할 경우 "f" 형식 지정자의 개수는 초 부분에서 문자열을 성공적으로 구문 분석하려면 존재해야 하는 가장 유효한 숫자의 개수를 나타냅니다.</target>
-        <note />
+ParseExact 또는 TryParseExact 메서드로 제공되는 형식 문자열의 일부로 "f" 형식 지정자를 사용할 경우 "f" 형식 지정자의 개수는 초 부분에서 문자열을 성공적으로 구문 분석하려면 존재해야 하는 가장 유효한 숫자의 개수를 나타냅니다.</target>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
@@ -2324,6 +3019,21 @@ If the "H" format specifier is used without other custom format specifiers, it's
       <trans-unit id="_24_hour_clock_2_digits_description">
         <source>The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</source>
         <target state="translated">"HH" 사용자 지정 형식 지정자(및 임의 개수의 추가 "H" 지정자)는 시간을 00부터 23까지의 숫자로 나타냅니다. 즉, 시간은 자정부터 경과한 시간을 계산하는 0 기반 24시간제로 표현됩니다. 한 자릿수 시간은 앞에 0이 있는 형식으로 지정됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="all_anonymous_types_in_container">
+        <source>all anonymous types in container</source>
+        <target state="translated">컨테이너의 모든 익명 유형</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="and_update_call_sites_directly">
+        <source>and update call sites directly</source>
+        <target state="translated">통화 사이트를 직접 업데이트하고</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="code">
+        <source>code</source>
+        <target state="translated">코드</target>
         <note />
       </trans-unit>
       <trans-unit id="date_separator">
@@ -2393,6 +3103,16 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <target state="translated">무시 항목</target>
         <note />
       </trans-unit>
+      <trans-unit id="embedded">
+        <source>embedded</source>
+        <target state="translated">포함됨</target>
+        <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
+      </trans-unit>
+      <trans-unit id="external">
+        <source>external</source>
+        <target state="translated">외부</target>
+        <note>External means "external source", meaning source files that are not part of the current solution</note>
+      </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>
         <target state="translated">메타데이터에서</target>
@@ -2454,12 +3174,27 @@ The "f" standard format specifier represents a combination of the long date ("D"
       </trans-unit>
       <trans-unit id="in_0_1_2">
         <source>in {0} ({1} - {2})</source>
-        <target state="new">in {0} ({1} - {2})</target>
+        <target state="translated">{0}({1} - {2})에서</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">소스(특성)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
+        <source>into extracted method to invoke at call sites</source>
+        <target state="translated">호출 사이트에서 호출하기 위해 추출된 메서드로</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_new_overload">
+        <source>into new overload</source>
+        <target state="translated">새 오버로드로</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="just_this_anonymous_type">
+        <source>just this anonymous type</source>
+        <target state="translated">이 익명 형식만</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
@@ -2481,6 +3216,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <source>The "T" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.LongTimePattern property. For example, the custom format string for the invariant culture is "HH:mm:ss".</source>
         <target state="translated">"T" 표준 형식 지정자는 특정 문화권의 DateTimeFormatInfo.LongTimePattern 속성으로 정의되는 사용자 지정 날짜 및 시간 형식 문자열을 나타냅니다. 예를 들어, 고정 문화권의 사용자 지정 형식 문자열은 "HH:mm:ss"입니다.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="translated">{0} '{1}'</target>
+        <note>e.g. "method 'M'"</note>
       </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
@@ -2695,36 +3435,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">모두 생성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_enum_member_1_0">
-        <source>Generate enum member '{1}.{0}'</source>
-        <target state="translated">열거형 멤버 '{1}.{0}' 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constant_1_0">
-        <source>Generate constant '{1}.{0}'</source>
-        <target state="translated">{1}.{0}' 상수 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_1_0">
-        <source>Generate read-only property '{1}.{0}'</source>
-        <target state="translated">{1}.{0}' 읽기 전용 속성 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_1_0">
-        <source>Generate property '{1}.{0}'</source>
-        <target state="translated">{1}.{0}' 속성 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_1_0">
-        <source>Generate read-only field '{1}.{0}'</source>
-        <target state="translated">{1}.{0}' 읽기 전용 필드 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_1_0">
-        <source>Generate field '{1}.{0}'</source>
-        <target state="translated">{1}.{0}' 필드 생성</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_local_0">
         <source>Generate local '{0}'</source>
         <target state="translated">'{0}' 로컬을 생성합니다.</target>
@@ -2810,11 +3520,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">'{0}'에 대한 쿼리 변수 지정</target>
         <note />
       </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">익명 형식:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="is_">
         <source>is</source>
         <target state="translated">은(는)</target>
@@ -2862,6 +3567,11 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">"g" 또는 "gg" 사용자 지정 형식 지정자(및 임의 개수의 추가 "g" 지정자)는 기간 또는 시대(예: A.D.)를 나타냅니다. 형식 지정 연산은 형식을 지정할 날짜에 연결된 기간 또는 시대 문자열이 없으면 이 지정자를 무시합니다.
 
 다른 사용자 지정 형식 지정자 없이 "g" 형식 지정자를 사용하면 "g" 표준 날짜 및 시간 형식 지정자로 해석됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="property_accessor">
+        <source>property accessor</source>
+        <target state="translated">속성 접근자</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
@@ -2924,351 +3634,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">위치를 알 수 없음</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'을(를) 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a complex statement containing an await expression will prevent the debug session from continuing.</source>
-        <target state="translated">await 식이 포함된 복합 문을 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">생성자 표시 여부를 변경하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
-        <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
-        <target state="translated">이전에 캡처되지 않았던 '{0}' 변수를 캡처하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_capture_variable_0_will_prevent_the_debug_session_from_continuing">
-        <source>Ceasing to capture variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}' 변수의 캡처를 중단하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting captured variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">캡처된 변수 '{0}'을(를) 삭제하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the type of a captured variable '{0}' previously of type '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">이전에 '{1}' 형식이었던 캡처된 변수 '{0}'의 형식을 변경하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_parameters_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the parameters of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}' 매개 변수를 변경하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_return_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the return type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'의 반환 형식을 변경하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'의 형식을 변경하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the declaration scope of a captured variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">캡처된 변수 '{0}'의 선언 범위를 변경하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing">
-        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} will prevent the debug session from continuing.</source>
-        <target state="translated">{1}에서 이전에 액세스하지 않았던 캡처된 변수 '{0}'에 액세스하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_will_prevent_the_debug_session_from_continuing">
-        <source>Ceasing to access captured variable '{0}' in {1} will prevent the debug session from continuing.</source>
-        <target state="translated">{1}의 캡처된 변수 '{0}'에 대한 액세스를 중단하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' that accesses captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</source>
-        <target state="translated">서로 다른 범위로 선언된 캡처된 변수 '{1}' 및 '{2}'에 액세스하는 '{0}'을(를) 추가하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing">
-        <source>Removing '{0}' that accessed captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</source>
-        <target state="translated">서로 다른 범위로 선언된 캡처된 변수 '{1}' 및 '{2}'에 액세스하는 '{0}'을(를) 제거하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'을(를) '{1}'에 추가하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'을(를) 명시적 또는 순차적 레이아웃으로 클래스에 추가하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the modifiers of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'의 한정자를 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the Handles clause of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'의 Handles 절을 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_with_the_Handles_clause_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' with the Handles clause will prevent the debug session from continuing.</source>
-        <target state="translated">핸들 절과 함께 '{0}'을(를) 추가하면 디버그 세션이 계속되지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the Implements clause of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'의 Implements 절을 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'에서 '{1}'(으)로 제약 조건을 변경하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'의 가변성(variance)을 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'의 형식을 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_initializer_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the initializer of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'의 이니셜라이저를 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_size_of_a_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the size of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'의 크기를 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_underlying_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the underlying type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'의 기본 형식을 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">기본 클래스 및/또는 '{0}'의 기본 인터페이스를 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a field to an event or vice versa will prevent the debug session from continuing.</source>
-        <target state="translated">필드를 이벤트로 업데이트하거나 그 반대로 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_type_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a type will prevent the debug session from continuing.</source>
-        <target state="translated">형식 종류를 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
-        <target state="translated">속성/이벤트 접근자 종류를 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
-        <target state="translated">메서드(Sub/Function) 종류를 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the library name of Declare Statement will prevent the debug session from continuing.</source>
-        <target state="translated">선언 문의 라이브러리 이름을 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_alias_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the alias of Declare Statement will prevent the debug session from continuing.</source>
-        <target state="translated">선언 문 별칭을 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Renaming_0_will_prevent_the_debug_session_from_continuing">
-        <source>Renaming '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'의 이름을 변경하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'을(를) 추가하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding an abstract '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">추상 '{0}'을(를) 추가하거나 상속된 '{0}'을(를) 재정의하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_MustOverride_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a MustOverride '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">MustOverride '{0}'을(를) 추가하거나 상속된 '{0}'을(를) 재정의하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_an_extern_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding an extern '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">extern '{0}'을(를) 추가하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_an_imported_method_will_prevent_the_debug_session_from_continuing">
-        <source>Adding an imported method will prevent the debug session from continuing.</source>
-        <target state="translated">가져온 메서드를 추가하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_user_defined_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a user defined '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">사용자 정의된 '{0}'을(를) 추가하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_generic_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a generic '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">제네릭 '{0}'을(를) 추가하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">활성 문 주위에 '{0}'을(를) 추가하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Moving_0_will_prevent_the_debug_session_from_continuing">
-        <source>Moving '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'을(를) 이동하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'을(를) 삭제하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">활성 문 주위에서 '{0}'을(를) 삭제하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">메서드 본문을 추가하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a method body will prevent the debug session from continuing.</source>
-        <target state="translated">메서드 본문을 삭제하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
-        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
-        <target state="translated">원래 메서드에서 활성 문이 제거되었습니다. 변경 내용을 취소하고 계속하거나 디버깅 세션을 다시 시작해야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">활성 문 주위의 async 또는 iterator 한정자를 업데이트하면 디버그 세션이 계속되지 않습니다.</target>
-        <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a generic method will prevent the debug session from continuing.</source>
-        <target state="translated">제네릭 메서드를 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_whitespace_or_comments_in_a_generic_0_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying whitespace or comments in a generic '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">제네릭 '{0}'에서 공백 또는 주석을 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_method_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a method inside the context of a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">제네릭 형식 컨텍스트 내부의 메서드를 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying whitespace or comments in '{0}' inside the context of a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">제네릭 형식의 컨텍스트 내부에서 '{0}'의 공백 또는 주석을 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">제네릭 형식에서 '{0}'의 이니셜라이저를 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_the_initializer_of_0_in_a_partial_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</source>
-        <target state="translated">부분 형식에서 '{0}'의 이니셜라이저를 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing.</source>
-        <target state="translated">익명 함수를 포함하는 필드 또는 속성 이니셜라이저가 있는 형식에 생성자를 추가하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Renaming_a_captured_variable_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Renaming a captured variable, from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">캡처된 변수의 이름을 '{0}'에서 '{1}'(으)로 바꾸면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing.</source>
-        <target state="translated">try 블록의 활성 문에 있는 catch/finally 처리기를 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a try/catch/finally statement when the finally block is active will prevent the debug session from continuing.</source>
-        <target state="translated">finally 블록이 활성화되어 있을 때 try/catch/finally 문을 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_catch_handler_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a catch handler around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">활성 문 주위의 catch 처리기를 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</source>
-        <target state="translated">stackalloc' 연산자가 포함된 '{0}'을(를) 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</source>
-        <target state="translated">On Error' 또는 'Resume' 문이 포함된 활성 '{0}'을(를) 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing.</source>
-        <target state="translated">Aggregate, Group By 또는 Join 쿼리 절이 포함된 '{0}'을(를) 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_source_with_experimental_language_features_enabled_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying source with experimental language features enabled will prevent the debug session from continuing.</source>
-        <target state="translated">실험적 언어 기능이 포함된 소스를 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">활성 문을 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Removing '{0}' that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">활성 문이 포함된 '{0}'을(를) 제거하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a new file will prevent the debug session from continuing.</source>
-        <target state="translated">새 파일을 추가하면 디버그 세션이 계속되지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_will_prevent_the_debug_session_from_continuing">
-        <source>Attribute '{0}' is missing. Updating an async method or an iterator will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}' 특성이 없습니다. 비동기 메서드 또는 반복기를 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unexpected_interface_member_kind_colon_0">
         <source>Unexpected interface member kind: {0}</source>
         <target state="translated">예기치 않은 인터페이스 멤버 종류: {0}</target>
@@ -3277,21 +3642,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Unknown_symbol_kind">
         <source>Unknown symbol kind</source>
         <target state="translated">알 수 없는 기호 종류</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_property_1_0">
-        <source>Generate abstract property '{1}.{0}'</source>
-        <target state="translated">추상 속성 '{1}.{0}' 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_method_1_0">
-        <source>Generate abstract method '{1}.{0}'</source>
-        <target state="translated">추상 메서드 '{1}.{0}' 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_method_1_0">
-        <source>Generate method '{1}.{0}'</source>
-        <target state="translated">{1}.{0}' 메서드 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
@@ -3381,18 +3731,13 @@ Do you want to continue?</source>
         <note />
       </trans-unit>
       <trans-unit id="Not_Available">
-        <source>Not Available</source>
-        <target state="translated">사용할 수 없음</target>
+        <source>Not Available ⚠</source>
+        <target state="translated">사용할 수 없음 ⚠</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
         <source>    {0} - {1}</source>
         <target state="translated">    {0} - {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_can_use_the_navigation_bar_to_switch_context">
-        <source>You can use the navigation bar to switch context.</source>
-        <target state="translated">탐색 모음을 사용하여 컨텍스트를 전환할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
@@ -3488,11 +3833,6 @@ Do you want to continue?</source>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
         <source>TODO: set large fields to null</source>
         <target state="translated">TODO: 큰 필드를 null로 설정합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</source>
-        <target state="translated">정적 변수가 포함된 '{0}'을(를) 수정하면 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">
@@ -3655,6 +3995,11 @@ When this standard format specifier is used, the formatting or parsing operation
 이 표준 형식 지정자를 사용하면 형식 지정 또는 구문 분석 연산에서 항상 고정 문화권이 사용됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="translated">정적 생성자</target>
+        <note />
+      </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'기호'는 네임스페이스일 수 없습니다.</target>
@@ -3706,6 +4051,11 @@ If the "K" format specifier is used without other custom format specifiers, it's
 DateTimeOffset 값의 경우, "K" 형식 지정자는 "zzz" 형식 지정자와 동일하며 UTC에서 가져온 DateTimeOffset 값의 오프셋을 포함하는 결과 문자열을 생성합니다.
 
 다른 사용자 지정 형식 지정자 없이 "K" 형식 지정자를 사용하면 표준 날짜 및 시간 형식 지정자로 해석되어 FormatException을 throw합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type">
+        <source>type</source>
+        <target state="translated">유형</target>
         <note />
       </trans-unit>
       <trans-unit id="type_constraint">
@@ -3965,16 +4315,6 @@ This version used in: {2}</source>
         <target state="translated">누락된 매개 변수 노드 추가</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_containing_scope_async">
-        <source>Make containing scope async</source>
-        <target state="translated">포함 범위를 비동기로 설정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async_return_Task">
-        <source>Make containing scope async (return Task)</source>
-        <target state="translated">포함 범위를 비동기로 설정(Task 반환)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(알 수 없음)</target>
@@ -4218,11 +4558,6 @@ This version used in: {2}</source>
       <trans-unit id="Use_0">
         <source>Use {0}</source>
         <target state="translated">{0} 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing">
-        <source>Switching between a lambda and a local function will prevent the debug session from continuing.</source>
-        <target state="translated">람다와 로컬 함수 간에 전환하면 디버그 세션을 계속할 수 없게 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">

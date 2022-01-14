@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ImplementInterfaceImplicitly), Shared]
     internal class CSharpImplementImplicitlyCodeRefactoringProvider :
         AbstractChangeImplementionCodeRefactoringProvider
     {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol _)
             => generator.WithAccessibility(WithoutExplicitImpl(decl), Accessibility.Public);
 
-        private static SyntaxNode? WithoutExplicitImpl(SyntaxNode decl)
+        private static SyntaxNode WithoutExplicitImpl(SyntaxNode decl)
             => decl switch
             {
                 MethodDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(null),

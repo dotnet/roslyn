@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
@@ -24,6 +25,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -34,35 +36,111 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// contents of that line, and hovering will reveal a tooltip showing that line along
         /// with a few lines above/below it.
         /// </summary>
-        private class DocumentSpanEntry : AbstractDocumentSpanEntry, ISupportsNavigation
+        private sealed class DocumentSpanEntry : AbstractDocumentSpanEntry, ISupportsNavigation
         {
             private readonly HighlightSpanKind _spanKind;
             private readonly ExcerptResult _excerptResult;
             private readonly SymbolReferenceKinds _symbolReferenceKinds;
             private readonly ImmutableDictionary<string, string> _customColumnsData;
 
-            public DocumentSpanEntry(
+            private readonly string _rawProjectName;
+            private readonly List<string> _projectFlavors = new();
+
+            private string? _cachedProjectName;
+
+            private DocumentSpanEntry(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
-                HighlightSpanKind spanKind,
-                string documentName,
+                string rawProjectName,
+                string? projectFlavor,
                 Guid projectGuid,
+                HighlightSpanKind spanKind,
                 MappedSpanResult mappedSpanResult,
                 ExcerptResult excerptResult,
                 SourceText lineText,
                 SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> customColumnsData)
-                : base(context,
-                      definitionBucket,
-                      documentName,
-                      projectGuid,
-                      lineText,
-                      mappedSpanResult)
+                : base(context, definitionBucket, projectGuid, lineText, mappedSpanResult)
             {
                 _spanKind = spanKind;
                 _excerptResult = excerptResult;
                 _symbolReferenceKinds = symbolUsageInfo.ToSymbolReferenceKinds();
                 _customColumnsData = customColumnsData;
+
+                _rawProjectName = rawProjectName;
+                this.AddFlavor(projectFlavor);
+            }
+
+            protected override string GetProjectName()
+            {
+                // Check if we have any flavors.  If we have at least 2, combine with the project name
+                // so the user can know htat in the UI.
+                lock (_projectFlavors)
+                {
+                    if (_cachedProjectName == null)
+                    {
+                        _cachedProjectName = _projectFlavors.Count < 2
+                            ? _rawProjectName
+                            : $"{_rawProjectName} ({string.Join(", ", _projectFlavors)})";
+                    }
+
+                    return _cachedProjectName;
+                }
+            }
+
+            private void AddFlavor(string? projectFlavor)
+            {
+                if (projectFlavor == null)
+                    return;
+
+                lock (_projectFlavors)
+                {
+                    if (_projectFlavors.Contains(projectFlavor))
+                        return;
+
+                    _projectFlavors.Add(projectFlavor);
+                    _projectFlavors.Sort();
+                    _cachedProjectName = null;
+                }
+            }
+
+            public static DocumentSpanEntry? TryCreate(
+                AbstractTableDataSourceFindUsagesContext context,
+                RoslynDefinitionBucket definitionBucket,
+                Guid guid,
+                string projectName,
+                string? projectFlavor,
+                string? filePath,
+                TextSpan sourceSpan,
+                HighlightSpanKind spanKind,
+                MappedSpanResult mappedSpanResult,
+                ExcerptResult excerptResult,
+                SourceText lineText,
+                SymbolUsageInfo symbolUsageInfo,
+                ImmutableDictionary<string, string> customColumnsData)
+            {
+                var entry = new DocumentSpanEntry(
+                    context, definitionBucket,
+                    projectName, projectFlavor, guid,
+                    spanKind, mappedSpanResult, excerptResult,
+                    lineText, symbolUsageInfo, customColumnsData);
+
+                // Because of things like linked files, we may have a reference up in multiple
+                // different locations that are effectively at the exact same navigation location
+                // for the user. i.e. they're the same file/span.  Showing multiple entries for these
+                // is just noisy and gets worse and worse with shared projects and whatnot.  So, we
+                // collapse things down to only show a single entry for each unique file/span pair.
+                var winningEntry = definitionBucket.GetOrAddEntry(filePath, sourceSpan, entry);
+
+                // If we were the one that successfully added this entry to the bucket, then pass us
+                // back out to be put in the ui.
+                if (winningEntry == entry)
+                    return entry;
+
+                // We were not the winner.  Add our flavor to the entry that already exists, but throw
+                // away the item we created as we do not want to add it to the ui.
+                winningEntry.AddFlavor(projectFlavor);
+                return null;
             }
 
             protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()
@@ -202,27 +280,39 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     sourceText.Lines[lastLineNumber].End);
             }
 
-            bool ISupportsNavigation.TryNavigateTo(bool isPreview)
+            public bool CanNavigateTo()
             {
-                // If the document is a source generated document, we need to do the navigation ourselves;
-                // this is because the file path given to the table control isn't a real file path to a file
-                // on disk.
                 if (_excerptResult.Document is SourceGeneratedDocument)
                 {
                     var workspace = _excerptResult.Document.Project.Solution.Workspace;
                     var documentNavigationService = workspace.Services.GetService<IDocumentNavigationService>();
 
-                    if (documentNavigationService != null)
-                    {
-                        return documentNavigationService.TryNavigateToSpan(
-                            workspace,
-                            _excerptResult.Document.Id,
-                            _excerptResult.Span,
-                            workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview));
-                    }
+                    return documentNavigationService != null;
                 }
 
                 return false;
+            }
+
+            public Task NavigateToAsync(bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
+            {
+                Contract.ThrowIfFalse(CanNavigateTo());
+
+                // If the document is a source generated document, we need to do the navigation ourselves;
+                // this is because the file path given to the table control isn't a real file path to a file
+                // on disk.
+
+                var solution = _excerptResult.Document.Project.Solution;
+                var workspace = solution.Workspace;
+                var documentNavigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
+
+                return documentNavigationService.TryNavigateToSpanAsync(
+                    workspace,
+                    _excerptResult.Document.Id,
+                    _excerptResult.Span,
+                    solution.Options
+                        .WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview)
+                        .WithChangedOption(NavigationOptions.ActivateTab, shouldActivate),
+                    cancellationToken);
             }
         }
     }

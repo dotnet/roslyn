@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.UpgradeProject;
 
 namespace Microsoft.CodeAnalysis.CSharp.UpdateProjectToAllowUnsafe
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UpdateProjectToAllowUnsafe), Shared]
     internal class CSharpUpdateProjectToAllowUnsafeCodeFixProvider : CodeFixProvider
     {
         private const string CS0227 = nameof(CS0227); // error CS0227: Unsafe code may only appear if compiling with /unsafe

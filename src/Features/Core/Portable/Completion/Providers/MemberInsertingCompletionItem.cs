@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -34,11 +33,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: descriptionPosition,
                 properties: props,
-                rules: rules);
+                rules: rules,
+                isComplexTextEdit: true);
         }
 
-        public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, SymbolDescriptionOptions options, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, options, cancellationToken);
 
         public static DeclarationModifiers GetModifiers(CompletionItem item)
         {

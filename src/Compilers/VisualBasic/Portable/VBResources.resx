@@ -5626,4 +5626,28 @@
   <data name="ERR_PropertyDoesntImplementInitOnly" xml:space="preserve">
     <value>Init-only '{0}' cannot be implemented.</value>
   </data>
+  <data name="ERR_UnmanagedCallersOnlyNotSupported" xml:space="preserve">
+    <value>'UnmanagedCallersOnly' attribute is not supported.</value>
+  </data>
+  <data name="FEATURE_CallerArgumentExpression" xml:space="preserve">
+    <value>caller argument expression</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeSelfReferential" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeSelfReferential_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</value>
+  </data>
+  <data name="ERR_BadAbstractStaticMemberAccess" xml:space="preserve">
+    <value>A shared abstract interface member cannot be accessed.</value>
+  </data>
+  <data name="ERR_UnimplementedSharedMember" xml:space="preserve">
+    <value>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</value>
+  </data>
 </root>

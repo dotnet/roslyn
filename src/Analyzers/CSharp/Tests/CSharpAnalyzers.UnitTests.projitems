@@ -9,13 +9,19 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveBracePlacement\ConsecutiveBracePlacementTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\ConsecutiveStatementPlacementTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConstructorInitializerPlacement\ConstructorInitializerPlacementTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\MultipleBlankLinesTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\CSharpMatchFolderAndNamespaceTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\RemoveUnnecessaryDiscardDesignationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredPatternParenthesesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredExpressionParenthesesTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ConvertAnonymousTypeToTuple\ConvertAnonymousTypeToTupleTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\ConvertTypeOfToNameOfFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\ConvertTypeOfToNameOfTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InlineDeclaration\CSharpInlineDeclarationTests.cs" />
@@ -30,6 +36,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\RemoveConfusingSuppressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RemoveRedundantEqualityTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionFixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateLegacySuppressions\UpdateLegacySuppressionsTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\RemoveUnnecessaryAttributeSuppressionsTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\RemoveUnnecessaryPatternParenthesesTests.cs" />
@@ -63,8 +71,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchStatementTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\QualifyMemberAccessTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\RemoveUnnecessaryExpressionParenthesesTests.cs" />
@@ -83,8 +89,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\UseInferredMemberNameTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullCheckForCastAndEqualityOperatorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullCheckForReferenceEqualsTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseNullCheckOverTypeCheckDiagnosticAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitObjectCreation\CSharpUseImplicitObjectCreationTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseParameterNullChecking\UseParameterNullCheckingTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\UseTupleSwapTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\UseLocalFunctionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\UseNullPropagationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseObjectInitializerTests.cs" />
@@ -99,6 +108,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseVarTestExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\ValidateFormatStringTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\EmbeddedStatementPlacement\EmbeddedStatementPlacementTests.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

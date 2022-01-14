@@ -20,13 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternMatchingTests3 : PatternMatchingTestBase
     {
-        private static void AssertEmpty(SymbolInfo info)
-        {
-            Assert.NotEqual(default, info);
-            Assert.Null(info.Symbol);
-            Assert.Equal(CandidateReason.None, info.CandidateReason);
-        }
-
         [Fact]
         public void PropertyPatternSymbolInfo_01()
         {
@@ -1399,7 +1392,7 @@ public static class C {
     }
 }";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (4,19): warning CS8618: Non-nullable field 'o' is uninitialized. Consider declaring the field as nullable.
+                // (4,19): warning CS8618: Non-nullable field 'o' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     static object o;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "o").WithArguments("field", "o").WithLocation(4, 19),
                 // (4,19): warning CS0649: Field 'C.o' is never assigned to, and will always have its default value null
@@ -1408,6 +1401,9 @@ public static class C {
                 // (7,12): error CS0716: Cannot convert to static type 'C'
                 //         _= (C)(o switch { _ => default }); 
                 Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C)(o switch { _ => default })").WithArguments("C").WithLocation(7, 12),
+                // (7,12): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         _= (C)(o switch { _ => default }); 
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)(o switch { _ => default })").WithLocation(7, 12),
                 // (8,12): error CS0716: Cannot convert to static type 'C'
                 //         _= (C)(o switch { _ => throw null! }); 
                 Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C)(o switch { _ => throw null! })").WithArguments("C").WithLocation(8, 12)
@@ -1465,11 +1461,15 @@ Block[B0] - Entry
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... default });')
               Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C?, IsInvalid) (Syntax: '_= (C)(o sw ...  default })')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ...  default })')
                   Left: 
-                    IDiscardOperation (Symbol: C? _) (OperationKind.Discard, Type: C?) (Syntax: '_')
+                    IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
                   Right: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C?, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... > default }')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid) (Syntax: '(C)(o switc ...  default })')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (SwitchExpression)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C?, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... > default }')
         Next (Regular) Block[B5]
             Leaving: {R1}
             Entering: {R3} {R4}
@@ -1535,7 +1535,11 @@ Block[B0] - Entry
                   Left: 
                     IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
                   Right: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... row null! }')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid) (Syntax: '(C)(o switc ... ow null! })')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (SwitchExpression)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... row null! }')
         Next (Regular) Block[B10]
             Leaving: {R3}
 }
@@ -1549,48 +1553,54 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 
     IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... default });')
         Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C?, IsInvalid) (Syntax: '_= (C)(o sw ...  default })')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ...  default })')
             Left: 
-              IDiscardOperation (Symbol: C? _) (OperationKind.Discard, Type: C?) (Syntax: '_')
+              IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
             Right: 
-              ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: C?, IsInvalid) (Syntax: 'o switch {  ... > default }')
-                Value: 
-                  IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
-                    Instance Receiver: 
-                      null
-                Arms(1):
-                    ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => default')
-                      Pattern: 
-                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
-                      Value: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C?, Constant: null, IsInvalid, IsImplicit) (Syntax: 'default')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          Operand: 
-                            IDefaultValueOperation (OperationKind.DefaultValue, Type: C?, Constant: null, IsInvalid) (Syntax: 'default')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid) (Syntax: '(C)(o switc ...  default })')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: C?, IsInvalid) (Syntax: 'o switch {  ... > default }')
+                    Value: 
+                      IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+                        Instance Receiver: 
+                          null
+                    Arms(1):
+                        ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => default')
+                          Pattern: 
+                            IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
+                          Value: 
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C?, Constant: null, IsInvalid, IsImplicit) (Syntax: 'default')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand: 
+                                IDefaultValueOperation (OperationKind.DefaultValue, Type: C?, Constant: null, IsInvalid) (Syntax: 'default')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... w null! });')
         Expression: 
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ... ow null! })')
             Left: 
               IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
             Right: 
-              ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: C, IsInvalid) (Syntax: 'o switch {  ... row null! }')
-                Value: 
-                  IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
-                    Instance Receiver: 
-                      null
-                Arms(1):
-                    ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => throw null!')
-                      Pattern: 
-                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
-                      Value: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: 'throw null!')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          Operand: 
-                            IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null!')
-                              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
-                                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                Operand: 
-                                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid) (Syntax: '(C)(o switc ... ow null! })')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: C, IsInvalid) (Syntax: 'o switch {  ... row null! }')
+                    Value: 
+                      IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+                        Instance Receiver: 
+                          null
+                    Arms(1):
+                        ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => throw null!')
+                          Pattern: 
+                            IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
+                          Value: 
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: 'throw null!')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand: 
+                                IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null!')
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                    Operand: 
+                                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
   ExpressionBody: 
     null
 ";
@@ -2918,7 +2928,8 @@ class C
             }
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44657
+        [WorkItem(44657, "https://github.com/dotnet/roslyn/issues/44657")]
         [InlineData("sbyte", true)]
         [InlineData("short", true)]
         [InlineData("int", true)]
@@ -2996,7 +3007,7 @@ class C
                 );
 
             VerifyOperationTreeForTest<SwitchExpressionSyntax>(compilation, @"
-ISwitchExpressionOperation (3 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'c switch ... }')
+ISwitchExpressionOperation (3 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'c switch ... }')
   Value: 
     IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.UInt32) (Syntax: 'c')
   Arms(3):
@@ -4049,7 +4060,8 @@ struct S
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44658
+        [WorkItem(44658, "https://github.com/dotnet/roslyn/issues/44658")]
         public void New9PatternsSemanticModel_01()
         {
             // Tests for the semantic model in new patterns as of C# 9.0.
@@ -4277,7 +4289,8 @@ class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44658
+        [WorkItem(44658, "https://github.com/dotnet/roslyn/issues/44658")]
         public void New9PatternsSemanticModel_02()
         {
             // Tests for the semantic model in new patterns as of C# 9.0.
@@ -6518,7 +6531,7 @@ class C
 42");
             verifier.VerifyIL("C.M",
 @"{
-  // Code size       41 (0x29)
+  // Code size       38 (0x26)
   .maxstack  1
   .locals init (C V_0, //c1
                 C V_1) //c2
@@ -6526,20 +6539,18 @@ class C
   IL_0001:  isinst     ""C""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0011
+  IL_0008:  brfalse.s  IL_000e
   IL_000a:  ldloc.0
-  IL_000b:  brfalse.s  IL_0011
-  IL_000d:  ldloc.0
-  IL_000e:  stloc.1
-  IL_000f:  br.s       IL_0012
-  IL_0011:  ret
-  IL_0012:  ldloc.0
-  IL_0013:  ldfld      ""object C.F""
-  IL_0018:  call       ""void System.Console.WriteLine(object)""
-  IL_001d:  ldloc.1
-  IL_001e:  ldfld      ""object C.F""
-  IL_0023:  call       ""void System.Console.WriteLine(object)""
-  IL_0028:  ret
+  IL_000b:  stloc.1
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ret
+  IL_000f:  ldloc.0
+  IL_0010:  ldfld      ""object C.F""
+  IL_0015:  call       ""void System.Console.WriteLine(object)""
+  IL_001a:  ldloc.1
+  IL_001b:  ldfld      ""object C.F""
+  IL_0020:  call       ""void System.Console.WriteLine(object)""
+  IL_0025:  ret
 }");
         }
 
@@ -7298,6 +7309,242 @@ class C
                 //     int M((object?, bool, bool, bool) t) => t switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47)
                 );
+        }
+
+        [Fact]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
+        public void Nonexhaustive_InvalidConstant_01()
+        {
+            var source =
+@"enum Color
+{
+    Red
+}
+static class Program
+{
+    static int ToArgb(this Color color)
+    {
+        return 0;
+    }
+    static int GetValue(Color color)
+    {
+        const int red = Color.Red.ToArgb();
+        return color.ToArgb() switch
+        {
+            red => 1
+        };
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,25): error CS0133: The expression being assigned to 'red' must be constant
+                //         const int red = Color.Red.ToArgb();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25),
+                // (14,31): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return color.ToArgb() switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(14, 31));
+        }
+
+        [Fact]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
+        public void Nonexhaustive_InvalidConstant_02()
+        {
+            var source =
+@"enum Color
+{
+    Red
+}
+static class Program
+{
+    static int ToArgb(this Color color)
+    {
+        return 0;
+    }
+    static int GetValue(Color color)
+    {
+        const int red = Color.Red.ToArgb();
+        return color.ToArgb() switch
+        {
+            0 => 0,
+            red => 1
+        };
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,25): error CS0133: The expression being assigned to 'red' must be constant
+                //         const int red = Color.Red.ToArgb();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25),
+                // (14,31): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '1' is not covered.
+                //         return color.ToArgb() switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("1").WithLocation(14, 31));
+        }
+
+        [Fact]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
+        public void Nonexhaustive_InvalidConstant_03()
+        {
+            var source =
+@"enum Color
+{
+    Red
+}
+static class Program
+{
+    static int ToArgb(this Color color)
+    {
+        return 0;
+    }
+    static int GetValue(Color color)
+    {
+        const int red = Color.Red.ToArgb();
+        return color.ToArgb() switch
+        {
+            < red => 1
+        };
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,25): error CS0133: The expression being assigned to 'red' must be constant
+                //         const int red = Color.Red.ToArgb();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25));
+        }
+
+        [WorkItem(51936, "https://github.com/dotnet/roslyn/issues/51936")]
+        [Theory]
+        [InlineData("sbyte")]
+        [InlineData("byte")]
+        [InlineData("short")]
+        [InlineData("ushort")]
+        [InlineData("int")]
+        [InlineData("uint")]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        [InlineData("long")]
+        [InlineData("ulong")]
+        public void MismatchedConstantType_01(string type)
+        {
+            var sourceA =
+@"class Program
+{
+    static void Main()
+    {
+        if (shape is Circle { Radius: >= 100.0 })
+        {
+        }
+    }
+}";
+            var sourceB =
+$@"class Circle
+{{
+    public {type} Radius {{ get; set; }}
+}}";
+            var compilation = CreateCompilation(new[] { sourceA, sourceB });
+            compilation.VerifyDiagnostics(
+                // (5,13): error CS0103: The name 'shape' does not exist in the current context
+                //         if (shape is Circle { Radius: >= 100.0 })
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "shape").WithArguments("shape").WithLocation(5, 13),
+                // (5,42): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         if (shape is Circle { Radius: >= 100.0 })
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "100.0").WithArguments("double", type).WithLocation(5, 42));
+        }
+
+        [WorkItem(51936, "https://github.com/dotnet/roslyn/issues/51936")]
+        [Theory]
+        [InlineData("float")]
+        [InlineData("double")]
+        [InlineData("decimal")]
+        public void MismatchedConstantType_02(string type)
+        {
+            var sourceA =
+@"class Program
+{
+    static void Main()
+    {
+        if (shape is Circle { Radius: >= 100 })
+        {
+        }
+    }
+}";
+            var sourceB =
+$@"class Circle
+{{
+    public {type} Radius {{ get; set; }}
+}}";
+            var compilation = CreateCompilation(new[] { sourceA, sourceB });
+            compilation.VerifyDiagnostics(
+                // (5,13): error CS0103: The name 'shape' does not exist in the current context
+                //         if (shape is Circle { Radius: >= 100 })
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "shape").WithArguments("shape").WithLocation(5, 13));
+        }
+
+        [WorkItem(51936, "https://github.com/dotnet/roslyn/issues/51936")]
+        [Fact]
+        public void MismatchedConstantType_03()
+        {
+            var sourceA =
+@"class Program
+{
+    static void Main()
+    {
+        if (shape is Circle { Radius: >= 100 })
+        {
+        }
+    }
+}";
+            var sourceB =
+@"class Circle
+{
+    public event System.Func<double> Radius;
+}";
+            var compilation = CreateCompilation(new[] { sourceA, sourceB });
+            compilation.VerifyDiagnostics(
+                // (3,38): warning CS0067: The event 'Circle.Radius' is never used
+                //     public event System.Func<double> Radius;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Radius").WithArguments("Circle.Radius").WithLocation(3, 38),
+                // (5,13): error CS0103: The name 'shape' does not exist in the current context
+                //         if (shape is Circle { Radius: >= 100 })
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "shape").WithArguments("shape").WithLocation(5, 13));
+        }
+
+        [Fact]
+        [WorkItem(56199, "https://github.com/dotnet/roslyn/issues/56199")]
+        public void ArrayLength()
+        {
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        Console.Write(M(new int[1]) ? 1 : 0);
+        Console.Write(M(new int[2]) ? 1 : 0);
+    }
+
+    static bool M(int[] a)
+    {
+        return a is {Length:1};
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "10");
+            compVerifier.VerifyIL("C.M",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000a
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  ldc.i4.1
+  IL_0007:  ceq
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
         }
     }
 }

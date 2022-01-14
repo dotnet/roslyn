@@ -42,6 +42,37 @@ class C
         }
 
         [Theory]
+        [CombinatorialData]
+        public async Task TestOutVariable(
+            [CombinatorialValues("string", "bool", "int?")] string type,
+            [CombinatorialValues("out", "ref", "in")] string modifier)
+        {
+            var markup = $@"
+class C
+{{
+    void Method()
+    {{
+        {type} arg;
+        this.Target($$);
+    }}
+
+    void Target({modifier} {type} arg)
+    {{
+    }}
+}}
+";
+
+            var generatedModifier = modifier switch
+            {
+                "in" => "",
+                _ => $"{modifier} ",
+            };
+
+            await VerifyDefaultValueAsync(markup, $"{generatedModifier}arg");
+            await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
+        }
+
+        [Theory]
         [InlineData("string")]
         [InlineData("bool")]
         [InlineData("int?")]

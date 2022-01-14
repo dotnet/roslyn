@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -20,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -28,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(ObjectCreationCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(ExplicitInterfaceTypeCompletionProvider))]
     [Shared]
-    internal partial class ObjectCreationCompletionProvider : AbstractObjectCreationCompletionProvider
+    internal partial class ObjectCreationCompletionProvider : AbstractObjectCreationCompletionProvider<CSharpSyntaxContext>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -36,12 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
-        protected override SyntaxNode GetObjectCreationNewExpression(SyntaxTree tree, int position, CancellationToken cancellationToken)
+        protected override SyntaxNode? GetObjectCreationNewExpression(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {
             if (tree != null)
             {
@@ -56,9 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         // Only if the 'new' belongs to an object creation expression (and isn't a 'new'
                         // modifier on a member).
                         if (tree.IsObjectCreationTypeContext(position, tokenOnLeftOfPosition, cancellationToken))
-                        {
                             return newToken.Parent as ExpressionSyntax;
-                        }
                     }
                 }
             }
@@ -66,29 +62,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
+            CompletionContext? completionContext, CSharpSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
-        }
-
-        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
-        {
-            var result = await base.GetPreselectedSymbolsAsync(context, position, options, cancellationToken).ConfigureAwait(false);
+            var result = await base.GetSymbolsAsync(completionContext, context, position, options, cancellationToken).ConfigureAwait(false);
             if (result.Any())
             {
-                var type = (ITypeSymbol)result.Single();
+                var type = (ITypeSymbol)result.Single().symbol;
                 var alias = await type.FindApplicableAliasAsync(position, context.SemanticModel, cancellationToken).ConfigureAwait(false);
                 if (alias != null)
-                {
-                    return ImmutableArray.Create(alias);
-                }
+                    return ImmutableArray.Create((alias, result.Single().preselect));
             }
 
             return result;
         }
 
-        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, CSharpSyntaxContext context)
         {
             if (symbol is IAliasSymbol)
             {
@@ -117,43 +106,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static readonly CompletionItemRules s_objectRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', ';')),
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', ';', '.')),
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
         private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{', ';')),
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{', ';', '.')),
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, bool preselect)
+        protected override CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols)
         {
+            var preselect = symbols.Any(t => t.preselect);
             if (!preselect)
-            {
                 return s_arrayRules;
-            }
 
             // SPECIAL: If the preselected symbol is System.Object, don't commit on '{'.
             // Otherwise, it is cumbersome to type an anonymous object when the target type is object.
             // The user would get 'new object {' rather than 'new {'. Since object doesn't have any
             // properties, the user never really wants to commit 'new object {' anyway.
-            var namedTypeSymbol = symbols.Count > 0 ? symbols[0] as INamedTypeSymbol : null;
+            var namedTypeSymbol = symbols.Length > 0 ? symbols[0].symbol as INamedTypeSymbol : null;
             if (namedTypeSymbol?.SpecialType == SpecialType.System_Object)
-            {
                 return s_objectRules;
-            }
 
             return s_defaultRules;
         }
 
         protected override string GetInsertionText(CompletionItem item, char ch)
         {
-            if (ch == ';')
+            if (ch is ';' or '.')
             {
-                CompletionProvidersLogger.LogCommitUsingSemicolonToAddParenthesis();
-                var insertionText = SymbolCompletionItem.GetInsertionText(item);
-                return insertionText + "()";
+                CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(ch);
+                return SymbolCompletionItem.GetInsertionText(item) + "()";
             }
 
             return base.GetInsertionText(item, ch);

@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var result = new CodeGenerationConstructorSymbol(this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers, this.Parameters);
 
             CodeGenerationConstructorInfo.Attach(result,
+                CodeGenerationConstructorInfo.GetIsPrimaryConstructor(this),
                 CodeGenerationConstructorInfo.GetIsUnsafe(this),
                 CodeGenerationConstructorInfo.GetTypeName(this),
                 CodeGenerationConstructorInfo.GetStatements(this),

@@ -2275,12 +2275,21 @@ End Interface")
 
         <Fact>
         Public Sub TestEnumDeclarationFromSymbol()
-            Dim a As SyntaxNode = Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.DateTimeKind"))
             VerifySyntax(Of EnumBlockSyntax)(Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.DateTimeKind")),
 "Public Enum DateTimeKind
     Unspecified = 0
     Utc = 1
     Local = 2
+End Enum")
+        End Sub
+
+        <Fact>
+        Public Sub TestEnumWithUnderlyingTypeFromSymbol()
+            VerifySyntax(Of EnumBlockSyntax)(Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
+"Public Enum SecurityRuleSet As Byte
+    None = CByte(0)
+    Level1 = CByte(1)
+    Level2 = CByte(2)
 End Enum")
         End Sub
 #End Region
@@ -2542,6 +2551,18 @@ End Class
             Assert.Equal(DeclarationModifiers.None, Generator.GetModifiers(Generator.WithModifiers(Generator.LocalDeclarationStatement(Generator.IdentifierName("t"), "loc"), DeclarationModifiers.Abstract)))
             Assert.Equal(DeclarationModifiers.None, Generator.GetModifiers(Generator.WithModifiers(Generator.Attribute("a"), DeclarationModifiers.Abstract)))
             Assert.Equal(DeclarationModifiers.None, Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.TypeParameter("tp"), DeclarationModifiers.Abstract)))
+        End Sub
+
+        <Fact>
+        Public Sub TestWithModifiers_Sealed()
+            Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
+            Dim classBlockWithModifiers = Generator.WithModifiers(classBlock, DeclarationModifiers.Sealed)
+            VerifySyntax(Of ClassBlockSyntax)(classBlockWithModifiers, "NotInheritable Class C
+End Class")
+
+            Dim classStatement = classBlock.ClassStatement
+            Dim classStatementWithModifiers = Generator.WithModifiers(classStatement, DeclarationModifiers.Sealed)
+            VerifySyntax(Of ClassStatementSyntax)(classStatementWithModifiers, "NotInheritable Class C")
         End Sub
 
         <Fact>

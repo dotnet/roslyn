@@ -18,45 +18,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
         }
 
-        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
-            TSymbol symbol,
-            Solution solution,
-            IImmutableSet<Project>? projects,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            // Static methods can't cascade.
-            if (!symbol.IsStatic)
-            {
-                if (symbol.IsImplementableMember())
-                {
-                    // We have an interface method.  Find all implementations of that method and
-                    // cascade to them.
-                    return await SymbolFinder.FindMemberImplementationsArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    // We have a normal method.  Find any interface methods that it implicitly or
-                    // explicitly implements and cascade down to those.
-                    var interfaceMembersImplemented = await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(
-                        symbol, solution, projects, cancellationToken).ConfigureAwait(false);
-
-                    // Finally, methods can cascade through virtual/override inheritance.  NOTE(cyrusn):
-                    // We only need to go up or down one level.  Then, when we're finding references on
-                    // those members, we'll end up traversing the entire hierarchy.
-                    var overrides = await SymbolFinder.FindOverridesArrayAsync(
-                        symbol, solution, projects, cancellationToken).ConfigureAwait(false);
-
-                    var overriddenMember = symbol.GetOverriddenMember();
-                    return overriddenMember == null
-                        ? interfaceMembersImplemented.Concat(overrides)
-                        : interfaceMembersImplemented.Concat(overrides).Concat(overriddenMember);
-                }
-            }
-
-            return ImmutableArray<ISymbol>.Empty;
-        }
-
         protected static ImmutableArray<IMethodSymbol> GetReferencedAccessorSymbols(
             ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts,
             SemanticModel model, IPropertySymbol property, SyntaxNode node, CancellationToken cancellationToken)

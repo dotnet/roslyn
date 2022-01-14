@@ -6,14 +6,11 @@ Imports System.Runtime.CompilerServices
 Imports System.Runtime.ExceptionServices
 Imports System.Runtime.InteropServices
 Imports EnvDTE
-Imports EnvDTE80
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
@@ -25,6 +22,11 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Friend Module CodeModelTestHelpers
+
+        Public ReadOnly Composition As TestComposition = VisualStudioTestCompositions.LanguageServices.AddParts(
+            GetType(MockServiceProvider),
+            GetType(MockVisualStudioWorkspace),
+            GetType(ProjectCodeModelFactory))
 
         Public SystemWindowsFormsPath As String
         Public SystemDrawingPath As String
@@ -44,13 +46,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         <HandleProcessCorruptedStateExceptions()>
         Public Function CreateCodeModelTestState(definition As XElement) As CodeModelTestState
-            Dim workspace = TestWorkspace.Create(definition, composition:=VisualStudioTestCompositions.LanguageServices)
+            Dim workspace = TestWorkspace.Create(definition, composition:=Composition)
 
             Dim result As CodeModelTestState = Nothing
             Try
-                Dim mockComponentModel = New MockComponentModel(workspace.ExportProvider)
-                Dim mockServiceProvider = New MockServiceProvider(mockComponentModel)
-                Dim mockVisualStudioWorkspace = New MockVisualStudioWorkspace(workspace)
                 WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance
 
                 ' The Code Model test infrastructure assumes that a test workspace only ever contains a single project.
@@ -58,34 +57,34 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
-                Dim notificationService = workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
+                Dim visualStudioWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
+                visualStudioWorkspace.SetWorkspace(workspace)
 
                 Dim state = New CodeModelState(
                     threadingContext,
-                    mockServiceProvider,
+                    workspace.ExportProvider.GetExportedValue(Of MockServiceProvider),
                     project.LanguageServices,
-                    mockVisualStudioWorkspace,
-                    New ProjectCodeModelFactory(
-                        mockVisualStudioWorkspace,
-                        mockServiceProvider,
-                        threadingContext,
-                        notificationService,
-                        listenerProvider))
+                    visualStudioWorkspace,
+                    workspace.ExportProvider.GetExportedValue(Of ProjectCodeModelFactory))
 
                 Dim projectCodeModel = DirectCast(state.ProjectCodeModelFactory.CreateProjectCodeModel(project.Id, Nothing), ProjectCodeModel)
+
+                Dim firstFileCodeModel As ComHandle(Of EnvDTE80.FileCodeModel2, Implementation.CodeModel.FileCodeModel)? = Nothing
 
                 For Each document In project.Documents
                     ' Note that a parent is not specified below. In Visual Studio, this would normally be an EnvDTE.Project instance.
                     Dim fcm = projectCodeModel.GetOrCreateFileCodeModel(document.FilePath, parent:=Nothing)
                     fcm.Object.TextManagerAdapter = New MockTextManagerAdapter()
-                    mockVisualStudioWorkspace.SetFileCodeModel(document.Id, fcm)
+
+                    If Not firstFileCodeModel.HasValue Then
+                        firstFileCodeModel = fcm
+                    End If
                 Next
 
                 Dim root = New ComHandle(Of EnvDTE.CodeModel, RootCodeModel)(RootCodeModel.Create(state, Nothing, project.Id))
-                Dim firstFCM = mockVisualStudioWorkspace.GetFileCodeModelComHandle(project.DocumentIds.First())
 
-                result = New CodeModelTestState(workspace, mockVisualStudioWorkspace, root, firstFCM, state.CodeModelService)
+                result = New CodeModelTestState(workspace, state.Workspace, root, firstFileCodeModel.Value, state.CodeModelService)
             Finally
                 If result Is Nothing Then
                     workspace.Dispose()
@@ -94,28 +93,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
             Return result
         End Function
-
-        Public Class MockServiceProvider
-            Implements IServiceProvider
-
-            Private ReadOnly _componentModel As MockComponentModel
-
-            Public Sub New(componentModel As MockComponentModel)
-                _componentModel = componentModel
-            End Sub
-
-            Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
-                If serviceType = GetType(SComponentModel) Then
-                    Return Me._componentModel
-                End If
-
-                If serviceType = GetType(EnvDTE.IVsExtensibility) Then
-                    Return Nothing
-                End If
-
-                Throw New NotImplementedException($"No service exists for {serviceType.FullName}")
-            End Function
-        End Class
 
         Friend Class MockComWrapperFactory
             Implements IComWrapperFactory

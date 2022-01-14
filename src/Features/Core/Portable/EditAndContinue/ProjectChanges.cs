@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// All line changes made in changed documents.
         /// </summary>
-        public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<LineChange> Changes)> LineChanges;
+        public readonly ImmutableArray<SequencePointUpdates> LineChanges;
 
         /// <summary>
         /// All symbols added in changed documents.
@@ -31,23 +29,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// All active statements and the corresponding exception regions in changed documents.
         /// </summary>
-        public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> NewActiveStatements;
+        public readonly ImmutableArray<DocumentActiveStatementChanges> ActiveStatementChanges;
 
         public ProjectChanges(
             ImmutableArray<SemanticEdit> semanticEdits,
-            ImmutableArray<(DocumentId, ImmutableArray<LineChange>)> lineChanges,
+            ImmutableArray<SequencePointUpdates> lineChanges,
             ImmutableHashSet<ISymbol> addedSymbols,
-            ImmutableArray<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)> newActiveStatements)
+            ImmutableArray<DocumentActiveStatementChanges> activeStatementChanges)
         {
             Debug.Assert(!semanticEdits.IsDefault);
             Debug.Assert(!lineChanges.IsDefault);
-            Debug.Assert(addedSymbols != null);
-            Debug.Assert(!newActiveStatements.IsDefault);
+            Debug.Assert(!activeStatementChanges.IsDefault);
 
             SemanticEdits = semanticEdits;
             LineChanges = lineChanges;
             AddedSymbols = addedSymbols;
-            NewActiveStatements = newActiveStatements;
+            ActiveStatementChanges = activeStatementChanges;
         }
     }
 }

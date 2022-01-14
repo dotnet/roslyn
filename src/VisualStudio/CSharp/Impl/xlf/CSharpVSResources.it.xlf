@@ -7,14 +7,39 @@
         <target state="translated">Aggiungi direttive using mancanti dopo operazione Incolla</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+        <source>Allow blank line after colon in constructor initializer</source>
+        <target state="translated">Consenti riga vuota dopo i due punti nell'inizializzatore del costruttore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_lines_between_consecutive_braces">
+        <source>Allow blank lines between consecutive braces</source>
+        <target state="translated">Consenti righe vuote tra parentesi graffe consecutive</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_embedded_statements_on_same_line">
+        <source>Allow embedded statements on same line</source>
+        <target state="translated">Consenti istruzioni incorporate sulla stessa riga</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
         <target state="translated">Applica tutte le regole di formattazione di C# (rientro, ritorno a capo, spaziatura)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_complete_statement_on_semicolon">
+        <source>Automatically complete statement on semicolon</source>
+        <target state="translated">Completa automaticamente istruzione dopo punto e virgola</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
-        <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">Mostra automaticamente l'elenco di completamento negli elenchi di argomenti (sperimentale)</target>
+        <source>Automatically show completion list in argument lists</source>
+        <target state="translated">Mostra automaticamente l'elenco di completamento negli elenchi di argomenti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="translated">Con ambito blocco</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -32,6 +57,11 @@
         <target state="translated">Regole di formattazione C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="translated">Completamento</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
         <target state="translated">Variabile discard</target>
@@ -42,9 +72,9 @@
         <target state="translated">Modifica combinazione colori</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">Formatta documento</target>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="translated">Con ambito file</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -87,6 +117,16 @@
         <target state="translated">Esegui la pulizia del codice aggiuntiva durante la formattazione</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
+        <source>Place open brace on new line for object, collection, array, and with initializers</source>
+        <target state="translated">Inserisci parentesi graffa di apertura in una nuova riga per oggetto, raccolta, matrice e inizializzatori with</target>
+        <note>{Locked="with"}</note>
+      </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="translated">Preferisci il modello di proprietà estesa</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">Preferisci la creazione implicita di oggetti quando il tipo è apparente</target>
@@ -96,6 +136,16 @@
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">Preferisci 'is null' per i controlli di uguaglianza dei riferimenti</target>
         <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">Preferisci il controllo 'null' al controllo del tipo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_parameter_null_checking">
+        <source>Prefer parameter null checking</source>
+        <target state="new">Prefer parameter null checking</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
@@ -265,11 +315,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
         <source>Place open brace on new line for methods and local functions</source>
         <target state="translated">Inserisci parentesi graffa di apertura su nuova riga per metodi e funzioni locali</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_and_array_initializers">
-        <source>Place open brace on new line for object, collection and array initializers</source>
-        <target state="translated">Inserisci parentesi graffa di apertura in una nuova riga per inizializzatori di oggetto, raccolta e matrice</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_types">
@@ -570,11 +615,6 @@
       <trans-unit id="Place_code_snippets_in_completion_lists">
         <source>Place _code snippets in completion lists</source>
         <target state="translated">Inserisci _frammenti di codice in elenchi di completamento</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Completion_Lists">
-        <source>Completion Lists</source>
-        <target state="translated">Elenchi di completamento</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_In_Completion_List">

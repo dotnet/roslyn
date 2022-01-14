@@ -14,11 +14,12 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -29,6 +30,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
         /// <summary>
+        /// Used by the editor to signify that errors added to the error list
+        /// should not be copied to the guest.  Instead they will be published via LSP.
+        /// </summary>
+        private const string DoNotPropogateToGuestProperty = "DoNotPropagateToGuests";
+
+        /// <summary>
         /// Error list diagnostic source for "Build + Intellisense" setting.
         /// See <see cref="VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.BuildTableDataSource"/>
         /// for error list diagnostic source for "Build only" setting.
@@ -38,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
             private readonly Workspace _workspace;
+            private readonly IGlobalOptionService _globalOptions;
             private readonly OpenDocumentTracker<DiagnosticTableItem> _tracker;
 
             /// <summary>
@@ -47,10 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             /// </summary>
             private bool _isBuildRunning;
 
-            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
+            public LiveTableDataSource(Workspace workspace, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
                 : base(workspace)
             {
                 _workspace = workspace;
+                _globalOptions = globalOptions;
                 _identifier = identifier;
 
                 _tracker = new OpenDocumentTracker<DiagnosticTableItem>(_workspace);
@@ -118,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return key;
                 }
 
-                if (!CheckAggregateKey(key as AggregatedKey, data as DiagnosticsUpdatedArgs))
+                if (!CheckAggregateKey(key as AggregatedKey, data))
                 {
                     RemoveStaledData(data);
 
@@ -175,14 +184,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(_workspace, a), e, CancellationToken.None))
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(_globalOptions, a), e, CancellationToken.None))
                 {
                     if (_workspace != e.Workspace)
                     {
                         return;
                     }
 
-                    var diagnostics = e.GetPushDiagnostics(_workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                    var diagnostics = e.GetPushDiagnostics(_globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
                     if (diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
@@ -361,7 +370,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Message;
                             return content != null;
                         case StandardTableKeyNames.DocumentName:
-                            content = GetFileName(data.DataLocation?.OriginalFilePath, data.DataLocation?.MappedFilePath);
+                            content = data.DataLocation?.GetFilePath();
                             return content != null;
                         case StandardTableKeyNames.Line:
                             content = data.DataLocation?.MappedStartLine ?? 0;
@@ -385,6 +394,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return guids.Length > 0;
                         case StandardTableKeyNames.SuppressionState:
                             content = data.IsSuppressed ? SuppressionState.Suppressed : SuppressionState.Active;
+                            return true;
+                        case DoNotPropogateToGuestProperty:
+                            content = true;
                             return true;
                         default:
                             content = null;
@@ -458,8 +470,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab, bool activate)
-                    => TryNavigateToItem(index, previewTab, activate);
+                public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
+                    => TryNavigateToItem(index, previewTab, activate, cancellationToken);
 
                 #region IWpfTableEntriesSnapshot
 
@@ -569,19 +581,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 #endregion
             }
 
-            private static string GetDiagnosticUpdatedMessage(Workspace workspace, DiagnosticsUpdatedArgs e)
+            private static string GetDiagnosticUpdatedMessage(IGlobalOptionService globalOptions, DiagnosticsUpdatedArgs e)
             {
                 var id = e.Id.ToString();
                 if (e.Id is LiveDiagnosticUpdateArgsId live)
                 {
-                    id = $"{live.Analyzer.ToString()}/{live.Kind}";
+                    id = $"{live.Analyzer}/{live.Kind}";
                 }
                 else if (e.Id is AnalyzerUpdateArgsId analyzer)
                 {
                     id = analyzer.Analyzer.ToString();
                 }
 
-                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = e.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object?)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, diagnostics)})";
             }
         }

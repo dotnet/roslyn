@@ -47,6 +47,11 @@
         <target state="translated">避免在 "SuppressMessageAttribute" 中使用旧格式目标</target>
         <note />
       </trans-unit>
+      <trans-unit id="Avoid_multiple_blank_lines">
+        <source>Avoid multiple blank lines</source>
+        <target state="translated">避免出现多个空白行</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
         <target state="translated">请避免在代码中使用不必要的值赋值，因为这些值极有可能指示冗余的值计算。如果值计算不是冗余的，并且打算保留该赋值，请将分配目标更改为名称以下划线开头或在下划线后面跟一个整数的局部变量(如 "_"、"_1"、"_2" 等)。这些被视为特殊丢弃符号名。</target>
@@ -56,6 +61,16 @@
         <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
         <target state="translated">请避免在代码中使用未使用的参数。如果无法删除该参数，请更改其名称，使其以下划线开头，也可在下划线后面跟一个整数(如 "_"、"_1"、"_2" 等)。这些被视为特殊丢弃符号名。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
+        <source>Blank line required between block and subsequent statement</source>
+        <target state="translated">块与后续语句之间需要有空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_namespace_to_match_folder_structure">
+        <source>Change namespace to match folder structure</source>
+        <target state="translated">更改 namespace 以匹配文件夹结构</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
         <source>Changes to expression trees may result in behavior changes at runtime</source>
@@ -70,11 +85,6 @@
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
         <target state="translated">转换为条件表达式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">转换为元组</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -147,6 +157,16 @@
         <target state="translated">未对修饰符排序</target>
         <note />
       </trans-unit>
+      <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
+        <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
+        <target state="translated">命名空间“{0}”与文件夹结构不匹配，应为“{1}”</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Namespace_does_not_match_folder_structure">
+        <source>Namespace does not match folder structure</source>
+        <target state="translated">命名空间与文件夹结构不匹配</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Naming_Styles">
         <source>Naming Styles</source>
         <target state="translated">命名样式</target>
@@ -203,13 +223,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">可删除私有成员“{0}”，因为永不会读取分配给它的值。</target>
+        <source>Private member '{0}' can be removed as the value assigned to it is never read</source>
+        <target state="translated">可删除私有成员“{0}”，因为永不会读取分配给它的值</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="translated">未使用私有成员“{0}”。</target>
+        <source>Private member '{0}' is unused</source>
+        <target state="translated">未使用私有成员“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
@@ -270,6 +290,11 @@
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
         <target state="translated">删除未使用的私有成员</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_LINQ_expression">
+        <source>Simplify LINQ expression</source>
+        <target state="translated">简化 LINQ 表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

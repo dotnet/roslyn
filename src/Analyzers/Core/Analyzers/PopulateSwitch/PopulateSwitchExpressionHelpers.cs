@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var switchExpression = operation.Value;
             var switchExpressionType = switchExpression?.Type;
 
-            var enumMembers = new Dictionary<long, ISymbol>();
-
             // Check if the type of the expression is a nullable INamedTypeSymbol
             // if the type is both nullable and an INamedTypeSymbol extract the type argument from the nullable
             // and check if it is of enum type
@@ -29,36 +27,46 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
             if (switchExpressionType?.TypeKind == TypeKind.Enum)
             {
-                if (!PopulateSwitchStatementHelpers.TryGetAllEnumMembers(switchExpressionType, enumMembers) ||
-                    !TryRemoveExistingEnumMembers(operation, enumMembers))
+                var enumMembers = new Dictionary<long, ISymbol>();
+                if (PopulateSwitchStatementHelpers.TryGetAllEnumMembers(switchExpressionType, enumMembers))
                 {
-                    return SpecializedCollections.EmptyCollection<ISymbol>();
+                    RemoveExistingEnumMembers(operation, enumMembers);
+                    return enumMembers.Values;
                 }
             }
 
-            return enumMembers.Values;
+            return SpecializedCollections.EmptyCollection<ISymbol>();
         }
 
-        private static bool TryRemoveExistingEnumMembers(
+        private static void RemoveExistingEnumMembers(
             ISwitchExpressionOperation operation, Dictionary<long, ISymbol> enumMembers)
         {
             foreach (var arm in operation.Arms)
             {
-                if (arm.Pattern is IConstantPatternOperation constantPattern)
+                RemoveIfConstantPatternHasValue(arm.Pattern, enumMembers);
+                if (arm.Pattern is IBinaryPatternOperation binaryPattern)
                 {
-                    var constantValue = constantPattern.Value.ConstantValue;
-                    if (!constantValue.HasValue)
-                    {
-                        // We had a case which didn't resolve properly.
-                        // Assume the switch is complete.
-                        return false;
-                    }
-
-                    enumMembers.Remove(IntegerUtilities.ToInt64(constantValue.Value));
+                    HandleBinaryPattern(binaryPattern, enumMembers);
                 }
             }
+        }
 
-            return true;
+        private static void HandleBinaryPattern(IBinaryPatternOperation? binaryPattern, Dictionary<long, ISymbol> enumMembers)
+        {
+            if (binaryPattern?.OperatorKind == BinaryOperatorKind.Or)
+            {
+                RemoveIfConstantPatternHasValue(binaryPattern.LeftPattern, enumMembers);
+                RemoveIfConstantPatternHasValue(binaryPattern.RightPattern, enumMembers);
+
+                HandleBinaryPattern(binaryPattern.LeftPattern as IBinaryPatternOperation, enumMembers);
+                HandleBinaryPattern(binaryPattern.RightPattern as IBinaryPatternOperation, enumMembers);
+            }
+        }
+
+        private static void RemoveIfConstantPatternHasValue(IOperation operation, Dictionary<long, ISymbol> enumMembers)
+        {
+            if (operation is IConstantPatternOperation { Value: { ConstantValue: { HasValue: true, Value: var value } } })
+                enumMembers.Remove(IntegerUtilities.ToInt64(value));
         }
 
         public static bool HasDefaultCase(ISwitchExpressionOperation operation)

@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The text buffer. null if the object has been disposed.
         /// </summary>
-        private ITextBuffer _buffer;
+        private ITextBuffer? _buffer;
         private IVsTextLines _vsTextLines;
         private IVsInvisibleEditor _invisibleEditor;
         private OLE.Interop.IOleUndoManager? _manager;
@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            _buffer = null!;
+            _buffer = null;
             _vsTextLines = null!;
 
             try
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 GC.SuppressFinalize(this);
             }
-            catch (Exception ex) when (FatalError.ReportAndPropagate(ex))
+            catch (Exception ex) when (FatalError.ReportAndPropagate(ex, ErrorSeverity.Critical)) // critical severity, since this means we're not saving edited files
             {
                 throw ExceptionUtilities.Unreachable;
             }

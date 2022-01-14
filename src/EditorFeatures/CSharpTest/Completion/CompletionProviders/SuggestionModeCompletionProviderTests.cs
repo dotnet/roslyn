@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -708,6 +706,22 @@ class a
         public async Task NamespaceDeclaration_Qualified()
         {
             var markup = @"namespace A.$$";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FileScopedNamespaceDeclaration_Unqualified()
+        {
+            var markup = @"namespace $$;";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FileScopedNamespaceDeclaration_Qualified()
+        {
+            var markup = @"namespace A.$$;";
             await VerifyBuilderAsync(markup);
         }
 
@@ -1460,7 +1474,7 @@ class P
             {
                 var completionList = await service.GetTestAccessor().GetContextAsync(
                     provider, document, position, triggerInfo,
-                    options: null, cancellationToken: CancellationToken.None);
+                    options: CompletionOptions.Default, cancellationToken: CancellationToken.None);
 
                 if (isBuilder)
                 {

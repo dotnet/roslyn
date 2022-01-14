@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             Project project,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
+            CompletionOptions options,
             CancellationToken cancellationToken);
+
+        Task WarmUpCacheAsync(Project project, CancellationToken cancellationToken);
     }
 }

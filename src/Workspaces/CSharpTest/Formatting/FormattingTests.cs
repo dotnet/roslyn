@@ -18,7 +18,7 @@ using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions2;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
-    public class FormattingEngineTests : CSharpFormattingTestBase
+    public class FormattingTests : CSharpFormattingTestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Format1()
@@ -3462,6 +3462,22 @@ static void Main(string[] args)
 ");
         }
 
+        [WorkItem(50723, "https://github.com/dotnet/roslyn/issues/50723")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task TuplePointer()
+        {
+            var properlyFormattedCode = @"public unsafe static class Program
+{
+    public static void Main(string[] args)
+    {
+        int* intPointer = null;
+        (int, int)* intIntPointer = null;
+    }
+}
+";
+            await AssertFormatAsync(properlyFormattedCode, properlyFormattedCode);
+        }
+
         [WorkItem(537886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537886")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Tild()
@@ -4494,7 +4510,7 @@ class innerClass
 {
     public innerClass()
     {
-        myDelegate x = (int y = 1) => { return; };
+        myDelegate x = (int y=1) => { return; };
     }
 }";
 
@@ -5753,6 +5769,28 @@ void bar()
         object? x = null;
         object? y = null;
         return x! ?? (y)! ?? o[0]!;
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInNullCheckedParameter()
+        {
+            var code =
+@"class C
+{
+    static object F(string s !!)
+    {
+    }
+}";
+            var expectedCode =
+@"class C
+{
+    static object F(string s!!)
+    {
     }
 }";
 
@@ -9012,6 +9050,7 @@ class C
                         lines[i] = new string(' ', count: 8) + lines[i];
                     }
                 }
+
                 return string.Join(Environment.NewLine, lines);
             }
 
@@ -9103,7 +9142,7 @@ class C
 {
     [Attr1]
     [Attr2]
-    [Attr3] [Attr4] int i;
+    [Attr3][Attr4] int i;
 }",
 @"
 class C {
@@ -9123,7 +9162,7 @@ class C
 {
     [Attr1]
     [Attr2]
-    [Attr3] [Attr4] int i;
+    [Attr3][Attr4] int i;
 }",
 @"
 class C {
@@ -9683,6 +9722,48 @@ X = 1,
             await AssertFormatAsync(expectedCode, code);
         }
 
+        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingAfterAttribute_Multiple2()
+        {
+            var code = @"class C
+{
+    void M([My] [My]  int x)
+    {
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M([My][My] int x)
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingAfterAttribute_MultipleOnDeclaration()
+        {
+            var code = @"class C
+{
+    [My] [My]  void M()
+    {
+    }
+}";
+            var expectedCode = @"class C
+{
+    [My]
+    [My]
+    void M()
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
         [Fact, WorkItem(47442, "https://github.com/dotnet/roslyn/issues/47442")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task IndentImplicitObjectCreationInitializer()
@@ -9779,6 +9860,875 @@ class A
         };
     }
 }", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(49725, "https://github.com/dotnet/roslyn/discussions/49725")]
+        public async Task NewLinesForBraces_RecordWithInitializer_Default()
+        {
+            await AssertFormatAsync(
+                @"
+record R(int X);
+class C
+{
+    void Goo(R r)
+    {
+        var r2 = r with
+        {
+            X = 0
+        };
+    }
+}",
+                @"
+record R(int X);
+class C
+{
+    void Goo(R r)
+    {
+        var r2 = r with {
+            X = 0
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(49725, "https://github.com/dotnet/roslyn/discussions/49725")]
+        public async Task NewLinesForBraces_RecordWithInitializer_NonDefault()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+            };
+            await AssertFormatAsync(
+                @"
+record R(int X);
+class C
+{
+    void Goo(R r)
+    {
+        var r2 = r with {
+            X = 0
+        };
+    }
+}",
+                @"
+record R(int X);
+class C
+{
+    void Goo(R r)
+    {
+        var r2 = r with
+        {
+            X = 0
+        };
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoSpacesInPropertyPatterns()
+        {
+            var code = @"class C
+{
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is {  IntProperty : 2 };
+    }
+}";
+            var expectedCode = @"class C
+{
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is { IntProperty: 2 };
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoSpacesInExtendedPropertyPatterns()
+        {
+            var code = @"class C
+{
+    C CProperty { get; set; }
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is {  CProperty . IntProperty : 2 };
+    }
+}";
+            var expectedCode = @"class C
+{
+    C CProperty { get; set; }
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is { CProperty.IntProperty: 2 };
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
+        public async Task NewLinesForBraces_PropertyPatternClauses_Default()
+        {
+            await AssertFormatAsync(
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is
+        {
+            Name: ""foo"",
+        };
+    }
+}",
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is {
+            Name: ""foo"",
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
+        public async Task NewLinesForBraces_PropertyPatternClauses_NonDefault()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+            };
+            await AssertFormatAsync(
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is {
+            Name: ""foo"",
+        };
+    }
+}",
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is
+        {
+            Name: ""foo"",
+        };
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
+        public async Task NewLinesForBraces_PropertyPatternClauses_SingleLine(bool option)
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLinesForBracesInObjectCollectionArrayInitializers, option },
+            };
+            var code = @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is { Name: ""foo"" };
+    }
+}";
+            await AssertFormatAsync(code, code, changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task RecordClass()
+        {
+            await AssertFormatAsync(
+                @"
+record class R(int X);
+",
+                @"
+record  class  R(int X);
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task RecordStruct()
+        {
+            await AssertFormatAsync(
+                @"
+record struct R(int X);
+",
+                @"
+record  struct  R(int X);
+");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatListPattern()
+        {
+            var code = @"
+class C
+{
+    void M() {
+_ = this is[1,2,>=3];
+}
+}";
+            await AssertFormatAsync(code: code, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is [1, 2, >= 3];
+    }
+}");
+
+            var options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, false },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is [1,2,>= 3];
+    }
+}");
+
+            options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBeforeOpenSquareBracket, false }, // ignored
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, true },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is [ 1 , 2 , >= 3 ];
+    }
+}");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatListPattern_TrailingComma()
+        {
+            var code = @"
+class C
+{
+    void M() {
+_ = this is[1,2,>=3,];
+}
+}";
+            await AssertFormatAsync(code: code, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is [1, 2, >= 3,];
+    }
+}");
+
+            var options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, false },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is [1,2,>= 3,];
+    }
+}");
+
+            options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBeforeOpenSquareBracket, false }, // ignored
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, true },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is [ 1 , 2 , >= 3 , ];
+    }
+}");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatListPattern_WithNewline()
+        {
+            var code = @"
+class C
+{
+    void M() {
+_ = this is
+[1,2,>=3
+];
+}
+}";
+            await AssertFormatAsync(code: code, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        [1, 2, >= 3
+        ];
+    }
+}");
+
+            var options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, false },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        [1,2,>= 3
+        ];
+    }
+}");
+
+            options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBeforeOpenSquareBracket, false }, // ignored
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, true },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        [ 1 , 2 , >= 3
+        ];
+    }
+}");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSlicePattern()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is[ 0,.. var  rest ];
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is [0, .. var rest];
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSlicePattern_NoSpace()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is[ 0,..var  rest ];
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is [0, .. var rest];
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSlicePatternWithAnd()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is[ 0,.. {Count: >0} and var  rest ];
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is [0, .. { Count: > 0 } and var rest];
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatLengthAndListPattern()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is{Count:>0 and var x}and[ 1,2,3 ];
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is { Count: > 0 and var x } and [1, 2, 3];
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LambdaReturnType_01()
+        {
+            await AssertFormatAsync(
+@"class Program
+{
+    Delegate D = void () => { };
+}",
+@"class Program
+{
+    Delegate D = void  ()  =>  {  };
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LambdaReturnType_02()
+        {
+            await AssertFormatAsync(
+@"class Program
+{
+    Delegate D = A.B () => { };
+}",
+@"class Program
+{
+    Delegate D = A.B()=>{  };
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LambdaReturnType_03()
+        {
+            await AssertFormatAsync(
+@"class Program
+{
+    Delegate D = A<B> (x) => x;
+}",
+@"class Program
+{
+    Delegate D = A < B >  ( x ) => x;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LambdaReturnType_04()
+        {
+            await AssertFormatAsync(
+@"class Program
+{
+    object F = Func((A, B) ((A, B) t) => t);
+}",
+@"class Program
+{
+    object F = Func((A,B)((A,B)t)=>t);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LineSpanDirective()
+        {
+            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
+            await AssertFormatAsync(
+@"class Program
+{
+	static void Main()
+	{
+#line (1, 1) - (1, 100) 5 ""a.razor""
+	}
+}",
+@"class Program
+{
+    static void Main()
+    {
+#line (1,1)-(1,100) 5 ""a.razor""
+    }
+}", changedOptionSet: optionSet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FileScopedNamespace()
+        {
+            await AssertFormatAsync(
+                expected: @"
+namespace NS;
+
+class C { }
+",
+                code: @"
+namespace NS;
+
+    class C { }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInImplicitObjectCreation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M()
+    {
+        string v = new();
+    }
+}
+",
+                code: @"
+class C
+{
+    void M() {
+        string  v     =    new   ();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInTupleArrayCreation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M()
+    {
+        var v = new (int, int)[];
+    }
+}
+",
+                code: @"
+class C
+{
+    void M() {
+        var  v     =    new   (int,   int)  [ ];
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInArrayCreation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M()
+    {
+        var v = new int[1];
+    }
+}
+",
+                code: @"
+class C
+{
+    void M() {
+        var  v     =    new   int  [  1  ];
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInImplicitArrayCreation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M()
+    {
+        var v = new[] { 1, 2, 3 };
+    }
+}
+",
+                code: @"
+class C
+{
+    void M() {
+        var  v     =    new     [ ] {  1,  2,  3 };
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInConstructorConstraint()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M<T>() where T : new()
+    {
+    }
+}
+",
+                code: @"
+class C
+{
+    void M<T>()   where   T   :   new    (   ) {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewMethodOverloadWithTupleReturnType()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    new (int, int) M() { }
+}
+",
+                code: @"
+class C
+{
+    new  (int, int) M() { }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewPropertyWithTupleReturnType()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    new (int, int) Property { get; set; }
+}
+",
+                code: @"
+class C
+{
+    new  (int, int) Property { get; set; }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewIndexerWithTupleReturnType()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    new (int, int) this[int i] { get => throw null; }
+}
+",
+                code: @"
+class C
+{
+    new  (int, int) this[int i] { get => throw null; }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnLambda()
+        {
+            await AssertFormatAsync(
+                expected: @"
+var f = [Attribute] () => { };
+",
+                code: @"
+var f =  [Attribute] () => { };
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnLambda_TwoAttributes()
+        {
+            await AssertFormatAsync(
+                expected: @"
+var f = [Attribute][Attribute2] () => { };
+",
+                code: @"
+var f =  [Attribute]  [Attribute2] () => { };
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnMethod_TwoAttributes()
+        {
+            await AssertFormatAsync(
+                expected: @"
+[Attribute][Attribute2]
+void M()
+{ }
+",
+                code: @"
+  [Attribute]  [Attribute2]
+void M()
+{ }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnTypeParameter_TwoAttributes()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C<[Attribute][Attribute2] T> { }
+",
+                code: @"
+class C<  [Attribute]  [Attribute2]  T  > { }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnTypeParameter_TwoAttributes_Method()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M<[Attribute][Attribute2] T>() { }
+}
+",
+                code: @"
+class C
+{
+    void M<  [Attribute]  [Attribute2]  T  > ( ) { }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnParameter_TwoAttributes()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M([Attribute][Attribute2] T t) { }
+}
+",
+                code: @"
+class C
+{
+    void M(  [Attribute]  [Attribute2]  T  t  ) { }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnLambdaWithExplicitType()
+        {
+            await AssertFormatAsync(
+                expected: @"
+var f = [Attribute] int () => 1;
+",
+                code: @"
+var f =  [Attribute] int () => 1;
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnLambdaInInvocation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+f([Attribute] () => { });
+",
+                code: @"
+f( [Attribute] () => { });
+");
         }
     }
 }

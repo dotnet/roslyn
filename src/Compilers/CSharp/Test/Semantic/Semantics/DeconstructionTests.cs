@@ -908,8 +908,8 @@ IInvocationOperation (virtual System.String (System.Int32, System.String).ToStri
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.String), IsInvalid) (Syntax: '(int, string)')
       NaturalType: (System.Int32, System.String)
       Elements(2):
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'int')
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'string')
+          IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'int')
+          IOperation:  (OperationKind.None, Type: System.String, IsInvalid) (Syntax: 'string')
   Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -2847,7 +2847,7 @@ class C
         /*<bind>*/var (x1, x2) = (1, 2)/*</bind>*/;
     }
 }
-class var { }
+class @var { }
 ";
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2) = (1, 2)')
@@ -2888,7 +2888,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         public void DeclarationVarFormWithAliasedVarType()
         {
             string source = @"
-using var = D;
+using @var = D;
 class C
 {
     static void Main()
@@ -4086,7 +4086,8 @@ unsafe class C
 ";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                options: TestOptions.UnsafeDebugDll);
+                options: TestOptions.UnsafeDebugDll,
+                parseOptions: TestOptions.RegularPreview);
 
             // The precise diagnostics here are not important, and may be sensitive to parser
             // adjustments. This is a test that we don't crash. The errors here are likely to
@@ -4101,9 +4102,6 @@ unsafe class C
                 // (6,19): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         (int* x1, int y1) = c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y1").WithArguments("dynamic", "int").WithLocation(6, 19),
-                // (6,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (int* x1, int y1) = c;
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int* x1, int y1)").WithLocation(6, 9),
                 // (7,10): error CS0103: The name 'var' does not exist in the current context
                 //         (var* x2, int y2) = c;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(7, 10),
@@ -4113,9 +4111,6 @@ unsafe class C
                 // (7,19): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         (var* x2, int y2) = c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y2").WithArguments("dynamic", "int").WithLocation(7, 19),
-                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (var* x2, int y2) = c;
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(var* x2, int y2)").WithLocation(7, 9),
                 // (8,10): error CS0266: Cannot implicitly convert type 'dynamic' to 'int*[]'. An explicit conversion exists (are you missing a cast?)
                 //         (int*[] x3, int y3) = c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int*[] x3").WithArguments("dynamic", "int*[]").WithLocation(8, 10),
@@ -6262,6 +6257,279 @@ IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        public void Issue46165_1()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((var i, i))
+    }
+}";
+
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (6,18): error CS8186: A foreach loop must declare its iteration variables.
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(var i, i)").WithLocation(6, 18),
+                // (6,23): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'i'.
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "i").WithArguments("i").WithLocation(6, 23),
+                // (6,26): error CS0841: Cannot use local variable 'i' before it is declared
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "i").WithArguments("i").WithLocation(6, 26),
+                // (6,28): error CS1515: 'in' expected
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_InExpected, ")").WithLocation(6, 28),
+                // (6,28): error CS1525: Invalid expression term ')'
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 28),
+                // (6,29): error CS1525: Invalid expression term '}'
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 29),
+                // (6,29): error CS1002: ; expected
+                //         foreach ((var i, i))
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 29)
+                );
+        }
+
+        [Fact]
+        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        public void Issue46165_2()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        (var i, i) = ;
+    }
+}";
+
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'i'.
+                //         (var i, i) = ;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "i").WithArguments("i").WithLocation(6, 14),
+                // (6,17): error CS0841: Cannot use local variable 'i' before it is declared
+                //         (var i, i) = ;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "i").WithArguments("i").WithLocation(6, 17),
+                // (6,22): error CS1525: Invalid expression term ';'
+                //         (var i, i) = ;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        public void Issue46165_3()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        foreach ((int i, i))
+    }
+}";
+
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (6,18): error CS8186: A foreach loop must declare its iteration variables.
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(int i, i)").WithLocation(6, 18),
+                // (6,26): error CS1656: Cannot assign to 'i' because it is a 'foreach iteration variable'
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "i").WithArguments("i", "foreach iteration variable").WithLocation(6, 26),
+                // (6,28): error CS1515: 'in' expected
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_InExpected, ")").WithLocation(6, 28),
+                // (6,28): error CS1525: Invalid expression term ')'
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 28),
+                // (6,29): error CS1525: Invalid expression term '}'
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 29),
+                // (6,29): error CS1002: ; expected
+                //         foreach ((int i, i))
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 29)
+                );
+        }
+
+        [Fact]
+        [WorkItem(46165, "https://github.com/dotnet/roslyn/issues/46165")]
+        public void Issue46165_4()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        (int i, i) = ;
+    }
+}";
+
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (6,22): error CS1525: Invalid expression term ';'
+                //         (int i, i) = ;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void ObsoleteConversions_01()
+        {
+            var source = @"
+var x = (1, new C());
+
+(int i, bool c) = x;
+(i, c) = (1, new C());
+(i, c) = new C2();
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+
+class C2
+{
+    public void Deconstruct(out int i, out C c) => throw null;
+}";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,1): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // (int i, bool c) = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int i, bool c) = x").WithArguments("C.implicit operator bool(C)").WithLocation(4, 1),
+                // (5,14): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // (i, c) = (1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(5, 14),
+                // (6,1): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // (i, c) = new C2();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(i, c) = new C2()").WithArguments("C.implicit operator bool(C)").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void ObsoleteConversions_02()
+        {
+            var source = @"
+var x = (1, new C());
+
+(int i, bool c) = x;
+(i, c) = (1, new C());
+(i, c) = new C2();
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+
+class C2
+{
+    public void Deconstruct(out int i, out C c) => throw null;
+}";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,1): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // (int i, bool c) = x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "(int i, bool c) = x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(4, 1),
+                // (5,14): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // (i, c) = (1, new C());
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(5, 14),
+                // (6,1): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // (i, c) = new C2();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "(i, c) = new C2()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(6, 1)
+                );
+        }
+
+        [Fact, WorkItem(58472, "https://github.com/dotnet/roslyn/issues/58472")]
+        public void DeconstructionIntoImplicitIndexers()
+        {
+            var source = @"
+var x = new int[1];
+C.M(x);
+
+var y = new int[1];
+C.M2(y);
+
+System.Console.Write((x[^1], y[^1]));
+
+class C
+{
+    public static void M<T>(T[] a)
+    {
+        (a[0], a[^1]) = (default, default);
+    }
+
+    public static void M2(int[] a)
+    {
+        (a[0], a[^1]) = (default, default);
+    }
+}
+";
+
+            var comp = CreateCompilationWithIndex(source);
+            // No IndexOutOfRangeException thrown
+            var verifier = CompileAndVerify(comp, expectedOutput: "(0, 0)");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M<T>(T[])", @"
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (T[] V_0,
+                int V_1,
+                T V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  ldc.i4.1
+  IL_0007:  sub
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldloca.s   V_2
+  IL_000c:  initobj    ""T""
+  IL_0012:  ldloc.2
+  IL_0013:  stelem     ""T""
+  IL_0018:  ldloc.0
+  IL_0019:  ldloc.1
+  IL_001a:  ldloca.s   V_2
+  IL_001c:  initobj    ""T""
+  IL_0022:  ldloc.2
+  IL_0023:  stelem     ""T""
+  IL_0028:  ret
+}
+");
+            verifier.VerifyIL("C.M2", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  .locals init (int& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""int""
+  IL_0007:  stloc.0
+  IL_0008:  ldarg.0
+  IL_0009:  dup
+  IL_000a:  ldlen
+  IL_000b:  conv.i4
+  IL_000c:  ldc.i4.1
+  IL_000d:  sub
+  IL_000e:  ldelema    ""int""
+  IL_0013:  ldloc.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  stind.i4
+  IL_0016:  ldc.i4.0
+  IL_0017:  stind.i4
+  IL_0018:  ret
+}
+");
         }
     }
 }

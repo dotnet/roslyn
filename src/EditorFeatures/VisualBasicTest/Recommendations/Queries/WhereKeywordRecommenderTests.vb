@@ -4,69 +4,71 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Queries
     Public Class WhereKeywordRecommenderTests
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WhereNotInStatementTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Where")
-        End Function
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WhereInQueryTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = From y In z |</MethodBody>, "Where")
-        End Function
+        Public Sub WhereNotInStatementTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Where")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub WhereInQueryTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = From y In z |</MethodBody>, "Where")
+        End Sub
 
         <WorkItem(543173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543173")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WhereAfterMultiLineFunctionLambdaExprTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim q2 = From i1 In arr Order By Function()
+        Public Sub WhereAfterMultiLineFunctionLambdaExprTest()
+            VerifyRecommendationsContain(<MethodBody>Dim q2 = From i1 In arr Order By Function()
                                              Return 5
                                          End Function |</MethodBody>, "Where")
-        End Function
+        End Sub
 
         <WorkItem(543174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543174")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WhereAnonymousObjectCreationExprTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim q2 = From i1 In arr Order By New With {.Key = 10} |</MethodBody>, "Where")
-        End Function
+        Public Sub WhereAnonymousObjectCreationExprTest()
+            VerifyRecommendationsContain(<MethodBody>Dim q2 = From i1 In arr Order By New With {.Key = 10} |</MethodBody>, "Where")
+        End Sub
 
         <WorkItem(543219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543219")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WhereAfterIntoClauseTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim q1 = From i1 In arr Group By i1 Into Count |</MethodBody>, "Where")
-        End Function
+        Public Sub WhereAfterIntoClauseTest()
+            VerifyRecommendationsContain(<MethodBody>Dim q1 = From i1 In arr Group By i1 Into Count |</MethodBody>, "Where")
+        End Sub
 
         <WorkItem(543232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543232")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WhereAfterNestedAggregateFromClauseTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim q1 = Aggregate i1 In arr From i4 In arr |</MethodBody>, "Where")
-        End Function
+        Public Sub WhereAfterNestedAggregateFromClauseTest()
+            VerifyRecommendationsContain(<MethodBody>Dim q1 = Aggregate i1 In arr From i4 In arr |</MethodBody>, "Where")
+        End Sub
 
         <WorkItem(531545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531545")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WhereAfterEOLTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub WhereAfterEOLTest()
+            VerifyRecommendationsContain(
 <MethodBody>
     Dim q1 = From i4 In arr 
 |</MethodBody>, "Where")
-        End Function
+        End Sub
 
         <WorkItem(531545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531545")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WhereMissingAfterTwoEOLTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub WhereMissingAfterTwoEOLTest()
+            VerifyRecommendationsMissing(
 <MethodBody>
     Dim q1 = From i4 In arr 
 
 |</MethodBody>, "Where")
-        End Function
+        End Sub
 
         <WorkItem(531545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531545")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WhereMissingAfterTwoEOLWithLineContinuationTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub WhereMissingAfterTwoEOLWithLineContinuationTest()
+            VerifyRecommendationsMissing(
 <MethodBody>
     Dim q1 = From i4 In arr _
 
 |</MethodBody>, "Where")
-        End Function
+        End Sub
     End Class
 End Namespace

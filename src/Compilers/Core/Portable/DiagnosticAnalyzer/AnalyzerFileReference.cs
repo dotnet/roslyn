@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
 
             _diagnosticAnalyzers = new(this, typeof(DiagnosticAnalyzerAttribute), GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
-            _generators = new(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false);
+            _generators = new(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false, coerceFunction: CoerceGeneratorType);
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
@@ -183,9 +183,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Adds the <see cref="ImmutableArray{T}"/> of <see cref="DiagnosticAnalyzer"/> defined in this assembly reference of given <paramref name="language"/>.
         /// </summary>
-        internal void AddAnalyzers(ImmutableArray<DiagnosticAnalyzer>.Builder builder, string language)
+        internal void AddAnalyzers(ImmutableArray<DiagnosticAnalyzer>.Builder builder, string language, Func<DiagnosticAnalyzer, bool>? shouldInclude = null)
         {
-            _diagnosticAnalyzers.AddExtensions(builder, language);
+            _diagnosticAnalyzers.AddExtensions(builder, language, shouldInclude);
         }
 
         /// <summary>
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new AnalyzerLoadFailureEventArgs(errorCode, message, e, typeName);
         }
 
-        internal ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap()
+        internal ImmutableSortedDictionary<string, ImmutableSortedSet<string>> GetAnalyzerTypeNameMap()
         {
             return _diagnosticAnalyzers.GetExtensionTypeNameMap();
         }
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
         /// <exception cref="IOException">IO error reading the metadata.</exception>
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30449")]
-        private static ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap(string fullPath, Type attributeType, AttributeLanguagesFunc languagesFunc)
+        private static ImmutableSortedDictionary<string, ImmutableSortedSet<string>> GetAnalyzerTypeNameMap(string fullPath, Type attributeType, AttributeLanguagesFunc languagesFunc)
         {
             using var assembly = AssemblyMetadata.CreateFromFile(fullPath);
 
@@ -238,25 +238,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                               from supportedLanguage in supportedLanguages
                               group typeName by supportedLanguage;
 
-            return typeNameMap.ToImmutableDictionary(g => g.Key, g => g.ToImmutableHashSet());
+            return typeNameMap.ToImmutableSortedDictionary(g => g.Key, g => g.ToImmutableSortedSet(StringComparer.OrdinalIgnoreCase), StringComparer.OrdinalIgnoreCase);
         }
 
         private static IEnumerable<string> GetSupportedLanguages(TypeDefinition typeDef, PEModule peModule, Type attributeType, AttributeLanguagesFunc languagesFunc)
         {
+            IEnumerable<string>? result = null;
             foreach (CustomAttributeHandle customAttrHandle in typeDef.GetCustomAttributes())
             {
                 if (peModule.IsTargetAttribute(customAttrHandle, attributeType.Namespace!, attributeType.Name, ctor: out _))
                 {
-                    IEnumerable<string>? attributeSupportedLanguages = languagesFunc(peModule, customAttrHandle);
-                    if (attributeSupportedLanguages != null)
+                    if (languagesFunc(peModule, customAttrHandle) is { } attributeSupportedLanguages)
                     {
-                        foreach (string item in attributeSupportedLanguages)
+                        if (result is null)
                         {
-                            yield return item;
+                            result = attributeSupportedLanguages;
+                        }
+                        else
+                        {
+                            // This is a slow path, but only occurs if a single type has multiple
+                            // DiagnosticAnalyzerAttribute instances applied to it.
+                            result = result.Concat(attributeSupportedLanguages);
                         }
                     }
                 }
             }
+
+            return result ?? SpecializedCollections.EmptyEnumerable<string>();
         }
 
         private static IEnumerable<string> GetDiagnosticsAnalyzerSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle)
@@ -285,6 +293,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        // https://github.com/dotnet/roslyn/issues/53994 tracks re-enabling nullable and fixing this method
+#nullable disable
         private static IEnumerable<string> ReadLanguagesFromAttribute(ref BlobReader argsReader)
         {
             if (argsReader.Length > 4)
@@ -313,6 +323,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedCollections.EmptyEnumerable<string>();
         }
 
+#nullable enable
+
+        private static ISourceGenerator? CoerceGeneratorType(object? generator)
+        {
+            if (generator is IIncrementalGenerator incrementalGenerator)
+            {
+                return new IncrementalGeneratorWrapper(incrementalGenerator);
+            }
+            return null;
+        }
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {
@@ -337,16 +357,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly Type _attributeType;
             private readonly AttributeLanguagesFunc _languagesFunc;
             private readonly bool _allowNetFramework;
+            private readonly Func<object?, TExtension?>? _coerceFunction;
             private ImmutableArray<TExtension> _lazyAllExtensions;
             private ImmutableDictionary<string, ImmutableArray<TExtension>> _lazyExtensionsPerLanguage;
-            private ImmutableDictionary<string, ImmutableHashSet<string>>? _lazyExtensionTypeNameMap;
+            private ImmutableSortedDictionary<string, ImmutableSortedSet<string>>? _lazyExtensionTypeNameMap;
 
-            internal Extensions(AnalyzerFileReference reference, Type attributeType, AttributeLanguagesFunc languagesFunc, bool allowNetFramework)
+            internal Extensions(AnalyzerFileReference reference, Type attributeType, AttributeLanguagesFunc languagesFunc, bool allowNetFramework, Func<object?, TExtension?>? coerceFunction = null)
             {
                 _reference = reference;
                 _attributeType = attributeType;
                 _languagesFunc = languagesFunc;
                 _allowNetFramework = allowNetFramework;
+                _coerceFunction = coerceFunction;
                 _lazyAllExtensions = default;
                 _lazyExtensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
             }
@@ -364,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private static ImmutableArray<TExtension> CreateExtensionsForAllLanguages(Extensions<TExtension> extensions, bool includeDuplicates)
             {
                 // Get all analyzers in the assembly.
-                var map = ImmutableDictionary.CreateBuilder<string, ImmutableArray<TExtension>>();
+                var map = ImmutableSortedDictionary.CreateBuilder<string, ImmutableArray<TExtension>>(StringComparer.OrdinalIgnoreCase);
                 extensions.AddExtensions(map);
 
                 var builder = ImmutableArray.CreateBuilder<TExtension>();
@@ -413,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return builder.ToImmutable();
             }
 
-            internal ImmutableDictionary<string, ImmutableHashSet<string>> GetExtensionTypeNameMap()
+            internal ImmutableSortedDictionary<string, ImmutableSortedSet<string>> GetExtensionTypeNameMap()
             {
                 if (_lazyExtensionTypeNameMap == null)
                 {
@@ -424,9 +446,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return _lazyExtensionTypeNameMap;
             }
 
-            internal void AddExtensions(ImmutableDictionary<string, ImmutableArray<TExtension>>.Builder builder)
+            internal void AddExtensions(ImmutableSortedDictionary<string, ImmutableArray<TExtension>>.Builder builder)
             {
-                ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap;
+                ImmutableSortedDictionary<string, ImmutableSortedSet<string>> analyzerTypeNameMap;
                 Assembly analyzerAssembly;
 
                 try
@@ -468,9 +490,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            internal void AddExtensions(ImmutableArray<TExtension>.Builder builder, string language)
+            internal void AddExtensions(ImmutableArray<TExtension>.Builder builder, string language, Func<TExtension, bool>? shouldInclude = null)
             {
-                ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap;
+                ImmutableSortedDictionary<string, ImmutableSortedSet<string>> analyzerTypeNameMap;
                 Assembly analyzerAssembly;
 
                 try
@@ -496,24 +518,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                var initialCount = builder.Count;
                 var reportedError = false;
 
                 // Add language specific analyzers.
                 var analyzers = GetLanguageSpecificAnalyzers(analyzerAssembly, analyzerTypeNameMap, language, ref reportedError);
+                var hasAnalyzers = !analyzers.IsEmpty;
+
+                if (shouldInclude != null)
+                {
+                    analyzers = analyzers.WhereAsArray(shouldInclude);
+                }
+
                 builder.AddRange(analyzers);
 
                 // If there were types with the attribute but weren't an analyzer, generate a diagnostic.
                 // If we've reported errors already while trying to instantiate types, don't complain that there are no analyzers.
-                if (builder.Count == initialCount && !reportedError)
+                if (!hasAnalyzers && !reportedError)
                 {
                     _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, CodeAnalysisResources.NoAnalyzersFound));
                 }
             }
 
-            private ImmutableArray<TExtension> GetLanguageSpecificAnalyzers(Assembly analyzerAssembly, ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap, string language, ref bool reportedError)
+            private ImmutableArray<TExtension> GetLanguageSpecificAnalyzers(Assembly analyzerAssembly, ImmutableSortedDictionary<string, ImmutableSortedSet<string>> analyzerTypeNameMap, string language, ref bool reportedError)
             {
-                ImmutableHashSet<string>? languageSpecificAnalyzerTypeNames;
+                ImmutableSortedSet<string>? languageSpecificAnalyzerTypeNames;
                 if (!analyzerTypeNameMap.TryGetValue(language, out languageSpecificAnalyzerTypeNames))
                 {
                     return ImmutableArray<TExtension>.Empty;
@@ -556,10 +584,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
-                    TExtension? analyzer;
+                    object? typeInstance;
                     try
                     {
-                        analyzer = Activator.CreateInstance(type) as TExtension;
+                        typeInstance = Activator.CreateInstance(type);
                     }
                     catch (Exception e)
                     {
@@ -568,6 +596,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
+                    TExtension? analyzer = typeInstance as TExtension ?? _coerceFunction?.Invoke(typeInstance);
                     if (analyzer != null)
                     {
                         analyzers.Add(analyzer);

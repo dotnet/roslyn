@@ -2,21 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Linq;
-using System.Composition;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
@@ -24,40 +25,52 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
     [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.FSharp)]
     internal class FSharpNavigationBarItemService : INavigationBarItemService
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IFSharpNavigationBarItemService _service;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpNavigationBarItemService(IFSharpNavigationBarItemService service)
+        public FSharpNavigationBarItemService(
+            IThreadingContext threadingContext,
+            IFSharpNavigationBarItemService service)
         {
+            _threadingContext = threadingContext;
             _service = service;
         }
 
-        public async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-            return items?.Select(x => ConvertToNavigationBarItem(x)).ToList();
+            return items == null
+                ? ImmutableArray<NavigationBarItem>.Empty
+                : ConvertItems(items, textVersion);
         }
 
-        public void NavigateToItem(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
+        private static ImmutableArray<NavigationBarItem> ConvertItems(IList<FSharpNavigationBarItem> items, ITextVersion textVersion)
+            => (items ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>()).Where(x => x.Spans.Any()).SelectAsArray(x => ConvertToNavigationBarItem(x, textVersion));
+
+        public async Task<bool> TryNavigateToItemAsync(
+            Document document, NavigationBarItem item, ITextView view, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             // The logic here was ported from FSharp's implementation. The main reason was to avoid shimming INotificationService.
-            if (item.Spans.Count > 0)
-            {
-                var span = item.Spans.First();
-                var workspace = document.Project.Solution.Workspace;
-                var navigationService = workspace.Services.GetService<IFSharpDocumentNavigationService>();
+            // Spans.First() is safe here as we filtered down to only items that have spans in ConvertItems.
+            var span = item.GetCurrentItemSpan(textVersion, item.Spans.First());
+            var workspace = document.Project.Solution.Workspace;
+            var navigationService = workspace.Services.GetRequiredService<IFSharpDocumentNavigationService>();
 
-                if (navigationService.CanNavigateToPosition(workspace, document.Id, span.Start))
-                {
-                    navigationService.TryNavigateToPosition(workspace, document.Id, span.Start);
-                }
-                else
-                {
-                    var notificationService = workspace.Services.GetService<INotificationService>();
-                    notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
-                }
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            if (navigationService.CanNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, cancellationToken))
+            {
+                navigationService.TryNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, options: null, cancellationToken);
             }
+            else
+            {
+                var notificationService = workspace.Services.GetRequiredService<INotificationService>();
+                notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
+            }
+
+            return true;
         }
 
         public bool ShowItemGrayedIfNear(NavigationBarItem item)
@@ -65,31 +78,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             return false;
         }
 
-        private static NavigationBarItem ConvertToNavigationBarItem(FSharpNavigationBarItem item)
+        private static NavigationBarItem ConvertToNavigationBarItem(FSharpNavigationBarItem item, ITextVersion textVersion)
         {
-            return
-                new InternalNavigationBarItem(
-                    item.Text,
-                    FSharpGlyphHelpers.ConvertTo(item.Glyph),
-                    item.Spans,
-                    item.ChildItems?.Select(x => ConvertToNavigationBarItem(x)).ToList(),
-                    item.Indent,
-                    item.Bolded,
-                    item.Grayed);
-        }
-
-        private class InternalNavigationBarItem : NavigationBarItem
-        {
-            public InternalNavigationBarItem(
-                string text,
-                Glyph glyph,
-                IList<TextSpan> spans,
-                IList<NavigationBarItem> childItems,
-                int indent,
-                bool bolded,
-                bool grayed) : base(text, glyph, spans, childItems, indent, bolded, grayed)
-            {
-            }
+            var spans = item.Spans.ToImmutableArrayOrEmpty();
+            return new SimpleNavigationBarItem(
+                textVersion,
+                item.Text,
+                FSharpGlyphHelpers.ConvertTo(item.Glyph),
+                spans,
+                ConvertItems(item.ChildItems, textVersion),
+                item.Indent,
+                item.Bolded,
+                item.Grayed);
         }
     }
 }

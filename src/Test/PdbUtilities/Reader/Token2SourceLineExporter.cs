@@ -372,7 +372,7 @@ namespace Roslyn.Test.PdbUtilities
 
             // The hash table data.
             // This cannot be serialized
-            private struct bucket
+            private struct @bucket
             {
                 internal int key;
                 internal int hash_coll;   // Store hash code; sign bit means there was a collision.
@@ -404,7 +404,7 @@ namespace Roslyn.Test.PdbUtilities
             {
                 if (capacity < 0)
                     throw new ArgumentOutOfRangeException(nameof(capacity), "ArgumentOutOfRange_NeedNonNegNum");
-                if (!(loadFactorPerc >= 10 && loadFactorPerc <= 100))
+                if (loadFactorPerc is not (>= 10 and <= 100))
                     throw new ArgumentOutOfRangeException(nameof(loadFactorPerc), "ArgumentOutOfRange_IntHashTableLoadFactor");
 
                 // Based on perf work, .72 is the optimal load factor for this table.

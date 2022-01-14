@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            SynthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
                            slotAllocatorOpt As VariableSlotAllocator,
                            nextFreeHoistedLocalSlot As Integer,
-                           diagnostics As DiagnosticBag)
+                           diagnostics As BindingDiagnosticBag)
 
                 MyBase.New(F, state, hoistedVariables, localProxies, SynthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
 

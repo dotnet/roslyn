@@ -1,0 +1,15 @@
+﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View.CodeStyleSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             Resources="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogDefaultStylesKey}}"
+             mc:Ignorable="d" 
+             x:ClassModifier="internal">
+    <ContentPresenter 
+        x:Name="CodeStyleTable"
+        Margin="12 0"
+        VerticalAlignment="Stretch"
+        HorizontalAlignment="Stretch" />
+</UserControl>

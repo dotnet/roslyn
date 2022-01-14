@@ -650,23 +650,6 @@ public class Test
         <entry offset=""0x12e"" hidden=""true"" document=""1"" />
       </sequencePoints>
     </method>
-    <method containingType=""Test`1+&lt;get_IterProp&gt;d__3"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" />
-        <encLocalSlotMap>
-          <slot kind=""27"" offset=""0"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x2a"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x2b"" startLine=""29"" startColumn=""13"" endLine=""29"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x40"" hidden=""true"" document=""1"" />
-        <entry offset=""0x47"" startLine=""30"" startColumn=""13"" endLine=""30"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x5c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x63"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" document=""1"" />
-      </sequencePoints>
-    </method>
     <method containingType=""Test`1+&lt;IterMethod&gt;d__4"" name=""MoveNext"">
       <customDebugInfo>
         <forward declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" />
@@ -682,6 +665,23 @@ public class Test
         <entry offset=""0x47"" startLine=""37"" startColumn=""9"" endLine=""37"" endColumn=""27"" document=""1"" />
         <entry offset=""0x5c"" hidden=""true"" document=""1"" />
         <entry offset=""0x63"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""21"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""Test`1+&lt;get_IterProp&gt;d__3"" name=""MoveNext"">
+      <customDebugInfo>
+        <forward declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" />
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2b"" startLine=""29"" startColumn=""13"" endLine=""29"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x40"" hidden=""true"" document=""1"" />
+        <entry offset=""0x47"" startLine=""30"" startColumn=""13"" endLine=""30"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x5c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x63"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1599,12 +1599,14 @@ public class C
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
 MethodDebugInformation (index: 0x31, size: 40): 
-==================================================
-1: nil
-2: nil
-3: nil
-4: nil
-5:
+================================================
+   IL   
+================================================
+1: nil  
+2: nil  
+3: nil  
+4: nil  
+5:      
 {
   Kickoff Method: 0x06000001 (MethodDef)
   Locals: 0x11000001 (StandAloneSig)
@@ -1615,12 +1617,11 @@ MethodDebugInformation (index: 0x31, size: 40):
   IL_0030: <hidden>
   IL_0037: (5, 44) - (5, 45)
 }
-6: nil
-7: nil
-8: nil
-9: nil
-a: nil
-",
+6: nil  
+7: nil  
+8: nil  
+9: nil  
+a: nil",
                 writer.ToString());
         }
     }

@@ -4,10 +4,12 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OptionStatements
     Public Class ExplicitOptionsRecommenderTests
+        Inherits RecommenderTests
+
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OptionsAfterOptionExplicitTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<File>Option Explicit |</File>, "On", "Off")
-        End Function
+        Public Sub OptionsAfterOptionExplicitTest()
+            VerifyRecommendationsAreExactly(<File>Option Explicit |</File>, "On", "Off")
+        End Sub
     End Class
 End Namespace

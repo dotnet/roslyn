@@ -3,34 +3,33 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+[Export(typeof(LspWorkspaceRegistrationService)), Shared]
+internal class VisualStudioLspWorkspaceRegistrationService : LspWorkspaceRegistrationService
 {
-    [Export(typeof(ILspWorkspaceRegistrationService)), Shared]
-    internal class VisualStudioLspWorkspaceRegistrationService : ILspWorkspaceRegistrationService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioLspWorkspaceRegistrationService()
     {
-        private readonly object _gate = new();
-        private ImmutableArray<Workspace> _registrations = ImmutableArray.Create<Workspace>();
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioLspWorkspaceRegistrationService()
+    public override string GetHostWorkspaceKind() => WorkspaceKind.Host;
+
+    public override void Register(Workspace workspace)
+    {
+        // The lsp misc files workspace has the MiscellaneousFiles workspace kind,
+        // but we don't actually want to mark it as a registered workspace in VS since we
+        // prefer the actual MiscellaneousFilesWorkspace.
+        if (workspace is LspMiscellaneousFilesWorkspace)
         {
+            return;
         }
 
-        public ImmutableArray<Workspace> GetAllRegistrations() => _registrations;
-
-        public void Register(Workspace workspace)
-        {
-            lock (_gate)
-            {
-                _registrations = _registrations.Add(workspace);
-            }
-        }
+        base.Register(workspace);
     }
 }

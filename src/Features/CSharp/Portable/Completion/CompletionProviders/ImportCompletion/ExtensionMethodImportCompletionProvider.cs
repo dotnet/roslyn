@@ -31,12 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        internal override string Language => LanguageNames.CSharp;
+
         protected override string GenericSuffix => "<>";
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         protected override ImmutableArray<string> GetImportedNamespaces(
             SyntaxNode location,
@@ -71,6 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // it can only be used as like: bar.ToInt();
         // Func<int> x = bar.ToInt or Func<Bar, int> x = bar.ToInt is illegal. It can't be assign to delegate.
         // Therefore at here we always assume the user always wants to add parenthesis.
-            => Task.FromResult(commitKey == ';');
+            => Task.FromResult(commitKey is ';' or '.');
     }
 }

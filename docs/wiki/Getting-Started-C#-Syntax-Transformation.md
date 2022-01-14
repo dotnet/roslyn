@@ -1,8 +1,8 @@
 ## Prerequisites
 * [Visual Studio 2015](https://www.visualstudio.com/downloads)
 * [.NET Compiler Platform SDK](https://aka.ms/roslynsdktemplates)
-* [Getting Started C# Syntax Analysis](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Getting-Started-C%23-Syntax-Analysis.md)
-* [Getting Started C# Semantic Analysis](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Getting-Started-C%23-Semantic-Analysis.md)
+* [Getting Started C# Syntax Analysis](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Getting-Started-C%23-Syntax-Analysis.md)
+* [Getting Started C# Semantic Analysis](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Getting-Started-C%23-Semantic-Analysis.md)
 
 ## Introduction
 This walkthrough builds on concepts and techniques explored in the **Getting Started: Syntax Analysis** and **Getting Started: Semantic Analysis** walkthroughs. If you haven't already, it's strongly advised that you complete those walkthroughs before beginning this one.

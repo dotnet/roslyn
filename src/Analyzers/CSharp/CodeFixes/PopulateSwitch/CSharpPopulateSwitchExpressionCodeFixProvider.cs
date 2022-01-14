@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
     using static SyntaxFactory;
 
     [ExportCodeFixProvider(LanguageNames.CSharp,
-        Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
+        Name = PredefinedCodeFixProviderNames.PopulateSwitchExpression), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
     internal class CSharpPopulateSwitchExpressionCodeFixProvider
         : AbstractPopulateSwitchExpressionCodeFixProvider<

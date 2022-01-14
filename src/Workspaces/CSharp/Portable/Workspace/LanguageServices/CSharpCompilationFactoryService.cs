@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -41,7 +42,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         CompilationOptions ICompilationFactoryService.GetDefaultCompilationOptions()
             => s_defaultOptions;
 
-        GeneratorDriver? ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
+        CompilationOptions? ICompilationFactoryService.TryParsePdbCompilationOptions(IReadOnlyDictionary<string, string> compilationOptionsMetadata)
+        {
+            if (!compilationOptionsMetadata.TryGetValue("output-kind", out var outputKindString) ||
+                !Enum.TryParse<OutputKind>(outputKindString, out var outputKind))
+            {
+                return null;
+            }
+
+            return new CSharpCompilationOptions(outputKind: outputKind);
+        }
+
+        GeneratorDriver ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
             return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider);
         }

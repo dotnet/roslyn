@@ -30,7 +30,6 @@ usage()
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
-  echo "  --docker                   Run in a docker container if applicable"
   echo "  --bootstrap                Build using a bootstrap compilers"
   echo "  --runAnalyzers             Run analyzers during build operations"
   echo "  --skipDocumentation        Skip generation of XML documentation files"
@@ -66,6 +65,8 @@ configuration="Debug"
 verbosity='minimal'
 binary_log=false
 ci=false
+helix=false
+helix_queue_name=""
 bootstrap=false
 run_analyzers=false
 skip_documentation=false
@@ -74,7 +75,6 @@ warn_as_error=false
 properties=""
 source_build=false
 
-docker=false
 args=""
 
 if [[ $# = 0 ]]
@@ -130,6 +130,14 @@ while [[ $# > 0 ]]; do
     --ci)
       ci=true
       ;;
+    --helix)
+      helix=true
+      ;;
+    --helixqueuename)
+      helix_queue_name=$2
+      args="$args $1"
+      shift
+      ;;
     --bootstrap)
       bootstrap=true
       # Bootstrap requires restore
@@ -147,12 +155,9 @@ while [[ $# > 0 ]]; do
     --warnaserror)
       warn_as_error=true
       ;;
-    --docker)
-      docker=true
-      shift
-      continue
-      ;;
-    --sourcebuild)
+    --sourcebuild|/p:arcadebuildfromsource=true)
+      # Arcade specifies /p:ArcadeBuildFromSource=true instead of --sourceBuild, but that's not developer friendly so we
+      # have an alias.
       source_build=true
       ;;
     /p:*)
@@ -167,27 +172,6 @@ while [[ $# > 0 ]]; do
   args="$args $1"
   shift
 done
-
-if [[ "$docker" == true ]]
-then
-  echo "Docker exec: $args"
-
-  # Run this script with the same arguments (except for --docker) in a container that has Mono installed.
-  BUILD_COMMAND=/opt/code/eng/build.sh "$scriptroot"/docker/mono.sh $args
-  lastexitcode=$?
-  if [[ $lastexitcode != 0 ]]; then
-    echo "Docker build failed (exit code '$lastexitcode')." >&2
-    exit $lastexitcode
-  fi
-
-  # Ensure that all docker containers are stopped.
-  # Hence exit with true even if "kill" failed as it will fail if they stopped gracefully
-  if [[ "$prepare_machine" == true ]]; then
-    docker kill $(docker ps -q) || true
-  fi
-
-  exit
-fi
 
 # Import Arcade functions
 . "$scriptroot/common/tools.sh"
@@ -228,6 +212,7 @@ function BuildSolution {
   local bl=""
   if [[ "$binary_log" = true ]]; then
     bl="/bl:\"$log_dir/Build.binlog\""
+    export RoslynCommandLineLogFile="$log_dir/vbcscompiler.log"
   fi
 
   local projects="$repo_root/$solution"
@@ -236,7 +221,7 @@ function BuildSolution {
   # NuGet often exceeds the limit of open files on Mac and Linux
   # https://github.com/NuGet/Home/issues/2163
   if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
-    ulimit -n 6500
+    ulimit -n 6500 || echo "Cannot change ulimit"
   fi
 
   if [[ "$test_ioperation" == true ]]; then
@@ -295,7 +280,7 @@ function BuildSolution {
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
-    /p:DotNetBuildFromSource=$source_build \
+    /p:ArcadeBuildFromSource=$source_build \
     $test_runtime \
     $mono_tool \
     $generate_documentation_file \
@@ -308,7 +293,7 @@ if [[ "$restore" == true || "$test_core_clr" == true ]]; then
   install=true
 fi
 InitializeDotNetCli $install
-if [[ "$restore" == true ]]; then
+if [[ "$restore" == true && "$source_build" != true ]]; then
   dotnet tool restore
 fi
 
@@ -323,11 +308,18 @@ if [[ "$restore" == true || "$build" == true || "$rebuild" == true || "$test_mon
 fi
 
 if [[ "$test_core_clr" == true ]]; then
-  if [[ "$ci" == true ]]; then
-    runtests_args=""
-  else
-    runtests_args="--html"
+  runtests_args=""
+  if [[ -n "$helix_queue_name" ]]; then
+    runtests_args="$runtests_args --helixQueueName $helix_queue_name"
   fi
-  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/netcoreapp3.1/RunTests.dll" --tfm netcoreapp3.1 --tfm net5.0 --configuration ${configuration} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+
+  if [[ "$helix" == true ]]; then
+    runtests_args="$runtests_args --helix"
+  fi
+
+  if [[ "$ci" != true ]]; then
+    runtests_args="$runtests_args --html"
+  fi
+  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net6.0/RunTests.dll" --tfm net6.0 --configuration ${configuration} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
 fi
 ExitWithExitCode 0

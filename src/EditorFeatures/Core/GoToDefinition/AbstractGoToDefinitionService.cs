@@ -2,64 +2,68 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     // GoToDefinition
-    internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
+    internal abstract class AbstractGoToDefinitionService : AbstractFindDefinitionService, IGoToDefinitionService
     {
         private readonly IThreadingContext _threadingContext;
 
         /// <summary>
         /// Used to present go to definition results in <see cref="TryGoToDefinition(Document, int, CancellationToken)"/>
-        /// This is lazily created as the LSP server only calls <see cref="FindDefinitionsAsync(Document, int, CancellationToken)"/>
-        /// and therefore never needs to construct the presenter.
         /// </summary>
-        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
         protected AbstractGoToDefinitionService(
             IThreadingContext threadingContext,
-            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+            IStreamingFindUsagesPresenter streamingPresenter)
         {
             _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
         }
 
-        public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(
-            Document document, int position, CancellationToken cancellationToken)
+        async Task<IEnumerable<INavigableItem>?> IGoToDefinitionService.FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
+            => await FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
+
+        private static bool TryNavigateToSpan(Document document, int position, CancellationToken cancellationToken)
         {
-            var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
-            var (symbol, _) = await symbolService.GetSymbolAndBoundSpanAsync(document, position, includeType: true, cancellationToken).ConfigureAwait(false);
+            var solution = document.Project.Solution;
+            var workspace = solution.Workspace;
+            var service = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
-            // Try to compute source definitions from symbol.
-            var items = symbol != null
-                ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(document.Project.Solution, symbol, displayTaggedParts: null, cancellationToken: cancellationToken)
-                : null;
+            var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true);
+            options = options.WithChangedOption(NavigationOptions.ActivateTab, true);
 
-            // realize the list here so that the consumer await'ing the result doesn't lazily cause
-            // them to be created on an inappropriate thread.
-            return items?.ToList();
+            return service.TryNavigateToPosition(workspace, document.Id, position, virtualSpace: 0, options, cancellationToken);
         }
 
         public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
         {
+            var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
+            var targetPositionOfControlFlow = symbolService.GetTargetIfControlFlowAsync(document, position, cancellationToken).WaitAndGetResult(cancellationToken);
+            if (targetPositionOfControlFlow is not null)
+            {
+                return TryNavigateToSpan(document, targetPositionOfControlFlow.Value, cancellationToken);
+            }
+
             // Try to compute the referenced symbol and attempt to go to definition for the symbol.
-            var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
             var (symbol, _) = symbolService.GetSymbolAndBoundSpanAsync(document, position, includeType: true, cancellationToken).WaitAndGetResult(cancellationToken);
             if (symbol is null)
                 return false;
@@ -76,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 symbol,
                 document.Project.Solution,
                 _threadingContext,
-                _streamingPresenter.Value,
+                _streamingPresenter,
                 thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
                 cancellationToken: cancellationToken);
         }
@@ -110,27 +114,37 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (interfaceImpls.Length == 0)
                 return false;
 
-            var definitions = interfaceImpls.SelectMany(
-                i => GoToDefinitionHelpers.GetDefinitions(
-                    i, solution, thirdPartyNavigationAllowed: false, cancellationToken)).ToImmutableArray();
-
             var title = string.Format(EditorFeaturesResources._0_implemented_members,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return _threadingContext.JoinableTaskFactory.Run(() =>
-                _streamingPresenter.Value.TryNavigateToOrPresentItemsAsync(
-                    _threadingContext, solution.Workspace, title, definitions));
+            return _threadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
+                foreach (var impl in interfaceImpls)
+                {
+                    // Use ConfigureAwait(true) here.  Not for a correctness requirements, but because we're
+                    // already blocking the UI thread by being in a JTF.Run call.  So we might as well try to
+                    // continue to use the blocking UI thread to do as much work as possible instead of making
+                    // it wait for threadpool threads to be available to process the work.
+                    definitions.AddRange(await GoToDefinitionHelpers.GetDefinitionsAsync(
+                        impl, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(true));
+                }
+
+                return await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                    _threadingContext, solution.Workspace, title, definitions.ToImmutable(), cancellationToken).ConfigureAwait(true);
+            });
         }
 
         private static bool IsThirdPartyNavigationAllowed(ISymbol symbolToNavigateTo, int caretPosition, Document document, CancellationToken cancellationToken)
         {
-            var syntaxRoot = document.GetSyntaxRootSynchronously(cancellationToken);
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxRoot = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var containingTypeDeclaration = syntaxFactsService.GetContainingTypeDeclaration(syntaxRoot, caretPosition);
 
             if (containingTypeDeclaration != null)
             {
                 var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                Debug.Assert(semanticModel != null);
 
                 // Allow third parties to navigate to all symbols except types/constructors
                 // if we are navigating from the corresponding type.

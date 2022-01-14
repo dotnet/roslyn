@@ -17,11 +17,13 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -44,17 +46,17 @@ namespace Microsoft.CodeAnalysis.AddImport
         protected abstract ITypeSymbol GetQueryClauseInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken);
 
-        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool specialCaseSystem, bool allowInHiddenRegions, CancellationToken cancellationToken);
-        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool specialCaseSystem, bool allowInHiddenRegions, CancellationToken cancellationToken);
+        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool allowInHiddenRegions, CancellationToken cancellationToken);
+        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool allowInHiddenRegions, CancellationToken cancellationToken);
 
         protected abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
 
         protected abstract string GetDescription(IReadOnlyList<string> nameParts);
-        protected abstract (string description, bool hasExistingImport) GetDescription(Document document, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
+        protected abstract (string description, bool hasExistingImport) GetDescription(Document document, CodeGenerationPreferences preferences, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
             Document document, TextSpan span, string diagnosticId, int maxResults,
-            bool placeSystemNamespaceFirst, bool allowInHiddenRegions,
+            bool allowInHiddenRegions,
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var result = await client.TryInvokeAsync<IRemoteMissingImportDiscoveryService, ImmutableArray<AddImportFixData>>(
                     document.Project.Solution,
                     (service, solutionInfo, callbackId, cancellationToken) =>
-                        service.GetFixesAsync(solutionInfo, callbackId, document.Id, span, diagnosticId, maxResults, placeSystemNamespaceFirst, allowInHiddenRegions, searchReferenceAssemblies, packageSources, cancellationToken),
+                        service.GetFixesAsync(solutionInfo, callbackId, document.Id, span, diagnosticId, maxResults, allowInHiddenRegions, searchReferenceAssemblies, packageSources, cancellationToken),
                     callbackTarget: symbolSearchService,
                     cancellationToken).ConfigureAwait(false);
 
@@ -73,14 +75,14 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             return await GetFixesInCurrentProcessAsync(
                 document, span, diagnosticId, maxResults,
-                placeSystemNamespaceFirst, allowInHiddenRegions,
+                allowInHiddenRegions,
                 symbolSearchService, searchReferenceAssemblies,
                 packageSources, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<AddImportFixData>> GetFixesInCurrentProcessAsync(
             Document document, TextSpan span, string diagnosticId, int maxResults,
-            bool placeSystemNamespaceFirst, bool allowInHiddenRegions,
+            bool allowInHiddenRegions,
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
 
-                                var fixData = await reference.TryGetFixDataAsync(document, node, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
+                                var fixData = await reference.TryGetFixDataAsync(document, node, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
                                 result.AddIfNotNull(fixData);
                             }
                         }
@@ -156,9 +158,9 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private static bool IsHostOrRemoteWorkspace(Project project)
         {
-            return project.Solution.Workspace.Kind == WorkspaceKind.Host ||
-                   project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace ||
-                   project.Solution.Workspace.Kind == WorkspaceKind.RemoteTemporaryWorkspace;
+            return project.Solution.Workspace.Kind is WorkspaceKind.Host or
+                   WorkspaceKind.RemoteWorkspace or
+                   WorkspaceKind.RemoteTemporaryWorkspace;
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
@@ -406,14 +408,22 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         bool IEqualityComparer<PortableExecutableReference>.Equals(PortableExecutableReference? x, PortableExecutableReference? y)
-            => StringComparer.OrdinalIgnoreCase.Equals(x?.FilePath ?? x?.Display, y?.FilePath ?? y?.Display);
+        {
+            if (x == y)
+                return true;
+
+            var path1 = x?.FilePath ?? x?.Display;
+            var path2 = y?.FilePath ?? y?.Display;
+            if (path1 == null || path2 == null)
+                return false;
+
+            return StringComparer.OrdinalIgnoreCase.Equals(path1, path2);
+        }
 
         int IEqualityComparer<PortableExecutableReference>.GetHashCode(PortableExecutableReference obj)
         {
-            var identifier = obj.FilePath ?? obj.Display;
-            Contract.ThrowIfNull(identifier, "Either FilePath or Display must be non-null");
-
-            return StringComparer.OrdinalIgnoreCase.GetHashCode(identifier);
+            var path = obj.FilePath ?? obj.Display;
+            return path == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(path);
         }
 
         private static HashSet<Project> GetViableUnreferencedProjects(Project project)
@@ -485,9 +495,6 @@ namespace Microsoft.CodeAnalysis.AddImport
             // We might have multiple different diagnostics covering the same span.  Have to
             // process them all as we might produce different fixes for each diagnostic.
 
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
-
             // Normally we don't allow generation into a hidden region in the file.  However, if we have a
             // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
             // our edit to their domain appropriate.
@@ -499,7 +506,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 var fixes = await GetFixesAsync(
                     document, span, diagnostic.Id, maxResultsPerDiagnostic,
-                    placeSystemNamespaceFirst, allowInHiddenRegions,
+                    allowInHiddenRegions,
                     symbolSearchService, searchReferenceAssemblies,
                     packageSources, cancellationToken).ConfigureAwait(false);
 
@@ -507,6 +514,74 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             return fixesForDiagnosticBuilder.ToImmutableAndFree();
+        }
+
+        public async Task<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
+            Document document, TextSpan span, ImmutableArray<string> diagnosticIds,
+            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
+            ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
+            {
+                var result = await client.TryInvokeAsync<IRemoteMissingImportDiscoveryService, ImmutableArray<AddImportFixData>>(
+                    document.Project.Solution,
+                    (service, solutionInfo, callbackId, cancellationToken) =>
+                        service.GetUniqueFixesAsync(solutionInfo, callbackId, document.Id, span, diagnosticIds, searchReferenceAssemblies, packageSources, cancellationToken),
+                    callbackTarget: symbolSearchService,
+                    cancellationToken).ConfigureAwait(false);
+
+                return result.HasValue ? result.Value : ImmutableArray<AddImportFixData>.Empty;
+            }
+
+            return await GetUniqueFixesAsyncInCurrentProcessAsync(
+                document, span, diagnosticIds,
+                symbolSearchService, searchReferenceAssemblies,
+                packageSources, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<ImmutableArray<AddImportFixData>> GetUniqueFixesAsyncInCurrentProcessAsync(
+            Document document,
+            TextSpan span,
+            ImmutableArray<string> diagnosticIds,
+            ISymbolSearchService symbolSearchService,
+            bool searchReferenceAssemblies,
+            ImmutableArray<PackageSource> packageSources,
+            CancellationToken cancellationToken)
+        {
+            var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            // Get the diagnostics that indicate a missing import.
+            var diagnostics = semanticModel.GetDiagnostics(span, cancellationToken)
+               .Where(diagnostic => diagnosticIds.Contains(diagnostic.Id))
+               .ToImmutableArray();
+
+            var getFixesForDiagnosticsTasks = diagnostics
+                .GroupBy(diagnostic => diagnostic.Location.SourceSpan)
+                .Select(diagnosticsForSourceSpan => GetFixesForDiagnosticsAsync(
+                        document, diagnosticsForSourceSpan.Key, diagnosticsForSourceSpan.AsImmutable(),
+                        maxResultsPerDiagnostic: 2, symbolSearchService, searchReferenceAssemblies, packageSources, cancellationToken));
+
+            using var _ = ArrayBuilder<AddImportFixData>.GetInstance(out var fixes);
+            foreach (var getFixesForDiagnosticsTask in getFixesForDiagnosticsTasks)
+            {
+                var fixesForDiagnostics = await getFixesForDiagnosticsTask.ConfigureAwait(false);
+
+                foreach (var fixesForDiagnostic in fixesForDiagnostics)
+                {
+                    // When there is more than one potential fix for a missing import diagnostic,
+                    // which is possible when the same class name is present in multiple namespaces,
+                    // we do not want to choose for the user and be wrong. We will not attempt to
+                    // fix this diagnostic and instead leave it for the user to resolve since they
+                    // will have more context for determining the proper fix.
+                    if (fixesForDiagnostic.Fixes.Length == 1)
+                        fixes.Add(fixesForDiagnostic.Fixes[0]);
+                }
+            }
+
+            return fixes.ToImmutable();
         }
 
         public ImmutableArray<CodeAction> GetCodeActionsForFixes(

@@ -3,22 +3,28 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
-using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
-    [DisableUserExperience(true)] // Remove this when we are ready to use LSP everywhere
+    /// <summary>
+    /// Experimental XAML Language Server Client used everywhere when
+    /// <see cref="XamlOptions.EnableLspIntelliSenseFeatureFlag"/> is turned on.
+    /// </summary>
     [ContentType(ContentTypeNames.XamlContentType)]
     [Export(typeof(ILanguageClient))]
     internal class XamlInProcLanguageClient : AbstractInProcLanguageClient
@@ -26,36 +32,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public XamlInProcLanguageClient(
-            XamlLanguageServerProtocol languageServerProtocol,
-            VisualStudioWorkspace workspace,
+            XamlRequestDispatcherFactory xamlDispatcherFactory,
+            IGlobalOptionService globalOptions,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, diagnosticsClientName: null)
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            ILspLoggerFactory lspLoggerFactory,
+            IThreadingContext threadingContext)
+            : base(xamlDispatcherFactory, globalOptions, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
         {
         }
 
-        /// <summary>
-        /// Gets the name of the language client (displayed to the user).
-        /// </summary>
-        public override string Name => Resources.Xaml_Language_Server_Client;
+        protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(StringConstants.XamlLanguageName);
 
-        protected internal override VSServerCapabilities GetCapabilities()
-            => new VSServerCapabilities
-            {
-                CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", ",", "(" } },
-                HoverProvider = true,
-                FoldingRangeProvider = new FoldingRangeOptions { },
-                DocumentFormattingProvider = true,
-                DocumentRangeFormattingProvider = true,
-                DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = ">", MoreTriggerCharacter = new string[] { "\n" } },
-                OnAutoInsertProvider = new DocumentOnAutoInsertOptions { TriggerCharacters = new[] { "=", "/", ">" } },
-                TextDocumentSync = new TextDocumentSyncOptions
-                {
-                    Change = TextDocumentSyncKind.None,
-                    OpenClose = false
-                },
-                SupportsDiagnosticRequests = true,
-            };
+        /// <summary>
+        /// Gets the name of the language client (displayed in yellow bars).
+        /// When updating the string of Name, please make sure to update the same string in Microsoft.VisualStudio.LanguageServer.Client.ExperimentalSnippetSupport.AllowList
+        /// </summary>
+        public override string Name => "XAML Language Server Client (Experimental)";
+
+        public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+        {
+            var isLspExperimentEnabled = IsXamlLspIntelliSenseEnabled();
+
+            return isLspExperimentEnabled ? XamlCapabilities.Current : XamlCapabilities.None;
+        }
+
+        /// <summary>
+        /// Failures are only catastrophic when this server is providing intellisense features.
+        /// </summary>
+        public override bool ShowNotificationOnInitializeFailed => IsXamlLspIntelliSenseEnabled();
+
+        private bool IsXamlLspIntelliSenseEnabled()
+            => GlobalOptions.GetOption(XamlOptions.EnableLspIntelliSenseFeatureFlag);
     }
 }

@@ -13,11 +13,13 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Utilities;
 using IServiceProvider = System.IServiceProvider;
 using Task = System.Threading.Tasks.Task;
 
@@ -42,6 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
+        public readonly IUIThreadOperationExecutor OperationExecutor;
+        public readonly IAsynchronousOperationListener AsynchronousOperationListener;
+
         protected AbstractObjectBrowserLibraryManager(
             string languageName,
             Guid libraryGuid,
@@ -57,6 +62,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             _libraryService = new Lazy<ILibraryService>(() => Workspace.Services.GetLanguageServices(_languageName).GetService<ILibraryService>());
             _streamingPresenter = componentModel.DefaultExportProvider.GetExportedValue<IStreamingFindUsagesPresenter>();
+
+            OperationExecutor = componentModel.DefaultExportProvider.GetExportedValue<IUIThreadOperationExecutor>();
+            AsynchronousOperationListener = componentModel.DefaultExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.LibraryManager);
         }
 
         internal abstract AbstractDescriptionBuilder CreateDescriptionBuilder(
@@ -125,9 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 UpdateClassAndMemberVersions();
             }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
             {
-                // make it crash VS on any exception
             }
         }
 
@@ -488,11 +495,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                             var project = this.Workspace.CurrentSolution.GetProject(symbolListItem.ProjectId);
                             if (project != null)
                             {
-                                // Note: we kick of FindReferencesAsync in a 'fire and forget' manner.
-                                // We don't want to block the UI thread while we compute the references,
-                                // and the references will be asynchronously added to the FindReferences
-                                // window as they are computed.  The user also knows something is happening
-                                // as the window, with the progress-banner will pop up immediately.
+                                // Note: we kick of FindReferencesAsync in a 'fire and forget' manner. We don't want to
+                                // block the UI thread while we compute the references, and the references will be
+                                // asynchronously added to the FindReferences window as they are computed.  The user
+                                // also knows something is happening as the window, with the progress-banner will pop up
+                                // immediately.
                                 _ = FindReferencesAsync(_streamingPresenter, symbolListItem, project);
                                 return true;
                             }
@@ -510,42 +517,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             try
             {
-                // Let the presented know we're starting a search.  It will give us back
-                // the context object that the FAR service will push results into.
-                var context = presenter.StartSearch(
-                    EditorFeaturesResources.Find_References, supportsReferences: true);
+                // Let the presented know we're starting a search.  It will give us back the context object that the FAR
+                // service will push results into.  Because we kicked off this work in a fire and forget fashion,
+                // the presenter owns canceling this work (i.e. if it's closed or if another FAR request is made).
+                var (context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true);
 
-                var cancellationToken = context.CancellationToken;
-
-                // Kick off the work to do the actual finding on a BG thread.  That way we don'
-                // t block the calling (UI) thread too long if we happen to do our work on this
-                // thread.
-                await Task.Run(async () =>
+                try
                 {
-                    await FindReferencesAsync(symbolListItem, project, context).ConfigureAwait(false);
-                }, cancellationToken).ConfigureAwait(false);
-
-                // Note: we don't need to put this in a finally.  The only time we might not hit
-                // this is if cancellation or another error gets thrown.  In the former case,
-                // that means that a new search has started.  We don't care about telling the
-                // context it has completed.  In the latter case something wrong has happened
-                // and we don't want to run any more code in this particular context.
-                await context.OnCompletedAsync().ConfigureAwait(false);
+                    // Kick off the work to do the actual finding on a BG thread.  That way we don'
+                    // t block the calling (UI) thread too long if we happen to do our work on this
+                    // thread.
+                    await Task.Run(
+                        () => FindReferencesAsync(symbolListItem, project, context, cancellationToken), cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                }
             }
             catch (OperationCanceledException)
             {
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Critical))
             {
             }
         }
 
-        private static async Task FindReferencesAsync(SymbolListItem symbolListItem, Project project, CodeAnalysis.FindUsages.FindUsagesContext context)
+        private static async Task FindReferencesAsync(
+            SymbolListItem symbolListItem, Project project,
+            CodeAnalysis.FindUsages.FindUsagesContext context, CancellationToken cancellationToken)
         {
-            var compilation = await project.GetCompilationAsync(context.CancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbol = symbolListItem.ResolveSymbol(compilation);
             if (symbol != null)
-                await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project).ConfigureAwait(false);
+                await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project, cancellationToken).ConfigureAwait(false);
         }
     }
 }

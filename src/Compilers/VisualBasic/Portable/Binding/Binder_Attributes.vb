@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function BindAttributeTypes(binders As ImmutableArray(Of Binder),
                                                   attributesToBind As ImmutableArray(Of AttributeSyntax),
                                                   ownerSymbol As Symbol,
-                                                  diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+                                                  diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Debug.Assert(binders.Any())
             Debug.Assert(attributesToBind.Any())
             Debug.Assert(ownerSymbol IsNot Nothing)
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function BindAttributeType(binder As Binder,
                                                  attribute As AttributeSyntax,
                                                  ownerSymbol As Symbol,
-                                                 diagnostics As DiagnosticBag) As NamedTypeSymbol
+                                                 diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             binder = New LocationSpecificBinder(VisualBasic.BindingLocation.Attribute, ownerSymbol, binder)
             Return DirectCast(binder.BindTypeSyntax(attribute.Name, diagnostics), NamedTypeSymbol)
         End Function
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         boundAttributeTypes As ImmutableArray(Of NamedTypeSymbol),
                                         attributeBuilder As VisualBasicAttributeData(),
                                         ownerSymbol As Symbol,
-                                        diagnostics As DiagnosticBag)
+                                        diagnostics As BindingDiagnosticBag)
             Debug.Assert(Not binders.IsEmpty)
             Debug.Assert(Not attributesToBind.IsEmpty)
             Debug.Assert(binders.Length = attributesToBind.Length)
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End Region
 
 #Region "Get Single Attribute"
-        Friend Function GetAttribute(node As AttributeSyntax, boundAttributeType As NamedTypeSymbol, diagnostics As DiagnosticBag) As SourceAttributeData
+        Friend Function GetAttribute(node As AttributeSyntax, boundAttributeType As NamedTypeSymbol, diagnostics As BindingDiagnosticBag) As SourceAttributeData
             Dim boundAttribute As boundAttribute = BindAttribute(node, boundAttributeType, diagnostics)
 
             Dim visitor As New AttributeExpressionVisitor(Me, boundAttribute.HasErrors)
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Bind Single Attribute"
 
-        Friend Function BindAttribute(node As AttributeSyntax, diagnostics As DiagnosticBag) As BoundAttribute
+        Friend Function BindAttribute(node As AttributeSyntax, diagnostics As BindingDiagnosticBag) As BoundAttribute
             Dim namedType As NamedTypeSymbol = DirectCast(BindTypeSyntax(node.Name, diagnostics), NamedTypeSymbol)
 
             Return BindAttribute(node, namedType, diagnostics)
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     container As NamespaceOrTypeSymbol,
                     name As String,
                     options As LookupOptions,
-                    <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                    <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
 
             Debug.Assert(lookupResult.IsClear)
             Debug.Assert(options.IsValid())
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             options = options Or LookupOptions.IgnoreExtensionMethods
 
-            Lookup(lookupResult, container, name & "Attribute", options, useSiteDiagnostics)
+            Lookup(lookupResult, container, name & "Attribute", options, useSiteInfo)
 
             ' If no result is found then do a second lookup without the attribute suffix. 
             ' The result is that namespace symbols or inaccessible symbols with the attribute 
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If lookupResult.IsClear OrElse lookupResult.IsWrongArity Then
                 lookupResult.Clear()
-                Lookup(lookupResult, container, name, options, useSiteDiagnostics)
+                Lookup(lookupResult, container, name, options, useSiteInfo)
             End If
 
             If Not lookupResult.IsGood Then
@@ -149,23 +149,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Found a good symbol, now check that it is appropriate to use as an attribute.
-            CheckAttributeTypeViability(lookupResult)
+            CheckAttributeTypeViability(lookupResult, useSiteInfo)
         End Sub
 
         Private Sub Lookup(lookupResult As LookupResult,
              container As NamespaceOrTypeSymbol,
              name As String,
              options As LookupOptions,
-             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+             <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
 
             If container IsNot Nothing Then
-                LookupMember(lookupResult, container, name, 0, options, useSiteDiagnostics)
+                LookupMember(lookupResult, container, name, 0, options, useSiteInfo)
             Else
-                Lookup(lookupResult, name, 0, options, useSiteDiagnostics)
+                Lookup(lookupResult, name, 0, options, useSiteInfo)
             End If
         End Sub
 
-        Private Sub CheckAttributeTypeViability(lookupResult As LookupResult)
+        Private Sub CheckAttributeTypeViability(lookupResult As LookupResult, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             Debug.Assert(lookupResult.HasSingleSymbol AndAlso lookupResult.IsGood)
 
             ' For error reporting, check the unwrapped symbol. However, return the unwrapped alias symbol if it is an alias.  
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Else
                 Dim namedType = DirectCast(symbol, NamedTypeSymbol)
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Dim localUseSiteInfo = If(useSiteInfo.AccumulatesDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(Compilation.Assembly), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependencies)
 
                 ' type cannot be generic
                 If namedType.IsGenericType Then
@@ -198,11 +198,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     errorId = ERRID.ERR_AttributeMustBeClassNotStruct1
 
                     ' type must inherit from System.Attribute
-                ElseIf Not Compilation.GetWellKnownType(WellKnownType.System_Attribute).IsBaseTypeOf(namedType, useSiteDiagnostics) Then
+                ElseIf Not Compilation.GetWellKnownType(WellKnownType.System_Attribute).IsBaseTypeOf(namedType, localUseSiteInfo) Then
                     errorId = ERRID.ERR_AttributeMustInheritSysAttr
 
-                    If Not useSiteDiagnostics.IsNullOrEmpty() Then
-                        diagInfo = useSiteDiagnostics.First()
+                    If Not localUseSiteInfo.Diagnostics.IsNullOrEmpty() Then
+                        diagInfo = localUseSiteInfo.Diagnostics.First()
                     End If
 
                     ' type can not be "mustinherit"
@@ -212,6 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     ' Return the symbol from the lookup result. In the case of an alias, it will be the alias symbol not
                     ' the unwrapped symbol.  This is the convention for lookup methods.
+                    useSiteInfo.MergeAndClear(localUseSiteInfo)
                     Return
                 End If
 
@@ -226,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return
         End Sub
 
-        Friend Function BindAttribute(node As AttributeSyntax, type As NamedTypeSymbol, diagnostics As DiagnosticBag) As BoundAttribute
+        Friend Function BindAttribute(node As AttributeSyntax, type As NamedTypeSymbol, diagnostics As BindingDiagnosticBag) As BoundAttribute
 
             ' If attribute name bound to an error type with a single named type
             ' candidate symbol, we want to bind the attribute constructor
@@ -258,8 +259,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not attributeTypeForBinding.IsErrorType() Then
 
                 ' Filter out inaccessible constructors 
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim accessibleConstructors = GetAccessibleConstructors(attributeTypeForBinding, useSiteDiagnostics)
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+                Dim accessibleConstructors = GetAccessibleConstructors(attributeTypeForBinding, useSiteInfo)
 
                 If accessibleConstructors.Length = 0 Then
                     ' TODO: we may want to fix the behavior of the Lookup result to contain more than one e.g. inaccessible symbol. 
@@ -269,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Having multiple bad symbols in a LookupResult was tried already by acasey, but getting this right is pretty
                     ' complicated and a performance hit (multiple diagnostics, ...).
 
-                    diagnostics.Add(node, useSiteDiagnostics)
+                    diagnostics.Add(node, useSiteInfo)
 
                     ' Avoid cascading diagnostics
                     If Not type.IsErrorType() Then
@@ -285,11 +286,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim constructorsGroup = New BoundMethodGroup(node.Name, Nothing, accessibleConstructors, LookupResultKind.Good, Nothing, QualificationKind.QualifiedViaTypeName)
 
                     Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.MethodInvocationOverloadResolution(constructorsGroup, boundArguments, Nothing, Me, callerInfoOpt:=node.Name,
-                                                                                                                                       useSiteDiagnostics:=useSiteDiagnostics)
+                                                                                                                                       useSiteInfo:=useSiteInfo)
 
-                    If diagnostics.Add(node.Name, useSiteDiagnostics) Then
+                    If diagnostics.Add(node.Name, useSiteInfo) Then
                         ' Suppress additional diagnostics
-                        diagnostics = New DiagnosticBag()
+                        diagnostics = BindingDiagnosticBag.Discarded
                     End If
 
                     If Not results.BestResult.HasValue Then
@@ -300,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' Create and report the diagnostic.
                             If results.Candidates.Length = 0 Then
                                 results = OverloadResolution.MethodInvocationOverloadResolution(constructorsGroup, boundArguments, Nothing, Me, includeEliminatedCandidates:=True, callerInfoOpt:=node.Name,
-                                                                                                useSiteDiagnostics:=useSiteDiagnostics)
+                                                                                                useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
                             End If
 
                             ' Report overload resolution but do not use the bound node result. We always want to return a
@@ -317,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         methodSym = DirectCast(methodResult.Candidate.UnderlyingSymbol, MethodSymbol)
                         Dim errorsReported As Boolean = False
 
-                        ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, methodSym, node)
+                        ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, methodSym, node)
 
                         ' Check that all formal parameters have attribute-compatible types and are public
                         For Each param In methodSym.Parameters
@@ -377,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindAttributeArguments(
             type As NamedTypeSymbol,
             argumentListOpt As ArgumentListSyntax,
-             diagnostics As DiagnosticBag
+             diagnostics As BindingDiagnosticBag
         ) As AnalyzedAttributeArguments
 
             Dim boundArguments As ImmutableArray(Of BoundExpression)
@@ -431,14 +432,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindAttributeNamedArgument(container As TypeSymbol,
                                                     namedArg As SimpleArgumentSyntax,
-                                                    diagnostics As DiagnosticBag) As BoundExpression
+                                                    diagnostics As BindingDiagnosticBag) As BoundExpression
             Debug.Assert(namedArg.IsNamed)
             ' Bind the named argument
             Dim result As LookupResult = LookupResult.GetInstance()
             Dim identifierName As IdentifierNameSyntax = namedArg.NameColonEquals.Name
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            LookupMember(result, container, identifierName.Identifier.ValueText, 0, LookupOptions.IgnoreExtensionMethods, useSiteDiagnostics)
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+            LookupMember(result, container, identifierName.Identifier.ValueText, 0, LookupOptions.IgnoreExtensionMethods, useSiteInfo)
 
             ' Validating the expression is done when the bound expression is converted to a TypedConstant
             Dim rValue As BoundExpression = Me.BindValue(namedArg.Expression, diagnostics)
@@ -454,13 +455,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim isReadOnly As Boolean = False
                 Dim hasErrors As Boolean = False
 
-                ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, sym, namedArg)
+                ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, sym, namedArg)
 
                 Select Case sym.Kind
                     Case SymbolKind.Field
                         fieldSym = DirectCast(sym, FieldSymbol)
                         fieldOrPropType = fieldSym.Type
                         isReadOnly = fieldSym.IsReadOnly
+                        ReportUseSite(diagnostics, identifierName.Identifier, sym)
 
                     Case SymbolKind.Property
                         propertySym = DirectCast(sym, PropertySymbol)
@@ -472,12 +474,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         isReadOnly = setMethod Is Nothing
 
                         If setMethod IsNot Nothing Then
+                            ReportUseSite(diagnostics, identifierName.Identifier, setMethod)
+
                             If setMethod.ParameterCount <> 1 Then
                                 ReportDiagnostic(diagnostics, identifierName, ERRID.ERR_NoNonIndexProperty1, sym.Name)
                                 hasErrors = True
                             End If
 
-                            If Not IsAccessible(setMethod, useSiteDiagnostics) Then
+                            If Not IsAccessible(setMethod, useSiteInfo) Then
                                 ReportDiagnostic(diagnostics, identifierName, ERRID.ERR_InaccessibleMember3,
                                                    propertySym.ContainingSymbol,
                                                    propertySym,
@@ -548,7 +552,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rValue = MakeRValue(rValue, diagnostics)
             End If
 
-            diagnostics.Add(namedArg, useSiteDiagnostics)
+            diagnostics.Add(namedArg, useSiteInfo)
             result.Free()
 
             Dim namedArgExpr = New BoundAssignmentOperator(namedArg, lValue, rValue, True)
@@ -677,11 +681,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public Function VisitPositionalArguments(arguments As ImmutableArray(Of BoundExpression), diag As DiagnosticBag) As ImmutableArray(Of TypedConstant)
+            Public Function VisitPositionalArguments(arguments As ImmutableArray(Of BoundExpression), diag As BindingDiagnosticBag) As ImmutableArray(Of TypedConstant)
                 Return VisitArguments(arguments, diag)
             End Function
 
-            Private Function VisitArguments(arguments As ImmutableArray(Of BoundExpression), diag As DiagnosticBag) As ImmutableArray(Of TypedConstant)
+            Private Function VisitArguments(arguments As ImmutableArray(Of BoundExpression), diag As BindingDiagnosticBag) As ImmutableArray(Of TypedConstant)
                 Dim builder As ArrayBuilder(Of TypedConstant) = Nothing
                 For Each exp In arguments
                     If builder Is Nothing Then
@@ -697,7 +701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return builder.ToImmutableAndFree
             End Function
 
-            Public Function VisitNamedArguments(arguments As ImmutableArray(Of BoundExpression), diag As DiagnosticBag) As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))
+            Public Function VisitNamedArguments(arguments As ImmutableArray(Of BoundExpression), diag As BindingDiagnosticBag) As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))
                 Dim builder As ArrayBuilder(Of KeyValuePair(Of String, TypedConstant)) = Nothing
                 For Each namedArg In arguments
 
@@ -719,7 +723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return builder.ToImmutableAndFree
             End Function
 
-            Private Function VisitNamedArgument(argument As BoundExpression, diag As DiagnosticBag) As Nullable(Of KeyValuePair(Of String, TypedConstant))
+            Private Function VisitNamedArgument(argument As BoundExpression, diag As BindingDiagnosticBag) As Nullable(Of KeyValuePair(Of String, TypedConstant))
                 Select Case argument.Kind
                     Case BoundKind.AssignmentOperator
                         Dim assignment = DirectCast(argument, BoundAssignmentOperator)
@@ -739,7 +743,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End Function
 
-            Public Function VisitExpression(node As BoundExpression, diagBag As DiagnosticBag) As TypedConstant
+            Public Function VisitExpression(node As BoundExpression, diagBag As BindingDiagnosticBag) As TypedConstant
                 Do
                     If node.IsConstant Then
                         If _binder.IsValidTypeForAttributeArgument(node.Type) Then
@@ -821,7 +825,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Loop
             End Function
 
-            Private Function VisitGetType(node As BoundGetType, diagBag As DiagnosticBag) As TypedConstant
+            Private Function VisitGetType(node As BoundGetType, diagBag As BindingDiagnosticBag) As TypedConstant
                 Dim sourceType = node.SourceType
                 Dim getTypeArgument = sourceType.Type
 
@@ -843,7 +847,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return CreateTypedConstant(node.Type, getTypeArgument)
             End Function
 
-            Private Function VisitArrayCreation(node As BoundArrayCreation, diag As DiagnosticBag) As TypedConstant
+            Private Function VisitArrayCreation(node As BoundArrayCreation, diag As BindingDiagnosticBag) As TypedConstant
                 Dim type = DirectCast(node.Type, ArrayTypeSymbol)
 
                 Dim values As ImmutableArray(Of TypedConstant) = Nothing

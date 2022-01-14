@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -16,12 +17,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal class TableEntriesFactory<TItem, TData> : ITableEntriesSnapshotFactory
         where TItem : TableItem
+        where TData : notnull
     {
         private readonly object _gate = new();
 
         private readonly AbstractTableDataSource<TItem, TData> _tableSource;
         private readonly AggregatedEntriesSource _entriesSources;
-        private readonly WeakReference<ITableEntriesSnapshot> _lastSnapshotWeakReference = new(null);
+        private readonly WeakReference<ITableEntriesSnapshot> _lastSnapshotWeakReference = new(null!);
 
         private int _lastVersion = 0;
 
@@ -57,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public ITableEntriesSnapshot GetSnapshot(int versionNumber)
+        public ITableEntriesSnapshot? GetSnapshot(int versionNumber)
         {
             lock (_gate)
             {
@@ -198,9 +200,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab, bool activate) => false;
+                public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken) => false;
 
-                public override bool TryGetValue(int index, string columnName, out object content)
+                public override bool TryGetValue(int index, string columnName, [NotNullWhen(true)] out object? content)
                 {
                     content = null;
                     return false;
@@ -209,8 +211,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private class EntriesSourceCollections
             {
-                private AbstractTableEntriesSource<TItem> _primary;
-                private Dictionary<object, AbstractTableEntriesSource<TItem>> _sources;
+                private AbstractTableEntriesSource<TItem>? _primary;
+                private Dictionary<object, AbstractTableEntriesSource<TItem>>? _sources;
 
                 public EntriesSourceCollections(AbstractTableEntriesSource<TItem> primary)
                 {
@@ -218,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     _primary = primary;
                 }
 
-                public AbstractTableEntriesSource<TItem> Primary
+                public AbstractTableEntriesSource<TItem>? Primary
                 {
                     get
                     {
@@ -227,6 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return _primary;
                         }
 
+                        RoslynDebug.AssertNotNull(_sources);
                         if (_sources.Count == 1)
                         {
                             return _sources.Values.First();
@@ -242,10 +245,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return _sources.Values;
                 }
 
+                [MemberNotNull(nameof(_sources))]
                 private void EnsureSources()
                 {
                     if (_sources == null)
                     {
+                        RoslynDebug.AssertNotNull(_primary);
                         _sources = new Dictionary<object, AbstractTableEntriesSource<TItem>>
                         {
                             { _primary.Key, _primary }

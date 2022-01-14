@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, node.LeftOperand.Type, used: true, isChecked: false, isCompoundAssignment: false);
 
                 // lhsRead ?? (transformedLHS = loweredRight)
-                BoundExpression conditionalExpression = MakeNullCoalescingOperator(syntax, lhsRead, assignment, Conversion.Identity, BoundNullCoalescingOperatorResultKind.LeftType, node.LeftOperand.Type);
+                var leftPlaceholder = new BoundValuePlaceholder(lhsRead.Syntax, lhsRead.Type);
+                BoundExpression conditionalExpression = MakeNullCoalescingOperator(syntax, lhsRead, assignment, leftPlaceholder: leftPlaceholder, leftConversion: leftPlaceholder, BoundNullCoalescingOperatorResultKind.LeftType, node.LeftOperand.Type);
                 Debug.Assert(conditionalExpression.Type is { });
 
                 return (temps.Count == 0 && stores.Count == 0) ?
@@ -108,12 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // tmp = loweredRight;
                 var tmpAssignment = MakeAssignmentOperator(node.Syntax, tmp, loweredRight, node.Type, used: true, isChecked: false, isCompoundAssignment: false);
 
+                Debug.Assert(transformedLHS.Type.GetNullableUnderlyingType().Equals(tmp.Type.StrippedType(), TypeCompareKind.AllIgnoreOptions));
+
                 // transformedLhs = tmp;
                 var transformedLhsAssignment =
                     MakeAssignmentOperator(
                         node.Syntax,
                         transformedLHS,
-                        MakeConversionNode(tmp, transformedLHS.Type, @checked: false),
+                        MakeConversionNode(tmp, transformedLHS.Type, @checked: false, markAsChecked: true),
                         node.LeftOperand.Type,
                         used: true,
                         isChecked: false,

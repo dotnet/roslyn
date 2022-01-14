@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -36,6 +37,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             return null;
         }
+
+        /// <summary>
+        /// Returns the name of the language (see <see cref="LanguageNames"/>) associated with the specified buffer. 
+        /// </summary>
+        internal static string? GetLanguageName(this ITextBuffer buffer)
+            => Workspace.TryGetWorkspace(buffer.AsTextContainer(), out var workspace) ?
+               workspace.Services.GetLanguageServices(buffer.ContentType)?.Language : null;
 
         /// <summary>
         /// A cache of host services -> (language name -> content type name).

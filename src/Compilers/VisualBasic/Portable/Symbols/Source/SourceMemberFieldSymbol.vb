@@ -63,10 +63,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If _lazyType Is Nothing Then
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
                     Dim varType = ComputeType(diagnostics)
                     Debug.Assert(varType IsNot Nothing)
-                    sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyType, varType, diagnostics, CompilationStage.Declare)
+                    sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyType, varType, diagnostics)
                     diagnostics.Free()
                 End If
 
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ComputeType(diagBag As DiagnosticBag) As TypeSymbol
+        Private Function ComputeType(diagBag As BindingDiagnosticBag) As TypeSymbol
             Dim declaredType = GetDeclaredType(diagBag)  ' needed for diagnostic creation in all cases
 
             If Not HasDeclaredType Then
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-        Private Function GetDeclaredType(diagBag As DiagnosticBag) As TypeSymbol
+        Private Function GetDeclaredType(diagBag As BindingDiagnosticBag) As TypeSymbol
             Dim modifiedIdentifier As ModifiedIdentifierSyntax = DirectCast(Syntax, ModifiedIdentifierSyntax)
             Dim declarator = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
 
@@ -113,20 +113,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' "Constants must be of an intrinsic or enumerated type, not a class, structure, type parameter, or array type."
                         If varType.IsArrayType Then
                             ' arrays get the squiggles under the identifier name
-                            Binder.ReportDiagnostic(diagBag, modifiedIdentifier.Identifier, ERRID.ERR_ConstAsNonConstant)
+                            binder.ReportDiagnostic(diagBag, modifiedIdentifier.Identifier, ERRID.ERR_ConstAsNonConstant)
                         Else
                             ' other data types get the squiggles under the type part of the as clause 
-                            Binder.ReportDiagnostic(diagBag, declarator.AsClause.Type, ERRID.ERR_ConstAsNonConstant)
+                            binder.ReportDiagnostic(diagBag, declarator.AsClause.Type, ERRID.ERR_ConstAsNonConstant)
                         End If
                     ElseIf declarator.Initializer Is Nothing Then
                         ' "Constants must have a value."
-                        Binder.ReportDiagnostic(diagBag, modifiedIdentifier, ERRID.ERR_ConstantWithNoValue)
+                        binder.ReportDiagnostic(diagBag, modifiedIdentifier, ERRID.ERR_ConstantWithNoValue)
                     End If
 
                 Else
                     Dim restrictedType As TypeSymbol = Nothing
                     If varType.IsRestrictedTypeOrArrayType(restrictedType) Then
-                        Binder.ReportDiagnostic(diagBag, declarator.AsClause.Type, ERRID.ERR_RestrictedType1, restrictedType)
+                        binder.ReportDiagnostic(diagBag, declarator.AsClause.Type, ERRID.ERR_RestrictedType1, restrictedType)
                     End If
                 End If
 
@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Helper used for computing the type of a field.
         Private Shared Function ComputeFieldType(modifiedIdentifierSyntax As ModifiedIdentifierSyntax,
                                                  binder As Binder,
-                                                 diagnostics As DiagnosticBag,
+                                                 diagnostics As BindingDiagnosticBag,
                                                  isConst As Boolean,
                                                  isWithEvents As Boolean,
                                                  ignoreTypeSyntaxDiagnostics As Boolean) As TypeSymbol
@@ -153,13 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If asClauseOpt IsNot Nothing Then
                 If (asClauseOpt.Kind <> SyntaxKind.AsNewClause OrElse (DirectCast(asClauseOpt, AsNewClauseSyntax).NewExpression.Kind <> SyntaxKind.AnonymousObjectCreationExpression)) Then
-                    If ignoreTypeSyntaxDiagnostics Then
-                        Dim ignoredDiagnostics = DiagnosticBag.GetInstance()
-                        asClauseType = binder.BindTypeSyntax(asClauseOpt.Type, ignoredDiagnostics)
-                        ignoredDiagnostics.Free()
-                    Else
-                        asClauseType = binder.BindTypeSyntax(asClauseOpt.Type, diagnostics)
-                    End If
+                    asClauseType = binder.BindTypeSyntax(asClauseOpt.Type, If(ignoreTypeSyntaxDiagnostics, BindingDiagnosticBag.Discarded, diagnostics))
                 End If
                 If asClauseOpt.Kind = SyntaxKind.AsNewClause Then
                     initializerSyntax = asClauseOpt
@@ -203,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                           modifiedIdentifier As ModifiedIdentifierSyntax,
                                                           binder As Binder,
                                                           ignoreTypeSyntaxDiagnostics As Boolean,
-                                                          diagnostics As DiagnosticBag) As TypeSymbol
+                                                          diagnostics As BindingDiagnosticBag) As TypeSymbol
 
             Dim varType = ComputeFieldType(modifiedIdentifier, binder, diagnostics, isConst:=False, isWithEvents:=True, ignoreTypeSyntaxDiagnostics:=ignoreTypeSyntaxDiagnostics)
 
@@ -331,14 +325,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return GetConstantValueImpl(inProgress)
             End Function
 
-            Protected Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As DiagnosticBag) As EvaluatedConstant
+            Protected Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As BindingDiagnosticBag) As EvaluatedConstant
                 Return ConstantValueUtils.EvaluateFieldConstant(Me, _equalsValueOrAsNewInit, dependencies, diagnostics)
             End Function
 
-            Protected Overrides Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As DiagnosticBag)
+            Protected Overrides Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As BindingDiagnosticBag)
                 Debug.Assert(constantTuple IsNot Nothing)
                 Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics, CompilationStage.Declare)
+                sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics)
             End Sub
 
             Protected Overrides Function GetInferredConstantType(inProgress As ConstantFieldsInProgress) As TypeSymbol
@@ -401,8 +395,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                  members As SourceNamedTypeSymbol.MembersAndInitializersBuilder,
                                  ByRef staticInitializers As ArrayBuilder(Of FieldOrPropertyInitializer),
                                  ByRef instanceInitializers As ArrayBuilder(Of FieldOrPropertyInitializer),
-                                 diagBag As DiagnosticBag)
+                                 diagBag As BindingDiagnosticBag)
 
+            Debug.Assert(diagBag.AccumulatesDiagnostics)
             ' Decode the flags.
 
             Dim validFlags = SourceMemberFlags.AllAccessibilityModifiers Or
@@ -426,26 +421,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                 validFlags,
                                                 errorId,
                                                 If(container.IsValueType, Accessibility.Public, Accessibility.Private),
-                                                diagBag)
+                                                diagBag.DiagnosticBag)
 
             If container IsNot Nothing Then
                 Select Case container.DeclarationKind
                     Case DeclarationKind.Structure
                         If (modifiers.FoundFlags And SourceMemberFlags.Protected) <> 0 Then
-                            binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_StructCantUseVarSpecifier1, diagBag, SyntaxKind.ProtectedKeyword)
+                            binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_StructCantUseVarSpecifier1, diagBag.DiagnosticBag, SyntaxKind.ProtectedKeyword)
                             modifiers = New MemberModifiers(modifiers.FoundFlags And Not SourceMemberFlags.Protected,
                                                             (modifiers.ComputedFlags And Not SourceMemberFlags.AccessibilityMask) Or SourceMemberFlags.AccessibilityPrivate)
                         End If
 
                         If (modifiers.FoundFlags And SourceMemberFlags.WithEvents) <> 0 Then
-                            binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_StructCantUseVarSpecifier1, diagBag, SyntaxKind.WithEventsKeyword)
+                            binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_StructCantUseVarSpecifier1, diagBag.DiagnosticBag, SyntaxKind.WithEventsKeyword)
                             modifiers = New MemberModifiers(modifiers.FoundFlags And Not SourceMemberFlags.WithEvents, modifiers.ComputedFlags)
                         End If
 
                     Case DeclarationKind.Module
                         ' Member variables in module are implicitly Shared, and cannot be explicitly Shared.
                         If (modifiers.FoundFlags And SourceMemberFlags.InvalidInModule) <> 0 Then
-                            binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_ModuleCantUseVariableSpecifier1, diagBag,
+                            binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_ModuleCantUseVariableSpecifier1, diagBag.DiagnosticBag,
                                                        SyntaxKind.SharedKeyword,
                                                        SyntaxKind.ProtectedKeyword,
                                                        SyntaxKind.DefaultKeyword,
@@ -469,19 +464,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 (modifiers.FoundFlags And FlagsNotCombinableWithConst) <> 0 Then
 
                 If (modifiers.FoundFlags And SourceMemberFlags.Shared) <> 0 Then
-                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag, SyntaxKind.SharedKeyword)
+                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag.DiagnosticBag, SyntaxKind.SharedKeyword)
                 End If
 
                 If (modifiers.FoundFlags And SourceMemberFlags.ReadOnly) <> 0 Then
-                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag, SyntaxKind.ReadOnlyKeyword)
+                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag.DiagnosticBag, SyntaxKind.ReadOnlyKeyword)
                 End If
 
                 If (modifiers.FoundFlags And SourceMemberFlags.WithEvents) <> 0 Then
-                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag, SyntaxKind.WithEventsKeyword)
+                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag.DiagnosticBag, SyntaxKind.WithEventsKeyword)
                 End If
 
                 If (modifiers.FoundFlags And SourceMemberFlags.Dim) <> 0 Then
-                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag, SyntaxKind.DimKeyword)
+                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag.DiagnosticBag, SyntaxKind.DimKeyword)
                 End If
 
                 modifiers = New MemberModifiers(modifiers.FoundFlags And Not FlagsNotCombinableWithConst,
@@ -521,13 +516,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If container.TypeKind = TypeKind.Structure AndAlso
                    (flags And SourceMemberFlags.Shared) = 0 Then
                     If initializerOpt IsNot Nothing Then
-                        Binder.ReportDiagnostic(diagBag,
+                        binder.ReportDiagnostic(diagBag,
                                                 If(declarator.Names.Count > 0,
                                                    declarator.Names.Last,
                                                    DirectCast(declarator, VisualBasicSyntaxNode)),
                                                 ERRID.ERR_InitializerInStruct)
                     ElseIf asClauseOpt IsNot Nothing AndAlso asClauseOpt.Kind = SyntaxKind.AsNewClause Then
-                        Binder.ReportDiagnostic(diagBag, DirectCast(asClauseOpt, AsNewClauseSyntax).NewExpression.NewKeyword, ERRID.ERR_SharedStructMemberCannotSpecifyNew)
+                        binder.ReportDiagnostic(diagBag, DirectCast(asClauseOpt, AsNewClauseSyntax).NewExpression.NewKeyword, ERRID.ERR_SharedStructMemberCannotSpecifyNew)
                     End If
                 End If
 #End If

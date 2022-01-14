@@ -72,6 +72,11 @@
         <target state="translated">Nie znaleziono modułu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="translated">Poza elementem namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (Naciśnij klawisz TAB, aby wstawić)</target>

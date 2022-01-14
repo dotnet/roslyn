@@ -1674,7 +1674,7 @@ class C
             comp.DeclarationDiagnostics.Verify();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16652")]
+        [Fact]
         public void FetchLocalFunctionSymbolThroughLocal()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(@"
@@ -1692,30 +1692,28 @@ class C
 }");
             var comp = CreateCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
+
             comp.VerifyDiagnostics(
-                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A, B, CLSCompliant, D]").WithLocation(7, 20),
                 // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
                 // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
                 // (7,24): error CS0246: The type or namespace name 'BAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("BAttribute").WithLocation(7, 24),
                 // (7,24): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 24),
                 // (7,41): error CS0246: The type or namespace name 'DAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("DAttribute").WithLocation(7, 41),
                 // (7,41): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(7, 41),
                 // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
 
             var model = comp.GetSemanticModel(tree);
@@ -2506,7 +2504,7 @@ class C
             var comp = CreateCompilation(@"
 class C
 {
-    private class var
+    private class @var
     {
     }
 
@@ -5141,7 +5139,7 @@ class Program
         void F1(object x) { string x = null; } // local
         void F2(object x, string y, int x) { } // parameter
         void F3(object x) { void x() { } } // method
-        void F4<x, y>(object x) { void y() { } } // type parameter
+        void F4<@x, @y>(object x) { void y() { } } // type parameter
         void F5(object M, string Program) { }
     }
 }";
@@ -5166,12 +5164,12 @@ class Program
                     // (9,34): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                     //         void F3(object x) { void x() { } } // method
                     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(9, 34),
-                    // (10,30): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                    //         void F4<x, y>(object x) { void y() { } } // type parameter
-                    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(10, 30),
-                    // (10,40): error CS0412: 'y': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                    //         void F4<x, y>(object x) { void y() { } } // type parameter
-                    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y").WithArguments("y").WithLocation(10, 40));
+                    // (10,32): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                    //         void F4<@x, @y>(object x) { void y() { } } // type parameter
+                    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(10, 32),
+                    // (10,42): error CS0412: 'y': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                    //         void F4<@x, @y>(object x) { void y() { } } // type parameter
+                    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y").WithArguments("y").WithLocation(10, 42));
             }
         }
 
@@ -5190,7 +5188,7 @@ class Program
         void F1() { object x = 0; } // local
         void F2(string x) { } // parameter
         void F3() { void x() { } } // method
-        void F4<x>() { } // type parameter
+        void F4<@x>() { } // type parameter
         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
     }
 }";
@@ -5206,8 +5204,8 @@ class Program
                 //         void F3() { void x() { } } // method
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 26),
                 // (12,17): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         void F4<x>() { } // type parameter
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(12, 17),
+                //         void F4<@x>() { } // type parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@x").WithArguments("x").WithLocation(12, 17),
                 // (13,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
                 //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 30));
@@ -5233,7 +5231,7 @@ class Program
         void F1() { object x = 0; } // local
         void F2(string x) { } // parameter
         void F3() { void x() { } } // method
-        void F4<x>() { } // type parameter
+        void F4<@x>() { } // type parameter
         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
         object x = null;
     }
@@ -5250,8 +5248,8 @@ class Program
                 //         void F3() { void x() { } } // method
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 26),
                 // (11,17): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         void F4<x>() { } // type parameter
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 17),
+                //         void F4<@x>() { } // type parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@x").WithArguments("x").WithLocation(11, 17),
                 // (12,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
                 //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(12, 30));
@@ -5274,7 +5272,7 @@ class Program
         static void F1() { object x = 0; } // local
         static void F2(string x) { } // parameter
         static void F3() { void x() { } } // method
-        static void F4<x>() { } // type parameter
+        static void F4<@x>() { } // type parameter
         static void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
         object x = null;
     }
@@ -5297,7 +5295,7 @@ class Program
         void F1() { object x = 0; } // local
         void F2(string x) { } // parameter
         void F3() { void x() { } } // method
-        void F4<x>() { } // type parameter
+        void F4<@x>() { } // type parameter
         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
     }
 }";
@@ -5331,12 +5329,12 @@ class Program
 using System.Linq;
 class Program
 {
-    static void M<x>()
+    static void M<@x>()
     {
         void F1() { object x = 0; } // local
         void F2(string x) { } // parameter
         void F3() { void x() { } } // method
-        void F4<x>() { } // type parameter
+        void F4<@x>() { } // type parameter
         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
     }
 }";
@@ -5352,8 +5350,8 @@ class Program
                 //         void F3() { void x() { } } // method
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(10, 26),
                 // (11,17): warning CS8387: Type parameter 'x' has the same name as the type parameter from outer method 'Program.M<x>()'
-                //         void F4<x>() { } // type parameter
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "x").WithArguments("x", "Program.M<x>()").WithLocation(11, 17),
+                //         void F4<@x>() { } // type parameter
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "@x").WithArguments("x", "Program.M<x>()").WithLocation(11, 17),
                 // (12,30): error CS1948: The range variable 'x' cannot have the same name as a method type parameter
                 //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "x").WithArguments("x").WithLocation(12, 30));
@@ -5361,8 +5359,8 @@ class Program
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,17): warning CS8387: Type parameter 'x' has the same name as the type parameter from outer method 'Program.M<x>()'
-                //         void F4<x>() { } // type parameter
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "x").WithArguments("x", "Program.M<x>()").WithLocation(11, 17));
+                //         void F4<@x>() { } // type parameter
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "@x").WithArguments("x", "Program.M<x>()").WithLocation(11, 17));
         }
 
         [Fact]
@@ -5380,7 +5378,7 @@ class Program
         void F1() { object x = 0; } // local
         void F2(string x) { } // parameter
         void F3() { void x() { } } // method
-        void F4<x>() { } // type parameter
+        void F4<@x>() { } // type parameter
         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
     }
 }";
@@ -5396,8 +5394,8 @@ class Program
                 //         void F3() { void x() { } } // method
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 26),
                 // (12,17): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         void F4<x>() { } // type parameter
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(12, 17),
+                //         void F4<@x>() { } // type parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@x").WithArguments("x").WithLocation(12, 17),
                 // (13,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
                 //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 30));
@@ -6953,7 +6951,7 @@ class C2
 @"#pragma warning disable 8321
 class C1
 {
-    class var { }
+    class @var { }
     static void F1()
     {
         void A1(object x) { var y = x; }
@@ -6962,7 +6960,7 @@ class C1
 }
 namespace N
 {
-    using var = System.String;
+    using @var = System.String;
     class C2
     {
         static void F2()
@@ -7082,18 +7080,42 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (7,17): warning CS8981: The type name 'await' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //         void A1<await>() { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "await").WithArguments("await").WithLocation(7, 17),
+                // (8,24): warning CS8981: The type name 'await' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //         static void B1<await>() { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "await").WithArguments("await").WithLocation(8, 24),
                 // (12,23): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         async void A2<await>() { }
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(12, 23),
+                // (12,23): warning CS8981: The type name 'await' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //         async void A2<await>() { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "await").WithArguments("await").WithLocation(12, 23),
                 // (13,30): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         async static void B2<await>() { }
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(13, 30),
+                // (13,30): warning CS8981: The type name 'await' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //         async static void B2<await>() { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "await").WithArguments("await").WithLocation(13, 30),
+                // (17,17): warning CS8981: The type name 'await' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //         void A3<await>() { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "await").WithArguments("await").WithLocation(17, 17),
+                // (18,24): warning CS8981: The type name 'await' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //         static void B3<await>() { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "await").WithArguments("await").WithLocation(18, 24),
                 // (22,23): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         async void A4<await>() { }
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(22, 23),
+                // (22,23): warning CS8981: The type name 'await' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //         async void A4<await>() { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "await").WithArguments("await").WithLocation(22, 23),
                 // (23,30): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         async static void B4<await>() { }
-                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(23, 30));
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(23, 30),
+                // (23,30): warning CS8981: The type name 'await' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //         async static void B4<await>() { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "await").WithArguments("await").WithLocation(23, 30));
         }
     }
 }

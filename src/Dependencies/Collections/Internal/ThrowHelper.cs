@@ -45,6 +45,12 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
     internal static class ThrowHelper
     {
         [DoesNotReturn]
+        internal static void ThrowIndexOutOfRangeException()
+        {
+            throw new IndexOutOfRangeException();
+        }
+
+        [DoesNotReturn]
         internal static void ThrowArgumentOutOfRangeException()
         {
             throw new ArgumentOutOfRangeException();
@@ -55,6 +61,12 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         {
             throw GetArgumentOutOfRangeException(ExceptionArgument.index,
                                                     ExceptionResource.ArgumentOutOfRange_Index);
+        }
+
+        [DoesNotReturn]
+        internal static void ThrowArgumentException_BadComparer(object? comparer)
+        {
+            throw new ArgumentException(string.Format(SR.Arg_BogusIComparer, comparer));
         }
 
         [DoesNotReturn]
@@ -89,14 +101,14 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         internal static void ThrowWrongKeyTypeArgumentException<T>(T key, Type targetType)
         {
             // Generic key to move the boxing to the right hand side of throw
-            throw GetWrongKeyTypeArgumentException((object?)key, targetType);
+            throw GetWrongKeyTypeArgumentException(key, targetType);
         }
 
         [DoesNotReturn]
         internal static void ThrowWrongValueTypeArgumentException<T>(T value, Type targetType)
         {
             // Generic key to move the boxing to the right hand side of throw
-            throw GetWrongValueTypeArgumentException((object?)value, targetType);
+            throw GetWrongValueTypeArgumentException(value, targetType);
         }
 
         private static ArgumentException GetAddingDuplicateWithKeyArgumentException(object? key)
@@ -108,14 +120,14 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         internal static void ThrowAddingDuplicateWithKeyArgumentException<T>(T key)
         {
             // Generic key to move the boxing to the right hand side of throw
-            throw GetAddingDuplicateWithKeyArgumentException((object?)key);
+            throw GetAddingDuplicateWithKeyArgumentException(key);
         }
 
         [DoesNotReturn]
         internal static void ThrowKeyNotFoundException<T>(T key)
         {
             // Generic key to move the boxing to the right hand side of throw
-            throw GetKeyNotFoundException((object?)key);
+            throw GetKeyNotFoundException(key);
         }
 
         [DoesNotReturn]
@@ -251,6 +263,8 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                     return "action";
                 case ExceptionArgument.comparison:
                     return "comparison";
+                case ExceptionArgument.source:
+                    return "source";
                 case ExceptionArgument.length:
                     return "length";
                 case ExceptionArgument.destinationArray:
@@ -317,6 +331,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         count,
         action,
         comparison,
+        source,
         length,
         destinationArray,
     }

@@ -22,12 +22,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
                 namedTypeSymbol.TypeKind == TypeKind.Interface ||
                 namedTypeSymbol.TypeKind == TypeKind.Struct))
             {
-                return ValueTaskFactory.FromResult(BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol));
+                var result = BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol).CastArray<ISymbol>();
+                return ValueTaskFactory.FromResult(result);
             }
 
-            if (symbol.Kind == SymbolKind.Property ||
-                symbol.Kind == SymbolKind.Method ||
-                symbol.Kind == SymbolKind.Event)
+            if (symbol.Kind is SymbolKind.Property or
+                SymbolKind.Method or
+                SymbolKind.Event)
             {
                 return BaseTypeFinder.FindOverriddenAndImplementedMembersAsync(symbol, solution, cancellationToken);
             }

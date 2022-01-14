@@ -6,19 +6,20 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
+Imports Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestState
@@ -33,6 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Protected ReadOnly SessionTestState As IIntelliSenseTestState
         Private ReadOnly SignatureHelpBeforeCompletionCommandHandler As SignatureHelpBeforeCompletionCommandHandler
         Protected ReadOnly SignatureHelpAfterCompletionCommandHandler As SignatureHelpAfterCompletionCommandHandler
+        Protected ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
 
         Public Shared ReadOnly CompositionWithoutCompletionTestParts As TestComposition = EditorTestCompositions.EditorFeaturesWpf.
@@ -72,8 +74,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.SignatureHelpBeforeCompletionCommandHandler = GetExportedValue(Of SignatureHelpBeforeCompletionCommandHandler)()
 
             Me.SignatureHelpAfterCompletionCommandHandler = GetExportedValue(Of SignatureHelpAfterCompletionCommandHandler)()
+            Me.CompleteStatementCommandHandler = GetExportedValue(Of CompleteStatementCommandHandler)()
 
             Me.FormatCommandHandler = If(includeFormatCommandHandler, GetExportedValue(Of FormatCommandHandler)(), Nothing)
+            Me.CompleteStatementCommandHandler = Workspace.ExportProvider.GetCommandHandler(Of CompleteStatementCommandHandler)(NameOf(CompleteStatementCommandHandler))
 
             CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
                 Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")
@@ -106,12 +110,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If formatHandler Is Nothing Then
                 sigHelpHandler.ExecuteCommand(
                     args, Sub() completionCommandHandler.ExecuteCommand(
-                                    args, finalHandler, context), context)
+                                    args, Sub() CompleteStatementCommandHandler.ExecuteCommand(args, finalHandler, context), context), context)
             Else
                 formatHandler.ExecuteCommand(
                     args, Sub() sigHelpHandler.ExecuteCommand(
                                     args, Sub() completionCommandHandler.ExecuteCommand(
-                                                    args, finalHandler, context), context), context)
+                                                    args, Sub() CompleteStatementCommandHandler.ExecuteCommand(args, finalHandler, context), context), context), context)
             End If
         End Sub
 
@@ -246,6 +250,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                        End Sub)
                                           End If
                                       End Sub
+
             Dim sessionDismissedHandler = Sub(sender As Object, e As EventArgs) sessionComplete.TrySetResult(Nothing)
 
             Dim session As IAsyncCompletionSession
@@ -344,9 +349,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Async Function AssertCompletionItemsContain(displayText As String, displayTextSuffix As String) As Task
+            Await AssertCompletionItemsContain(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix)
+        End Function
+
+        Public Async Function AssertCompletionItemsContain(predicate As Func(Of CompletionItem, Boolean)) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim items = GetCompletionItems()
-            Assert.True(items.Any(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix))
+            Assert.True(items.Any(predicate))
         End Function
 
         Public Sub AssertItemsInOrder(expectedOrder As String())
@@ -371,15 +380,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Async Function AssertSelectedCompletionItem(
-                                                    Optional displayText As String = Nothing,
-                                                    Optional displayTextSuffix As String = Nothing,
-                                                    Optional description As String = Nothing,
-                                                    Optional isSoftSelected As Boolean? = Nothing,
-                                                    Optional isHardSelected As Boolean? = Nothing,
-                                                    Optional shouldFormatOnCommit As Boolean? = Nothing,
-                                                    Optional inlineDescription As String = Nothing,
-                                                    Optional automationText As String = Nothing,
-                                                    Optional projectionsView As ITextView = Nothing) As Task
+                Optional displayText As String = Nothing,
+                Optional displayTextSuffix As String = Nothing,
+                Optional description As String = Nothing,
+                Optional isSoftSelected As Boolean? = Nothing,
+                Optional isHardSelected As Boolean? = Nothing,
+                Optional shouldFormatOnCommit As Boolean? = Nothing,
+                Optional inlineDescription As String = Nothing,
+                Optional automationText As String = Nothing,
+                Optional projectionsView As ITextView = Nothing) As Task
 
             Await WaitForAsynchronousOperationsAsync()
             Dim view = If(projectionsView, TextView)
@@ -436,7 +445,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
             Dim service = CompletionService.GetService(document)
             Dim roslynItem = GetSelectedItem()
-            Return Await service.GetDescriptionAsync(document, roslynItem)
+            Dim options = CompletionOptions.From(document.Project)
+            Dim displayOptions = SymbolDescriptionOptions.From(document.Project)
+            Return Await service.GetDescriptionAsync(document, roslynItem, options, displayOptions)
         End Function
 
         Public Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)

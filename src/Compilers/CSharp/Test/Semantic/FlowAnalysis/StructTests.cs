@@ -456,7 +456,7 @@ public struct Struct
     internal C1.S data;
 }
 ";
-            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugModule));
+            var comp1 = CreateCompilation(source, options: WithNullableEnable(TestOptions.DebugModule));
             var moduleReference = comp1.EmitToImageReference();
 
             var source2 =
@@ -468,12 +468,12 @@ public struct Struct
         var r2 = r1;
     }
 }";
-            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: WithNullableEnable()).VerifyDiagnostics(
                 // (6,18): error CS0165: Use of unassigned local variable 'r1'
                 //         var r2 = r1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
                 );
-            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: WithNonNullTypesTrue().WithWarningLevel(5)).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: WithNullableEnable().WithWarningLevel(5)).VerifyDiagnostics(
                 // (6,18): error CS0165: Use of unassigned local variable 'r1'
                 //         var r2 = r1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)

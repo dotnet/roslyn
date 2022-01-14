@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
         private readonly IThreadingContext _threadingContext;
 
         protected AbstractExtractInterfaceCommandHandler(IThreadingContext threadingContext)
-            => this._threadingContext = threadingContext;
+            => _threadingContext = threadingContext;
 
         public string DisplayName => EditorFeaturesResources.Extract_Interface;
 
@@ -76,8 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
                     return true;
                 }
 
+                // TODO: Use a threaded-wait-dialog here so we can cancel navigation.
                 var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                navigationService.TryNavigateToPosition(workspace, result.NavigationDocumentId, 0);
+                navigationService.TryNavigateToPosition(workspace, result.NavigationDocumentId, 0, CancellationToken.None);
 
                 return true;
             }

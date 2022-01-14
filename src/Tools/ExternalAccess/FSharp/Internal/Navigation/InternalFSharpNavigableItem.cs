@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation
 
         public TextSpan SourceSpan { get; }
 
+        public bool IsStale => false;
+
         public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
     }
 }

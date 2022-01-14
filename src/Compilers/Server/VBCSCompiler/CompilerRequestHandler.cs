@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -20,14 +21,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal readonly struct RunRequest
     {
+        public Guid RequestId { get; }
         public string Language { get; }
         public string? WorkingDirectory { get; }
         public string? TempDirectory { get; }
         public string? LibDirectory { get; }
         public string[] Arguments { get; }
 
-        public RunRequest(string language, string? workingDirectory, string? tempDirectory, string? libDirectory, string[] arguments)
+        public RunRequest(Guid requestId, string language, string? workingDirectory, string? tempDirectory, string? libDirectory, string[] arguments)
         {
+            RequestId = requestId;
             Language = language;
             WorkingDirectory = workingDirectory;
             TempDirectory = tempDirectory;
@@ -59,6 +62,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public ICompilerServerLogger Logger { get; }
 
+        /// <summary>
+        /// A cache that can store generator drivers in order to enable incrementalism across builds for the lifetime of the server.
+        /// </summary>
+        private readonly GeneratorDriverCache _driverCache = new GeneratorDriverCache();
+
         internal CompilerServerHost(string clientDirectory, string sdkDirectory, ICompilerServerLogger logger)
         {
             ClientDirectory = clientDirectory;
@@ -66,12 +74,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Logger = logger;
         }
 
-        private bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers)
+        private bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers, [NotNullWhen(false)] out List<string>? errorMessages)
         {
-            return AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, AnalyzerAssemblyLoader, logger: Logger);
+            return AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, AnalyzerAssemblyLoader, Logger, out errorMessages);
         }
 
-        public bool TryCreateCompiler(RunRequest request, BuildPaths buildPaths, [NotNullWhen(true)] out CommonCompiler? compiler)
+        public bool TryCreateCompiler(in RunRequest request, BuildPaths buildPaths, [NotNullWhen(true)] out CommonCompiler? compiler)
         {
             switch (request.Language)
             {
@@ -81,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         args: request.Arguments,
                         buildPaths: buildPaths,
                         libDirectory: request.LibDirectory,
-                        analyzerLoader: AnalyzerAssemblyLoader);
+                        analyzerLoader: AnalyzerAssemblyLoader,
+                        _driverCache);
                     return true;
                 case LanguageNames.VisualBasic:
                     compiler = new VisualBasicCompilerServer(
@@ -89,7 +98,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         args: request.Arguments,
                         buildPaths: buildPaths,
                         libDirectory: request.LibDirectory,
-                        analyzerLoader: AnalyzerAssemblyLoader);
+                        analyzerLoader: AnalyzerAssemblyLoader,
+                        _driverCache);
                     return true;
                 default:
                     compiler = null;
@@ -97,10 +107,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        public BuildResponse RunCompilation(RunRequest request, CancellationToken cancellationToken)
+        public BuildResponse RunCompilation(in RunRequest request, CancellationToken cancellationToken)
         {
             Logger.Log($@"
-Run Compilation
+Run Compilation for {request.RequestId}
+  Language = {request.Language}
   CurrentDirectory = '{request.WorkingDirectory}
   LIB = '{request.LibDirectory}'");
 
@@ -108,39 +119,52 @@ Run Compilation
             // resolve files in the compilation
             if (string.IsNullOrEmpty(request.WorkingDirectory))
             {
-                return new RejectedBuildResponse("Missing temp directory");
+                var message = "Missing working directory";
+                Logger.Log($"Rejected: {request.RequestId}: {message}");
+                return new RejectedBuildResponse(message);
             }
 
             // Compiler server must be provided with a valid temporary directory in order to correctly
             // isolate signing between compilations.
             if (string.IsNullOrEmpty(request.TempDirectory))
             {
-                return new RejectedBuildResponse("Missing temp directory");
+                var message = "Missing temp directory";
+                Logger.Log($"Rejected: {request.RequestId}: {message}");
+                return new RejectedBuildResponse(message);
             }
 
             var buildPaths = new BuildPaths(ClientDirectory, request.WorkingDirectory, SdkDirectory, request.TempDirectory);
-            CommonCompiler? compiler;
-            if (!TryCreateCompiler(request, buildPaths, out compiler))
+            if (!TryCreateCompiler(request, buildPaths, out CommonCompiler? compiler))
             {
-                return new RejectedBuildResponse($"Cannot create compiler for language id {request.Language}");
+                var message = $"Cannot create compiler for language id {request.Language}";
+                Logger.Log($"Rejected: {request.RequestId}: {message}");
+                return new RejectedBuildResponse(message);
             }
 
             bool utf8output = compiler.Arguments.Utf8Output;
-            if (!CheckAnalyzers(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences))
+            if (!CheckAnalyzers(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences, out List<string>? errorMessages))
             {
-                return new AnalyzerInconsistencyBuildResponse();
+                Logger.Log($"Rejected: {request.RequestId}: for analyzer load issues {string.Join(";", errorMessages)}");
+                return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(errorMessages));
             }
 
-            Logger.Log($"Begin {request.Language} compiler run");
-            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            int returnCode = compiler.Run(output, cancellationToken);
-            var outputString = output.ToString();
-            Logger.Log(@$"
-End {request.Language} Compilation complete.
+            Logger.Log($"Begin {request.RequestId} {request.Language} compiler run");
+            try
+            {
+                TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
+                int returnCode = compiler.Run(output, cancellationToken);
+                var outputString = output.ToString();
+                Logger.Log(@$"End {request.RequestId} {request.Language} compiler run
 Return code: {returnCode}
 Output:
 {outputString}");
-            return new CompletedBuildResponse(returnCode, utf8output, outputString);
+                return new CompletedBuildResponse(returnCode, utf8output, outputString);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogException(ex, $"Running compilation for {request.RequestId}");
+                throw;
+            }
         }
     }
 }

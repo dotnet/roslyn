@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="needs-review-translation">await 추가</target>
+        <target state="translated">'await' 추가</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
         <source>Add 'await' and 'ConfigureAwait(false)'</source>
-        <target state="new">Add 'await' and 'ConfigureAwait(false)'</target>
+        <target state="translated">'await' 및 'ConfigureAwait(false)' 추가</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_missing_usings">
@@ -32,11 +32,6 @@
         <target state="translated">식/블록 본문 기본 설정 적용</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_file_header_preferences">
-        <source>Apply file header preferences</source>
-        <target state="translated">파일 헤더 기본 설정 적용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
         <source>Apply implicit/explicit type preferences</source>
         <target state="translated">암시적/명시적 형식 기본 설정 적용</target>
@@ -50,11 +45,6 @@
       <trans-unit id="Apply_language_framework_type_preferences">
         <source>Apply language/framework type preferences</source>
         <target state="translated">언어/프레임워크 형식 기본 설정 적용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_object_collection_initialization_preferences">
-        <source>Apply object/collection initialization preferences</source>
-        <target state="translated">개체/컬렉션 초기화 기본 설정 적용</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_this_qualification_preferences">
@@ -132,6 +122,11 @@
         <target state="translated">Nullable로 선언</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_project">
+        <source>Enable nullable reference types in project</source>
+        <target state="translated">프로젝트에서 null 허용 참조 형식 사용</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
         <target state="translated">반환 형식 수정</target>
@@ -167,20 +162,20 @@
         <target state="translated">'new' 한정자 제거</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_casts">
-        <source>Remove unnecessary casts</source>
-        <target state="translated">불필요한 캐스트 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_variables">
-        <source>Remove unused variables</source>
-        <target state="translated">사용하지 않는 변수 제거</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">역 'for' 문</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_include_global_statements">
+        <source>Selection cannot include global statements</source>
+        <target state="translated">선택 영역에 전체 문을 포함할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_cannot_include_top_level_statements">
+        <source>Selection cannot include top-level statements</source>
+        <target state="translated">선택 영역에는 최상위 문을 포함할 수 없습니다.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>
@@ -200,6 +195,16 @@
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="translated">'{0}' 클래스 봉인 해제</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="translated">재귀 패턴 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Expression_may_change_code_meaning">
+        <source>Warning: Expression may have side effects. Code meaning may change.</source>
+        <target state="translated">경고: 식에 부작용이 있을 수 있습니다. 코드 의미가 변경될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -222,6 +227,11 @@
         <target state="translated">비동기 using 선언</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="extern_alias">
+        <source>extern alias</source>
+        <target state="translated">extern 별칭</target>
+        <note />
+      </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
         <target state="translated">&lt;람다 식&gt;</target>
@@ -239,7 +249,7 @@
       </trans-unit>
       <trans-unit id="member_name">
         <source>&lt;member name&gt; = </source>
-        <target state="translated">&lt;멤버 이름&gt; =</target>
+        <target state="translated">&lt;멤버 이름&gt; = </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation">
@@ -249,7 +259,7 @@
       </trans-unit>
       <trans-unit id="element_name">
         <source>&lt;element name&gt; : </source>
-        <target state="translated">&lt;요소 이름&gt;:</target>
+        <target state="translated">&lt;요소 이름&gt;: </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
@@ -289,7 +299,7 @@
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified</source>
-        <target state="translated">이름은 간단하게 줄일 수 있습니다.</target>
+        <target state="translated">이름을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
@@ -310,21 +320,6 @@
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">잘못된 선택 항목입니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">선택 항목에 유효한 토큰이 포함되어 있지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">추출을 수행할 선택 항목이 잘못되었습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">추출에 필요한 일반 루트 노드가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
@@ -425,6 +420,16 @@
       <trans-unit id="Generate_implicit_conversion_operator_in_0">
         <source>Generate implicit conversion operator in '{0}'</source>
         <target state="translated">'{0}'에서 암시적 변환 연산자 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_">
+        <source>record</source>
+        <target state="translated">레코드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="translated">레코드 구조체</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">
@@ -586,11 +591,6 @@
         <source>global statement</source>
         <target state="translated">global 문</target>
         <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="using_namespace">
-        <source>using namespace</source>
-        <target state="translated">using 네임스페이스</target>
-        <note />
       </trans-unit>
       <trans-unit id="using_directive">
         <source>using directive</source>

@@ -13,9 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class CollectionInitializerStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of CollectionInitializerSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(node As CollectionInitializerSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  node As CollectionInitializerSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
 
             ' We don't want to make a span for the "{ ... }" in "From { ... }".  The latter

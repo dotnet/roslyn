@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveConfusingSuppression), Shared]
     internal sealed partial class CSharpRemoveConfusingSuppressionCodeFixProvider : CodeFixProvider
     {
         public const string RemoveOperator = nameof(RemoveOperator);
@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
             Document document, ImmutableArray<Diagnostic> diagnostics,
             bool negate, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
             var generator = editor.Generator;
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 

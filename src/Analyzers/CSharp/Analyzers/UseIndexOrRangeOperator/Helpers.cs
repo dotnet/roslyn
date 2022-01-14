@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// Checks if <paramref name="operation"/> is a binary subtraction operator. If so, it
         /// will be returned through <paramref name="subtraction"/>.
         /// </summary>
-        public static bool IsSubtraction(IOperation operation, out IBinaryOperation subtraction)
+        public static bool IsSubtraction(IOperation operation, [NotNullWhen(true)] out IBinaryOperation? subtraction)
         {
             if (operation is IBinaryOperation binaryOperation &&
                 binaryOperation.OperatorKind == BinaryOperatorKind.Subtract)
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                (method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.Ordinary) &&
                IsPublicInstance(method) &&
                method.Parameters.Length == 1 &&
-               // From: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
+               // From: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
                //
                // When looking for the pattern members, we look for original definitions, not
                // constructed members
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// </summary>
         public static bool IsTwoArgumentSliceLikeMethod(IMethodSymbol method)
         {
-            // From: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
+            // From: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
             //
             // When looking for the pattern members, we look for original definitions, not
             // constructed members
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// </summary>
         public static bool IsOneArgumentSliceLikeMethod(IMethodSymbol method)
         {
-            // From: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
+            // From: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
             //
             // When looking for the pattern members, we look for original definitions, not
             // constructed members
@@ -140,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// The overload must have the same return type as <paramref name="method"/>.  It must only
         /// have a single parameter, with the provided <paramref name="parameterType"/>.
         /// </summary>
-        public static IMethodSymbol GetOverload(IMethodSymbol method, ITypeSymbol parameterType)
+        public static IMethodSymbol? GetOverload(IMethodSymbol method, ITypeSymbol parameterType)
             => method.MethodKind != MethodKind.Ordinary
                 ? null
                 : method.ContainingType.GetMembers(method.Name)

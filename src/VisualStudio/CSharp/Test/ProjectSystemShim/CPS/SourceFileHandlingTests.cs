@@ -15,6 +15,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using static CSharpHelpers;
 
     [UseExportProvider]
@@ -22,10 +23,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
     {
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void AddRemoveSourceFile_CPS()
+        public async Task AddRemoveSourceFile_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project = CreateCSharpCPSProject(environment, "project1");
+            using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
             IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
             Assert.Empty(GetCurrentDocuments());
@@ -42,10 +43,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void AddRemoveAdditionalFile_CPS()
+        public async Task AddRemoveAdditionalFile_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project = CreateCSharpCPSProject(environment, "project1");
+            using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
             IEnumerable<TextDocument> GetCurrentAdditionalDocuments() => environment.Workspace.CurrentSolution.Projects.Single().AdditionalDocuments;
             Assert.Empty(GetCurrentAdditionalDocuments());
 
@@ -61,10 +62,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void ReorderSourceFiles_CPS()
+        public async Task ReorderSourceFiles_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project = CreateCSharpCPSProject(environment, "project1");
+            using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
             IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
             VersionStamp GetVersion() => environment.Workspace.CurrentSolution.Projects.Single().Version;
 
@@ -112,10 +113,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void ReorderSourceFilesBatch_CPS()
+        public async Task ReorderSourceFilesBatch_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project = CreateCSharpCPSProject(environment, "project1");
+            using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
             IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
             Assert.Empty(GetCurrentDocuments());
@@ -143,7 +144,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
             project.ReorderSourceFiles(new[] { sourceFileFullPath5, sourceFileFullPath3, sourceFileFullPath1 });
 
-            project.EndBatch();
+            await project.EndBatchAsync();
 
             var documents = GetCurrentDocuments().ToArray();
 
@@ -154,10 +155,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void ReorderSourceFilesBatchWithReAdding_CPS()
+        public async Task ReorderSourceFilesBatchWithReAdding_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project = CreateCSharpCPSProject(environment, "project1");
+            using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
             IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
             Assert.Empty(GetCurrentDocuments());
@@ -195,7 +196,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
             project.ReorderSourceFiles(new[] { sourceFileFullPath5, sourceFileFullPath4, sourceFileFullPath3, sourceFileFullPath2, sourceFileFullPath1 });
 
-            project.EndBatch();
+            await project.EndBatchAsync();
 
             var documents = GetCurrentDocuments().ToArray();
 
@@ -208,10 +209,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void ReorderSourceFilesBatchAddAfterReorder_CPS()
+        public async Task ReorderSourceFilesBatchAddAfterReorder_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project = CreateCSharpCPSProject(environment, "project1");
+            using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
             IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
             Assert.Empty(GetCurrentDocuments());
@@ -233,7 +234,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             project.AddSourceFile(sourceFileFullPath4);
             project.AddSourceFile(sourceFileFullPath5);
 
-            project.EndBatch();
+            await project.EndBatchAsync();
 
             project.ReorderSourceFiles(new[] { sourceFileFullPath5, sourceFileFullPath4, sourceFileFullPath3, sourceFileFullPath2, sourceFileFullPath1 });
 
@@ -248,10 +249,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void ReorderSourceFilesBatchRemoveAfterReorder_CPS()
+        public async Task ReorderSourceFilesBatchRemoveAfterReorder_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project = CreateCSharpCPSProject(environment, "project1");
+            using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
             IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
             Assert.Empty(GetCurrentDocuments());
@@ -276,7 +277,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             project.RemoveSourceFile(sourceFileFullPath4);
             project.RemoveSourceFile(sourceFileFullPath5);
 
-            project.EndBatch();
+            await project.EndBatchAsync();
 
             project.ReorderSourceFiles(new[] { sourceFileFullPath2, sourceFileFullPath1 });
 
@@ -288,10 +289,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void ReorderSourceFilesExceptions_CPS()
+        public async Task ReorderSourceFilesExceptions_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project = CreateCSharpCPSProject(environment, "project1");
+            using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
             IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
             Assert.Empty(GetCurrentDocuments());
@@ -325,10 +326,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void ReorderSourceFilesBatchExceptions_CPS()
+        public async Task ReorderSourceFilesBatchExceptions_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project = CreateCSharpCPSProject(environment, "project1");
+            using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
             IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
             Assert.Empty(GetCurrentDocuments());
@@ -370,15 +371,15 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles(new List<string>()));
             Assert.Throws<ArgumentOutOfRangeException>(() => project.ReorderSourceFiles(null));
 
-            project.EndBatch();
+            await project.EndBatchAsync();
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void ReorderSourceFilesBatchExceptionRemoveFile_CPS()
+        public async Task ReorderSourceFilesBatchExceptionRemoveFile_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project = CreateCSharpCPSProject(environment, "project1");
+            using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
             IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
             Assert.Empty(GetCurrentDocuments());
@@ -394,7 +395,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             project.RemoveSourceFile(sourceFileFullPath2);
             Assert.Throws<InvalidOperationException>(() => project.ReorderSourceFiles(new[] { sourceFileFullPath2 }));
 
-            project.EndBatch();
+            await project.EndBatchAsync();
 
             var documents = GetCurrentDocuments().ToArray();
 

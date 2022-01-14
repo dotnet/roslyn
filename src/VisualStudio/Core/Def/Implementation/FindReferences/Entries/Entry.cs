@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Wpf;
@@ -36,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         return DefinitionBucket;
 
                     case StandardTableKeyNames2.DefinitionIcon:
-                        return DefinitionBucket.DefinitionItem.Tags.GetFirstGlyph().GetImageMoniker();
+                        return DefinitionBucket?.DefinitionItem.Tags.GetFirstGlyph().GetImageMoniker();
                 }
 
                 return GetValueWorker(keyName);

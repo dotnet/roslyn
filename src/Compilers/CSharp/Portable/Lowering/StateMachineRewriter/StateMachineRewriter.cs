@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected readonly BoundStatement body;
         protected readonly MethodSymbol method;
-        protected readonly DiagnosticBag diagnostics;
+        protected readonly BindingDiagnosticBag diagnostics;
         protected readonly SyntheticBoundNodeFactory F;
         protected readonly SynthesizedContainer stateMachineType;
         protected readonly VariableSlotAllocator slotAllocatorOpt;
@@ -39,13 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedContainer stateMachineType,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(body != null);
             Debug.Assert(method != null);
             Debug.Assert((object)stateMachineType != null);
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
+            Debug.Assert(diagnostics.DiagnosticBag != null);
 
             this.body = body;
             this.method = method;
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // fields for the captured variables of the method
-            var variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(F.Compilation, method, body, diagnostics);
+            var variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(F.Compilation, method, body, diagnostics.DiagnosticBag);
 
             if (diagnostics.HasAnyErrors())
             {
@@ -193,10 +194,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int previousSlotIndex;
                             if (mapToPreviousFields && slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
                                 declaratorSyntax,
-                                F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics),
+                                F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics.DiagnosticBag),
                                 synthesizedKind,
                                 id,
-                                diagnostics,
+                                diagnostics.DiagnosticBag,
                                 out previousSlotIndex))
                             {
                                 slotIndex = previousSlotIndex;
@@ -318,7 +319,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return F.Block(bodyBuilder.ToImmutableAndFree());
+            var builtBody = bodyBuilder.ToImmutableAndFree();
+            ImmutableArray<BoundStatement> newBody = LocalRewriter.TryConstructNullCheckedStatementList(method.Parameters, builtBody, F);
+            return newBody.IsDefault ? F.Block(builtBody) : F.Block(ImmutableArray.Create(stateMachineVariable), newBody);
         }
 
         protected SynthesizedImplementationMethod OpenMethodImplementation(

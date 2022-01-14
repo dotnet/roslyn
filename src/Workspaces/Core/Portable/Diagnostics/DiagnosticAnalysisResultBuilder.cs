@@ -151,7 +151,16 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 switch (diagnostic.Location.Kind)
                 {
                     case LocationKind.ExternalFile:
-                        // TODO: currently additional file location is not supported.
+                        var diagnosticDocumentId = Project.GetDocumentForExternalLocation(diagnostic.Location);
+                        if (diagnosticDocumentId != null)
+                        {
+                            AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetRequiredTextDocument(diagnosticDocumentId), diagnostic);
+                        }
+                        else
+                        {
+                            AddOtherDiagnostic(DiagnosticData.Create(diagnostic, Project));
+                        }
+
                         break;
 
                     case LocationKind.None:

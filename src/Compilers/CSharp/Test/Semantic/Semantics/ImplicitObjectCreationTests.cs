@@ -55,9 +55,9 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
 
-            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.Identity);
-            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", ConversionKind.Identity);
-            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ImplicitNullable);
+            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.ObjectCreation);
+            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", ConversionKind.ObjectCreation);
+            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ObjectCreation);
 
             void assert(int index, string type, string convertedType, string symbol, ConversionKind conversionKind)
             {
@@ -125,9 +125,9 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
 
-            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.Identity);
-            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", ConversionKind.Identity);
-            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ImplicitNullable);
+            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.ObjectCreation);
+            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", ConversionKind.ObjectCreation);
+            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ObjectCreation);
 
             void assert(int index, string type, string convertedType, string symbol, ConversionKind conversionKind)
             {
@@ -172,9 +172,9 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
 
-            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.Identity);
-            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", ConversionKind.Identity);
-            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ImplicitNullable);
+            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.ObjectCreation);
+            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", ConversionKind.ObjectCreation);
+            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ObjectCreation);
 
             void assert(int index, string type, string convertedType, string symbol, ConversionKind conversionKind)
             {
@@ -213,20 +213,20 @@ class C
                 // (9,16): error CS1736: Default parameter value for 'p1' must be a compile-time constant
                 //         C p1 = new(),
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("p1").WithLocation(9, 16),
-                // (11,17): error CS1736: Default parameter value for 'p3' must be a compile-time constant
-                //         S? p3 = new()
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("p3").WithLocation(11, 17)
+                // (11,12): error CS1770: A value of type 'S' cannot be used as default parameter for nullable parameter 'p3' because 'S' is not a simple type
+                //         S? p3 = new(),
+                Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "p3").WithArguments("S", "p3").WithLocation(11, 12)
                 );
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
 
-            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", constant: null, ConversionKind.Identity);
-            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", constant: null, ConversionKind.Identity);
-            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", constant: null, ConversionKind.ImplicitNullable);
-            assert(3, type: "System.Int32", convertedType: "System.Int32", symbol: "System.Int32..ctor()", constant: "0", ConversionKind.Identity);
-            assert(4, type: "System.Boolean", convertedType: "System.Boolean?", symbol: "System.Boolean..ctor()", constant: "False", ConversionKind.ImplicitNullable);
+            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", constant: null, ConversionKind.ObjectCreation);
+            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", constant: null, ConversionKind.ObjectCreation);
+            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", constant: null, ConversionKind.ObjectCreation);
+            assert(3, type: "System.Int32", convertedType: "System.Int32", symbol: "System.Int32..ctor()", constant: "0", ConversionKind.ObjectCreation);
+            assert(4, type: "System.Boolean", convertedType: "System.Boolean?", symbol: "System.Boolean..ctor()", constant: "False", ConversionKind.ObjectCreation);
 
             void assert(int index, string type, string convertedType, string symbol, string constant, ConversionKind conversionKind)
             {
@@ -840,7 +840,7 @@ public class Program
             Assert.Equal("InterfaceType", model.GetTypeInfo(@new).Type.ToTestDisplayString());
             Assert.Equal("InterfaceType", model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
             Assert.Equal("CoClassType..ctor()", model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
-            Assert.Equal(ConversionKind.Identity, model.GetConversion(@new).Kind);
+            Assert.Equal(ConversionKind.ObjectCreation, model.GetConversion(@new).Kind);
         }
 
         [Fact]
@@ -881,7 +881,7 @@ public class MainClass
             Assert.Equal("NonGenericInterfaceType", model.GetTypeInfo(@new).Type.ToTestDisplayString());
             Assert.Equal("NonGenericInterfaceType", model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
             Assert.Equal("GenericCoClassType<System.Int32, System.String>..ctor(System.String x)", model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
-            Assert.Equal(ConversionKind.Identity, model.GetConversion(@new).Kind);
+            Assert.Equal(ConversionKind.ObjectCreation, model.GetConversion(@new).Kind);
         }
 
         [Fact]
@@ -1865,7 +1865,7 @@ class C
             Assert.Equal("C", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Equal("C..ctor()", model.GetSymbolInfo(def).Symbol.ToTestDisplayString());
             Assert.False(model.GetConstantValue(def).HasValue);
-            Assert.True(model.GetConversion(def).IsIdentity);
+            Assert.True(model.GetConversion(def).IsObjectCreation);
         }
 
         [Fact]
@@ -1895,7 +1895,7 @@ struct S
             Assert.Equal("S", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Equal("S..ctor(System.Int32 i)", model.GetSymbolInfo(def).Symbol.ToTestDisplayString());
             Assert.False(model.GetConstantValue(def).HasValue);
-            Assert.True(model.GetConversion(def).IsIdentity);
+            Assert.True(model.GetConversion(def).IsObjectCreation);
         }
 
         [Fact]
@@ -1925,7 +1925,7 @@ struct S
             Assert.Equal("S?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Equal("S..ctor(System.Int32 i)", model.GetSymbolInfo(def).Symbol.ToTestDisplayString());
             Assert.False(model.GetConstantValue(def).HasValue);
-            Assert.True(model.GetConversion(def).IsNullable);
+            Assert.True(model.GetConversion(def).IsObjectCreation);
             Assert.True(model.GetConversion(def).IsImplicit);
         }
 
@@ -2086,7 +2086,7 @@ class C
 
             assert(0, type: "?", convertedType: "?", ConversionKind.Identity);
             assert(1, type: "?", convertedType: "?", ConversionKind.Identity);
-            assert(2, type: "System.IDisposable", convertedType: "System.IDisposable", ConversionKind.Identity);
+            assert(2, type: "System.IDisposable", convertedType: "System.IDisposable", ConversionKind.NoConversion);
 
             void assert(int index, string type, string convertedType, ConversionKind conversionKind)
             {
@@ -2182,7 +2182,7 @@ class C
             Assert.Equal("T", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.False(model.GetConstantValue(def).HasValue);
-            Assert.True(model.GetConversion(def).IsIdentity);
+            Assert.True(model.GetConversion(def).IsObjectCreation);
         }
 
         [Fact]
@@ -2881,10 +2881,10 @@ class C
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
 
-            assert(0, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.Identity);
-            assert(1, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.Identity);
-            assert(2, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.Identity);
-            assert(3, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.Identity);
+            assert(0, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.ObjectCreation);
+            assert(1, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.ObjectCreation);
+            assert(2, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.ObjectCreation);
+            assert(3, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.ObjectCreation);
 
             void assert(int index, string type, string convertedType, string symbol, ConversionKind conversionKind)
             {
@@ -4367,21 +4367,18 @@ public class Source
                 parseOptions: TestOptions.Regular9);
 
             comp.VerifyDiagnostics(
-                // (6,9): warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
-                //         a.M(new());
-                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a.M").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(6, 9),
+                // warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(1, 1),
                 // (6,11): error CS0121: The call is ambiguous between the following methods or properties: 'A.M(B)' and 'A.M(string)'
                 //         a.M(new());
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("A.M(B)", "A.M(string)").WithLocation(6, 11),
-                // (7,9): warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
-                //         a.M(default);
-                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a.M").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(7, 9),
+                // warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(1, 1),
                 // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'A.M(B)' and 'A.M(string)'
                 //         a.M(default);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("A.M(B)", "A.M(string)").WithLocation(7, 11),
-                // (8,9): warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
-                //         a.M(null);
-                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a.M").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(8, 9),
+                // warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(1, 1),
                 // (8,11): error CS0121: The call is ambiguous between the following methods or properties: 'A.M(B)' and 'A.M(string)'
                 //         a.M(null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("A.M(B)", "A.M(string)").WithLocation(8, 11)
@@ -4532,6 +4529,284 @@ class X
             Assert.Equal("System.Int32 aParameter", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+        }
+
+        [Fact]
+        [WorkItem(50489, "https://github.com/dotnet/roslyn/issues/50489")]
+        public void InEarlyWellknownAttribute_01()
+        {
+            var source1 = @"
+public class C
+{
+    static void Main()
+    {
+        M1();
+        M2();
+    }
+    
+    [System.Obsolete(""reported 1"", new bool())]
+    static public void M1()
+    {
+    }
+    
+    [System.Obsolete(""reported 2"", new())]
+    static public void M2()
+    {
+    }
+}";
+
+            var compilation1 = CreateCompilation(source1);
+            compilation1.VerifyDiagnostics(
+                // (6,9): warning CS0618: 'C.M1()' is obsolete: 'reported 1'
+                //         M1();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "M1()").WithArguments("C.M1()", "reported 1").WithLocation(6, 9),
+                // (7,9): warning CS0618: 'C.M2()' is obsolete: 'reported 2'
+                //         M2();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "M2()").WithArguments("C.M2()", "reported 2").WithLocation(7, 9)
+                );
+
+            var source2 = @"
+public class B
+{
+    static void Main()
+    {
+        C.M1();
+        C.M2();
+    }
+}";
+
+            var compilation2 = CreateCompilation(source2, references: new[] { compilation1.EmitToImageReference() });
+            compilation2.VerifyDiagnostics(
+                // (6,9): warning CS0618: 'C.M1()' is obsolete: 'reported 1'
+                //         C.M1();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C.M1()").WithArguments("C.M1()", "reported 1").WithLocation(6, 9),
+                // (7,9): warning CS0618: 'C.M2()' is obsolete: 'reported 2'
+                //         C.M2();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C.M2()").WithArguments("C.M2()", "reported 2").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void InEarlyWellknownAttribute_02()
+        {
+            var source1 = @"
+using System.Runtime.InteropServices;
+
+public class C
+{
+    public void M1([DefaultParameterValue(new())] object o)
+    {
+    }
+
+    public void M2([DefaultParameterValue(new object())] object o)
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1);
+            compilation1.VerifyDiagnostics(
+                // (6,43): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     public void M1([DefaultParameterValue(new())] object o)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new()").WithLocation(6, 43),
+                // (10,43): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     public void M2([DefaultParameterValue(new object())] object o)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new object()").WithLocation(10, 43)
+                );
+        }
+
+        [Fact]
+        public void InEarlyWellknownAttribute_03()
+        {
+            var source1 = @"
+using System;
+
+[AttributeUsage(new AttributeTargets())]
+public class Attr1 : Attribute {}
+
+[AttributeUsage(new())]
+public class Attr2 : Attribute {}
+";
+
+            var compilation1 = CreateCompilation(source1);
+            compilation1.VerifyDiagnostics(
+                // (4,17): error CS0591: Invalid value for argument to 'AttributeUsage' attribute
+                // [AttributeUsage(new AttributeTargets())]
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "new AttributeTargets()").WithArguments("AttributeUsage").WithLocation(4, 17),
+                // (7,17): error CS0591: Invalid value for argument to 'AttributeUsage' attribute
+                // [AttributeUsage(new())]
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "new()").WithArguments("AttributeUsage").WithLocation(7, 17)
+                );
+        }
+
+        [Fact]
+        public void InAttributes()
+        {
+            var source = @"
+[C(new())]
+public class C : System.Attribute
+{
+   public C(C c) {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (2,2): error CS0181: Attribute constructor parameter 'c' has type 'C', which is not a valid attribute parameter type
+                // [C(new())]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "C").WithArguments("c", "C").WithLocation(2, 2),
+                // (2,4): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.C(C)'
+                // [C(new())]
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new()").WithArguments("c", "C.C(C)").WithLocation(2, 4)
+                );
+        }
+
+        [Fact, WorkItem(54193, "https://github.com/dotnet/roslyn/issues/54193")]
+        public void InSwitchExpression()
+        {
+            var source = @"
+using static System.Console;
+
+var c0 = 0 switch { 1 => new C(), int n => new() { n = n } };
+C c1 = 1 switch { int n => new() { n = n } };
+C c2 = 2 switch { int n => n switch { int u => new() { n = n + u } } };
+
+Write(c0.n);
+Write(c1.n);
+Write(c2.n);
+
+class C 
+{
+    public int n;
+}
+";
+            var compilation = CreateCompilation(source);
+            CompileAndVerify(compilation, expectedOutput: "014")
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(57088, "https://github.com/dotnet/roslyn/issues/57088")]
+        public void ConstantPattern_01()
+        {
+            var source = @"
+class C
+{
+    void M1<T>()
+    {
+        if (T is new()) { } // 1
+        if (T is new T()) { } // 2, 3
+    }
+
+    void M2<T>() where T : new()
+    {
+        if (T is new()) { } // 4
+        if (T is new T()) { } // 5
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0119: 'T' is a type, which is not valid in the given context
+                //         if (T is new()) { } // 1
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(6, 13),
+                // (7,13): error CS0119: 'T' is a type, which is not valid in the given context
+                //         if (T is new T()) { } // 2, 3
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(7, 13),
+                // (7,18): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
+                //         if (T is new T()) { } // 2, 3
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T()").WithArguments("T").WithLocation(7, 18),
+                // (12,13): error CS0119: 'T' is a type, which is not valid in the given context
+                //         if (T is new()) { } // 4
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(12, 13),
+                // (13,13): error CS0119: 'T' is a type, which is not valid in the given context
+                //         if (T is new T()) { } // 5
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(13, 13)
+                );
+        }
+
+        [Fact, WorkItem(57088, "https://github.com/dotnet/roslyn/issues/57088")]
+        public void ConstantPattern_02()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void M(int x)
+    {
+        Console.Write(x);
+        if (x is new()) { Console.Write(2); }
+        if (x is new int()) { Console.Write(3); }
+    }
+
+    static void Main()
+    {
+        M(0);
+        M(1);
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "0231");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(57088, "https://github.com/dotnet/roslyn/issues/57088")]
+        public void ConstantPattern_03()
+        {
+            var source = @"
+namespace SomeNamespace{
+	public class Class1 {
+		public T Something<T>() { // 1
+			if (T is new()) { // 2
+
+}
+		}
+	}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0161: 'Class1.Something<T>()': not all code paths return a value
+                // 		public T Something<T>() { // 1
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Something").WithArguments("SomeNamespace.Class1.Something<T>()").WithLocation(4, 12),
+                // (5,8): error CS0119: 'T' is a type, which is not valid in the given context
+                // 			if (T is new()) { // 2
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(5, 8));
+        }
+
+        [Fact, WorkItem(57088, "https://github.com/dotnet/roslyn/issues/57088")]
+        public void ConstantPattern_04()
+        {
+            var source = @"
+class C
+{
+    void M1<T>(T t)
+    {
+        if (t is new()) { } // 1
+        if (t is new T()) { } // 2
+    }
+
+    void M2<T>(T t) where T : new()
+    {
+        if (t is new()) { } // 3
+        if (t is new T()) { } // 4
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0150: A constant value is expected
+                //         if (t is new()) { } // 1
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "new()").WithLocation(6, 18),
+                // (7,18): error CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
+                //         if (t is new T()) { } // 2
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T()").WithArguments("T").WithLocation(7, 18),
+                // (12,18): error CS0150: A constant value is expected
+                //         if (t is new()) { } // 3
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "new()").WithLocation(12, 18),
+                // (13,18): error CS0150: A constant value is expected
+                //         if (t is new T()) { } // 4
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "new T()").WithLocation(13, 18)
+                );
         }
     }
 }

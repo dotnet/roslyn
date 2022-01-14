@@ -24,12 +24,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             private const string AppliedColorSchemeName = "AppliedColorScheme";
 
             private readonly IServiceProvider _serviceProvider;
-            private readonly VisualStudioWorkspace _workspace;
+            private readonly IGlobalOptionService _globalOptions;
 
-            public ColorSchemeSettings(IServiceProvider serviceProvider, VisualStudioWorkspace visualStudioWorkspace)
+            public ColorSchemeSettings(IServiceProvider serviceProvider, IGlobalOptionService globalOptions)
             {
                 _serviceProvider = serviceProvider;
-                _workspace = visualStudioWorkspace;
+                _globalOptions = globalOptions;
             }
 
             public static ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             public SchemeName GetConfiguredColorScheme()
             {
-                var schemeName = _workspace.Options.GetOption(ColorSchemeOptions.ColorScheme);
+                var schemeName = _globalOptions.GetOption(ColorSchemeOptions.ColorScheme);
                 return schemeName != SchemeName.None
                     ? schemeName
                     : ColorSchemeOptions.ColorScheme.DefaultValue;
@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             public void MigrateToColorSchemeSetting()
             {
                 // Get the preview feature flag value.
-                var useEnhancedColorsSetting = _workspace.Options.GetOption(ColorSchemeOptions.LegacyUseEnhancedColors);
+                var useEnhancedColorsSetting = _globalOptions.GetOption(ColorSchemeOptions.LegacyUseEnhancedColors);
 
                 // Return if we have already migrated.
                 if (useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.Migrated)
@@ -121,8 +121,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     ? SchemeName.VisualStudio2017
                     : SchemeName.VisualStudio2019;
 
-                _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.ColorScheme, colorScheme));
-                _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.LegacyUseEnhancedColors, ColorSchemeOptions.UseEnhancedColors.Migrated));
+                _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.ColorScheme), colorScheme);
+                _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.LegacyUseEnhancedColors), ColorSchemeOptions.UseEnhancedColors.Migrated);
             }
         }
     }

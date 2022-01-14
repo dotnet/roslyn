@@ -19,13 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     [CompilerTrait(CompilerFeature.InitOnlySetters)]
     public class InitOnlyMemberTests : CompilingTestBase
     {
-        // Spec: https://github.com/dotnet/csharplang/blob/master/proposals/init.md
+        // Spec: https://github.com/dotnet/csharplang/blob/main/proposals/init.md
 
         // https://github.com/dotnet/roslyn/issues/44685
         // test dynamic scenario
         // test whether reflection use property despite modreq?
         // test behavior of old compiler with modreq. For example VB
-        // test with ambiguous IsExternalInit types
 
         [Fact]
         public void TestCSharp8()
@@ -1660,6 +1659,62 @@ class Derived2 : Derived
                 );
         }
 
+        [Fact, WorkItem(50053, "https://github.com/dotnet/roslyn/issues/50053")]
+        public void PrivatelyImplementingInitOnlyProperty_ReferenceConversion()
+        {
+            string source = @"
+var x = new DerivedType() { SomethingElse = 42 };
+System.Console.Write(x.SomethingElse);
+
+public interface ISomething { int Property { get; init; } }
+public record BaseType : ISomething { int ISomething.Property { get; init; } }
+
+public record DerivedType : BaseType
+{
+    public int SomethingElse
+    {
+        get => ((ISomething)this).Property;
+        init => ((ISomething)this).Property = value;
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (13,17): error CS8852: Init-only property or indexer 'ISomething.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         init => ((ISomething)this).Property = value;
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "((ISomething)this).Property").WithArguments("ISomething.Property").WithLocation(13, 17)
+                );
+        }
+
+        [Fact, WorkItem(50053, "https://github.com/dotnet/roslyn/issues/50053")]
+        public void PrivatelyImplementingInitOnlyProperty_BoxingConversion()
+        {
+            string source = @"
+var x = new Type() { SomethingElse = 42 };
+
+public interface ISomething { int Property { get; init; } }
+
+public struct Type : ISomething
+{
+    int ISomething.Property { get; init; }
+
+    public int SomethingElse
+    {
+        get => throw null;
+        init => ((ISomething)this).Property = value;
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS8852: Init-only property or indexer 'ISomething.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         init => ((ISomething)this).Property = value;
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "((ISomething)this).Property").WithArguments("ISomething.Property").WithLocation(13, 17)
+                );
+        }
+
         [Fact]
         public void OverridingInitOnlyProperty()
         {
@@ -2487,8 +2542,8 @@ public record C(int i)
                 "void C.M()",
                 "System.String C.ToString()",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean C.op_Inequality(C? r1, C? r2)",
-                "System.Boolean C.op_Equality(C? r1, C? r2)",
+                "System.Boolean C.op_Inequality(C? left, C? right)",
+                "System.Boolean C.op_Equality(C? left, C? right)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -4550,6 +4605,154 @@ class UsePia
                 //         var x2 = new UsePia() { Property2 = { Property = 43 } };
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("ITest28.Property").WithLocation(9, 47)
                 );
+        }
+
+        [Fact, WorkItem(50696, "https://github.com/dotnet/roslyn/issues/50696")]
+        public void PickAmbiguousTypeFromCorlib()
+        {
+            var corlib_cs = @"
+namespace System
+{
+    public class Object { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class ValueType { }
+    public struct Void { }
+    public class Attribute { }
+}
+";
+
+            string source = @"
+public class C
+{
+    public int Property { get; init; }
+}
+";
+            var corlibWithoutIsExternalInitRef = CreateEmptyCompilation(corlib_cs, assemblyName: "corlibWithoutIsExternalInit")
+                .EmitToImageReference();
+
+            var corlibWithIsExternalInitRef = CreateEmptyCompilation(corlib_cs + IsExternalInitTypeDefinition, assemblyName: "corlibWithIsExternalInit")
+                .EmitToImageReference();
+
+            var libWithIsExternalInitRef = CreateEmptyCompilation(IsExternalInitTypeDefinition, references: new[] { corlibWithoutIsExternalInitRef }, assemblyName: "libWithIsExternalInit")
+                .EmitToImageReference();
+
+            var libWithIsExternalInitRef2 = CreateEmptyCompilation(IsExternalInitTypeDefinition, references: new[] { corlibWithoutIsExternalInitRef }, assemblyName: "libWithIsExternalInit2")
+                .EmitToImageReference();
+
+            {
+                // type in source
+                var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithoutIsExternalInitRef }, assemblyName: "source");
+                comp.VerifyEmitDiagnostics();
+                verify(comp, "source");
+            }
+
+            {
+                // type in library
+                var comp = CreateEmptyCompilation(new[] { source }, references: new[] { corlibWithoutIsExternalInitRef, libWithIsExternalInitRef }, assemblyName: "source");
+                comp.VerifyEmitDiagnostics();
+                verify(comp, "libWithIsExternalInit");
+            }
+
+            {
+                // type in corlib and in source
+                var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithIsExternalInitRef }, assemblyName: "source");
+                comp.VerifyEmitDiagnostics();
+                verify(comp, "source");
+            }
+
+            {
+                // type in corlib, in library and in source
+                var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef }, assemblyName: "source");
+                comp.VerifyEmitDiagnostics();
+                verify(comp, "source");
+            }
+
+            {
+                // type in corlib and in two libraries
+                var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 });
+                comp.VerifyEmitDiagnostics();
+                verify(comp, "corlibWithIsExternalInit");
+            }
+
+            {
+                // type in corlib and in two libraries (corlib in middle)
+                var comp = CreateEmptyCompilation(source, references: new[] { libWithIsExternalInitRef, corlibWithIsExternalInitRef, libWithIsExternalInitRef2 });
+                comp.VerifyEmitDiagnostics();
+                verify(comp, "corlibWithIsExternalInit");
+            }
+
+            {
+                // type in corlib and in two libraries (corlib last)
+                var comp = CreateEmptyCompilation(source, references: new[] { libWithIsExternalInitRef, libWithIsExternalInitRef2, corlibWithIsExternalInitRef });
+                comp.VerifyEmitDiagnostics();
+                verify(comp, "corlibWithIsExternalInit");
+            }
+
+            {
+                // type in corlib and in two libraries, but flag is set
+                var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 },
+                    options: TestOptions.DebugDll.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
+                comp.VerifyEmitDiagnostics(
+                    // (4,32): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                    //     public int Property { get; init; }
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 32)
+                    );
+            }
+
+            {
+                // type in two libraries
+                var comp = CreateEmptyCompilation(source, references: new[] { corlibWithoutIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 });
+                comp.VerifyEmitDiagnostics(
+                    // (4,32): error CS018: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                    //     public int Property { get; init; }
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 32)
+                    );
+            }
+
+            {
+                // type in two libraries, but flag is set
+                var comp = CreateEmptyCompilation(source, references: new[] { corlibWithoutIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 },
+                    options: TestOptions.DebugDll.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
+                comp.VerifyEmitDiagnostics(
+                    // (4,32): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                    //     public int Property { get; init; }
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 32)
+                    );
+            }
+
+            {
+                // type in corlib and in a library
+                var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef });
+                comp.VerifyEmitDiagnostics();
+                verify(comp, "corlibWithIsExternalInit");
+            }
+
+            {
+                // type in corlib and in a library (reverse order)
+                var comp = CreateEmptyCompilation(source, references: new[] { libWithIsExternalInitRef, corlibWithIsExternalInitRef });
+                comp.VerifyEmitDiagnostics();
+                verify(comp, "corlibWithIsExternalInit");
+            }
+
+            {
+                // type in corlib and in a library, but flag is set
+                var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef },
+                    options: TestOptions.DebugDll.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
+                comp.VerifyEmitDiagnostics();
+                Assert.Equal("libWithIsExternalInit", comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsExternalInit).ContainingAssembly.Name);
+                Assert.Equal("corlibWithIsExternalInit", comp.GetTypeByMetadataName("System.Runtime.CompilerServices.IsExternalInit").ContainingAssembly.Name);
+            }
+
+            static void verify(CSharpCompilation comp, string expectedAssemblyName)
+            {
+                var modifier = ((SourcePropertySymbol)comp.GlobalNamespace.GetMember("C.Property")).SetMethod.ReturnTypeWithAnnotations.CustomModifiers.Single();
+                Assert.Equal(expectedAssemblyName, modifier.Modifier.ContainingAssembly.Name);
+
+                Assert.Equal(expectedAssemblyName, comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsExternalInit).ContainingAssembly.Name);
+                Assert.Equal(expectedAssemblyName, comp.GetTypeByMetadataName("System.Runtime.CompilerServices.IsExternalInit").ContainingAssembly.Name);
+            }
         }
     }
 }

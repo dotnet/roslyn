@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void AddTokenSlot()
         {
             // shift tokens to left if we are far to the right
-            // don't shift if reset points have fixed locked tge starting point at the token in the window
+            // don't shift if reset points have fixed locked the starting point at the token in the window
             if (_tokenOffset > (_blendedTokens.Length >> 1)
                 && (_resetStart == -1 || _resetStart > _firstToken))
             {
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void AddLexedTokenSlot()
         {
             // shift tokens to left if we are far to the right
-            // don't shift if reset points have fixed locked tge starting point at the token in the window
+            // don't shift if reset points have fixed locked the starting point at the token in the window
             if (_tokenOffset > (_lexedTokens.Length >> 1)
                 && (_resetStart == -1 || _resetStart > _firstToken))
             {
@@ -1091,12 +1091,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return availableVersion >= LanguageVersion.CSharp2
                         ? node
                         : this.AddError(node, ErrorCode.WRN_NonECMAFeature, feature.Localize());
-
-                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
-                    return availableVersion >= requiredVersion
-                        ? node
-                        : this.AddError(node, ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable,
-                            new CSharpRequiredLanguageVersion(requiredVersion));
             }
 
             var info = feature.GetFeatureAvailabilityDiagnosticInfo(this.Options);

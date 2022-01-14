@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <RootNamespace></RootNamespace>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageDescription>
@@ -34,6 +34,7 @@
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Extensions" />
     <Import Include="Roslyn.Utilities" />
     <Import Include="Roslyn.Utilities.Contract" />
+    <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
@@ -43,7 +44,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities"/>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare" />
   </ItemGroup>
