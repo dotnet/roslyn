@@ -78,6 +78,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                 return;
             }
 
+            if (diagnosticId == "EnableGenerateDocumentationFile")
+            {
+                Assert.Equal("https://github.com/dotnet/roslyn/issues/41640", helpLinkUri);
+                return;
+            }
+
             if (diagnosticId == "IDE0005_gen")
             {
                 diagnosticId = "IDE0005";

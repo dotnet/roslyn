@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                      defaultSeverity: DiagnosticSeverity.Warning,
                                      isEnabledByDefault: true,
                                      helpLinkUri: "https://github.com/dotnet/roslyn/issues/41640",
+                                     description: AnalyzersResources.Add_the_following_PropertyGroup_to_your_MSBuild_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build,
                                      customTags: DiagnosticCustomTags.Microsoft);
 #pragma warning restore RS0030 // Do not used banned APIs
 
