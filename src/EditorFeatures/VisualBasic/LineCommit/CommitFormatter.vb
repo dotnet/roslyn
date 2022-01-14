@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             ' based on changes made to dirty spans, get right formatting rules to apply
             Dim rules = GetFormattingRules(document, documentOptions, spanToFormat, oldDirtySpan, oldTree, newDirtySpan, newTree, cancellationToken)
 
-            Return New FormatCodeCleanupProvider()
+            Return New FormatCodeCleanupProvider(rules)
         End Function
 
         Private Shared Function GetFormattingRules(

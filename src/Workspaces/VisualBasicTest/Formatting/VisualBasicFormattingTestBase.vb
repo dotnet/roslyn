@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
                 AssertResult(expected, Await document.GetTextAsync(), changes)
 
                 ' format with node and transform
-                AssertFormatWithTransformation(workspace.Services, expected, syntaxTree.GetRoot(), spans, Nothing, False)
+                AssertFormatWithTransformation(workspace.Services, expected, syntaxTree.GetRoot(), spans, SyntaxFormattingOptions.Default, False)
             End Using
         End Function
 
