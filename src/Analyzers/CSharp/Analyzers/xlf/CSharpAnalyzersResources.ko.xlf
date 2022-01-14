@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
         <source>Convert to block scoped namespace</source>
-        <target state="new">Convert to block scoped namespace</target>
+        <target state="translated">블록 범위 namespace 스로 변환</target>
         <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_file_scoped_namespace">
         <source>Convert to file-scoped namespace</source>
-        <target state="new">Convert to file-scoped namespace</target>
+        <target state="translated">파일 범위 namespace 스로 변환</target>
         <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Delegate_invocation_can_be_simplified">
         <source>Delegate invocation can be simplified.</source>
-        <target state="translated">대리자 호출을 간단하게 만들 수 있습니다.</target>
+        <target state="translated">대리자 호출을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Discard_can_be_removed">
@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
-        <target state="translated">인덱싱은 단순화될 수 있습니다.</target>
+        <target state="translated">인덱싱을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_variable_declaration">
@@ -99,12 +99,17 @@
       </trans-unit>
       <trans-unit id="Null_check_can_be_clarified">
         <source>Null check can be clarified</source>
-        <target state="new">Null check can be clarified</target>
+        <target state="translated">Null 검사를 명확히 할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
-        <target state="new">Prefer 'null' check over type check</target>
+        <target state="translated">형식 검사보다 'null' 검사 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_pattern_can_be_simplified">
+        <source>Property pattern can be simplified</source>
+        <target state="translated">속성 패턴을 간소화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
@@ -130,6 +135,11 @@
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="translated">default' 식 단순화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_property_pattern">
+        <source>Simplify property pattern</source>
+        <target state="translated">속성 패턴 간소화</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
@@ -252,9 +262,19 @@
         <target state="translated">'new(...)' 사용</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Use_parameter_null_checking">
+        <source>Use parameter null checking</source>
+        <target state="new">Use parameter null checking</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">패턴 일치 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_pattern_matching_may_change_code_meaning">
+        <source>Use pattern matching (may change code meaning)</source>
+        <target state="translated">패턴 일치 사용(코드 의미를 변경할 수 있음)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">
@@ -270,6 +290,11 @@
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
         <target state="translated">'switch' 식 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_tuple_to_swap_values">
+        <source>Use tuple to swap values</source>
+        <target state="translated">튜플을 사용하여 값 바꾸기</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
@@ -299,7 +324,7 @@
       </trans-unit>
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
-        <target state="translated">{0}은(는) 단순화될 수 있습니다.</target>
+        <target state="translated">{0}을(를) 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="default_expression_can_be_simplified">
@@ -309,12 +334,12 @@
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
-        <target state="translated">'if' 문을 간단하게 줄일 수 있습니다.</target>
+        <target state="translated">'if' 문을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="new_expression_can_be_simplified">
         <source>'new' expression can be simplified</source>
-        <target state="translated">'new' 식을 간단하게 줄일 수 있습니다.</target>
+        <target state="translated">'new' 식을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="typeof_can_be_converted_ to_nameof">
@@ -334,7 +359,7 @@
       </trans-unit>
       <trans-unit id="using_statement_can_be_simplified">
         <source>'using' statement can be simplified</source>
-        <target state="translated">'using' 문을 간소화할 수 있습니다.</target>
+        <target state="translated">'using' 문을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
     </body>

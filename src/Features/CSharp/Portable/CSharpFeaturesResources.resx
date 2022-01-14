@@ -200,15 +200,6 @@
   <data name="Invalid_selection" xml:space="preserve">
     <value>Invalid selection.</value>
   </data>
-  <data name="Selection_does_not_contain_a_valid_token" xml:space="preserve">
-    <value>Selection does not contain a valid token.</value>
-  </data>
-  <data name="No_valid_selection_to_perform_extraction" xml:space="preserve">
-    <value>No valid selection to perform extraction.</value>
-  </data>
-  <data name="No_common_root_node_for_extraction" xml:space="preserve">
-    <value>No common root node for extraction.</value>
-  </data>
   <data name="Contains_invalid_selection" xml:space="preserve">
     <value>Contains invalid selection.</value>
   </data>
@@ -495,6 +486,9 @@
   <data name="Convert_to_switch_expression" xml:space="preserve">
     <value>Convert to 'switch' expression</value>
   </data>
+  <data name="Use_recursive_patterns" xml:space="preserve">
+    <value>Use recursive patterns</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>&lt;Name&gt;</value>
   </data>
@@ -581,6 +575,9 @@
   <data name="Warning_Inlining_temporary_variable_may_change_code_meaning" xml:space="preserve">
     <value>Warning: Inlining temporary variable may change code meaning.</value>
   </data>
+  <data name="Warning_Expression_may_change_code_meaning" xml:space="preserve">
+    <value>Warning: Expression may have side effects. Code meaning may change.</value>
+  </data>
   <data name="local_variable_declaration" xml:space="preserve">
     <value>local variable declaration</value>
   </data>
@@ -618,14 +615,19 @@
   <data name="Change_to_cast" xml:space="preserve">
     <value>Change to cast</value>
   </data>
-  <data name="Make_container_async" xml:space="preserve">
-    <value>Make container 'async'</value>
-    <comment>{Locked="async"} "async" is a C# keyword and should not be localized.</comment>
-  </data>
   <data name="record_" xml:space="preserve">
     <value>record</value>
   </data>
   <data name="record_struct" xml:space="preserve">
     <value>record struct</value>
+  </data>
+  <data name="Enable_nullable_reference_types_in_project" xml:space="preserve">
+    <value>Enable nullable reference types in project</value>
+  </data>
+  <data name="Selection_cannot_include_global_statements" xml:space="preserve">
+    <value>Selection cannot include global statements</value>
+  </data>
+  <data name="Selection_cannot_include_top_level_statements" xml:space="preserve">
+    <value>Selection cannot include top-level statements</value>
   </data>
 </root>

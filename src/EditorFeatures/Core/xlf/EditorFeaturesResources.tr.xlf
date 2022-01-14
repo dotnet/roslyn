@@ -2,16 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../EditorFeaturesResources.resx">
     <body>
-      <trans-unit id="All_methods">
-        <source>All methods</source>
-        <target state="translated">Tüm yöntemler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_for_clarity">
-        <source>Always for clarity</source>
-        <target state="translated">Açıklık sağlamak için her zaman</target>
-        <note />
-      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">'{0}' tanımlayıcısı için bir satır içi yeniden adlandırma oturumu etkin. Ek seçeneklere erişmek için satır içi yeniden adlandırmayı tekrar çağırın. İstediğiniz zaman yeniden adlandırılan tanımlayıcıyı düzenlemeye devam edebilirsiniz.</target>
@@ -20,11 +10,6 @@
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">Değişiklikler uygulanıyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Avoid_unused_parameters">
-        <source>Avoid unused parameters</source>
-        <target state="translated">Kullanılmayan parametreleri engelle</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
@@ -57,6 +42,11 @@
         <target state="translated">Yine de devam etmek istiyor musunuz? Bu işlem sonucunda bozuk kod oluşturulabilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Execute_Suggested_Action">
+        <source>Execute Suggested Action</source>
+        <target state="translated">Önerilen Eylemi Yürüt</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">içeri aktarılmayan ad alanlarındaki öğeler</target>
@@ -76,16 +66,6 @@
         <source>Filter</source>
         <target state="translated">Filtre</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
-      </trans-unit>
-      <trans-unit id="For_locals_parameters_and_members">
-        <source>For locals, parameters and members</source>
-        <target state="translated">Yerel öğeler, parametreler ve üyeler için</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="For_member_access_expressions">
-        <source>For member access expressions</source>
-        <target state="translated">Üye erişimi ifadeleri için</target>
-        <note />
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
@@ -127,11 +107,6 @@
         <target state="translated">Diğer ikili operatörlerde</target>
         <note />
       </trans-unit>
-      <trans-unit id="In_other_operators">
-        <source>In other operators</source>
-        <target state="translated">Diğer işleçlerde</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators</source>
         <target state="translated">İlişkisel operatörlerde</target>
@@ -140,6 +115,21 @@
       <trans-unit id="Indentation_Size">
         <source>Indentation Size</source>
         <target state="translated">Girintileme Boyutu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Error">
+        <source>Inline Diagnostics - Error</source>
+        <target state="translated">Satır İçi Tanılama - Hata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Rude_Edit">
+        <source>Inline Diagnostics - Rude Edit</source>
+        <target state="translated">Satır İçi Tanılama - İşlenmemiş Düzenleme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Warning">
+        <source>Inline Diagnostics - Warning</source>
+        <target state="translated">Satır İçi Tanılama - Uyarı</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints">
@@ -167,14 +157,14 @@
         <target state="translated">Anahtar Sözcük - Denetim</target>
         <note />
       </trans-unit>
+      <trans-unit id="Language_client_initialization_failed">
+        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
+        <target state="translated">{0} başlatılamadı. Durum = {1}. Özel durum = {2}</target>
+        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
+      </trans-unit>
       <trans-unit id="Locating_bases">
         <source>Locating bases...</source>
         <target state="translated">Tabanlar bulunuyor...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_if_unnecessary">
-        <source>Never if unnecessary</source>
-        <target state="translated">Gereksizse hiçbir zaman</target>
         <note />
       </trans-unit>
       <trans-unit id="New_Line">
@@ -187,11 +177,6 @@
         <target state="translated">Hayır</target>
         <note />
       </trans-unit>
-      <trans-unit id="Non_public_methods">
-        <source>Non-public methods</source>
-        <target state="translated">Ortak olmayan yöntemler</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">İşleç - Aşırı Yüklenmiş</target>
@@ -202,84 +187,9 @@
         <target state="translated">İzleme Yapıştır</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
-        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
-        <target state="translated">'GetHashCode' içinde 'System.HashCode' tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_coalesce_expression">
-        <source>Prefer coalesce expression</source>
-        <target state="translated">Birleştirme ifadesini tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_collection_initializer">
-        <source>Prefer collection initializer</source>
-        <target state="translated">Koleksiyon başlatıcısını tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_compound_assignments">
-        <source>Prefer compound assignments</source>
-        <target state="translated">Bileşik atamaları tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
-        <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="translated">Atamalarda 'if' yerine koşullu deyim tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
-        <source>Prefer conditional expression over 'if' with returns</source>
-        <target state="translated">Dönüşlerde 'if' yerine koşullu deyim tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_explicit_tuple_name">
-        <source>Prefer explicit tuple name</source>
-        <target state="translated">Açık demet adını tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_framework_type">
-        <source>Prefer framework type</source>
-        <target state="translated">Çerçeve türünü tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_inferred_anonymous_type_member_names">
-        <source>Prefer inferred anonymous type member names</source>
-        <target state="translated">Gösterilen anonim tip üye adlarını tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_inferred_tuple_names">
-        <source>Prefer inferred tuple element names</source>
-        <target state="translated">Gösterilen demet öğesi adlarını tercih et</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">Başvuru eşitliği denetimleri için 'is null'ı tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_null_propagation">
-        <source>Prefer null propagation</source>
-        <target state="translated">Null yaymayı tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_object_initializer">
-        <source>Prefer object initializer</source>
-        <target state="translated">Nesne başlatıcısını tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_predefined_type">
-        <source>Prefer predefined type</source>
-        <target state="translated">Önceden tanımlanmış türü tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_readonly_fields">
-        <source>Prefer readonly fields</source>
-        <target state="translated">Saltokunur alanları tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_simplified_boolean_expressions">
-        <source>Prefer simplified boolean expressions</source>
-        <target state="translated">Basitleştirilmiş boolean ifadelerini tercih edin</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_this_or_Me">
@@ -319,7 +229,7 @@
       </trans-unit>
       <trans-unit id="Reassigned_variable">
         <source>Reassigned variable</source>
-        <target state="new">Reassigned variable</target>
+        <target state="translated">Yeniden atanan değişken</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
@@ -355,6 +265,11 @@
       <trans-unit id="Tab_Size">
         <source>Tab Size</source>
         <target state="translated">Sekme Boyutu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
+        <source>The results may be incomplete due to the solution still loading projects.</source>
+        <target state="translated">Çözüm projeleri hala yüklemediğinden sonuçlar tamamlanmamış olabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
@@ -842,11 +757,6 @@
         <target state="translated">Belge zaten özdeş anahtar ile izleniyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="analyzer_Prefer_auto_properties">
-        <source>Prefer auto properties</source>
-        <target state="translated">Otomatik özellikleri tercih et</target>
-        <note />
-      </trans-unit>
       <trans-unit id="document_is_not_currently_being_tracked">
         <source>document is not currently being tracked</source>
         <target state="translated">Belge şu anda izlenmiyor</target>
@@ -970,11 +880,6 @@
       <trans-unit id="Format_Token">
         <source>Format Token</source>
         <target state="translated">Belirteci Biçimlendir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">Akıllı Girintileme</target>
         <note />
       </trans-unit>
       <trans-unit id="Find_References">
@@ -1582,6 +1487,51 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Outlining">
         <source>Outlining</source>
         <target state="translated">Ana Hat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Comment">
+        <source>Regex - Comment</source>
+        <target state="translated">Regex - yorum</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Character_Class">
+        <source>Regex - Character Class</source>
+        <target state="translated">Regex - karakter sınıfı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Alternation">
+        <source>Regex - Alternation</source>
+        <target state="translated">Regex - münavebe</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Anchor">
+        <source>Regex - Anchor</source>
+        <target state="translated">Regex - çapa</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Quantifier">
+        <source>Regex - Quantifier</source>
+        <target state="translated">Regex - Niceleyici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_SelfEscapedCharacter">
+        <source>Regex - Self Escaped Character</source>
+        <target state="translated">Regex - kendi karakter kaçtı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Grouping">
+        <source>Regex - Grouping</source>
+        <target state="translated">Regex - gruplandırma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Text">
+        <source>Regex - Text</source>
+        <target state="translated">Regex - metin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_OtherEscape">
+        <source>Regex - Other Escape</source>
+        <target state="translated">Regex - diğer kaçış</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_Tracking_Cancellation">

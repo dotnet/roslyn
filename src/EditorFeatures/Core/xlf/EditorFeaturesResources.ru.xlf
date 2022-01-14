@@ -2,16 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../EditorFeaturesResources.resx">
     <body>
-      <trans-unit id="All_methods">
-        <source>All methods</source>
-        <target state="translated">Все методы</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_for_clarity">
-        <source>Always for clarity</source>
-        <target state="translated">Всегда использовать для ясности</target>
-        <note />
-      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">Встроенный сеанс переименования активен для идентификатора "{0}". Снова вызовите встроенное переименование, чтобы получить доступ к дополнительным параметрам. Вы можете в любое время продолжить изменение переименованного идентификатора.</target>
@@ -20,11 +10,6 @@
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">Применение изменений</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Avoid_unused_parameters">
-        <source>Avoid unused parameters</source>
-        <target state="translated">Избегайте неиспользуемых параметров.</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
@@ -57,6 +42,11 @@
         <target state="translated">Вы действительно хотите продолжить? Это может привести к появлению нерабочего кода.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Execute_Suggested_Action">
+        <source>Execute Suggested Action</source>
+        <target state="translated">Выполнить предложенное действие</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">элементы из неимпортированных пространств имен</target>
@@ -76,16 +66,6 @@
         <source>Filter</source>
         <target state="translated">Фильтр</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
-      </trans-unit>
-      <trans-unit id="For_locals_parameters_and_members">
-        <source>For locals, parameters and members</source>
-        <target state="translated">Для локальных переменных, параметров и элементов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="For_member_access_expressions">
-        <source>For member access expressions</source>
-        <target state="translated">Для выражений доступа к элементам</target>
-        <note />
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
@@ -127,11 +107,6 @@
         <target state="translated">В других бинарных операторах</target>
         <note />
       </trans-unit>
-      <trans-unit id="In_other_operators">
-        <source>In other operators</source>
-        <target state="translated">В других операторах</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators</source>
         <target state="translated">В реляционных операторах</target>
@@ -140,6 +115,21 @@
       <trans-unit id="Indentation_Size">
         <source>Indentation Size</source>
         <target state="translated">Размер отступа</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Error">
+        <source>Inline Diagnostics - Error</source>
+        <target state="translated">Встроенная диагностика — ошибка</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Rude_Edit">
+        <source>Inline Diagnostics - Rude Edit</source>
+        <target state="translated">Встроенная диагностика — грубое редактирование</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Warning">
+        <source>Inline Diagnostics - Warning</source>
+        <target state="translated">Встроенная диагностика — предупреждение</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints">
@@ -167,14 +157,14 @@
         <target state="translated">Ключевое слово — управление</target>
         <note />
       </trans-unit>
+      <trans-unit id="Language_client_initialization_failed">
+        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
+        <target state="translated">Не удалось инициализировать {0}. Состояние = {1}. Исключение = {2}</target>
+        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
+      </trans-unit>
       <trans-unit id="Locating_bases">
         <source>Locating bases...</source>
         <target state="translated">Обнаружение баз…</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_if_unnecessary">
-        <source>Never if unnecessary</source>
-        <target state="translated">Никогда, если не требуется</target>
         <note />
       </trans-unit>
       <trans-unit id="New_Line">
@@ -187,11 +177,6 @@
         <target state="translated">Нет</target>
         <note />
       </trans-unit>
-      <trans-unit id="Non_public_methods">
-        <source>Non-public methods</source>
-        <target state="translated">Методы, не являющиеся открытыми</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">Оператор — перегружен</target>
@@ -202,84 +187,9 @@
         <target state="translated">Вставить отслеживание</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
-        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
-        <target state="translated">Предпочитать "System.HashCode" в "GetHashCode"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_coalesce_expression">
-        <source>Prefer coalesce expression</source>
-        <target state="translated">Предпочитать объединенное выражение</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_collection_initializer">
-        <source>Prefer collection initializer</source>
-        <target state="translated">Предпочитать инициализатор коллекции</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_compound_assignments">
-        <source>Prefer compound assignments</source>
-        <target state="translated">Предпочитать составные назначения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
-        <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="translated">Предпочитать условное выражение оператору if в назначениях</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
-        <source>Prefer conditional expression over 'if' with returns</source>
-        <target state="translated">Предпочитать условное выражение оператору if в операторах return</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_explicit_tuple_name">
-        <source>Prefer explicit tuple name</source>
-        <target state="translated">Предпочитать явное имя кортежа</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_framework_type">
-        <source>Prefer framework type</source>
-        <target state="translated">Предпочитать тип платформы</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_inferred_anonymous_type_member_names">
-        <source>Prefer inferred anonymous type member names</source>
-        <target state="translated">Предпочитать выводимые имена членов анонимного типа</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_inferred_tuple_names">
-        <source>Prefer inferred tuple element names</source>
-        <target state="translated">Предпочитать выводимые имена элементов кортежа</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">Использовать "is null" вместо проверки ссылок на равенство.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_null_propagation">
-        <source>Prefer null propagation</source>
-        <target state="translated">Предпочитать распространение значений NULL</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_object_initializer">
-        <source>Prefer object initializer</source>
-        <target state="translated">Предпочитать инициализатор объекта</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_predefined_type">
-        <source>Prefer predefined type</source>
-        <target state="translated">Предпочитать предопределенный тип</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_readonly_fields">
-        <source>Prefer readonly fields</source>
-        <target state="translated">Предпочитать поля только для чтения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_simplified_boolean_expressions">
-        <source>Prefer simplified boolean expressions</source>
-        <target state="translated">Предпочитать упрощенные логические выражения</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_this_or_Me">
@@ -319,7 +229,7 @@
       </trans-unit>
       <trans-unit id="Reassigned_variable">
         <source>Reassigned variable</source>
-        <target state="new">Reassigned variable</target>
+        <target state="translated">Переназначенная переменная</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
@@ -355,6 +265,11 @@
       <trans-unit id="Tab_Size">
         <source>Tab Size</source>
         <target state="translated">Размер интервала табуляции</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
+        <source>The results may be incomplete due to the solution still loading projects.</source>
+        <target state="translated">Результаты могут быть неполными, поскольку решение еще загружает проекты.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
@@ -842,11 +757,6 @@
         <target state="translated">Документ с идентичным ключом уже отслеживается.</target>
         <note />
       </trans-unit>
-      <trans-unit id="analyzer_Prefer_auto_properties">
-        <source>Prefer auto properties</source>
-        <target state="translated">Предпочитать автосвойства</target>
-        <note />
-      </trans-unit>
       <trans-unit id="document_is_not_currently_being_tracked">
         <source>document is not currently being tracked</source>
         <target state="translated">Документ в настоящее время не отслеживается.</target>
@@ -970,11 +880,6 @@
       <trans-unit id="Format_Token">
         <source>Format Token</source>
         <target state="translated">Токен формата</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">Интеллектуальные отступы</target>
         <note />
       </trans-unit>
       <trans-unit id="Find_References">
@@ -1582,6 +1487,51 @@ Do you want to proceed?</source>
       <trans-unit id="Outlining">
         <source>Outlining</source>
         <target state="translated">Структура</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Comment">
+        <source>Regex - Comment</source>
+        <target state="translated">Регулярные выражения — комментарий</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Character_Class">
+        <source>Regex - Character Class</source>
+        <target state="translated">Регулярные выражения — класс символов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Alternation">
+        <source>Regex - Alternation</source>
+        <target state="translated">Регулярные выражения — чередование</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Anchor">
+        <source>Regex - Anchor</source>
+        <target state="translated">Регулярные выражения — якорь</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Quantifier">
+        <source>Regex - Quantifier</source>
+        <target state="translated">Регулярные выражения — квантификатор</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_SelfEscapedCharacter">
+        <source>Regex - Self Escaped Character</source>
+        <target state="translated">Регулярные выражения — символ с самостоятельным экранированием</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Grouping">
+        <source>Regex - Grouping</source>
+        <target state="translated">Регулярные выражения — группировка</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Text">
+        <source>Regex - Text</source>
+        <target state="translated">Регулярные выражения — текст</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_OtherEscape">
+        <source>Regex - Other Escape</source>
+        <target state="translated">Регулярные выражения — другая escape-последовательность</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_Tracking_Cancellation">

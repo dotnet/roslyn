@@ -464,7 +464,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     topLevelMethodId,
                     originalMethod,
                     nestedFunction.BlockSyntax,
-                    lambdaId);
+                    lambdaId,
+                    CompilationState);
                 nestedFunction.SynthesizedLoweredMethod = synthesizedMethod;
             });
 
@@ -1308,6 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiver,
                     method,
                     node.IsExtensionMethod,
+                    node.WasTargetTyped,
                     VisitType(node.Type));
             }
             return base.VisitDelegateCreationExpression(node);
@@ -1605,6 +1607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver,
                 referencedMethod,
                 isExtensionMethod: false,
+                wasTargetTyped: false,
                 type: type);
 
             // if the block containing the lambda is not the innermost block,

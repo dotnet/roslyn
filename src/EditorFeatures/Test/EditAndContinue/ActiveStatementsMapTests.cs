@@ -9,10 +9,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -98,7 +98,7 @@ S5();
             var moduleId = Guid.NewGuid();
             var token = 0x06000001;
             ManagedActiveStatementDebugInfo CreateInfo(int startLine, int startColumn, int endLine, int endColumn, string fileName)
-                => new(new(new(moduleId, token++, version: 1), ilOffset: 0), fileName, new SourceSpan(startLine, startColumn, endLine, endColumn), ActiveStatementFlags.None);
+                => new(new(new(moduleId, token++, version: 1), ilOffset: 0), fileName, new SourceSpan(startLine, startColumn, endLine, endColumn), ActiveStatementFlags.MethodUpToDate);
 
             var debugInfos = ImmutableArray.Create(
                 CreateInfo(3, 0, 3, 4, "x"),

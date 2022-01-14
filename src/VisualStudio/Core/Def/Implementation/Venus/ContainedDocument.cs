@@ -838,7 +838,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     if (current.Span.Start < visibleSpan.Start)
                     {
                         var blockType = GetRazorCodeBlockType(visibleSpan.Start);
-                        if (blockType == RazorCodeBlockType.Block || blockType == RazorCodeBlockType.Helper)
+                        if (blockType is RazorCodeBlockType.Block or RazorCodeBlockType.Helper)
                         {
                             var baseIndentation = GetBaseIndentation(root, text, visibleSpan);
                             return new BaseIndentationFormattingRule(root, TextSpan.FromBounds(visibleSpan.Start, end), baseIndentation, _vbHelperFormattingRule);

@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../ServicesVSResources.resx">
     <body>
-      <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
-        <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="translated">在解决方案的根目录中检测到一个新的 .editorconfig 文件。是否要将其设置为解决方案项?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
         <target state="translated">将创建一个新的命名空间</target>
@@ -72,9 +67,19 @@
         <target state="translated">允许块后紧跟语句</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always">
+        <source>Always</source>
+        <target state="translated">始终</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">为始终保持清楚起见</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_Defaults">
+        <source>Analyzer Defaults</source>
+        <target state="translated">分析器默认值</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzers">
@@ -102,6 +107,11 @@
         <target state="translated">程序集</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
+        <source>Automatically open Stack Trace Explorer on focus</source>
+        <target state="translated">在焦点上自动打开“堆栈跟踪资源管理器”</target>
+        <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
+      </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
         <target state="translated">避免会隐式忽略值的表达式语句</target>
@@ -127,6 +137,11 @@
         <target state="translated">后台分析范围:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Beginning_of_line">
+        <source>Beginning of line</source>
+        <target state="translated">行首</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Bitness32">
         <source>32-bit</source>
         <target state="translated">32 位</target>
@@ -149,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Calculating">
         <source>Calculating...</source>
-        <target state="new">Calculating...</target>
+        <target state="translated">正在计算...</target>
         <note>Used in UI to represent progress in the context of loading items. </note>
       </trans-unit>
       <trans-unit id="Calculating_dependents">
@@ -187,6 +202,16 @@
         <target state="translated">选择要对未使用的引用执行的操作。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Clear">
+        <source>Clear</source>
+        <target state="translated">清除</target>
+        <note>Clear content action</note>
+      </trans-unit>
+      <trans-unit id="Close_tab">
+        <source>Close Tab</source>
+        <target state="translated">关闭选项卡</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Code_Style">
         <source>Code Style</source>
         <target state="translated">代码样式</target>
@@ -222,9 +247,19 @@
         <target state="translated">为正规表达式着色</target>
         <note />
       </trans-unit>
+      <trans-unit id="Combine_inheritance_margin_with_indicator_margin">
+        <source>Combine inheritance margin with indicator margin</source>
+        <target state="translated">合并继承边距与指示器边距</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments">
         <source>Comments</source>
         <target state="translated">备注</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="translated">异步计算快速操作(实验性，需要重启)</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -247,9 +282,24 @@
         <target state="translated">当前参数</target>
         <note />
       </trans-unit>
+      <trans-unit id="Default_Current_Document">
+        <source>Default (Current Document)</source>
+        <target state="translated">默认(当前文档)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Entire_Solution">
+        <source>Default (Entire Solution)</source>
+        <target state="translated">默认(整个解决方案)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Open_Documents">
+        <source>Default (Open Documents)</source>
+        <target state="translated">默认(打开文档)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
       <trans-unit id="Derived_types">
         <source>Derived types</source>
-        <target state="new">Derived types</target>
+        <target state="translated">派生类型</target>
         <note />
       </trans-unit>
       <trans-unit id="Disabled">
@@ -260,6 +310,11 @@
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
         <source>Display all hints while pressing Alt+F1</source>
         <target state="translated">按 Alt+F1 时显示所有提示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_diagnostics_inline_experimental">
+        <source>Display diagnostics inline (experimental)</source>
+        <target state="translated">内联显示诊断(实验性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -322,6 +377,11 @@
         <target state="translated">已启用</target>
         <note />
       </trans-unit>
+      <trans-unit id="End_of_line">
+        <source>End of line</source>
+        <target state="translated">行尾</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
         <source>Enter a call site value or choose a different value injection kind</source>
         <target state="translated">输入调用站点值或选择其他值注入类型</target>
@@ -362,14 +422,14 @@
         <target state="translated">完成</target>
         <note />
       </trans-unit>
+      <trans-unit id="For_non_interface_members">
+        <source>For non interface members</source>
+        <target state="translated">对于非接口成员</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document">
         <source>Format document</source>
         <target state="translated">设置文档的格式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting">
-        <source>Formatting</source>
-        <target state="translated">格式设置</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
@@ -389,7 +449,7 @@
       </trans-unit>
       <trans-unit id="Implemented_interfaces">
         <source>Implemented interfaces</source>
-        <target state="new">Implemented interfaces</target>
+        <target state="translated">实现的接口</target>
         <note />
       </trans-unit>
       <trans-unit id="Implemented_members">
@@ -404,7 +464,7 @@
       </trans-unit>
       <trans-unit id="Implementing_types">
         <source>Implementing types</source>
-        <target state="new">Implementing types</target>
+        <target state="translated">正在实现类型</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -432,19 +492,24 @@
         <target state="translated">已在存储库中编入索引</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inheritance_Margin_experimental">
-        <source>Inheritance Margin (experimental)</source>
-        <target state="translated">继承边距(实验性)</target>
+      <trans-unit id="Inheritance_Margin">
+        <source>Inheritance Margin</source>
+        <target state="translated">继承边距</target>
         <note />
       </trans-unit>
       <trans-unit id="Inherited_interfaces">
         <source>Inherited interfaces</source>
-        <target state="new">Inherited interfaces</target>
+        <target state="translated">继承的接口</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Hints_experimental">
-        <source>Inline Hints (experimental)</source>
-        <target state="translated">内联提示(实验性)</target>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="translated">内联诊断(实验性)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">内联提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -466,6 +531,11 @@
         <source>Introduce undefined TODO variables</source>
         <target state="translated">引入未定义的 TODO 变量</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
+      </trans-unit>
+      <trans-unit id="Invalid_type_name">
+        <source>Invalid type name</source>
+        <target state="translated">类型名无效</target>
+        <note />
       </trans-unit>
       <trans-unit id="Item_origin">
         <source>Item origin</source>
@@ -512,6 +582,11 @@
         <target state="translated">本地元数据</target>
         <note />
       </trans-unit>
+      <trans-unit id="Location">
+        <source>Location</source>
+        <target state="translated">位置</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_abstract">
         <source>Make '{0}' abstract</source>
         <target state="translated">将“{0}”设为抽象</target>
@@ -530,6 +605,11 @@
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
         <target state="translated">修饰符首选项:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type_colon">
+        <source>Move Static Members to Another Type:</source>
+        <target state="translated">将静态成员移动到另一类型:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -569,8 +649,13 @@
       </trans-unit>
       <trans-unit id="Namespace_declarations">
         <source>Namespace declarations</source>
-        <target state="new">Namespace declarations</target>
+        <target state="translated">命名空间声明</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Namespaces_have_been_updated">
+        <source>Namespaces have been updated.</source>
+        <target state="translated">命名空间已更新。</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
@@ -722,6 +807,16 @@
         <target state="translated">导航到“{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_to_external_sources">
+        <source>Navigate to External Sources</source>
+        <target state="translated">导航到外部源</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="translated">从不</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">从不(若无必要)</target>
@@ -742,6 +837,11 @@
         <target state="translated">换行(\\n)</target>
         <note />
       </trans-unit>
+      <trans-unit id="No_namespaces_needed_updating">
+        <source>No namespaces needed updating.</source>
+        <target state="translated">无需更新命名空间。</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="No_unused_references_were_found">
         <source>No unused references were found.</source>
         <target state="translated">找不到未使用的引用。</target>
@@ -757,6 +857,11 @@
         <target state="translated">无</target>
         <note />
       </trans-unit>
+      <trans-unit id="Omit_if_default">
+        <source>Omit if default</source>
+        <target state="translated">默认情况下省略</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Omit_only_for_optional_parameters">
         <source>Omit (only for optional parameters)</source>
         <target state="translated">省略(仅对于可选参数)</target>
@@ -765,6 +870,11 @@
       <trans-unit id="Open_documents">
         <source>Open documents</source>
         <target state="translated">打开的文档</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_placement_when_wrapping">
+        <source>Operator placement when wrapping</source>
+        <target state="translated">换行时运算符的位置</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
@@ -790,6 +900,16 @@
       <trans-unit id="Overriding_members">
         <source>Overriding members</source>
         <target state="translated">替代成员</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_install_canceled">
+        <source>Package install canceled</source>
+        <target state="translated">已取消包安装</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_uninstall_canceled">
+        <source>Package uninstall canceled</source>
+        <target state="translated">已取消包卸载</target>
         <note />
       </trans-unit>
       <trans-unit id="Packages">
@@ -837,6 +957,16 @@
         <target state="translated">括号首选项:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste">
+        <source>Paste</source>
+        <target state="translated">粘贴</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_valid_stack_trace">
+        <source>Paste a valid stack trace to view and navigate it's values</source>
+        <target state="translated">粘贴有效的堆栈跟踪以查看和导航其值</target>
+        <note>"Stack Trace" is a language term and should be kept the same. </note>
+      </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
         <source>Paused ({0} tasks in queue)</source>
         <target state="translated">已暂停(队列中有 {0} 个任务)</target>
@@ -862,6 +992,11 @@
         <target state="translated">首选索引运算符</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_namespace_and_folder_match_structure">
+        <source>Prefer namespace and folder match structure</source>
+        <target state="translated">首选命名空间和文件夹匹配结构</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">首选范围运算符</target>
@@ -882,9 +1017,19 @@
         <target state="translated">首选简化的布尔表达式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simplified_interpolation">
+        <source>Prefer simplified interpolation</source>
+        <target state="translated">首选简化内插</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">首选静态本地函数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_tuple_swap">
+        <source>Prefer tuple swap</source>
+        <target state="translated">首选元组交换</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects">
@@ -895,6 +1040,11 @@
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
         <target state="translated">拉取成员</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="translated">快速操作</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -922,6 +1072,11 @@
         <target state="translated">删除未使用的引用</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">删除不必要的 Using</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
         <target state="translated">将 {0} 重命名为 {1}</target>
@@ -935,6 +1090,11 @@
       <trans-unit id="Repository">
         <source>Repository</source>
         <target state="translated">存储库</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_accessibility_modifiers">
+        <source>Require accessibility modifiers</source>
+        <target state="translated">需要可访问性修饰符</target>
         <note />
       </trans-unit>
       <trans-unit id="Require_colon">
@@ -967,6 +1127,11 @@
         <target state="translated">对 {0} 运行 Code Analysis</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
+        <source>Run code analysis in separate process (requires restart)</source>
+        <target state="translated">在单独的进程中运行代码分析(需要重启)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
         <source>Running code analysis for '{0}'...</source>
         <target state="translated">正在为“{0}”运行代码分析…</target>
@@ -994,7 +1159,7 @@
       </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
         <source>Select an appropriate symbol to start value tracking</source>
-        <target state="new">Select an appropriate symbol to start value tracking</target>
+        <target state="translated">选择适当的符号以启动值跟踪</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination">
@@ -1052,6 +1217,11 @@
         <target state="translated">显示创建隐式对象的提示</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="translated">显示索引器的提示</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
         <target state="translated">显示 lambda 参数类型的提示</target>
@@ -1074,7 +1244,7 @@
       </trans-unit>
       <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
         <source>Skip analyzers for implicitly triggered builds</source>
-        <target state="new">Skip analyzers for implicitly triggered builds</target>
+        <target state="translated">跳过隐式触发生成的分析器</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
@@ -1082,9 +1252,29 @@
         <target state="translated">在“环境”&gt;“字体和颜色”选项页中所做的更改将替代某些配色方案颜色。在“字体和颜色”页中选择“使用默认值”，还原所有自定义项。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="translated">对 using 排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace_Explorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">堆栈跟踪资源管理器</target>
+        <note>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</note>
+      </trans-unit>
+      <trans-unit id="Stack_trace_0">
+        <source>Stack Trace {0}</source>
+        <target state="translated">堆栈跟踪: {0}</target>
+        <note>Header for numbered stack trace view tabs</note>
+      </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">建议</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
+        <source>Suppress hints when argument matches parameter name</source>
+        <target state="translated">当参数与参数名称匹配时抑制提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
@@ -1101,6 +1291,11 @@
         <source>Symbols without references</source>
         <target state="translated">不带引用的符号</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Sync_Namespaces">
+        <source>Sync Namespaces</source>
+        <target state="translated">同步命名空间</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
@@ -1137,6 +1332,11 @@
         <target state="translated">这是一个无效的命名空间</target>
         <note />
       </trans-unit>
+      <trans-unit id="This_rule_is_not_configurable">
+        <source>This rule is not configurable</source>
+        <target state="translated">此规则不可配置</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Title">
         <source>Title</source>
         <target state="translated">标题</target>
@@ -1164,7 +1364,7 @@
       </trans-unit>
       <trans-unit id="Underline_reassigned_variables">
         <source>Underline reassigned variables</source>
-        <target state="new">Underline reassigned variables</target>
+        <target state="translated">为重新分配变量添加下划线</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -1177,6 +1377,11 @@
         <target state="translated">未使用的值会显式分配以弃用</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_namspaces">
+        <source>Updating namespaces...</source>
+        <target state="translated">正在更新命名空间...</target>
+        <note>"namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="Updating_project_references">
         <source>Updating project references...</source>
         <target state="translated">正在更新项目引用…</target>
@@ -1185,11 +1390,6 @@
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
         <target state="translated">正在更新严重性</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="translated">对代码分析使用 64 位进程(需要重启)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -1214,7 +1414,7 @@
       </trans-unit>
       <trans-unit id="Value_Tracking">
         <source>Value Tracking</source>
-        <target state="new">Value Tracking</target>
+        <target state="translated">值跟踪</target>
         <note>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</note>
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
@@ -1247,6 +1447,11 @@
         <target state="translated">Visual Studio 2019</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Studio_Settings">
+        <source>Visual Studio Settings</source>
+        <target state="translated">Visual Studio 设置</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
         <target state="translated">警告</target>
@@ -1270,6 +1475,11 @@
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">此工作区不支持更新 Visual Basic 编译选项。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Whitespace">
+        <source>Whitespace</source>
+        <target state="translated">空格</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_change_the_signature">
@@ -1407,6 +1617,11 @@
         <target state="translated">“{0}”将更改为“公共”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="at_the_end_of_the_line_of_code">
+        <source>at the end of the line of code</source>
+        <target state="translated">在代码行的末尾</target>
+        <note />
+      </trans-unit>
       <trans-unit id="generated_by_0_suffix">
         <source>[generated by {0}]</source>
         <target state="translated">[由 {0} 生成]</target>
@@ -1465,11 +1680,6 @@
       <trans-unit id="Base_Types">
         <source>Base Types</source>
         <target state="translated">基类型</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Miscellaneous_Files">
-        <source>Miscellaneous Files</source>
-        <target state="translated">杂项文件</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_project_0">
@@ -2433,6 +2643,11 @@ Additional information: {1}</source>
         <target state="translated">插入属性、事件和方法时，请将其置于以下位置:</target>
         <note />
       </trans-unit>
+      <trans-unit id="on_the_right_edge_of_the_editor_window">
+        <source>on the right edge of the editor window</source>
+        <target state="translated">在编辑器窗口的右边缘</target>
+        <note />
+      </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">
         <source>with other members of the same kind</source>
         <target state="translated">与同一类型的其他成员一起</target>
@@ -2491,11 +2706,6 @@ Additional information: {1}</source>
       <trans-unit id="Pick_members">
         <source>Pick members</source>
         <target state="translated">挑选成员</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio">
-        <source>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</source>
-        <target state="translated">很遗憾，Visual Studio 使用的一个进程遇到了不可恢复的错误。建议保存工作，再关闭并重启 Visual Studio。</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_a_symbol_specification">
@@ -2635,7 +2845,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources</source>
-        <target state="needs-review-translation">支持导航到反编译源(实验)</target>
+        <target state="translated">支持导航到反编译源</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

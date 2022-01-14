@@ -13,36 +13,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
     internal class RegularExpressionsOptions
     {
-        public static PerLanguageOption2<bool> ColorizeRegexPatterns =
-            new(
-                nameof(RegularExpressionsOptions),
-                nameof(ColorizeRegexPatterns),
-                defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorizeRegexPatterns"));
-
         public static PerLanguageOption2<bool> ReportInvalidRegexPatterns =
             new(
                 nameof(RegularExpressionsOptions),
                 nameof(ReportInvalidRegexPatterns),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns"));
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns"));
 
         public static PerLanguageOption2<bool> HighlightRelatedRegexComponentsUnderCursor =
             new(
                 nameof(RegularExpressionsOptions),
                 nameof(HighlightRelatedRegexComponentsUnderCursor),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor"));
-
-        public static PerLanguageOption2<bool> ProvideRegexCompletions =
-            new(
-                nameof(RegularExpressionsOptions),
-                nameof(ProvideRegexCompletions),
-                defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideRegexCompletions"));
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor"));
     }
 
-    [ExportOptionProvider, Shared]
+    [ExportSolutionOptionProvider, Shared]
     internal class RegularExpressionsOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
@@ -51,10 +37,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<Options.IOption>(
-            RegularExpressionsOptions.ColorizeRegexPatterns,
+        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             RegularExpressionsOptions.ReportInvalidRegexPatterns,
-            RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor,
-            RegularExpressionsOptions.ProvideRegexCompletions);
+            RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor);
     }
 }

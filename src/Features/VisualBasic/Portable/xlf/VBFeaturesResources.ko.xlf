@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified</source>
-        <target state="translated">이름은 간단하게 줄일 수 있습니다.</target>
+        <target state="translated">이름을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
@@ -330,21 +330,6 @@
       <trans-unit id="Invalid_selection">
         <source>Invalid selection</source>
         <target state="translated">잘못된 선택 영역입니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Selection_doesn_t_contain_any_valid_token">
-        <source>Selection doesn't contain any valid token</source>
-        <target state="translated">선택 영역에 유효한 토큰이 포함되어 있지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction</source>
-        <target state="translated">추출하는 데 유효한 선택 영역이 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction</source>
-        <target state="translated">추출에 필요한 일반 루트 노드가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deprecated">
@@ -965,11 +950,6 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       <trans-unit id="Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first">
         <source>Specifies the sort order for an Order By clause in a query. The smallest element will appear first.</source>
         <target state="translated">쿼리의 Order By 절에 사용할 정렬 순서를 지정합니다. 가장 작은 요소가 가장 먼저 표시됩니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
-        <source>Asynchronously waits for the task to finish.</source>
-        <target state="translated">작업이 완료될 때까지 비동기적으로 기다립니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order">

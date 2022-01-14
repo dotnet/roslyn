@@ -17,6 +17,11 @@
         <target state="translated">Odkazy CodeLens</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="translated">Dostupnost sémantiky projektu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
         <source>Convert tuple to struct refactoring</source>
         <target state="translated">Převést řazenou kolekci členů na refaktoring struktury</target>
@@ -87,6 +92,11 @@
         <target state="translated">Navigační panel</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">Zpracovat telemetrii</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
         <source>Project telemetry collection</source>
         <target state="translated">Shromažďování telemetrie projektu</target>
@@ -102,14 +112,14 @@
         <target state="translated">Sémantická klasifikace</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_SemanticClassificationCache">
-        <source>Semantic classification cache</source>
-        <target state="translated">Mezipaměť sémantické klasifikace</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">Poskytovatel prostředků</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Průzkumník trasování zásobníku</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">
@@ -127,9 +137,14 @@
         <target state="translated">TODO zjišťování komentářů</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">Nepoužité referenční analýzy</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ValueTracking">
         <source>Value Tracking</source>
-        <target state="new">Value Tracking</target>
+        <target state="translated">Sledování hodnot</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">

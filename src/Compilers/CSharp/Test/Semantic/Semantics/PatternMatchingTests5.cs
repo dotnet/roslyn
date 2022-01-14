@@ -932,29 +932,119 @@ public class ContainerType
 {
     public class Type
     {
-        public void M()
+        public void M(object o)
         {
             const Type c = null!;
-            if (this is c!) {}
-            if (this is (c!)) {}
-            if (this is Type!) {} // 1
-            if (this is ContainerType!.Type) {} // 2
-            if (this is ContainerType.Type!) {} // 3
+            if (o is c!) {}                      // a1
+            if (o is 1!) {}                      // a2
+            if (o is (c!)) {}                    // a3
+            if (o is (1!)) {}                    // a4
+            if (o is Type!) {}                   // a5
+            if (o is ContainerType!.Type) {}     // a6
+            if (o is ContainerType.Type!) {}     // a7
+            if (o is < c!) {}                    // a8
+
+            switch (o)
+            {
+                case c!: break;                  // b1
+                case 1!: break;                  // b2
+                case (c!): break;                // b3
+                case (1!): break;                // b4
+                case Type!: break;               // b5
+                case ContainerType!.Type: break; // b6
+                case ContainerType.Type!: break; // b7
+                case < c!: break;                // b8
+            }
+
+            _ = o switch
+            {
+                c! => 0,                         // c1
+                1! => 0,                         // c2
+                (c!) => 0,                       // c3
+                (1!) => 0,                       // c4
+                Type! => 0,                      // c5
+                ContainerType!.Type => 0,        // c6
+                ContainerType.Type! => 0,        // c7
+                < c! => 0,                       // c8
+            };
         }
     }
 }
 ";
             var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
             compilation.VerifyEmitDiagnostics(
-                // (12,25): error CS8598: The suppression operator is not allowed in this context
-                //             if (this is Type!) {} // 1
-                Diagnostic(ErrorCode.ERR_IllegalSuppression, "Type!").WithLocation(12, 25),
-                // (13,25): error CS8598: The suppression operator is not allowed in this context
-                //             if (this is ContainerType!.Type) {} // 2
-                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType").WithLocation(13, 25),
-                // (14,25): error CS8598: The suppression operator is not allowed in this context
-                //             if (this is ContainerType.Type!) {} // 3
-                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType.Type!").WithLocation(14, 25)
+                // (10,22): error CS8598: The suppression operator is not allowed in this context
+                //             if (o is c!) {}                      // a1
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(10, 22),
+                // (11,22): error CS8598: The suppression operator is not allowed in this context
+                //             if (o is 1!) {}                      // a2
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "1!").WithLocation(11, 22),
+                // (12,23): error CS8598: The suppression operator is not allowed in this context
+                //             if (o is (c!)) {}                    // a3
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(12, 23),
+                // (13,23): error CS8598: The suppression operator is not allowed in this context
+                //             if (o is (1!)) {}                    // a4
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "1!").WithLocation(13, 23),
+                // (14,22): error CS8598: The suppression operator is not allowed in this context
+                //             if (o is Type!) {}                   // a5
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "Type!").WithLocation(14, 22),
+                // (15,22): error CS8598: The suppression operator is not allowed in this context
+                //             if (o is ContainerType!.Type) {}     // a6
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType").WithLocation(15, 22),
+                // (16,22): error CS8598: The suppression operator is not allowed in this context
+                //             if (o is ContainerType.Type!) {}     // a7
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType.Type!").WithLocation(16, 22),
+                // (17,24): error CS8598: The suppression operator is not allowed in this context
+                //             if (o is < c!) {}                    // a8
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(17, 24),
+                // (21,22): error CS8598: The suppression operator is not allowed in this context
+                //                 case c!: break;                  // b1
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(21, 22),
+                // (22,22): error CS8598: The suppression operator is not allowed in this context
+                //                 case 1!: break;                  // b2
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "1!").WithLocation(22, 22),
+                // (23,23): error CS8598: The suppression operator is not allowed in this context
+                //                 case (c!): break;                // b3
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(23, 23),
+                // (24,23): error CS8598: The suppression operator is not allowed in this context
+                //                 case (1!): break;                // b4
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "1!").WithLocation(24, 23),
+                // (25,22): error CS8598: The suppression operator is not allowed in this context
+                //                 case Type!: break;               // b5
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "Type!").WithLocation(25, 22),
+                // (26,22): error CS8598: The suppression operator is not allowed in this context
+                //                 case ContainerType!.Type: break; // b6
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType").WithLocation(26, 22),
+                // (27,22): error CS8598: The suppression operator is not allowed in this context
+                //                 case ContainerType.Type!: break; // b7
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType.Type!").WithLocation(27, 22),
+                // (28,24): error CS8598: The suppression operator is not allowed in this context
+                //                 case < c!: break;                // b8
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(28, 24),
+                // (33,17): error CS8598: The suppression operator is not allowed in this context
+                //                 c! => 0,                         // c1
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(33, 17),
+                // (34,17): error CS8598: The suppression operator is not allowed in this context
+                //                 1! => 0,                         // c2
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "1!").WithLocation(34, 17),
+                // (35,18): error CS8598: The suppression operator is not allowed in this context
+                //                 (c!) => 0,                       // c3
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(35, 18),
+                // (36,18): error CS8598: The suppression operator is not allowed in this context
+                //                 (1!) => 0,                       // c4
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "1!").WithLocation(36, 18),
+                // (37,17): error CS8598: The suppression operator is not allowed in this context
+                //                 Type! => 0,                      // c5
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "Type!").WithLocation(37, 17),
+                // (38,17): error CS8598: The suppression operator is not allowed in this context
+                //                 ContainerType!.Type => 0,        // c6
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType").WithLocation(38, 17),
+                // (39,17): error CS8598: The suppression operator is not allowed in this context
+                //                 ContainerType.Type! => 0,        // c7
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType.Type!").WithLocation(39, 17),
+                // (40,19): error CS8598: The suppression operator is not allowed in this context
+                //                 < c! => 0,                       // c8
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(40, 19)
                 );
         }
 
@@ -1829,6 +1919,34 @@ class C
                 // (14,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Prop: { Prop: not null } }' is not covered.
                 // _ = new C() switch // 2
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Prop: { Prop: not null } }").WithLocation(14, 13)
+                );
+        }
+
+        [Fact, WorkItem(55184, "https://github.com/dotnet/roslyn/issues/55184")]
+        public void Repro55184()
+        {
+            var source = @"
+var x = """";
+
+_ = x is { Error: { Length: > 0 } };
+_ = x is { Error.Length: > 0 };
+_ = x is { Length: { Error: > 0 } };
+_ = x is { Length.Error: > 0 };
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0117: 'string' does not contain a definition for 'Error'
+                // _ = x is { Error: { Length: > 0 } };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Error").WithArguments("string", "Error").WithLocation(4, 12),
+                // (5,12): error CS0117: 'string' does not contain a definition for 'Error'
+                // _ = x is { Error.Length: > 0 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Error").WithArguments("string", "Error").WithLocation(5, 12),
+                // (6,22): error CS0117: 'int' does not contain a definition for 'Error'
+                // _ = x is { Length: { Error: > 0 } };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Error").WithArguments("int", "Error").WithLocation(6, 22),
+                // (7,19): error CS0117: 'int' does not contain a definition for 'Error'
+                // _ = x is { Length.Error: > 0 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Error").WithArguments("int", "Error").WithLocation(7, 19)
                 );
         }
 

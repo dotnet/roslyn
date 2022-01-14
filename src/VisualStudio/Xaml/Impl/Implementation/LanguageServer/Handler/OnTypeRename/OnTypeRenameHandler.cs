@@ -18,8 +18,8 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(MSLSPMethods.OnTypeRenameName)]
-    internal class OnTypeRenameHandler : AbstractStatelessRequestHandler<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem?>
+    [ProvidesMethod(Methods.TextDocumentLinkedEditingRangeName)]
+    internal class OnTypeRenameHandler : AbstractStatelessRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>
     {
         // From https://www.w3.org/TR/xml/#NT-NameStartChar
         // Notes:
@@ -58,14 +58,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override string Method => MSLSPMethods.OnTypeRenameName;
+        public override string Method => Methods.TextDocumentLinkedEditingRangeName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnTypeRenameParams request) => request.TextDocument;
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(LinkedEditingRangeParams request) => request.TextDocument;
 
-        public override async Task<DocumentOnTypeRenameResponseItem?> HandleRequestAsync(DocumentOnTypeRenameParams request, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<LinkedEditingRanges?> HandleRequestAsync(LinkedEditingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
@@ -88,9 +88,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return null;
             }
 
-            Contract.ThrowIfNull(result.Ranges);
+            Contract.ThrowIfTrue(result.Ranges.IsDefault);
 
-            return new DocumentOnTypeRenameResponseItem
+            return new LinkedEditingRanges
             {
                 Ranges = result.Ranges.Select(s => ProtocolConversions.TextSpanToRange(s, text)).ToArray(),
                 WordPattern = result.WordPattern

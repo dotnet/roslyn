@@ -23,39 +23,75 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
     [Trait(Traits.Feature, Traits.Features.NavigateTo)]
     public class NavigateToSearcherTests
     {
-        private static IReturnsResult<INavigateToSearchService> SetupSearchProject(
+        private static void SetupSearchProject(
             Mock<INavigateToSearchService> searchService,
             string pattern,
             bool isFullyLoaded,
             INavigateToSearchResult? result)
         {
-            var searchServiceSetup = searchService.Setup(ss => ss.SearchProjectAsync(
-                It.IsAny<Project>(),
-                It.IsAny<ImmutableArray<Document>>(),
-                pattern,
-                ImmutableHashSet<string>.Empty,
-                It.IsAny<Func<INavigateToSearchResult, Task>>(),
-                isFullyLoaded,
-                It.IsAny<CancellationToken>()));
+            if (isFullyLoaded)
+            {
+                // First do a full search
+                searchService.Setup(ss => ss.SearchProjectAsync(
+                    It.IsAny<Project>(),
+                    It.IsAny<ImmutableArray<Document>>(),
+                    pattern,
+                    ImmutableHashSet<string>.Empty,
+                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
+                    It.IsAny<CancellationToken>())).Callback(
+                    (Project project,
+                     ImmutableArray<Document> priorityDocuments,
+                     string pattern,
+                     IImmutableSet<string> kinds,
+                     Func<INavigateToSearchResult, Task> onResultFound,
+                     CancellationToken cancellationToken) =>
+                    {
+                        if (result != null)
+                            onResultFound(result);
+                    }).Returns(Task.CompletedTask);
 
-            var searchServiceCallback = searchServiceSetup.Callback(
-                (Project project,
-                 ImmutableArray<Document> priorityDocuments,
-                 string pattern2,
-                 IImmutableSet<string> kinds,
-                 Func<INavigateToSearchResult, Task> onResultFound2,
-                 bool isFullyLoaded2,
-                 CancellationToken cancellationToken) =>
-                {
-                    if (result != null)
-                        onResultFound2(result);
-                });
+                searchService.Setup(ss => ss.SearchGeneratedDocumentsAsync(
+                    It.IsAny<Project>(),
+                    pattern,
+                    ImmutableHashSet<string>.Empty,
+                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
+                    It.IsAny<CancellationToken>())).Callback(
+                    (Project project,
+                     string pattern,
+                     IImmutableSet<string> kinds,
+                     Func<INavigateToSearchResult, Task> onResultFound,
+                     CancellationToken cancellationToken) =>
+                    {
+                        if (result != null)
+                            onResultFound(result);
+                    }).Returns(Task.CompletedTask);
 
-            return searchServiceCallback.ReturnsAsync(isFullyLoaded ? NavigateToSearchLocation.Latest : NavigateToSearchLocation.Cache);
+                // Followed by a generated doc search.
+            }
+            else
+            {
+                searchService.Setup(ss => ss.SearchCachedDocumentsAsync(
+                    It.IsAny<Project>(),
+                    It.IsAny<ImmutableArray<Document>>(),
+                    pattern,
+                    ImmutableHashSet<string>.Empty,
+                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
+                    It.IsAny<CancellationToken>())).Callback(
+                    (Project project,
+                     ImmutableArray<Document> priorityDocuments,
+                     string pattern2,
+                     IImmutableSet<string> kinds,
+                     Func<INavigateToSearchResult, Task> onResultFound2,
+                     CancellationToken cancellationToken) =>
+                    {
+                        if (result != null)
+                            onResultFound2(result);
+                    }).Returns(Task.CompletedTask);
+            }
         }
 
-        private static ValueTask<(bool projectSystem, bool remoteHost)> IsFullyLoadedAsync(bool projectSystem, bool remoteHost)
-            => new((projectSystem, remoteHost));
+        private static ValueTask<bool> IsFullyLoadedAsync(bool projectSystem, bool remoteHost)
+            => new(projectSystem && remoteHost);
 
         [Fact]
         public async Task NotFullyLoadedOnlyMakesOneSearchProjectCallIfValueReturned()
@@ -86,12 +122,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 AsynchronousOperationListenerProvider.NullListener,
                 callbackMock.Object,
                 pattern,
-                searchCurrentDocument: false,
                 kinds: ImmutableHashSet<string>.Empty,
                 CancellationToken.None,
                 hostMock.Object);
 
-            await searcher.SearchAsync(CancellationToken.None);
+            await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
         }
 
         [Theory]
@@ -121,25 +156,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             callbackMock.Setup(c => c.AddItemAsync(It.IsAny<Project>(), result, It.IsAny<CancellationToken>()))
                         .Returns(Task.CompletedTask);
 
-            // Because we did a full search, the accuracy is dependent on it the project system was fully loaded or not.
-            callbackMock.Setup(c => c.Done(projectSystemFullyLoaded));
+            // Because the remote host wasn't fully loaded, we still notify that our results may be incomplete.
+            callbackMock.Setup(c => c.Done(false));
 
             var searcher = NavigateToSearcher.Create(
                 workspace.CurrentSolution,
                 AsynchronousOperationListenerProvider.NullListener,
                 callbackMock.Object,
                 pattern,
-                searchCurrentDocument: false,
                 kinds: ImmutableHashSet<string>.Empty,
                 CancellationToken.None,
                 hostMock.Object);
 
-            await searcher.SearchAsync(CancellationToken.None);
+            await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
         }
 
         [Theory]
         [CombinatorialData]
-        public async Task NotFullyLoadedStillReportsAsFullyCompletedIfSecondCallReturnsNothing(bool projectIsFullyLoaded)
+        public async Task NotFullyLoadedStillReportsAsNotCompleteIfRemoteHostIsStillHydrating(bool projectIsFullyLoaded)
         {
             using var workspace = TestWorkspace.CreateCSharp("");
 
@@ -161,20 +195,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
             callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
 
-            // Because we did a full search, the accuracy is dependent on it the project system was fully loaded or not.
-            callbackMock.Setup(c => c.Done(projectIsFullyLoaded));
+            // Because the remote host wasn't fully loaded, we still notify that our results may be incomplete.
+            callbackMock.Setup(c => c.Done(false));
 
             var searcher = NavigateToSearcher.Create(
                 workspace.CurrentSolution,
                 AsynchronousOperationListenerProvider.NullListener,
                 callbackMock.Object,
                 pattern,
-                searchCurrentDocument: false,
                 kinds: ImmutableHashSet<string>.Empty,
                 CancellationToken.None,
                 hostMock.Object);
 
-            await searcher.SearchAsync(CancellationToken.None);
+            await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
         }
 
         [Fact]
@@ -209,12 +242,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 AsynchronousOperationListenerProvider.NullListener,
                 callbackMock.Object,
                 pattern,
-                searchCurrentDocument: false,
                 kinds: ImmutableHashSet<string>.Empty,
                 CancellationToken.None,
                 hostMock.Object);
 
-            await searcher.SearchAsync(CancellationToken.None);
+            await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
         }
 
         private class TestNavigateToSearchResult : INavigateToSearchResult, INavigableItem

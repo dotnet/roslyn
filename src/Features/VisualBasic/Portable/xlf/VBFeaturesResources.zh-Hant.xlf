@@ -332,21 +332,6 @@
         <target state="translated">選取範圍無效</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_doesn_t_contain_any_valid_token">
-        <source>Selection doesn't contain any valid token</source>
-        <target state="translated">選取範圍不包含任何有效的語彙基元</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction</source>
-        <target state="translated">無任何有效的選取範圍可執行擷取</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction</source>
-        <target state="translated">沒有一般根節點可供擷取</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deprecated">
         <source>Deprecated</source>
         <target state="translated">取代</target>
@@ -967,11 +952,6 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
         <target state="translated">指定查詢中 Order By 子句的排序順序。最小的元素最先出現。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
-        <source>Asynchronously waits for the task to finish.</source>
-        <target state="translated">以非同步方式等候工作完成。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order">
         <source>Sets the string comparison method specified in Option Compare to a strict binary sort order.</source>
         <target state="translated">將 Option Compare 中指定的字串比較方法，設定為嚴格的二進位排序順序。</target>
@@ -1389,8 +1369,8 @@ Option Strict {On | Off}</target>
       <trans-unit id="Ensures_that_multiple_threads_do_not_execute_the_statement_block_at_the_same_time_SyncLock_object_End_Synclock">
         <source>Ensures that multiple threads do not execute the statement block at the same time.
 SyncLock &lt;object&gt;...End Synclock</source>
-        <target state="translated">確定不會有多個執行緒同時執行此陳述式區塊。
-SyncLock &lt;object&gt;...End Synclock</target>
+        <target state="translated">確保多個執行緒不會同時執行語句區塊。
+SyncLock &lt;object&gt;...結束同步鎖定</target>
         <note />
       </trans-unit>
       <trans-unit id="Includes_elements_up_to_a_specified_position_in_the_collection">
@@ -1462,8 +1442,8 @@ New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</targ
       <trans-unit id="Runs_a_series_of_statements_that_refer_to_a_single_object_or_structure_With_object_End_With">
         <source>Runs a series of statements that refer to a single object or structure.
 With &lt;object&gt;...End With</source>
-        <target state="translated">執行一系列參考單一物件或結構的陳述式。
-With &lt;object&gt;...End With</target>
+        <target state="translated">執行一系列參照單一物件或結構的語句。
+物件&lt;object&gt;...結尾為</target>
         <note />
       </trans-unit>
       <trans-unit id="Produces_an_element_of_an_IEnumerable_or_IEnumerator">
@@ -1759,7 +1739,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;介面名稱&gt;</target>
+        <target state="translated">&lt;interface name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="module_name">

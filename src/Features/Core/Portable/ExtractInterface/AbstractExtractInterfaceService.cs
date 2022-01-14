@@ -180,10 +180,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 refactoringResult.TypeNode,
                 cancellationToken).ConfigureAwait(false);
 
-            var syntaxFactsService = refactoringResult.DocumentToExtractFrom.GetLanguageService<ISyntaxFactsService>();
-            var originalDocumentSyntaxRoot = await refactoringResult.DocumentToExtractFrom.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var fileBanner = syntaxFactsService.GetFileBanner(originalDocumentSyntaxRoot);
-
             var (unformattedInterfaceDocument, _) = await ExtractTypeHelpers.AddTypeToNewFileAsync(
                 symbolMapping.AnnotatedSolution,
                 containingNamespaceDisplay,
@@ -191,7 +187,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 refactoringResult.DocumentToExtractFrom.Project.Id,
                 refactoringResult.DocumentToExtractFrom.Folders,
                 extractedInterfaceSymbol,
-                fileBanner,
+                refactoringResult.DocumentToExtractFrom,
                 cancellationToken).ConfigureAwait(false);
 
             var completedUnformattedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
@@ -328,7 +324,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             {
                 var document = solution.GetDocument(documentId);
                 var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var editor = new SyntaxEditor(currentRoot, solution.Workspace);
+                var editor = new SyntaxEditor(currentRoot, solution.Workspace.Services);
 
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
                 var typeReference = syntaxGenerator.TypeExpression(extractedInterfaceSymbol);

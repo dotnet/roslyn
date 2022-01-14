@@ -7,8 +7,8 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -897,8 +897,13 @@ class Goo
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Renamed, "int b", FeaturesResources.parameter));
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Goo..ctor"))
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
         }
 
         [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
@@ -1400,28 +1405,32 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
-        public void InstanceConstructor_DeleteParameterless()
+        [Theory]
+        [InlineData("class ")]
+        [InlineData("struct")]
+        public void InstanceConstructor_DeleteParameterless(string typeKind)
         {
-            var src1 = "partial class C { public C() { <AS:0>System.Console.WriteLine(1);</AS:0> } }";
-            var src2 = "<AS:0>partial class C</AS:0> { }";
+            var src1 = "partial " + typeKind + " C { public C() { <AS:0>System.Console.WriteLine(1);</AS:0> } }";
+            var src2 = "<AS:0>partial " + typeKind + " C</AS:0> { }";
 
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "partial class C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()")));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "partial " + typeKind + " C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()")));
         }
 
         #endregion
 
         #region Field and Property Initializers
 
-        [Fact]
-        public void InstancePropertyInitializer_Leaf_Update()
+        [Theory]
+        [InlineData("class ")]
+        [InlineData("struct")]
+        public void InstancePropertyInitializer_Leaf_Update(string typeKind)
         {
             var src1 = @"
-class C
+" + typeKind + @" C
 {
     int a { get; } = <AS:0>1</AS:0>;
 
@@ -1433,7 +1442,7 @@ class C
     }
 }";
             var src2 = @"
-class C
+" + typeKind + @" C
 {
     int a { get; } = <AS:0>2</AS:0>;
 
@@ -1450,12 +1459,46 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
-        [Fact]
-        public void InstanceFieldInitializer_Leaf_Update1()
+        [Theory]
+        [InlineData("class ")]
+        [InlineData("struct")]
+        public void InstancePropertyInitializer_Leaf_Update_SynthesizedConstructor(string typeKind)
         {
             var src1 = @"
-class C
+" + typeKind + @" C
+{
+    int a { get; } = <AS:0>1</AS:0>;
+
+    static void Main(string[] args)
+    {
+        <AS:1>C c = new C();</AS:1>
+    }
+}";
+            var src2 = @"
+" + typeKind + @" C
+{
+    int a { get; } = <AS:0>2</AS:0>;
+
+    static void Main(string[] args)
+    {
+        <AS:1>C c = new C();</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
+
+        [Theory]
+        [InlineData("class ")]
+        [InlineData("struct")]
+        public void InstanceFieldInitializer_Leaf_Update1(string typeKind)
+        {
+            var src1 = @"
+" + typeKind + @" C
 {
     <AS:0>int a = 1</AS:0>, b = 2;
 
@@ -1467,11 +1510,42 @@ class C
     }
 }";
             var src2 = @"
-class C
+" + typeKind + @" C
 {
     <AS:0>int a = 2</AS:0>, b = 2;
 
     public C() {}
+
+    static void Main(string[] args)
+    {
+        <AS:1>C c = new C();</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Theory]
+        [InlineData("class ")]
+        [InlineData("struct")]
+        public void InstanceFieldInitializer_Leaf_Update1_SynthesizedConstructor(string typeKind)
+        {
+            var src1 = @"
+" + typeKind + @" C
+{
+    <AS:0>int a = 1</AS:0>, b = 2;
+
+    static void Main(string[] args)
+    {
+        <AS:1>C c = new C();</AS:1>
+    }
+}";
+            var src2 = @"
+" + typeKind + @" C
+{
+    <AS:0>int a = 2</AS:0>, b = 2;
 
     static void Main(string[] args)
     {
@@ -8725,6 +8799,36 @@ class C
         }
 
         [Fact]
+        public void Lambdas_ActiveStatementUpdate()
+        {
+            var src1 = @"
+using System;
+class C
+{
+    static void Main(string[] args)
+    {
+        Func<int, int, int> f = (int a, int b) => <AS:0>a + b + 1</AS:0>;
+        <AS:1>f(2);</AS:1>
+    }
+}";
+            var src2 = @"
+using System;
+class C
+{
+    static void Main(string[] args)
+    {
+        Func<int, int, int> f = (_, _) => <AS:0>10</AS:0>;
+        <AS:1>f(2);</AS:1>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active, capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
         public void Lambdas_ActiveStatementRemoved1()
         {
             var src1 = @"
@@ -10970,11 +11074,11 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2, flags: new[]
             {
-                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsLeafFrame,
-                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsNonLeafFrame,
-                ActiveStatementFlags.IsLeafFrame,
-                ActiveStatementFlags.IsNonLeafFrame,
-                ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.IsLeafFrame
+                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.LeafFrame,
+                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.NonLeafFrame,
+                ActiveStatementFlags.LeafFrame,
+                ActiveStatementFlags.NonLeafFrame,
+                ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.LeafFrame
             });
 
             edits.VerifyRudeDiagnostics(active,
@@ -11005,7 +11109,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2, flags: new[]
             {
-                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsLeafFrame
+                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.LeafFrame
             });
 
             edits.VerifyRudeDiagnostics(active,
@@ -11033,7 +11137,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2, flags: new[]
             {
-                ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.IsLeafFrame
+                ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.LeafFrame
             });
 
             edits.VerifyRudeDiagnostics(active,

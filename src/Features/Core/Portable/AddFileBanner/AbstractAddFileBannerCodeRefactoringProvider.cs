@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 return;
             }
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var banner = syntaxFacts.GetFileBanner(root);
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
+            var banner = bannerService.GetFileBanner(root);
 
             if (banner.Length > 0)
             {
@@ -126,13 +126,14 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(
             Document document, SyntaxNode root, CancellationToken cancellationToken)
         {
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // If we have a tree already for this document, then just check to see
             // if it has a banner.
             if (root != null)
             {
-                return syntaxFacts.GetFileBanner(root);
+                return bannerService.GetFileBanner(root);
             }
 
             // Didn't have a tree.  Don't want to parse the file if we can avoid it.
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             }
 
             var token = syntaxFacts.ParseToken(text.ToString());
-            return syntaxFacts.GetFileBanner(token);
+            return bannerService.GetFileBanner(token);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

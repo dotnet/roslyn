@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -3406,6 +3407,53 @@ expectedContainers: ImmutableArray.Create("Goo"),
 expectedDocumentName: "Bar.cs");
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateIntoNewFileWithUsings1()
+        {
+            await TestAddDocumentInRegularAndScriptAsync(
+@"class Class { void F() { new [|Goo|].Bar(new System.Collections.Generic.List<int>()); } }",
+@"using System.Collections.Generic;
+
+namespace Goo
+{
+    internal class Bar
+    {
+        private List<int> list;
+
+        public Bar(List<int> list)
+        {
+            this.list = list;
+        }
+    }
+}",
+expectedContainers: ImmutableArray.Create("Goo"),
+expectedDocumentName: "Bar.cs");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateIntoNewFileWithUsings2()
+        {
+            await TestAddDocumentInRegularAndScriptAsync(
+@"class Class { void F() { new [|Goo|].Bar(new System.Collections.Generic.List<int>()); } }",
+@"namespace Goo
+{
+    using System.Collections.Generic;
+
+    internal class Bar
+    {
+        private List<int> list;
+
+        public Bar(List<int> list)
+        {
+            this.list = list;
+        }
+    }
+}",
+expectedContainers: ImmutableArray.Create("Goo"),
+expectedDocumentName: "Bar.cs",
+parameters: new TestParameters(options: Option(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace, NotificationOption2.Error)));
+        }
+
         [WorkItem(539620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539620")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestDeclarationSpan()
@@ -3474,6 +3522,36 @@ class Program
         using (Goo f = bar())
         {
         }
+    }
+}
+
+internal class Goo
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(54493, "https://github.com/dotnet/roslyn/pull/54493")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestInLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        static [|Goo|]
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        static Goo
     }
 }
 
@@ -5386,6 +5464,28 @@ internal class Goo
 }",
     expectedContainers: ImmutableArray<string>.Empty,
     expectedDocumentName: "Goo.cs");
+        }
+
+        [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestPreserveFileBanner4()
+        {
+            await TestAddDocumentInRegularAndScriptAsync(
+@"class Program
+{
+    void Main ( )
+    {
+        [|Goo|] f ;
+    }
+} ",
+@"// I am a banner
+
+internal class Goo
+{
+}",
+expectedContainers: ImmutableArray<string>.Empty,
+expectedDocumentName: "Goo.cs",
+new TestParameters(options: Option(CodeStyleOptions2.FileHeaderTemplate, "I am a banner")));
         }
 
         [WorkItem(22293, "https://github.com/dotnet/roslyn/issues/22293")]

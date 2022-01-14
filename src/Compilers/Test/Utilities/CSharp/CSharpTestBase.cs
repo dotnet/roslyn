@@ -1171,7 +1171,7 @@ namespace System.Runtime.CompilerServices
             {
                 if (resolvedReferences.Count() > used.Length)
                 {
-                    AssertSubset(used, resolvedReferences);
+                    assertSubset(used, resolvedReferences);
 
                     if (!compileDiagnostics.Any(d => d.Code == (int)ErrorCode.HDN_UnusedExternAlias || d.Code == (int)ErrorCode.HDN_UnusedUsingDirective))
                     {
@@ -1188,7 +1188,7 @@ namespace System.Runtime.CompilerServices
             }
             else
             {
-                AssertSubset(used, resolvedReferences);
+                assertSubset(used, resolvedReferences);
             }
 
             static bool shouldCompare(Diagnostic d)
@@ -1200,7 +1200,7 @@ namespace System.Runtime.CompilerServices
                        d.Code != (int)ErrorCode.WRN_SameFullNameThisAggNs;
             }
 
-            static void AssertSubset(ImmutableArray<MetadataReference> used, IEnumerable<MetadataReference> resolvedReferences)
+            static void assertSubset(ImmutableArray<MetadataReference> used, IEnumerable<MetadataReference> resolvedReferences)
             {
                 foreach (var reference in used)
                 {
@@ -1275,7 +1275,7 @@ namespace System.Runtime.CompilerServices
             return createCompilationLambda();
         }
 
-        private static ImmutableArray<MetadataReference> s_scriptRefs = ImmutableArray.Create(MscorlibRef_v4_0_30316_17626);
+        private static readonly ImmutableArray<MetadataReference> s_scriptRefs = ImmutableArray.Create(MscorlibRef_v4_0_30316_17626);
 
         public static CSharpCompilation CreateSubmission(
            string code,
@@ -2224,8 +2224,6 @@ namespace System
             }
 
             public static implicit operator ReadOnlySpan<T>(T[] array) => array == null ? default : new ReadOnlySpan<T>(array);
-
-            public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
         }
 
         public readonly ref struct SpanLike<T>

@@ -342,6 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     methodGroup.LookupSymbolOpt,
                                     methodGroup.LookupError,
                                     methodGroup.Flags & ~BoundMethodGroupFlags.HasImplicitReceiver,
+                                    methodGroup.FunctionType,
                                     receiverOpt: new BoundTypeExpression(node, null, this.ContainingType).MakeCompilerGenerated(),
                                     resultKind: methodGroup.ResultKind);
                             }
@@ -366,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     methodGroup.LookupSymbolOpt,
                                     methodGroup.LookupError,
                                     methodGroup.Flags,
+                                    methodGroup.FunctionType,
                                     finalReceiver,
                                     methodGroup.ResultKind);
                             break;
@@ -1020,11 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
 
-            var receiverRefKind = receiver?.GetRefKind();
-            uint receiverValEscapeScope = method.RequiresInstanceReceiver && receiver != null
-                ? receiverRefKind?.IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
-                : Binder.ExternalScope;
-            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver?.Type, receiverRefKind, receiverValEscapeScope);
+            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver);
 
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
             var argsToParams = methodResult.Result.ArgsToParamsOpt;
@@ -1462,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // For now we are warning only in implicit copy scenarios that are only possible with readonly members.
             // Eventually we will warn on implicit value copies in more scenarios. See https://github.com/dotnet/roslyn/issues/33968.
-            if (receiver is BoundThisReference &&
+            if (receiver?.IsEquivalentToThisReference == true &&
                 receiver.Type.IsValueType &&
                 ContainingMemberOrLambda is MethodSymbol containingMethod &&
                 containingMethod.IsEffectivelyReadOnly &&
@@ -1980,6 +1978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private BoundFunctionPointerInvocation BindFunctionPointerInvocation(SyntaxNode node, BoundExpression boundExpression, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics)
         {
+            boundExpression = BindToNaturalType(boundExpression, diagnostics);
             RoslynDebug.Assert(boundExpression.Type is FunctionPointerTypeSymbol);
 
             var funcPtr = (FunctionPointerTypeSymbol)boundExpression.Type;
@@ -2026,13 +2025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             methodsBuilder.Free();
 
             MemberResolutionResult<FunctionPointerMethodSymbol> methodResult = overloadResolutionResult.ValidResult;
-            CoerceArguments(
-                methodResult,
-                analyzedArguments.Arguments,
-                diagnostics,
-                receiverType: null,
-                receiverRefKind: null,
-                receiverEscapeScope: Binder.ExternalScope);
+            CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver: null);
 
             var args = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();

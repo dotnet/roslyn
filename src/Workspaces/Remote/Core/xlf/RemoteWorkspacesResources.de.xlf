@@ -17,6 +17,11 @@
         <target state="translated">CodeLens-Verweise</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="translated">Verfügbarkeit der Projektsemantik</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
         <source>Convert tuple to struct refactoring</source>
         <target state="translated">Tupel in Strukturrefactoring konvertieren</target>
@@ -87,6 +92,11 @@
         <target state="translated">Navigationsleiste</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">Telemetriedaten verarbeiten</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
         <source>Project telemetry collection</source>
         <target state="translated">Projekttelemetriesammlung</target>
@@ -102,14 +112,14 @@
         <target state="translated">Semantische Klassifizierung</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_SemanticClassificationCache">
-        <source>Semantic classification cache</source>
-        <target state="translated">Cache für semantische Klassifizierung</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">Objektanbieter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Stack Trace Explorer</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">
@@ -127,9 +137,14 @@
         <target state="translated">TODO Kommentarermittlung</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">Nicht verwendete Referenzanalyse</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ValueTracking">
         <source>Value Tracking</source>
-        <target state="new">Value Tracking</target>
+        <target state="translated">Wertnachverfolgung</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">

@@ -56,7 +56,7 @@ record struct Point(int X, int Y);";
   IL_0008:  ldarg.0
   IL_0009:  ldarg.1
   IL_000a:  unbox.any  ""Point""
-  IL_000f:  call       ""bool Point.Equals(Point)""
+  IL_000f:  call       ""readonly bool Point.Equals(Point)""
   IL_0014:  ret
   IL_0015:  ldc.i4.0
   IL_0016:  ret
@@ -228,7 +228,7 @@ True").VerifyDiagnostics();
   IL_0008:  ldarg.0
   IL_0009:  ldarg.1
   IL_000a:  unbox.any  ""S""
-  IL_000f:  call       ""bool S.Equals(S)""
+  IL_000f:  call       ""readonly bool S.Equals(S)""
   IL_0014:  ret
   IL_0015:  ldc.i4.0
   IL_0016:  ret
@@ -877,13 +877,13 @@ public record struct S2 : I
 
             AssertEx.Equal(new[] {
                 "System.Int32 S.M(System.String s)",
-                "System.String S.ToString()",
-                "System.Boolean S.PrintMembers(System.Text.StringBuilder builder)",
+                "readonly System.String S.ToString()",
+                "readonly System.Boolean S.PrintMembers(System.Text.StringBuilder builder)",
                 "System.Boolean S.op_Inequality(S left, S right)",
                 "System.Boolean S.op_Equality(S left, S right)",
-                "System.Int32 S.GetHashCode()",
-                "System.Boolean S.Equals(System.Object obj)",
-                "System.Boolean S.Equals(S other)",
+                "readonly System.Int32 S.GetHashCode()",
+                "readonly System.Boolean S.Equals(System.Object obj)",
+                "readonly System.Boolean S.Equals(S other)",
                 "S..ctor()" },
                 comp.GetMember<NamedTypeSymbol>("S").GetMembers().ToTestDisplayStrings());
         }
@@ -1139,7 +1139,7 @@ record struct S6(string other)
         }
 
         [Fact]
-        public void TypeDeclaration_InstanceInitializers()
+        public void TypeDeclaration_InstanceInitializers_01()
         {
             var src = @"
 public record struct S
@@ -1154,12 +1154,70 @@ public record struct S
                 // (2,15): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // public record struct S
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 15),
+                // (2,22): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // public record struct S
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(2, 22),
                 // (4,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int field = 42;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "field").WithArguments("struct field initializers", "10.0").WithLocation(4, 16),
                 // (5,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int Property { get; set; } = 43;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Property").WithArguments("struct field initializers", "10.0").WithLocation(5, 16));
+
+            comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,22): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // public record struct S
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(2, 22));
+        }
+
+        [Fact]
+        public void TypeDeclaration_InstanceInitializers_02()
+        {
+            var src = @"
+public record struct S
+{
+    public S() { }
+    public int field = 42;
+    public int Property { get; set; } = 43;
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public record struct S
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 15),
+                // (4,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S").WithArguments("parameterless struct constructors", "10.0").WithLocation(4, 12),
+                // (5,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public int field = 42;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "field").WithArguments("struct field initializers", "10.0").WithLocation(5, 16),
+                // (6,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public int Property { get; set; } = 43;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Property").WithArguments("struct field initializers", "10.0").WithLocation(6, 16));
+
+            comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeDeclaration_InstanceInitializers_03()
+        {
+            var src = @"
+public record struct S()
+{
+    public int field = 42;
+    public int Property { get; set; } = 43;
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public record struct S()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 15));
 
             comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
@@ -2031,14 +2089,14 @@ record struct C(int X, int Y)
                 "void C.set_X()",
                 "System.Int32 C.get_Y(System.Int32 value)",
                 "System.Int32 C.set_Y(System.Int32 value)",
-                "System.String C.ToString()",
-                "System.Boolean C.PrintMembers(System.Text.StringBuilder builder)",
+                "readonly System.String C.ToString()",
+                "readonly System.Boolean C.PrintMembers(System.Text.StringBuilder builder)",
                 "System.Boolean C.op_Inequality(C left, C right)",
                 "System.Boolean C.op_Equality(C left, C right)",
-                "System.Int32 C.GetHashCode()",
-                "System.Boolean C.Equals(System.Object obj)",
-                "System.Boolean C.Equals(C other)",
-                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                "readonly System.Int32 C.GetHashCode()",
+                "readonly System.Boolean C.Equals(System.Object obj)",
+                "readonly System.Boolean C.Equals(C other)",
+                "readonly void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
                 "C..ctor()",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -2706,7 +2764,7 @@ record struct R(params int[] Array);
         public void PositionalMemberDefaultValue()
         {
             var src = @"
-var r = new R(); // This uses the parameterless contructor
+var r = new R(); // This uses the parameterless constructor
 System.Console.Write(r.P);
 
 record struct R(int P = 42);
@@ -2985,7 +3043,7 @@ record struct C
         public void CS0574ERR_BadDestructorName()
         {
             var test = @"
-public record struct iii
+public record struct @iii
 {
     ~iiii(){}
 }
@@ -3253,7 +3311,7 @@ record struct B(int X)
             verifier.VerifyDiagnostics();
 
             Assert.Equal(
-                "void B.Deconstruct(out System.Int32 X)",
+                "readonly void B.Deconstruct(out System.Int32 X)",
                 verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
@@ -3390,7 +3448,7 @@ record struct B(int X, int Y)
                 );
 
             Assert.Equal(
-                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                "readonly void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
                 comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
@@ -3430,7 +3488,7 @@ record struct C(int X)
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("C.X").WithLocation(6, 9));
 
             Assert.Equal(
-                "void C.Deconstruct(out System.Int32 X)",
+                "readonly void C.Deconstruct(out System.Int32 X)",
                 comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
@@ -3507,7 +3565,7 @@ record struct C(string? X, string Y)
                 );
 
             Assert.Equal(
-                "void C.Deconstruct(out System.String? X, out System.String Y)",
+                "readonly void C.Deconstruct(out System.String? X, out System.String Y)",
                 comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
@@ -3545,13 +3603,13 @@ record struct C()
                 "C..ctor()",
                 "void C.M(C c)",
                 "void C.Main()",
-                "System.String C.ToString()",
-                "System.Boolean C.PrintMembers(System.Text.StringBuilder builder)",
+                "readonly System.String C.ToString()",
+                "readonly System.Boolean C.PrintMembers(System.Text.StringBuilder builder)",
                 "System.Boolean C.op_Inequality(C left, C right)",
                 "System.Boolean C.op_Equality(C left, C right)",
-                "System.Int32 C.GetHashCode()",
-                "System.Boolean C.Equals(System.Object obj)",
-                "System.Boolean C.Equals(C other)" },
+                "readonly System.Int32 C.GetHashCode()",
+                "readonly System.Boolean C.Equals(System.Object obj)",
+                "readonly System.Boolean C.Equals(C other)" },
                 comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings());
         }
 
@@ -3585,6 +3643,36 @@ record struct C(int I)
 ";
             var verifier = CompileAndVerify(source, expectedOutput: "12");
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Deconstruct_GeneratedAsReadOnly()
+        {
+            var src = @"
+record struct A(int I, string S);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var method = comp.GetMember<SynthesizedRecordDeconstruct>("A.Deconstruct");
+            Assert.True(method.IsDeclaredReadOnly);
+        }
+
+        [Fact]
+        public void Deconstruct_WihtNonReadOnlyGetter_GeneratedAsNonReadOnly()
+        {
+            var src = @"
+record struct A(int I, string S)
+{
+    public int I { get => 0; }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,21): warning CS8907: Parameter 'I' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct A(int I, string S)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "I").WithArguments("I").WithLocation(2, 21));
+            var method = comp.GetMember<SynthesizedRecordDeconstruct>("A.Deconstruct");
+            Assert.False(method.IsDeclaredReadOnly);
         }
 
         [Fact]
@@ -4057,7 +4145,7 @@ class B
   IL_0008:  ldarg.0
   IL_0009:  ldarg.1
   IL_000a:  unbox.any  ""A""
-  IL_000f:  call       ""bool A.Equals(A)""
+  IL_000f:  call       ""readonly bool A.Equals(A)""
   IL_0014:  ret
   IL_0015:  ldc.i4.0
   IL_0016:  ret
@@ -4072,7 +4160,7 @@ class B
 }");
 
             var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean A.Equals(A other)", recordEquals.ToTestDisplayString());
+            Assert.Equal("readonly System.Boolean A.Equals(A other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
             Assert.False(recordEquals.IsAbstract);
             Assert.False(recordEquals.IsVirtual);
@@ -4081,7 +4169,7 @@ class B
             Assert.True(recordEquals.IsImplicitlyDeclared);
 
             var objectEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordObjEquals>().Single();
-            Assert.Equal("System.Boolean A.Equals(System.Object obj)", objectEquals.ToTestDisplayString());
+            Assert.Equal("readonly System.Boolean A.Equals(System.Object obj)", objectEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, objectEquals.DeclaredAccessibility);
             Assert.False(objectEquals.IsAbstract);
             Assert.False(objectEquals.IsVirtual);
@@ -4090,7 +4178,7 @@ class B
             Assert.True(objectEquals.IsImplicitlyDeclared);
 
             MethodSymbol gethashCode = comp.GetMembers("A." + WellKnownMemberNames.ObjectGetHashCode).OfType<SynthesizedRecordGetHashCode>().Single();
-            Assert.Equal("System.Int32 A.GetHashCode()", gethashCode.ToTestDisplayString());
+            Assert.Equal("readonly System.Int32 A.GetHashCode()", gethashCode.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, gethashCode.DeclaredAccessibility);
             Assert.False(gethashCode.IsStatic);
             Assert.False(gethashCode.IsAbstract);
@@ -4253,7 +4341,7 @@ namespace System.Text
                 );
 
             var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
-            Assert.Equal("System.Boolean A.Equals(A other)", recordEquals.ToTestDisplayString());
+            Assert.Equal("readonly System.Boolean A.Equals(A other)", recordEquals.ToTestDisplayString());
         }
 
         [Fact]
@@ -4336,7 +4424,7 @@ record struct A(int I, string S)
   IL_0008:  ldarg.0
   IL_0009:  ldarg.1
   IL_000a:  unbox.any  ""A""
-  IL_000f:  call       ""bool A.Equals(A)""
+  IL_000f:  call       ""readonly bool A.Equals(A)""
   IL_0014:  ret
   IL_0015:  ldc.i4.0
   IL_0016:  ret
@@ -4405,6 +4493,18 @@ record struct A
         }
 
         [Fact]
+        public void RecordEquals_GeneratedAsReadOnly()
+        {
+            var src = @"
+record struct A(int I, string S);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
+            Assert.True(recordEquals.IsDeclaredReadOnly);
+        }
+
+        [Fact]
         public void ObjectEquals_06()
         {
             var source = @"
@@ -4436,6 +4536,18 @@ record struct A
                 //     public override bool Equals(object obj) => throw null;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(4, 26)
                 );
+        }
+
+        [Fact]
+        public void ObjectEquals_GeneratedAsReadOnly()
+        {
+            var src = @"
+record struct A(int I, string S);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var objectEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordObjEquals>().Single();
+            Assert.True(objectEquals.IsDeclaredReadOnly);
         }
 
         [Fact]
@@ -4540,6 +4652,18 @@ public record struct A(int I);
         }
 
         [Fact]
+        public void GetHashCode_GeneratedAsReadOnly()
+        {
+            var src = @"
+record struct A(int I, string S);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var method = comp.GetMember<SynthesizedRecordGetHashCode>("A.GetHashCode");
+            Assert.True(method.IsDeclaredReadOnly);
+        }
+
+        [Fact]
         public void GetHashCodeIsDefinedButEqualsIsNot()
         {
             var src = @"
@@ -4628,7 +4752,7 @@ True True False False
   .maxstack  2
   IL_0000:  ldarga.s   V_0
   IL_0002:  ldarg.1
-  IL_0003:  call       ""bool A.Equals(A)""
+  IL_0003:  call       ""readonly bool A.Equals(A)""
   IL_0008:  ret
 }
 ");
@@ -4880,7 +5004,7 @@ record struct C1;
   IL_001d:  pop
   IL_001e:  ldarg.0
   IL_001f:  ldloc.0
-  IL_0020:  call       ""bool C1.PrintMembers(System.Text.StringBuilder)""
+  IL_0020:  call       ""readonly bool C1.PrintMembers(System.Text.StringBuilder)""
   IL_0025:  brfalse.s  IL_0030
   IL_0027:  ldloc.0
   IL_0028:  ldc.i4.s   32
@@ -5099,21 +5223,24 @@ record struct C1<T> where T : struct
 
             v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       38 (0x26)
+  // Code size       41 (0x29)
   .maxstack  2
+  .locals init (T V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldstr      ""field = ""
   IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
   IL_000b:  pop
   IL_000c:  ldarg.1
   IL_000d:  ldarg.0
-  IL_000e:  ldflda     ""T C1<T>.field""
-  IL_0013:  constrained. ""T""
-  IL_0019:  callvirt   ""string object.ToString()""
-  IL_001e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0023:  pop
-  IL_0024:  ldc.i4.1
-  IL_0025:  ret
+  IL_000e:  ldfld      ""T C1<T>.field""
+  IL_0013:  stloc.0
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  constrained. ""T""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0026:  pop
+  IL_0027:  ldc.i4.1
+  IL_0028:  ret
 }
 ");
         }
@@ -5309,7 +5436,7 @@ record struct C1
             CompileAndVerify(comp, expectedOutput: "RAN");
 
             var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
-            Assert.Equal("System.Boolean C1." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)", print.ToTestDisplayString());
+            Assert.Equal("readonly System.Boolean C1." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)", print.ToTestDisplayString());
         }
 
         [Fact]
@@ -5493,6 +5620,33 @@ record struct C1
                 //     static private bool PrintMembers(System.Text.StringBuilder builder) => throw null;
                 Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(4, 25)
                 );
+        }
+
+        [Fact]
+        public void ToString_GeneratedAsReadOnly()
+        {
+            var src = @"
+record struct A(int I, string S);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var method = comp.GetMember<SynthesizedRecordToString>("A.ToString");
+            Assert.True(method.IsDeclaredReadOnly);
+        }
+
+        [Fact]
+        public void ToString_WihtNonReadOnlyGetter_GeneratedAsNonReadOnly()
+        {
+            var src = @"
+record struct A(int I, string S)
+{
+    public double T => 0.1;
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var method = comp.GetMember<SynthesizedRecordToString>("A.ToString");
+            Assert.False(method.IsDeclaredReadOnly);
         }
 
         [Fact]
@@ -7378,7 +7532,7 @@ static (int, int) M((int X, int Y) b)
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "4243");
-            verifier.VerifyIL("<Program>$.<<Main>$>g__M|0_0(System.ValueTuple<int, int>)", @"
+            verifier.VerifyIL("Program.<<Main>$>g__M|0_0(System.ValueTuple<int, int>)", @"
 {
   // Code size       22 (0x16)
   .maxstack  2
@@ -7412,7 +7566,7 @@ static (int, int, int, int, int, int, int, int) M((int, int, int, int, int, int,
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "4243");
-            verifier.VerifyIL("<Program>$.<<Main>$>g__M|0_0(System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>)", @"
+            verifier.VerifyIL("Program.<<Main>$>g__M|0_0(System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>)", @"
 {
   // Code size       27 (0x1b)
   .maxstack  2
@@ -10471,6 +10625,437 @@ record struct R3(int X) : Error3
             Assert.Equal("Error3", baseWithoutParens.ToString());
 
             Assert.False(model.TryGetSpeculativeSemanticModel(baseWithoutParens.SpanStart + 2, speculativeBase, out _));
+        }
+
+        [Fact, WorkItem(54413, "https://github.com/dotnet/roslyn/issues/54413")]
+        public void ValueTypeCopyConstructorLike_NoThisInitializer()
+        {
+            var src = @"
+record struct Value(string Text)
+{
+    private Value(int X) { } // 1
+    private Value(Value original) { } // 2
+}
+
+record class Boxed(string Text)
+{
+    private Boxed(int X) { } // 3
+    private Boxed(Boxed original) { } // 4
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     private Value(int X) { } // 1
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Value").WithLocation(4, 13),
+                // (5,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     private Value(Value original) { } // 2
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Value").WithLocation(5, 13),
+                // (10,13): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     private Boxed(int X) { } // 3
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "Boxed").WithLocation(10, 13),
+                // (11,13): error CS8878: A copy constructor 'Boxed.Boxed(Boxed)' must be public or protected because the record is not sealed.
+                //     private Boxed(Boxed original) { } // 4
+                Diagnostic(ErrorCode.ERR_CopyConstructorWrongAccessibility, "Boxed").WithArguments("Boxed.Boxed(Boxed)").WithLocation(11, 13)
+                );
+        }
+
+        [Fact]
+        public void ValueTypeCopyConstructorLike()
+        {
+            var src = @"
+System.Console.Write(new Value(new Value(0)));
+
+record struct Value(int I)
+{
+    public Value(Value original) : this(42) { }
+}
+";
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, expectedOutput: "Value { I = 42 }");
+        }
+
+        [Fact]
+        public void ExplicitConstructors_01()
+        {
+            var source =
+@"using static System.Console;
+record struct S1
+{
+}
+record struct S2
+{
+    public S2() { }
+}
+record struct S3
+{
+    public S3(object o) { }
+}
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new S1());
+        WriteLine(new S2());
+        WriteLine(new S3());
+        WriteLine(new S3(null));
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"S1 { }
+S2 { }
+S3 { }
+S3 { }
+");
+            verifier.VerifyMissing("S1..ctor()");
+            verifier.VerifyIL("S2..ctor()",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            verifier.VerifyMissing("S3..ctor()");
+            verifier.VerifyIL("S3..ctor(object)",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [Fact]
+        public void ExplicitConstructors_02()
+        {
+            var source =
+@"record struct S1
+{
+    public S1(object o) { }
+}
+record struct S2()
+{
+    public S2(object o) { }
+}
+record struct S3(char A)
+{
+    public S3(object o) { }
+}
+record struct S4(char A, char B)
+{
+    public S4(object o) { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public S2(object o) { }
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S2").WithLocation(7, 12),
+                // (11,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public S3(object o) { }
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S3").WithLocation(11, 12),
+                // (15,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public S4(object o) { }
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S4").WithLocation(15, 12));
+        }
+
+        [Fact]
+        public void ExplicitConstructors_03()
+        {
+            var source =
+@"using static System.Console;
+record struct S1
+{
+    public S1(object o) : this() { }
+}
+record struct S2()
+{
+    public S2(object o) : this() { }
+}
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new S1());
+        WriteLine(new S2());
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"S1 { }
+S2 { }
+");
+        }
+
+        [Fact]
+        public void ExplicitConstructors_04()
+        {
+            var source =
+@"using static System.Console;
+record struct S0
+{
+    internal object F = 0;
+    public S0() { }
+}
+record struct S1
+{
+    internal object F = 1;
+    public S1(object o) : this() { F = o; }
+}
+record struct S2()
+{
+    internal object F = 2;
+    public S2(object o) : this() { F = o; }
+}
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new S0().F);
+        WriteLine(new S1().F);
+        WriteLine(new S1(-1).F);
+        WriteLine(new S2().F);
+        WriteLine(new S2(-2).F);
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"0
+
+-1
+2
+-2
+");
+        }
+
+        [Fact]
+        [WorkItem(58328, "https://github.com/dotnet/roslyn/issues/58328")]
+        public void ExplicitConstructors_05()
+        {
+            var source =
+@"record struct S3(char A)
+{
+    public S3(object o) : this() { }
+}
+record struct S4(char A, char B)
+{
+    public S4(object o) : this() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                //     public S3(object o) : this() { }
+                Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(3, 27),
+                // (7,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                //     public S4(object o) : this() { }
+                Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(7, 27));
+        }
+
+        [Fact]
+        [WorkItem(58328, "https://github.com/dotnet/roslyn/issues/58328")]
+        public void ExplicitConstructors_06()
+        {
+            var source =
+@"record struct S3(char A)
+{
+    internal object F = 3;
+    public S3(object o) : this() { F = o; }
+}
+record struct S4(char A, char B)
+{
+    internal object F = 4;
+    public S4(object o) : this() { F = o; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                //     public S3(object o) : this() { F = o; }
+                Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 27),
+                // (9,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                //     public S4(object o) : this() { F = o; }
+                Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(9, 27));
+        }
+
+        [Fact]
+        public void ExplicitConstructors_07()
+        {
+            var source =
+@"using static System.Console;
+record struct S1
+{
+    public S1(object o) : this() { }
+    public S1() { }
+}
+record struct S3(char A)
+{
+    public S3(object o) : this() { }
+    public S3() : this('a') { }
+}
+record struct S4(char A, char B)
+{
+    public S4(object o) : this() { }
+    public S4() : this('a', 'b') { }
+}
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new S1());
+        WriteLine(new S1(1));
+        WriteLine(new S3());
+        WriteLine(new S3(3));
+        WriteLine(new S4());
+        WriteLine(new S4(4));
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"S1 { }
+S1 { }
+S3 { A = a }
+S3 { A = a }
+S4 { A = a, B = b }
+S4 { A = a, B = b }
+");
+            verifier.VerifyIL("S1..ctor()",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            verifier.VerifyIL("S1..ctor(object)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S1..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("S3..ctor()",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   97
+  IL_0003:  call       ""S3..ctor(char)""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("S3..ctor(object)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S3..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("S4..ctor()",
+@"{
+  // Code size       11 (0xb)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   97
+  IL_0003:  ldc.i4.s   98
+  IL_0005:  call       ""S4..ctor(char, char)""
+  IL_000a:  ret
+}");
+            verifier.VerifyIL("S4..ctor(object)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S4..ctor()""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void ExplicitConstructors_08()
+        {
+            var source =
+@"record struct S2()
+{
+    public S2(object o) : this() { }
+    public S2() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,27): error CS2121: The call is ambiguous between the following methods or properties: 'S2.S2()' and 'S2.S2()'
+                //     public S2(object o) : this() { }
+                Diagnostic(ErrorCode.ERR_AmbigCall, "this").WithArguments("S2.S2()", "S2.S2()").WithLocation(3, 27),
+                // (4,12): error CS2111: Type 'S2' already defines a member called 'S2' with the same parameter types
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "S2").WithArguments("S2", "S2").WithLocation(4, 12),
+                // (4,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "S2").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void ExplicitConstructors_09()
+        {
+            var source =
+@"record struct S1
+{
+    public S1(object o) : base() { }
+}
+record struct S2()
+{
+    public S2(object o) : base() { }
+}
+record struct S3(char A)
+{
+    public S3(object o) : base() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,12): error CS0522: 'S1': structs cannot call base class constructors
+                //     public S1(object o) : base() { }
+                Diagnostic(ErrorCode.ERR_StructWithBaseConstructorCall, "S1").WithArguments("S1").WithLocation(3, 12),
+                // (7,12): error CS0522: 'S2': structs cannot call base class constructors
+                //     public S2(object o) : base() { }
+                Diagnostic(ErrorCode.ERR_StructWithBaseConstructorCall, "S2").WithArguments("S2").WithLocation(7, 12),
+                // (7,27): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public S2(object o) : base() { }
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(7, 27),
+                // (11,12): error CS0522: 'S3': structs cannot call base class constructors
+                //     public S3(object o) : base() { }
+                Diagnostic(ErrorCode.ERR_StructWithBaseConstructorCall, "S3").WithArguments("S3").WithLocation(11, 12),
+                // (11,27): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public S3(object o) : base() { }
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(11, 27));
+        }
+
+        [Fact]
+        [WorkItem(58328, "https://github.com/dotnet/roslyn/issues/58328")]
+        public void ExplicitConstructors_10()
+        {
+            var source =
+@"record struct S(object F)
+{
+    public object F;
+    public S(int i) : this() { F = i; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,15): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
+                // record struct S(object F)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(1, 15),
+                // (1,24): warning CS8907: Parameter 'F' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S(object F)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "F").WithArguments("F").WithLocation(1, 24),
+                // (4,23): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                //     public S(int i) : this() { F = i; }
+                Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 23));
+        }
+
+        [Fact]
+        public void ExplicitConstructors_11()
+        {
+            var source =
+@"record struct S(int X)
+{
+    static internal int F = 1;
+    static S() : this() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,18): error CS0514: 'S': static constructor cannot have an explicit 'this' or 'base' constructor call
+                //     static S() : this() { }
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("S").WithLocation(4, 18));
         }
     }
 }

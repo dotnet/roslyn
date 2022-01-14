@@ -15,11 +15,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class SourceGeneratorAdaptor : IIncrementalGenerator
     {
+        private readonly string _sourceExtension;
+
         internal ISourceGenerator SourceGenerator { get; }
 
-        public SourceGeneratorAdaptor(ISourceGenerator generator)
+        public SourceGeneratorAdaptor(ISourceGenerator generator, string sourceExtension)
         {
             SourceGenerator = generator;
+            _sourceExtension = sourceExtension;
         }
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis
 
             context.RegisterSourceOutput(contextBuilderSource, (productionContext, contextBuilder) =>
             {
-                var generatorExecutionContext = contextBuilder.ToExecutionContext(productionContext.CancellationToken);
+                var generatorExecutionContext = contextBuilder.ToExecutionContext(_sourceExtension, productionContext.CancellationToken);
                 SourceGenerator.Execute(generatorExecutionContext);
 
                 // copy the contents of the old context to the new
@@ -67,10 +70,10 @@ namespace Microsoft.CodeAnalysis
 
             public ISyntaxContextReceiver? Receiver;
 
-            public GeneratorExecutionContext ToExecutionContext(CancellationToken cancellationToken)
+            public GeneratorExecutionContext ToExecutionContext(string sourceExtension, CancellationToken cancellationToken)
             {
                 Debug.Assert(ParseOptions is object && ConfigOptions is object);
-                return new GeneratorExecutionContext(Compilation, ParseOptions, AdditionalTexts, ConfigOptions, Receiver, cancellationToken);
+                return new GeneratorExecutionContext(Compilation, ParseOptions, AdditionalTexts, ConfigOptions, Receiver, sourceExtension, cancellationToken);
             }
         }
     }

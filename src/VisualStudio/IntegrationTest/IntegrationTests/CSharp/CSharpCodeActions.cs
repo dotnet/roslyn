@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -19,7 +17,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -58,7 +55,7 @@ public class Program
 ");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate method 'Foo.Bar'", applyFix: true);
+            VisualStudio.Editor.Verify.CodeAction("Generate method 'Bar'", applyFix: true);
             VisualStudio.SolutionExplorer.Verify.FileContents(project, "Foo.cs", @"
 using System;
 
@@ -70,6 +67,21 @@ public class Foo
     }
 }
 ");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public void AddUsingOnIncompleteMember()
+        {
+            // Need to ensure that incomplete member diagnostics run at high pri so that add-using can be
+            // triggered by them.
+            SetUpEditor(@"
+class Program
+{
+    DateTime$$
+}
+");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("using System;");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -439,7 +451,7 @@ class Program
     }
 }");
             VisualStudio.Editor.InvokeCodeActionList();
-            var classifiedTokens = GetLightbulbPreviewClassification("Generate method 'Program.Foo'");
+            var classifiedTokens = GetLightbulbPreviewClassification("Generate method 'Foo'");
             Assert.True(classifiedTokens.Any(c => c.Text == "void" && c.Classification == "keyword"));
         }
 
@@ -486,7 +498,7 @@ public class P2 { }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void GFUFuzzyMatchAfterRenameTracking()
+        public void GFUFuzzyMatchAfterRenameTrackingAndAfterGenerateType()
         {
             SetUpEditor(@"
 namespace N
@@ -511,7 +523,6 @@ namespace NS
             var expectedItems = new[]
             {
                 "Rename 'P2' to 'Foober'",
-                "Generate type 'Foober'",
                 "Generate class 'Foober' in new file",
                 "Generate class 'Foober'",
                 "Generate nested class 'Foober'",

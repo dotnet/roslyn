@@ -195,6 +195,7 @@ namespace Microsoft.CodeAnalysis
             var sectionKey = _sectionKeyPool.Allocate();
 
             var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
+            normalizedPath = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedPath);
 
             // If we have a global config, add any sections that match the full path 
             foreach (var section in _globalConfig.NamedSections)
@@ -304,7 +305,7 @@ namespace Microsoft.CodeAnalysis
 
                 result = new AnalyzerConfigOptionsResult(
                     treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : SyntaxTree.EmptyDiagnosticOptions,
-                    analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
+                    analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : DictionaryAnalyzerConfigOptions.EmptyDictionary,
                     diagnosticBuilder.ToImmutableAndFree());
 
                 if (_optionsCache.TryAdd(sectionKey, result))

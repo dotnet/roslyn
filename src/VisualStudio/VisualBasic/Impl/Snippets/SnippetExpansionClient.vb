@@ -5,12 +5,15 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -29,16 +32,42 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     Friend NotInheritable Class SnippetExpansionClient
         Inherits AbstractSnippetExpansionClient
 
-        Public Sub New(threadingContext As IThreadingContext, languageServiceId As Guid, textView As ITextView, subjectBuffer As ITextBuffer, signatureHelpControllerProvider As SignatureHelpControllerProvider, editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)))
-            MyBase.New(threadingContext, languageServiceId, textView, subjectBuffer, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, argumentProviders)
+        Public Sub New(
+                threadingContext As IThreadingContext,
+                languageServiceId As Guid,
+                textView As ITextView,
+                subjectBuffer As ITextBuffer,
+                signatureHelpControllerProvider As SignatureHelpControllerProvider,
+                editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
+                editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
+                argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
+                globalOptions As IGlobalOptionService)
+            MyBase.New(threadingContext, languageServiceId, textView, subjectBuffer, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, argumentProviders, globalOptions)
         End Sub
 
-        Public Shared Function GetSnippetExpansionClient(threadingContext As IThreadingContext, textView As ITextView, subjectBuffer As ITextBuffer, signatureHelpControllerProvider As SignatureHelpControllerProvider, editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))) As AbstractSnippetExpansionClient
+        Public Shared Function GetSnippetExpansionClient(
+                threadingContext As IThreadingContext,
+                textView As ITextView,
+                subjectBuffer As ITextBuffer,
+                signatureHelpControllerProvider As SignatureHelpControllerProvider,
+                editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
+                editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
+                argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
+                globalOptions As IGlobalOptionService) As AbstractSnippetExpansionClient
 
             Dim expansionClient As AbstractSnippetExpansionClient = Nothing
 
             If Not textView.Properties.TryGetProperty(GetType(AbstractSnippetExpansionClient), expansionClient) Then
-                expansionClient = New SnippetExpansionClient(threadingContext, Guids.VisualBasicDebuggerLanguageId, textView, subjectBuffer, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, argumentProviders)
+                expansionClient = New SnippetExpansionClient(
+                    threadingContext,
+                    Guids.VisualBasicDebuggerLanguageId,
+                    textView,
+                    subjectBuffer,
+                    signatureHelpControllerProvider,
+                    editorCommandHandlerServiceFactory,
+                    editorAdaptersFactoryService,
+                    argumentProviders,
+                    globalOptions)
                 textView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), expansionClient)
             End If
 
@@ -99,9 +128,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
         Friend Overrides Function AddImports(
                 document As Document,
+                preferences As CodeGenerationPreferences,
                 position As Integer,
                 snippetNode As XElement,
-                placeSystemNamespaceFirst As Boolean,
                 allowInHiddenRegions As Boolean,
                 cancellationToken As CancellationToken) As Document
             Dim importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName))
@@ -124,6 +153,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             End If
 
             Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
+
+            Dim placeSystemNamespaceFirst = preferences.Options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language)
 
             Dim newRoot = CType(root, CompilationUnitSyntax).AddImportsStatements(newImportsStatements, placeSystemNamespaceFirst)
             Dim newDocument = document.WithSyntaxRoot(newRoot)

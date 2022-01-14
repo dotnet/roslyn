@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsUsingOrExternKeyword(this SyntaxToken token)
         {
             return
-                token.Kind() == SyntaxKind.UsingKeyword ||
-                token.Kind() == SyntaxKind.ExternKeyword;
+                token.Kind() is SyntaxKind.UsingKeyword or
+                SyntaxKind.ExternKeyword;
         }
 
         public static bool IsUsingKeywordInUsingDirective(this SyntaxToken token)
@@ -181,9 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                         // attributes can belong to a statement
                         var container = token.Parent.Parent;
                         if (container is StatementSyntax)
-                        {
                             return true;
-                        }
                     }
 
                     return false;
@@ -255,9 +253,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (compUnit != null)
                 {
                     if (compUnit.AttributeLists.Count > 0 && compUnit.AttributeLists.Last().GetLastToken(includeZeroWidth: true) == token)
-                    {
                         return true;
-                    }
+                }
+
+                if (token.Parent.IsKind(SyntaxKind.AttributeList))
+                {
+                    var container = token.Parent.Parent;
+                    if (container is IncompleteMemberSyntax && container.Parent is CompilationUnitSyntax)
+                        return true;
                 }
             }
 
@@ -320,8 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // #if
             // #elif
-            if (targetToken.Kind() == SyntaxKind.IfKeyword ||
-                targetToken.Kind() == SyntaxKind.ElifKeyword)
+            if (targetToken.Kind() is SyntaxKind.IfKeyword or
+                SyntaxKind.ElifKeyword)
             {
                 return true;
             }
@@ -404,8 +407,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
-            if (targetToken.Kind() == SyntaxKind.SemicolonToken ||
-                targetToken.Kind() == SyntaxKind.CloseBraceToken)
+            if (targetToken.Kind() is SyntaxKind.SemicolonToken or
+                SyntaxKind.CloseBraceToken)
             {
                 var section = targetToken.GetAncestor<SwitchSectionSyntax>();
                 if (section != null)
@@ -459,8 +462,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
-            if (targetToken.Kind() == SyntaxKind.OpenParenToken ||
-                targetToken.Kind() == SyntaxKind.CommaToken)
+            if (targetToken.Kind() is SyntaxKind.OpenParenToken or
+                SyntaxKind.CommaToken)
             {
                 if (targetToken.Parent.IsKind(SyntaxKind.ArgumentList))
                 {
@@ -561,11 +564,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   int Goo { readonly |
 
             // Consume all preceding access modifiers
-            while (targetToken.Kind() == SyntaxKind.InternalKeyword ||
-                targetToken.Kind() == SyntaxKind.PublicKeyword ||
-                targetToken.Kind() == SyntaxKind.ProtectedKeyword ||
-                targetToken.Kind() == SyntaxKind.PrivateKeyword ||
-                targetToken.Kind() == SyntaxKind.ReadOnlyKeyword)
+            while (targetToken.Kind() is SyntaxKind.InternalKeyword or
+                SyntaxKind.PublicKeyword or
+                SyntaxKind.ProtectedKeyword or
+                SyntaxKind.PrivateKeyword or
+                SyntaxKind.ReadOnlyKeyword)
             {
                 targetToken = targetToken.GetPreviousToken(includeSkipped: true);
             }
@@ -679,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsNumericTypeContext(this SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (!(token.Parent is MemberAccessExpressionSyntax memberAccessExpression))
+            if (token.Parent is not MemberAccessExpressionSyntax memberAccessExpression)
             {
                 return false;
             }
@@ -687,5 +690,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var typeInfo = semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken);
             return typeInfo.Type.IsNumericType();
         }
+
+        public static bool IsTypeNamedDynamic(this SyntaxToken token)
+            => token.Parent is IdentifierNameSyntax typedParent &&
+               SyntaxFacts.IsInTypeOnlyContext(typedParent) &&
+               token.Text == "dynamic";
     }
 }

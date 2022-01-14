@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NewBoundMustBeLast = 401,
         WRN_MainCantBeGeneric = 402,
         ERR_TypeVarCantBeNull = 403,
-        ERR_AttributeCantBeGeneric = 404,
+        // ERR_AttributeCantBeGeneric = 404,
         ERR_DuplicateBound = 405,
         ERR_ClassBoundNotFirst = 406,
         ERR_BadRetType = 407,
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_TypeParameterSameAsOuterTypeParameter = 693,
         ERR_TypeVariableSameAsParent = 694,
         ERR_UnifyingInterfaceInstantiations = 695,
-        ERR_GenericDerivingFromAttribute = 698,
+        // ERR_GenericDerivingFromAttribute = 698,
         ERR_TyVarNotFoundInConstraint = 699,
         ERR_BadBoundType = 701,
         ERR_SpecialTypeAsBound = 702,
@@ -1308,7 +1308,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DictionaryInitializerInExpressionTree = 8074,
         ERR_ExtensionCollectionElementInitializerInExpressionTree = 8075,
         ERR_UnclosedExpressionHole = 8076,
-        ERR_SingleLineCommentInExpressionHole = 8077,
+        // This is now handled by the single ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString error.
+        // ERR_SingleLineCommentInExpressionHole = 8077,
         ERR_InsufficientStack = 8078,
         ERR_UseDefViolationProperty = 8079,
         ERR_AutoPropertyMustOverrideSet = 8080,
@@ -1795,7 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotUseReducedExtensionMethodInAddressOf = 8788,
         ERR_CannotUseFunctionPointerAsFixedLocal = 8789,
 
-        ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
+        ERR_ExpressionTreeContainsPatternImplicitIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,
         WRN_GivenExpressionAlwaysMatchesPattern = 8793,
@@ -1991,6 +1992,40 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CallerArgumentExpressionAttributeSelfReferential = 8965,
         WRN_CallerArgumentExpressionParamForUnconsumedLocation = 8966,
         ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString = 8967,
+        ERR_AttrTypeArgCannotBeTypeVar = 8968,
+        // WRN_AttrDependentTypeNotAllowed = 8969, // Backed out of of warning wave 6, may be reintroduced later
+        ERR_AttrDependentTypeNotAllowed = 8970,
+        WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters = 8971,
+        ERR_LambdaWithAttributesToExpressionTree = 8972,
+
+        WRN_CompileTimeCheckedOverflow = 8973,
+        WRN_MethGrpToNonDel = 8974,
+        ERR_LambdaExplicitReturnTypeVar = 8975,
+        ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers = 8976,
+
+        // Added in VS 17.1. Technically a breaking change, but the code it breaks was already guaranteed to throw
+        // at runtime.
+        ERR_CannotUseRefInUnmanagedCallersOnly = 8977,
+
+        #endregion
+
+        #region diagnostics introduced for C# 11.0
+
+        ERR_CannotBeMadeNullable = 8978,
+        ERR_UnsupportedTypeForListPattern = 8979,
+        ERR_MisplacedSlicePattern = 8980,
+
+        WRN_LowerCaseTypeName = 8981,
+        ERR_RecordStructConstructorCallsDefaultConstructor = 8982,
+        ERR_StructHasInitializersAndNoDeclaredConstructor = 8983,
+        ERR_EncUpdateFailedDelegateTypeChanged = 8984,
+
+        ERR_IncorrectNullCheckSyntax = 8990,
+        ERR_MustNullCheckInImplementation = 8991,
+        ERR_NonNullableValueTypeIsNullChecked = 8992,
+        WRN_NullCheckedHasDefaultNull = 8993,
+        ERR_NullCheckingOnByRefParameter = 8994,
+        WRN_NullCheckingOnNullableType = 8995,
 
         #endregion
 

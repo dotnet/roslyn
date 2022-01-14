@@ -83,16 +83,18 @@ regular expression;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">Mostrar sugerencias insertadas;
+        <target state="translated">Subrayar variables reasignadas;
+Mostrar sugerencias insertadas;
 Mostrar diagnóstico para archivos cerrados;
-Colorear expresión regular; 
+Colorear expresión regular;
+ 
 Resaltar componentes relacionados bajo el cursor; 
 Informar sobre expresiones regulares no válidas;
 Habilitar análisis de la solución completa;
 Realizar el análisis de características del editor en proceso externo;
 Habilitar la navegación a orígenes descompilados;
-Directivas Using;
-Poner directivas del sistema primero cuando se organicen instrucciones Using;
+Directivas using;
+Poner directivas del sistema primero cuando se organicen instrucciones using;
 Separar grupos de directivas using;
 Sugerir directivas using para los tipos en los ensamblados de referencia;
 Sugerir directivas using para los tipos en los paquetes NuGet;
@@ -105,7 +107,7 @@ Mostrar separadores de líneas de procedimientos;
 Mostrar esquematización para construcciones a nivel de declaración;
 Mostrar esquematización para construcciones a nivel de código;
 Mostrar esquematización para regiones de preprocesador y comentarios;
-Contraer regiones cuando se contraiga a las definiciones;
+Contraer regiones cuando se contraigan las definiciones;
 Atenuación;
 Atenuar directivas using no usadas;
 Atenuar código inaccesible;
@@ -130,7 +132,8 @@ preferir propiedades automáticas;
 regex;
 expresión regular;
 Usar colores mejorados;
-Combinación de colores del editor;</target>
+Combinación de colores del editor;
+Margen de herencia;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

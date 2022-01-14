@@ -14,11 +14,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -100,6 +100,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }
 
             AssertEx.Equal(Array.Empty<SyntaxKind>(), unhandledKinds);
+        }
+
+        private static async Task<DocumentAnalysisResults> AnalyzeDocumentAsync(
+            Project oldProject,
+            Document newDocument,
+            ActiveStatementsMap activeStatementMap = null,
+            EditAndContinueCapabilities capabilities = EditAndContinueTestHelpers.Net5RuntimeCapabilities)
+        {
+            var analyzer = new CSharpEditAndContinueAnalyzer();
+            var baseActiveStatements = AsyncLazy.Create(activeStatementMap ?? ActiveStatementsMap.Empty);
+            var lazyCapabilities = AsyncLazy.Create(capabilities);
+            return await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<LinePositionSpan>.Empty, lazyCapabilities, CancellationToken.None);
         }
 
         #endregion
@@ -295,15 +307,13 @@ class C
                     KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
                         new ActiveStatement(
                             ordinal: 0,
-                            ActiveStatementFlags.IsLeafFrame,
+                            ActiveStatementFlags.LeafFrame,
                             new SourceFileSpan(newDocument.FilePath, oldStatementSpan),
                             instructionId: default)))
                 }),
                 ActiveStatementsMap.Empty.InstructionMap);
 
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<LinePositionSpan>.Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, newDocument, baseActiveStatements);
 
             Assert.True(result.HasChanges);
 
@@ -347,10 +357,7 @@ class C
             var documentId = oldDocument.Id;
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
-            var baseActiveStatements = ActiveStatementsMap.Empty;
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray<LinePositionSpan>.Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId));
 
             Assert.True(result.HasChanges);
             Assert.True(result.HasChangesAndErrors);
@@ -373,10 +380,8 @@ class C
             using var workspace = TestWorkspace.CreateCSharp(source, composition: s_composition);
             var oldProject = workspace.CurrentSolution.Projects.Single();
             var oldDocument = oldProject.Documents.Single();
-            var baseActiveStatements = ActiveStatementsMap.Empty;
-            var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, oldDocument, ImmutableArray<LinePositionSpan>.Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, oldDocument);
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
@@ -414,10 +419,7 @@ class C
 
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
-            var baseActiveStatements = ActiveStatementsMap.Empty;
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray<LinePositionSpan>.Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId));
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
@@ -447,10 +449,7 @@ class C
             var oldDocument = oldProject.Documents.Single();
             var documentId = oldDocument.Id;
 
-            var baseActiveStatements = ActiveStatementsMap.Empty;
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, oldDocument, ImmutableArray<LinePositionSpan>.Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, oldDocument);
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
@@ -498,10 +497,7 @@ class C
 
                 var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
-                var baseActiveStatements = ActiveStatementsMap.Empty;
-                var analyzer = new CSharpEditAndContinueAnalyzer();
-
-                var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray<LinePositionSpan>.Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None);
+                var result = await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId));
 
                 Assert.True(result.HasChanges);
                 Assert.True(result.HasChangesAndErrors);
@@ -531,10 +527,7 @@ class C
             var oldDocument = oldProject.Documents.Single();
             var documentId = oldDocument.Id;
 
-            var baseActiveStatements = ActiveStatementsMap.Empty;
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, oldDocument, ImmutableArray<LinePositionSpan>.Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, oldDocument);
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
@@ -574,10 +567,7 @@ class C
 
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
-            var baseActiveStatements = ActiveStatementsMap.Empty;
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray<LinePositionSpan>.Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId));
 
             Assert.True(result.HasChanges);
 
@@ -617,10 +607,7 @@ class C
 
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
-            var baseActiveStatements = ActiveStatementsMap.Empty;
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray<LinePositionSpan>.Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId));
 
             Assert.True(result.HasChanges);
 
@@ -672,12 +659,9 @@ namespace N
             var changedDocuments = changes.GetChangedDocuments().Concat(changes.GetAddedDocuments());
 
             var result = new List<DocumentAnalysisResults>();
-            var baseActiveStatements = ActiveStatementsMap.Empty;
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
             foreach (var changedDocumentId in changedDocuments)
             {
-                result.Add(await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newProject.GetDocument(changedDocumentId), ImmutableArray<LinePositionSpan>.Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None));
+                result.Add(await AnalyzeDocumentAsync(oldProject, newProject.GetDocument(changedDocumentId)));
             }
 
             Assert.True(result.IsSingle());
@@ -724,12 +708,9 @@ class D
             var changedDocuments = changes.GetChangedDocuments().Concat(changes.GetAddedDocuments());
 
             var result = new List<DocumentAnalysisResults>();
-            var baseActiveStatements = ActiveStatementsMap.Empty;
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
             foreach (var changedDocumentId in changedDocuments)
             {
-                result.Add(await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newProject.GetDocument(changedDocumentId), ImmutableArray<LinePositionSpan>.Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None));
+                result.Add(await AnalyzeDocumentAsync(oldProject, newProject.GetDocument(changedDocumentId)));
             }
 
             Assert.True(result.IsSingle());
@@ -753,7 +734,8 @@ class D
 
             workspace.TryApplyChanges(newSolution);
 
-            var baseActiveStatements = ActiveStatementsMap.Empty;
+            var baseActiveStatements = AsyncLazy.Create(ActiveStatementsMap.Empty);
+            var capabilities = AsyncLazy.Create(EditAndContinueTestHelpers.Net5RuntimeCapabilities);
 
             var analyzer = new CSharpEditAndContinueAnalyzer(node =>
             {
@@ -763,7 +745,7 @@ class D
                 }
             });
 
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<LinePositionSpan>.Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None);
+            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<LinePositionSpan>.Empty, capabilities, CancellationToken.None);
 
             var expectedDiagnostic = outOfMemory ?
                 $"ENC0089: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big, "src.cs")}" :
@@ -805,11 +787,7 @@ class C
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
             var newDocument = newSolution.GetDocument(documentId);
 
-            var analyzer = new CSharpEditAndContinueAnalyzer();
-
-            var capabilities = EditAndContinueCapabilities.None;
-
-            var result = await analyzer.AnalyzeDocumentAsync(oldProject, ActiveStatementsMap.Empty, newDocument, ImmutableArray<LinePositionSpan>.Empty, capabilities, CancellationToken.None);
+            var result = await AnalyzeDocumentAsync(oldProject, newDocument, capabilities: EditAndContinueCapabilities.None);
 
             Assert.Equal(RudeEditKind.NotSupportedByRuntime, result.RudeEditErrors.Single().Kind);
         }

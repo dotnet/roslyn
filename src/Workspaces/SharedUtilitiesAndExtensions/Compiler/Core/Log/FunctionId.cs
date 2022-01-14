@@ -189,7 +189,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Snippet_OnAfterInsertion = 155,
 
         Misc_NonReentrantLock_BlockingWait = 156,
-        Misc_VisualStudioWaitIndicator_Wait = 157,
         Misc_SaveEventsSink_OnBeforeSave = 158,
 
         TaskList_Refresh = 159,
@@ -495,7 +494,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         DependentTypeFinder_FindAndCacheImplementingTypesAsync = 432,
 
         RemoteSemanticClassificationCacheService_ExceptionInCacheRead = 440,
-        FeatureNotAvailable = 441,
+        // obsolete: FeatureNotAvailable = 441,
 
         LSPCompletion_MissingLSPCompletionTriggerKind = 450,
         LSPCompletion_MissingLSPCompletionInvokeKind = 451,
@@ -521,11 +520,24 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         VS_ErrorReportingService_ShowGlobalErrorInfo = 489,
 
-        ValueTracking_Command = 490,
-        ValueTracking_TrackValueSource = 491,
+        UnusedReferences_GetUnusedReferences = 490,
 
-        InheritanceMargin_GetInheritanceMemberItems = 492,
+        ValueTracking_Command = 491,
+        ValueTracking_TrackValueSource = 492,
 
-        LSP_FindDocumentInWorkspace = 493,
+        InheritanceMargin_GetInheritanceMemberItems = 493,
+
+        LSP_FindDocumentInWorkspace = 494,
+
+        SuggestedActions_GetSuggestedActionsAsync = 500,
+
+        NavigateTo_CacheItemsMiss = 510,
+
+        AssetService_Perf = 520,
+
+        Inline_Hints_DoubleClick = 530,
+        NavigateToExternalSources = 531,
+
+        StackTraceToolWindow_ShowOnActivated = 540,
     }
 }

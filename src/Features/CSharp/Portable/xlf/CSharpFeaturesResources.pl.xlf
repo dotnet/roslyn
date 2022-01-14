@@ -122,6 +122,11 @@
         <target state="translated">Zadeklaruj jako dopuszczający wartość null</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_project">
+        <source>Enable nullable reference types in project</source>
+        <target state="translated">Włącz typy referencyjne dopuszczające wartości null w projekcie</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
         <target state="translated">Napraw zwracany typ</target>
@@ -136,11 +141,6 @@
         <source>Conflict(s) detected.</source>
         <target state="translated">Wykryto konflikty.</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Make_container_async">
-        <source>Make container 'async'</source>
-        <target state="new">Make container 'async'</target>
-        <note>{Locked="async"} "async" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
@@ -167,6 +167,16 @@
         <target state="translated">Odwróć instrukcję „for”</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Selection_cannot_include_global_statements">
+        <source>Selection cannot include global statements</source>
+        <target state="translated">Zaznaczenie nie może zawierać instrukcji globalnych</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_cannot_include_top_level_statements">
+        <source>Selection cannot include top-level statements</source>
+        <target state="translated">Zaznaczenie nie może zawierać instrukcji najwyższego poziomu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>
         <target state="translated">Uprość wyrażenie lambda</target>
@@ -185,6 +195,16 @@
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="translated">Odpieczętuj klasę „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="translated">Używanie wzorców rekursywnych</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Expression_may_change_code_meaning">
+        <source>Warning: Expression may have side effects. Code meaning may change.</source>
+        <target state="translated">Ostrzeżenie: wyrażenie może mieć efekty uboczne. Znaczenie kodu może ulec zmianie.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -302,21 +322,6 @@
         <target state="translated">Nieprawidłowe zaznaczenie.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">Zaznaczenie nie zawiera prawidłowego tokenu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">Brak prawidłowego zaznaczenia do wyodrębnienia.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">Brak wspólnego węzła głównego do wyodrębnienia.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Contains_invalid_selection">
         <source>Contains invalid selection.</source>
         <target state="translated">Zawiera nieprawidłowe zaznaczenie.</target>
@@ -424,7 +429,7 @@
       </trans-unit>
       <trans-unit id="record_struct">
         <source>record struct</source>
-        <target state="new">record struct</target>
+        <target state="translated">struktura rekordów</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

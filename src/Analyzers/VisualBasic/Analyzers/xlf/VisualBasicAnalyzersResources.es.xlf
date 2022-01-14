@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Object_creation_can_be_simplified">
         <source>Object creation can be simplified</source>
-        <target state="translated">Se pueden simplificar las creaciones de objetos</target>
+        <target state="translated">Las creaciones de objetos se pueden simplificar</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_ByVal">

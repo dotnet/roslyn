@@ -24,9 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 foreach (var node in context.InputNodes)
                 {
                     var symbol = graphBuilder.GetSymbol(node, cancellationToken);
-                    if (symbol is IMethodSymbol ||
-                        symbol is IPropertySymbol ||
-                        symbol is IEventSymbol)
+                    if (symbol is IMethodSymbol or
+                        IPropertySymbol or
+                        IEventSymbol)
                     {
                         var overrides = await SymbolFinder.FindOverridesAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
                         foreach (var o in overrides)

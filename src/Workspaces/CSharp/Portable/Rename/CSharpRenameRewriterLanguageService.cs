@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
 
                 var isInConflictLambdaBody = false;
-                var lambdas = node.GetAncestorsOrThis(n => n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax);
+                var lambdas = node.GetAncestorsOrThis(n => n is SimpleLambdaExpressionSyntax or ParenthesizedLambdaExpressionSyntax);
                 if (lambdas.Count() != 0)
                 {
                     foreach (var lambda in lambdas)
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 RoslynDebug.Assert(_speculativeModel != null, "expanding a syntax node which cannot be speculated?");
 
                 var oldSpan = originalNode.Span;
-                var expandParameter = originalNode.GetAncestorsOrThis(n => n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax).Count() == 0;
+                var expandParameter = originalNode.GetAncestorsOrThis(n => n is SimpleLambdaExpressionSyntax or ParenthesizedLambdaExpressionSyntax).Count() == 0;
 
                 newNode = _simplificationService.Expand(newNode,
                                                                     _speculativeModel,
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         return newToken;
                     }
 
-                    var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace, _cancellationToken);
+                    var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace.Services, _cancellationToken);
 
                     string? suffix = null;
                     var prefix = isRenameLocation && _renameLocations[token.Span].IsRenamableAccessor
@@ -811,9 +811,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     AddSymbolSourceSpans(conflicts, SpecializedCollections.SingletonEnumerable(containingNamedType), reverseMappedLocations);
                 }
 
-                if (renamedSymbol.Kind == SymbolKind.Parameter ||
-                    renamedSymbol.Kind == SymbolKind.Local ||
-                    renamedSymbol.Kind == SymbolKind.RangeVariable)
+                if (renamedSymbol.Kind is SymbolKind.Parameter or
+                    SymbolKind.Local or
+                    SymbolKind.RangeVariable)
                 {
                     var token = renamedSymbol.Locations.Single().FindToken(cancellationToken);
                     var memberDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
@@ -1159,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             // System.Func<int, int> myFunc = arg => X;
             var possibleLambdaExpression = enclosingStatement == null
-                ? token.GetAncestors(n => n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax).FirstOrDefault()
+                ? token.GetAncestors(n => n is SimpleLambdaExpressionSyntax or ParenthesizedLambdaExpressionSyntax).FirstOrDefault()
                 : null;
             if (possibleLambdaExpression != null)
             {

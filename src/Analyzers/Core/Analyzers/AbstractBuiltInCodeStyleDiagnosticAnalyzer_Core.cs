@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _localizableMessageFormat = Descriptor.MessageFormat;
         }
 
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected static DiagnosticDescriptor CreateDescriptorWithId(

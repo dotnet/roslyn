@@ -47,10 +47,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                     return CreateForType(typeSymbol, project, compilation, useExpandedHierarchy);
             }
 
-            if (symbol.Kind == SymbolKind.Event ||
-                symbol.Kind == SymbolKind.Field ||
-                symbol.Kind == SymbolKind.Method ||
-                symbol.Kind == SymbolKind.Property)
+            if (symbol.Kind is SymbolKind.Event or
+                SymbolKind.Field or
+                SymbolKind.Method or
+                SymbolKind.Property)
             {
                 return CreateForMember(symbol, project, compilation, useExpandedHierarchy);
             }
@@ -95,10 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
             typeSymbol = typeSymbol.OriginalDefinition;
 
-            if (typeSymbol.TypeKind == TypeKind.Error ||
-                typeSymbol.TypeKind == TypeKind.Unknown ||
-                typeSymbol.TypeKind == TypeKind.Dynamic ||
-                typeSymbol.TypeKind == TypeKind.TypeParameter)
+            if (typeSymbol.TypeKind is TypeKind.Error or
+                TypeKind.Unknown or
+                TypeKind.Dynamic or
+                TypeKind.TypeParameter)
             {
                 return null;
             }
@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         {
             var result = project.Name;
 
-            if (!(project.Solution.Workspace is VisualStudioWorkspace workspace))
+            if (project.Solution.Workspace is not VisualStudioWorkspace workspace)
             {
                 return result;
             }
@@ -197,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                 var builder = SharedPools.Default<StringBuilder>().AllocateAndClear();
                 builder.Append(result);
 
-                while (parentHierarchy != null && !(parentHierarchy is IVsSolution))
+                while (parentHierarchy is not null and not IVsSolution)
                 {
                     if (parentHierarchy.TryGetName(out var parentName))
                     {

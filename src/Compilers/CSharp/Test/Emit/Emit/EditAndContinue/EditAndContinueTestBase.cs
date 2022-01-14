@@ -129,6 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return null;
         }
 
+        internal static SemanticEditDescription Edit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider)
+            => new(kind, symbolProvider);
+
         internal static EditAndContinueLogEntry Row(int rowNumber, TableIndex table, EditAndContinueOperation operation)
         {
             return new EditAndContinueLogEntry(MetadataTokens.Handle(table, rowNumber), operation);
@@ -139,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return MetadataTokens.Handle(table, rowNumber);
         }
 
-        private static bool IsDefinition(HandleKind kind)
+        internal static bool IsDefinition(HandleKind kind)
             => kind is not (HandleKind.AssemblyReference or HandleKind.ModuleReference or HandleKind.TypeReference or HandleKind.MemberReference or HandleKind.TypeSpecification or HandleKind.MethodSpecification);
 
         internal static void CheckEncLog(MetadataReader reader, params EditAndContinueLogEntry[] rows)
@@ -273,7 +276,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         internal static CSharpCompilation WithSource(this CSharpCompilation compilation, CSharpTestSource newSource)
         {
-            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newSource.GetSyntaxTrees(TestOptions.Regular));
+            var previousParseOptions = (CSharpParseOptions)compilation.SyntaxTrees.FirstOrDefault()?.Options;
+            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newSource.GetSyntaxTrees(previousParseOptions));
         }
 
         internal static CSharpCompilation WithSource(this CSharpCompilation compilation, SyntaxTree newTree)

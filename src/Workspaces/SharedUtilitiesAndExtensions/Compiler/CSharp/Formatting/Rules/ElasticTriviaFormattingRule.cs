@@ -191,8 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (previousMember.Kind() == nextMember.Kind())
             {
                 // Easy cases:
-                if (previousMember.Kind() == SyntaxKind.FieldDeclaration ||
-                    previousMember.Kind() == SyntaxKind.EventFieldDeclaration)
+                if (previousMember.Kind() is SyntaxKind.FieldDeclaration or
+                    SyntaxKind.EventFieldDeclaration)
                 {
                     // Ensure that fields and events are each declared on a separate line.
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return currentToken.Kind() != SyntaxKind.IfKeyword ? 1 : 0;
 
                 case SyntaxKind.ColonToken:
-                    if (previousToken.Parent is LabeledStatementSyntax || previousToken.Parent is SwitchLabelSyntax)
+                    if (previousToken.Parent is LabeledStatementSyntax or SwitchLabelSyntax)
                     {
                         return 1;
                     }
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             if (parent.Target.Identifier == SyntaxFactory.Token(SyntaxKind.AssemblyKeyword) ||
                                 parent.Target.Identifier == SyntaxFactory.Token(SyntaxKind.ModuleKeyword))
                             {
-                                if (!(previousToken.Parent is AttributeListSyntax))
+                                if (previousToken.Parent is not AttributeListSyntax)
                                 {
                                     return 2;
                                 }
@@ -409,9 +409,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return 1;
             }
             else if (
-                nextToken.Kind() == SyntaxKind.CatchKeyword ||
-                nextToken.Kind() == SyntaxKind.FinallyKeyword ||
-                nextToken.Kind() == SyntaxKind.ElseKeyword)
+                nextToken.Kind() is SyntaxKind.CatchKeyword or
+                SyntaxKind.FinallyKeyword or
+                SyntaxKind.ElseKeyword)
             {
                 return 1;
             }
@@ -461,8 +461,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static bool IsWhitespace(SyntaxTrivia trivia)
         {
-            return trivia.Kind() == SyntaxKind.WhitespaceTrivia
-                || trivia.Kind() == SyntaxKind.EndOfLineTrivia;
+            return trivia.Kind() is SyntaxKind.WhitespaceTrivia
+                or SyntaxKind.EndOfLineTrivia;
         }
 
         private static int GetNumberOfLines(IEnumerable<SyntaxTrivia> triviaList)

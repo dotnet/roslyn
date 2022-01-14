@@ -332,21 +332,6 @@
         <target state="translated">Selección no válida</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_doesn_t_contain_any_valid_token">
-        <source>Selection doesn't contain any valid token</source>
-        <target state="translated">Selection no contiene ningún token válido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction</source>
-        <target state="translated">Ninguna selección válida para realizar la extracción</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction</source>
-        <target state="translated">No hay nodo raíz común para la extracción.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deprecated">
         <source>Deprecated</source>
         <target state="translated">En desuso</target>
@@ -967,11 +952,6 @@ Iterator Function(&lt;listaDeParámetros&gt;) As IEnumerable(Of &lt;T&gt;)</targ
         <target state="translated">Especifica el criterio de ordenación de una cláusula Order By en una consulta. Aparece primero el elemento más pequeño.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
-        <source>Asynchronously waits for the task to finish.</source>
-        <target state="translated">Espera de forma asincrónica a que termine la tarea.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order">
         <source>Sets the string comparison method specified in Option Compare to a strict binary sort order.</source>
         <target state="translated">Establece el método de comparación de cadenas especificado en Option Compare en un criterio de ordenación binario estricto.</target>
@@ -1489,7 +1469,7 @@ Function(&lt;listaDeParámetros&gt;) &lt;expresión&gt;</target>
         <source>Defines a lambda expression that can execute statements and does not return a value. Can be used wherever a delegate type is expected.
 Sub(&lt;parameterList&gt;) &lt;statement&gt;</source>
         <target state="translated">Define una expresión lambda que puede ejecutar instrucciones y no devuelve un valor. Se puede usar dondequiera que se espere un tipo de delegado.
-Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
+Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;wo laopo fuke</target>
         <note />
       </trans-unit>
       <trans-unit id="Disables_reporting_of_specified_warnings_in_the_portion_of_the_source_file_below_the_current_line">
@@ -1739,7 +1719,7 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
       </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;nombre del espacio de nombres&gt;</target>
+        <target state="translated">&lt;nombre de espacio de nombres&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_namespace">
@@ -1754,12 +1734,12 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;nombre de clase&gt;</target>
+        <target state="translated">&lt;nombre de la clase&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;nombre de interfaz&gt;</target>
+        <target state="translated">&lt;nombre de la interfaz&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="module_name">

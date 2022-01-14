@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 foreach (var reference in compilation.References)
                 {
-                    if (!(reference is PortableExecutableReference peReference))
+                    if (reference is not PortableExecutableReference peReference)
                         continue;
 
                     cancellationToken.ThrowIfCancellationRequested();

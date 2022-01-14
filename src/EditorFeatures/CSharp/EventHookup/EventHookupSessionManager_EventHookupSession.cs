@@ -114,7 +114,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 {
                     var position = textView.GetCaretPoint(subjectBuffer).Value.Position;
                     _trackingPoint = textView.TextSnapshot.CreateTrackingPoint(position, PointTrackingMode.Negative);
-                    _trackingSpan = textView.TextSnapshot.CreateTrackingSpan(new Span(position, 1), SpanTrackingMode.EdgeInclusive);
+
+                    // If the caret is at the end of the document we just create an empty span
+                    var length = textView.TextSnapshot.Length > position + 1 ? 1 : 0;
+                    _trackingSpan = textView.TextSnapshot.CreateTrackingSpan(new Span(position, length), SpanTrackingMode.EdgeInclusive);
 
                     var asyncToken = asyncListener.BeginAsyncOperation(GetType().Name + ".Start");
 
@@ -208,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             private IEventSymbol GetEventSymbol(SemanticModel semanticModel, SyntaxToken plusEqualsToken, CancellationToken cancellationToken)
             {
                 AssertIsBackground();
-                if (!(plusEqualsToken.Parent is AssignmentExpressionSyntax parentToken))
+                if (plusEqualsToken.Parent is not AssignmentExpressionSyntax parentToken)
                 {
                     return null;
                 }

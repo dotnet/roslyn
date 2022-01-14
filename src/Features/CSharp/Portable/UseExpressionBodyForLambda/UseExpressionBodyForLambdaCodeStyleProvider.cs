@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             => declaration.Body as ExpressionSyntax;
 
         private static bool CanOfferUseExpressionBody(
-            ExpressionBodyPreference preference, LambdaExpressionSyntax declaration)
+            ExpressionBodyPreference preference, LambdaExpressionSyntax declaration, LanguageVersion languageVersion)
         {
             var userPrefersExpressionBodies = preference != ExpressionBodyPreference.Never;
             if (!userPrefersExpressionBodies)
@@ -64,20 +64,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
             // They don't have an expression body.  See if we could convert the block they 
             // have into one.
-            var options = declaration.SyntaxTree.Options;
-            return TryConvertToExpressionBody(declaration, options, preference, out _, out _);
+            return TryConvertToExpressionBody(declaration, languageVersion, preference, out _, out _);
         }
 
         private static bool TryConvertToExpressionBody(
             LambdaExpressionSyntax declaration,
-            ParseOptions options, ExpressionBodyPreference conversionPreference,
-            out ExpressionSyntax expression, out SyntaxToken semicolon)
+            LanguageVersion languageVersion,
+            ExpressionBodyPreference conversionPreference,
+            out ExpressionSyntax expression,
+            out SyntaxToken semicolon)
         {
             var body = declaration.Body as BlockSyntax;
 
-            return body.TryConvertToExpressionBody(
-                options, conversionPreference,
-                out expression, out semicolon);
+            return body.TryConvertToExpressionBody(languageVersion, conversionPreference, out expression, out semicolon);
         }
 
         private static bool CanOfferUseBlockBody(
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             // able to create the right sort of block body (i.e. with a return-statement or
             // expr-statement).  So, if we can't figure out what lambda type this is, we should not
             // proceed.
-            if (!(semanticModel.GetTypeInfo(declaration, cancellationToken).ConvertedType is INamedTypeSymbol lambdaType) || lambdaType.DelegateInvokeMethod == null)
+            if (semanticModel.GetTypeInfo(declaration, cancellationToken).ConvertedType is not INamedTypeSymbol lambdaType || lambdaType.DelegateInvokeMethod == null)
             {
                 return false;
             }
@@ -134,15 +133,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         {
             var expressionBody = GetBodyAsExpression(currentDeclaration);
             return expressionBody == null
-                ? WithExpressionBody(currentDeclaration)
+                ? WithExpressionBody(currentDeclaration, originalDeclaration.GetLanguageVersion())
                 : WithBlockBody(semanticModel, originalDeclaration, currentDeclaration);
         }
 
-        private static LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration)
+        private static LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration, LanguageVersion languageVersion)
         {
-            if (!TryConvertToExpressionBody(
-                    declaration, declaration.SyntaxTree.Options, ExpressionBodyPreference.WhenPossible,
-                    out var expressionBody, out _))
+            if (!TryConvertToExpressionBody(declaration, languageVersion, ExpressionBodyPreference.WhenPossible, out var expressionBody, out _))
             {
                 return declaration;
             }

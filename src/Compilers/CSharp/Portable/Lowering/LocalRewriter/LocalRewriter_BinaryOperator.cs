@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -111,6 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression VisitBinaryOperator(BoundBinaryOperator node, BoundUnaryOperator? applyParentUnaryOperator)
         {
+            if (node.InterpolatedStringHandlerData is InterpolatedStringHandlerData data)
+            {
+                Debug.Assert(node.Type.SpecialType == SpecialType.System_String, "Non-string binary addition should have been handled by VisitConversion or VisitArguments");
+                ImmutableArray<BoundExpression> parts = CollectBinaryOperatorInterpolatedStringParts(node);
+                return LowerPartsToString(data, parts, node.Syntax, node.Type);
+            }
+
             // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
             // such as a + b + c + d ...
             // To avoid blowing the call stack, we make an explicit stack of the binary operators to the left, 
@@ -120,6 +126,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (BoundBinaryOperator? current = node; current != null && current.ConstantValue == null; current = current.Left as BoundBinaryOperator)
             {
+                // The regular visit mechanism will handle this.
+                if (current.InterpolatedStringHandlerData is not null)
+                {
+                    Debug.Assert(stack.Count >= 1);
+                    break;
+                }
+
                 stack.Push(current);
             }
 
@@ -134,6 +147,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             stack.Free();
             return loweredLeft;
+        }
+
+        private static ImmutableArray<BoundExpression> CollectBinaryOperatorInterpolatedStringParts(BoundBinaryOperator node)
+        {
+            Debug.Assert(node.OperatorKind == BinaryOperatorKind.StringConcatenation);
+            Debug.Assert(node.InterpolatedStringHandlerData is not null);
+            var partsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+            node.VisitBinaryOperatorInterpolatedString(partsBuilder,
+                static (BoundInterpolatedString interpolatedString, ArrayBuilder<BoundExpression> partsBuilder) =>
+                {
+                    partsBuilder.AddRange(interpolatedString.Parts);
+                    return true;
+                });
+            return partsBuilder.ToImmutableAndFree();
         }
 
         private BoundExpression MakeBinaryOperator(
@@ -216,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BinaryOperatorKind.NullableNullEqual:
                     case BinaryOperatorKind.NullableNullNotEqual:
-                        return RewriteNullableNullEquality(syntax, operatorKind, loweredLeft, loweredRight, type);
+                        return _factory.RewriteNullableNullEquality(syntax, operatorKind, loweredLeft, loweredRight, type);
 
                     case BinaryOperatorKind.ObjectAndStringConcatenation:
                     case BinaryOperatorKind.StringAndObjectConcatenation:
@@ -690,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(leftTruthOperator == null);
 
-                var converted = MakeConversionNode(loweredLeft, boolean, @checked: false);
+                var converted = MakeConversionNode(loweredLeft, boolean, @checked: false, markAsChecked: true); // The conversion was checked in binding
                 if (negative)
                 {
                     return new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, converted, ConstantValue.NotAvailable, MethodSymbol.None, constrainedToTypeOpt: null, LookupResultKind.Viable, boolean)
@@ -807,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (operatorKind == BinaryOperatorKind.Equal || operatorKind == BinaryOperatorKind.NotEqual)
                 {
-                    BoundExpression callHasValue = MakeNullableHasValue(syntax, maybeNull);
+                    BoundExpression callHasValue = _factory.MakeNullableHasValue(syntax, maybeNull);
                     BoundExpression result = operatorKind == BinaryOperatorKind.Equal ?
                         MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, method: null, constrainedToTypeOpt: null, callHasValue, boolType) :
                         callHasValue;
@@ -850,7 +877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so return constant true.
             if (expression.Type.IsNullableType())
             {
-                return MakeNullableHasValue(syntax, expression);
+                return _factory.MakeNullableHasValue(syntax, expression);
             }
 
             return MakeBooleanConstant(syntax, true);
@@ -1712,7 +1739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // tempy.GetValueOrDefault()
             BoundExpression callY_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTempY, getValueOrDefaultY);
             // tempx.HasValue
-            BoundExpression callX_HasValue = MakeNullableHasValue(syntax, boundTempX);
+            BoundExpression callX_HasValue = _factory.MakeNullableHasValue(syntax, boundTempX);
 
             // (tempy.GetValueOrDefault || tempx.HasValue)
             BoundExpression innerOr = MakeBinaryOperator(
@@ -1772,7 +1799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Recommendation: Do not use, use <see cref="TryGetNullableMethod"/> instead! 
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
-        private static MethodSymbol UnsafeGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
+        internal static MethodSymbol UnsafeGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             var nullableType2 = nullableType as NamedTypeSymbol;
             Debug.Assert(nullableType2 is { });

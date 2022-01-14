@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -21,9 +22,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public SynthesizedRecordPrintMembers(
             SourceMemberContainerTypeSymbol containingType,
+            IEnumerable<Symbol> userDefinedMembers,
             int memberOffset,
             BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.PrintMembersMethodName, hasBody: true, memberOffset, diagnostics)
+            : base(
+                  containingType,
+                  WellKnownMemberNames.PrintMembersMethodName,
+                  isReadOnly: IsReadOnly(containingType, userDefinedMembers),
+                  hasBody: true,
+                  memberOffset: memberOffset,
+                  diagnostics)
         {
         }
 
@@ -232,12 +240,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool isPrintable(Symbol m)
             {
-                if (m.DeclaredAccessibility != Accessibility.Public || m.IsStatic)
+                if (!IsPublicInstanceMember(m))
                 {
                     return false;
                 }
 
-                if (m.Kind is SymbolKind.Field)
+                if (m.Kind is SymbolKind.Field && m is not TupleErrorFieldSymbol)
                 {
                     return true;
                 }
@@ -245,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (m.Kind is SymbolKind.Property)
                 {
                     var property = (PropertySymbol)m;
-                    return !property.IsIndexer && !property.IsOverride && property.GetMethod is not null;
+                    return IsPrintableProperty(property);
                 }
 
                 return false;
@@ -281,6 +289,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseMethod, overriding.Locations[0], overriding, baseType);
             }
+        }
+
+        private static bool IsReadOnly(NamedTypeSymbol containingType, IEnumerable<Symbol> userDefinedMembers)
+        {
+            return containingType.IsReadOnly || (containingType.IsRecordStruct && AreAllPrintablePropertyGettersReadOnly(userDefinedMembers));
+        }
+
+        private static bool AreAllPrintablePropertyGettersReadOnly(IEnumerable<Symbol> members)
+        {
+            foreach (var member in members)
+            {
+                if (member.Kind != SymbolKind.Property)
+                {
+                    continue;
+                }
+
+                var property = (PropertySymbol)member;
+                if (!IsPublicInstanceMember(property) || !IsPrintableProperty(property))
+                {
+                    continue;
+                }
+
+                var getterMethod = property.GetMethod;
+                if (property.GetMethod is not null && !getterMethod.IsEffectivelyReadOnly)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool IsPublicInstanceMember(Symbol m)
+        {
+            return m.DeclaredAccessibility == Accessibility.Public && !m.IsStatic;
+        }
+
+        private static bool IsPrintableProperty(PropertySymbol property)
+        {
+            return !property.IsIndexer && !property.IsOverride && property.GetMethod is not null;
         }
     }
 }

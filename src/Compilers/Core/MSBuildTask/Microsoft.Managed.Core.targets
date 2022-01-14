@@ -6,6 +6,8 @@
   -->
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.MapSourceRoots" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
+  <Import Project="Microsoft.Managed.Core.CurrentVersions.targets" />
+
   <Target Name="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies"
           BeforeTargets="CoreCompile"
           Condition="'@(ReferencePathWithRefAssemblies)' == ''">
@@ -81,7 +83,7 @@
     </PropertyGroup>
 
     <!-- PERF: For builds which are indirectly triggered inside Visual Studio from commands 
-               such as from 'Run Tests' or 'Start Debugging', we implicitly skip analyzers to speed up the build.
+               such as from 'Run Tests' or 'Start Debugging', we implicitly skip analyzers and nullable analysis to speed up the build.
                We only do so by default when 'TreatWarningsAsErrors' is not 'true'. For the scenario where
 			         'TreatWarningsAsErrors' is 'true', users can explicitly enable this functionality by setting
 			         'OptimizeImplicitlyTriggeredBuild' to 'true'.
@@ -93,6 +95,7 @@
                               ('$(TreatWarningsAsErrors)' != 'true' or '$(OptimizeImplicitlyTriggeredBuild)' == 'true')">
       <_ImplicitlySkipAnalyzers>true</_ImplicitlySkipAnalyzers>
       <_SkipAnalyzers>true</_SkipAnalyzers>
+      <Features>run-nullable-analysis=never;$(Features)</Features>
     </PropertyGroup>
 
     <!-- Display a message to inform the users about us implicitly skipping analyzers for speeding up indirect builds. -->
@@ -107,8 +110,8 @@
 	       Additionally, we need to pass this file as an 'UpToDateCheckInput' item with 'Kind = ImplicitBuild' for project system's fast-upto-date check to work correctly.
 		     See https://github.com/dotnet/project-system/issues/7290 for details.
 	  -->
-    <ItemGroup Condition="Exists('$(_LastBuildWithSkipAnalyzers)')">
-      <CustomAdditionalCompileInputs Include="$(_LastBuildWithSkipAnalyzers)" Condition="'$(_SkipAnalyzers)' != 'true'"/>
+    <ItemGroup Condition="Exists('$(_LastBuildWithSkipAnalyzers)') and '$(_SkipAnalyzers)' != 'true'">
+      <CustomAdditionalCompileInputs Include="$(_LastBuildWithSkipAnalyzers)"/>
       <UpToDateCheckInput Include="$(_LastBuildWithSkipAnalyzers)" Kind="ImplicitBuild"/>
     </ItemGroup>
   </Target>

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
@@ -20,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private DiagnosticTableItem(
             Workspace workspace,
             DiagnosticData data,
-            string projectName,
+            string? projectName,
             Guid projectGuid,
             string[] projectNames,
             Guid[] projectGuids)
@@ -39,21 +37,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public override TableItem WithAggregatedData(string[] projectNames, Guid[] projectGuids)
             => new DiagnosticTableItem(Workspace, Data, projectName: null, projectGuid: Guid.Empty, projectNames, projectGuids);
 
-        public override DocumentId DocumentId
+        public override DocumentId? DocumentId
             => Data.DocumentId;
 
-        public override ProjectId ProjectId
+        public override ProjectId? ProjectId
             => Data.ProjectId;
 
         public override LinePosition GetOriginalPosition()
             => new(Data.DataLocation?.OriginalStartLine ?? 0, Data.DataLocation?.OriginalStartColumn ?? 0);
 
-        public override string GetOriginalFilePath()
+        public override string? GetOriginalFilePath()
             => Data.DataLocation?.OriginalFilePath;
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
-            if (!(other is DiagnosticTableItem otherDiagnosticItem))
+            if (other is not DiagnosticTableItem otherDiagnosticItem)
             {
                 return false;
             }

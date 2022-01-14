@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Contract.ThrowIfNull(interfacesOrAbstractClasses);
             Contract.ThrowIfNull(isImplemented);
 
-            if (classOrStructType.TypeKind != TypeKind.Class && classOrStructType.TypeKind != TypeKind.Struct)
+            if (classOrStructType.TypeKind is not TypeKind.Class and not TypeKind.Struct)
             {
                 return ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
             }
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 !containingType.IsImplicitClass &&
                 !containingType.IsStatic)
             {
-                if (containingType.TypeKind == TypeKind.Class || containingType.TypeKind == TypeKind.Struct)
+                if (containingType.TypeKind is TypeKind.Class or TypeKind.Struct)
                 {
                     var baseTypes = containingType.GetBaseTypes().Reverse();
                     foreach (var type in baseTypes)

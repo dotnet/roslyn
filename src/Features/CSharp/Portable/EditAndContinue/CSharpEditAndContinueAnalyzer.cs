@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return variableDeclarator.Initializer?.Value;
             }
 
-            if (node is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
+            if (IsCompilationUnitWithGlobalStatements(node))
             {
                 // For top level statements, where there is no syntax node to represent the entire body of the synthesized
                 // main method we just use the compilation unit itself
@@ -177,31 +177,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model, SyntaxNode memberBody)
         {
-            if (memberBody is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
+            if (memberBody is CompilationUnitSyntax unit && unit.ContainsGlobalStatements())
             {
                 return model.AnalyzeDataFlow(((GlobalStatementSyntax)unit.Members[0]).Statement, unit.Members.OfType<GlobalStatementSyntax>().Last().Statement)!.Captured;
             }
 
             Debug.Assert(memberBody.IsKind(SyntaxKind.Block) || memberBody is ExpressionSyntax);
             return model.AnalyzeDataFlow(memberBody).Captured;
-        }
-
-        protected override bool AreFixedSizeBufferSizesEqual(IFieldSymbol oldField, IFieldSymbol newField, CancellationToken cancellationToken)
-        {
-            // TODO: replace with symbolic API once available (https://github.com/dotnet/roslyn/issues/54799)
-
-            Debug.Assert(oldField.IsFixedSizeBuffer);
-            Debug.Assert(oldField.DeclaringSyntaxReferences.Length == 1);
-            Debug.Assert(newField.IsFixedSizeBuffer);
-            Debug.Assert(newField.DeclaringSyntaxReferences.Length == 1);
-
-            var oldSyntax = (VariableDeclaratorSyntax)oldField.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
-            var newSyntax = (VariableDeclaratorSyntax)newField.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
-
-            Debug.Assert(oldSyntax.ArgumentList != null);
-            Debug.Assert(newSyntax.ArgumentList != null);
-
-            return AreEquivalent(oldSyntax.ArgumentList, newSyntax.ArgumentList);
         }
 
         protected override bool AreHandledEventsEqual(IMethodSymbol oldMethod, IMethodSymbol newMethod)
@@ -215,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override IEnumerable<SyntaxNode> GetVariableUseSites(IEnumerable<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken)
         {
-            Debug.Assert(localOrParameter is IParameterSymbol || localOrParameter is ILocalSymbol || localOrParameter is IRangeVariableSymbol);
+            Debug.Assert(localOrParameter is IParameterSymbol or ILocalSymbol or IRangeVariableSymbol);
 
             // not supported (it's non trivial to find all places where "this" is used):
             Debug.Assert(!localOrParameter.IsThisParameter());
@@ -243,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// If <paramref name="node"/> is a variable declarator of a field with an initializer,
         /// subset of the tokens of the field declaration depending on which variable declarator it is.
         /// 
+        /// If <paramref name="node"/> is a <see cref="CompilationUnitSyntax"/> the tokens of all its global statements.
         /// Null reference otherwise.
         /// </returns>
         internal override IEnumerable<SyntaxToken>? TryGetActiveTokens(SyntaxNode node)
@@ -286,6 +269,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             if (node is IndexerDeclarationSyntax { ExpressionBody: var indexerExpressionBody and not null })
             {
                 return indexerExpressionBody.Expression.DescendantTokens();
+            }
+
+            if (node is CompilationUnitSyntax unit && unit.ContainsGlobalStatements())
+            {
+                return unit.Members.OfType<GlobalStatementSyntax>().SelectMany(globalStatement => globalStatement.DescendantTokens());
             }
 
             var bodyTokens = SyntaxUtilities.TryGetMethodDeclarationBody(node)?.DescendantTokens();
@@ -591,8 +579,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             if (oldBody is ExpressionSyntax || newBody is ExpressionSyntax || (oldBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement) && newBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement)))
             {
-                Debug.Assert(oldBody is ExpressionSyntax || oldBody is BlockSyntax);
-                Debug.Assert(newBody is ExpressionSyntax || newBody is BlockSyntax);
+                Debug.Assert(oldBody is ExpressionSyntax or BlockSyntax);
+                Debug.Assert(newBody is ExpressionSyntax or BlockSyntax);
 
                 // The matching algorithm requires the roots to match each other.
                 // Lambda bodies, field/property initializers, and method/property/indexer/operator expression-bodies may also be lambda expressions.
@@ -673,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        internal override void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, ISymbol oldSymbol, ISymbol newSymbol, CancellationToken cancellationToken)
+        internal override void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, ISymbol oldSymbol, ISymbol newSymbol, EditAndContinueCapabilities capabilities, CancellationToken cancellationToken)
         {
             // Global statements have a declaring syntax reference to the compilation unit itself, which we can just ignore
             // for the purposes of declaration rude edits
@@ -693,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // declaration kind has changed. If it hasn't changed, then our standard code will handle it.
             if (oldNode.RawKind == newNode.RawKind)
             {
-                base.ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode, oldSymbol, newSymbol, cancellationToken);
+                base.ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode, oldSymbol, newSymbol, capabilities, cancellationToken);
                 return;
             }
 
@@ -727,11 +715,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
             else if (oldNode is RecordDeclarationSyntax &&
                      newNode is MethodDeclarationSyntax &&
+                     !capabilities.HasFlag(EditAndContinueCapabilities.UpdateParameters) &&
                      !oldSymbol.GetParameters().Select(p => p.Name).SequenceEqual(newSymbol.GetParameters().Select(p => p.Name)))
             {
-                // TODO: Remove this requirement with https://github.com/dotnet/roslyn/issues/52563
                 // Explicitly implemented methods must have parameter names that match the compiler generated versions
-                // exactly otherwise symbol matching won't work for them.
+                // exactly if the runtime doesn't support updating parameters, otherwise the debugger would show incorrect
+                // parameter names.
                 // We don't need to worry about parameter types, because if they were different then we wouldn't get here
                 // as this wouldn't be the explicit implementation of a known method.
                 // We don't need to worry about access modifiers because the symbol matching still works, and most of the
@@ -742,22 +731,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     GetDiagnosticSpan(newNode, EditKind.Update),
                     oldNode,
                     new[] { oldSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat) }));
-            }
-        }
-
-        protected override void ReportLocalFunctionsDeclarationRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> bodyMatch)
-        {
-            var bodyEditsForLambda = bodyMatch.GetTreeEdits();
-            var editMap = BuildEditMap(bodyEditsForLambda);
-            foreach (var edit in bodyEditsForLambda.Edits)
-            {
-                if (HasParentEdit(editMap, edit))
-                {
-                    return;
-                }
-
-                var classifier = new EditClassifier(this, diagnostics, edit.OldNode, edit.NewNode, edit.Kind, bodyMatch);
-                classifier.ClassifyEdit();
             }
         }
 
@@ -800,6 +773,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         #endregion
 
         #region Syntax and Semantic Utils
+
+        protected override bool IsCompilationUnitWithGlobalStatements(SyntaxNode node)
+            => node is CompilationUnitSyntax unit && unit.ContainsGlobalStatements();
+
+        protected override bool IsGlobalStatement(SyntaxNode node)
+            => node.IsKind(SyntaxKind.GlobalStatement);
 
         protected override TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node)
         {
@@ -1172,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         internal override bool IsDeclarationWithInitializer(SyntaxNode declaration)
-            => declaration is VariableDeclaratorSyntax { Initializer: not null } || declaration is PropertyDeclarationSyntax { Initializer: not null };
+            => declaration is VariableDeclaratorSyntax { Initializer: not null } or PropertyDeclarationSyntax { Initializer: not null };
 
         internal override bool IsRecordPrimaryConstructorParameter(SyntaxNode declaration)
             => declaration is ParameterSyntax { Parent: ParameterListSyntax { Parent: RecordDeclarationSyntax } };
@@ -1373,7 +1352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SemanticModel model,
             CancellationToken cancellationToken)
         {
-            if (node.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
+            if (node.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration))
             {
                 return null;
             }
@@ -1495,8 +1474,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return false;
             }
 
-            Debug.Assert(oldParameters.Length == 1 || oldParameters.Length == 2);
-            Debug.Assert(newParameters.Length == 1 || newParameters.Length == 2);
+            Debug.Assert(oldParameters.Length is 1 or 2);
+            Debug.Assert(newParameters.Length is 1 or 2);
 
             // The types of the lambdas have to be the same if present.
             // The element selector may be added/removed.
@@ -1915,6 +1894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CSharpFeaturesResources.using_directive;
 
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     return FeaturesResources.namespace_;
 
                 case SyntaxKind.ClassDeclaration:
@@ -2876,7 +2856,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             // switch expression does not have sequence points (active statements):
-            if (!(oldActiveStatement.Parent!.Parent!.Parent is SwitchStatementSyntax oldSwitch))
+            if (oldActiveStatement.Parent!.Parent!.Parent is not SwitchStatementSyntax oldSwitch)
             {
                 return;
             }

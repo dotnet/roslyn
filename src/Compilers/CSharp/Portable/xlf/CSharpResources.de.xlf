@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
         <source>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</source>
-        <target state="new">User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</target>
+        <target state="translated">Die benutzerdefinierte Konvertierung in einer Schnittstelle muss in einen oder von einem Typparameter für den einschließenden Typ, der auf den einschließenden Typ beschränkt ist, konvertieren</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
@@ -77,6 +77,16 @@
         <target state="translated">Die init-only-Eigenschaft oder der Indexer "{0}" kann nur in einem Objektinitialisierer oder für "this" oder "base" in einem Instanzkonstruktor oder einer init-Zugriffsmethode zugewiesen werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttrDependentTypeNotAllowed">
+        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
+        <target state="translated">Der Typ "{0}" kann in diesem Kontext nicht verwendet werden, da er nicht in Metadaten dargestellt werden kann.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AttrTypeArgCannotBeTypeVar">
+        <source>'{0}': an attribute type argument cannot use type parameters</source>
+        <target state="translated">„{0}“: Ein Attributtypargument kann keine Typparameter verwenden</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
         <target state="translated">Das Attribut "{0}" ist für Ereignisaccessoren nicht gültig. Es gilt nur für {1}-Deklarationen.</target>
@@ -109,37 +119,37 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractBinaryOperatorSignature">
         <source>One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.</source>
-        <target state="new">One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.</target>
+        <target state="translated">Einer der Parameter eines binären Operators muss der enthaltende Typ sein oder sein zugehöriger Typparameter, der darauf beschränkt ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
         <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
-        <target state="new">The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</target>
+        <target state="translated">Der Rückgabetyp für den „++“- oder „--“-Operator muss entweder mit dem Parametertyp übereinstimmen, vom Parametertyp abgeleitet werden oder der Typparameter des enthaltenden Typs sein, der beschränkt ist, sofern der Parametertyp kein anderer Typparameter ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecSignature">
         <source>The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.</source>
-        <target state="new">The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.</target>
+        <target state="translated">Ein Parameter eines „++“- oder „--“-Operators muss der enthaltende Typ sein oder sein zugehöriger Typparameter, der darauf beschränkt ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</source>
-        <target state="new">The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</target>
+        <target state="translated">Der erste Operand eines überladenen Shift-Operators muss denselben Typ wie der enthaltende Typ oder den Typparameter aufweisen, der auf ihn beschränkt ist, und der Typ des zweiten Operanden muss "int" sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A static abstract interface member can be accessed only on a type parameter.</source>
-        <target state="new">A static abstract interface member can be accessed only on a type parameter.</target>
+        <target state="translated">Auf ein statisches abstraktes Schnittstellenelement kann nur auf einen Typparameter zugegriffen werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
         <source>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</source>
-        <target state="new">The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</target>
+        <target state="translated">Ein Parameter eines unären Operators muss der enthaltende Typ sein oder sein zugehöriger Typparameter, der darauf beschränkt ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue">
         <source>The CallerArgumentExpressionAttribute may only be applied to parameters with default values</source>
-        <target state="new">The CallerArgumentExpressionAttribute may only be applied to parameters with default values</target>
+        <target state="translated">Das CallerArgumentExpressionAttribute kann nur auf Parameter mit Standardwerten angewendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -209,7 +219,12 @@
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
-        <target state="new">The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</target>
+        <target state="translated">Das AsyncMethodBuilder-Attribut ist für anonyme Methoden ohne expliziten Rückgabetyp unzulässig.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotBeMadeNullable">
+        <source>'{0}' cannot be made nullable.</source>
+        <target state="translated">"{0}" kann keine NULL-Werte zulassen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotClone">
@@ -247,9 +262,14 @@
         <target state="translated">Eine Erweiterungsmethode mit einem Empfänger kann nicht als Ziel eines &amp;-Operators verwendet werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotUseRefInUnmanagedCallersOnly">
+        <source>Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</source>
+        <target state="translated">„ref“, „in“ und „out“ können nicht in der Signatur einer Methode verwendet werden, die mit „UnmanagedCallersOnly“ attributiert ist.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument">
         <source>InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</source>
-        <target state="new">InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</target>
+        <target state="translated">InterpolatedStringHandlerArgumentAttribute-Argumente können nicht auf den Parameter verweisen, für den das Attribut verwendet wird.</target>
         <note>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</note>
       </trans-unit>
       <trans-unit id="ERR_CantChangeInitOnlyOnOverride">
@@ -259,7 +279,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturnType">
         <source>Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</source>
-        <target state="new">Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</target>
+        <target state="translated">{0} kann nicht in den Typ „{1}“ konvertiert werden, da der Rückgabetyp nicht mit dem Rückgabetyp des Delegaten übereinstimmt</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -274,7 +294,7 @@
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotStatic">
         <source>'{0}' does not implement static interface member '{1}'. '{2}' cannot implement the interface member because it is not static.</source>
-        <target state="new">'{0}' does not implement static interface member '{1}'. '{2}' cannot implement the interface member because it is not static.</target>
+        <target state="translated">„{0}“ implementiert den Schnittstellenelement „{1}“ nicht. „{2}“ ist nicht statisch und kann daher keinen Schnittstellenelement implementieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
@@ -387,6 +407,11 @@
         <target state="translated">Eine Anweisung kann nicht mit "else" beginnen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
+        <source>Cannot update because an inferred delegate type has changed.</source>
+        <target state="new">Cannot update because an inferred delegate type has changed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Anwendungseinstiegspunkte können nicht mit dem Attribut "UnmanagedCallersOnly" versehen werden.</target>
@@ -399,7 +424,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
-        <target state="new">Explicit implementation of a user-defined operator '{0}' must be declared static</target>
+        <target state="translated">Die explizite Implementierung eines benutzerdefinierten Operators "{0}" muss als statisch deklariert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -429,7 +454,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
         <source>An expression tree may not contain an access of static abstract interface member</source>
-        <target state="new">An expression tree may not contain an access of static abstract interface member</target>
+        <target state="translated">Eine Ausdrucksbaumstruktur darf keinen Zugriff auf ein statisches abstraktes Schnittstellenelement enthalten</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -439,10 +464,10 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
         <source>An expression tree may not contain an interpolated string handler conversion.</source>
-        <target state="new">An expression tree may not contain an interpolated string handler conversion.</target>
+        <target state="translated">Eine Ausdrucksbaumstruktur darf keine Handler-Konvertierung einer interpolierten Zeichenfolge enthalten.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
+      <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
         <target state="translated">Eine Ausdrucksbaumstruktur darf keinen System.Index- oder System.Range-Musterindexerzugriff enthalten.</target>
         <note />
@@ -484,7 +509,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion10">
         <source>Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</target>
+        <target state="translated">Die Funktion „{0}“ ist in C# 10.0 nicht verfügbar. Bitte verwenden Sie Sprachversion {1} oder höher.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -509,12 +534,12 @@
       </trans-unit>
       <trans-unit id="ERR_FileScopedAndNormalNamespace">
         <source>Source file can not contain both file-scoped and normal namespace declarations.</source>
-        <target state="new">Source file can not contain both file-scoped and normal namespace declarations.</target>
+        <target state="translated">Die Quelldatei darf nicht sowohl Dateibereichs- als auch normale Namespacedeklarationen enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
         <source>File-scoped namespace must precede all other members in a file.</source>
-        <target state="new">File-scoped namespace must precede all other members in a file.</target>
+        <target state="translated">Der Dateibereichsnamespace muss allen anderen Elementen in einer Datei vorangestellt sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
@@ -544,7 +569,7 @@
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
         <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</source>
-        <target state="new">The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</target>
+        <target state="translated">Die Schnittstelle „{3}“ kann nicht als Typparameter „{2}“ im generischen Typ oder in der Methode „{0}“ verwendet werden. Die Einschränkungsschnittstelle „{1}“ oder die Basisschnittstelle weist statische abstrakte Elemente auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -607,6 +632,11 @@
         <target state="translated">Argumente mit dem Modifizierer "in" können nicht in dynamisch gebundenen Ausdrücken verwendet werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IncorrectNullCheckSyntax">
+        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
+        <target state="translated">Falsche Syntax für die NULL-Überprüfung des Parameters. Muss „!!“ sein.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
         <target state="translated">Das Erben von einem Datensatz mit einem versiegelten "Object.ToString" wird in C# {0} nicht unterstützt. Verwenden Sie die Sprachversion "{1}" oder höher.</target>
@@ -624,7 +654,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
         <source>'UnmanagedCallersOnly' method '{0}' cannot implement interface member '{1}' in type '{2}'</source>
-        <target state="new">'UnmanagedCallersOnly' method '{0}' cannot implement interface member '{1}' in type '{2}'</target>
+        <target state="translated">Die Methode „UnmanagedCallersOnly“ „{0}“ kann das Schnittstellenelement „{1}“ im Typ „{2}“ nicht implementieren.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
@@ -639,33 +669,38 @@
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerArgumentAttributeMalformed">
         <source>The InterpolatedStringHandlerArgumentAttribute applied to parameter '{0}' is malformed and cannot be interpreted. Construct an instance of '{1}' manually.</source>
-        <target state="new">The InterpolatedStringHandlerArgumentAttribute applied to parameter '{0}' is malformed and cannot be interpreted. Construct an instance of '{1}' manually.</target>
+        <target state="translated">Das auf den Parameter „{0}“ angewendete InterpolatedStringHandlerArgumentAttribute ist falsch formatiert und kann nicht interpretiert werden. Erstellen Sie eine Instanz von „{1}“ manuell.</target>
         <note>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</note>
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString">
         <source>Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move '{0}' before '{1}'.</source>
-        <target state="new">Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move '{0}' before '{1}'.</target>
+        <target state="translated">Der Parameter "{0}" ist ein Argument für die interpolierte Zeichenfolgenhandlerkonvertierung für den Parameter "{1}", aber das entsprechende Argument wird nach dem Interpolierten Zeichenfolgenausdruck angegeben. Ordnen Sie die Argumente neu an, um "{0}" vor "{1}" zu verschieben.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified">
         <source>Parameter '{0}' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.</source>
-        <target state="new">Parameter '{0}' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.</target>
+        <target state="translated">Der Parameter "{0}" wird nicht explizit angegeben, sondern als Argument für die Interpolierte Zeichenfolgenhandlerkonvertierung für den Parameter "{1}" verwendet. Geben Sie den Wert von "{0}" vor "{1}" an.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerCreationCannotUseDynamic">
         <source>An interpolated string handler construction cannot use dynamic. Manually construct an instance of '{0}'.</source>
-        <target state="new">An interpolated string handler construction cannot use dynamic. Manually construct an instance of '{0}'.</target>
+        <target state="translated">Eine Handlerkonstruktion einer interpolierten Zeichenfolgen kann keine dynamische Zeichenfolge verwenden. Erstellen Sie manuell eine Instanz von „{0}“.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerMethodReturnInconsistent">
         <source>Interpolated string handler method '{0}' has inconsistent return type. Expected to return '{1}'.</source>
-        <target state="new">Interpolated string handler method '{0}' has inconsistent return type. Expected to return '{1}'.</target>
+        <target state="translated">Die Interpolierte Zeichenfolgenhandlermethode "{0}" weist einen inkonsistenten Rückgabetyp auf. Es wird erwartet, dass "{1}" zurückgegeben wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerMethodReturnMalformed">
         <source>Interpolated string handler method '{0}' is malformed. It does not return 'void' or 'bool'.</source>
-        <target state="new">Interpolated string handler method '{0}' is malformed. It does not return 'void' or 'bool'.</target>
+        <target state="translated">Die Handlermethode „{0}“ einer interpolierten Zeichenfolgen ist falsch formatiert. „Void“ oder „bool“ wird nicht zurückgegeben.</target>
         <note>void and bool are keywords</note>
+      </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
+        <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
+        <target state="translated">Handler-Konvertierungen interpolierter Zeichenfolgen die auf die Instanz verweisen, die gerade indiziert wird, können nicht in Indexer-Member-Initialisierern verwendet werden.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
@@ -684,7 +719,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not a valid parameter name from '{1}'.</source>
-        <target state="new">'{0}' is not a valid parameter name from '{1}'.</target>
+        <target state="translated">"{0}" ist kein gültiger Parametername von "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
@@ -694,7 +729,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidNameInSubpattern">
         <source>Identifier or a simple member access expected.</source>
-        <target state="new">Identifier or a simple member access expected.</target>
+        <target state="translated">Der Bezeichner oder ein einfacher Mitgliedszugriff wurde erwartet.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
@@ -737,19 +772,34 @@
         <target state="translated">Die Methode "{0}" mit einem Iteratorblock muss "async" lauten, um "{1}" zurückzugeben.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
+        <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
+        <target state="translated">Das kontextbezogene Schlüsselwort „var“ kann nicht als expliziter Lambdarückgabetyp verwendet werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
+        <source>A lambda expression with attributes cannot be converted to an expression tree</source>
+        <target state="translated">Ein Lambdaausdruck mit Attributen kann nicht in eine Ausdrucksbaumstruktur konvertiert werden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
         <source>The #line directive end position must be greater than or equal to the start position</source>
-        <target state="new">The #line directive end position must be greater than or equal to the start position</target>
+        <target state="translated">Die Endposition der #line-Anweisung muss größer oder gleich der Startposition sein</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
         <source>The #line directive value is missing or out of range</source>
-        <target state="new">The #line directive value is missing or out of range</target>
+        <target state="translated">Der Wert der #line-Anweisung fehlt oder liegt außerhalb des gültigen Bereichs.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Keine Überladung für "{0}" stimmt mit dem Funktionszeiger "{1}" überein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedSlicePattern">
+        <source>Slice patterns may only be used once and directly inside a list pattern.</source>
+        <target state="translated">Segmentmuster dürfen nur einmal und direkt innerhalb eines Listenmusters verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -799,12 +849,17 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleFileScopedNamespace">
         <source>Source file can only contain one file-scoped namespace declaration.</source>
-        <target state="new">Source file can only contain one file-scoped namespace declaration.</target>
+        <target state="translated">Die Quelldatei darf nur eine Namespacedeklaration mit Dateibereich enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single record partial declaration may have a parameter list</source>
         <target state="translated">Nur eine partielle Deklaration eines einzelnen Datensatzes darf eine Parameterliste aufweisen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MustNullCheckInImplementation">
+        <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
+        <target state="translated">Der Parameter „{0}“ kann nur eine Ausrufezeichen-NULL-Überprüfung in den Implementierungsmethoden aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -813,8 +868,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
-        <source>Newlines are not allowed inside a non-verbatim interpolated string</source>
-        <target state="new">Newlines are not allowed inside a non-verbatim interpolated string</target>
+        <source>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</source>
+        <target state="translated">Zeilenumbrüche innerhalb einer nicht ausführlichen interpolierten Zeichenfolge werden in C#-{0} nicht unterstützt. Verwenden Sie die Sprachversion {1} oder höher.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
@@ -829,7 +884,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
         <source>CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'</source>
-        <target state="new">CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'</target>
+        <target state="translated">Das CallerArgumentExpressionAttribute kann nicht angewendet werden, da keine Standardkonvertierungen von Typ „{0}“ in Typ „{1}“ verfügbar sind.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoCopyConstructorInBaseType">
@@ -839,12 +894,17 @@
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
         <source>Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</source>
-        <target state="new">Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</target>
+        <target state="translated">Der bedingte Ausdruck ist in der Sprachversion {0} nicht gültig, da zwischen „{1}“ und „{2}“ kein allgemeiner Typ gefunden wurde. Um eine Zielkonvertierung zu verwenden, führen Sie ein Upgrade auf die Sprachversion {3} oder höher aus.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Das Ausgabeverzeichnis konnte nicht bestimmt werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
+        <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
+        <target state="translated">Der Parameter „{0}“ ist ein Non-Nullable-Werttyp und kann nicht auf NULL-Werte überprüft werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
@@ -864,12 +924,12 @@
       </trans-unit>
       <trans-unit id="ERR_NonPublicParameterlessStructConstructor">
         <source>The parameterless struct constructor must be 'public'.</source>
-        <target state="new">The parameterless struct constructor must be 'public'.</target>
+        <target state="translated">Der parameterlose Strukturkonstruktor muss "public" sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</source>
-        <target state="new">'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</target>
+        <target state="translated">„{0}“ ist keine Instanzmethode, der Empfänger kann kein Handlerargument einer interpolierten Zeichenfolge sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
@@ -877,9 +937,14 @@
         <target state="translated">"{0}" muss Überschreibungen zulassen, weil der enthaltende Datensatz nicht versiegelt ist.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NullCheckingOnByRefParameter">
+        <source>By-reference parameter '{0}' cannot be null-checked.</source>
+        <target state="translated">Der Verweisparameter „{0}“ kann nicht auf NULL-Werte überprüft werden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
         <source>null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</source>
-        <target state="new">null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</target>
+        <target state="translated">NULL ist kein gültiger Parametername. Um auf den Empfänger einer Instanzmethode zuzugreifen, verwenden Sie die leere Zeichenfolge als Parameternamen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -1007,6 +1072,11 @@
         <target state="translated">Der primäre Konstruktor verursacht einen Konflikt mit dem synthetisierten Kopierkonstruktor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
+        <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
+        <target state="translated">Ein in „record struct“ mit Parameterliste deklarierter Konstruktor muss über einen „this“-Initialisierer verfügen, der den primären Konstruktor oder einen explizit deklarierten Konstruktor aufruft.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">ref-assign von "{1}" zu "{0}" ist nicht möglich, weil "{1}" einen geringeren Escapebereich als "{0}" aufweist.</target>
@@ -1039,12 +1109,12 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces">
         <source>Target runtime doesn't support static abstract members in interfaces.</source>
-        <target state="new">Target runtime doesn't support static abstract members in interfaces.</target>
+        <target state="translated">Die Zielruntime unterstützt keine statischen abstrakten Elemente in Schnittstellen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support static abstract members in interfaces.</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support static abstract members in interfaces.</target>
+        <target state="translated">„{0}“ kann das Schnittstellenelement „{1}“ im Typ „{2}“ nicht implementieren, weil die Zielruntime keine statischen abstrakten Elemente in Schnittstellen unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
@@ -1069,7 +1139,7 @@
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramIsEmpty">
         <source>At least one top-level statement must be non-empty.</source>
-        <target state="new">At least one top-level statement must be non-empty.</target>
+        <target state="translated">Mindestens eine Anweisung der obersten Ebene darf nicht leer sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
@@ -1127,6 +1197,11 @@
         <target state="translated">Das stdin-Argument "-" ist angegeben, aber die Eingabe wurde nicht vom Standardeingabestream umgeleitet.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
+        <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
+        <target state="translated">Eine „Struktur“ mit Feldinitialisierern muss einen explizit deklarierten Konstruktor enthalten.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
         <target state="translated">Das Muster kann nicht erreicht werden. Es wurde bereits von einem vorherigen Verzweigungsarm des Switch-Ausdrucks behandelt, oder es ist keine Übereinstimmung möglich.</target>
@@ -1174,7 +1249,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeIsNotAnInterpolatedStringHandlerType">
         <source>'{0}' is not an interpolated string handler type.</source>
-        <target state="new">'{0}' is not an interpolated string handler type.</target>
+        <target state="translated">"{0}" ist kein interpolierter Zeichenfolgenhandlertyp.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeMustBePublic">
@@ -1192,24 +1267,34 @@
         <target state="translated">"{0}" ist mit dem Attribut "UnmanagedCallersOnly" versehen und kann nicht in einen Delegattyp konvertiert werden. Rufen Sie einen Funktionszeiger auf diese Methode ab.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForListPattern">
+        <source>List patterns may not be used for a value of type '{0}'.</source>
+        <target state="translated">Listenmuster dürfen nicht für einen Wert vom Typ „{0}“ verwendet werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
+        <source>Slice patterns may not be used for a value of type '{0}'.</source>
+        <target state="translated">Segmentmuster dürfen nicht für einen Wert vom Typ „{0}“ verwendet werden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
-        <target state="new">A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</target>
+        <target state="translated">Ein generischer aufgabenähnlicher Rückgabetyp wurde erwartet, aber der Typ „{0}“, der im Attribut „AsyncMethodBuilder“ gefunden wurde, war nicht geeignet. Es muss sich um einen ungebundenen generischen Typ von Stelligkeit Eins handelt, und der enthaltende Typ (falls vorhanden) muss nicht generisch sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
         <source>The using directive for '{0}' appeared previously as global using</source>
-        <target state="new">The using directive for '{0}' appeared previously as global using</target>
+        <target state="translated">Die Verwenden-Anweisung für „{0}“ wurde zuvor als „Global verwenden“ angezeigt</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing_Title">
         <source>The using directive appeared previously as global using</source>
-        <target state="new">The using directive appeared previously as global using</target>
+        <target state="translated">Die Verwenden-Anweisung wurde zuvor als „Global verwenden“ angezeigt</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
         <source>async method builder override</source>
-        <target state="new">async method builder override</target>
+        <target state="translated">Außerkraftsetzung des asynchronen Methoden-Generators</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
@@ -1224,12 +1309,17 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
-        <target state="new">extended property patterns</target>
+        <target state="translated">Muster für erweiterte Eigenschaften</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
         <source>file-scoped namespace</source>
-        <target state="new">file-scoped namespace</target>
+        <target state="translated">Dateibereichsnamespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureGenericAttributes">
+        <source>generic attributes</source>
+        <target state="translated">Generische Attribute</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
@@ -1244,7 +1334,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureImprovedInterpolatedStrings">
         <source>interpolated string handlers</source>
-        <target state="new">interpolated string handlers</target>
+        <target state="translated">Handler einer interpolierten Zeichenfolge</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureInferredDelegateType">
@@ -1259,17 +1349,27 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
         <source>lambda return type</source>
-        <target state="new">lambda return type</target>
+        <target state="translated">Lambda-Rückgabetyp</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLineSpanDirective">
         <source>line span directive</source>
-        <target state="new">line span directive</target>
+        <target state="translated">Zeilenabstand-Anweisung</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureListPattern">
+        <source>list pattern</source>
+        <target state="translated">Listenmuster</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNewLinesInInterpolations">
+        <source>newlines in interpolations</source>
+        <target state="translated">Zeilenumbrüche in Interpolationen</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
-        <target state="new">parameterless struct constructors</target>
+        <target state="translated">Parameterlose Strukturkonstruktoren</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -1289,22 +1389,27 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureStructFieldInitializers">
         <source>struct field initializers</source>
-        <target state="new">struct field initializers</target>
+        <target state="translated">Strukturfeldinitialisierer</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
         <source>with on anonymous types</source>
-        <target state="new">with on anonymous types</target>
+        <target state="translated">"with" in anonymen Typen</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStaticAbstractMembersInInterfaces">
         <source>static abstract members in interfaces</source>
-        <target state="new">static abstract members in interfaces</target>
+        <target state="translated">Statische abstrakte Member in Schnittstellen</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
         <target state="translated">"with" in Strukturen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_ParameterNullChecking">
+        <source>parameter null-checking</source>
+        <target state="translated">NULL-Überprüfung des Parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1317,64 +1422,84 @@
         <target state="translated">Die geladene Assembly verweist auf das .NET Framework. Dies wird nicht unterstützt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AttrDependentTypeNotAllowed">
+        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
+        <target state="translated">Der Typ "{0}" kann in diesem Kontext nicht verwendet werden, da er nicht in Metadaten dargestellt werden kann.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
+        <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
+        <target state="translated">Der Typ kann in diesem Kontext nicht verwendet werden, da er nicht in den Metadaten dargestellt werden kann.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</target>
+        <target state="translated">Das CallerArgumentExpressionAttribute, das auf den Parameter „{0}“ angewendet wird, hat keine Auswirkungen. Es wird mit einem ungültigen Parameternamen angewendet.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
         <source>The CallerArgumentExpressionAttribute is applied with an invalid parameter name.</source>
-        <target state="new">The CallerArgumentExpressionAttribute is applied with an invalid parameter name.</target>
+        <target state="translated">Das CallerArgumentExpressionAttribute wird mit einem ungültigen Parameternamen angewendet.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</target>
+        <target state="translated">Das auf den Parameter "{0}" angewendete CallerArgumentExpressionAttribute hat keine Auswirkungen, da es sich um einen selbstreferenziellen Parameter handelt.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
         <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-refential.</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-refential.</target>
+        <target state="translated">Das CallerArgumentExpressionAttribute, das auf den Parameter angewendet wird, hat keine Auswirkungen, da es sich um einen selbstreferenziellen Wert handelt.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionParamForUnconsumedLocation">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</target>
+        <target state="translated">Das auf Parameter „{0}“ angewendete CallerArgumentExpressionAttribute hat keine Auswirkung, da es auf ein Element in Kontexten angewendet wird, die keine optionalen Argumente zulassen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionParamForUnconsumedLocation_Title">
         <source>The CallerArgumentExpressionAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</source>
-        <target state="new">The CallerArgumentExpressionAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</target>
+        <target state="translated">Das CallerArgumentExpressionAttribute hat keine Auswirkungen, da es für einen Element gilt, das in Kontexten verwendet wird, die keine optionalen Argumente zulassen</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerFilePathPreferredOverCallerArgumentExpression">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.</target>
+        <target state="translated">Das auf den Parameter "{0}" angewendete CallerArgumentExpressionAttribute hat keine Auswirkungen. Es wird vom CallerFilePathAttribute überschrieben.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerFilePathPreferredOverCallerArgumentExpression_Title">
         <source>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerFilePathAttribute</source>
-        <target state="new">The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerFilePathAttribute</target>
+        <target state="translated">Das CallerArgumentExpressionAttribute hat keine Auswirkungen. Es wird vom CallerFilePathAttribute überschrieben.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerLineNumberPreferredOverCallerArgumentExpression">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.</target>
+        <target state="translated">Das auf Parameter „{0}“ angewendete CallerArgumentExpressionAttribute hat keine Auswirkung. Es wird vom CallerLineNumberAttribute überschrieben.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerLineNumberPreferredOverCallerArgumentExpression_Title">
         <source>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerLineNumberAttribute</source>
-        <target state="new">The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerLineNumberAttribute</target>
+        <target state="translated">Das CallerArgumentExpressionAttribute hat keine Auswirkungen. Es wird von dem CallerLineNumberAttribute überschrieben</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerMemberNamePreferredOverCallerArgumentExpression">
-        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.</target>
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerMemberNameAttribute.</source>
+        <target state="translated">Das auf Parameter „{0}“ angewendete CallerArgumentExpressionAttribute hat keine Auswirkung. Es wird vom CallerMemberNameAttribute überschrieben.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerMemberNamePreferredOverCallerArgumentExpression_Title">
         <source>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerMemberNameAttribute</source>
-        <target state="new">The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerMemberNameAttribute</target>
+        <target state="translated">Das CallerArgumentExpressionAttribute hat keine Auswirkungen. Es wird von dem CallerMemberNameAttribute überschrieben</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CompileTimeCheckedOverflow">
+        <source>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</source>
+        <target state="translated">Der Vorgang kann zur Laufzeit einen Überlauf von „{0}“ verursachen (verwenden Sie zum Überschreiben die Syntax „unchecked“)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
+        <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
+        <target state="translated">Der Vorgang kann zur Laufzeit überlaufen (verwenden Sie zum Überschreiben die Syntax „unchecked“)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -1385,6 +1510,56 @@
       <trans-unit id="WRN_DoNotCompareFunctionPointers_Title">
         <source>Do not compare function pointer values</source>
         <target state="translated">Funktionszeigerwerte nicht vergleichen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
+        <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
+        <target state="translated">Das InterpolatedStringHandlerArgument hat bei Anwendung auf Lambdaparameter keine Auswirkungen und wird am Aufrufstandort ignoriert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters_Title">
+        <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
+        <target state="translated">Das InterpolatedStringHandlerArgument hat bei Anwendung auf Lambdaparameter keine Auswirkungen und wird am Aufrufstandort ignoriert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_LowerCaseTypeName">
+        <source>The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
+        <target state="translated">Der Typname „{0}“ enthält nur ASCII-Zeichen in Kleinbuchstaben. Solche Namen können möglicherweise für die Sprache reserviert werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_LowerCaseTypeName_Title">
+        <source>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
+        <target state="translated">Der Typname enthält nur ASCII-Zeichen in Kleinbuchstaben. Solche Namen können möglicherweise für die Sprache reserviert werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MethGrpToNonDel">
+        <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
+        <target state="translated">Die Methodengruppe „{0}“ wird in den Nichtdelegattyp „{1}“ konvertiert. Wollten Sie die Methode aufrufen?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MethGrpToNonDel_Title">
+        <source>Converting method group to non-delegate type</source>
+        <target state="translated">Die Methodengruppe wird in einen Nichtdelegattyp konvertiert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull">
+        <source>Parameter '{0}' is null-checked but is null by default.</source>
+        <target state="translated">Der Parameter „{0}“ wurde auf NULL-Werte überprüft, ist aber standardmäßig NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
+        <source>Parameter is null-checked but is null by default.</source>
+        <target state="translated">Der Parameter wurde auf NULL-Werte überprüft, ist aber standardmäßig NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableType">
+        <source>Nullable type '{0}' is null-checked and will throw if null.</source>
+        <target state="translated">Der Nullable-Typ „{0}“ wurde auf NULL-Werte überprüft und wird bei NULL ausgelöst.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableType_Title">
+        <source>Nullable type is null-checked and will throw if null.</source>
+        <target state="translated">Der Nullable-Typ wurde auf NULL-Werte überprüft und wird bei NULL ausgelöst.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1398,13 +1573,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
-        <source>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="new">Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</target>
+        <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
+        <target state="translated">Der Parameter „{0}“ tritt nach „{1}“ in der Parameterliste auf, wird jedoch als Argument für die Handler-Konvertierungen einer interpolierten Zeichenfolge verwendet. Dies erfordert, dass der Aufrufer Parameter mit benannten Argumenten an der Aufrufsite neu anordnen kann. Erwägen Sie, den Handler-Parameter einer interpolierten Zeichenfolge hinter alle beteiligten Argumenten zu platzieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
         <source>Parameter to interpolated string handler conversion occurs after handler parameter</source>
-        <target state="new">Parameter to interpolated string handler conversion occurs after handler parameter</target>
+        <target state="translated">Die Konvertierung eines Parameters eines Handlers einer interpolierten Zeichenfolgen erfolgt nach dem Handlerparameter</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -1424,12 +1599,12 @@
       </trans-unit>
       <trans-unit id="WRN_PartialMethodTypeDifference">
         <source>Partial method declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="new">Partial method declarations '{0}' and '{1}' have signature differences.</target>
+        <target state="translated">Die partiellen Methodendeklarationen "{0}" und "{1}" weisen Signaturunterschiede auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PartialMethodTypeDifference_Title">
         <source>Partial method declarations have signature differences.</source>
-        <target state="new">Partial method declarations have signature differences.</target>
+        <target state="translated">Die partiellen Methodendeklarationen weisen Signaturunterschiede auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
@@ -1499,7 +1674,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
         <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</source>
-        <target state="needs-review-translation">"UnmanagedCallersOnly" kann nur auf normale statische Methoden oder statische lokale Funktionen angewendet werden.</target>
+        <target state="translated">"UnmanagedCallersOnly" kann nur auf gewöhnliche statische, nicht abstrakte Methoden oder statische lokale Funktionen angewendet werden.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
@@ -3868,7 +4043,7 @@
       </trans-unit>
       <trans-unit id="ERR_StaticNotVirtual">
         <source>A static member cannot be marked as '{0}'</source>
-        <target state="needs-review-translation">Ein statischer Member "{0}" kann nicht als "override" , "virtual" oder "abstract" markiert werden.</target>
+        <target state="translated">Ein statischer Member kann nicht als "{0}" markiert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNew">
@@ -3893,7 +4068,7 @@
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
         <source>A namespace cannot directly contain members such as fields, methods or statements</source>
-        <target state="needs-review-translation">Member, wie z. B. Felder oder Methoden, können nicht direkt in einem Namespace enthalten sein.</target>
+        <target state="translated">Member, wie z. B. Felder, Methoden oder Anweisungen können nicht direkt in einem Namespace enthalten sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">
@@ -4776,11 +4951,6 @@
         <target state="translated">NULL kann nicht in den {0}-Typparameter konvertiert werden, weil es sich möglicherweise um einen Non-Nullable-Werttyp handelt. Verwenden Sie stattdessen ggf. default({0}).</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AttributeCantBeGeneric">
-        <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="translated">Die Attributklasse "{0}" kann nicht angewendet werden, da sie generisch ist.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
         <source>Duplicate constraint '{0}' for type parameter '{1}'</source>
         <target state="translated">Doppelte "{0}"-Einschränkung für "{1}"-Typparameter.</target>
@@ -5412,7 +5582,7 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
         <source>User-defined operator cannot convert a type to itself</source>
-        <target state="needs-review-translation">Ein benutzerdefinierter Operator kann kein Objekt vom einschließenden Typ übernehmen oder in ein Objekt des einschließenden Typs konvertieren.</target>
+        <target state="translated">Ein benutzerdefinierter Operator kann einen Typ nicht in sich selbst konvertieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionNotInvolvingContainedType">
@@ -6000,11 +6170,6 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <target state="translated">"{0}" kann nicht gleichzeitig "{1}" und "{2}" implementieren, da diese für einige Typparameterersetzungen zusammengeführt werden können.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_GenericDerivingFromAttribute">
-        <source>A generic type cannot derive from '{0}' because it is an attribute class</source>
-        <target state="translated">Ein generischer Typ kann nicht von "{0}" abgeleitet werden, da dies eine Attributklasse ist.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_TyVarNotFoundInConstraint">
         <source>'{1}' does not define type parameter '{0}'</source>
         <target state="translated">"{1}" definiert nicht den Typparameter "{0}"</target>
@@ -6172,7 +6337,7 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberStatic">
         <source>'{0}' does not implement instance interface member '{1}'. '{2}' cannot implement the interface member because it is static.</source>
-        <target state="needs-review-translation">"{0}" implementiert den Schnittstellenmember "{1}" nicht. "{2}" ist statisch und kann daher keinen Schnittstellenmember implementieren.</target>
+        <target state="translated">"{0}" implementiert den Instanzschnittstellenmember "{1}" nicht. "{2}" kann den Schnittstellenmember nicht implementieren, da er statisch ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotPublic">
@@ -7265,8 +7430,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousAttribute">
-        <source>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</source>
-        <target state="translated">"{0}" ist für "{1}" und "{2}" mehrdeutig. Verwenden Sie "@{0}" oder "{0}Attribute".</target>
+        <source>'{0}' is ambiguous between '{1}' and '{2}'. Either use '@{0}' or explicitly include the 'Attribute' suffix.</source>
+        <target state="translated">"{0}" ist zwischen "{1}" und "{2}" mehrdeutig. Verwenden Sie entweder "@{0}", oder schließen Sie explizit das Suffix "Attribute" ein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRef">
@@ -11204,7 +11369,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="needs-review-translation">Schnittstellen können keine Konvertierungs-, Gleichheits- oder Ungleichheitsoperatoren enthalten.</target>
+        <target state="translated">Konvertierungs-, Gleichheits- oder Ungleichheitsoperatoren, die in Schnittstellen deklariert sind, müssen abstrakt sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -11219,7 +11384,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</source>
-        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</target>
+        <target state="translated">"{0}" implementiert den Schnittstellenmember "{1}" nicht. "{2}" kann in C#-{3} nicht implizit einen nicht öffentlichen Member implementieren. Verwenden Sie die Sprachversion "{4}" oder höher.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">

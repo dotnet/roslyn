@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TypeSymbol? InferBestType(
             ImmutableArray<BoundExpression> exprs,
             ConversionsBase conversions,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            out bool inferredFromFunctionType)
         {
             // SPEC:    7.5.2.14 Finding the best common type of a set of expressions
             // SPEC:    In some cases, a common type needs to be inferred for a set of expressions. In particular, the element types of implicitly typed arrays and
@@ -68,12 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<TypeSymbol> candidateTypes = new HashSet<TypeSymbol>(comparer);
             foreach (BoundExpression expr in exprs)
             {
-                TypeSymbol? type = expr.Type;
+                TypeSymbol? type = expr.GetTypeOrFunctionType();
 
                 if (type is { })
                 {
                     if (type.IsErrorType())
                     {
+                        inferredFromFunctionType = false;
                         return type;
                     }
 
@@ -86,6 +88,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.AddRange(candidateTypes);
             var result = GetBestType(builder, conversions, ref useSiteInfo);
             builder.Free();
+
+            if (result is FunctionTypeSymbol functionType)
+            {
+                result = functionType.GetInternalDelegateType();
+                inferredFromFunctionType = result is { };
+                return result;
+            }
+
+            inferredFromFunctionType = false;
             return result;
         }
 
@@ -172,14 +183,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case 0:
                     return null;
                 case 1:
-                    return types[0];
+                    return checkType(types[0]);
             }
 
             TypeSymbol? best = null;
             int bestIndex = -1;
             for (int i = 0; i < types.Count; i++)
             {
-                TypeSymbol type = types[i];
+                TypeSymbol? type = checkType(types[i]);
+                if (type is null)
+                {
+                    continue;
+                }
                 if (best is null)
                 {
                     best = type;
@@ -210,7 +225,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that every type *before* best was also worse.
             for (int i = 0; i < bestIndex; i++)
             {
-                TypeSymbol type = types[i];
+                TypeSymbol? type = checkType(types[i]);
+                if (type is null)
+                {
+                    continue;
+                }
                 TypeSymbol? better = Better(best, type, conversions, ref useSiteInfo);
                 if (!best.Equals(better, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
@@ -219,6 +238,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return best;
+
+            static TypeSymbol? checkType(TypeSymbol type) =>
+                type is FunctionTypeSymbol functionType && functionType.GetInternalDelegateType() is null ?
+                null :
+                type;
         }
 
         /// <summary>
@@ -241,9 +265,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return type1;
             }
 
+            // Prefer types other than FunctionTypeSymbol.
+            if (type1 is FunctionTypeSymbol)
+            {
+                if (!(type2 is FunctionTypeSymbol))
+                {
+                    return type2;
+                }
+            }
+            else if (type2 is FunctionTypeSymbol)
+            {
+                return type1;
+            }
+
             var conversionsWithoutNullability = conversions.WithNullability(false);
-            var t1tot2 = conversionsWithoutNullability.ClassifyImplicitConversionFromType(type1, type2, ref useSiteInfo).Exists;
-            var t2tot1 = conversionsWithoutNullability.ClassifyImplicitConversionFromType(type2, type1, ref useSiteInfo).Exists;
+            var t1tot2 = conversionsWithoutNullability.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(type1, type2, ref useSiteInfo).Exists;
+            var t2tot1 = conversionsWithoutNullability.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(type2, type1, ref useSiteInfo).Exists;
 
             if (t1tot2 && t2tot1)
             {

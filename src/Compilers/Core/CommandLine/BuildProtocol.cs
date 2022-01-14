@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// Argument.
     /// 
     /// </summary>
-    internal class BuildRequest
+    internal sealed class BuildRequest
     {
         /// <summary>
         /// The maximum size of a request supported by the compiler server.
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Strings are encoded via a length prefix as a signed
         /// 32-bit integer, followed by an array of characters.
         /// </summary>
-        public struct Argument
+        public readonly struct Argument
         {
             public readonly ArgumentId ArgumentId;
             public readonly int ArgumentIndex;

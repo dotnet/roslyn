@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -14,13 +15,14 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    internal class ParameterSymbolReferenceFinder : AbstractReferenceFinder<IParameterSymbol>
+    internal sealed class ParameterSymbolReferenceFinder : AbstractReferenceFinder<IParameterSymbol>
     {
         protected override bool CanFind(IParameterSymbol symbol)
             => true;
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IParameterSymbol symbol,
+            HashSet<string>? globalAliases,
             Project project,
             IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IParameterSymbol symbol,
+            HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,

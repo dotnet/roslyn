@@ -270,6 +270,8 @@ class X
                         case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
+                        case ErrorCode.WRN_NullCheckedHasDefaultNull:
+                        case ErrorCode.WRN_NullCheckingOnNullableType:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -344,6 +346,9 @@ class X
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                         case ErrorCode.WRN_IsPatternAlways:
                         case ErrorCode.WRN_AnalyzerReferencesFramework:
+                        case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
+                        case ErrorCode.WRN_CompileTimeCheckedOverflow:
+                        case ErrorCode.WRN_MethGrpToNonDel:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -369,6 +374,10 @@ class X
                         case ErrorCode.WRN_PartialMethodTypeDifference:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 6 and C# 10.
                             Assert.Equal(6, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_LowerCaseTypeName:
+                            // These are the warnings introduced with the warning "wave" shipped with dotnet 7 and C# 11.
+                            Assert.Equal(7, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail
@@ -404,6 +413,8 @@ class X
                 // Nullable-unrelated warnings in the C# 8 range should be added to this array.
                 var nullableUnrelatedWarnings = new[]
                 {
+                    ErrorCode.WRN_NullCheckingOnNullableType,
+                    ErrorCode.WRN_NullCheckedHasDefaultNull,
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotation,
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode,
                     ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
@@ -431,7 +442,7 @@ class X
                     ErrorCode.WRN_UnreadRecordParameter,
                     ErrorCode.WRN_DoNotCompareFunctionPointers,
                     ErrorCode.WRN_PartialMethodTypeDifference,
-                    ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter,
+                    ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

@@ -1070,6 +1070,30 @@ class Customer
 }}
 ";
 
+        private static readonly string s_preferTupleSwap = $@"
+using System;
+
+class Customer
+{{
+    void M1(string[] args)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        (args[1], args[0]) = (args[0], args[1]);
+//]
+    }}
+    void M2(string[] args)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        var temp = args[0];
+        args[0] = args[1];
+        args[1] = temp;
+//]
+    }}
+}}
+";
+
         private static readonly string s_preferIsNullOverReferenceEquals = $@"
 using System;
 
@@ -1097,6 +1121,28 @@ class Customer
             return;
 //]
     }}
+}}
+";
+
+        private static readonly string s_preferParameterNullChecking = $@"
+using System;
+
+class Customer
+{{
+//[
+    // {ServicesVSResources.Prefer_colon}
+    void M1(string value!!)
+    {{
+    }}
+//]
+//[
+    // {ServicesVSResources.Over_colon}
+    void M2(string value)
+    {{
+        if (value is null)
+            throw new ArgumentNullException(nameof(value));
+    }}
+//]
 }}
 ";
 
@@ -2063,6 +2109,8 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferIndexOperator, ServicesVSResources.Prefer_index_operator, s_preferIndexOperator, s_preferIndexOperator, this, optionStore, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferRangeOperator, ServicesVSResources.Prefer_range_operator, s_preferRangeOperator, s_preferRangeOperator, this, optionStore, expressionPreferencesGroupTitle));
 
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTupleSwap, ServicesVSResources.Prefer_tuple_swap, s_preferTupleSwap, s_preferTupleSwap, this, optionStore, expressionPreferencesGroupTitle));
+
             // Pattern matching
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatching, CSharpVSResources.Prefer_pattern_matching, s_preferPatternMatching, s_preferPatternMatching, this, optionStore, patternMatchingPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, CSharpVSResources.Prefer_pattern_matching_over_is_with_cast_check, s_preferPatternMatchingOverIsWithCastCheck, s_preferPatternMatchingOverIsWithCastCheck, this, optionStore, patternMatchingPreferencesGroupTitle));
@@ -2082,6 +2130,7 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionStore, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferParameterNullChecking, CSharpVSResources.Prefer_parameter_null_checking, s_preferParameterNullChecking, s_preferParameterNullChecking, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, CSharpVSResources.Prefer_null_check_over_type_check, s_preferNullcheckOverTypeCheck, s_preferNullcheckOverTypeCheck, this, optionStore, nullCheckingGroupTitle));
 
             // Using directive preferences.

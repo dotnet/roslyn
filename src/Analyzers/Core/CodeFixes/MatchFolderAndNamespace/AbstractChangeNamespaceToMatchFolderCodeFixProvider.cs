@@ -46,15 +46,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
             // us to keep in line with the sync methodology that we have as a public API and not have 
             // to rewrite or move the complex logic. RenameDocumentAsync is designed to behave the same
             // as the intent of this analyzer/codefix pair.
-            var targetFolders = PathMetadataUtilities.BuildFoldersFromNamespace(targetNamespace);
-            var documentWithNoFolders = document.WithFolders(Array.Empty<string>());
+            var targetFolders = PathMetadataUtilities.BuildFoldersFromNamespace(targetNamespace, document.Project.DefaultNamespace);
+            var documentWithInvalidFolders = document.WithFolders(document.Folders.Concat("Force-Namespace-Change"));
             var renameActionSet = await Renamer.RenameDocumentAsync(
-                documentWithNoFolders,
-                documentWithNoFolders.Name,
+                documentWithInvalidFolders,
+                documentWithInvalidFolders.Name,
                 newDocumentFolders: targetFolders,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var newSolution = await renameActionSet.UpdateSolutionAsync(documentWithNoFolders.Project.Solution, cancellationToken).ConfigureAwait(false);
+            var newSolution = await renameActionSet.UpdateSolutionAsync(documentWithInvalidFolders.Project.Solution, cancellationToken).ConfigureAwait(false);
             Debug.Assert(newSolution != document.Project.Solution);
             return newSolution;
         }

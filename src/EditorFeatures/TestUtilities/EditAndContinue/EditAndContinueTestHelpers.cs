@@ -9,11 +9,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Differencing;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -23,18 +23,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     internal abstract class EditAndContinueTestHelpers
     {
-        public static readonly EditAndContinueCapabilities BaselineCapabilities = EditAndContinueCapabilities.Baseline;
+        public const EditAndContinueCapabilities BaselineCapabilities = EditAndContinueCapabilities.Baseline;
 
-        public static readonly EditAndContinueCapabilities Net5RuntimeCapabilities =
+        public const EditAndContinueCapabilities Net5RuntimeCapabilities =
             EditAndContinueCapabilities.Baseline |
             EditAndContinueCapabilities.AddInstanceFieldToExistingType |
             EditAndContinueCapabilities.AddStaticFieldToExistingType |
             EditAndContinueCapabilities.AddMethodToExistingType |
             EditAndContinueCapabilities.NewTypeDefinition;
 
-        public static readonly EditAndContinueCapabilities Net6RuntimeCapabilities =
+        public const EditAndContinueCapabilities Net6RuntimeCapabilities =
             Net5RuntimeCapabilities |
-            EditAndContinueCapabilities.ChangeCustomAttributes;
+            EditAndContinueCapabilities.ChangeCustomAttributes |
+            EditAndContinueCapabilities.UpdateParameters;
 
         public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
         public abstract SyntaxNode FindNode(SyntaxNode root, TextSpan span);
@@ -110,6 +111,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var testAccessor = Analyzer.GetTestAccessor();
             var allEdits = new List<SemanticEditInfo>();
+            var lazyCapabilities = AsyncLazy.Create(capabilities ?? Net5RuntimeCapabilities);
 
             for (var documentIndex = 0; documentIndex < documentCount; documentIndex++)
             {
@@ -134,7 +136,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 Contract.ThrowIfNull(oldModel);
                 Contract.ThrowIfNull(newModel);
 
-                var result = Analyzer.AnalyzeDocumentAsync(oldProject, expectedResult.ActiveStatements.OldStatementsMap, newDocument, newActiveStatementSpans, capabilities ?? Net5RuntimeCapabilities, CancellationToken.None).Result;
+                var lazyOldActiveStatementMap = AsyncLazy.Create(expectedResult.ActiveStatements.OldStatementsMap);
+                var result = Analyzer.AnalyzeDocumentAsync(oldProject, lazyOldActiveStatementMap, newDocument, newActiveStatementSpans, lazyCapabilities, CancellationToken.None).Result;
                 var oldText = oldDocument.GetTextSynchronously(default);
                 var newText = newDocument.GetTextSynchronously(default);
 
@@ -378,6 +381,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal static class EditScriptTestUtils
     {
         public static void VerifyEdits<TNode>(this EditScript<TNode> actual, params string[] expected)
-            => AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n");
+            => AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
     }
 }

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,17 +21,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     internal partial class DiagnosticIncrementalAnalyzer
     {
         public async Task<bool> TryAppendDiagnosticsForSpanAsync(
-            Document document, TextSpan? range, ArrayBuilder<DiagnosticData> result, string? diagnosticId, bool includeSuppressedDiagnostics, bool blockForData, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
+            Document document, TextSpan? range, ArrayBuilder<DiagnosticData> result, Func<string, bool>? shouldIncludeDiagnostic,
+            bool includeSuppressedDiagnostics, CodeActionRequestPriority priority, bool blockForData,
+            Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
         {
-            var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(this, document, range, blockForData, addOperationScope, includeSuppressedDiagnostics, diagnosticId, cancellationToken).ConfigureAwait(false);
+            var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(
+                this, document, range, blockForData, addOperationScope, includeSuppressedDiagnostics,
+                priority, shouldIncludeDiagnostic, cancellationToken).ConfigureAwait(false);
             return await getter.TryGetAsync(result, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
-            Document document, TextSpan? range, string? diagnosticId, bool includeSuppressedDiagnostics, bool blockForData, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
+            Document document,
+            TextSpan? range,
+            Func<string, bool>? shouldIncludeDiagnostic,
+            bool includeSuppressedDiagnostics,
+            CodeActionRequestPriority priority,
+            bool blockForData,
+            Func<string, IDisposable?>? addOperationScope,
+            CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
-            var result = await TryAppendDiagnosticsForSpanAsync(document, range, list, diagnosticId, includeSuppressedDiagnostics, blockForData, addOperationScope, cancellationToken).ConfigureAwait(false);
+            var result = await TryAppendDiagnosticsForSpanAsync(
+                document, range, list, shouldIncludeDiagnostic, includeSuppressedDiagnostics,
+                priority, blockForData, addOperationScope, cancellationToken).ConfigureAwait(false);
             Debug.Assert(result);
             return list.ToImmutable();
         }
@@ -40,6 +54,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private sealed class LatestDiagnosticsForSpanGetter
         {
+            // PERF: Cache the last Project and corresponding CompilationWithAnalyzers used to compute analyzer diagnostics for span.
+            //       This is now required as async lightbulb will query and execute different priority buckets of analyzers with multiple
+            //       calls, and we want to reuse CompilationWithAnalyzers instance if possible. 
+            private static readonly WeakReference<ProjectAndCompilationWithAnalyzers?> _lastProjectAndCompilationWithAnalyzers = new(null);
+
             private readonly DiagnosticIncrementalAnalyzer _owner;
             private readonly Document _document;
 
@@ -49,7 +68,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly TextSpan? _range;
             private readonly bool _blockForData;
             private readonly bool _includeSuppressedDiagnostics;
-            private readonly string? _diagnosticId;
+            private readonly CodeActionRequestPriority _priority;
+            private readonly Func<string, bool>? _shouldIncludeDiagnostic;
             private readonly Func<string, IDisposable?>? _addOperationScope;
 
             private delegate Task<IEnumerable<DiagnosticData>> DiagnosticsGetterAsync(DiagnosticAnalyzer analyzer, DocumentAnalysisExecutor executor, CancellationToken cancellationToken);
@@ -61,22 +81,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  bool blockForData,
                  Func<string, IDisposable?>? addOperationScope,
                  bool includeSuppressedDiagnostics,
-                 string? diagnosticId,
+                 CodeActionRequestPriority priority,
+                 Func<string, bool>? shouldIncludeDiagnostic,
                  CancellationToken cancellationToken)
             {
                 var stateSets = owner._stateManager
                                      .GetOrCreateStateSets(document.Project).Where(s => !owner.DiagnosticAnalyzerInfoCache.IsAnalyzerSuppressed(s.Analyzer, document.Project));
 
-                // filter to specific diagnostic it is looking for
-                if (diagnosticId != null)
-                {
-                    stateSets = stateSets.Where(s => owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(s.Analyzer).Any(d => d.Id == diagnosticId)).ToList();
-                }
-
-                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(document.Project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 return new LatestDiagnosticsForSpanGetter(
-                    owner, compilationWithAnalyzers, document, stateSets, diagnosticId, range, blockForData, addOperationScope, includeSuppressedDiagnostics);
+                    owner, compilationWithAnalyzers, document, stateSets, shouldIncludeDiagnostic, range,
+                    blockForData, addOperationScope, includeSuppressedDiagnostics, priority);
+            }
+
+            private static async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(
+                Project project,
+                IEnumerable<StateSet> stateSets,
+                bool includeSuppressedDiagnostics,
+                CancellationToken cancellationToken)
+            {
+                if (_lastProjectAndCompilationWithAnalyzers.TryGetTarget(out var projectAndCompilationWithAnalyzers) &&
+                    projectAndCompilationWithAnalyzers?.Project == project)
+                {
+                    return projectAndCompilationWithAnalyzers.CompilationWithAnalyzers;
+                }
+
+                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                _lastProjectAndCompilationWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
+                return compilationWithAnalyzers;
             }
 
             private LatestDiagnosticsForSpanGetter(
@@ -84,21 +117,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CompilationWithAnalyzers? compilationWithAnalyzers,
                 Document document,
                 IEnumerable<StateSet> stateSets,
-                string? diagnosticId,
+                Func<string, bool>? shouldIncludeDiagnostic,
                 TextSpan? range,
                 bool blockForData,
                 Func<string, IDisposable?>? addOperationScope,
-                bool includeSuppressedDiagnostics)
+                bool includeSuppressedDiagnostics,
+                CodeActionRequestPriority priority)
             {
                 _owner = owner;
                 _compilationWithAnalyzers = compilationWithAnalyzers;
                 _document = document;
                 _stateSets = stateSets;
-                _diagnosticId = diagnosticId;
+                _shouldIncludeDiagnostic = shouldIncludeDiagnostic;
                 _range = range;
                 _blockForData = blockForData;
                 _addOperationScope = addOperationScope;
                 _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
+                _priority = priority;
             }
 
             public async Task<bool> TryGetAsync(ArrayBuilder<DiagnosticData> list, CancellationToken cancellationToken)
@@ -113,12 +148,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     using var _3 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var semanticDocumentBasedAnalyzers);
                     foreach (var stateSet in _stateSets)
                     {
-                        if (!await TryGetCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, list, cancellationToken).ConfigureAwait(false))
-                        {
-                            syntaxAnalyzers.Add(stateSet.Analyzer);
-                        }
+                        if (!ShouldIncludeAnalyzer(stateSet.Analyzer, _shouldIncludeDiagnostic, _owner))
+                            continue;
 
-                        if (!await TryGetCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Semantic, list, cancellationToken).ConfigureAwait(false))
+                        if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, list, cancellationToken).ConfigureAwait(false))
+                            syntaxAnalyzers.Add(stateSet.Analyzer);
+
+                        if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Semantic, list, cancellationToken).ConfigureAwait(false))
                         {
                             // Check whether we want up-to-date document wide semantic diagnostics
                             var spanBased = stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
@@ -147,16 +183,47 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
+
+                // Local functions
+                static bool ShouldIncludeAnalyzer(
+                    DiagnosticAnalyzer analyzer,
+                    Func<string, bool>? shouldIncludeDiagnostic,
+                    DiagnosticIncrementalAnalyzer owner)
+                {
+                    // Special case DocumentDiagnosticAnalyzer to never skip these document analyzers
+                    // based on 'shouldIncludeDiagnostic' predicate. More specifically, TS has special document
+                    // analyzer which report 0 supported diagnostics, but we always want to execute it.
+                    if (analyzer is DocumentDiagnosticAnalyzer)
+                    {
+                        return true;
+                    }
+
+                    // Skip analyzer if none of its reported diagnostics should be included.
+                    if (shouldIncludeDiagnostic != null &&
+                        !owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer).Any(a => shouldIncludeDiagnostic(a.Id)))
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
             }
 
-            private async Task<bool> TryGetCachedDocumentDiagnosticsAsync(
+            /// <summary>
+            /// Returns <see langword="true"/> if we were able to add the cached diagnostics and we do not need to compute them fresh.
+            /// </summary>
+            private async Task<bool> TryAddCachedDocumentDiagnosticsAsync(
                 StateSet stateSet,
                 AnalysisKind kind,
                 ArrayBuilder<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
-                if (!stateSet.Analyzer.SupportAnalysisKind(kind))
+                if (!stateSet.Analyzer.SupportAnalysisKind(kind) ||
+                    !MatchesPriority(stateSet.Analyzer))
                 {
+                    // In the case where the analyzer doesn't support the requested kind or priority, act as if we succeeded, but just
+                    // added no items to the result.  Effectively we did add the cached values, just that all the values that could have
+                    // been added have been filtered out.  We do not want to then compute the up to date values in the caller.
                     return true;
                 }
 
@@ -169,9 +236,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
                 if (existingData.Version == version)
                 {
-                    if (!existingData.Items.IsEmpty)
+                    foreach (var item in existingData.Items)
                     {
-                        list.AddRange(existingData.Items.Where(ShouldInclude));
+                        if (ShouldInclude(item))
+                            list.Add(item);
                     }
 
                     return true;
@@ -187,10 +255,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ArrayBuilder<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
+                analyzers = analyzers.WhereAsArray(a => MatchesPriority(a));
+
                 if (analyzers.IsEmpty)
-                {
                     return;
-                }
 
                 var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind);
                 var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, logPerformanceInfo: false);
@@ -212,12 +280,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
+            private bool MatchesPriority(DiagnosticAnalyzer analyzer)
+            {
+                // If caller isn't asking for prioritized result, then run all analyzers.
+                if (_priority == CodeActionRequestPriority.None)
+                    return true;
+
+                // 'CodeActionRequestPriority.Lowest' is used for suppression/configuration fixes,
+                // which requires all analyzer diagnostics.
+                if (_priority == CodeActionRequestPriority.Lowest)
+                    return true;
+
+                // The compiler analyzer always counts for any priority.  It's diagnostics may be fixed
+                // by high pri or normal pri fixers.
+                if (analyzer.IsCompilerAnalyzer())
+                    return true;
+
+                var analyzerPriority = analyzer is IBuiltInAnalyzer { RequestPriority: var requestPriority }
+                    ? requestPriority
+                    : CodeActionRequestPriority.Normal;
+                return _priority == analyzerPriority;
+            }
+
             private bool ShouldInclude(DiagnosticData diagnostic)
             {
                 return diagnostic.DocumentId == _document.Id &&
                     (_range == null || _range.Value.IntersectsWith(diagnostic.GetTextSpan()))
                     && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
-                    && (_diagnosticId == null || _diagnosticId == diagnostic.Id);
+                    && (_shouldIncludeDiagnostic == null || _shouldIncludeDiagnostic(diagnostic.Id));
             }
         }
     }

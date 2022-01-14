@@ -269,16 +269,16 @@ public class C
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
 
-                VerifyEntryPoint(output, expectZero: false);
+                verifyEntryPoint(output, expectZero: false);
                 VerifyMethods(output, "C", new[] { "void C.Main()", "C..ctor()" });
                 VerifyMvid(output, hasMvidSection: false);
 
-                VerifyEntryPoint(metadataOutput, expectZero: true);
+                verifyEntryPoint(metadataOutput, expectZero: true);
                 VerifyMethods(metadataOutput, "C", new[] { "C..ctor()" });
                 VerifyMvid(metadataOutput, hasMvidSection: true);
             }
 
-            void VerifyEntryPoint(MemoryStream stream, bool expectZero)
+            void verifyEntryPoint(MemoryStream stream, bool expectZero)
             {
                 stream.Position = 0;
                 int entryPoint = new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress;
@@ -932,6 +932,7 @@ public class C
             }
         }
 
+#if NET472
         [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
         public void RefAssembly_InvariantToResourceChanges()
@@ -996,7 +997,7 @@ public class C
                 return comp.EmitToArray(refonlyOptions, metadataPEStream: null, manifestResources: manifestResources);
             }
         }
-
+#endif
         [Fact, WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
         public void RefAssembly_CryptoHashFailedIsOnlyReportedOnce()
         {
@@ -1783,10 +1784,10 @@ public partial class C
     CHANGE
 }
 ";
-            VerifyIgnoresDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(false).WithTolerateErrors(false), success: false);
-            VerifyIgnoresDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(true).WithTolerateErrors(false), success: expectSuccess);
+            verifyIgnoresDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(false).WithTolerateErrors(false), success: false);
+            verifyIgnoresDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(true).WithTolerateErrors(false), success: expectSuccess);
 
-            void VerifyIgnoresDiagnostics(EmitOptions emitOptions, bool success)
+            void verifyIgnoresDiagnostics(EmitOptions emitOptions, bool success)
             {
                 string source = sourceTemplate.Replace("CHANGE", change);
                 string name = GetUniqueName();
@@ -2304,11 +2305,11 @@ struct S
                 var result = comp.Emit(output, metadataPEStream: metadataOutput,
                     options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithIncludePrivateMembers(false));
 
-                VerifyEmbeddedDebugInfo(output, new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.EmbeddedPortablePdb });
-                VerifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { DebugDirectoryEntryType.Reproducible });
+                verifyEmbeddedDebugInfo(output, new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.EmbeddedPortablePdb });
+                verifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { DebugDirectoryEntryType.Reproducible });
             }
 
-            void VerifyEmbeddedDebugInfo(MemoryStream stream, DebugDirectoryEntryType[] expected)
+            void verifyEmbeddedDebugInfo(MemoryStream stream, DebugDirectoryEntryType[] expected)
             {
                 using (var peReader = new PEReader(stream.ToImmutable()))
                 {
@@ -5101,10 +5102,10 @@ class C4
                 var expectedNames = new[]
                     {
                         "<Module>",
-                        "<>A{00000004}`3",
-                        "<>A{00000018}`5",
-                        "<>F{00000004}`5",
-                        "<>F{00000008}`5",
+                        "<>A{00000010}`3",
+                        "<>A{00000140}`5",
+                        "<>F{00000010}`5",
+                        "<>F{00000040}`5",
                         "C1",
                         "C2",
                         "C3",
@@ -5172,7 +5173,7 @@ public class X
 
         [Fact]
         [WorkItem(9308, "https://github.com/dotnet/roslyn/issues/9308")]
-        public void FailingEmitterAllowsCancelationExceptionsThrough()
+        public void FailingEmitterAllowsCancellationExceptionsThrough()
         {
             string source = @"
 public class X

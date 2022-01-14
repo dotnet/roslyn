@@ -2,19 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -118,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 _nodeToContextProjectMap.Add(inputNode, project);
 
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var symbolId = (SymbolKey?)inputNode[RoslynGraphProperties.SymbolId];
                 var symbol = symbolId.Value.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
                 if (symbol != null)
@@ -202,9 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 var newSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, contextProject.Solution, cancellationToken).ConfigureAwait(false);
                 if (newSymbol != null)
-                {
                     preferredLocation = newSymbol.Locations.Where(loc => loc.IsInSource).FirstOrDefault();
-                }
             }
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -219,18 +212,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 node[RoslynGraphProperties.SymbolKind] = symbol.Kind;
 
                 if (contextDocument != null)
-                {
                     node[RoslynGraphProperties.ContextDocumentId] = contextDocument.Id;
-                }
 
-                if (preferredLocation != null)
+                if (preferredLocation?.SourceTree != null)
                 {
                     var lineSpan = preferredLocation.GetLineSpan();
-                    var sourceLocation = new SourceLocation(
+                    var sourceLocation = TryCreateSourceLocation(
                         preferredLocation.SourceTree.FilePath,
-                        new Position(lineSpan.StartLinePosition.Line, lineSpan.StartLinePosition.Character),
-                        new Position(lineSpan.EndLinePosition.Line, lineSpan.EndLinePosition.Character));
-                    node[CodeNodeProperties.SourceLocation] = sourceLocation;
+                        lineSpan.Span);
+                    if (sourceLocation != null)
+                        node[CodeNodeProperties.SourceLocation] = sourceLocation.Value;
                 }
 
                 // Keep track of this as a node we have added. Note this is a HashSet, so if the node was already added
@@ -239,7 +230,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 _nodeToSymbolMap[node] = symbol;
                 _nodeToContextProjectMap[node] = contextProject;
-                _nodeToContextDocumentMap[node] = contextDocument;
+
+                if (contextDocument != null)
+                    _nodeToContextDocumentMap[node] = contextDocument;
 
                 return node;
             }
@@ -613,7 +606,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             node.AddCategory(CodeNodeCategories.Method);
 
-            var isOperator = method.MethodKind == MethodKind.UserDefinedOperator || method.MethodKind == MethodKind.Conversion;
+            var isOperator = method.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion;
             node[DgmlNodeProperties.Icon] = isOperator
                 ? IconHelper.GetIconName("Operator", method.DeclaredAccessibility)
                 : IconHelper.GetIconName("Method", method.DeclaredAccessibility);
@@ -677,13 +670,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public GraphNode AddNodeForDocument(Document document, CancellationToken cancellationToken)
+        public GraphNode? TryAddNodeForDocument(Document document, CancellationToken cancellationToken)
         {
+            // Under the covers, progression will attempt to convert a label into a URI.  Ensure that we
+            // can do this safely. before proceeding.
+            //
+            // The corresponding code on the progression side does: new Uri(text, UriKind.RelativeOrAbsolute)
+            // so we check that same kind here.
+            var fileName = Path.GetFileName(document.FilePath);
+            if (!Uri.TryCreate(fileName, UriKind.RelativeOrAbsolute, out _))
+                return null;
+
             using (_gate.DisposableWait(cancellationToken))
             {
                 var id = GraphNodeIdCreation.GetIdForDocument(document);
 
-                var node = _graph.Nodes.GetOrCreate(id, Path.GetFileName(document.FilePath), CodeNodeCategories.ProjectItem);
+                var node = _graph.Nodes.GetOrCreate(id, fileName, CodeNodeCategories.ProjectItem);
 
                 _nodeToContextDocumentMap[node] = document;
                 _nodeToContextProjectMap[node] = document.Project;
@@ -694,7 +696,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public async Task<GraphNode> CreateNodeAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
+        public async Task<GraphNode?> CreateNodeAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
         {
             var document = result.NavigableItem.Document;
             var project = document.Project;
@@ -725,7 +727,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 return null;
 
             // Get or make a node for this symbol's containing document that will act as the parent node in the UI.
-            var documentNode = this.AddNodeForDocument(document, cancellationToken);
+            var documentNode = this.TryAddNodeForDocument(document, cancellationToken);
+            if (documentNode == null)
+                return null;
 
             // For purposes of keying this node, just use the display text we will show.  In practice, outside of error
             // scenarios this will be unique and suitable as an ID (esp. as these names are joined with their parent
@@ -739,6 +743,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (existing != null)
                 return null;
 
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var span = text.Lines.GetLinePositionSpan(NavigateToUtilities.GetBoundedSpan(result.NavigableItem, text));
+            var sourceLocation = TryCreateSourceLocation(document.FilePath, span);
+            if (sourceLocation == null)
+                return null;
+
             var symbolNode = _graph.Nodes.GetOrCreate(id);
 
             symbolNode.Label = label;
@@ -747,20 +757,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             symbolNode[RoslynGraphProperties.ContextDocumentId] = document.Id;
             symbolNode[RoslynGraphProperties.ContextProjectId] = project.Id;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var span = text.Lines.GetLinePositionSpan(NavigateToUtilities.GetBoundedSpan(result.NavigableItem, text));
-
-            symbolNode[CodeNodeProperties.SourceLocation] = new SourceLocation(
-                document.FilePath,
-                new Position(span.Start.Line, span.Start.Character),
-                new Position(span.End.Line, span.End.Character));
+            symbolNode[CodeNodeProperties.SourceLocation] = sourceLocation.Value;
 
             this.AddLink(documentNode, GraphCommonSchema.Contains, symbolNode, cancellationToken);
 
             return symbolNode;
         }
 
-        private static string GetIconString(Glyph glyph)
+        public static SourceLocation? TryCreateSourceLocation(string path, LinePositionSpan span)
+        {
+            // SourceLocation's constructor attempts to create an absolute uri.  So if we can't do that
+            // bail out immediately.
+            if (!Uri.TryCreate(path, UriKind.Absolute, out var uri))
+                return null;
+
+            return new SourceLocation(
+                uri,
+                new Position(span.Start.Line, span.Start.Character),
+                new Position(span.End.Line, span.End.Character));
+        }
+
+        private static string? GetIconString(Glyph glyph)
         {
             var groupName = glyph switch
             {

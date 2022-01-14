@@ -274,15 +274,6 @@
   <data name="Invalid_selection" xml:space="preserve">
     <value>Invalid selection</value>
   </data>
-  <data name="Selection_doesn_t_contain_any_valid_token" xml:space="preserve">
-    <value>Selection doesn't contain any valid token</value>
-  </data>
-  <data name="No_valid_selection_to_perform_extraction" xml:space="preserve">
-    <value>No valid selection to perform extraction</value>
-  </data>
-  <data name="No_common_root_node_for_extraction" xml:space="preserve">
-    <value>No common root node for extraction</value>
-  </data>
   <data name="Deprecated" xml:space="preserve">
     <value>Deprecated</value>
   </data>
@@ -651,9 +642,6 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</value>
   </data>
   <data name="Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first" xml:space="preserve">
     <value>Specifies the sort order for an Order By clause in a query. The smallest element will appear first.</value>
-  </data>
-  <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
-    <value>Asynchronously waits for the task to finish.</value>
   </data>
   <data name="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order" xml:space="preserve">
     <value>Sets the string comparison method specified in Option Compare to a strict binary sort order.</value>
