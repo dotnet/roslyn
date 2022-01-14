@@ -294,32 +294,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.True(value < NumThreads);
         }
 
-<<<<<<< HEAD
-        private static void DoSimultaneousWrites(Func<string, Task> write)
-        {
-            var barrier = new Barrier(NumThreads);
-            var countdown = new CountdownEvent(NumThreads);
-            for (var i = 0; i < NumThreads; i++)
-            {
-                ThreadPool.QueueUserWorkItem(s =>
-                {
-                    var id = (int)s;
-                    barrier.SignalAndWait();
-                    write(id + "").Wait();
-                    countdown.Signal();
-                }, i);
-            }
-
-            countdown.Wait();
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public async Task PersistentService_Solution_SimultaneousReads(Size size, bool withChecksum)
-=======
         [Theory, CombinatorialData]
         public async Task PersistentService_Solution_SimultaneousReads(Size size, bool withChecksum, [CombinatorialRange(0, Iterations)] int iteration)
->>>>>>> main
         {
             _ = iteration;
             var solution = CreateOrOpenSolution();
