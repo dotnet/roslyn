@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 docWithAssemblyInfo,
                 SpecializedCollections.SingletonEnumerable(node.FullSpan),
                 options,
-                GetFormattingRules(docWithAssemblyInfo), 
+                GetFormattingRules(docWithAssemblyInfo),
                 cancellationToken).ConfigureAwait(false);
 
             var reducers = GetReducers();
