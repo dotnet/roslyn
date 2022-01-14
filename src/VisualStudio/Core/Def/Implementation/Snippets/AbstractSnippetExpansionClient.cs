@@ -881,6 +881,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             // Now compute the new arguments for the new call
+            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var semanticModel = document.GetRequiredSemanticModelAsync(cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
             var position = SubjectBuffer.CurrentSnapshot.GetPosition(adjustedTextSpan.iStartLine, adjustedTextSpan.iStartIndex);
 
@@ -890,7 +891,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 foreach (var provider in GetArgumentProviders(document.Project.Solution.Workspace))
                 {
-                    var context = new ArgumentContext(provider, semanticModel, position, parameter, value, cancellationToken);
+                    var context = new ArgumentContext(provider, options, semanticModel, position, parameter, value, cancellationToken);
                     ThreadingContext.JoinableTaskFactory.Run(() => provider.ProvideArgumentAsync(context));
 
                     if (context.DefaultValue is not null)
