@@ -302,5 +302,4 @@ dotnet_diagnostic.IDE2004.severity = warning
 [src/{VisualStudio}/**/*.{cs,vb}]
 # CA1822: Make member static
 # There is a risk of accidentally breaking an internal API that partners rely on though IVT.
-dotnet_diagnostic.CA1822.severity = warning
 dotnet_code_quality.CA1822.api_surface = private
