@@ -1670,7 +1670,7 @@ outerDefault:
             Debug.Assert(arguments != null);
 
             // Prefer overloads that did not use the UTF8 string literal conversion to convert arguments.
-            // PROTOTYPE(UTF8StringLiteral) : Confirm this is the behavior we want. Similar to function types, this
+            // PROTOTYPE(UTF8StringLiterals) : Confirm this is the behavior we want. Similar to function types, this
             //                                doesn't detect user defined conversions that became applicable due to
             //                                UTF8 string literal conversions. But at the moment we do not allow
             //                                implicit conversions like that and they are never applicable.

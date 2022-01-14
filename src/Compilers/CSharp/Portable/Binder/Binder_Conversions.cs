@@ -253,6 +253,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         .WithSuppression(source.IsSuppressed);
                 }
 
+                if (conversion.IsUtf8StringLiteral)
+                {
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUTF8StringLiterals, diagnostics);
+                }
+
                 reportUseSiteDiagnosticsForUnderlyingConversions(conversion);
 
                 return new BoundConversion(

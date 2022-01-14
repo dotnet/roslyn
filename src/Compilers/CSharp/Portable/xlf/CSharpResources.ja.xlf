@@ -1397,6 +1397,11 @@
         <target state="translated">構造体フィールド初期化子</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUTF8StringLiterals">
+        <source>Utf8 String Literals</source>
+        <target state="new">Utf8 String Literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
         <source>with on anonymous types</source>
         <target state="translated">匿名型の場合</target>

@@ -7722,7 +7722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.ImplicitUtf8StringLiteral:
-                    resultState = NullableFlowState.NotNull; // PROTOTYPE(UTF8StringLiteral) : Adjust if we actually want it to work with 'null' value.
+                    resultState = NullableFlowState.NotNull; // PROTOTYPE(UTF8StringLiterals) : Adjust if we actually want it to work with 'null' value.
                     break;
 
                 case ConversionKind.ObjectCreation:

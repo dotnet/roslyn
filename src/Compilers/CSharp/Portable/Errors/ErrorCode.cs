@@ -2027,7 +2027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NullCheckingOnByRefParameter = 8994,
         WRN_NullCheckingOnNullableType = 8995,
 
-        ERR_CannotBeConvertedToUTF8 = 9100, // PROTOTYPE(UTF8StringLiteral) : pack numbers
+        ERR_CannotBeConvertedToUTF8 = 9100, // PROTOTYPE(UTF8StringLiterals) : pack numbers
 
         #endregion
 

@@ -1397,6 +1397,11 @@
         <target state="translated">구조체 필드 이니셜라이저</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUTF8StringLiterals">
+        <source>Utf8 String Literals</source>
+        <target state="new">Utf8 String Literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
         <source>with on anonymous types</source>
         <target state="translated">무명 형식에서 사용</target>

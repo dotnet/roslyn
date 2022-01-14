@@ -1397,6 +1397,11 @@
         <target state="translated">结构字段初始化表达式</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUTF8StringLiterals">
+        <source>Utf8 String Literals</source>
+        <target state="new">Utf8 String Literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
         <source>with on anonymous types</source>
         <target state="translated">在匿名类型上</target>

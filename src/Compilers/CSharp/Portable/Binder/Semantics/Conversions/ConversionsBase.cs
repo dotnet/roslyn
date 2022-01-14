@@ -1107,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue constantValue = sourceExpression.ConstantValue;
 
             TypeSymbol destinationOriginalDefinition = destination.OriginalDefinition;
-            if (constantValue?.IsString == true && // PROTOTYPE(UTF8StringLiteral) : confirm if we actually want it to work with 'null' constant value.
+            if (constantValue?.IsString == true && // PROTOTYPE(UTF8StringLiterals) : confirm if we actually want it to work with 'null' constant value.
                 sourceExpression.Type?.SpecialType == SpecialType.System_String &&
                 (destination is ArrayTypeSymbol { IsSZArray: true, ElementType.SpecialType: SpecialType.System_Byte } || // byte[]
                  ((destinationOriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions) ||             // Span<T>

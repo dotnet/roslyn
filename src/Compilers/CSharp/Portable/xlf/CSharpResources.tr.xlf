@@ -1397,6 +1397,11 @@
         <target state="translated">struct alan başlatıcıları</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUTF8StringLiterals">
+        <source>Utf8 String Literals</source>
+        <target state="new">Utf8 String Literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
         <source>with on anonymous types</source>
         <target state="translated">anonim türler ile</target>

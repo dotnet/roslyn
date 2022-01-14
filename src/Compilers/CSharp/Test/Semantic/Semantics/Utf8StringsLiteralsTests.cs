@@ -118,6 +118,109 @@ class C
   IL_000b:  ret
 }
 ");
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+{ 0x63 0x61 0x74 }
+").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (13,30): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static byte[] Test1() => "hello";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("Utf8 String Literals").WithLocation(13, 30),
+                // (14,34): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static Span<byte> Test2() => "dog";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("Utf8 String Literals").WithLocation(14, 34),
+                // (15,42): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static ReadOnlySpan<byte> Test3() => "cat";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""cat""").WithArguments("Utf8 String Literals").WithLocation(15, 42)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ImplicitConversions_TupleLiteral_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        (byte[] b, (byte[] d, string e) c) a = (""hello"", (""dog"", ""cat""));
+        System.Console.WriteLine();
+        Helpers.Print(a.b);
+        Helpers.Print(a.c.d);
+    }
+}
+";
+            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,49): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         (byte[] b, (byte[] d, string e) c) a = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("Utf8 String Literals").WithLocation(7, 49),
+                // (7,59): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         (byte[] b, (byte[] d, string e) c) a = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("Utf8 String Literals").WithLocation(7, 59)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ImplicitConversions_Deconstruction_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        (byte[] a, (byte[] b, string c)) = (""hello"", (""dog"", ""cat""));
+        System.Console.WriteLine();
+        Helpers.Print(a);
+        Helpers.Print(b);
+    }
+}
+";
+            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,45): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         (byte[] a, (byte[] b, string c)) = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("Utf8 String Literals").WithLocation(7, 45),
+                // (7,55): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         (byte[] a, (byte[] b, string c)) = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("Utf8 String Literals").WithLocation(7, 55)
+                );
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -147,6 +250,68 @@ class C
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
 ").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+{ 0x63 0x61 0x74 }
+").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var array = (byte[])"hello";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(byte[])""hello""").WithArguments("Utf8 String Literals").WithLocation(7, 21),
+                // (8,20): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var span = (Span<byte>)"dog";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(Span<byte>)""dog""").WithArguments("Utf8 String Literals").WithLocation(8, 20),
+                // (9,28): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var readonlySpan = (ReadOnlySpan<byte>)"cat";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(ReadOnlySpan<byte>)""cat""").WithArguments("Utf8 String Literals").WithLocation(9, 28)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ExplicitConversions_TupleLiteral_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        var a = ((byte[] b, (byte[] d, string e) c))(""hello"", (""dog"", ""cat""));
+        System.Console.WriteLine();
+        Helpers.Print(a.b);
+        Helpers.Print(a.c.d);
+    }
+}
+";
+            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,54): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var a = ((byte[] b, (byte[] d, string e) c))("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("Utf8 String Literals").WithLocation(7, 54),
+                // (7,64): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var a = ((byte[] b, (byte[] d, string e) c))("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("Utf8 String Literals").WithLocation(7, 64)
+                );
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -355,7 +520,7 @@ class C
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            // PROTOTYPE(UTF8StringLiteral) : More specific error message?
+            // PROTOTYPE(UTF8StringLiterals) : More specific error message?
             comp.VerifyEmitDiagnostics(
                 // (9,24): error CS0029: Cannot implicitly convert type 'string' to 'byte[]'
                 //         byte[] array = nullValue;
@@ -388,7 +553,7 @@ class C
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            // PROTOTYPE(UTF8StringLiteral) : More specific error message?
+            // PROTOTYPE(UTF8StringLiterals) : More specific error message?
             comp.VerifyEmitDiagnostics(
                 // (9,21): error CS0030: Cannot convert type 'string' to 'byte[]'
                 //         var array = (byte[])nullValue;
@@ -824,7 +989,7 @@ class C3
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            // PROTOTYPE(UTF8StringLiteral) : Confirm this is the behavior we want. Cast is going to work.
+            // PROTOTYPE(UTF8StringLiterals) : Confirm this is the behavior we want. Cast is going to work.
             //                                However, it looks like this helps us to avoid breaking an existing code due to
             //                                an overload resolution ambiguity because implicit user defined conversions are not applicable.
             //                                See OverloadResolution_03 unit-test.
@@ -838,6 +1003,109 @@ class C3
                 // (9,16): error CS0266: Cannot implicitly convert type 'string' to 'C3'. An explicit conversion exists (are you missing a cast?)
                 //         C3 z = "cat";
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"""cat""").WithArguments("string", "C3").WithLocation(9, 16)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UserDefinedImplicitConversions_TupleLiteral_01()
+        {
+            var source = @"
+#pragma warning disable CS0219 // The variable is assigned but its value is never used
+using System;
+class C
+{
+    static void Main()
+    {
+        (C1, (C2, C3)) a = (""hello"", (""dog"", ""cat""));
+    }
+}
+
+class C1
+{
+    public static implicit operator C1(byte[] x)
+    {
+        return new C1();
+    }
+}
+
+class C2
+{
+    public static implicit operator C2(Span<byte> x)
+    {
+        return new C2();
+    }
+}
+
+class C3
+{
+    public static implicit operator C3(ReadOnlySpan<byte> x)
+    {
+        return new C3();
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (8,29): error CS0029: Cannot implicitly convert type 'string' to 'C1'
+                //         (C1, (C2, C3)) a = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "C1").WithLocation(8, 29),
+                // (8,39): error CS0029: Cannot implicitly convert type 'string' to 'C2'
+                //         (C1, (C2, C3)) a = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""dog""").WithArguments("string", "C2").WithLocation(8, 39),
+                // (8,46): error CS0029: Cannot implicitly convert type 'string' to 'C3'
+                //         (C1, (C2, C3)) a = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""cat""").WithArguments("string", "C3").WithLocation(8, 46)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UserDefinedImplicitConversions_Deconstruction_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        (C1 a, (C2 b, C3 c)) = (""hello"", (""dog"", ""cat""));
+    }
+}
+
+class C1
+{
+    public static implicit operator C1(byte[] x)
+    {
+        return new C1();
+    }
+}
+
+class C2
+{
+    public static implicit operator C2(Span<byte> x)
+    {
+        return new C2();
+    }
+}
+
+class C3
+{
+    public static implicit operator C3(ReadOnlySpan<byte> x)
+    {
+        return new C3();
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,33): error CS0029: Cannot implicitly convert type 'string' to 'C1'
+                //         (C1 a, (C2 b, C3 c)) = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "C1").WithLocation(7, 33),
+                // (7,43): error CS0029: Cannot implicitly convert type 'string' to 'C2'
+                //         (C1 a, (C2 b, C3 c)) = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""dog""").WithArguments("string", "C2").WithLocation(7, 43),
+                // (7,50): error CS0029: Cannot implicitly convert type 'string' to 'C3'
+                //         (C1 a, (C2 b, C3 c)) = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""cat""").WithArguments("string", "C3").WithLocation(7, 50)
                 );
         }
 
@@ -891,6 +1159,98 @@ class C3
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
 ").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+{ 0x63 0x61 0x74 }
+").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (8,21): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var x = (C1)"hello";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("Utf8 String Literals").WithLocation(8, 21),
+                // (9,21): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var y = (C2)"dog";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("Utf8 String Literals").WithLocation(9, 21),
+                // (10,21): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var z = (C3)"cat";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""cat""").WithArguments("Utf8 String Literals").WithLocation(10, 21)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UserDefinedImplicitConversions_TupleLiteral_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        System.Console.WriteLine();
+        _ = ((C1, (C2, C3)))(""hello"", (""dog"", ""cat""));
+    }
+}
+
+class C1
+{
+    public static implicit operator C1(byte[] x)
+    {
+        Helpers.Print(x);
+        return new C1();
+    }
+}
+
+class C2
+{
+    public static implicit operator C2(Span<byte> x)
+    {
+        Helpers.Print(x);
+        return new C2();
+    }
+}
+
+class C3
+{
+    public static implicit operator C3(ReadOnlySpan<byte> x)
+    {
+        Helpers.Print(x);
+        return new C3();
+    }
+}
+";
+            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+{ 0x63 0x61 0x74 }
+").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+{ 0x63 0x61 0x74 }
+").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (8,30): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = ((C1, (C2, C3)))("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("Utf8 String Literals").WithLocation(8, 30),
+                // (8,40): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = ((C1, (C2, C3)))("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("Utf8 String Literals").WithLocation(8, 40),
+                // (8,47): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = ((C1, (C2, C3)))("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""cat""").WithArguments("Utf8 String Literals").WithLocation(8, 47)
+                );
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -943,6 +1303,254 @@ class C3
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
 ").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+{ 0x63 0x61 0x74 }
+").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (8,21): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var x = (C1)"hello";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("Utf8 String Literals").WithLocation(8, 21),
+                // (9,21): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var y = (C2)"dog";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("Utf8 String Literals").WithLocation(9, 21),
+                // (10,21): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var z = (C3)"cat";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""cat""").WithArguments("Utf8 String Literals").WithLocation(10, 21)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UserDefinedExplicitConversions_TupleLiteral_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        System.Console.WriteLine();
+        _ = ((C1, (C2, C3)))(""hello"", (""dog"", ""cat""));
+    }
+}
+
+class C1
+{
+    public static explicit operator C1(byte[] x)
+    {
+        Helpers.Print(x);
+        return new C1();
+    }
+}
+
+class C2
+{
+    public static explicit operator C2(Span<byte> x)
+    {
+        Helpers.Print(x);
+        return new C2();
+    }
+}
+
+class C3
+{
+    public static explicit operator C3(ReadOnlySpan<byte> x)
+    {
+        Helpers.Print(x);
+        return new C3();
+    }
+}
+";
+            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+{ 0x63 0x61 0x74 }
+").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+
+            CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+{ 0x63 0x61 0x74 }
+").VerifyDiagnostics();
+
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (8,30): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = ((C1, (C2, C3)))("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("Utf8 String Literals").WithLocation(8, 30),
+                // (8,40): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = ((C1, (C2, C3)))("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("Utf8 String Literals").WithLocation(8, 40),
+                // (8,47): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = ((C1, (C2, C3)))("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""cat""").WithArguments("Utf8 String Literals").WithLocation(8, 47)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UserDefinedExplictConversions_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        C1 x = ""hello"";
+        C2 y = ""dog"";
+        C3 z = ""cat"";
+    }
+}
+
+class C1
+{
+    public static explicit operator C1(byte[] x)
+    {
+        return new C1();
+    }
+}
+
+class C2
+{
+    public static explicit operator C2(Span<byte> x)
+    {
+        return new C2();
+    }
+}
+
+class C3
+{
+    public static explicit operator C3(ReadOnlySpan<byte> x)
+    {
+        return new C3();
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0266: Cannot implicitly convert type 'string' to 'C1'. An explicit conversion exists (are you missing a cast?)
+                //         C1 x = "hello";
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"""hello""").WithArguments("string", "C1").WithLocation(7, 16),
+                // (8,16): error CS0266: Cannot implicitly convert type 'string' to 'C2'. An explicit conversion exists (are you missing a cast?)
+                //         C2 y = "dog";
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"""dog""").WithArguments("string", "C2").WithLocation(8, 16),
+                // (9,16): error CS0266: Cannot implicitly convert type 'string' to 'C3'. An explicit conversion exists (are you missing a cast?)
+                //         C3 z = "cat";
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"""cat""").WithArguments("string", "C3").WithLocation(9, 16)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UserDefinedExplicitConversions_TupleLiteral_02()
+        {
+            var source = @"
+#pragma warning disable CS0219 // The variable is assigned but its value is never used
+using System;
+class C
+{
+    static void Main()
+    {
+        (C1, (C2, C3)) a = (""hello"", (""dog"", ""cat""));
+    }
+}
+
+class C1
+{
+    public static explicit operator C1(byte[] x)
+    {
+        return new C1();
+    }
+}
+
+class C2
+{
+    public static explicit operator C2(Span<byte> x)
+    {
+        return new C2();
+    }
+}
+
+class C3
+{
+    public static explicit operator C3(ReadOnlySpan<byte> x)
+    {
+        return new C3();
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (8,29): error CS0029: Cannot implicitly convert type 'string' to 'C1'
+                //         (C1, (C2, C3)) a = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "C1").WithLocation(8, 29),
+                // (8,39): error CS0029: Cannot implicitly convert type 'string' to 'C2'
+                //         (C1, (C2, C3)) a = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""dog""").WithArguments("string", "C2").WithLocation(8, 39),
+                // (8,46): error CS0029: Cannot implicitly convert type 'string' to 'C3'
+                //         (C1, (C2, C3)) a = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""cat""").WithArguments("string", "C3").WithLocation(8, 46)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UserDefinedExplicitConversions_Deconstruction_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        (C1 a, (C2 b, C3 c)) = (""hello"", (""dog"", ""cat""));
+    }
+}
+
+class C1
+{
+    public static explicit operator C1(byte[] x)
+    {
+        return new C1();
+    }
+}
+
+class C2
+{
+    public static explicit operator C2(Span<byte> x)
+    {
+        return new C2();
+    }
+}
+
+class C3
+{
+    public static explicit operator C3(ReadOnlySpan<byte> x)
+    {
+        return new C3();
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,33): error CS0029: Cannot implicitly convert type 'string' to 'C1'
+                //         (C1 a, (C2 b, C3 c)) = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "C1").WithLocation(7, 33),
+                // (7,43): error CS0029: Cannot implicitly convert type 'string' to 'C2'
+                //         (C1 a, (C2 b, C3 c)) = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""dog""").WithArguments("string", "C2").WithLocation(7, 43),
+                // (7,50): error CS0029: Cannot implicitly convert type 'string' to 'C3'
+                //         (C1 a, (C2 b, C3 c)) = ("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""cat""").WithArguments("string", "C3").WithLocation(7, 50)
+                );
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -970,7 +1578,7 @@ class C
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            // PROTOTYPE(UTF8StringLiteral) : Confirm this is the behavior we want. Or should we disallow this conversion in expression tree?
+            // PROTOTYPE(UTF8StringLiterals) : Confirm this is the behavior we want. Or should we disallow this conversion in expression tree?
             CompileAndVerify(comp, expectedOutput: @"
 () => new [] {104, 101, 108, 108, 111}
 () => new Span`1(new [] {100, 111, 103})
@@ -1024,7 +1632,7 @@ class C3
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            // PROTOTYPE(UTF8StringLiteral) : Confirm this is the behavior we want. Or should we disallow this conversion in expression tree?
+            // PROTOTYPE(UTF8StringLiterals) : Confirm this is the behavior we want. Or should we disallow this conversion in expression tree?
             CompileAndVerify(comp, expectedOutput: @"
 () => Convert(new [] {104, 101, 108, 108, 111}, C1)
 () => Convert(new Span`1(new [] {100, 111, 103}), C2)

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode RewriteUtf8StringLiteralConversion(BoundConversion node)
         {
             string? value = node.Operand.ConstantValue?.StringValue;
-            Debug.Assert(value != null); // PROTOTYPE(UTF8StringLiteral) : Adjust if we actually want it to work with 'null' value.
+            Debug.Assert(value != null); // PROTOTYPE(UTF8StringLiterals) : Adjust if we actually want it to work with 'null' value.
 
             var utf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
             byte[] bytes;
