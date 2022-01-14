@@ -522,6 +522,9 @@ namespace System.Threading.Tasks.Sources
         internal static readonly Action<object> s_sentinel = CompletionSentinel;
         private static void CompletionSentinel(object _) // named method to aid debugging
         {
+            // Instrumented with FailFast to investigate CI failure:
+            // https://github.com/dotnet/roslyn/issues/34207
+            System.Environment.FailFast(""The sentinel delegate should never be invoked."");
             Debug.Fail(""The sentinel delegate should never be invoked."");
             throw new InvalidOperationException();
         }
