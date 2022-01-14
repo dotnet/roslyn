@@ -968,7 +968,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private bool IsContractCheckArgument(IArgumentOperation operation)
             => operation.Parent is IInvocationOperation invocation &&
                invocation.Arguments[0] == operation &&
-               (IsDebugAssertMethod(invocation.TargetMethod) || IsContractCheckMethod(invocation.TargetMethod));
+               (IsAnyDebugAssertMethod(invocation.TargetMethod) || IsContractCheckMethod(invocation.TargetMethod));
 
         private bool IsContractCheckMethod(IMethodSymbol method)
         {
@@ -991,11 +991,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return false;
         }
 
-        private bool IsDebugAssertMethod(IMethodSymbol method)
-            => Equals(method, DebugAssertMethod);
+        /// <summary>
+        /// Checks if the method is an overload of the <see cref="Debug.Assert(bool)"/> method.
+        /// </summary>
+        /// <param name="method">The IMethodSymbol to test.</param>
+        /// <returns>True if the method is an overlaod of the <see cref="Debug.Assert(bool)"/> method.</returns>
+        private bool IsAnyDebugAssertMethod(IMethodSymbol method) =>
+            DebugAssertMethod != null &&
+            method.ContainingSymbol.Equals(DebugAssertMethod.ContainingSymbol, SymbolEqualityComparer.Default) &&
+            method.Name == DebugAssertMethod.Name &&
+            method.ReturnType == DebugAssertMethod.ReturnType;
 
         protected bool IsAnyAssertMethod(IMethodSymbol method)
-            => IsDebugAssertMethod(method) || IsContractCheckMethod(method);
+            => IsAnyDebugAssertMethod(method) || IsContractCheckMethod(method);
 
         #region Helper methods to get or cache analysis data for visited operations.
 
