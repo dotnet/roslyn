@@ -130,10 +130,13 @@ class C
             comp.VerifyEmitDiagnostics(expected);
         }
 
-        private CSharpCompilation CreateCompilationWithAsyncIterator(CSharpTestSource source, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
-            // Instrumented to investigate CI failure: https://github.com/dotnet/roslyn/issues/34207
-            => CreateCompilationWithTasksExtensions(new[] { (CSharpTestSource)source.GetSyntaxTrees(parseOptions, "source"), CSharpTestBase.Parse(AsyncStreamsTypes, filename: "AsyncStreamsTypes", parseOptions) },
+        // Instrumentation to investigate CI failure: https://github.com/dotnet/roslyn/issues/34207
+        private CSharpCompilation CreateCompilationWithAsyncIterator(string source, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+            => CreateCompilationWithTasksExtensions(new[] { (CSharpTestSource)CSharpTestBase.Parse(source, filename: "source", parseOptions), CSharpTestBase.Parse(AsyncStreamsTypes, filename: "AsyncStreamsTypes", parseOptions) },
                 options: options, parseOptions: parseOptions);
+
+        private CSharpCompilation CreateCompilationWithAsyncIterator(CSharpTestSource source, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+            => CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: options, parseOptions: parseOptions);
 
         [Fact]
         [WorkItem(38961, "https://github.com/dotnet/roslyn/issues/38961")]
