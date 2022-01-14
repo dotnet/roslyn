@@ -1139,7 +1139,7 @@ record struct S6(string other)
         }
 
         [Fact]
-        public void TypeDeclaration_InstanceInitializers()
+        public void TypeDeclaration_InstanceInitializers_01()
         {
             var src = @"
 public record struct S
@@ -1154,12 +1154,70 @@ public record struct S
                 // (2,15): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // public record struct S
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 15),
+                // (2,22): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // public record struct S
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(2, 22),
                 // (4,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int field = 42;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "field").WithArguments("struct field initializers", "10.0").WithLocation(4, 16),
                 // (5,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int Property { get; set; } = 43;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Property").WithArguments("struct field initializers", "10.0").WithLocation(5, 16));
+
+            comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,22): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // public record struct S
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(2, 22));
+        }
+
+        [Fact]
+        public void TypeDeclaration_InstanceInitializers_02()
+        {
+            var src = @"
+public record struct S
+{
+    public S() { }
+    public int field = 42;
+    public int Property { get; set; } = 43;
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public record struct S
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 15),
+                // (4,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S").WithArguments("parameterless struct constructors", "10.0").WithLocation(4, 12),
+                // (5,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public int field = 42;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "field").WithArguments("struct field initializers", "10.0").WithLocation(5, 16),
+                // (6,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public int Property { get; set; } = 43;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Property").WithArguments("struct field initializers", "10.0").WithLocation(6, 16));
+
+            comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeDeclaration_InstanceInitializers_03()
+        {
+            var src = @"
+public record struct S()
+{
+    public int field = 42;
+    public int Property { get; set; } = 43;
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public record struct S()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 15));
 
             comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
@@ -10780,10 +10838,10 @@ record struct S4(char A, char B)
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,27): error CS8982: A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.
+                // (3,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S3(object o) : this() { }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(3, 27),
-                // (7,27): error CS8982: A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.
+                // (7,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S4(object o) : this() { }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(7, 27));
         }
@@ -10805,10 +10863,10 @@ record struct S4(char A, char B)
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,27): error CS8982: A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.
+                // (4,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S3(object o) : this() { F = o; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 27),
-                // (9,27): error CS8982: A 'this' initializer for a 'record struct' constructor must call the primary constructor or an explicitly declared constructor.
+                // (9,27): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
                 //     public S4(object o) : this() { F = o; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(9, 27));
         }
@@ -10959,6 +11017,45 @@ record struct S3(char A)
                 // (11,27): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
                 //     public S3(object o) : base() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(11, 27));
+        }
+
+        [Fact]
+        [WorkItem(58328, "https://github.com/dotnet/roslyn/issues/58328")]
+        public void ExplicitConstructors_10()
+        {
+            var source =
+@"record struct S(object F)
+{
+    public object F;
+    public S(int i) : this() { F = i; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,15): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
+                // record struct S(object F)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(1, 15),
+                // (1,24): warning CS8907: Parameter 'F' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S(object F)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "F").WithArguments("F").WithLocation(1, 24),
+                // (4,23): error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.
+                //     public S(int i) : this() { F = i; }
+                Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 23));
+        }
+
+        [Fact]
+        public void ExplicitConstructors_11()
+        {
+            var source =
+@"record struct S(int X)
+{
+    static internal int F = 1;
+    static S() : this() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,18): error CS0514: 'S': static constructor cannot have an explicit 'this' or 'base' constructor call
+                //     static S() : this() { }
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("S").WithLocation(4, 18));
         }
     }
 }

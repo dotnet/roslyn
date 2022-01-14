@@ -1251,6 +1251,7 @@ recurse:
         /// modification, even if the type of a node changes.
         /// </para>
         /// </remarks>
+        [return: NotNullIfNotNull("node")]
         public T? CopyAnnotationsTo<T>(T? node) where T : SyntaxNode
         {
             if (node == null)

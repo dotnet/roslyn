@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             ImmutableArray<StatementSyntax> nodesToInsert,
             CancellationToken cancellationToken)
         {
-            var rootEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var rootEditor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
 
             // 1. Insert the node before anchor node
             rootEditor.InsertAfter(anchorNode, nodesToInsert);

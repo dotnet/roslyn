@@ -2007,13 +2007,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // at runtime.
         ERR_CannotUseRefInUnmanagedCallersOnly = 8977,
 
-        ERR_IncorrectNullCheckSyntax = 8990,
-        ERR_MustNullCheckInImplementation = 8991,
-        ERR_NonNullableValueTypeIsNullChecked = 8992,
-        WRN_NullCheckedHasDefaultNull = 8993,
-        ERR_NullCheckingOnByRefParameter = 8994,
-        WRN_NullCheckingOnNullableType = 8995,
-
         #endregion
 
         #region diagnostics introduced for C# 11.0
@@ -2024,6 +2017,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_LowerCaseTypeName = 8981,
         ERR_RecordStructConstructorCallsDefaultConstructor = 8982,
+        ERR_StructHasInitializersAndNoDeclaredConstructor = 8983,
+        ERR_EncUpdateFailedDelegateTypeChanged = 8984,
+
+        ERR_IncorrectNullCheckSyntax = 8990,
+        ERR_MustNullCheckInImplementation = 8991,
+        ERR_NonNullableValueTypeIsNullChecked = 8992,
+        WRN_NullCheckedHasDefaultNull = 8993,
+        ERR_NullCheckingOnByRefParameter = 8994,
+        WRN_NullCheckingOnNullableType = 8995,
 
         #endregion
 

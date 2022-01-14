@@ -845,6 +845,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return true;
             }
 
+            switch (token.Parent.Kind(), next.Parent.Kind())
+            {
+                case (SyntaxKind.LineSpanDirectiveTrivia, SyntaxKind.LineDirectivePosition):
+                case (SyntaxKind.LineDirectivePosition, SyntaxKind.LineSpanDirectiveTrivia):
+                    return true;
+            }
+
             return false;
         }
 
