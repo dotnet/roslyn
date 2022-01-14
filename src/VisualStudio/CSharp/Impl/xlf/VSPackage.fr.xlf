@@ -82,8 +82,9 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;</source>
-        <target state="translated">Souligner les variables réaffectées;
+Inheritance Margin;
+Stack Trace Explorer;</source>
+        <target state="needs-review-translation">Souligner les variables réaffectées;
 Afficher les indicateurs inline;
 Afficher les diagnostics pour les fichiers fermés;
 Mettre en couleurs l'expression régulière; 
