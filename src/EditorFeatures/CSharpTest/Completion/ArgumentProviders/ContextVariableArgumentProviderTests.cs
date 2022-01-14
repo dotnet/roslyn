@@ -125,6 +125,84 @@ class C
             await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
         }
 
+        [Theory]
+        [InlineData("C")]
+        [InlineData("B")]
+        [InlineData("I")]
+        public async Task TestThisInstance(string parameterType)
+        {
+            var markup = $@"
+using System.Collections.Generic;
+interface I {{ }}
+
+class B {{ }}
+
+class C : B, I
+{{
+    void Method()
+    {{
+        this.Target($$);
+    }}
+
+    void Target({parameterType} arg)
+    {{
+    }}
+}}
+";
+
+            await VerifyDefaultValueAsync(markup, "this");
+            await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
+        }
+
+        [Theory]
+        [InlineData("object")]
+        [InlineData("string")]
+        public async Task TestThisInstanceNotProvided1(string parameterType)
+        {
+            var markup = $@"
+using System.Collections.Generic;
+interface I {{ }}
+
+class B {{ }}
+
+class C : B, I
+{{
+    void Method()
+    {{
+        this.Target($$);
+    }}
+
+    void Target({parameterType} arg)
+    {{
+    }}
+}}
+";
+
+            await VerifyDefaultValueAsync(markup, null);
+        }
+
+        [Fact]
+        public async Task TestThisInstanceNotProvided2()
+        {
+            var markup = $@"
+using System.Collections.Generic;
+
+class C
+{{
+    static void Method()
+    {{
+        Target($$);
+    }}
+
+    static void Target(C arg)
+    {{
+    }}
+}}
+";
+
+            await VerifyDefaultValueAsync(markup, null);
+        }
+
         // Note: The current implementation checks for exact type match for primitive types. If this changes, some of
         // these tests may need to be updated to account for the new behavior.
         [Theory]

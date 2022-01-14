@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -14,12 +15,16 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     internal abstract class AbstractContextVariableArgumentProvider : ArgumentProvider
     {
-        public override Task ProvideArgumentAsync(ArgumentContext context)
+        protected abstract string ThisOrMeKeyword { get; }
+
+        protected abstract bool IsInstanceContext(SyntaxTree syntaxTree, SyntaxToken targetToken, SemanticModel semanticModel, CancellationToken cancellationToken);
+
+        public override async Task ProvideArgumentAsync(ArgumentContext context)
         {
             if (context.PreviousValue is not null)
             {
                 // This argument provider does not attempt to replace arguments already in code.
-                return Task.CompletedTask;
+                return;
             }
 
             var requireExactType = context.Parameter.Type.IsSpecialType()
@@ -28,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // First try to find a local variable
             ISymbol? bestSymbol = null;
+            string? bestSymbolName = null;
             CommonConversion bestConversion = default;
             foreach (var symbol in symbols)
             {
@@ -44,10 +50,11 @@ namespace Microsoft.CodeAnalysis.Completion
 
             if (bestSymbol is not null)
             {
-                context.DefaultValue = bestSymbol.Name;
-                return Task.CompletedTask;
+                context.DefaultValue = bestSymbolName;
+                return;
             }
 
+            // Next try fields and properties of the current type
             foreach (var symbol in symbols)
             {
                 ISymbol candidate;
@@ -70,14 +77,37 @@ namespace Microsoft.CodeAnalysis.Completion
 
             if (bestSymbol is not null)
             {
-                context.DefaultValue = bestSymbol.Name;
-                return Task.CompletedTask;
+                context.DefaultValue = bestSymbolName;
+                return;
             }
 
-            return Task.CompletedTask;
+            // Finally, if the invocation occurs in an instance context, check the current type ('this' or 'Me')
+            var tree = context.SemanticModel.SyntaxTree;
+            var targetToken = await tree.GetTouchingTokenAsync(context.Position, context.CancellationToken).ConfigureAwait(false);
+            if (IsInstanceContext(tree, targetToken, context.SemanticModel, context.CancellationToken))
+            {
+                var enclosingSymbol = context.SemanticModel.GetEnclosingSymbol(targetToken.SpanStart, context.CancellationToken);
+                while (enclosingSymbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction or MethodKind.AnonymousFunction } method)
+                {
+                    // It is allowed to reference the instance (`this`) within a local function or anonymous function,
+                    // as long as the containing method allows it
+                    enclosingSymbol = enclosingSymbol.ContainingSymbol;
+                }
+
+                if (enclosingSymbol is IMethodSymbol { ContainingType: { } containingType })
+                {
+                    CheckCandidate(containingType, ThisOrMeKeyword);
+                }
+            }
+
+            if (bestSymbol is not null)
+            {
+                context.DefaultValue = bestSymbolName;
+                return;
+            }
 
             // Local functions
-            void CheckCandidate(ISymbol candidate)
+            void CheckCandidate(ISymbol candidate, string? overridingName = null)
             {
                 if (candidate.GetSymbolType() is not { } symbolType)
                 {
@@ -105,6 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
 
                 bestSymbol = candidate;
+                bestSymbolName = overridingName ?? bestSymbol.Name;
                 bestConversion = conversion;
             }
 

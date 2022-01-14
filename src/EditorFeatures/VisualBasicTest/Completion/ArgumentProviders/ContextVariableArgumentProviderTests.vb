@@ -80,6 +80,79 @@ End Class
             Await VerifyDefaultValueAsync(markup, expectedDefaultValue:=Nothing, previousDefaultValue:="prior")
         End Function
 
+        <Theory>
+        <InlineData("C")>
+        <InlineData("B")>
+        <InlineData("I")>
+        Public Async Function TestMeInstance(parameterType As String) As Task
+            Dim markup = $"
+Imports System.Collections.Generic
+
+Interface I : End Interface
+Class B : End Class
+
+Class C
+    Inherits B
+    Implements I
+
+    Sub Method()
+        Me.Target($$)
+    End Sub
+
+    Sub Target(arg As {parameterType})
+    End Sub
+End Class
+"
+
+            Await VerifyDefaultValueAsync(markup, "Me")
+            Await VerifyDefaultValueAsync(markup, expectedDefaultValue:=Nothing, previousDefaultValue:="prior")
+        End Function
+
+        <Theory>
+        <InlineData("Object")>
+        <InlineData("String")>
+        Public Async Function TestMeInstanceNotProvided1(parameterType As String) As Task
+            Dim markup = $"
+Imports System.Collections.Generic
+
+Interface I : End Interface
+Class B : End Class
+
+Class C
+    Inherits B
+    Implements I
+
+    Sub Method()
+        Me.Target($$)
+    End Sub
+
+    Sub Target(arg As {parameterType})
+    End Sub
+End Class
+"
+
+            Await VerifyDefaultValueAsync(markup, Nothing)
+        End Function
+
+        <Fact>
+        Public Async Function TestMeInstanceNotProvided2() As Task
+            Dim markup = $"
+Imports System.Collections.Generic
+
+Class C
+
+    Shared Sub Method()
+        Target($$)
+    End Sub
+
+    Shared Sub Target(arg As C)
+    End Sub
+End Class
+"
+
+            Await VerifyDefaultValueAsync(markup, Nothing)
+        End Function
+
         ' Note: The current implementation checks for exact type and name match. If this changes, some of these tests
         ' may need to be updated to account for the new behavior.
         <Theory>
