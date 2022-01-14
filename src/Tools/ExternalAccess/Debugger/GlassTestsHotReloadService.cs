@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             return result.ModuleUpdates.FromContract();
         }
 
-        public async ValueTask<ManagedHotReloadUpdates> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
+        public async ValueTask<ManagedHotReloadUpdates> GetHotReloadUpdatesAsync(Solution solution, CancellationToken cancellationToken)
         {
             var result = await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
