@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             // guess the best candidate if needed and determine parameter index
             var currentSymbol = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken).Symbol as IMethodSymbol;
             var arguments = constructorInitializer.ArgumentList.Arguments;
-            RefineOverloadAndPickParameter(document, position, semanticModel, accessibleConstructors, arguments, ref currentSymbol, out var parameterIndex);
+            LightweightOverloadResolution.RefineOverloadAndPickParameter(document, position, semanticModel, accessibleConstructors, arguments, ref currentSymbol, out var parameterIndex);
 
             // present items and select
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);

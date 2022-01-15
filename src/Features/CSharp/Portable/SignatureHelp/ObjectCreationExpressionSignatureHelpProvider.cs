@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             // guess the best candidate if needed and determine parameter index
             var currentSymbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol as IMethodSymbol;
             var arguments = objectCreationExpression.ArgumentList.Arguments;
-            RefineOverloadAndPickParameter(document, position, semanticModel, methods, arguments, ref currentSymbol, out var parameterIndex);
+            LightweightOverloadResolution.RefineOverloadAndPickParameter(document, position, semanticModel, methods, arguments, ref currentSymbol, out var parameterIndex);
 
             // present items and select
             ImmutableArray<SignatureHelpItem> items;

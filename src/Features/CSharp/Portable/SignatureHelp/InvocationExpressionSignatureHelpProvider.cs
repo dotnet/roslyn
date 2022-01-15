@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             // guess the best candidate if needed and determine parameter index
             var arguments = invocationExpression.ArgumentList.Arguments;
-            RefineOverloadAndPickParameter(document, position, semanticModel, methods, arguments, ref currentSymbol, out var parameterIndex);
+            LightweightOverloadResolution.RefineOverloadAndPickParameter(document, position, semanticModel, methods, arguments, ref currentSymbol, out var parameterIndex);
 
             // if the symbol could be bound, replace that item in the symbol list
             if (currentSymbol?.IsGenericMethod == true)
