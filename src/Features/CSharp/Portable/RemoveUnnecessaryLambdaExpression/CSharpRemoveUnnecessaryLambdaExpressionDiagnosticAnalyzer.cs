@@ -118,7 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 return;
 
             // If we have `object obj = x => Goo(x);` we don't want to simplify.  The compiler warns if you write
-            // `object obj = Goo;` because of the conversion to a non-delegate type.
+            // `object obj = Goo;` because of the conversion to a non-delegate type. While we could insert a cast here
+            // to make this work, that goes against the spirit of this analyzer/fixer just removing code.
             var lambdaTypeInfo = semanticModel.GetTypeInfo(anonymousFunction, cancellationToken);
             if (lambdaTypeInfo.ConvertedType == null || lambdaTypeInfo.ConvertedType.SpecialType is SpecialType.System_Object)
                 return;
