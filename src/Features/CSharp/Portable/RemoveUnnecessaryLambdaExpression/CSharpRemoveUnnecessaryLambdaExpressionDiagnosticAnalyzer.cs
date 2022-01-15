@@ -94,6 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             if (parameters.Count != invocation.ArgumentList.Arguments.Count)
                 return;
 
+            // if we have `() => new C().X()` then converting to `new C().X` very much changes the meaning.
+            if (MayHaveSideEffects(invokedExpression))
+                return;
+
             // parameters must be passed 1:1 from lambda to invocation.
             for (int i = 0, n = parameters.Count - 1; i < n; i++)
             {
@@ -158,10 +162,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 if (!IsIdentityOrImplicitConversion(compilation, lambdaParameter.Type, invokedParameter.Type))
                     return;
             }
-
-            // if we have `() => new C().X()` then converting to `new C().X` very much changes the meaning.
-            if (MayHaveSideEffects(invokedExpression))
-                return;
 
             // Semantically, this looks good to go.  Now, do an actual speculative replacement to ensure that the
             // non-invoked method reference refers to the same method symbol, and that it converts to the same type that
