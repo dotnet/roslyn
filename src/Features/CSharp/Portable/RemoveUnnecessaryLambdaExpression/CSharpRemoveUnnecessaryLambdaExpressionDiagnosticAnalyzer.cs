@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             }
 
             // if we have `() => new C().X()` then converting to `new C().X` very much changes the meaning.
-            if (MayContainSideEffects(invokedExpression))
+            if (MayHaveSideEffects(invokedExpression))
                 return;
 
             // Semantically, this looks good to go.  Now, do an actual speculative replacement to ensure that the
@@ -206,20 +206,17 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             return conversion.IsIdentityOrImplicitReference();
         }
 
-        private static bool MayContainSideEffects(ExpressionSyntax expression)
+        private static bool MayHaveSideEffects(ExpressionSyntax expression)
         {
-            // Checks to see if inlining the temporary variable may change the code's semantics. 
-            // This is not meant to be an exhaustive check; it's more like a heuristic for obvious cases we know may cause side effects.
+            // Checks to see if the expression being invoked looks side-effect free.  If so, changing from executing
+            // each time in the lambda to only executing it once could have impact on the program.
 
-            var descendantNodesAndSelf = expression.DescendantNodesAndSelf();
-
-            if (descendantNodesAndSelf.Any(n => n.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.InvocationExpression)))
-            {
-                return true;
-            }
-
-            // Assume if we reach here that the fix won't cause side effects.
-            return false;
+            return !expression.DescendantNodesAndSelf().All(
+                n => n is TypeSyntax or
+                          TypeArgumentListSyntax or
+                          MemberAccessExpressionSyntax or
+                          InstanceExpressionSyntax or
+                          LiteralExpressionSyntax);
         }
 
         private static SeparatedSyntaxList<ParameterSyntax> GetParameters(AnonymousFunctionExpressionSyntax expression)
