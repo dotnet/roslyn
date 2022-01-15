@@ -171,7 +171,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     if (!IsCompatibleArgument(argument, parameter))
                     {
                         foundParameterIndex = -1;
-                        argToParamMap.Free();
                         return false;
                     }
                 }
@@ -187,18 +186,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     }
                     else
                     {
-                        var firstUnspecified = FirstUnspecifiedParameter(argToParamMap, argumentCount);
-                        foundParameterIndex = firstUnspecified < 0 ? 0 : firstUnspecified;
+                        foundParameterIndex = FirstUnspecifiedParameter(argToParamMap, argumentCount);
                     }
                 }
                 else
                 {
-                    foundParameterIndex = argumentIndexToSave >= 0 ? argToParamMap[argumentIndexToSave] : -1;
+                    foundParameterIndex = -1;
                 }
 
                 Debug.Assert(foundParameterIndex < parameters.Length);
 
-                argToParamMap.Free();
                 return true;
 
                 // If the cursor is pointing at an argument for which we did not find the corresponding
@@ -216,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     }
 
                     var first = specified.FindIndex(s => !s);
-                    return first;
+                    return first <= 0 ? 0 : first;
                 }
 
                 // Determines if the given argument is compatible with the given parameter
