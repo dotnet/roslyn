@@ -173,7 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 syntaxTree.GetLocation(startReportSpan),
                 ReportDiagnostic.Default,
                 additionalLocations: ImmutableArray.Create(anonymousFunction.GetLocation()),
-                additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(endReportSpan))));
+                additionalUnnecessaryLocations: ImmutableArray.Create(
+                    syntaxTree.GetLocation(startReportSpan),
+                    syntaxTree.GetLocation(endReportSpan))));
         }
 
         private static bool IsIdentityOrImplicitConversion(Compilation compilation, ITypeSymbol type1, ITypeSymbol type2)
