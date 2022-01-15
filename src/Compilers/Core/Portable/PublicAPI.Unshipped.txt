@@ -141,7 +141,6 @@ Microsoft.CodeAnalysis.Operations.ISlicePatternOperation
 Microsoft.CodeAnalysis.Operations.ISlicePatternOperation.Pattern.get -> Microsoft.CodeAnalysis.Operations.IPatternOperation?
 Microsoft.CodeAnalysis.Operations.ISlicePatternOperation.SliceSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.CollapseTupleTypes = 512 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
-Microsoft.CodeAnalysis.SymbolInfo.SymbolInfo(Microsoft.CodeAnalysis.ISymbol! symbol) -> void
 Microsoft.CodeAnalysis.WellKnownGeneratorInputs
 Microsoft.CodeAnalysis.WellKnownGeneratorOutputs
 override Microsoft.CodeAnalysis.LineMapping.Equals(object? obj) -> bool
