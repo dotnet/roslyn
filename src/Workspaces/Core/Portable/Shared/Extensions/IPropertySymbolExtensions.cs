@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IFieldSymbol? GetBackingFieldIfAny(this IPropertySymbol property)
             => property.ContainingType.GetMembers()
                 .OfType<IFieldSymbol>()
-                .FirstOrDefault(f => property.Equals(f.AssociatedSymbol));
+                .FirstOrDefault(property.Equals);
 
         private static bool ContainsBackingField(IPropertySymbol property)
             => property.GetBackingFieldIfAny() != null;

@@ -144,9 +144,9 @@ namespace RunTests
             {
                 { "dotnet=", "Path to dotnet", (string s) => dotnetFilePath = s },
                 { "configuration=", "Configuration to test: Debug or Release", (string s) => configuration = s },
-                { "tfm=", "Target framework to test", (string s) => targetFrameworks.Add(s) },
-                { "include=", "Expression for including unit test dlls: default *.UnitTests.dll", (string s) => includeFilter.Add(s) },
-                { "exclude=", "Expression for excluding unit test dlls: default is empty", (string s) => excludeFilter.Add(s) },
+                { "tfm=", "Target framework to test", targetFrameworks.Add },
+                { "include=", "Expression for including unit test dlls: default *.UnitTests.dll", includeFilter.Add },
+                { "exclude=", "Expression for excluding unit test dlls: default is empty", excludeFilter.Add },
                 { "platform=", "Platform to test: x86 or x64", (string s) => platform = s },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },

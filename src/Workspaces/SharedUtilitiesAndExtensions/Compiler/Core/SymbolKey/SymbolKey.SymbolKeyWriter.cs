@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                 _writeString = WriteString;
                 _writeLocation = WriteLocation;
                 _writeBoolean = WriteBoolean;
-                _writeParameterType = p => WriteSymbolKey(p.Type);
+                _writeParameterType = WriteSymbolKey;
                 _writeRefKind = p => WriteRefKind(p.RefKind);
             }
 

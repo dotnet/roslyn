@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            var trimmedLeadingTrivia = token.LeadingTrivia.SkipWhile(t => syntaxFacts.IsEndOfLineTrivia(t)).ToList();
+            var trimmedLeadingTrivia = token.LeadingTrivia.SkipWhile(syntaxFacts.IsEndOfLineTrivia).ToList();
 
             // If the list ends with 3 newlines remove the last one until there's only 2 newlines to end the leading trivia.
             while (trimmedLeadingTrivia.Count >= 3 &&

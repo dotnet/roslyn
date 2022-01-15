@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             if (!!ResetImplemented)
             {
                 Assert.Throws<InvalidOperationException>(
-                    () => enumerator.Reset());
+                    enumerator.Reset);
             }
         }
 
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 if (ResetImplemented)
                     enumerator.Reset();
                 else
-                    Assert.Throws<NotSupportedException>(() => enumerator.Reset());
+                    Assert.Throws<NotSupportedException>(enumerator.Reset);
             }
         }
 
@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                     {
                         if (Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException)
                         {
-                            Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
+                            Assert.Throws<InvalidOperationException>(enumerator.Reset);
                         }
                         else
                         {
@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                     {
                         if (Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException)
                         {
-                            Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
+                            Assert.Throws<InvalidOperationException>(enumerator.Reset);
                         }
                         else
                         {
@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                     {
                         if (Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException)
                         {
-                            Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
+                            Assert.Throws<InvalidOperationException>(enumerator.Reset);
                         }
                         else
                         {
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                     (enumerator, items) =>
                     {
                         Assert.Throws<NotSupportedException>(
-                            () => enumerator.Reset());
+                            enumerator.Reset);
                     });
                 RepeatTest(
                     (enumerator, items, iter) =>
@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                             for (var i = 0; i < 3; i++)
                             {
                                 Assert.Throws<NotSupportedException>(
-                                    () => enumerator.Reset());
+                                    enumerator.Reset);
                             }
                             VerifyEnumerator(
                                 enumerator,
@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                             for (var i = 0; i < 3; i++)
                             {
                                 Assert.Throws<NotSupportedException>(
-                                    () => enumerator.Reset());
+                                    enumerator.Reset);
                             }
                             VerifyEnumerator(
                                 enumerator,

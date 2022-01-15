@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 {
                     var substringMethod = stringType.GetMembers(nameof(string.Substring))
                                                     .OfType<IMethodSymbol>()
-                                                    .FirstOrDefault(m => IsTwoArgumentSliceLikeMethod(m));
+                                                    .FirstOrDefault(IsTwoArgumentSliceLikeMethod);
 
                     _methodToMemberInfo[substringMethod] = ComputeMemberInfo(substringMethod, requireRangeMember: false);
                 }
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             private static IMethodSymbol GetSliceLikeMethod(INamedTypeSymbol namedType)
                 => namedType.GetMembers()
                             .OfType<IMethodSymbol>()
-                            .Where(m => IsTwoArgumentSliceLikeMethod(m))
+                            .Where(IsTwoArgumentSliceLikeMethod)
                             .FirstOrDefault();
 
             public bool TryGetMemberInfo(IMethodSymbol method, out MemberInfo memberInfo)
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     var overloadWithTwoArguments = method.ContainingType
                         .GetMembers(method.Name)
                         .OfType<IMethodSymbol>()
-                        .FirstOrDefault(s => IsTwoArgumentSliceLikeMethod(s));
+                        .FirstOrDefault(IsTwoArgumentSliceLikeMethod);
                     if (overloadWithTwoArguments is null)
                     {
                         memberInfo = default;
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     var actualSliceMethod =
                         sliceLikeMethod.ContainingType.GetMembers(nameof(Span<int>.Slice))
                                                       .OfType<IMethodSymbol>()
-                                                      .FirstOrDefault(s => IsTwoArgumentSliceLikeMethod(s));
+                                                      .FirstOrDefault(IsTwoArgumentSliceLikeMethod);
                     if (actualSliceMethod != null)
                     {
                         return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);

@@ -186,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             // All graph commands below this point apply only to Roslyn-owned nodes.
-            if (!nodes.All(n => IsRoslynNode(n)))
+            if (!nodes.All(IsRoslynNode))
             {
                 yield break;
             }

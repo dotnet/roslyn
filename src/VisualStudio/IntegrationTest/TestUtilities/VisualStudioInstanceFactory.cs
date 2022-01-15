@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             //  * The current instance is no longer running
 
             return _currentlyRunningInstance == null
-                || (!requiredPackageIds.All(id => _currentlyRunningInstance.SupportedPackageIds.Contains(id)))
+                || (!requiredPackageIds.All(_currentlyRunningInstance.SupportedPackageIds.Contains))
                 || !_currentlyRunningInstance.IsRunning;
         }
 

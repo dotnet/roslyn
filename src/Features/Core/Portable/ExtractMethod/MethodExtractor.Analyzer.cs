@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     Contract.ThrowIfFalse(unused.Count == 0);
                 }
 
-                var thisParameterBeingRead = (IParameterSymbol?)dataFlowAnalysisData.ReadInside.FirstOrDefault(s => IsThisParameter(s));
-                var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(s => IsThisParameter(s));
+                var thisParameterBeingRead = (IParameterSymbol?)dataFlowAnalysisData.ReadInside.FirstOrDefault(IsThisParameter);
+                var isThisParameterWritten = dataFlowAnalysisData.WrittenInside.Any(IsThisParameter);
 
                 var localFunctionCallsNotWithinSpan = symbolMap.Keys.Where(s => s.IsLocalFunction() && !s.Locations.Any(l => SelectionResult.FinalSpan.Contains(l.SourceSpan)));
 
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 // check whether the selection contains "&" over a symbol exist
                 var map = new HashSet<ISymbol>(dataFlowAnalysisData.UnsafeAddressTaken);
-                return symbols.Any(s => map.Contains(s));
+                return symbols.Any(map.Contains);
             }
 
             private DataFlowAnalysis GetDataFlowAnalysisData(SemanticModel model)

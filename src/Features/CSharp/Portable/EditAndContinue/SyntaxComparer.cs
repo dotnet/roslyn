@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 default:
                     if (HasChildren(left))
                     {
-                        ignoreChildFunction = childKind => HasLabel(childKind);
+                        ignoreChildFunction = HasLabel;
                     }
                     else
                     {

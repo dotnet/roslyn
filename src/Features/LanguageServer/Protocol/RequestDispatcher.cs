@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public RequestDispatcher(ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, ImmutableArray<string> languageNames)
         {
-            _requestHandlers = CreateMethodToHandlerMap(requestHandlerProviders.Where(rh => languageNames.All(languageName => rh.Metadata.LanguageNames.Contains(languageName))));
+            _requestHandlers = CreateMethodToHandlerMap(requestHandlerProviders.Where(rh => languageNames.All(rh.Metadata.LanguageNames.Contains)));
         }
 
         private static ImmutableDictionary<string, Lazy<IRequestHandler>> CreateMethodToHandlerMap(IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders)

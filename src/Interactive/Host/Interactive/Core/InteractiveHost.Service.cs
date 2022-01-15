@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private static void DisplaySearchPaths(TextWriter writer, List<string> attemptedFilePaths)
             {
-                var directories = attemptedFilePaths.Select(path => Path.GetDirectoryName(path)).ToArray();
+                var directories = attemptedFilePaths.Select(Path.GetDirectoryName).ToArray();
                 var uniqueDirectories = new HashSet<string>(directories);
 
                 writer.WriteLine(uniqueDirectories.Count == 1 ?

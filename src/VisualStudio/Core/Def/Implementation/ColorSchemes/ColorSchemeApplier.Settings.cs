@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 {
                     SchemeName.VisualStudio2019,
                     SchemeName.VisualStudio2017
-                }.ToImmutableDictionary(name => name, name => GetColorScheme(name));
+                }.ToImmutableDictionary(name => name, GetColorScheme);
             }
 
             private ColorScheme GetColorScheme(SchemeName schemeName)

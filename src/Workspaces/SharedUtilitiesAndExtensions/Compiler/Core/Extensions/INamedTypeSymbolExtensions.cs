@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (symbol.IsAbstract)
             {
                 return type.GetBaseTypesAndThis().SelectMany(t => t.GetMembers(symbol.Name))
-                                                 .FirstOrDefault(s => symbol.Equals(s.GetOverriddenMember()));
+                                                 .FirstOrDefault(symbol.Equals);
             }
 
             return null;

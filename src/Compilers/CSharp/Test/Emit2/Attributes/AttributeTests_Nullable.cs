@@ -4745,7 +4745,7 @@ class C
             {
                 var reader = assembly.GetMetadataReader();
                 var typeDef = GetTypeDefinitionByName(reader, "A");
-                var fieldDefs = typeDef.GetFields().Select(f => reader.GetFieldDefinition(f)).ToArray();
+                var fieldDefs = typeDef.GetFields().Select(reader.GetFieldDefinition).ToArray();
 
                 // Nested tuple
                 var field = fieldDefs.Single(f => reader.StringComparer.Equals(f.Name, "Nested"));
@@ -4864,18 +4864,18 @@ public class B<T> :
                 var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
                 checkAttributesNoDynamic(constraint.GetCustomAttributes(), addOne: 1); // add one for A<T>
                 // Field type
-                var field = typeDef.GetFields().Select(f => reader.GetFieldDefinition(f)).Single(f => reader.StringComparer.Equals(f.Name, "Field"));
+                var field = typeDef.GetFields().Select(reader.GetFieldDefinition).Single(f => reader.StringComparer.Equals(f.Name, "Field"));
                 checkAttributes(field.GetCustomAttributes());
                 // Event type
-                var @event = typeDef.GetEvents().Select(e => reader.GetEventDefinition(e)).Single(e => reader.StringComparer.Equals(e.Name, "Event"));
+                var @event = typeDef.GetEvents().Select(reader.GetEventDefinition).Single(e => reader.StringComparer.Equals(e.Name, "Event"));
                 checkAttributes(@event.GetCustomAttributes(), addOne: 1); // add one for EventHandler<T>
                 // Method return type and parameter type
-                var method = typeDef.GetMethods().Select(m => reader.GetMethodDefinition(m)).Single(m => reader.StringComparer.Equals(m.Name, "Method"));
-                var parameters = method.GetParameters().Select(p => reader.GetParameter(p)).ToArray();
+                var method = typeDef.GetMethods().Select(reader.GetMethodDefinition).Single(m => reader.StringComparer.Equals(m.Name, "Method"));
+                var parameters = method.GetParameters().Select(reader.GetParameter).ToArray();
                 checkAttributes(parameters[0].GetCustomAttributes()); // return type
                 checkAttributes(parameters[1].GetCustomAttributes()); // parameter
                 // Property type
-                var property = typeDef.GetProperties().Select(p => reader.GetPropertyDefinition(p)).Single(p => reader.StringComparer.Equals(p.Name, "Property"));
+                var property = typeDef.GetProperties().Select(reader.GetPropertyDefinition).Single(p => reader.StringComparer.Equals(p.Name, "Property"));
                 checkAttributes(property.GetCustomAttributes());
 
                 void checkAttributes(CustomAttributeHandleCollection customAttributes, byte? addOne = null)

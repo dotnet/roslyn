@@ -785,7 +785,7 @@ namespace BoundTreeGenerator
 
         private IEnumerable<Field> AllTypeFields(TreeType node)
         {
-            return AllFields(node).Where(field => TypeIsTypeSymbol(field));
+            return AllFields(node).Where(TypeIsTypeSymbol);
         }
 
         private IEnumerable<Field> AllSymbolOrSymbolListFields(TreeType node)
@@ -971,7 +971,7 @@ namespace BoundTreeGenerator
                             Write("if ");
                             Paren();
                             Or(AllSpecifiableFields(node),
-                                field => wasUpdatedCheck(field));
+                                wasUpdatedCheck);
                             UnParen();
                             Blank();
                             Brace();

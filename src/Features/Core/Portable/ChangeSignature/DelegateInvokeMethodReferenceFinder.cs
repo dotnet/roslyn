@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     convertedAnonymousFunctions.Add(node);
             }
 
-            var invocations = nodes.Where(n => syntaxFactsService.IsInvocationExpression(n))
+            var invocations = nodes.Where(syntaxFactsService.IsInvocationExpression)
                 .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol?.OriginalDefinition == methodSymbol);
 
             return invocations.Concat(convertedAnonymousFunctions).SelectAsArray(

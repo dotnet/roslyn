@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static readonly ObjectPool<ImmutableSegmentedDictionary<string, VoidResult>.Builder> s_memberNameBuilderPool =
-            new ObjectPool<ImmutableSegmentedDictionary<string, VoidResult>.Builder>(() => ImmutableSegmentedDictionary.CreateBuilder<string, VoidResult>());
+            new ObjectPool<ImmutableSegmentedDictionary<string, VoidResult>.Builder>(ImmutableSegmentedDictionary.CreateBuilder<string, VoidResult>);
 
         private static ImmutableSegmentedDictionary<string, VoidResult> ToImmutableAndFree(ImmutableSegmentedDictionary<string, VoidResult>.Builder builder)
         {

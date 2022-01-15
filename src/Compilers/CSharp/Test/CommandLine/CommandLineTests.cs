@@ -5224,7 +5224,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             var actualOrdered = args.CompilationOptions.SpecificDiagnosticOptions.OrderBy(entry => entry.Key);
 
             AssertEx.Equal(
-                expectedCodes.Select(i => MessageProvider.Instance.GetIdForErrorCode(i)),
+                expectedCodes.Select(MessageProvider.Instance.GetIdForErrorCode),
                 actualOrdered.Select(entry => entry.Key));
 
             AssertEx.Equal(expectedOptions, actualOrdered.Select(entry => entry.Value));
@@ -8606,7 +8606,7 @@ class Program3
             fsDll.Dispose();
             fsPdb.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(Path.GetFileName).Order());
         }
 
         /// <summary>
@@ -8663,7 +8663,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             peDll.Dispose();
             pePdb.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(Path.GetFileName).Order());
 
             // files can be deleted now:
             File.Delete(libSrc.Path);
@@ -8704,7 +8704,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             fsDll.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll" }, Directory.GetFiles(dir.Path).Select(Path.GetFileName).Order());
         }
 
         [Fact]

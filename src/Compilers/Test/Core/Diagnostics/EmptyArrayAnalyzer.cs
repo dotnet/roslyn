@@ -42,10 +42,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(ctx =>
-            {
-                RegisterOperationAction(ctx);
-            });
+            context.RegisterCompilationStartAction(RegisterOperationAction);
         }
 
         /// <summary>Reports a diagnostic warning for an array creation that should be replaced.</summary>

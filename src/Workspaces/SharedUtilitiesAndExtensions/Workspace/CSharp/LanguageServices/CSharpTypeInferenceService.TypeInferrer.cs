@@ -329,8 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (types.Any(t => t is INamedTypeSymbol))
                     {
-                        return types.OfType<INamedTypeSymbol>().SelectMany(t =>
-                            GetCollectionElementType(t));
+                        return types.OfType<INamedTypeSymbol>().SelectMany(GetCollectionElementType);
                     }
                 }
 
@@ -1402,8 +1401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var types = GetTypes(objectCreation).Select(t => t.InferredType);
                     if (types.Any(t => t is INamedTypeSymbol))
                     {
-                        return types.OfType<INamedTypeSymbol>().SelectMany(t =>
-                            GetCollectionElementType(t));
+                        return types.OfType<INamedTypeSymbol>().SelectMany(GetCollectionElementType);
                     }
                 }
                 else if (initializerExpression.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
@@ -1430,8 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ? initializerExpression.Expressions.GetSeparators().ToList().IndexOf(previousToken.Value) + 1
                                 : initializerExpression.Expressions.IndexOf(expressionOpt);
 
-                        return types.OfType<INamedTypeSymbol>().SelectMany(t =>
-                            GetCollectionElementType(t));
+                        return types.OfType<INamedTypeSymbol>().SelectMany(GetCollectionElementType);
                     }
                 }
 

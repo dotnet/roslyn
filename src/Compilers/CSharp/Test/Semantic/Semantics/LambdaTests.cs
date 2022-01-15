@@ -3825,7 +3825,7 @@ class Program
             void verifyAttributes(ImmutableArray<AttributeData> attributes, params string[] expectedAttributeNames)
             {
                 var actualAttributes = attributes.SelectAsArray(a => a.AttributeClass.GetSymbol());
-                var expectedAttributes = expectedAttributeNames.Select(n => comp.GetTypeByMetadataName(n));
+                var expectedAttributes = expectedAttributeNames.Select(comp.GetTypeByMetadataName);
                 AssertEx.Equal(expectedAttributes, actualAttributes);
             }
         }

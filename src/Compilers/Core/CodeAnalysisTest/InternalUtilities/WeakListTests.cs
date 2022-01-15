@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         private void Add(WeakList<object> list, ObjectReference<C> value)
         {
-            value.UseReference(r => list.Add(r));
+            value.UseReference(list.Add);
         }
 
         [Fact]

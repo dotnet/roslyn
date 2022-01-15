@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 progressTracker.Clear();
 
                 using (Logger.LogBlock(
-                    FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
+                    FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, CreateLogProperties), cancellationToken))
                 {
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 

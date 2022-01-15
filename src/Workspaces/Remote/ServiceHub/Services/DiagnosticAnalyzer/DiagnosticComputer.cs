@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 using var _1 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var analyzersSet);
                 analyzersSet.AddRange(analyzers);
 
-                shouldInclude = analyzer => analyzersSet.Contains(analyzer);
+                shouldInclude = analyzersSet.Contains;
             }
             else
             {

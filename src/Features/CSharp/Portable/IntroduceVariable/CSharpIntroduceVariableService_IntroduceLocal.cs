@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             expression = document.Root.GetCurrentNode(expression);
 
             var root = document.Root;
-            ISet<StatementSyntax> allAffectedStatements = new HashSet<StatementSyntax>(matches.SelectMany(expr => GetApplicableStatementAncestors(expr)));
+            ISet<StatementSyntax> allAffectedStatements = new HashSet<StatementSyntax>(matches.SelectMany(GetApplicableStatementAncestors));
 
             SyntaxNode innermostCommonBlock;
 

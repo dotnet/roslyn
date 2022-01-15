@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         public async System.Threading.Tasks.Task SetStackTraceResultAsync(StackTraceAnalysisResult result, string originalText, System.Threading.CancellationToken cancellationToken)
         {
             _id = originalText.GetHashCode();
-            var viewModels = result.ParsedFrames.Select(l => GetViewModel(l));
+            var viewModels = result.ParsedFrames.Select(GetViewModel);
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

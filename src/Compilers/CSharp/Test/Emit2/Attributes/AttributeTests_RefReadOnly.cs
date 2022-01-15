@@ -1208,10 +1208,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: Verification.Fails, symbolValidator: module =>
-            {
-                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
-            });
+            CompileAndVerify(text, verify: Verification.Fails, symbolValidator: Assert.Null);
         }
 
         [Fact]

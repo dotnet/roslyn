@@ -38,7 +38,7 @@ namespace Roslyn.Test.MetadataUtilities
         }
 
         public IEnumerable<AssemblyReference> GetAssemblyReferences() =>
-            Readers.SelectMany(r => r.AssemblyReferences.Select(h => r.GetAssemblyReference(h)));
+            Readers.SelectMany(r => r.AssemblyReferences.Select(r.GetAssemblyReference));
 
         public string GetString(StringHandle handle) => GetValue(handle, (r, h) => r.GetString((StringHandle)h));
     }

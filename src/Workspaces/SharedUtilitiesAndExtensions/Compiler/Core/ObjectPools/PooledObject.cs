@@ -41,32 +41,32 @@ namespace Microsoft.CodeAnalysis
         {
             return new PooledObject<StringBuilder>(
                 pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
+                Allocator,
+                Releaser);
         }
 
         public static PooledObject<Stack<TItem>> Create<TItem>(ObjectPool<Stack<TItem>> pool)
         {
             return new PooledObject<Stack<TItem>>(
                 pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
+                Allocator,
+                Releaser);
         }
 
         public static PooledObject<Queue<TItem>> Create<TItem>(ObjectPool<Queue<TItem>> pool)
         {
             return new PooledObject<Queue<TItem>>(
                 pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
+                Allocator,
+                Releaser);
         }
 
         public static PooledObject<HashSet<TItem>> Create<TItem>(ObjectPool<HashSet<TItem>> pool)
         {
             return new PooledObject<HashSet<TItem>>(
                 pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
+                Allocator,
+                Releaser);
         }
 
         public static PooledObject<Dictionary<TKey, TValue>> Create<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool)
@@ -74,16 +74,16 @@ namespace Microsoft.CodeAnalysis
         {
             return new PooledObject<Dictionary<TKey, TValue>>(
                 pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
+                Allocator,
+                Releaser);
         }
 
         public static PooledObject<List<TItem>> Create<TItem>(ObjectPool<List<TItem>> pool)
         {
             return new PooledObject<List<TItem>>(
                 pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
+                Allocator,
+                Releaser);
         }
         #endregion
 

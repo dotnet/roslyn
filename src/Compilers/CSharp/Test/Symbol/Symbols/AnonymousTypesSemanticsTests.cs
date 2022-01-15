@@ -1056,7 +1056,7 @@ public class ClassA
             //  perform emit
             CompileAndVerify(
                 data.Compilation,
-                symbolValidator: module => CheckAnonymousTypes(module)
+                symbolValidator: CheckAnonymousTypes
             );
         }
 

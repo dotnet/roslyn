@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static AccessorListSyntax WithBodies(AccessorListSyntax accessorList)
-            => accessorList.WithAccessors(SyntaxFactory.List(accessorList.Accessors.Select(x => WithBody(x))));
+            => accessorList.WithAccessors(SyntaxFactory.List(accessorList.Accessors.Select(WithBody)));
 
         private static AccessorDeclarationSyntax WithBody(AccessorDeclarationSyntax accessor)
         {
@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (!s_declReturnAttributes.TryGetValue(declaration, out var attrs))
             {
                 attrs = s_declReturnAttributes.GetValue(declaration, declaration =>
-                    Flatten(declaration.GetAttributeLists().Where(al => IsReturnAttribute(al))));
+                    Flatten(declaration.GetAttributeLists().Where(IsReturnAttribute)));
             }
 
             return attrs;
@@ -1658,7 +1658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static TypeParameterListSyntax? AsTypeParameterList(IEnumerable<string>? typeParameterNames)
         {
             var typeParameters = typeParameterNames != null
-                ? SyntaxFactory.TypeParameterList(SyntaxFactory.SeparatedList(typeParameterNames.Select(name => SyntaxFactory.TypeParameter(name))))
+                ? SyntaxFactory.TypeParameterList(SyntaxFactory.SeparatedList(typeParameterNames.Select(SyntaxFactory.TypeParameter)))
                 : null;
 
             if (typeParameters != null && typeParameters.Parameters.Count == 0)

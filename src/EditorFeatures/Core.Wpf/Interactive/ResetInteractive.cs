@@ -91,8 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             // If the user hits the cancel button on the wait indicator, then we want to stop the
             // build.
-            using (uiThreadOperationContext.UserCancellationToken.Register(() =>
-                CancelBuildProject(), useSynchronizationContext: true))
+            using (uiThreadOperationContext.UserCancellationToken.Register(CancelBuildProject, useSynchronizationContext: true))
             {
                 // First, start a build.
                 // If the build fails do not reset the REPL.

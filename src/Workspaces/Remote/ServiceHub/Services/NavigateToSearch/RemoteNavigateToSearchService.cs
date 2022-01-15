@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var project = solution.GetRequiredProject(projectId);
                 var callback = GetCallback(callbackId, cancellationToken);
 
-                var priorityDocuments = priorityDocumentIds.SelectAsArray(d => solution.GetRequiredDocument(d));
+                var priorityDocuments = priorityDocumentIds.SelectAsArray(solution.GetRequiredDocument);
 
                 await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
                     project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);

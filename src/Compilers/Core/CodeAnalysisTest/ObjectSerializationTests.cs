@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestPrimitiveArrayValues()
         {
-            TestRoundTrip(w => TestWritingPrimitiveArrays(w), r => TestReadingPrimitiveArrays(r));
+            TestRoundTrip(TestWritingPrimitiveArrays, TestReadingPrimitiveArrays);
         }
 
         [Theory]
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestPrimitiveAPIs()
         {
-            TestRoundTrip(w => TestWritingPrimitiveAPIs(w), r => TestReadingPrimitiveAPIs(r));
+            TestRoundTrip(TestWritingPrimitiveAPIs, TestReadingPrimitiveAPIs);
         }
 
         [Fact]
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestPrimitivesValue()
         {
-            TestRoundTrip(w => TestWritingPrimitiveValues(w), r => TestReadingPrimitiveValues(r));
+            TestRoundTrip(TestWritingPrimitiveValues, TestReadingPrimitiveValues);
         }
 
         [Fact]

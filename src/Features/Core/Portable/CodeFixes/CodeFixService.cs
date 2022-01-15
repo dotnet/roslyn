@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     await AppendFixesOrConfigurationsAsync(
                         document, diagnosticsSpan, diagnostics, fixAllForInSpan: false, result, provider,
-                        hasFix: d => provider.IsFixableDiagnostic(d),
+                        hasFix: provider.IsFixableDiagnostic,
                         getFixes: async dxs =>
                         {
                             var fixes = await provider.GetFixesAsync(document, diagnosticsSpan, dxs, cancellationToken).ConfigureAwait(false);
@@ -812,13 +812,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 return extensionManager.PerformFunction(
                     fixer,
-                    () => ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => GetAndTestFixableDiagnosticIds(f)),
+                    () => ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, GetAndTestFixableDiagnosticIds),
                     defaultValue: ImmutableArray<DiagnosticId>.Empty);
             }
 
             try
             {
-                return ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => GetAndTestFixableDiagnosticIds(f));
+                return ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, GetAndTestFixableDiagnosticIds);
             }
             catch (Exception e) when (e is not OperationCanceledException)
             {

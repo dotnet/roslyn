@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [ConditionalFact(typeof(WindowsOrLinuxOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
         public async Task CallBeforeListen()
         {
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _host.GetNextClientConnectionAsync());
+            await Assert.ThrowsAsync<InvalidOperationException>(_host.GetNextClientConnectionAsync);
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]

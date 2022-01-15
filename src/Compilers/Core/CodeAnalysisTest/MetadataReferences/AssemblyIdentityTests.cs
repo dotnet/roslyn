@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void ToAssemblyName_Errors()
         {
             var ai = new AssemblyIdentity("goo", cultureName: "*");
-            Assert.Throws<CultureNotFoundException>(() => ai.ToAssemblyName());
+            Assert.Throws<CultureNotFoundException>(ai.ToAssemblyName);
         }
 
         [Fact]

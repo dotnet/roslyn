@@ -2046,7 +2046,7 @@ class Test : MyBase
 
             public Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalSymbol, ISymbol? selectedMember, CancellationToken cancellationToken)
             {
-                var availableMembers = originalSymbol.GetMembers().Where(member => MemberAndDestinationValidator.IsMemberValid(member));
+                var availableMembers = originalSymbol.GetMembers().Where(MemberAndDestinationValidator.IsMemberValid);
 
                 IEnumerable<(ISymbol member, bool makeAbstract)> selections;
 

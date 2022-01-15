@@ -672,7 +672,7 @@ partial struct C
             {
                 var reader = assembly.GetMetadataReader();
                 var type = reader.TypeDefinitions
-                    .Select(handle => reader.GetTypeDefinition(handle))
+                    .Select(reader.GetTypeDefinition)
                     .Where(typeDef => reader.GetString(typeDef.Name) == "S")
                     .Single();
 

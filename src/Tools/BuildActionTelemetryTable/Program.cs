@@ -338,7 +338,7 @@ namespace BuildActionTelemetryTable
                     type => !type.GetTypeInfo().IsInterface && !type.GetTypeInfo().IsAbstract));
 
             return types
-                .Where(t => typeof(CodeAction).IsAssignableFrom(t))
+                .Where(typeof(CodeAction).IsAssignableFrom)
                 .ToImmutableArray();
         }
 

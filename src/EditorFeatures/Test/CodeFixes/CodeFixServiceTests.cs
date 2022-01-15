@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
-            var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
+            var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(workspace.Services.GetRequiredService<IErrorLoggerService>));
             var fixService = new CodeFixService(
                 diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>());
 
@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(workspace.GetService<IDiagnosticUpdateSourceRegistrationService>());
             var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
 
-            var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
+            var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(workspace.Services.GetRequiredService<IErrorLoggerService>));
             var fixService = new CodeFixService(
                 diagnosticService, logger, vsixFixers, SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>());
 

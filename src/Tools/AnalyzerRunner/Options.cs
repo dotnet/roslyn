@@ -166,7 +166,7 @@ namespace AnalyzerRunner
                     case var _ when arg.StartsWith("/editperf:"):
                         testDocuments = true;
                         var expression = new Regex(arg.Substring("/editperf:".Length), RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                        testDocumentMatch = documentPath => expression.IsMatch(documentPath);
+                        testDocumentMatch = expression.IsMatch;
                         break;
                     case var _ when arg.StartsWith("/edititer:"):
                         testDocumentIterations = int.Parse(arg.Substring("/edititer:".Length));

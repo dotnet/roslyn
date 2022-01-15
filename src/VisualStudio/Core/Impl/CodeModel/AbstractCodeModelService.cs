@@ -357,7 +357,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             else
             {
                 var nodeKey = parentNode.AncestorsAndSelf()
-                                    .Select(n => TryGetNodeKey(n))
+                                    .Select(TryGetNodeKey)
                                     .FirstOrDefault(nk => nk != SyntaxNodeKey.Empty);
 
                 if (nodeKey == SyntaxNodeKey.Empty)

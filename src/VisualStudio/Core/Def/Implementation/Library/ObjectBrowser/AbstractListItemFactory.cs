@@ -627,7 +627,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     {
                         if (reference is PortableExecutableReference portableExecutableReference)
                         {
-                            var assemblyIdentity = visitedAssemblies.GetOrAdd(portableExecutableReference.FilePath, filePath => AssemblyIdentityUtils.TryGetAssemblyIdentity(filePath));
+                            var assemblyIdentity = visitedAssemblies.GetOrAdd(portableExecutableReference.FilePath, AssemblyIdentityUtils.TryGetAssemblyIdentity);
                             if (assemblyIdentity != null && !assemblyIdentitySet.Contains(assemblyIdentity))
                             {
                                 assemblyIdentitySet.Add(assemblyIdentity);

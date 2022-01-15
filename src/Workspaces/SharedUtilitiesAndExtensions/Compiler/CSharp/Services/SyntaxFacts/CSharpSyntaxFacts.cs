@@ -1391,7 +1391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public SyntaxNode? FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
-            => nodes.FindInnermostCommonNode(node => IsExecutableBlock(node));
+            => nodes.FindInnermostCommonNode(IsExecutableBlock);
 
         public bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node)
             => IsExecutableBlock(node) || node.IsEmbeddedStatementOwner();

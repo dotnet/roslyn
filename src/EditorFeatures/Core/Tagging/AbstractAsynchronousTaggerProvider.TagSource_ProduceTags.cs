@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var snapshot = spansToInvalidate.First().Snapshot;
 
                 var tagSpansToInvalidate = new List<ITagSpan<TTag>>(
-                    spansToInvalidate.SelectMany(ss => oldTagTree.GetIntersectingSpans(ss)));
+                    spansToInvalidate.SelectMany(oldTagTree.GetIntersectingSpans));
 
                 return oldTagTree.GetSpans(snapshot).Except(tagSpansToInvalidate, comparer: this);
             }

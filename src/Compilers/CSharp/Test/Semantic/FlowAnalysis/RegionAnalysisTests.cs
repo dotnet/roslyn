@@ -2633,7 +2633,7 @@ class C
 }
 ";
             var analysis = CompileAndGetModelAndConstructorInitializer(program,
-                (model, constructorInitializer) => CSharpExtensions.AnalyzeDataFlow(model, constructorInitializer)
+                CSharpExtensions.AnalyzeDataFlow
             );
 
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
@@ -2653,7 +2653,7 @@ class C
 }
 ";
             var analysis = CompileAndGetModelAndConstructorInitializer(program,
-                (model, constructorInitializer) => global::Microsoft.CodeAnalysis.ModelExtensions.AnalyzeDataFlow(model, constructorInitializer)
+                global::Microsoft.CodeAnalysis.ModelExtensions.AnalyzeDataFlow
             );
 
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
@@ -2768,7 +2768,7 @@ record Base(int x)
 record C(int x, int y) /*<bind>*/ : Base(x + y) /*</bind>*/;
 ";
             var analysis = CompileAndGetModelAndPrimaryConstructorInitializer(program,
-                (model, primaryConstructorInitializer) => CSharpExtensions.AnalyzeDataFlow(model, primaryConstructorInitializer)
+                CSharpExtensions.AnalyzeDataFlow
             );
 
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
@@ -2783,7 +2783,7 @@ record Base(int x)
 record C(int x, int y) /*<bind>*/ : Base(x + y) /*</bind>*/;
 ";
             var analysis = CompileAndGetModelAndPrimaryConstructorInitializer(program,
-                (model, primaryConstructorInitializer) => global::Microsoft.CodeAnalysis.ModelExtensions.AnalyzeDataFlow(model, primaryConstructorInitializer)
+                global::Microsoft.CodeAnalysis.ModelExtensions.AnalyzeDataFlow
             );
 
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));

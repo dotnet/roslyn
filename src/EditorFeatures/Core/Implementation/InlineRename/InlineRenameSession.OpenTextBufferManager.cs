@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                                 if (linkedRenameSpan.HasValue)
                                 {
-                                    if (!mergeConflictComments.Any(s => replacement.NewSpan.IntersectsWith(s)))
+                                    if (!mergeConflictComments.Any(replacement.NewSpan.IntersectsWith))
                                     {
                                         _referenceSpanToLinkedRenameSpanMap[replacement.OriginalSpan] = new RenameTrackingSpan(
                                             _subjectBuffer.CurrentSnapshot.CreateTrackingSpan(
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             }
                             else
                             {
-                                if (!mergeConflictComments.Any(s => replacement.NewSpan.IntersectsWith(s)))
+                                if (!mergeConflictComments.Any(replacement.NewSpan.IntersectsWith))
                                 {
                                     _conflictResolutionRenameTrackingSpans.Add(new RenameTrackingSpan(
                                         _subjectBuffer.CurrentSnapshot.CreateTrackingSpan(replacement.NewSpan.ToSpan(), SpanTrackingMode.EdgeInclusive, TrackingFidelityMode.Forward),

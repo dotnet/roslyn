@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var index = 0;
 
                 var fields = type.GetMembers().OfType<IFieldSymbol>().Where(f => f.IsConst).Where(f => f.HasConstantValue);
-                foreach (var field in fields.OrderBy(f => IntegerUtilities.ToInt64(f.ConstantValue)))
+                foreach (var field in fields.OrderBy(IntegerUtilities.ToInt64))
                 {
                     index++;
                     if (!field.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))

@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         internal bool TryHandleUpKey()
         {
             AssertIsForeground();
-            return ChangeSelection(() => sessionOpt.PresenterSession.SelectPreviousItem());
+            return ChangeSelection(sessionOpt.PresenterSession.SelectPreviousItem);
         }
 
         internal bool TryHandleDownKey()
         {
             AssertIsForeground();
-            return ChangeSelection(() => sessionOpt.PresenterSession.SelectNextItem());
+            return ChangeSelection(sessionOpt.PresenterSession.SelectNextItem);
         }
 
         private bool ChangeSelection(Action computationAction)

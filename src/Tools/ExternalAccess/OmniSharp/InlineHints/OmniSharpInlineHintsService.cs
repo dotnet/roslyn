@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints
             return hints.SelectAsArray(static h => new OmniSharpInlineHint(
                 h.Span,
                 h.DisplayParts,
-                (document, cancellationToken) => h.GetDescriptionAsync(document, cancellationToken)));
+                h.GetDescriptionAsync));
         }
     }
 

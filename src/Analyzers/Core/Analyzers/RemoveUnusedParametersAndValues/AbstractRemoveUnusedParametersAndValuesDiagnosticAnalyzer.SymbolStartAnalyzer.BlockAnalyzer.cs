@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         foreach (var operationBlock in context.OperationBlocks)
                         {
                             if (operationBlock.Syntax.DescendantNodes(descendIntoTrivia: true)
-                                                     .Any(n => symbolStartAnalyzer._compilationAnalyzer.IsIfConditionalDirective(n)))
+                                                     .Any(symbolStartAnalyzer._compilationAnalyzer.IsIfConditionalDirective))
                             {
                                 return true;
                             }

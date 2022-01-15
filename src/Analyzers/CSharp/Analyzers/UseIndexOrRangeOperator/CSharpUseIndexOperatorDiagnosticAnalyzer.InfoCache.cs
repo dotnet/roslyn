@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
                 if (IsIntIndexingMethod(methodSymbol))
                 {
-                    memberInfo = _methodToMemberInfo.GetOrAdd(methodSymbol, m => ComputeMemberInfo(m));
+                    memberInfo = _methodToMemberInfo.GetOrAdd(methodSymbol, ComputeMemberInfo);
                 }
 
                 return memberInfo.LengthLikeProperty != null;

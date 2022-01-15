@@ -1219,8 +1219,8 @@ namespace System.Runtime.CompilerServices
                     if (!compileDiagnostics.Any(d => d.Code == (int)ErrorCode.HDN_UnusedExternAlias || d.Code == (int)ErrorCode.HDN_UnusedUsingDirective))
                     {
                         var comp2 = comp.RemoveAllReferences().AddReferences(used.Concat(comp.References.Where(r => r.Properties.Kind == MetadataImageKind.Module)));
-                        comp2.GetEmitDiagnostics().Where(d => shouldCompare(d)).Verify(
-                            emitDiagnostics.Where(d => shouldCompare(d)).
+                        comp2.GetEmitDiagnostics().Where(shouldCompare).Verify(
+                            emitDiagnostics.Where(shouldCompare).
                                             Select(d => new DiagnosticDescription(d, errorCodeOnly: false, includeDefaultSeverity: false, includeEffectiveSeverity: false)).ToArray());
                     }
                 }

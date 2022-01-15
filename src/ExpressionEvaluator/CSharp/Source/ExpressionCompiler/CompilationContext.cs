@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 emitOptions,
                 serializationProperties,
                 additionalTypes,
-                contextType => GetNonDisplayClassContainer(((EENamedTypeSymbol)contextType).SubstitutedSourceType),
+                GetNonDisplayClassContainer,
                 testData);
         }
 

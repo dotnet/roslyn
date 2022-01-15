@@ -43,10 +43,7 @@ namespace Microsoft.CodeAnalysis
 
             var registration = GetWorkspaceRegistration(textContainer);
             registration.SetWorkspace(this);
-            this.ScheduleTask(() =>
-            {
-                registration.RaiseEvents();
-            }, "Workspace.RegisterText");
+            this.ScheduleTask(registration.RaiseEvents, "Workspace.RegisterText");
         }
 
         /// <summary>

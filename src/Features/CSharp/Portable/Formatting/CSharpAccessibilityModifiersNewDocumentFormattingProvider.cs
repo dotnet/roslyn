@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsTypeDeclaration(node));
+            var typeDeclarations = root.DescendantNodes().Where(syntaxFacts.IsTypeDeclaration);
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
 
             var service = document.GetRequiredLanguageService<IAddAccessibilityModifiersService>();

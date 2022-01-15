@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
             return CreateAddedTextDocumentPreviewViewAsync(
                 document, zoomLevel,
-                createBufferAsync: (textDocument, cancellationToken) => CreateNewBufferAsync(textDocument, cancellationToken),
+                createBufferAsync: CreateNewBufferAsync,
                 cancellationToken);
         }
 
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
             return CreateRemovedTextDocumentPreviewViewAsync(
                 document, zoomLevel,
-                createBufferAsync: (textDocument, cancellationToken) => CreateNewBufferAsync(textDocument, cancellationToken),
+                createBufferAsync: CreateNewBufferAsync,
                 cancellationToken);
         }
 

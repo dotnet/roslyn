@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return CreateMethodContext(
                 moduleInstance.AppDomain,
                 metadataBlocks,
-                new Lazy<ImmutableArray<AssemblyReaders>>(() => instructionAddress.MakeAssemblyReaders(), LazyThreadSafetyMode.None),
+                new Lazy<ImmutableArray<AssemblyReaders>>(instructionAddress.MakeAssemblyReaders, LazyThreadSafetyMode.None),
                 symReader: moduleInstance.GetSymReader(),
                 moduleVersionId: moduleInstance.Mvid,
                 methodToken: methodToken,

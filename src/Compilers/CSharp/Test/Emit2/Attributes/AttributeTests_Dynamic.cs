@@ -102,10 +102,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
         {
             var comp = CreateCompilationWithMscorlib40(s_dynamicTestSource, options: TestOptions.UnsafeReleaseDll, references: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef });
 
-            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: module =>
-            {
-                DynamicAttributeValidator.ValidateDynamicAttributes(module);
-            });
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: DynamicAttributeValidator.ValidateDynamicAttributes);
         }
 
         internal struct DynamicAttributeValidator

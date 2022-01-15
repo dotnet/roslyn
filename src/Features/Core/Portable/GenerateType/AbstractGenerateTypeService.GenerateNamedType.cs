@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     // parameters of any of the constructors we have in our base class.  This will have the added
                     // benefit of allowing us to infer better types for complex type-less expressions (like lambdas).
                     var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-                    var refKinds = argumentList.SelectAsArray(a => syntaxFacts.GetRefKindOfArgument(a));
+                    var refKinds = argumentList.SelectAsArray(syntaxFacts.GetRefKindOfArgument);
                     var parameters = parameterTypes.Zip(refKinds,
                         (t, r) => CodeGenerationSymbolFactory.CreateParameterSymbol(r, t, name: "")).ToImmutableArray();
 

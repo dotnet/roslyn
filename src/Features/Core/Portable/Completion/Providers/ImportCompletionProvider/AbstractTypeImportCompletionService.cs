@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
             var solution = currentProject.Solution;
             var graph = solution.GetProjectDependencyGraph();
-            var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).SelectAsArray(id => solution.GetRequiredProject(id));
+            var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).SelectAsArray(solution.GetRequiredProject);
 
             foreach (var referencedProject in referencedProjects.Where(p => p.SupportsCompilation))
             {

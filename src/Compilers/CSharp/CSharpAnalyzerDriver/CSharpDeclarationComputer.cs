@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static IEnumerable<SyntaxNode> GetParameterListInitializersAndAttributes(BaseParameterListSyntax parameterList) =>
             parameterList != null ?
-            parameterList.Parameters.SelectMany(p => GetParameterInitializersAndAttributes(p)) :
+            parameterList.Parameters.SelectMany(GetParameterInitializersAndAttributes) :
             SpecializedCollections.EmptyEnumerable<SyntaxNode>();
 
         private static IEnumerable<SyntaxNode> GetParameterInitializersAndAttributes(ParameterSyntax parameter) =>

@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(0, worker.InvalidateDocumentIds.Count);
 
             // Switch from an active source document to an active non-source document and verify no document analysis callbacks
-            worker = await ExecuteOperation(workspace, w => ClearActiveDocument(w));
+            worker = await ExecuteOperation(workspace, ClearActiveDocument);
             Assert.Equal(0, worker.SyntaxDocumentIds.Count);
             Assert.Equal(0, worker.DocumentIds.Count);
             Assert.Equal(0, worker.InvalidateDocumentIds.Count);

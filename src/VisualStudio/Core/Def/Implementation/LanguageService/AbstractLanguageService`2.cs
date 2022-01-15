@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             // Start off a background task to prime some components we'll need for editing
             VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.BackgroundThread,
-                () => PrimeLanguageServiceComponentsOnBackground());
+                PrimeLanguageServiceComponentsOnBackground);
 
             // Finally, once our connections are established, set up any initial state that we need.
             // Note: we may be instantiated at any time (including when the IDE is already

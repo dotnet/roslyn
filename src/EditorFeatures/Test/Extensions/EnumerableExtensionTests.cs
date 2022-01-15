@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             var elements = Enumerable(1, 2, 3);
             var result = new List<int>();
 
-            elements.Do(a => result.Add(a));
+            elements.Do(result.Add);
 
             Assert.True(elements.SequenceEqual(result));
         }

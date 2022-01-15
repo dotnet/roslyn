@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
 
         private static bool SupportsRenameWorker(ImmutableArray<DocumentId> ids)
         {
-            return ids.Select(id => ContainedDocument.TryGetContainedDocument(id))
+            return ids.Select(ContainedDocument.TryGetContainedDocument)
                     .All(cd => cd == null || cd.SupportsRename);
         }
 

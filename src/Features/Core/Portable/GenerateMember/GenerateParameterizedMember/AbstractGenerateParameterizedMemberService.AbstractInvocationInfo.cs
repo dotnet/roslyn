@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 CancellationToken cancellationToken)
             {
                 var typeParameters = ComputeTypeParameters(cancellationToken);
-                return typeParameters.SelectAsArray(tp => MassageTypeParameter(tp));
+                return typeParameters.SelectAsArray(MassageTypeParameter);
             }
 
             private ImmutableArray<ITypeParameterSymbol> ComputeTypeParameters(

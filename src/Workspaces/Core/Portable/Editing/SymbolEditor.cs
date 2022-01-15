@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 _assemblyNameToProjectIdMap = _originalSolution.Projects
                     .ToLookup(p => p.AssemblyName, p => p.Id)
-                    .ToImmutableDictionary(g => g.Key, g => ImmutableArray.CreateRange(g));
+                    .ToImmutableDictionary(g => g.Key, ImmutableArray.CreateRange);
             }
 
             if (!_assemblyNameToProjectIdMap.TryGetValue(assembly.Name, out var projectIds))

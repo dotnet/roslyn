@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                     return;
                 }
 
-                context.RegisterOperationAction(c => AnalyzeIsTypeOperation(c), OperationKind.IsType);
-                context.RegisterOperationAction(c => AnalyzeNegatedPatternOperation(c), OperationKind.NegatedPattern);
+                context.RegisterOperationAction(AnalyzeIsTypeOperation, OperationKind.IsType);
+                context.RegisterOperationAction(AnalyzeNegatedPatternOperation, OperationKind.NegatedPattern);
             });
         }
 

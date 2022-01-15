@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static readonly ObjectPool<SyntaxTriviaListBuilder> s_builderPool =
-            new ObjectPool<SyntaxTriviaListBuilder>(() => SyntaxTriviaListBuilder.Create());
+            new ObjectPool<SyntaxTriviaListBuilder>(SyntaxTriviaListBuilder.Create);
 
         private static SyntaxTriviaListBuilder GetBuilder()
             => s_builderPool.Allocate();

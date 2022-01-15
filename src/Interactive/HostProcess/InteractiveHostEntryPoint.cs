@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 resetEvent.Wait();
             }
 
-            var invokeOnMainThread = new Func<Func<object>, object>(operation => control!.Invoke(operation));
+            var invokeOnMainThread = new Func<Func<object>, object>(control!.Invoke);
 
             try
             {

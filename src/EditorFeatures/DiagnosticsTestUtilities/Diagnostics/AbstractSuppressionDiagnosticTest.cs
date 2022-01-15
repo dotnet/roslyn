@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var testDriver = new TestDiagnosticAnalyzerDriver(workspace, document.Project, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
             var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, span))
-                .Where(d => fixer.IsFixableDiagnostic(d));
+                .Where(fixer.IsFixableDiagnostic);
 
             var filteredDiagnostics = FilterDiagnostics(diagnostics);
 

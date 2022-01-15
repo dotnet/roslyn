@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         private SyntaxNode GetNamespaceNode()
         {
             return LookupNode().Ancestors()
-                .Where(n => CodeModelService.IsNamespace(n))
+                .Where(CodeModelService.IsNamespace)
                 .FirstOrDefault();
         }
 

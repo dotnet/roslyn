@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.True(collection.IsReadOnly);
             Assert.Throws<NotSupportedException>(() => collection.Add("x"));
             Assert.Throws<NotSupportedException>(() => collection.Remove("x"));
-            Assert.Throws<NotSupportedException>(() => collection.Clear());
+            Assert.Throws<NotSupportedException>(collection.Clear);
         }
 
         private void AssertContains(ICollection<string> collection, params string[] strings)

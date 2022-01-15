@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(context
-                => SymbolAnalyzer.CreateAndRegisterActions(context));
+            context.RegisterCompilationStartAction(SymbolAnalyzer.CreateAndRegisterActions);
         }
 
         private sealed class SymbolAnalyzer

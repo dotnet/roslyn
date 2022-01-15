@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 members = ImmutableArray<ISymbol>.Empty;
 
             // For a record, add record parameters if we have a primary constructor.
-            var primaryConstructor = members.OfType<IMethodSymbol>().FirstOrDefault(m => CodeGenerationConstructorInfo.GetIsPrimaryConstructor(m));
+            var primaryConstructor = members.OfType<IMethodSymbol>().FirstOrDefault(CodeGenerationConstructorInfo.GetIsPrimaryConstructor);
             if (primaryConstructor != null)
             {
                 var parameterList = ParameterGenerator.GenerateParameterList(primaryConstructor.Parameters, isExplicit: false, options);

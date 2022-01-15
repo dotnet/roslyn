@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var methodSymbol = constructedEquatableType
                 .GetMembers(EqualsName)
                 .OfType<IMethodSymbol>()
-                .Single(m => containingType.Equals(m.Parameters.FirstOrDefault()?.Type));
+                .Single(containingType.Equals);
 
             var originalParameter = methodSymbol.Parameters.First();
 

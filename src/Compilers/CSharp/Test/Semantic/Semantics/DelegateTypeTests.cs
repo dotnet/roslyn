@@ -8774,7 +8774,7 @@ class Program
             static void validator(PEAssembly assembly)
             {
                 var reader = assembly.GetMetadataReader();
-                var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
+                var actualTypes = reader.GetTypeDefNames().Select(reader.GetString).ToArray();
 
                 string[] expectedTypes = new[] { "<Module>", "D", "Program", };
                 AssertEx.Equal(expectedTypes, actualTypes);
@@ -8819,7 +8819,7 @@ D4");
             static void validator(PEAssembly assembly)
             {
                 var reader = assembly.GetMetadataReader();
-                var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
+                var actualTypes = reader.GetTypeDefNames().Select(reader.GetString).ToArray();
 
                 string[] expectedTypes = new[] { "<Module>", "<>A{00000001}`2", "<>A{00000009}`2", "D2", "D4", "Program", "<>c", };
                 AssertEx.Equal(expectedTypes, actualTypes);
@@ -8868,7 +8868,7 @@ class Program
             static void validator(PEAssembly assembly)
             {
                 var reader = assembly.GetMetadataReader();
-                var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
+                var actualTypes = reader.GetTypeDefNames().Select(reader.GetString).ToArray();
 
                 string[] expectedTypes = new[] { "<Module>", "Program", "<>c", };
                 AssertEx.Equal(expectedTypes, actualTypes);

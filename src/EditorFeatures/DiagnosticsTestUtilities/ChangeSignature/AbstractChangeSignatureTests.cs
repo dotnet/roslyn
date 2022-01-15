@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             var firstElement = list.Take(1);
 
             var withoutFirstElement = GetSubsets(list.Skip(1));
-            var withFirstElement = withoutFirstElement.Select(without => firstElement.Concat(without));
+            var withFirstElement = withoutFirstElement.Select(firstElement.Concat);
 
             return withoutFirstElement.Concat(withFirstElement);
         }

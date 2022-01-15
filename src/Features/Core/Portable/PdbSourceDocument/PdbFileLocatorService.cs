@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             try
             {
                 // Try to load the pdb file from disk, or embedded
-                if (peReader.TryOpenAssociatedPortablePdb(dllPath, pdbPath => File.OpenRead(pdbPath), out var pdbReaderProvider, out var pdbFilePath))
+                if (peReader.TryOpenAssociatedPortablePdb(dllPath, File.OpenRead, out var pdbReaderProvider, out var pdbFilePath))
                 {
                     Contract.ThrowIfNull(pdbReaderProvider);
 

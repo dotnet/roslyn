@@ -133,10 +133,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         }
 
         public string? GetRemoteExternalRoot(string filePath)
-            => _registeredExternalPaths.SingleOrDefault(externalPath => filePath.StartsWith(externalPath));
+            => _registeredExternalPaths.SingleOrDefault(filePath.StartsWith);
 
         public string? GetRemoteWorkspaceRoot(string filePath)
-            => _remoteWorkspaceRootPaths.SingleOrDefault(remoteWorkspaceRoot => filePath.StartsWith(remoteWorkspaceRoot));
+            => _remoteWorkspaceRootPaths.SingleOrDefault(filePath.StartsWith);
 
         /// <summary>
         /// Event that gets triggered whenever the active workspace changes.  If we're in a live share session
@@ -174,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         private static async Task<(ImmutableHashSet<string> remoteRootPaths, ImmutableHashSet<string> externalPaths)> GetLocalPathsOfRemoteRootsAsync(CollaborationSession session)
         {
             var roots = await session.ListRootsAsync(CancellationToken.None).ConfigureAwait(false);
-            var localPathsOfRemoteRoots = roots.Select(root => session.ConvertSharedUriToLocalPath(root)).ToImmutableArray();
+            var localPathsOfRemoteRoots = roots.Select(session.ConvertSharedUriToLocalPath).ToImmutableArray();
 
             var remoteRootPaths = ImmutableHashSet.CreateBuilder<string>();
             var externalPaths = ImmutableHashSet.CreateBuilder<string>();

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                     return;
                 }
 
-                context.RegisterSyntaxNodeAction(n => AnalyzeSyntax(n), SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression);
+                context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression);
             });
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)

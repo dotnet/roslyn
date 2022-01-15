@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var names = symbols.Select(p => p.Name).ToSet();
             names.RemoveAll(GetExistingTopLevelAttributeValues(syntax, tagName, NameAttributeName).WhereNotNull());
-            return names.Select(name => CreateCompletionItem(FormatParameter(tagName, name)));
+            return names.Select(CreateCompletionItem);
         }
 
         private static string FormatParameter(string kind, string name)

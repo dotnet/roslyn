@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // CodeFixProvider, and we can't call into providers of different languages with diagnostics from a
             // different language.
             var sortedProjects = dependencyGraph.GetTopologicallySortedProjects()
-                                                .Select(id => solution.GetRequiredProject(id))
+                                                .Select(solution.GetRequiredProject)
                                                 .Where(p => p.Language == fixAllContext.Project.Language);
             return fixAllContextsAsync(
                 fixAllContext,

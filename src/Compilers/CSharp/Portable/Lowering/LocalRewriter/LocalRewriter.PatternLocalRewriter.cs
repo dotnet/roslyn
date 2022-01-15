@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !loweredInput.Type.OriginalDefinition.Equals(_factory.Compilation.GetWellKnownType(WellKnownType.System_ValueTuple_TRest)) &&
                     loweredInput.Syntax.Kind() == SyntaxKind.TupleExpression &&
                     loweredInput is BoundObjectCreationExpression expr &&
-                    !decisionDag.TopologicallySortedNodes.Any(n => usesOriginalInput(n)))
+                    !decisionDag.TopologicallySortedNodes.Any(usesOriginalInput))
                 {
                     // If the switch governing expression is a tuple literal whose whole value is not used anywhere,
                     // (though perhaps its component parts are used), then we can save the component parts

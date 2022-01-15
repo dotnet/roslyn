@@ -140,7 +140,7 @@ namespace Roslyn.Test.Performance.Utilities
 
             if (cancellationToken != default(CancellationToken))
             {
-                cancellationToken.Register(() => process.Kill());
+                cancellationToken.Register(process.Kill);
             }
 
             if (RuntimeSettings.IsVerbose)

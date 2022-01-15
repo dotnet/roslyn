@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Options
             _changedOptionKeysNonSerializable = changedOptionKeysNonSerializable;
 
             Debug.Assert(values.Keys.All(ShouldSerialize));
-            Debug.Assert(changedOptionKeysSerializable.All(optionKey => ShouldSerialize(optionKey)));
+            Debug.Assert(changedOptionKeysSerializable.All(ShouldSerialize));
             Debug.Assert(changedOptionKeysNonSerializable.All(optionKey => !ShouldSerialize(optionKey)));
 
             _languages = new Lazy<ImmutableHashSet<string>>(() => this.GetLanguagesAndValuesToSerialize(includeValues: false).languages);

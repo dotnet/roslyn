@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
             // Navigation may fail to open the document, which can result in an exception
             // in expected cases if preview is not supported.  CallWithCOMConvention handles
             // non-critical exceptions
-            ErrorHandler.CallWithCOMConvention(() => itemDisplay.NavigateTo());
+            ErrorHandler.CallWithCOMConvention(itemDisplay.NavigateTo);
         }
     }
 }

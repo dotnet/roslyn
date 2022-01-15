@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 baseDirectory,
                 gacFileResolver: platformInfo.HasGlobalAssemblyCache ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
                 platformAssemblyPaths: platformInfo.PlatformAssemblyPaths,
-                fileReferenceProvider: (path, properties) => metadataService.GetReference(path, properties));
+                fileReferenceProvider: metadataService.GetReference);
         }
 
         private static SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)

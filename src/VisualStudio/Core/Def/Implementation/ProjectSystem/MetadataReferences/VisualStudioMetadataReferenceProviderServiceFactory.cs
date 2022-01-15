@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // early and potentially causing deadlocks. We do initialize it on the UI thread in the
                 // VisualStudioWorkspaceImpl.DeferredState constructor to ensure it gets created there.
                 _manager = new Lazy<VisualStudioMetadataReferenceManager>(
-                    () => workspaceServices.GetRequiredService<VisualStudioMetadataReferenceManager>());
+                    workspaceServices.GetRequiredService<VisualStudioMetadataReferenceManager>);
             }
 
             public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)

@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public override ExplicitInterfaceInfo[] GetExplicitInterfaceImplementations()
         {
-            var interfaceMaps = Type.GetInterfaces().Select(i => Type.GetInterfaceMap(i));
+            var interfaceMaps = Type.GetInterfaces().Select(Type.GetInterfaceMap);
 
             // A dot is neither necessary nor sufficient for determining whether a member explicitly
             // implements an interface member, but it does characterize the set of members we're

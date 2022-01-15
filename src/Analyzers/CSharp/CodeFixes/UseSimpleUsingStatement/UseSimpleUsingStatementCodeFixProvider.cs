@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         {
             if (originalBlock.Statements.Count == currentBlock.Statements.Count)
             {
-                var statementToUpdateIndex = originalBlock.Statements.IndexOf(s => topmostUsingStatements.Contains(s));
+                var statementToUpdateIndex = originalBlock.Statements.IndexOf(topmostUsingStatements.Contains);
                 var statementToUpdate = currentBlock.Statements[statementToUpdateIndex];
 
                 if (statementToUpdate is UsingStatementSyntax usingStatement &&

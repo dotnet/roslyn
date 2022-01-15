@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var topmostParentingExpressions = root.GetAnnotatedNodes(ExpressionAnnotation)
                 .OfType<ExpressionSyntax>()
-                .Select(e => GetTopMostParentingExpression(e));
+                .Select(GetTopMostParentingExpression);
 
             // Make each topmost parenting statement or Equals Clause Expressions semantically explicit.
             document = await document.ReplaceNodesAsync(topmostParentingExpressions, (o, n) =>

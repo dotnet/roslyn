@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             {
                 editor.ReplaceNode(
                     localFunction,
-                    (current, generator) => MakeLocalFunctionStaticCodeFixHelper.AddStaticModifier(current, generator));
+                    MakeLocalFunctionStaticCodeFixHelper.AddStaticModifier);
             }
 
             return Task.CompletedTask;

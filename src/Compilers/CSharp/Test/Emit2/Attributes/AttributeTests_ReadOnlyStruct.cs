@@ -481,10 +481,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
-            {
-                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
-            });
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: Assert.Null);
         }
 
         [Fact]

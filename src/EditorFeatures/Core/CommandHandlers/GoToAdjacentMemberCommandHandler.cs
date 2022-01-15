@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return null;
             }
 
-            var starts = members.Select(m => MemberStart(m)).ToArray();
+            var starts = members.Select(MemberStart).ToArray();
             var index = Array.BinarySearch(starts, caretPosition);
             if (index >= 0)
             {

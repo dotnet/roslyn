@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             expected.CommitCharacters = null;
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams, clientCapabilities).ConfigureAwait(false);
-            Assert.All(results.Items, item => Assert.Null(item.CommitCharacters));
+            Assert.All(results.Items, Assert.Null);
             var vsCompletionList = Assert.IsAssignableFrom<LSP.VSInternalCompletionList>(results);
             Assert.Equal(expectedCommitCharacters, vsCompletionList.CommitCharacters.Value.First);
         }
@@ -586,7 +586,7 @@ class A
             var results = await RunGetCompletionsAsync(testLspServer, completionParams, new LSP.VSInternalClientCapabilities()).ConfigureAwait(false);
             Assert.NotNull(results);
             Assert.NotEmpty(results.Items);
-            Assert.All(results.Items, (item) => Assert.NotNull(item.CommitCharacters));
+            Assert.All(results.Items, Assert.NotNull);
         }
 
         [Fact]

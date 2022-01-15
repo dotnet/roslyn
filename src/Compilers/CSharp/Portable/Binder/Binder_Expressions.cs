@@ -6587,7 +6587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool ImplementsWinRTAsyncInterface(TypeSymbol type)
         {
-            return IsWinRTAsyncInterface(type) || type.AllInterfacesNoUseSiteDiagnostics.Any(i => IsWinRTAsyncInterface(i));
+            return IsWinRTAsyncInterface(type) || type.AllInterfacesNoUseSiteDiagnostics.Any(IsWinRTAsyncInterface);
         }
 
         private bool IsWinRTAsyncInterface(TypeSymbol type)

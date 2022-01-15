@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         {
             // Wait until things have settled down from the theme change, since we will potentially be changing theme colors.
             return VsTaskLibraryHelper.CreateAndStartTask(
-                VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadBackgroundPriority, () => UpdateColorScheme());
+                VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadBackgroundPriority, UpdateColorScheme);
         }
 
         private void UpdateColorScheme()

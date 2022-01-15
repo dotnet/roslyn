@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 
             if (token.LeadingTrivia.Length > 0)
             {
-                element.Add(new XElement("Trivia", token.LeadingTrivia.Select(t => TriviaToElement(t))));
+                element.Add(new XElement("Trivia", token.LeadingTrivia.Select(TriviaToElement)));
             }
 
             if (token.VirtualChars.Length > 0)

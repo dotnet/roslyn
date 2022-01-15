@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
 
         private static (TypeSyntax type, bool useTask) TryGetDeclarationTypeToFix(SyntaxNode node)
         {
-            return node.GetAncestors().Select(a => TryGetReturnTypeToFix(a)).FirstOrDefault(p => p != default);
+            return node.GetAncestors().Select(TryGetReturnTypeToFix).FirstOrDefault(p => p != default);
 
             // Local functions
             static (TypeSyntax type, bool useTask) TryGetReturnTypeToFix(SyntaxNode containingMember)

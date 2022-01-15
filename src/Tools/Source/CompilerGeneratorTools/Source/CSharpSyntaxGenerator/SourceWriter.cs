@@ -1524,7 +1524,7 @@ namespace CSharpSyntaxGenerator
         {
             this.WriteLine();
 
-            var valueFields = nd.Fields.Where(n => IsValueField(n)).ToList();
+            var valueFields = nd.Fields.Where(IsValueField).ToList();
             var nodeFields = nd.Fields.Where(n => !IsValueField(n)).ToList();
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
@@ -1794,7 +1794,7 @@ namespace CSharpSyntaxGenerator
             this.WriteLine();
 
             var hasOptional = minimalFactoryfields.Any(f => !IsRequiredFactoryField(nd, f));
-            var hasAttributeOrModifiersList = nd.Fields.Any(f => IsAttributeOrModifiersList(f));
+            var hasAttributeOrModifiersList = nd.Fields.Any(IsAttributeOrModifiersList);
 
             if (hasOptional && hasAttributeOrModifiersList)
             {

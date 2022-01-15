@@ -87,7 +87,7 @@ namespace IdeBenchmarks.InheritanceMargin
         [GlobalCleanup]
         public void Cleanup()
         {
-            RunOnUIThread(() => _wpfApp.Shutdown());
+            RunOnUIThread(_wpfApp.Shutdown);
         }
 
         [Benchmark]

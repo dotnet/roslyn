@@ -1016,7 +1016,7 @@ class A {";
 
             // Diagnostics should be unchanged as a referenced project was unloaded and reloaded.  Order should not matter.
             Assert.Null(results[0].Diagnostics);
-            Assert.All(results, result => Assert.Null(result.Diagnostics));
+            Assert.All(results, Assert.Null);
             Assert.All(results, result => Assert.True(previousResultIds.Contains(result.ResultId)));
         }
 
@@ -1141,12 +1141,12 @@ class A {";
                     Assert.Null(returnedResult);
                     var progressValues = progress!.Value.GetValues();
                     Assert.NotNull(progressValues);
-                    return progressValues.SelectMany(value => value.Items).Select(diagnostics => ConvertWorkspaceDiagnosticResult(diagnostics)).ToImmutableArray();
+                    return progressValues.SelectMany(value => value.Items).Select(ConvertWorkspaceDiagnosticResult).ToImmutableArray();
 
                 }
 
                 AssertEx.NotNull(returnedResult);
-                return returnedResult.Items.Select(diagnostics => ConvertWorkspaceDiagnosticResult(diagnostics)).ToImmutableArray();
+                return returnedResult.Items.Select(ConvertWorkspaceDiagnosticResult).ToImmutableArray();
             }
 
             static WorkspaceDiagnosticParams CreateProposedWorkspaceDiagnosticParams(

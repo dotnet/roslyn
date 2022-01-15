@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             lock (_gate)
             {
                 if (_packageSourcesTask is null)
-                    _packageSourcesTask = Task.Run(() => GetPackageSourcesAsync(), this.DisposalToken);
+                    _packageSourcesTask = Task.Run(GetPackageSourcesAsync, this.DisposalToken);
 
                 localPackageSourcesTask = _packageSourcesTask;
             }
@@ -269,7 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // asked.  However, if it's not null, that means we have already been asked.  In that case, proactively
                 // get the new set of sources so they're ready for the next time we're asked.
                 if (_packageSourcesTask != null)
-                    _packageSourcesTask = Task.Run(() => GetPackageSourcesAsync(), this.DisposalToken);
+                    _packageSourcesTask = Task.Run(GetPackageSourcesAsync, this.DisposalToken);
             }
 
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);

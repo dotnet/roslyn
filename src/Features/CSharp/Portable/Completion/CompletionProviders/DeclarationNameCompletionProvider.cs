@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                     context.TargetToken.Parent,
                                     containerOpt: null,
                                     baseName: name,
-                                    filter: s => IsRelevantSymbolKind(s),
+                                    filter: IsRelevantSymbolKind,
                                     usedNames: Enumerable.Empty<string>(),
                                     cancellationToken: cancellationToken);
                                 if (seenUniqueNames.Add(uniqueName.Text))

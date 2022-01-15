@@ -105,7 +105,7 @@ namespace System.Diagnostics.CodeAnalysis
                     (IFormattable)$@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: TestProject
 ISymbol: C (NamedType)")}
 
-{new LazyToString(() => exception.ToString())}
+{new LazyToString(exception.ToString)}
 -----
 
 {string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ThrowException")}");
@@ -117,7 +117,7 @@ ISymbol: C (NamedType)")}
                     (IFormattable)$@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: TestProject
 ISymbol: C1 (NamedType)")}
 
-{new LazyToString(() => exception.ToString())}
+{new LazyToString(exception.ToString)}
 -----
 
 {string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ThrowException")}");
@@ -129,7 +129,7 @@ ISymbol: C1 (NamedType)")}
                     (IFormattable)$@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: TestProject
 ISymbol: C2 (NamedType)")}
 
-{new LazyToString(() => exception.ToString())}
+{new LazyToString(exception.ToString)}
 -----
 
 {string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ThrowException")}");

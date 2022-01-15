@@ -1153,7 +1153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Not, so we get to compute a new list instead
                 var newList = projectReferencesInWorkspace.ToList();
                 newList.AddRange(_projectReferencesAddedInBatch);
-                newList.RemoveAll(p => _projectReferencesRemovedInBatch.Contains(p));
+                newList.RemoveAll(_projectReferencesRemovedInBatch.Contains);
 
                 return newList;
             }

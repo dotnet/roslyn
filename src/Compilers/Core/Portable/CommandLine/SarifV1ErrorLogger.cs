@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
             // as SARIF relatedLocations.
             if (additionalLocations != null &&
                 additionalLocations.Count > 0 &&
-                additionalLocations.Any(l => HasPath(l)))
+                additionalLocations.Any(HasPath))
             {
                 _writer.WriteArrayStart("relatedLocations");
 

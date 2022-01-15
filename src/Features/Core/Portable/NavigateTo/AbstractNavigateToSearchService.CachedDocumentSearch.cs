@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
             var database = solution.Options.GetPersistentStorageDatabase();
 
-            var documentKeys = project.Documents.SelectAsArray(d => DocumentKey.ToDocumentKey(d));
-            var priorityDocumentKeys = priorityDocuments.SelectAsArray(d => DocumentKey.ToDocumentKey(d));
+            var documentKeys = project.Documents.SelectAsArray(DocumentKey.ToDocumentKey);
+            var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
             if (client != null)
             {
                 var callback = new NavigateToSearchServiceCallback(onItemFound);

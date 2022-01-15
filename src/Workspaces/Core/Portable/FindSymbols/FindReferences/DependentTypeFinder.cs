@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Finally, because we're searching metadata and source symbols, this needs to be a project
             // that actually supports compilations.
             return projectsThatCouldReferenceType.Intersect(allProjectsThatTheseProjectsDependOn)
-                                                 .Select(id => solution.GetRequiredProject(id))
+                                                 .Select(solution.GetRequiredProject)
                                                  .Where(p => p.SupportsCompilation)
                                                  .ToList();
         }

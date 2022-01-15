@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var builder = ArrayBuilder<TypeParameterSymbol>.GetInstance();
                 builder.AddRange(referenced);
-                builder.Sort((x, y) => compareTypeParameters(x, y));
+                builder.Sort(compareTypeParameters);
                 typeParameters = builder.ToImmutableAndFree();
             }
             referenced.Free();

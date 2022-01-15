@@ -380,7 +380,7 @@ namespace Roslyn.Test.Utilities
                 }
             }
 
-            SetEqual<string>(expected, actual.OrderBy(e => getIndex(e)), comparer, message, itemSeparator, itemInspector);
+            SetEqual<string>(expected, actual.OrderBy(getIndex), comparer, message, itemSeparator, itemInspector);
 
             int getIndex(string item)
             {

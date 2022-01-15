@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     return true;
                 }
 
-                if (labels.Any(label => IsDefaultSwitchLabel(label)))
+                if (labels.Any(IsDefaultSwitchLabel))
                 {
                     // if any of the  labels are a default/_/var (catch-all) then we can convert this set of labels into
                     // a single `_` arm.
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             private SyntaxKind AnalyzeNextStatement(SwitchStatementSyntax switchStatement, out bool shouldRemoveNextStatement)
             {
                 // Check if we have a catch-all label anywhere.  If so we don't need to pull in the next statements.
-                if (switchStatement.Sections.Any(section => section.Labels.Any(label => IsDefaultSwitchLabel(label))))
+                if (switchStatement.Sections.Any(section => section.Labels.Any(IsDefaultSwitchLabel)))
                 {
                     // Throw can be overridden by other section bodies, therefore it has no effect on the result.
                     shouldRemoveNextStatement = false;

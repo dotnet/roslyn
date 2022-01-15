@@ -2200,7 +2200,7 @@ tryAgain:
             const SyntaxKind parentKind = SyntaxKind.StructDeclaration;
             return ParseWithStackGuard(
                 () => this.ParseMemberDeclaration(parentKind),
-                () => createEmptyNodeFunc());
+                createEmptyNodeFunc);
 
             // Creates a dummy declaration node to which we can attach a stack overflow message
             MemberDeclarationSyntax createEmptyNodeFunc()

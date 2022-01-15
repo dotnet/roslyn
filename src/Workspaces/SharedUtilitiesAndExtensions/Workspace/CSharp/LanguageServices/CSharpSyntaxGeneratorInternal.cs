@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode TypeParameterList(IEnumerable<string> typeParameterNames)
             => SyntaxFactory.TypeParameterList(
                     SyntaxFactory.SeparatedList(
-                        typeParameterNames.Select(n => SyntaxFactory.TypeParameter(n))));
+                        typeParameterNames.Select(SyntaxFactory.TypeParameter)));
 
         internal static SyntaxTokenList GetParameterModifiers(RefKind refKind, bool forFunctionPointerReturnParameter = false)
             => refKind switch

@@ -495,7 +495,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return false;
                     }
 
-                    expandedContent = GetOrCreateTextBlock(ref _descriptions, this.Count, index, item, i => GetDescriptionTextBlock(i));
+                    expandedContent = GetOrCreateTextBlock(ref _descriptions, this.Count, index, item, GetDescriptionTextBlock);
                     return true;
                 }
 

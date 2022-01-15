@@ -255,8 +255,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var nativeIntegerMemberNames = nativeIntegerType.MemberNames;
             AssertEx.Equal(nativeIntegerMembers.SelectAsArray(m => m.Name), nativeIntegerMemberNames);
 
-            var expectedMembers = underlyingMembers.WhereAsArray(m => includeUnderlyingMember(m)).Sort(SymbolComparison).SelectAsArray(m => m.ToTestDisplayString());
-            var actualMembers = nativeIntegerMembers.WhereAsArray(m => includeNativeIntegerMember(m)).Sort(SymbolComparison).SelectAsArray(m => m.ToTestDisplayString().Replace(signed ? "nint" : "nuint", signed ? "System.IntPtr" : "System.UIntPtr"));
+            var expectedMembers = underlyingMembers.WhereAsArray(includeUnderlyingMember).Sort(SymbolComparison).SelectAsArray(m => m.ToTestDisplayString());
+            var actualMembers = nativeIntegerMembers.WhereAsArray(includeNativeIntegerMember).Sort(SymbolComparison).SelectAsArray(m => m.ToTestDisplayString().Replace(signed ? "nint" : "nuint", signed ? "System.IntPtr" : "System.UIntPtr"));
             AssertEx.Equal(expectedMembers, actualMembers);
 
             static bool includeUnderlyingMember(ISymbol underlyingMember)
@@ -364,8 +364,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var nativeIntegerMemberNames = nativeIntegerType.MemberNames;
             AssertEx.Equal(nativeIntegerMembers.SelectAsArray(m => m.Name), nativeIntegerMemberNames);
 
-            var expectedMembers = underlyingMembers.WhereAsArray(m => includeUnderlyingMember(m)).Sort(SymbolComparison);
-            var actualMembers = nativeIntegerMembers.WhereAsArray(m => includeNativeIntegerMember(m)).Sort(SymbolComparison);
+            var expectedMembers = underlyingMembers.WhereAsArray(includeUnderlyingMember).Sort(SymbolComparison);
+            var actualMembers = nativeIntegerMembers.WhereAsArray(includeNativeIntegerMember).Sort(SymbolComparison);
 
             Assert.Equal(expectedMembers.Length, actualMembers.Length);
             for (int i = 0; i < expectedMembers.Length; i++)

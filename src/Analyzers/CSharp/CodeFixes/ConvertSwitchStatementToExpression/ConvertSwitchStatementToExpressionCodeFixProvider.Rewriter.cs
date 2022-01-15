@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 if (switchLabels.Count == 1)
                     return GetPattern(switchLabels[0], out whenClause);
 
-                if (switchLabels.Any(label => IsDefaultSwitchLabel(label)))
+                if (switchLabels.Any(IsDefaultSwitchLabel))
                 {
                     // original group had a catch-all label.  just convert to a discard _ to indicate the same.
                     whenClause = null;
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             {
                 var switchArms = node.Sections
                     // The default label must come last in the switch expression.
-                    .OrderBy(section => section.Labels.Any(label => IsDefaultSwitchLabel(label)))
+                    .OrderBy(section => section.Labels.Any(IsDefaultSwitchLabel))
                     .Select(s =>
                         (tokensForLeadingTrivia: new[] { s.Labels[0].GetFirstToken(), s.Labels[0].GetLastToken() },
                          tokensForTrailingTrivia: new[] { s.Statements[0].GetFirstToken(), s.Statements[0].GetLastToken() },

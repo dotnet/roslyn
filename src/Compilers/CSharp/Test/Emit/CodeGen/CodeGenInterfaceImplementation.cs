@@ -2743,7 +2743,7 @@ public class D : B<char>, I<char>
             var baseMethods = Enumerable.Range(1, 4).Select(i => baseType.GetMember<MethodSymbol>("M" + i)).ToArray();
             var interfaceMethods = Enumerable.Range(1, 4).Select(i => interfaceType.GetMember<MethodSymbol>("M" + i)).ToArray();
 
-            AssertEx.Equal(baseMethods, interfaceMethods.Select(interfaceMethod => derivedType.FindImplementationForInterfaceMember(interfaceMethod)));
+            AssertEx.Equal(baseMethods, interfaceMethods.Select(derivedType.FindImplementationForInterfaceMember));
 
             var verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {

@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.  ",
             // So true
         };
-        private static readonly Rope[] longRopes = longStrings.Select(s => Rope.ForString(s)).ToArray();
+        private static readonly Rope[] longRopes = longStrings.Select(Rope.ForString).ToArray();
 
         private static readonly string[] shortStrings = new[]
         {
             "abcd", "efgh", "ijkl", "mnop", "qrst", "uvwx", "yz01", "2345", "6789"
         };
-        private static readonly Rope[] shortRopes = shortStrings.Select(s => Rope.ForString(s)).ToArray();
+        private static readonly Rope[] shortRopes = shortStrings.Select(Rope.ForString).ToArray();
 
         private static readonly Rope[] someRopes = shortRopes.Concat(longRopes).ToArray();
         private static readonly string[] someStrings = shortStrings.Concat(longStrings).ToArray();

@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return new SuggestedActionSet(
                     unifiedSuggestedActionSet.CategoryName,
-                    unifiedSuggestedActionSet.Actions.SelectAsArray(set => ConvertToSuggestedAction(set)),
+                    unifiedSuggestedActionSet.Actions.SelectAsArray(ConvertToSuggestedAction),
                     unifiedSuggestedActionSet.Title,
                     ConvertToSuggestedActionSetPriority(unifiedSuggestedActionSet.Priority),
                     unifiedSuggestedActionSet.ApplicableToSpan?.ToSpan());

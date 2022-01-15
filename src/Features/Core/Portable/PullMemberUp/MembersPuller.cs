@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 solution, pullMemberUpOptions.Destination, CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
             var symbolToDeclarationsMap = await InitializeSymbolToDeclarationsMapAsync(pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
             var symbolsToPullUp = pullMemberUpOptions.MemberAnalysisResults.
-                SelectAsArray(analysisResult => GetSymbolsToPullUp(analysisResult));
+                SelectAsArray(GetSymbolsToPullUp);
 
             var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
                 solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),

@@ -7126,7 +7126,7 @@ unsafe class C
 
             var declaredSymbols = declarators.Select(syntax => (ILocalSymbol)model.GetDeclaredSymbol(syntax)).ToArray();
 
-            var initializerSummaries = declarators.Select(syntax => model.GetSemanticInfoSummary(syntax.Initializer.Value)).ToArray();
+            var initializerSummaries = declarators.Select(model.GetSemanticInfoSummary).ToArray();
 
             for (int i = 0; i < numSymbols; i++)
             {
@@ -7195,7 +7195,7 @@ unsafe class C
 
             const int numSymbols = 3;
             var declarators = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Reverse().Take(numSymbols).Reverse().ToArray();
-            var initializerSummaries = declarators.Select(syntax => model.GetSemanticInfoSummary(syntax.Initializer.Value)).ToArray();
+            var initializerSummaries = declarators.Select(model.GetSemanticInfoSummary).ToArray();
 
             for (int i = 0; i < numSymbols; i++)
             {

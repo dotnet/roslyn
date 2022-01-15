@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             IList collection = NonGenericIListFactory(count);
             if (IsReadOnly || ExpectedFixedSize)
             {
-                Assert.Throws<NotSupportedException>(() => collection.Clear());
+                Assert.Throws<NotSupportedException>(collection.Clear);
                 Assert.Equal(count, collection.Count);
             }
             else
@@ -980,10 +980,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 IList collection = NonGenericIListFactory(count);
                 object[] arr = new object[count];
                 collection.CopyTo(arr, 0);
-                Assert.All(arr, value =>
-                {
-                    collection.Remove(value);
-                });
+                Assert.All(arr, collection.Remove);
                 Assert.Empty(collection);
             }
         }

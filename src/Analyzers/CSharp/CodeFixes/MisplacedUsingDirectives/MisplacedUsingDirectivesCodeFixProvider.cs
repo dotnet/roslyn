@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         {
             var namespaceDeclarations = compilationUnit.Members.OfType<BaseNamespaceDeclarationSyntax>();
             var namespaceDeclarationMap = namespaceDeclarations.ToDictionary(
-                namespaceDeclaration => namespaceDeclaration, namespaceDeclaration => RemoveUsingsFromNamespace(namespaceDeclaration));
+                namespaceDeclaration => namespaceDeclaration, RemoveUsingsFromNamespace);
 
             // Replace the namespace declarations in the compilation with the ones without using directives.
             var compilationUnitWithReplacedNamespaces = compilationUnit.ReplaceNodes(
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         {
             var namespaceDeclarations = usingContainer.Members.OfType<BaseNamespaceDeclarationSyntax>();
             var namespaceDeclarationMap = namespaceDeclarations.ToDictionary(
-                namespaceDeclaration => namespaceDeclaration, namespaceDeclaration => RemoveUsingsFromNamespace(namespaceDeclaration));
+                namespaceDeclaration => namespaceDeclaration, RemoveUsingsFromNamespace);
 
             // Get the using directives from the namespaces.
             var usingsFromNamespaces = namespaceDeclarationMap.Values.SelectMany(result => result.usingsFromNamespace);

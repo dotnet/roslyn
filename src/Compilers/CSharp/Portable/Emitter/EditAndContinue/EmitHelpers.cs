@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return false;
             }
 
-            Dictionary<string, Cci.ITypeDefinition> currentTypes = getTypes(currentDictionary).ToDictionary(t => getName(t));
+            Dictionary<string, Cci.ITypeDefinition> currentTypes = getTypes(currentDictionary).ToDictionary(getName);
             IEnumerable<Cci.ITypeDefinition> previousTypes = getTypes(previousDictionary);
             foreach (var previousType in previousTypes)
             {

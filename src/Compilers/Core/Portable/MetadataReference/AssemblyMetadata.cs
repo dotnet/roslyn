@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static AssemblyMetadata CreateFromFile(ModuleMetadata manifestModule, string path)
         {
-            return new AssemblyMetadata(manifestModule, moduleName => ModuleMetadata.CreateFromFile(Path.Combine(Path.GetDirectoryName(path) ?? "", moduleName)));
+            return new AssemblyMetadata(manifestModule, ModuleMetadata.CreateFromFile);
         }
 
         /// <summary>

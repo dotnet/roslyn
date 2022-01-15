@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             if (ResetImplemented)
                 enumerator.Reset();
             else
-                Assert.Throws<NotSupportedException>(() => enumerator.Reset());
+                Assert.Throws<NotSupportedException>(enumerator.Reset);
         }
 
         [Theory]
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 IEnumerable enumerable = NonGenericIEnumerableFactory(count);
                 IEnumerator enumerator = enumerable.GetEnumerator();
                 if (ModifyEnumerable(enumerable))
-                    Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
+                    Assert.Throws<InvalidOperationException>(enumerator.Reset);
             });
         }
 
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 for (int i = 0; i < count / 2; i++)
                     enumerator.MoveNext();
                 if (ModifyEnumerable(enumerable))
-                    Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
+                    Assert.Throws<InvalidOperationException>(enumerator.Reset);
             });
         }
 
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 IEnumerator enumerator = enumerable.GetEnumerator();
                 while (enumerator.MoveNext()) ;
                 if (ModifyEnumerable(enumerable))
-                    Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
+                    Assert.Throws<InvalidOperationException>(enumerator.Reset);
             });
         }
 

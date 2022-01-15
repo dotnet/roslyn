@@ -12937,7 +12937,7 @@ class Test1 : I1
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidatePropertyImplementation_11(m)).VerifyDiagnostics();
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidatePropertyImplementation_11).VerifyDiagnostics();
 
             ValidatePropertyImplementation_11(compilation1.SourceModule);
 
@@ -12964,7 +12964,7 @@ set_P1",
                 CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidatePropertyImplementation_11(m)).VerifyDiagnostics();
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidatePropertyImplementation_11).VerifyDiagnostics();
 
                 ValidatePropertyImplementation_11(compilation3.SourceModule);
             }
@@ -13605,7 +13605,7 @@ class Test1 : Test2, I1
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidatePropertyImplementationByBase_11(m)).VerifyDiagnostics();
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidatePropertyImplementationByBase_11).VerifyDiagnostics();
 
             ValidatePropertyImplementationByBase_11(compilation1.SourceModule);
 
@@ -13632,7 +13632,7 @@ set_P1",
                 CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidatePropertyImplementationByBase_11(m)).VerifyDiagnostics();
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidatePropertyImplementationByBase_11).VerifyDiagnostics();
 
                 ValidatePropertyImplementationByBase_11(compilation3.SourceModule);
             }
@@ -13715,7 +13715,7 @@ class Test1 : Test2, I1
             CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidatePropertyImplementationByBase_11(m)).VerifyDiagnostics();
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidatePropertyImplementationByBase_11).VerifyDiagnostics();
 
             ValidatePropertyImplementationByBase_11(compilation3.SourceModule);
         }
@@ -16192,7 +16192,7 @@ class Test1 : I1
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => Validate1(m)).VerifyDiagnostics();
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1).VerifyDiagnostics();
 
             Validate1(compilation1.SourceModule);
 
@@ -16231,7 +16231,7 @@ set_P1",
                 CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => Validate1(m)).VerifyDiagnostics();
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1).VerifyDiagnostics();
 
                 Validate1(compilation3.SourceModule);
             }
@@ -25856,7 +25856,7 @@ class Test1 : I1
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => Validate1(m)).VerifyDiagnostics();
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1).VerifyDiagnostics();
 
             Validate1(compilation1.SourceModule);
 
@@ -25939,7 +25939,7 @@ class Test2 : I1
                 CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => Validate1(m)).VerifyDiagnostics();
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1).VerifyDiagnostics();
 
                 Validate1(compilation3.SourceModule);
 
@@ -26034,7 +26034,7 @@ class Test1 : I1
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateEventImplementation_11(m)).VerifyDiagnostics();
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateEventImplementation_11).VerifyDiagnostics();
 
             ValidateEventImplementation_11(compilation1.SourceModule);
 
@@ -26061,7 +26061,7 @@ set_P1",
                 CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateEventImplementation_11(m)).VerifyDiagnostics();
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateEventImplementation_11).VerifyDiagnostics();
 
                 ValidateEventImplementation_11(compilation3.SourceModule);
             }
@@ -26710,7 +26710,7 @@ class Test1 : Test2, I1
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateEventImplementationByBase_11(m)).VerifyDiagnostics();
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateEventImplementationByBase_11).VerifyDiagnostics();
 
             ValidateEventImplementationByBase_11(compilation1.SourceModule);
 
@@ -26737,7 +26737,7 @@ set_P1",
                 CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateEventImplementationByBase_11(m)).VerifyDiagnostics();
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateEventImplementationByBase_11).VerifyDiagnostics();
 
                 ValidateEventImplementationByBase_11(compilation3.SourceModule);
             }
@@ -26820,7 +26820,7 @@ class Test1 : Test2, I1
             CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateEventImplementationByBase_11(m)).VerifyDiagnostics();
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateEventImplementationByBase_11).VerifyDiagnostics();
 
             ValidateEventImplementationByBase_11(compilation3.SourceModule);
         }

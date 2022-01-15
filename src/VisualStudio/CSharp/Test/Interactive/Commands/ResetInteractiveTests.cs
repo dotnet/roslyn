@@ -52,7 +52,7 @@ namespace ResetInteractiveTestsDocument
 
             var project = workspace.CurrentSolution.Projects.FirstOrDefault(p => p.AssemblyName == "ResetInteractiveTestsAssembly");
             var document = project.Documents.FirstOrDefault(d => d.FilePath == "ResetInteractiveTestsDocument");
-            var replReferenceCommands = GetProjectReferences(workspace, project).Select(r => CreateReplReferenceCommand(r));
+            var replReferenceCommands = GetProjectReferences(workspace, project).Select(CreateReplReferenceCommand);
 
             Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveTestsAssembly.dll""")));
             Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveVisualBasicSubproject.dll""")));

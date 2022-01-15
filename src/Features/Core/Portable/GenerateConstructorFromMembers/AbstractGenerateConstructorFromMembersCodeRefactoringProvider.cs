@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             return ComputeRefactoringsAsync(context.Document, context.Span,
-                (action, applicableToSpan) => context.RegisterRefactoring(action, applicableToSpan),
+                context.RegisterRefactoring,
                 (actions) => context.RegisterRefactorings(actions), context.CancellationToken);
         }
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 priorDocument,
                 priorSelection,
                 (singleAction, applicableToSpan) => actions.Add(singleAction),
-                (multipleActions) => actions.AddRange(multipleActions),
+                actions.AddRange,
                 cancellationToken).ConfigureAwait(false);
 
             if (actions.IsEmpty())

@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 EndOfSelectionReachable = endOfSelectionReachable;
                 AwaitTaskReturn = awaitTaskReturn;
                 SemanticDocument = document;
-                _typeParametersInDeclaration = typeParametersInDeclaration.Select(s => semanticModel.ResolveType(s)).ToList();
-                _typeParametersInConstraintList = typeParametersInConstraintList.Select(s => semanticModel.ResolveType(s)).ToList();
+                _typeParametersInDeclaration = typeParametersInDeclaration.Select(semanticModel.ResolveType).ToList();
+                _typeParametersInConstraintList = typeParametersInConstraintList.Select(semanticModel.ResolveType).ToList();
                 _variables = variables;
                 ReturnType = semanticModel.ResolveType(returnType);
                 _variableToUseAsReturnValue = variableToUseAsReturnValue;

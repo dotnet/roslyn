@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void IndexOf()
         {
             IndexOfTests.IndexOfTest(
-                seq => ImmutableSegmentedList.CreateRange(seq),
+                ImmutableSegmentedList.CreateRange,
                 (b, v) => b.IndexOf(v),
                 (b, v, i) => System.Collections.Immutable.ImmutableList.IndexOf(b, v, i),
                 (b, v, i, c) => System.Collections.Immutable.ImmutableList.IndexOf(b, v, i, c),
@@ -494,8 +494,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             IndexOfTests.IndexOfTest(
                 seq => (System.Collections.Immutable.IImmutableList<int>)ImmutableSegmentedList.CreateRange(seq),
                 (b, v) => b.IndexOf(v),
-                (b, v, i) => System.Collections.Immutable.ImmutableList.IndexOf(b, v, i),
-                (b, v, i, c) => System.Collections.Immutable.ImmutableList.IndexOf(b, v, i, c),
+                System.Collections.Immutable.ImmutableList.IndexOf,
+                System.Collections.Immutable.ImmutableList.IndexOf,
                 (b, v, i, c, eq) => b.IndexOf(v, i, c, eq));
         }
 
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void LastIndexOf()
         {
             IndexOfTests.LastIndexOfTest(
-                seq => ImmutableSegmentedList.CreateRange(seq),
+                ImmutableSegmentedList.CreateRange,
                 (b, v) => System.Collections.Immutable.ImmutableList.LastIndexOf(b, v),
                 (b, v, eq) => System.Collections.Immutable.ImmutableList.LastIndexOf(b, v, eq),
                 (b, v, i) => System.Collections.Immutable.ImmutableList.LastIndexOf(b, v, i),
@@ -511,10 +511,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 (b, v, i, c, eq) => b.LastIndexOf(v, i, c, eq));
             IndexOfTests.LastIndexOfTest(
                 seq => (System.Collections.Immutable.IImmutableList<int>)ImmutableSegmentedList.CreateRange(seq),
-                (b, v) => System.Collections.Immutable.ImmutableList.LastIndexOf(b, v),
-                (b, v, eq) => System.Collections.Immutable.ImmutableList.LastIndexOf(b, v, eq),
-                (b, v, i) => System.Collections.Immutable.ImmutableList.LastIndexOf(b, v, i),
-                (b, v, i, c) => System.Collections.Immutable.ImmutableList.LastIndexOf(b, v, i, c),
+                System.Collections.Immutable.ImmutableList.LastIndexOf,
+                System.Collections.Immutable.ImmutableList.LastIndexOf,
+                System.Collections.Immutable.ImmutableList.LastIndexOf,
+                System.Collections.Immutable.ImmutableList.LastIndexOf,
                 (b, v, i, c, eq) => b.LastIndexOf(v, i, c, eq));
         }
 
@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.True(list.IsReadOnly);
             Assert.True(list.IsFixedSize);
             Assert.Throws<NotSupportedException>(() => list.Add(1));
-            Assert.Throws<NotSupportedException>(() => list.Clear());
+            Assert.Throws<NotSupportedException>(list.Clear);
             Assert.Throws<NotSupportedException>(() => list.Insert(0, 1));
             Assert.Throws<NotSupportedException>(() => list.Remove(1));
             Assert.Throws<NotSupportedException>(() => list.RemoveAt(0));
@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             IList<int> list = ImmutableSegmentedList.Create<int>();
             Assert.True(list.IsReadOnly);
             Assert.Throws<NotSupportedException>(() => list.Add(1));
-            Assert.Throws<NotSupportedException>(() => list.Clear());
+            Assert.Throws<NotSupportedException>(list.Clear);
             Assert.Throws<NotSupportedException>(() => list.Insert(0, 1));
             Assert.Throws<NotSupportedException>(() => list.Remove(1));
             Assert.Throws<NotSupportedException>(() => list.RemoveAt(0));

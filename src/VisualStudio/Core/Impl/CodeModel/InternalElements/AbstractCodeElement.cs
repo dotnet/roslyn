@@ -258,10 +258,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         /// </summary>
         internal void Delete()
         {
-            FileCodeModel.PerformEdit(document =>
-            {
-                return DeleteCore(document);
-            });
+            FileCodeModel.PerformEdit(DeleteCore);
         }
 
         [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Required by interface")]

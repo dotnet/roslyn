@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.InlineHints
                 return ImmutableArray<InlineHint>.Empty;
 
             var hints = await _service.GetInlineHintsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            return hints.SelectAsArray(h => new InlineHint(h.Span, h.DisplayParts, (d, c) => h.GetDescriptionAsync(d, c)));
+            return hints.SelectAsArray(h => new InlineHint(h.Span, h.DisplayParts, h.GetDescriptionAsync));
         }
     }
 }

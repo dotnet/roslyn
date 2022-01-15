@@ -1252,7 +1252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 return originalSemanticModel;
             }
 
-            var nodeToSpeculate = node.GetAncestorsOrThis(n => SpeculationAnalyzer.CanSpeculateOnNode(n)).LastOrDefault();
+            var nodeToSpeculate = node.GetAncestorsOrThis(SpeculationAnalyzer.CanSpeculateOnNode).LastOrDefault();
             if (nodeToSpeculate == null)
             {
                 if (node.IsKind(SyntaxKind.NameMemberCref, out NameMemberCrefSyntax? nameMember))

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol is not INamedTypeSymbol namedType)
                     return ImmutableArray<SerializableSymbolAndProjectId>.Empty;
 
-                var projects = projectIdsOpt.IsDefault ? null : projectIdsOpt.Select(id => solution.GetRequiredProject(id)).ToImmutableHashSet();
+                var projects = projectIdsOpt.IsDefault ? null : projectIdsOpt.Select(solution.GetRequiredProject).ToImmutableHashSet();
 
                 var types = await DependentTypeFinder.FindTypesInCurrentProcessAsync(namedType, solution, projects, transitive, kind, cancellationToken).ConfigureAwait(false);
 

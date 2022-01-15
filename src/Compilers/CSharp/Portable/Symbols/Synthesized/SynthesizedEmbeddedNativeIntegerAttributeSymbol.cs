@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 new SynthesizedEmbeddedAttributeConstructorWithBodySymbol(
                     this,
                     m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, boolArrayType, 0, RefKind.None)),
-                    (f, s, p) => GenerateBoolArrayConstructorBody(f, s, p)));
+                    GenerateBoolArrayConstructorBody));
 
             // Ensure we never get out of sync with the description
             Debug.Assert(_constructors.Length == AttributeDescription.NativeIntegerAttribute.Signatures.Length);

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
 
         public PullMembersUpOptions GetPullMemberUpOptions(Document document, ISymbol selectedNodeSymbol)
         {
-            var members = selectedNodeSymbol.ContainingType.GetMembers().Where(member => MemberAndDestinationValidator.IsMemberValid(member));
+            var members = selectedNodeSymbol.ContainingType.GetMembers().Where(MemberAndDestinationValidator.IsMemberValid);
 
             var selectedMember = _selectedMembers == null
                 ? members.Select(member => (member, false))

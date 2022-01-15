@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if DEBUG
             // Verify all entries in the graph are in the ordered list.
             var map = new HashSet<SourceFieldSymbolWithSyntaxReference>(order.Select(o => o.Field).Distinct());
-            Debug.Assert(fields.All(f => map.Contains(f)));
+            Debug.Assert(fields.All(map.Contains));
             fields.Free();
 #endif
 

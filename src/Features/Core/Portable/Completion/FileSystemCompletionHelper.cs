@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<string> allowableExtensions,
             CompletionItemRules itemRules)
         {
-            Debug.Assert(searchPaths.All(path => PathUtilities.IsAbsolute(path)));
+            Debug.Assert(searchPaths.All(PathUtilities.IsAbsolute));
             Debug.Assert(baseDirectory == null || PathUtilities.IsAbsolute(baseDirectory));
 
             _searchPaths = searchPaths;

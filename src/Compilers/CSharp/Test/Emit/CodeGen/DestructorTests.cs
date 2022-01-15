@@ -798,7 +798,7 @@ public class A
 
                 // Find the MethodImpl row for A.
                 MethodImplementation methodImpl = typeA.GetMethodImplementations().AsEnumerable().
-                    Select(handle => peFileReader.GetMethodImplementation(handle)).
+                    Select(peFileReader.GetMethodImplementation).
                     Single();
 
                 // The Class column should point to A.

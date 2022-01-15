@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
             SignatureChange updatedSignature)
         {
-            var newArguments = PermuteArguments(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToImmutableArray(),
+            var newArguments = PermuteArguments(declarationSymbol, arguments.Select(UnifiedArgumentSyntax.Create).ToImmutableArray(),
                 updatedSignature);
             var numSeparatorsToSkip = arguments.Count - newArguments.Length;
 
@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             var newArguments = PermuteArguments(
                 declarationSymbol,
-                arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToImmutableArray(),
+                arguments.Select(UnifiedArgumentSyntax.Create).ToImmutableArray(),
                 updatedSignature,
                 isReducedExtensionMethod);
 

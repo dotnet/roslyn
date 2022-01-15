@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace
             var syntaxFacts = GetSyntaxFacts();
 
             var typeDeclarations = syntaxFacts.GetMembersOfBaseNamespaceDeclaration(namespaceDeclaration)
-                .Where(member => syntaxFacts.IsTypeDeclaration(member));
+                .Where(syntaxFacts.IsTypeDeclaration);
 
             foreach (var typeDecl in typeDeclarations)
             {

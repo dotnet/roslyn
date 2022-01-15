@@ -1643,7 +1643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (interfaces.Any(t => needsTupleElementNamesAttribute(t)))
+            if (interfaces.Any(needsTupleElementNamesAttribute))
             {
                 // Note: we don't need to check base type or directly implemented interfaces (which will be reported during binding)
                 // so the checking of all interfaces here involves some redundancy.

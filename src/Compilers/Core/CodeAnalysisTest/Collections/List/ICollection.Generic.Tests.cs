@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             ICollection<T> collection = GenericICollectionFactory(count);
             if (IsReadOnly || AddRemoveClear_ThrowsNotSupported)
             {
-                Assert.Throws<NotSupportedException>(() => collection.Clear());
+                Assert.Throws<NotSupportedException>(collection.Clear);
                 Assert.Equal(count, collection.Count);
             }
             else
@@ -329,9 +329,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             ICollection<T> collection = GenericICollectionFactory(count);
             if (IsReadOnly || AddRemoveClear_ThrowsNotSupported)
             {
-                Assert.Throws<NotSupportedException>(() => collection.Clear());
-                Assert.Throws<NotSupportedException>(() => collection.Clear());
-                Assert.Throws<NotSupportedException>(() => collection.Clear());
+                Assert.Throws<NotSupportedException>(collection.Clear);
+                Assert.Throws<NotSupportedException>(collection.Clear);
+                Assert.Throws<NotSupportedException>(collection.Clear);
                 Assert.Equal(count, collection.Count);
             }
             else

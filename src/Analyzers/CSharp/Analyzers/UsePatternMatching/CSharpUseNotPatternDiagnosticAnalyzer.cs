@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 if (!((CSharpCompilation)context.Compilation).LanguageVersion.IsCSharp9OrAbove())
                     return;
 
-                context.RegisterSyntaxNodeAction(n => SyntaxNodeAction(n), SyntaxKind.LogicalNotExpression);
+                context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.LogicalNotExpression);
             });
         }
 

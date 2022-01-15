@@ -101,7 +101,7 @@ namespace Roslyn.Test.Utilities
 
         public static string[] GetStrings(this IEnumerable<MetadataReader> readers, IEnumerable<StringHandle> handles)
         {
-            return handles.Select(handle => readers.GetString(handle)).ToArray();
+            return handles.Select(readers.GetString).ToArray();
         }
 
         public static Guid GetModuleVersionId(this MetadataReader reader)
@@ -308,14 +308,14 @@ namespace Roslyn.Test.Utilities
 
         public static IEnumerable<string> DumpAssemblyReferences(this MetadataReader reader)
         {
-            return reader.AssemblyReferences.Select(r => reader.GetAssemblyReference(r))
+            return reader.AssemblyReferences.Select(reader.GetAssemblyReference)
                 .Select(row => $"{reader.GetString(row.Name)} {row.Version.Major}.{row.Version.Minor}");
         }
 
         public static IEnumerable<string> DumpTypeReferences(this MetadataReader reader)
         {
             return reader.TypeReferences
-                .Select(t => reader.GetTypeReference(t))
+                .Select(reader.GetTypeReference)
                 .Select(t => $"{reader.GetString(t.Name)}, {reader.GetString(t.Namespace)}, {reader.Dump(t.ResolutionScope)}");
         }
 
@@ -474,7 +474,7 @@ namespace Roslyn.Test.Utilities
                     metadataReader.CustomAttributes.Select(a => metadataReader.GetCustomAttribute(a).Constructor)
                         .Select(c => metadataReader.GetMemberReference((MemberReferenceHandle)c).Parent)
                         .Select(p => metadataReader.GetTypeReference((TypeReferenceHandle)p).Name)
-                        .Select(n => metadataReader.GetString(n)),
+                        .Select(metadataReader.GetString),
                     attributes);
             }
         }

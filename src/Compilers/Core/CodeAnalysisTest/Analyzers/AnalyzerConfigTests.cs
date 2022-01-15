@@ -1141,7 +1141,7 @@ dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
         private AnalyzerConfigOptionsResult[] GetAnalyzerConfigOptions(string[] filePaths, ArrayBuilder<AnalyzerConfig> configs)
         {
             var set = AnalyzerConfigSet.Create(configs);
-            return filePaths.Select(f => set.GetOptionsForSourcePath(f)).ToArray();
+            return filePaths.Select(set.GetOptionsForSourcePath).ToArray();
         }
 
         private static void VerifyAnalyzerOptions(
@@ -1988,7 +1988,7 @@ dotnet_diagnostic.cs001.severity = bar
 ", "/.editorconfig"));
 
             var set = AnalyzerConfigSet.Create(configs);
-            var options = new[] { "/test.cs", "/path/to/file.cs" }.Select(f => set.GetOptionsForSourcePath(f)).ToArray();
+            var options = new[] { "/test.cs", "/path/to/file.cs" }.Select(set.GetOptionsForSourcePath).ToArray();
             configs.Free();
 
             set.GlobalConfigOptions.Diagnostics.Verify(

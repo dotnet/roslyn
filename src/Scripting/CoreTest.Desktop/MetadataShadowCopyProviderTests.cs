@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
             Assert.True(Directory.Exists(scDir));
 
             var scFiles = Directory.GetFileSystemEntries(scDir);
-            AssertEx.SetEqual(new[] { "MultiModule.dll", "mod2.netmodule", "mod3.netmodule" }, scFiles.Select(p => Path.GetFileName(p)));
+            AssertEx.SetEqual(new[] { "MultiModule.dll", "mod2.netmodule", "mod3.netmodule" }, scFiles.Select(Path.GetFileName));
 
             foreach (var sc in scFiles)
             {

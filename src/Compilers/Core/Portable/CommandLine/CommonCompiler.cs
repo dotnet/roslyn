@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Returns true if there were any errors, false otherwise.</summary>
         internal bool ReportDiagnostics(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger? errorLoggerOpt, Compilation? compilation)
-            => ReportDiagnostics(diagnostics.Select(info => Diagnostic.Create(info)), consoleOutput, errorLoggerOpt, compilation);
+            => ReportDiagnostics(diagnostics.Select(Diagnostic.Create), consoleOutput, errorLoggerOpt, compilation);
 
         /// <summary>
         /// Returns true if there are any error diagnostics in the bag which cannot be suppressed and

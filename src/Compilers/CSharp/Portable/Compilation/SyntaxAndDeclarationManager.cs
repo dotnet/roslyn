@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxAndDeclarationManager RemoveSyntaxTrees(HashSet<SyntaxTree> trees)
         {
             var state = _lazyState;
-            var newExternalSyntaxTrees = this.ExternalSyntaxTrees.RemoveAll(t => trees.Contains(t));
+            var newExternalSyntaxTrees = this.ExternalSyntaxTrees.RemoveAll(trees.Contains);
             if (state == null)
             {
                 return this.WithExternalSyntaxTrees(newExternalSyntaxTrees);

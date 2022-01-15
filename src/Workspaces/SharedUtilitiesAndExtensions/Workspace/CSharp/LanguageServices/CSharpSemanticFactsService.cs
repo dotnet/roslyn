@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Some symbols in the enclosing block could cause conflicts even if they are not available at the location.
             // E.g. symbols inside if statements / try catch statements.
             var symbolsInBlock = semanticModel.GetExistingSymbols(container, cancellationToken,
-                descendInto: n => ShouldDescendInto(n));
+                descendInto: ShouldDescendInto);
 
             return symbolsInBlock.Concat(visibleSymbols);
 

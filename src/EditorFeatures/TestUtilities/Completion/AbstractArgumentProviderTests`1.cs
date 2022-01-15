@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
             var parameters = symbol.GetParameters();
 
             var syntaxFacts = workspace.Services.GetLanguageServices(root.Language).GetRequiredService<ISyntaxFactsService>();
-            Contract.ThrowIfTrue(arguments.Any(argument => syntaxFacts.IsNamedArgument(argument)), "Named arguments are not currently supported by this test.");
+            Contract.ThrowIfTrue(arguments.Any(syntaxFacts.IsNamedArgument), "Named arguments are not currently supported by this test.");
             Contract.ThrowIfTrue(parameters.Any(parameter => parameter.IsParams), "'params' parameters are not currently supported by this test.");
 
             var index = arguments.Any()

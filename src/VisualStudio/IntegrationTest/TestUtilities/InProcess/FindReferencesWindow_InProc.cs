@@ -43,10 +43,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 // Force a refresh, if necessary. This doesn't re-run the Find References or
                 // Find Implementations operation itself, it just forces the results to be
                 // realized in the table.
-                var forcedUpdateResult = ThreadHelper.JoinableTaskFactory.Run(async delegate
-                {
-                    return await tableControl.ForceUpdateAsync();
-                });
+                var forcedUpdateResult = ThreadHelper.JoinableTaskFactory.Run(tableControl.ForceUpdateAsync);
 
                 // Extract the basic text of the results.
                 return forcedUpdateResult.AllEntries.Select(CreateReference).ToArray();

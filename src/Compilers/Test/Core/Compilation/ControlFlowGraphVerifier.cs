@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            Func<string> finalGraph = () => stringBuilder.ToString();
+            Func<string> finalGraph = stringBuilder.ToString;
             if (doCaptureVerification)
             {
                 verifyCaptures(finalGraph);

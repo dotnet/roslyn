@@ -1712,10 +1712,7 @@ namespace Microsoft.CodeAnalysis
 
                     context.RegisterCompilationStartAction(compilationStartContext =>
                     {
-                        compilationStartContext.RegisterCompilationEndAction(compilationEndContext =>
-                        {
-                            reportDiagnosticsAtCompilationEnd(compilationEndContext);
-                        });
+                        compilationStartContext.RegisterCompilationEndAction(reportDiagnosticsAtCompilationEnd);
                     });
                 }
                 else
@@ -1724,10 +1721,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         compilationStartContext.RegisterSymbolStartAction(onSymbolStart, _symbolKind);
 
-                        compilationStartContext.RegisterCompilationEndAction(compilationEndContext =>
-                        {
-                            reportDiagnosticsAtCompilationEnd(compilationEndContext);
-                        });
+                        compilationStartContext.RegisterCompilationEndAction(reportDiagnosticsAtCompilationEnd);
                     });
                 }
 

@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 currentRoot = ReplaceReferences(
                     document, currentRoot,
                     delegateType, parameterList,
-                    references.Select(node => currentRoot.GetCurrentNode(node)).ToImmutableArray());
+                    references.Select(currentRoot.GetCurrentNode).ToImmutableArray());
             }
 
             editor.ReplaceNode(root, currentRoot);

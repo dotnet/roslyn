@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(0, ((ICollection<IntPtr>)data).Count);
             Assert.Equal(0, ((IReadOnlyCollection<IntPtr>)data).Count);
 
-            Assert.Throws<NullReferenceException>(() => data.Clone());
+            Assert.Throws<NullReferenceException>(data.Clone);
             Assert.Throws<NullReferenceException>(() => data.CopyTo(Array.Empty<IntPtr>(), 0));
             Assert.Throws<NullReferenceException>(() => ((ICollection<IntPtr>)data).CopyTo(Array.Empty<IntPtr>(), 0));
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             Assert.Throws<NotSupportedException>(() => ((IList)data).Add(IntPtr.Zero));
             Assert.Throws<NotSupportedException>(() => ((ICollection<IntPtr>)data).Add(IntPtr.Zero));
-            Assert.Throws<NotSupportedException>(() => ((ICollection<IntPtr>)data).Clear());
+            Assert.Throws<NotSupportedException>(((ICollection<IntPtr>)data).Clear);
             Assert.Throws<NotSupportedException>(() => ((IList)data).Insert(0, IntPtr.Zero));
             Assert.Throws<NotSupportedException>(() => ((IList<IntPtr>)data).Insert(0, IntPtr.Zero));
             Assert.Throws<NotSupportedException>(() => ((IList)data).Remove(IntPtr.Zero));
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Throws<NotSupportedException>(() => ((IList)data).RemoveAt(0));
             Assert.Throws<NotSupportedException>(() => ((IList<IntPtr>)data).RemoveAt(0));
 
-            Assert.Throws<NullReferenceException>(() => ((IList)data).Clear());
+            Assert.Throws<NullReferenceException>(((IList)data).Clear);
             Assert.Throws<NullReferenceException>(() => ((IList)data).Contains(IntPtr.Zero));
             Assert.Throws<NullReferenceException>(() => ((ICollection<IntPtr>)data).Contains(IntPtr.Zero));
             Assert.Throws<NullReferenceException>(() => ((IList)data).IndexOf(IntPtr.Zero));

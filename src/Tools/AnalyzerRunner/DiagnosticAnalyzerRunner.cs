@@ -291,7 +291,7 @@ namespace AnalyzerRunner
             else if (Directory.Exists(path))
             {
                 return Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories)
-                    .SelectMany(file => GetDiagnosticAnalyzersFromFile(file))
+                    .SelectMany(GetDiagnosticAnalyzersFromFile)
                     .ToLookup(analyzers => analyzers.Key, analyzers => analyzers.Value)
                     .ToImmutableDictionary(
                         group => group.Key,

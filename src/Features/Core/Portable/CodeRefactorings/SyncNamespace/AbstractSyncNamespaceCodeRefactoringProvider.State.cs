@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             {
                 var solution = document.Project.Solution;
                 var linkedIds = document.GetLinkedDocumentIds();
-                var documents = linkedIds.SelectAsArray(id => solution.GetDocument(id)).Add(document);
+                var documents = linkedIds.SelectAsArray(solution.GetDocument).Add(document);
 
                 // For all projects containing all the linked documents, bail if 
                 // 1. Any of them doesn't have default namespace, or

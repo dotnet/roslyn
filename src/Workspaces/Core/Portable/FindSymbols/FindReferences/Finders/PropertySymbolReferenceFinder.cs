@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var backingFields = symbol.ContainingType.GetMembers()
                                       .OfType<IFieldSymbol>()
-                                      .Where(f => symbol.Equals(f.AssociatedSymbol))
+                                      .Where(symbol.Equals)
                                       .ToImmutableArray<ISymbol>();
 
             var result = backingFields;

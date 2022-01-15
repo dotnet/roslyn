@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var dictionary = (ICollection<KeyValuePair<string, int>>)Empty<string, int>();
             Assert.Throws<NotSupportedException>(() => dictionary.Add(new KeyValuePair<string, int>()));
             Assert.Throws<NotSupportedException>(() => dictionary.Remove(new KeyValuePair<string, int>()));
-            Assert.Throws<NotSupportedException>(() => dictionary.Clear());
+            Assert.Throws<NotSupportedException>(dictionary.Clear);
             Assert.True(dictionary.IsReadOnly);
         }
 
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Throws<NotSupportedException>(() => dictionary.Add("a", 1));
             Assert.Throws<NotSupportedException>(() => dictionary.Remove("a"));
             Assert.Throws<NotSupportedException>(() => dictionary["a"] = 2);
-            Assert.Throws<NotSupportedException>(() => dictionary.Clear());
+            Assert.Throws<NotSupportedException>(dictionary.Clear);
             Assert.False(dictionary.Contains("a"));
             Assert.True(dictionary.Contains("c"));
             Assert.Null(dictionary["a"]);

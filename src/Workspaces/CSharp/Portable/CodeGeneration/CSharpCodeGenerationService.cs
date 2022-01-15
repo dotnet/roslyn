@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 // Insert the new global statement(s) at the end of any current global statements.
                 // This code relies on 'LastIndexOf' returning -1 when no matching element is found.
                 var insertionIndex = compilationUnit.Members.LastIndexOf(memberDeclaration => memberDeclaration.IsKind(SyntaxKind.GlobalStatement)) + 1;
-                var wrappedStatements = StatementGenerator.GenerateStatements(statements).Select(generated => SyntaxFactory.GlobalStatement(generated)).ToArray();
+                var wrappedStatements = StatementGenerator.GenerateStatements(statements).Select(SyntaxFactory.GlobalStatement).ToArray();
                 return Cast<TDeclarationNode>(compilationUnit.WithMembers(compilationUnit.Members.InsertRange(insertionIndex, wrappedStatements)));
             }
             else if (destinationMember is StatementSyntax statement && statement.IsParentKind(SyntaxKind.GlobalStatement))

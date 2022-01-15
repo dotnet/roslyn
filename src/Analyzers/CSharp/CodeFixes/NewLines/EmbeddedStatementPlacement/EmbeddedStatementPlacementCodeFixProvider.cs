@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
 
             // fixup this statement and all nested statements that have an issue.
             var descendentStatements = startStatement.DescendantNodesAndSelf().OfType<StatementSyntax>();
-            var badStatements = descendentStatements.Where(s => EmbeddedStatementPlacementDiagnosticAnalyzer.StatementNeedsWrapping(s));
+            var badStatements = descendentStatements.Where(EmbeddedStatementPlacementDiagnosticAnalyzer.StatementNeedsWrapping);
 
             // Walk from lower statements to higher so the higher up changes see the changes below.
             foreach (var badStatement in badStatements.OrderByDescending(s => s.SpanStart))

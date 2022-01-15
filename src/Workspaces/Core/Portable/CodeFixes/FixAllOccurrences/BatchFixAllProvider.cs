@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         if (changedSolution != null)
                         {
                             var changedDocumentIds = new SolutionChanges(changedSolution, solution).GetProjectChanges().SelectMany(p => p.GetChangedDocuments());
-                            changedDocuments.AddRange(changedDocumentIds.Select(id => changedSolution.GetRequiredDocument(id)));
+                            changedDocuments.AddRange(changedDocumentIds.Select(changedSolution.GetRequiredDocument));
                         }
                     }
 

@@ -466,6 +466,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static int GetNumberOfLines(IEnumerable<SyntaxTrivia> triviaList)
-            => triviaList.Sum(t => t.ToFullString().Replace("\r\n", "\r").Cast<char>().Count(c => SyntaxFacts.IsNewLine(c)));
+            => triviaList.Sum(t => t.ToFullString().Replace("\r\n", "\r").Cast<char>().Count(SyntaxFacts.IsNewLine));
     }
 }

@@ -46,7 +46,7 @@ namespace Roslyn.Test.Utilities
             var set = new HashSet<string>(existingPaths, comparer);
             return new TestableFileSystem()
             {
-                FileExistsFunc = filePath => set.Contains(filePath)
+                FileExistsFunc = set.Contains
             };
         }
 
@@ -60,7 +60,7 @@ namespace Roslyn.Test.Utilities
                 },
 
                 OpenFileFunc = (string filePath, FileMode mode, FileAccess access, FileShare share) => map[filePath].GetStream(access),
-                FileExistsFunc = filePath => map.ContainsKey(filePath),
+                FileExistsFunc = map.ContainsKey,
             };
     }
 }

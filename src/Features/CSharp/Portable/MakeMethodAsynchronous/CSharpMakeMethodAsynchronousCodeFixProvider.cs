@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             return x.Locations.Any(l => ContainsYield(l.FindNode(cancellationToken: default)));
 
             bool ContainsYield(SyntaxNode node)
-                => node.DescendantNodes(n => n == node || !n.IsReturnableConstruct()).Any(n => IsYield(n));
+                => node.DescendantNodes(n => n == node || !n.IsReturnableConstruct()).Any(IsYield);
 
             static bool IsYield(SyntaxNode node)
                 => node.IsKind(SyntaxKind.YieldBreakStatement, SyntaxKind.YieldReturnStatement);

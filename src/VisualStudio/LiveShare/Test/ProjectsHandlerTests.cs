@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         {
             using var testLspServer = await CreateTestLspServerAsync(string.Empty);
             var solution = testLspServer.GetCurrentSolution();
-            var expected = solution.Projects.Select(p => CreateLspProject(p)).ToArray();
+            var expected = solution.Projects.Select(CreateLspProject).ToArray();
 
             var results = (CustomProtocol.Project[])await TestHandleAsync<object, object[]>(solution, null, CustomProtocol.RoslynMethods.ProjectsName);
             AssertJsonEquals(expected, results);

@@ -1929,7 +1929,7 @@ class G
             Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
             Assert.Throws<InvalidOperationException>(() => debuggingSession.CommitSolutionUpdate(out var _));
-            Assert.Throws<InvalidOperationException>(() => debuggingSession.DiscardSolutionUpdate());
+            Assert.Throws<InvalidOperationException>(debuggingSession.DiscardSolutionUpdate);
 
             // no change in non-remappable regions since we didn't have any active statements:
             Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
@@ -4027,7 +4027,7 @@ class C
             await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.GetCurrentActiveStatementPositionAsync(solution, s_noActiveSpans, instructionId: default, CancellationToken.None));
             await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.IsActiveStatementInExceptionRegionAsync(solution, instructionId: default, CancellationToken.None));
             Assert.Throws<ObjectDisposedException>(() => debuggingSession.BreakStateOrCapabilitiesChanged(inBreakState: true, out _));
-            Assert.Throws<ObjectDisposedException>(() => debuggingSession.DiscardSolutionUpdate());
+            Assert.Throws<ObjectDisposedException>(debuggingSession.DiscardSolutionUpdate);
             Assert.Throws<ObjectDisposedException>(() => debuggingSession.CommitSolutionUpdate(out _));
             Assert.Throws<ObjectDisposedException>(() => debuggingSession.EndSession(out _, out _));
 

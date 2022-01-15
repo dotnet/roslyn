@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ArrayBuilder<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
-                analyzers = analyzers.WhereAsArray(a => MatchesPriority(a));
+                analyzers = analyzers.WhereAsArray(MatchesPriority);
 
                 if (analyzers.IsEmpty)
                     return;

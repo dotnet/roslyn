@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
             var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
 
             var membersInType = selectedType.GetMembers().
-               WhereAsArray(member => MemberAndDestinationValidator.IsMemberValid(member));
+               WhereAsArray(MemberAndDestinationValidator.IsMemberValid);
 
             var memberViewModels = membersInType
                 .SelectAsArray(member =>

@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     VarNameIdentifier,
                     SyntaxFactory.ParenthesizedVariableDesignation(
                         SyntaxFactory.SeparatedList<VariableDesignationSyntax>(identifiers.Select(
-                            identifier => SyntaxFactory.SingleVariableDesignation(identifier)))));
+                            SyntaxFactory.SingleVariableDesignation))));
 
                 // Generate foreach(var (a,b) ... select (a, b))
                 return SyntaxFactory.ForEachVariableStatement(

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             var documentIds = GetDocumentIds(solution, documentUri);
 
-            var documents = documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
+            var documents = documentIds.SelectAsArray(solution.GetRequiredDocument);
 
             return FilterDocumentsByClientName(documents, clientName, logger);
         }

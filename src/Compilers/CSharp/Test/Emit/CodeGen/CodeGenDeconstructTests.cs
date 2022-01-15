@@ -1610,7 +1610,7 @@ class C
             Action<PEAssembly> assemblyValidator = assembly =>
             {
                 var reader = assembly.GetMetadataReader();
-                var names = reader.GetAssemblyRefNames().Select(name => reader.GetString(name));
+                var names = reader.GetAssemblyRefNames().Select(reader.GetString);
                 Assert.Empty(names.Where(name => name.Contains("ValueTuple")));
             };
 

@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 
             // go through all known interfaces we support next.
             var knownCollectionInterfaces = s_KnownInterfaceNames.Select(
-                s => model.Compilation.GetTypeByMetadataName(s)).Where(t => !IsNullOrErrorType(t));
+                model.Compilation.GetTypeByMetadataName).Where(t => !IsNullOrErrorType(t));
 
             // for all interfaces, we suggest collection name as "list"
             collectionNameSuggestion = "list";

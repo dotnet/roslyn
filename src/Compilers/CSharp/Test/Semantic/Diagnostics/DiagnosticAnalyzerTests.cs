@@ -774,7 +774,7 @@ public class B
                 else
                 {
                     Action<Action<SyntaxNodeAnalysisContext>, ImmutableArray<SyntaxKind>> registerMethod =
-                        (action, Kinds) => context.RegisterSyntaxNodeAction(action, Kinds);
+                        context.RegisterSyntaxNodeAction;
                     var analyzer = new NodeAnalyzer();
                     analyzer.Initialize(registerMethod);
                 }
@@ -788,7 +788,7 @@ public class B
             public static void OnCodeBlockStarted(CodeBlockStartAnalysisContext<SyntaxKind> context)
             {
                 Action<Action<SyntaxNodeAnalysisContext>, ImmutableArray<SyntaxKind>> registerMethod =
-                    (action, Kinds) => context.RegisterSyntaxNodeAction(action, Kinds);
+                    context.RegisterSyntaxNodeAction;
                 var analyzer = new NodeAnalyzer();
                 analyzer.Initialize(registerMethod);
             }

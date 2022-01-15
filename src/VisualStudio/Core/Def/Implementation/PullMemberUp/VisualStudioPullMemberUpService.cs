@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         public PullMembersUpOptions GetPullMemberUpOptions(Document document, ISymbol selectedMember)
         {
             var membersInType = selectedMember.ContainingType.GetMembers().
-                WhereAsArray(member => MemberAndDestinationValidator.IsMemberValid(member));
+                WhereAsArray(MemberAndDestinationValidator.IsMemberValid);
             var memberViewModels = membersInType
                 .SelectAsArray(member =>
                     new PullMemberUpSymbolViewModel(member, _glyphService)

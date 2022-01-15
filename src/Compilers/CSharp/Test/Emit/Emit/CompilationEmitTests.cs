@@ -5036,7 +5036,7 @@ class C6
             using (var metadata = ModuleMetadata.CreateFromImage(bytes))
             {
                 var reader = metadata.MetadataReader;
-                var actualNames = reader.GetTypeDefNames().Select(h => reader.GetString(h));
+                var actualNames = reader.GetTypeDefNames().Select(reader.GetString);
                 var expectedNames = new[]
                     {
                         "<Module>",
@@ -5098,7 +5098,7 @@ class C4
             using (var metadata = ModuleMetadata.CreateFromImage(bytes))
             {
                 var reader = metadata.MetadataReader;
-                var actualNames = reader.GetTypeDefNames().Select(h => reader.GetString(h));
+                var actualNames = reader.GetTypeDefNames().Select(reader.GetString);
                 var expectedNames = new[]
                     {
                         "<Module>",

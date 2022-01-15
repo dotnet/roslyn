@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             CancellationToken cancellationToken)
         {
-            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => AssemblyIdentity.FromAssemblyDefinition(assembly));
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(AssemblyIdentity.FromAssemblyDefinition);
             var loadedAssembliesList = new IgnorableAssemblyIdentityList(loadedAssemblies);
 
             var ignorableAssemblyLists = new[] { s_systemPrefixList, s_codeAnalysisPrefixList, s_explicitlyIgnoredAssemblyList, s_assembliesIgnoredByNameList, loadedAssembliesList };

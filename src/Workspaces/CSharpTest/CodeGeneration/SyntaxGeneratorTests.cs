@@ -1844,7 +1844,7 @@ public class C { } // end").Members[0];
 
         private void AssertNamesEqual(string[] expectedNames, IEnumerable<SyntaxNode> actualNodes)
         {
-            var actualNames = actualNodes.Select(n => Generator.GetName(n)).ToArray();
+            var actualNames = actualNodes.Select(Generator.GetName).ToArray();
             var expected = string.Join(", ", expectedNames);
             var actual = string.Join(", ", actualNames);
             Assert.Equal(expected, actual);

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             root = await sourceDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await sourceDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var members = memberNodes
-                .Select(node => root.GetCurrentNode(node))
+                .Select(root.GetCurrentNode)
                 .WhereNotNull()
                 .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node, cancellationToken), false));
 

@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             // Check IsRestoreCompleteAsync until it returns true (this stops the retry because true != default(bool))
             await Helper.RetryAsync(
-                cancellationToken => solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken),
+                solutionRestoreStatusProvider.IsRestoreCompleteAsync,
                 TimeSpan.FromMilliseconds(50),
                 cancellationToken);
         }

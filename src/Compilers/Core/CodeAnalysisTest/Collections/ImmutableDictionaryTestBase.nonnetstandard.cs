@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             Assert.True(collection.Contains(containedValue));
             Assert.Throws<NotSupportedException>(() => collection.Add(default(T)!));
-            Assert.Throws<NotSupportedException>(() => collection.Clear());
+            Assert.Throws<NotSupportedException>(collection.Clear);
 
             var nonGeneric = (ICollection)collection;
             Assert.NotNull(nonGeneric.SyncRoot);

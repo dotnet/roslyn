@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // The EnC analyzer uses old tracking spans as hints to find matching nodes.
             var newText = newTree.GetText();
             OldUnmappedTrackingSpans = GetTrackingSpans(newMarkedSource, activeStatementCount).
-                SelectAsArray(s => newText.Lines.GetLinePositionSpan(s));
+                SelectAsArray(newText.Lines.GetLinePositionSpan);
         }
 
         internal static ImmutableArray<UnmappedActiveStatement> CreateActiveStatementMapFromMarkers(

@@ -2287,7 +2287,7 @@ namespace Microsoft.CodeAnalysis
                         var document = new Cci.DebugSourceDocument(
                             normalizedPath,
                             DebugSourceDocumentLanguageId,
-                            () => text.GetDebugSourceInfo());
+                            text.GetDebugSourceInfo);
 
                         documentsBuilder.AddDebugDocument(document);
                     }
@@ -2308,7 +2308,7 @@ namespace Microsoft.CodeAnalysis
                         documentsBuilder.AddDebugDocument(new Cci.DebugSourceDocument(
                             normalizedPath,
                             DebugSourceDocumentLanguageId,
-                            () => tree.GetDebugSourceInfo()));
+                            tree.GetDebugSourceInfo));
                     }
                 }
             }

@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private static bool IsEndOfLineOrContainsEndOfLine(SyntaxTrivia trivia, AbstractSuppressionCodeFixProvider fixer)
             {
                 return fixer.IsEndOfLine(trivia) ||
-                    (trivia.HasStructure && trivia.GetStructure().DescendantTrivia().Any(t => fixer.IsEndOfLine(t)));
+                    (trivia.HasStructure && trivia.GetStructure().DescendantTrivia().Any(fixer.IsEndOfLine));
             }
 
             internal static SyntaxToken GetNewEndTokenWithAddedPragma(

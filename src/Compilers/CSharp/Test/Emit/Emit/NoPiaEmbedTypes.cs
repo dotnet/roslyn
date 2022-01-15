@@ -1454,7 +1454,7 @@ class UsePia4
 
                     var metadata = ((PEModuleSymbol)module).Module;
 
-                    var methodNames = metadata.GetMethodsOfTypeOrThrow(itest17.Handle).AsEnumerable().Select(rid => metadata.GetMethodDefNameOrThrow(rid)).ToArray();
+                    var methodNames = metadata.GetMethodsOfTypeOrThrow(itest17.Handle).AsEnumerable().Select(metadata.GetMethodDefNameOrThrow).ToArray();
 
                     Assert.Equal(3, methodNames.Length);
                     Assert.Equal("M17", methodNames[0]);
