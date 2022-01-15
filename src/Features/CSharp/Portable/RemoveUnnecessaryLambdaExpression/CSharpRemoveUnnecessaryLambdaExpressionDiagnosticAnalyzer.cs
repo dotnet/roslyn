@@ -4,12 +4,14 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -41,16 +43,17 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
         {
             context.RegisterCompilationStartAction(context =>
             {
-                //if (((CSharpCompilation)context.Compilation).LanguageVersion >= LanguageVersion.Preview)
-                //{
-                context.RegisterSyntaxNodeAction(
-                    AnalyzeSyntax,
-                    SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
-                // }
+                if (((CSharpCompilation)context.Compilation).LanguageVersion >= LanguageVersion.Preview)
+                {
+                    var expressionType = context.Compilation.ExpressionOfTType();
+                    context.RegisterSyntaxNodeAction(
+                        c => AnalyzeSyntax(c, expressionType),
+                        SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
+                }
             });
         }
 
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
         {
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             if (anonymousFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
                 return;
 
-            if (!TryGetInvocation(anonymousFunction, out var invocation, out var wasAwaited))
+            if (!TryGetAnonymousFunctionInvocation(anonymousFunction, out var invocation, out var wasAwaited))
                 return;
 
             // If we had an async function, but we didn't await the expression inside then we can't convert this. The
@@ -97,6 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             }
 
             // Looks like a reasonable candidate to simplify.  Now switch to semantics to check for sure.
+
+            if (CSharpSemanticFactsService.Instance.IsInExpressionTree(semanticModel, anonymousFunction, expressionType, cancellationToken))
+                return;
 
             // If we have `object obj = x => Goo(x);` we don't want to simplify.  The compiler warns if you write
             // `object obj = Goo;` because of the conversion to a non-delegate type.
@@ -135,6 +141,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                     return;
             }
 
+            // if we have `() => new C().X()` then converting to `new C().X` very much changes the meaning.
+            if (MayContainSideEffects(invokedExpression))
+                return;
+
             // Semantically, this looks good to go.  Now, do an actual speculative replacement to ensure that the
             // non-invoked method reference refers to the same method symbol, and that it converts to the same type that
             // the lambda was.
@@ -165,6 +175,22 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(endReportSpan))));
         }
 
+        private static bool MayContainSideEffects(ExpressionSyntax expression)
+        {
+            // Checks to see if inlining the temporary variable may change the code's semantics. 
+            // This is not meant to be an exhaustive check; it's more like a heuristic for obvious cases we know may cause side effects.
+
+            var descendantNodesAndSelf = expression.DescendantNodesAndSelf();
+
+            if (descendantNodesAndSelf.Any(n => n.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.InvocationExpression)))
+            {
+                return true;
+            }
+
+            // Assume if we reach here that the fix won't cause side effects.
+            return false;
+        }
+
         private static SeparatedSyntaxList<ParameterSyntax> GetParameters(AnonymousFunctionExpressionSyntax expression)
             => expression switch
             {
@@ -174,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 _ => throw ExceptionUtilities.UnexpectedValue(expression.Kind()),
             };
 
-        private bool TryGetAnonymousFunctionInvocation(
+        public static bool TryGetAnonymousFunctionInvocation(
             AnonymousFunctionExpressionSyntax anonymousFunction,
             [NotNullWhen(true)] out InvocationExpressionSyntax? invocation,
             out bool wasAwaited)
@@ -197,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             return false;
         }
 
-        public static bool TryGetInvocation(
+        private static bool TryGetInvocation(
             ExpressionSyntax expression,
             [NotNullWhen(true)] out InvocationExpressionSyntax? invocation,
             out bool wasAwaited)

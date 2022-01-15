@@ -18,18 +18,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
 
     public class RemoveUnnecessaryLambdaExpressionTests
     {
-        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode)
+        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, LanguageVersion version = LanguageVersion.Preview)
         {
             await new VerifyCS.Test
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = version,
             }.RunAsync();
         }
 
-        private static Task TestMissingInRegularAndScriptAsync(string testCode)
-            => TestInRegularAndScriptAsync(testCode, testCode);
+        private static Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion version = LanguageVersion.Preview)
+            => TestInRegularAndScriptAsync(testCode, testCode, version);
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestMissingInCSharp10()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar(s => Quux(s));
+    }
+
+    void Bar(Func<int, string> f) { }
+    string Quux(int i) => default;
+}", LanguageVersion.CSharp10);
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
         public async Task Test1()
@@ -131,7 +149,7 @@ class C
 {
     void Goo()
     {
-        Bar(s [||]=> Quux(s));
+        Bar(s => Quux({|CS1503:s|}));
     }
 
     void Bar(Func<string, string> f) { }
@@ -149,7 +167,7 @@ class C
 {
     void Goo()
     {
-        Bar(s [||]=> Quux(s));
+        Bar(s => Quux(s));
     }
 
     void Bar(Func<object, object> f) { }
@@ -167,7 +185,7 @@ class C
 {
     void Goo()
     {
-        Bar(s [||]=> Quux(s));
+        Bar(s => Quux(s));
     }
 
     void Bar(Func<object, string> f) { }
@@ -238,7 +256,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
-        public async Task RestReturnStatement2()
+        public async Task TestReturnStatement2()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -292,7 +310,7 @@ class A
 
     static void Main()
     {
-        Bar([|x => |]Goo(x));
+        {|CS0121:Bar|}(x => Goo(x));
     }
 }");
         }
