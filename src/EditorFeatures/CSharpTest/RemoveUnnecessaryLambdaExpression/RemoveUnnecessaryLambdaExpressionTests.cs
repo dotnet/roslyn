@@ -1377,5 +1377,47 @@ class C
     void Quux<T>(T t) { }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestNullabilityChanges()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    void Goo(List<string> assemblies, HashSet<string> usedProjectFileNames)
+    {
+        var projectAssemblyFileNames = Select(assemblies, a => GetFileName(a));
+        var v = Any(projectAssemblyFileNames, usedProjectFileNames.Contains);
+    }
+
+    static List<TResult> Select<TItem, TResult>(List<TItem> items, Func<TItem, TResult> map) => new();
+
+    [return: NotNullIfNotNull(""path"")]
+    static string? GetFileName(string? path) => path;
+
+    static bool Any<T>(List<T> immutableArray, Func<T, bool> predicate) => true;
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
+    public sealed class NotNullIfNotNullAttribute : Attribute
+    {
+        public string ParameterName => """";
+
+        public NotNullIfNotNullAttribute(string parameterName)
+        {
+        }
+    }
+}
+");
+        }
     }
 }
