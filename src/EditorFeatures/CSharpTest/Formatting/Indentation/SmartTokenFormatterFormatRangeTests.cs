@@ -3573,7 +3573,6 @@ class Program{
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
 
-
             var testDocument = workspace.Documents.Single();
             var buffer = testDocument.GetTextBuffer();
             var position = testDocument.CursorPosition.Value;
