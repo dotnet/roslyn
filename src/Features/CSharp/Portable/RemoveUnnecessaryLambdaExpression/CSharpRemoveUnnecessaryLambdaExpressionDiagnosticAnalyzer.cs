@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
         public CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId,
                    EnforceOnBuildValues.RemoveUnnecessaryLambdaExpression,
-                   option: null,
+                   CSharpCodeStyleOptions.PreferMethodGroupConversion,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpFeaturesResources.Remove_unnecessary_lambda_expression), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)),
                    new LocalizableResourceString(nameof(CSharpFeaturesResources.Lambda_expression_can_be_removed), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)),
@@ -58,6 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
             var syntaxTree = semanticModel.SyntaxTree;
+
+            var preference = context.GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion);
+            if (preference.Notification.Severity == ReportDiagnostic.Suppress)
+            {
+                // User doesn't care about this rule.
+                return;
+            }
 
             var anonymousFunction = (AnonymousFunctionExpressionSyntax)context.Node;
 
@@ -171,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 Descriptor,
                 syntaxTree.GetLocation(startReportSpan),
-                ReportDiagnostic.Default,
+                preference.Notification.Severity,
                 additionalLocations: ImmutableArray.Create(anonymousFunction.GetLocation()),
                 additionalUnnecessaryLocations: ImmutableArray.Create(
                     syntaxTree.GetLocation(startReportSpan),

@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -77,6 +79,30 @@ class C
     void Bar(Func<int, string> f) { }
     string Quux(int i) => default;
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestWithOptionOff()
+        {
+            var code = @"using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar(s => Quux(s));
+    }
+
+    void Bar(Func<int, string> f) { }
+    string Quux(int i) => default;
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.Preview,
+                Options = { { CSharpCodeStyleOptions.PreferMethodGroupConversion, CodeStyleOptions2.FalseWithSilentEnforcement } }
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
