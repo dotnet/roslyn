@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                     // does not include the full output path. We look only at the file name of the
                     // compilation assembly and compare it with our list of used project assembly names.
                     var projectAssemblyFileNames = reference.CompilationAssemblies
-                        .SelectAsArray(Path.GetFileName);
+                        .SelectAsArray(assemblyPath => Path.GetFileName(assemblyPath));
 
                     // We will look at the project assemblies brought in directly by the
                     // references to see if they are used.
