@@ -626,7 +626,7 @@ class A
 
         [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
-        public async Task TestWithConstraint()
+        public async Task TestWithConstraint1()
         {
             var code = @"
 using System;
@@ -646,7 +646,7 @@ class A
 
     static void Main()
     {
-        Bar([|x => |]Goo(x));
+        Bar([|x => |]Goo<string>(x));
     }
 }";
 
@@ -668,10 +668,38 @@ class A
 
     static void Main()
     {
-        Bar(Goo);
+        Bar(Goo<string>);
     }
 }";
             await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestWithConstraint2()
+        {
+            var code = @"
+using System;
+class A
+{
+    static void Goo<T>(T x) where T : class
+    {
+    }
+
+    static void Bar(Action<int> x)
+    {
+    }
+
+    static void Bar(Action<string> x)
+    {
+    }
+
+    static void Main()
+    {
+        Bar(x => Goo(x));
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
@@ -1302,6 +1330,51 @@ class C
 
     void Bar(Func<int, Task> f) { }
     void Quux(int i) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestExplicitGenericCall()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Action a = [|() => |]Quux<int>();
+    }
+
+    void Quux<T>() { }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Action a = Quux<int>;
+    }
+
+    void Quux<T>() { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestImplicitGenericCall()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Action<int> a = b => Quux(b);
+    }
+
+    void Quux<T>(T t) { }
 }");
         }
     }

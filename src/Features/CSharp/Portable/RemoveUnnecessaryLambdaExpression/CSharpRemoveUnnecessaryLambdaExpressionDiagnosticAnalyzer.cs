@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
 
             // We have to have an invocation in the lambda like `() => X()` or `() => expr.X()`.
             var invokedExpression = invocation.Expression;
-            if (invokedExpression is not IdentifierNameSyntax and not MemberAccessExpressionSyntax)
+            if (invokedExpression is not SimpleNameSyntax and not MemberAccessExpressionSyntax)
                 return;
 
             // lambda and invocation have to agree on number of parameters.
@@ -124,6 +124,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
 
             var invokedSymbolInfo = semanticModel.GetSymbolInfo(invokedExpression, cancellationToken);
             if (invokedSymbolInfo.Symbol is not IMethodSymbol invokedMethod)
+                return;
+
+            // If we're calling a generic method, we have to have supplied type arguments.  They cannot be inferred once
+            // we remove the arguments during simplification.
+            var invokedTypeArguments = invokedExpression.GetRightmostName() is GenericNameSyntax genericName
+                ? genericName.TypeArgumentList.Arguments
+                : default;
+
+            if (invokedMethod.TypeArguments.Length != invokedTypeArguments.Count)
                 return;
 
             // Methods have to be complimentary.  That means the same number of parameters, with proper
