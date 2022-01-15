@@ -2,25 +2,39 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.LambdaSimplifier
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambdaExpression
 {
-    public class LambdaSimplifierTests : AbstractCSharpCodeActionTest
-    {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new LambdaSimplifierCodeRefactoringProvider();
+    using VerifyCS = CSharpCodeFixVerifier<
+       CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer,
+       CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider>;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestFixAll1()
+    public class RemoveUnnecessaryLambdaExpressionTests
+    {
+        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.Preview,
+            }.RunAsync();
+        }
+
+        private static Task TestMissingInRegularAndScriptAsync(string testCode)
+            => TestInRegularAndScriptAsync(testCode, testCode);
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task Test1()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -29,7 +43,7 @@ class C
 {
     void Goo()
     {
-        Bar(s [||]=> Quux(s));
+        Bar([|s => |]Quux(s));
     }
 
     void Bar(Func<int, string> f);
@@ -46,11 +60,10 @@ class C
 
     void Bar(Func<int, string> f);
     string Quux(int i);
-}",
-                index: 1);
+}";
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
         public async Task TestFixCoContravariance1()
         {
             await TestInRegularAndScriptAsync(
@@ -60,7 +73,7 @@ class C
 {
     void Goo()
     {
-        Bar(s [||]=> Quux(s));
+        Bar([|s => |]Quux(s));
     }
 
     void Bar(Func<object, string> f);
@@ -77,11 +90,10 @@ class C
 
     void Bar(Func<object, string> f);
     string Quux(object o);
-}",
-                index: 1);
+}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
         public async Task TestFixCoContravariance2()
         {
             await TestInRegularAndScriptAsync(
@@ -91,7 +103,7 @@ class C
 {
     void Goo()
     {
-        Bar(s [||]=> Quux(s));
+        Bar([|s => |]Quux(s));
     }
 
     void Bar(Func<string, object> f);
@@ -108,11 +120,10 @@ class C
 
     void Bar(Func<string, object> f);
     string Quux(object o);
-}",
-                index: 1);
+}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
         public async Task TestFixCoContravariance3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -130,7 +141,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
         public async Task TestFixCoContravariance4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -148,7 +159,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
         public async Task TestFixCoContravariance5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -166,8 +177,8 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestFixAll2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestTwoArgs()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -176,7 +187,7 @@ class C
 {
     void Goo()
     {
-        Bar((s1, s2) [||]=> Quux(s1, s2));
+        Bar([|(s1, s2) => |]Quux(s1, s2));
     }
 
     void Bar(Func<int, bool, string> f);
@@ -193,12 +204,11 @@ class C
 
     void Bar(Func<int, bool, string> f);
     string Quux(int i, bool b);
-}",
-                index: 1);
+}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestFixAll3()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestReturnStatement()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -207,8 +217,8 @@ class C
 {
     void Goo()
     {
-        Bar((s1, s2) [||]=> {
-            return Quux(s1, s2);
+        Bar([|(s1, s2) => {
+            return |]Quux(s1, s2);
         });
     }
 
@@ -226,12 +236,11 @@ class C
 
     void Bar(Func<int, bool, string> f);
     string Quux(int i, bool b);
-}",
-                index: 1);
+}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestFixAll4()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task RestReturnStatement2()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -240,8 +249,8 @@ class C
 {
     void Goo()
     {
-        Bar((s1, s2) [||]=> {
-            return this.Quux(s1, s2);
+        Bar([|(s1, s2) => {
+            return |]this.Quux(s1, s2);
         });
     }
 
@@ -259,82 +268,19 @@ class C
 
     void Bar(Func<int, bool, string> f);
     string Quux(int i, bool b);
-}",
-                index: 1);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestFixOneOrAll()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void Goo()
-    {
-        Bar(s [||]=> Quux(s));
-        Bar(s => Quux(s));
-    }
-
-    void Bar(Func<int, string> f);
-    string Quux(int i);
-}",
-@"using System;
-
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-        Bar(s => Quux(s));
-    }
-
-    void Bar(Func<int, string> f);
-    string Quux(int i);
-}",
-                index: 0);
-
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void Goo()
-    {
-        Bar(s [||]=> Quux(s));
-        Bar(s => Quux(s));
-    }
-
-    void Bar(Func<int, string> f);
-    string Quux(int i);
-}",
-@"using System;
-
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
-        Bar(Quux);
-    }
-
-    void Bar(Func<int, string> f);
-    string Quux(int i);
-}",
-                index: 1);
+}");
         }
 
         [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestMissingOnAmbiguity1_CSharp7()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestMissingOnAmbiguity1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class A
 {
-    static void Goo<T>(T x) where T : class
+    static void Goo<T>(T x)
     {
     }
 
@@ -348,14 +294,14 @@ class A
 
     static void Main()
     {
-        Bar(x [||]=> Goo(x));
+        Bar([|x => |]Goo(x));
     }
-}", parameters: new TestParameters(TestOptions.Regular7));
+}");
         }
 
         [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestMissingOnAmbiguity1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestWithConstraint()
         {
             var code = @"
 using System;
@@ -375,7 +321,7 @@ class A
 
     static void Main()
     {
-        Bar(x [||]=> Goo(x));
+        Bar([|x => |]Goo(x));
     }
 }";
 
@@ -400,12 +346,11 @@ class A
         Bar(Goo);
     }
 }";
-
-            await TestInRegularAndScriptAsync(code, expected, parseOptions: TestOptions.Regular7_3);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
         public async Task TestMissingOnLambdaWithDynamic_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -440,7 +385,7 @@ class C<T>
         }
 
         [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
         public async Task TestMissingOnLambdaWithDynamic_2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -480,7 +425,7 @@ class Casd<T>
         }
 
         [WorkItem(544625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544625")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
         public async Task ParenthesizeIfParseChanges()
         {
             var code = @"
@@ -491,7 +436,7 @@ class C
     {
         C x = new C();
         int y = 1;
-        Bar(() [||]=> { return Console.ReadLine(); } < x, y > (1 + 2));
+        Bar([|() => { return |]Console.ReadLine(); } < x, y > (1 + 2));
     }
 
     static void Bar(object a, object b) { }
@@ -519,10 +464,10 @@ class C
         }
 
         [WorkItem(545856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestWarningOnSideEffects()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestNotWithSideEffects()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -531,20 +476,11 @@ class C
     {
         Func<string> a = () [||]=> new C().ToString();
     }
-}",
-@"using System;
-
-class C
-{
-    void Main()
-    {
-        Func<string> a = {|Warning:new C()|}.ToString;
-    }
 }");
         }
 
         [WorkItem(545994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545994")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
         public async Task TestNonReturnBlockSyntax()
         {
             await TestInRegularAndScriptAsync(
@@ -554,79 +490,9 @@ class Program
 {
     static void Main()
     {
-        Action a = [||]() => {
-            Console.WriteLine();
+        Action a = [|() => {
+            |]Console.WriteLine();
         };
-    }
-}",
-@"using System;
-
-class Program
-{
-    static void Main()
-    {
-        Action a = Console.WriteLine;
-    }
-}");
-        }
-
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestMissingCaretPositionInside()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
-
-class Program
-{
-    static void Main()
-    {
-        Action a = () => {
-            Console.[||]WriteLine();
-        };
-    }
-}");
-        }
-
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestCaretPositionBeforeBody()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class Program
-{
-    static void Main()
-    {
-        Action a = () => [||]Console.WriteLine();
-    }
-}",
-@"using System;
-
-class Program
-{
-    static void Main()
-    {
-        Action a = Console.WriteLine;
-    }
-}");
-        }
-
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestCaretPosition()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class Program
-{
-    static void Main()
-    {
-        [|Action a = () => {
-            Console.WriteLine();
-        };|]
     }
 }",
 @"using System;
