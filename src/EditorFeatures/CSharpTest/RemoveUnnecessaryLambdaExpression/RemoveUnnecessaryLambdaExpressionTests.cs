@@ -837,5 +837,446 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestTaskOfT1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|s => |]Quux(s));
+    }
+
+    void Bar(Func<int, Task<string>> f) { }
+    Task<string> Quux(int i) => default;
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, Task<string>> f) { }
+    Task<string> Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestAsyncTaskOfT1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|async s => await |]Quux(s));
+    }
+
+    void Bar(Func<int, Task<string>> f) { }
+    Task<string> Quux(int i) => default;
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, Task<string>> f) { }
+    Task<string> Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestAsyncTaskOfT2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|async s => await |]Quux(s).ConfigureAwait(false));
+    }
+
+    void Bar(Func<int, Task<string>> f) { }
+    Task<string> Quux(int i) => default;
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, Task<string>> f) { }
+    Task<string> Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestAsyncNoAwait1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(async s => Quux(s));
+    }
+
+    void Bar(Func<int, Task<string>> f) { }
+    string Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestTaskOfT1_Return()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|s => { return |]Quux(s); });
+    }
+
+    void Bar(Func<int, Task<string>> f) { }
+    Task<string> Quux(int i) => default;
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, Task<string>> f) { }
+    Task<string> Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestAsyncTaskOfT1_Return()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|async s => { return await |]Quux(s); });
+    }
+
+    void Bar(Func<int, Task<string>> f) { }
+    Task<string> Quux(int i) => default;
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, Task<string>> f) { }
+    Task<string> Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestAsyncTaskOfT2_Return()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|async s => { return await |]Quux(s).ConfigureAwait(false); });
+    }
+
+    void Bar(Func<int, Task<string>> f) { }
+    Task<string> Quux(int i) => default;
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, Task<string>> f) { }
+    Task<string> Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestAsyncNoAwait1_Return()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(async s => { return Quux(s); });
+    }
+
+    void Bar(Func<int, Task<string>> f) { }
+    string Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestTask1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|s => |]Quux(s));
+    }
+
+    void Bar(Func<int, Task> f) { }
+    Task Quux(int i) => default;
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, Task> f) { }
+    Task Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestAsyncTask1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|async s => await |]Quux(s));
+    }
+
+    void Bar(Func<int, Task> f) { }
+    Task Quux(int i) => default;
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, Task> f) { }
+    Task Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestAsyncTask2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|async s => await |]Quux(s).ConfigureAwait(false));
+    }
+
+    void Bar(Func<int, Task> f) { }
+    Task Quux(int i) => default;
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, Task> f) { }
+    Task Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestTask1_ExpressionStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|s {|CS1643:=>|} { |]Quux(s); });
+    }
+
+    void Bar(Func<int, Task> f) { }
+    Task Quux(int i) => default;
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, Task> f) { }
+    Task Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestAsyncTask1_ExpressionStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|async s => { await |]Quux(s); });
+    }
+
+    void Bar(Func<int, Task> f) { }
+    Task Quux(int i) => default;
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, Task> f) { }
+    Task Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestAsyncTask2_ExpressionStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|async s => { await |]Quux(s).ConfigureAwait(false); });
+    }
+
+    void Bar(Func<int, Task> f) { }
+    Task Quux(int i) => default;
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, Task> f) { }
+    Task Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestAsyncNoAwait1_ExpressionStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void Goo()
+    {
+        Bar(async s => { Quux(s); });
+    }
+
+    void Bar(Func<int, Task> f) { }
+    void Quux(int i) { }
+}");
+        }
     }
 }
