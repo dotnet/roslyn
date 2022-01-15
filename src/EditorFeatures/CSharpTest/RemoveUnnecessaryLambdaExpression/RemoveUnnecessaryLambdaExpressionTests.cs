@@ -101,7 +101,7 @@ class C
                 TestCode = code,
                 FixedCode = code,
                 LanguageVersion = LanguageVersion.Preview,
-                Options = { { CSharpCodeStyleOptions.PreferMethodGroupConversion, CodeStyleOptions2.FalseWithSilentEnforcement } }
+                Options = { { CSharpCodeStyleOptions.PreferMethodGroupConversion, new CodeStyleOption2<bool>(false, NotificationOption2.None) } }
             }.RunAsync();
         }
 
