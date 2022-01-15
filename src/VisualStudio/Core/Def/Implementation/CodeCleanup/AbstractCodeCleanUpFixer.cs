@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             return solution;
         }
 
-        private async Task<Project> FixProjectAsync(
+        private static async Task<Project> FixProjectAsync(
             Project project,
             FixIdContainer enabledFixIds,
             ProgressTracker progressTracker,
