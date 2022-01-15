@@ -69,6 +69,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CodeStyleOptions2.PreferCoalesceExpression, value); }
         }
 
+        public string Style_PreferMethodGroupConversion
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferMethodGroupConversion); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferMethodGroupConversion, value); }
+        }
+
         public string Style_PreferNullPropagation
         {
             get { return GetXmlOption(CodeStyleOptions2.PreferNullPropagation); }
