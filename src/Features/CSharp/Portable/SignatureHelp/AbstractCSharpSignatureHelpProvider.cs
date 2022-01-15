@@ -147,15 +147,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 SemanticModel semanticModel, ISemanticFactsService semanticFactsService, out int foundParameterIndex)
             {
                 // map the arguments to their corresponding parameters
-                var argToParamMap = PrepareArgToParamMap(arguments, method);
-                if (argToParamMap is null)
+                var argumentCount = arguments.Count;
+                using var _ = ArrayBuilder<int>.GetInstance(argumentCount, fillWithValue: -1, out var argToParamMap);
+                if (!TryPrepareArgToParamMap(arguments, method, argToParamMap))
                 {
                     foundParameterIndex = -1;
                     return false;
                 }
 
                 // verify that the arguments are compatible with their corresponding parameters
-                var argumentCount = arguments.Count;
                 var parameters = method.Parameters;
                 for (var argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
                 {
@@ -269,22 +269,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             /// <summary>
             /// Find the parameter index corresponding to each argument provided
             /// </summary>
-            private static ArrayBuilder<int>? PrepareArgToParamMap(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method)
+            private static bool TryPrepareArgToParamMap(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method, ArrayBuilder<int> argToParamMap)
             {
-                var argumentCount = arguments.Count;
-                var argToParamMap = ArrayBuilder<int>.GetInstance(argumentCount, -1);
                 var parameters = method.Parameters;
                 var parameterCount = parameters.Length;
                 var currentParameterIndex = 0;
                 var seenOutOfPositionArgument = false;
                 var inParams = false;
 
-                for (var argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
+                for (var argumentIndex = 0; argumentIndex < arguments.Count; argumentIndex++)
                 {
                     if (argumentIndex >= parameterCount && !inParams)
                     {
-                        argToParamMap.Free();
-                        return null;
+                        return false;
                     }
 
                     var argument = arguments[argumentIndex];
@@ -293,8 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                         var namedParameterIndex = parameters.IndexOf(p => p.Name == name);
                         if (namedParameterIndex < 0)
                         {
-                            argToParamMap.Free();
-                            return null;
+                            return false;
                         }
 
                         if (namedParameterIndex != currentParameterIndex)
@@ -317,8 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     else if (seenOutOfPositionArgument)
                     {
                         // Unnamed arguments are not allowed after an out-of-position argument
-                        argToParamMap.Free();
-                        return null;
+                        return false;
                     }
                     else
                     {
@@ -327,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     }
                 }
 
-                return argToParamMap;
+                return true;
 
                 void IncrementParameterIndexIfNeeded()
                 {
