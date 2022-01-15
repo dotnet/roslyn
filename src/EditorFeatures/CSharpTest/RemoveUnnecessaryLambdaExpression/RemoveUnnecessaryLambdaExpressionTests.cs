@@ -107,7 +107,7 @@ class C
 {
     void Goo()
     {
-        object o = (int s) => Quux(s));
+        object o = (int s) => Quux(s);
     }
 
     void Bar(Func<int, string> f) { }
