@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -46,8 +44,8 @@ class C
         Bar([|s => |]Quux(s));
     }
 
-    void Bar(Func<int, string> f);
-    string Quux(int i);
+    void Bar(Func<int, string> f) { }
+    string Quux(int i) => default;
 }",
 @"using System;
 
@@ -58,9 +56,9 @@ class C
         Bar(Quux);
     }
 
-    void Bar(Func<int, string> f);
-    string Quux(int i);
-}";
+    void Bar(Func<int, string> f) { }
+    string Quux(int i) => default;
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
@@ -76,8 +74,8 @@ class C
         Bar([|s => |]Quux(s));
     }
 
-    void Bar(Func<object, string> f);
-    string Quux(object o);
+    void Bar(Func<object, string> f) { }
+    string Quux(object o) => default;
 }",
 @"using System;
 
@@ -88,8 +86,8 @@ class C
         Bar(Quux);
     }
 
-    void Bar(Func<object, string> f);
-    string Quux(object o);
+    void Bar(Func<object, string> f) { }
+    string Quux(object o) => default;
 }");
         }
 
@@ -106,8 +104,8 @@ class C
         Bar([|s => |]Quux(s));
     }
 
-    void Bar(Func<string, object> f);
-    string Quux(object o);
+    void Bar(Func<string, object> f) { }
+    string Quux(object o) => default;
 }",
 @"using System;
 
@@ -118,8 +116,8 @@ class C
         Bar(Quux);
     }
 
-    void Bar(Func<string, object> f);
-    string Quux(object o);
+    void Bar(Func<string, object> f) { }
+    string Quux(object o) => default;
 }");
         }
 
@@ -136,8 +134,8 @@ class C
         Bar(s [||]=> Quux(s));
     }
 
-    void Bar(Func<string, string> f);
-    object Quux(object o);
+    void Bar(Func<string, string> f) { }
+    object Quux(object o) => default;
 }");
         }
 
@@ -154,8 +152,8 @@ class C
         Bar(s [||]=> Quux(s));
     }
 
-    void Bar(Func<object, object> f);
-    string Quux(string o);
+    void Bar(Func<object, object> f) { }
+    string Quux(string o) => default;
 }");
         }
 
@@ -172,8 +170,8 @@ class C
         Bar(s [||]=> Quux(s));
     }
 
-    void Bar(Func<object, string> f);
-    object Quux(string o);
+    void Bar(Func<object, string> f) { }
+    object Quux(string o) => default;
 }");
         }
 
@@ -190,8 +188,8 @@ class C
         Bar([|(s1, s2) => |]Quux(s1, s2));
     }
 
-    void Bar(Func<int, bool, string> f);
-    string Quux(int i, bool b);
+    void Bar(Func<int, bool, string> f) { }
+    string Quux(int i, bool b) => default;
 }",
 @"using System;
 
@@ -202,8 +200,8 @@ class C
         Bar(Quux);
     }
 
-    void Bar(Func<int, bool, string> f);
-    string Quux(int i, bool b);
+    void Bar(Func<int, bool, string> f) { }
+    string Quux(int i, bool b) => default;
 }");
         }
 
@@ -222,8 +220,8 @@ class C
         });
     }
 
-    void Bar(Func<int, bool, string> f);
-    string Quux(int i, bool b);
+    void Bar(Func<int, bool, string> f) { }
+    string Quux(int i, bool b) => default;
 }",
 @"using System;
 
@@ -234,8 +232,8 @@ class C
         Bar(Quux);
     }
 
-    void Bar(Func<int, bool, string> f);
-    string Quux(int i, bool b);
+    void Bar(Func<int, bool, string> f) { }
+    string Quux(int i, bool b) => default;
 }");
         }
 
@@ -254,8 +252,8 @@ class C
         });
     }
 
-    void Bar(Func<int, bool, string> f);
-    string Quux(int i, bool b);
+    void Bar(Func<int, bool, string> f) { }
+    string Quux(int i, bool b) => default;
 }",
 @"using System;
 
@@ -266,8 +264,8 @@ class C
         Bar(this.Quux);
     }
 
-    void Bar(Func<int, bool, string> f);
-    string Quux(int i, bool b);
+    void Bar(Func<int, bool, string> f) { }
+    string Quux(int i, bool b) => default;
 }");
         }
 
@@ -474,7 +472,7 @@ class C
 {
     void Main()
     {
-        Func<string> a = () [||]=> new C().ToString();
+        Func<string> a = () => new C().ToString();
     }
 }");
         }
