@@ -126,8 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             var compilation = semanticModel.Compilation;
 
             // Must be able to convert the invoked method return type to the lambda's return type.
-            var returnTypeConversion = compilation.ClassifyConversion(invokedMethod.ReturnType, lambdaMethod.ReturnType);
-            if (!returnTypeConversion.IsIdentityOrImplicitReference())
+            if (!IsIdentityOrImplicitConversion(compilation, invokedMethod.ReturnType, lambdaMethod.ReturnType))
                 return;
 
             for (int i = 0, n = lambdaMethod.Parameters.Length; i < n; i++)
@@ -135,9 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 var lambdaParameter = lambdaMethod.Parameters[i];
                 var invokedParameter = invokedMethod.Parameters[i];
 
+                if (lambdaParameter.RefKind != invokedParameter.RefKind)
+                    return;
+
                 // All the lambda parameters must be convertible to the invoked method parameters.
-                var parameterConversion = compilation.ClassifyConversion(lambdaParameter.Type, invokedParameter.Type);
-                if (!parameterConversion.IsIdentityOrImplicitReference())
+                if (!IsIdentityOrImplicitConversion(compilation, lambdaParameter.Type, invokedParameter.Type))
                     return;
             }
 
@@ -173,6 +174,17 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 ReportDiagnostic.Default,
                 additionalLocations: ImmutableArray.Create(anonymousFunction.GetLocation()),
                 additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(endReportSpan))));
+        }
+
+        private static bool IsIdentityOrImplicitConversion(Compilation compilation, ITypeSymbol type1, ITypeSymbol type2)
+        {
+            // Dynamic can have an identity conversion between types.  But it can have a very different effect on the
+            // generated code.  Do not allow the change if these are nto in agreement.
+            if (type1 is IDynamicTypeSymbol != type2 is IDynamicTypeSymbol)
+                return false;
+
+            var conversion = compilation.ClassifyConversion(type1, type2);
+            return conversion.IsIdentityOrImplicitReference();
         }
 
         private static bool MayContainSideEffects(ExpressionSyntax expression)
