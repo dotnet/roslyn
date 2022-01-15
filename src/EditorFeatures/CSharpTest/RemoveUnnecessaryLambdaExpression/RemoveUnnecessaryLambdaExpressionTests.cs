@@ -80,6 +80,132 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestNotOnStaticLambda()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar(static s => Quux(s));
+    }
+
+    void Bar(Func<int, string> f) { }
+    static string Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestNotOnConversionToObject()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        object o = (int s) => Quux(s));
+    }
+
+    void Bar(Func<int, string> f) { }
+    static string Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestWithParenthesizedLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|(int s) => |]Quux(s));
+    }
+
+    void Bar(Func<int, string> f) { }
+    string Quux(int i) => default;
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, string> f) { }
+    string Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestWithAnonymousMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|delegate (int s) { return |]Quux(s); });
+    }
+
+    void Bar(Func<int, string> f) { }
+    string Quux(int i) => default;
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<int, string> f) { }
+    string Quux(int i) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestWithAnonymousMethodNoParameterList()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar([|delegate { return |]Quux(); });
+    }
+
+    void Bar(Func<string> f) { }
+    string Quux() => default;
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar(Quux);
+    }
+
+    void Bar(Func<string> f) { }
+    string Quux() => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
         public async Task TestFixCoContravariance1()
         {
             await TestInRegularAndScriptAsync(
@@ -385,7 +511,7 @@ class C<T>
     public static void InvokeGoo()
     {
         Action<dynamic, string> goo = (x, y) => [||]C<T>.Goo(x, y); // Simplify lambda expression
-        goo(1, "");
+        goo(1, """");
     }
 
     static void Goo(object x, object y)
@@ -420,7 +546,7 @@ class Casd<T>
     public static void InvokeGoo()
     {
         Action<dynamic> goo = x => [||]Casd<T>.Goo(x); // Simplify lambda expression
-        goo(1, "");
+        goo(1, """");
     }
 
     private static void Goo(dynamic x)
@@ -497,7 +623,7 @@ class C
 
         [WorkItem(545994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545994")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
-        public async Task TestNonReturnBlockSyntax()
+        public async Task TestExpressionStatement()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
