@@ -533,6 +533,60 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestMultipleArgIncorrectPassing1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar((s1, s2) => Quux(s2, s1));
+    }
+
+    void Bar(Func<int, int, string> f) { }
+    string Quux(int i, int b) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestMultipleArgIncorrectPassing2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar((s1, s2) => Quux(s1, s1));
+    }
+
+    void Bar(Func<int, int, string> f) { }
+    string Quux(int i, int b) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestMultipleArgIncorrectPassing3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar((s1, s2) => Quux(s1, true));
+    }
+
+    void Bar(Func<int, bool, string> f) { }
+    string Quux(int i, bool b) => default;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
         public async Task TestReturnStatement()
         {
             await TestInRegularAndScriptAsync(

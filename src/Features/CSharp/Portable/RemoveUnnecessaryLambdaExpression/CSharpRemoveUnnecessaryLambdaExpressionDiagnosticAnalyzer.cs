@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 return;
 
             // parameters must be passed 1:1 from lambda to invocation.
-            for (int i = 0, n = parameters.Count - 1; i < n; i++)
+            for (int i = 0, n = parameters.Count; i < n; i++)
             {
                 var parameter = parameters[i];
                 var argument = invocation.ArgumentList.Arguments[i];
