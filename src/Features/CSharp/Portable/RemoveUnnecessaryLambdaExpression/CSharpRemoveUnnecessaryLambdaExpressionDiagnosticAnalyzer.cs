@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -182,6 +183,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             if (!lambdaTypeInfo.ConvertedType.Equals(rewrittenConvertedType))
                 return;
 
+            if (OverloadsChanged(
+                    semanticModel, anonymousFunction.GetRequiredParent(),
+                    rewrittenSemanticModel, rewrittenExpression.GetRequiredParent(), cancellationToken))
+            {
+                return;
+            }
+
             var startReportSpan = TextSpan.FromBounds(anonymousFunction.SpanStart, invokedExpression.SpanStart);
             var endReportSpan = TextSpan.FromBounds(invokedExpression.Span.End, anonymousFunction.Span.End);
 
@@ -193,6 +201,33 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 additionalUnnecessaryLocations: ImmutableArray.Create(
                     syntaxTree.GetLocation(startReportSpan),
                     syntaxTree.GetLocation(endReportSpan))));
+        }
+
+        private static bool OverloadsChanged(
+            SemanticModel semanticModel1,
+            SyntaxNode? node1,
+            SemanticModel semanticModel2,
+            SyntaxNode? node2,
+            CancellationToken cancellationToken)
+        {
+            while (node1 != null && node2 != null)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var method1 = semanticModel1.GetSymbolInfo(node1, cancellationToken).Symbol as IMethodSymbol;
+                var method2 = semanticModel2.GetSymbolInfo(node2, cancellationToken).Symbol as IMethodSymbol;
+
+                if (method1 is null != method2 is null)
+                    return true;
+
+                if (method1 is not null && !method1.Equals(method2, SymbolEqualityComparer.IncludeNullability))
+                    return true;
+
+                node1 = node1.Parent;
+                node2 = node2.Parent;
+            }
+
+            return false;
         }
 
         private static bool IsIdentityOrImplicitConversion(Compilation compilation, ITypeSymbol type1, ITypeSymbol type2)

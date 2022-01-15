@@ -1221,7 +1221,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
         public async Task TestTask1_ExpressionStatement()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -1229,20 +1229,7 @@ class C
 {
     void Goo()
     {
-        Bar([|s {|CS1643:=>|} { |]Quux(s); });
-    }
-
-    void Bar(Func<int, Task> f) { }
-    Task Quux(int i) => default;
-}",
-@"using System;
-using System.Threading.Tasks;
-
-class C
-{
-    void Goo()
-    {
-        Bar(Quux);
+        Bar(s {|CS1643:=>|} { Quux(s); });
     }
 
     void Bar(Func<int, Task> f) { }
