@@ -136,12 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_style_prefer_range_operator",
             "TextEditor.CSharp.Specific.PreferRangeOperator");
 
-        public static readonly Option2<CodeStyleOption2<bool>> PreferMethodGroupConversion = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferMethodGroupConversion),
-            defaultValue: s_trueWithSilentEnforcement,
-            "csharp_style_prefer_method_group_conversion",
-            "TextEditor.CSharp.Specific.PreferMethodGroupConversion");
-
         public static readonly CodeStyleOption2<ExpressionBodyPreference> NeverWithSilentEnforcement =
             new(ExpressionBodyPreference.Never, NotificationOption2.Silent);
 
@@ -344,6 +338,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             nameof(NamespaceDeclarations),
             new(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent),
             "csharp_style_namespace_declarations");
+
+        public static readonly Option2<CodeStyleOption2<bool>> PreferMethodGroupConversion = CreateOption(
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferMethodGroupConversion),
+            defaultValue: s_trueWithSilentEnforcement,
+            "csharp_style_prefer_method_group_conversion",
+            "TextEditor.CSharp.Specific.PreferMethodGroupConversion");
 
 #if false
 
