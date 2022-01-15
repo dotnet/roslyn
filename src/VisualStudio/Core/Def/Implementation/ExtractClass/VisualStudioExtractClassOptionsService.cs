@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractClass;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
@@ -44,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
 
-        public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol selectedType, ISymbol? selectedMember)
+        public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol selectedType, ISymbol? selectedMember, CancellationToken cancellationToken)
         {
             var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
 
@@ -62,10 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
                         IsCheckable = true
                     });
 
-            using var cancellationTokenSource = new CancellationTokenSource();
-            var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
+            var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationToken);
 
-            var conflictingTypeNames = selectedType.ContainingNamespace.GetAllTypes(cancellationTokenSource.Token).Select(t => t.Name);
+            var conflictingTypeNames = selectedType.ContainingNamespace.GetAllTypes(cancellationToken).Select(t => t.Name);
             var candidateName = selectedType.Name + "Base";
             var defaultTypeName = NameGenerator.GenerateUniqueName(candidateName, name => !conflictingTypeNames.Contains(name));
 
@@ -73,7 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
                 ? string.Empty
                 : selectedType.ContainingNamespace.ToDisplayString();
 
-            var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, selectedType, membersInType);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, selectedType, membersInType, cancellationToken);
 
             var viewModel = new ExtractClassViewModel(
                 _uiThreadOperationExecutor,
@@ -87,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
                 conflictingTypeNames.ToImmutableArray(),
                 document.GetRequiredLanguageService<ISyntaxFactsService>());
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var dialog = new ExtractClassDialog(viewModel);
 
             var result = dialog.ShowModal();

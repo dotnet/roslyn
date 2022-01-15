@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -43,9 +44,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             List<string> allTypeNames,
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
-            string languageName)
+            string languageName,
+            CancellationToken cancellationToken)
         {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var viewModel = new ExtractInterfaceDialogViewModel(
                 syntaxFactsService,

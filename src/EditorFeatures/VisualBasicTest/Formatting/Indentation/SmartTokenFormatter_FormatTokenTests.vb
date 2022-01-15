@@ -207,8 +207,9 @@ End Class
                             formattingRules, root, line.AsTextLine, optionService, workspace.Options,
                             Nothing, ignoreMissingToken))
 
-                Dim smartFormatter = New VisualBasicSmartTokenFormatter(Await document.GetOptionsAsync(CancellationToken.None), formattingRules, root)
-                Dim changes = Await smartFormatter.FormatTokenAsync(workspace, token, Nothing)
+                Dim formatOptions = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
+                Dim smartFormatter = New VisualBasicSmartTokenFormatter(formatOptions, formattingRules, root)
+                Dim changes = Await smartFormatter.FormatTokenAsync(workspace.Services, token, Nothing)
 
                 Using edit = buffer.CreateEdit()
                     For Each change In changes
