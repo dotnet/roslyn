@@ -94,10 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             if (parameters.Count != invocation.ArgumentList.Arguments.Count)
                 return;
 
-            // if we have `() => new C().X()` then converting to `new C().X` very much changes the meaning.
-            if (MayHaveSideEffects(invokedExpression))
-                return;
-
             // parameters must be passed 1:1 from lambda to invocation.
             for (int i = 0, n = parameters.Count - 1; i < n; i++)
             {
@@ -110,6 +106,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 if (parameter.Identifier.ValueText != argumentIdentifier.Identifier.ValueText)
                     return;
             }
+
+            // if we have `() => new C().X()` then converting to `new C().X` very much changes the meaning.
+            if (MayHaveSideEffects(invokedExpression))
+                return;
 
             // Looks like a reasonable candidate to simplify.  Now switch to semantics to check for sure.
 
