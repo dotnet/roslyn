@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         bool AutoFormattingOnReturn,
         bool AutoFormattingOnTyping,
         bool AutoFormattingOnSemicolon,
-        bool AutoFormattingOnCloseBrace,
-        bool FormatOnPaste)
+        bool AutoFormattingOnCloseBrace)
     {
         [ExportSolutionOptionProvider, Shared]
         internal sealed class Metadata : IOptionProvider
@@ -36,8 +35,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 AutoFormattingOnReturn,
                 AutoFormattingOnTyping,
                 AutoFormattingOnSemicolon,
-                AutoFormattingOnCloseBrace,
-                FormatOnPaste);
+                AutoFormattingOnCloseBrace);
 
             private const string FeatureName = "FormattingOptions";
 
@@ -60,10 +58,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             public static readonly PerLanguageOption2<bool> AutoFormattingOnCloseBrace = new(
                 "BraceCompletionOptions", nameof(AutoFormattingOnCloseBrace), defaultValue: true,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace"));
-
-            public static readonly PerLanguageOption2<bool> FormatOnPaste =
-                new(FeatureName, OptionGroup.Default, nameof(FormatOnPaste), defaultValue: true,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.FormatOnPaste"));
         }
     }
 }

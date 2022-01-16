@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -305,8 +306,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Formatting_TriggerOnPaste
         {
-            get { return GetBooleanOption(AutoFormattingOptions.Metadata.FormatOnPaste); }
-            set { SetBooleanOption(AutoFormattingOptions.Metadata.FormatOnPaste, value); }
+            get { return GetBooleanOption(FormattingOptionsMetadata.FormatOnPaste); }
+            set { SetBooleanOption(FormattingOptionsMetadata.FormatOnPaste, value); }
         }
 
         public int Formatting_TriggerOnStatementCompletion
