@@ -254,23 +254,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 (token.IsKind(SyntaxKind.CloseBraceToken) && OnlySmartIndentCloseBrace(documentOptions)) ||
                 (token.IsKind(SyntaxKind.OpenBraceToken) && OnlySmartIndentOpenBrace(documentOptions));
 
+            var indentationOptions = IndentationOptions.From(documentOptions, document.Project.Solution.Workspace.Services, document.Project.Language);
+
             if (onlySmartIndent)
             {
                 // if we're only doing smart indent, then ignore all edits to this token that occur before
                 // the span of the token. They're irrelevant and may screw up other code the user doesn't 
                 // want touched.
-                var tokenEdits = await FormatTokenAsync(document, documentOptions, token, formattingRules, cancellationToken).ConfigureAwait(false);
+                var tokenEdits = await FormatTokenAsync(document, indentationOptions, token, formattingRules, cancellationToken).ConfigureAwait(false);
                 return tokenEdits.Where(t => t.Span.Start >= token.FullSpan.Start).ToImmutableArray();
             }
 
             // if formatting range fails, do format token one at least
-            var changes = await FormatRangeAsync(document, documentOptions, token, formattingRules, cancellationToken).ConfigureAwait(false);
+            var changes = await FormatRangeAsync(document, indentationOptions, token, formattingRules, cancellationToken).ConfigureAwait(false);
             if (changes.Length > 0)
             {
                 return changes;
             }
 
-            return (await FormatTokenAsync(document, documentOptions, token, formattingRules, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
+            return (await FormatTokenAsync(document, indentationOptions, token, formattingRules, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
         }
 
         private static bool OnlySmartIndentCloseBrace(DocumentOptionSet options)
@@ -299,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return token;
         }
 
-        private static async Task<IList<TextChange>> FormatTokenAsync(Document document, OptionSet options, SyntaxToken token, IEnumerable<AbstractFormattingRule> formattingRules, CancellationToken cancellationToken)
+        private static async Task<IList<TextChange>> FormatTokenAsync(Document document, IndentationOptions options, SyntaxToken token, IEnumerable<AbstractFormattingRule> formattingRules, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var formatter = CreateSmartTokenFormatter(options, formattingRules, root);
@@ -307,12 +309,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return changes;
         }
 
-        private static ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
+        private static ISmartTokenFormatter CreateSmartTokenFormatter(IndentationOptions options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
             => new CSharpSmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)root);
 
         private static async Task<ImmutableArray<TextChange>> FormatRangeAsync(
             Document document,
-            OptionSet options,
+            IndentationOptions options,
             SyntaxToken endToken,
             IEnumerable<AbstractFormattingRule> formattingRules,
             CancellationToken cancellationToken)

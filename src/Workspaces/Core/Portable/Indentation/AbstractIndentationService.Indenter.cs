@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Indentation
         {
             private readonly AbstractIndentationService<TSyntaxRoot> _service;
 
-            public readonly SyntaxFormattingOptions Options;
+            public readonly IndentationOptions Options;
             public readonly TextLine LineToBeIndented;
             public readonly CancellationToken CancellationToken;
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 AbstractIndentationService<TSyntaxRoot> service,
                 SyntacticDocument document,
                 IEnumerable<AbstractFormattingRule> rules,
-                SyntaxFormattingOptions options,
+                IndentationOptions options,
                 TextLine lineToBeIndented,
                 CancellationToken cancellationToken)
             {
@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis.Indentation
                 Options = options;
                 Root = (TSyntaxRoot)document.Root;
                 LineToBeIndented = lineToBeIndented;
-                _tabSize = options.GetOption(FormattingOptions2.TabSize);
+                _tabSize = options.FormattingOptions.GetOption(FormattingOptions2.TabSize);
                 CancellationToken = cancellationToken;
 
                 Rules = rules;
                 Finder = new BottomUpBaseIndentationFinder(
-                    new ChainedFormattingRules(this.Rules, options),
+                    new ChainedFormattingRules(this.Rules, options.FormattingOptions),
                     _tabSize,
-                    options.GetOption(FormattingOptions2.IndentationSize),
+                    options.FormattingOptions.GetOption(FormattingOptions2.IndentationSize),
                     tokenStream: null,
                     document.Document.GetRequiredLanguageService<IHeaderFactsService>());
             }

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -1516,7 +1517,7 @@ class C
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None);
+            var options = await IndentationOptions.FromDocumentAsync(document, CancellationToken.None);
 
             Assert.True(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
@@ -1559,7 +1560,7 @@ class C
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None);
+            var options = await IndentationOptions.FromDocumentAsync(document, CancellationToken.None);
 
             Assert.False(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
