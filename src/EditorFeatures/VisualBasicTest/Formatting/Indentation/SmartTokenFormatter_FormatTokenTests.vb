@@ -191,7 +191,7 @@ End Class
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
                 Dim root = DirectCast(Await document.GetSyntaxRootAsync(), CompilationUnitSyntax)
                 Dim options = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
-                Dim documentIndentStyle = options.GetOption(FormattingBehaviorOptions.SmartIndent)
+                Dim documentIndentStyle = options.GetOption(AutoFormattingOptions.SmartIndent)
 
                 Dim formattingRules = New SpecialFormattingRule(documentIndentStyle).Concat(Formatter.GetDefaultFormattingRules(document))
 

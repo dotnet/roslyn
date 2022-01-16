@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// <summary>
     /// Solution-wide formatting options.
     /// </summary>
-    internal sealed class FormattingBehaviorOptions
+    internal sealed class AutoFormattingOptions
     {
         [ExportSolutionOptionProvider, Shared]
         internal sealed class Provider : IOptionProvider
@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 AutoFormattingOnReturn,
                 AutoFormattingOnTyping,
                 AutoFormattingOnSemicolon,
+                AutoFormattingOnCloseBrace,
                 FormatOnPaste);
         }
 
@@ -64,6 +65,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static readonly PerLanguageOption2<bool> AutoFormattingOnSemicolon =
             new(FeatureName, OptionGroup.Default, nameof(AutoFormattingOnSemicolon), defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon"));
+
+        public static readonly PerLanguageOption2<bool> AutoFormattingOnCloseBrace = new(
+            "BraceCompletionOptions", nameof(AutoFormattingOnCloseBrace), defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace"));
 
         public static readonly PerLanguageOption2<bool> FormatOnPaste =
             new(FeatureName, OptionGroup.Default, nameof(FormatOnPaste), defaultValue: true,

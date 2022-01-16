@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 UseTabs = options.GetOption(FormattingOptions.UseTabs);
                 TabSize = options.GetOption(FormattingOptions.TabSize);
                 NewLine = options.GetOption(FormattingOptions.NewLine);
-                WrappingColumn = options.GetOption(FormattingBehaviorOptions.PreferredWrappingColumn);
+                WrappingColumn = options.GetOption(AutoFormattingOptions.PreferredWrappingColumn);
 
                 var generator = SyntaxGenerator.GetGenerator(document);
                 var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
