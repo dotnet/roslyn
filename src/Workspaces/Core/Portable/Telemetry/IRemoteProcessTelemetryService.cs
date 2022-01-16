@@ -20,5 +20,10 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Initializes telemetry session.
         /// </summary>
         ValueTask InitializeTelemetrySessionAsync(int hostProcessId, string serializedSession, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Configures recoverable syntax tree creation in the process.
+        /// </summary>
+        ValueTask SetSyntaxTreeConfigurationOptionsAsync(bool disableRecoverableTrees, bool disableProjectCacheService, CancellationToken cancellationToken);
     }
 }
