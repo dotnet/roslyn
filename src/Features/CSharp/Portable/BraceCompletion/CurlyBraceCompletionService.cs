@@ -49,10 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
             => AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken);
 
-        public override async Task<BraceCompletionResult?> GetTextChangesAfterCompletionAsync(BraceCompletionContext context, CancellationToken cancellationToken)
+        public override async Task<BraceCompletionResult?> GetTextChangesAfterCompletionAsync(BraceCompletionContext context, IndentationOptions options, CancellationToken cancellationToken)
         {
-            var options = await IndentationOptions.FromDocumentAsync(context.Document, cancellationToken).ConfigureAwait(false);
-
             // After the closing brace is completed we need to format the span from the opening point to the closing point.
             // E.g. when the user triggers completion for an if statement ($$ is the caret location) we insert braces to get
             // if (true){$$}
@@ -88,14 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         public override async Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(
             BraceCompletionContext context,
-            DocumentOptionSet documentOptions,
+            IndentationOptions options,
             CancellationToken cancellationToken)
         {
             var document = context.Document;
             var closingPoint = context.ClosingPoint;
             var openingPoint = context.OpeningPoint;
             var originalDocumentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var options = IndentationOptions.From(documentOptions, document.Project.Solution.Workspace.Services, document.Project.Language);
 
             // check whether shape of the braces are what we support
             // shape must be either "{|}" or "{ }". | is where caret is. otherwise, we don't do any special behavior
@@ -127,12 +124,15 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 closingPoint += newLineString.Length;
             }
 
+            var braceFormattingIndentationRules = ImmutableArray.Create(
+                BraceCompletionFormattingRule.ForIndentStyle(options.AutoFormattingOptions.IndentStyle));
+
             // Format the text that contains the newly inserted line.
             var (formattingChanges, newClosingPoint) = await FormatTrackingSpanAsync(
                 document.WithText(textToFormat),
                 openingPoint,
                 closingPoint,
-                braceFormattingIndentationRules: GetBraceIndentationFormattingRules(documentOptions),
+                braceFormattingIndentationRules,
                 options,
                 cancellationToken).ConfigureAwait(false);
 
@@ -318,12 +318,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 var root = originalRoot.ReplaceToken(closeBraceToken, newCloseBraceToken);
                 return document.WithSyntaxRoot(root);
             }
-        }
-
-        private static ImmutableArray<AbstractFormattingRule> GetBraceIndentationFormattingRules(DocumentOptionSet documentOptions)
-        {
-            var indentStyle = documentOptions.GetOption(FormattingOptions.SmartIndent);
-            return ImmutableArray.Create(BraceCompletionFormattingRule.ForIndentStyle(indentStyle));
         }
 
         private sealed class BraceCompletionFormattingRule : BaseFormattingRule
