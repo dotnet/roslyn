@@ -1686,8 +1686,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 propertySymbol = propertySymbol.OriginalDefinition;
             }
 
+            // PROTOTYPE(semi-auto-props): TODO: Support assigning semi auto prop from constructors.
+
             return propertySymbol is SourcePropertySymbolBase sourceProperty &&
-                    // PROTOTYPE(semi-auto-props): TODO: Support assigning semi auto prop from constructors. Probably by adjusting IsEquivalentToBackingFieldAccess implementation?
                     // To be assigned through backing field, either SetMethod is null, or it's equivalent to backing field write
                     sourceProperty.SetMethod is not SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: false } &&
                     TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&

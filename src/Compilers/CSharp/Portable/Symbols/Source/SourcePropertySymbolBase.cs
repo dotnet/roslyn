@@ -783,7 +783,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
         }
-
 #nullable disable
 
         internal override bool MustCallMethodsDirectly
