@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis.Indentation
 {
     internal readonly record struct IndentationOptions(
         SyntaxFormattingOptions FormattingOptions,
-        bool AutoFormattingOnReturn,
-        FormattingOptions.IndentStyle SmartIndent
-        )
+        AutoFormattingOptions AutoFormattingOptions)
     {
         public static async Task<IndentationOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
@@ -25,7 +23,6 @@ namespace Microsoft.CodeAnalysis.Indentation
         public static IndentationOptions From(OptionSet options, HostWorkspaceServices services, string language)
             => new(
                 SyntaxFormattingOptions.Create(options, services, language),
-                AutoFormattingOnReturn: options.GetOption(AutoFormattingOptions.Metadata.AutoFormattingOnReturn, language),
-                SmartIndent: options.GetOption(AutoFormattingOptions.Metadata.SmartIndent, language));
+                AutoFormattingOptions.From(options, language));
     }
 }

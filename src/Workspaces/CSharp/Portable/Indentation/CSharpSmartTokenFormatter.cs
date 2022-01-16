@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             var smartTokenformattingRules = new SmartTokenFormattingRule().Concat(_formattingRules);
             var adjustedStartPosition = previousToken.SpanStart;
             if (token.IsKind(SyntaxKind.OpenBraceToken) &&
-                _options.SmartIndent != FormattingOptions.IndentStyle.Smart)
+                _options.AutoFormattingOptions.IndentStyle != FormattingOptions.IndentStyle.Smart)
             {
                 RoslynDebug.AssertNotNull(token.SyntaxTree);
                 var text = await token.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);

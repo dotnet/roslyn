@@ -15,12 +15,20 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// Solution-wide formatting options.
     /// </summary>
     internal readonly record struct AutoFormattingOptions(
-        FormattingOptions.IndentStyle SmartIndent,
-        bool AutoFormattingOnReturn,
-        bool AutoFormattingOnTyping,
-        bool AutoFormattingOnSemicolon,
-        bool AutoFormattingOnCloseBrace)
+        FormattingOptions.IndentStyle IndentStyle,
+        bool FormatOnReturn,
+        bool FormatOnTyping,
+        bool FormatOnSemicolon,
+        bool FormatOnCloseBrace)
     {
+        public static AutoFormattingOptions From(OptionSet options, string language)
+            => new(
+                IndentStyle: options.GetOption(Metadata.SmartIndent, language),
+                FormatOnReturn: options.GetOption(Metadata.AutoFormattingOnReturn, language),
+                FormatOnTyping: options.GetOption(Metadata.AutoFormattingOnTyping, language),
+                FormatOnSemicolon: options.GetOption(Metadata.AutoFormattingOnSemicolon, language),
+                FormatOnCloseBrace: options.GetOption(Metadata.AutoFormattingOnCloseBrace, language));
+
         [ExportSolutionOptionProvider, Shared]
         internal sealed class Metadata : IOptionProvider
         {

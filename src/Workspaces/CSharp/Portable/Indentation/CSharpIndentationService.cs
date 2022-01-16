@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             Contract.ThrowIfNull(root);
 
             token = default;
-            if (!options.AutoFormattingOnReturn)
+            if (!options.AutoFormattingOptions.FormatOnReturn)
             {
                 return false;
             }
 
-            if (options.SmartIndent != FormattingOptions.IndentStyle.Smart)
+            if (options.AutoFormattingOptions.IndentStyle != FormattingOptions.IndentStyle.Smart)
             {
                 return false;
             }

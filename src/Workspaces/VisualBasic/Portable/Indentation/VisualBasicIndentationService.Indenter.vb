@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         Protected Overrides Function CreateSmartTokenFormatter(indenter As Indenter) As ISmartTokenFormatter
             Dim services = indenter.Document.Project.Solution.Workspace.Services
             Dim formattingRuleFactory = services.GetService(Of IHostDependentFormattingRuleFactoryService)()
-            Dim rules = {New SpecialFormattingRule(indenter.Options.SmartIndent), formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start)}.Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document))
+            Dim rules = {New SpecialFormattingRule(indenter.Options.AutoFormattingOptions.IndentStyle), formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start)}.Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document))
             Return New VisualBasicSmartTokenFormatter(indenter.Options.FormattingOptions, rules, indenter.Root)
         End Function
 
