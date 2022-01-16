@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Indentation
         public static IndentationOptions From(OptionSet options, HostWorkspaceServices services, string language)
             => new(
                 SyntaxFormattingOptions.Create(options, services, language),
-                AutoFormattingOnReturn: options.GetOption(AutoFormattingOptions.AutoFormattingOnReturn, language),
-                SmartIndent: options.GetOption(AutoFormattingOptions.SmartIndent, language));
+                AutoFormattingOnReturn: options.GetOption(AutoFormattingOptions.Metadata.AutoFormattingOnReturn, language),
+                SmartIndent: options.GetOption(AutoFormattingOptions.Metadata.SmartIndent, language));
     }
 }

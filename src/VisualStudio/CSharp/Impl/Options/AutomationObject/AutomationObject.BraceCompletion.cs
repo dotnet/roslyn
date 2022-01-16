@@ -10,8 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     {
         public int Formatting_TriggerOnBlockCompletion
         {
-            get { return GetBooleanOption(AutoFormattingOptions.AutoFormattingOnCloseBrace); }
-            set { SetBooleanOption(AutoFormattingOptions.AutoFormattingOnCloseBrace, value); }
+            get { return GetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace); }
+            set { SetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace, value); }
         }
     }
 }

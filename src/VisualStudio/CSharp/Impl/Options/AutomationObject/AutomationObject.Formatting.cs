@@ -305,20 +305,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Formatting_TriggerOnPaste
         {
-            get { return GetBooleanOption(AutoFormattingOptions.FormatOnPaste); }
-            set { SetBooleanOption(AutoFormattingOptions.FormatOnPaste, value); }
+            get { return GetBooleanOption(AutoFormattingOptions.Metadata.FormatOnPaste); }
+            set { SetBooleanOption(AutoFormattingOptions.Metadata.FormatOnPaste, value); }
         }
 
         public int Formatting_TriggerOnStatementCompletion
         {
-            get { return GetBooleanOption(AutoFormattingOptions.AutoFormattingOnSemicolon); }
-            set { SetBooleanOption(AutoFormattingOptions.AutoFormattingOnSemicolon, value); }
+            get { return GetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnSemicolon); }
+            set { SetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnSemicolon, value); }
         }
 
         public int AutoFormattingOnTyping
         {
-            get { return GetBooleanOption(AutoFormattingOptions.AutoFormattingOnTyping); }
-            set { SetBooleanOption(AutoFormattingOptions.AutoFormattingOnTyping, value); }
+            get { return GetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnTyping); }
+            set { SetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnTyping, value); }
         }
     }
 }

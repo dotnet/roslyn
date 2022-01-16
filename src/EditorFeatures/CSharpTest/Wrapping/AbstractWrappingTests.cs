@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         private protected OptionsCollection GetIndentionColumn(int column)
             => new OptionsCollection(GetLanguage())
                {
-                   { AutoFormattingOptions.PreferredWrappingColumn, column }
+                   { AutoFormattingOptions.Metadata.PreferredWrappingColumn, column }
                };
 
         protected Task TestAllWrappingCasesAsync(

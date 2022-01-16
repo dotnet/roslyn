@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             }
 
             var solution = document.Project.Solution;
-            if (!solution.Options.GetOption(AutoFormattingOptions.FormatOnPaste, document.Project.Language))
+            if (!solution.Options.GetOption(AutoFormattingOptions.Metadata.FormatOnPaste, document.Project.Language))
             {
                 return;
             }

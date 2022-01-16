@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         /// <inheritdoc cref="AutoFormattingOptions.SmartIndent"/>
         // Suppression due to https://github.com/dotnet/roslyn/issues/42614
-        public static PerLanguageOption<IndentStyle> SmartIndent { get; } = ((PerLanguageOption<IndentStyle>)AutoFormattingOptions.SmartIndent)!;
+        public static PerLanguageOption<IndentStyle> SmartIndent { get; } = ((PerLanguageOption<IndentStyle>)AutoFormattingOptions.Metadata.SmartIndent)!;
 
         /// <inheritdoc cref="FormattingOptions2.NewLine"/>
         // Suppression due to https://github.com/dotnet/roslyn/issues/42614

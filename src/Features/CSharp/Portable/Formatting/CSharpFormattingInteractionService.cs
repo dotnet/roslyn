@@ -69,18 +69,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // If format-on-typing is not on, then we don't support formatting on any other characters.
-            var autoFormattingOnTyping = options.GetOption(AutoFormattingOptions.AutoFormattingOnTyping, LanguageNames.CSharp);
+            var autoFormattingOnTyping = options.GetOption(AutoFormattingOptions.Metadata.AutoFormattingOnTyping, LanguageNames.CSharp);
             if (!autoFormattingOnTyping)
             {
                 return false;
             }
 
-            if (ch == '}' && !options.GetOption(AutoFormattingOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp))
+            if (ch == '}' && !options.GetOption(AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace, LanguageNames.CSharp))
             {
                 return false;
             }
 
-            if (ch == ';' && !options.GetOption(AutoFormattingOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp))
+            if (ch == ';' && !options.GetOption(AutoFormattingOptions.Metadata.AutoFormattingOnSemicolon, LanguageNames.CSharp))
             {
                 return false;
             }
@@ -279,8 +279,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             // User does not want auto-formatting (either in general, or for close braces in
             // specific).  So we only smart indent close braces when typed.
-            return !options.GetOption(AutoFormattingOptions.AutoFormattingOnCloseBrace) ||
-                   !options.GetOption(AutoFormattingOptions.AutoFormattingOnTyping);
+            return !options.GetOption(AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace) ||
+                   !options.GetOption(AutoFormattingOptions.Metadata.AutoFormattingOnTyping);
         }
 
         private static bool OnlySmartIndentOpenBrace(DocumentOptionSet options)
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // User does not want auto-formatting .  So we only smart indent open braces when typed.
             // Note: there is no specific option for controlling formatting on open brace.  So we
             // don't have the symmetry with OnlySmartIndentCloseBrace.
-            return !options.GetOption(AutoFormattingOptions.AutoFormattingOnTyping);
+            return !options.GetOption(AutoFormattingOptions.Metadata.AutoFormattingOnTyping);
         }
 
         private static async Task<SyntaxToken> GetTokenBeforeTheCaretAsync(Document document, int caretPosition, CancellationToken cancellationToken)

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
 
         Private Protected Function GetIndentionColumn(column As Integer) As OptionsCollection
             Return New OptionsCollection(GetLanguage()) From {
-                   {AutoFormattingOptions.PreferredWrappingColumn, column}
+                   {AutoFormattingOptions.Metadata.PreferredWrappingColumn, column}
                }
         End Function
 

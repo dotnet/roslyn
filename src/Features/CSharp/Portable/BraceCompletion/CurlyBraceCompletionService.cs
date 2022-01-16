@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
         {
-            var option = document.Project.Solution.Options.GetOption(AutoFormattingOptions.AutoFormattingOnCloseBrace, document.Project.Language);
+            var option = document.Project.Solution.Options.GetOption(AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace, document.Project.Language);
             if (!option && shouldHonorAutoFormattingOnCloseBraceOption)
             {
                 return (ImmutableArray<TextChange>.Empty, closingPoint);
