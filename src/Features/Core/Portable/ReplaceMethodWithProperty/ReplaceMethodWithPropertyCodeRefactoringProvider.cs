@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         {
             var root = await originalDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Workspace.Services);
             var service = originalDocument.GetRequiredLanguageService<IReplaceMethodWithPropertyService>();
 
             ReplaceGetReferences(propertyName, nameChanged, getReferences, root, editor, service, cancellationToken);
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var syntaxTree = await updatedDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await updatedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, updatedSolution.Workspace);
+            var editor = new SyntaxEditor(root, updatedSolution.Workspace.Services);
 
             var documentOptions = await updatedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var parseOptions = syntaxTree.Options;

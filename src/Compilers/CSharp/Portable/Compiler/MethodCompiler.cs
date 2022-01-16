@@ -1305,7 +1305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (hasBody)
                             {
-                                boundStatements = boundStatements.Concat(ImmutableArray.Create(loweredBodyOpt));
+                                boundStatements = boundStatements.Concat(loweredBodyOpt);
                             }
 
                             var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);

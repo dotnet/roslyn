@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -333,5 +334,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInsideNameOfExpression(semanticModel, cancellationToken);
+
+        public ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
+            foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
+            {
+                var semanticModel = compilation.GetSemanticModel(syntaxReference.SyntaxTree);
+                var node = syntaxReference.GetSyntax(cancellationToken);
+
+                foreach (var localFunction in node.DescendantNodes().Where(CSharpSyntaxFacts.Instance.IsLocalFunctionStatement))
+                {
+                    var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
+                    if (localFunctionSymbol is IMethodSymbol methodSymbol)
+                    {
+                        builder.Add(methodSymbol);
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
+        }
     }
 }

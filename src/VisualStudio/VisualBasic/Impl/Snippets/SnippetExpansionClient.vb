@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
@@ -127,7 +128,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
         Friend Overrides Function AddImports(
                 document As Document,
-                options As OptionSet,
+                preferences As CodeGenerationPreferences,
                 position As Integer,
                 snippetNode As XElement,
                 allowInHiddenRegions As Boolean,
@@ -153,7 +154,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
             Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
 
-            Dim placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language)
+            Dim placeSystemNamespaceFirst = preferences.Options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language)
 
             Dim newRoot = CType(root, CompilationUnitSyntax).AddImportsStatements(newImportsStatements, placeSystemNamespaceFirst)
             Dim newDocument = document.WithSyntaxRoot(newRoot)

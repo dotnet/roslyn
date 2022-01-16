@@ -103,16 +103,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var span = textSpan ?? new TextSpan(0, root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, span);
-            var options = documentOptions;
-            if (options == null)
+            if (documentOptions == null)
             {
                 var inferredIndentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IInferredIndentationService>();
-                options = await inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, explicitFormat: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                documentOptions = await inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, explicitFormat: true, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
-            return Formatter.GetFormattedTextChanges(root,
-                SpecializedCollections.SingletonEnumerable(formattingSpan),
-                document.Project.Solution.Workspace, options, cancellationToken).ToImmutableArray();
+            var services = document.Project.Solution.Workspace.Services;
+            var formattingOptions = SyntaxFormattingOptions.Create(documentOptions, services, document.Project.Language);
+            return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), services, formattingOptions, cancellationToken).ToImmutableArray();
         }
 
         public async Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(
@@ -124,23 +123,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, textSpan);
-            var service = document.GetLanguageService<ISyntaxFormattingService>();
-            if (service == null)
-            {
-                return ImmutableArray<TextChange>.Empty;
-            }
+            var service = document.GetRequiredLanguageService<ISyntaxFormattingService>();
 
             var rules = new List<AbstractFormattingRule>() { new PasteFormattingRule() };
             rules.AddRange(service.GetDefaultFormattingRules());
 
-            var options = documentOptions;
-            if (options == null)
+            if (documentOptions == null)
             {
                 var inferredIndentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IInferredIndentationService>();
-                options = await inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, explicitFormat: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                documentOptions = await inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, explicitFormat: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
-            return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken).ToImmutableArray();
+            var formattingOptions = SyntaxFormattingOptions.Create(documentOptions, document.Project.Solution.Workspace.Services, document.Project.Language);
+            var result = service.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(formattingSpan), formattingOptions, rules, cancellationToken);
+            return result.GetTextChanges(cancellationToken).ToImmutableArray();
         }
 
         private static IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position, SyntaxToken tokenBeforeCaret)
@@ -218,11 +214,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return ImmutableArray<TextChange>.Empty;
             }
 
-            var options = documentOptions;
-            if (options == null)
+            var services = document.Project.Solution.Workspace.Services;
+
+            if (documentOptions == null)
             {
-                var inferredIndentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IInferredIndentationService>();
-                options = await inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, explicitFormat: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var inferredIndentationService = services.GetRequiredService<IInferredIndentationService>();
+                documentOptions = await inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, explicitFormat: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             // Do not attempt to format on open/close brace if autoformat on close brace feature is
@@ -254,26 +251,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // However, we won't touch any of the other code in that block, unlike if we were
             // formatting.
             var onlySmartIndent =
-                (token.IsKind(SyntaxKind.CloseBraceToken) && OnlySmartIndentCloseBrace(options)) ||
-                (token.IsKind(SyntaxKind.OpenBraceToken) && OnlySmartIndentOpenBrace(options));
+                (token.IsKind(SyntaxKind.CloseBraceToken) && OnlySmartIndentCloseBrace(documentOptions)) ||
+                (token.IsKind(SyntaxKind.OpenBraceToken) && OnlySmartIndentOpenBrace(documentOptions));
 
             if (onlySmartIndent)
             {
                 // if we're only doing smart indent, then ignore all edits to this token that occur before
                 // the span of the token. They're irrelevant and may screw up other code the user doesn't 
                 // want touched.
-                var tokenEdits = await FormatTokenAsync(document, options, token, formattingRules, cancellationToken).ConfigureAwait(false);
+                var tokenEdits = await FormatTokenAsync(document, documentOptions, token, formattingRules, cancellationToken).ConfigureAwait(false);
                 return tokenEdits.Where(t => t.Span.Start >= token.FullSpan.Start).ToImmutableArray();
             }
 
             // if formatting range fails, do format token one at least
-            var changes = await FormatRangeAsync(document, options, token, formattingRules, cancellationToken).ConfigureAwait(false);
+            var changes = await FormatRangeAsync(document, documentOptions, token, formattingRules, cancellationToken).ConfigureAwait(false);
             if (changes.Length > 0)
             {
                 return changes;
             }
 
-            return (await FormatTokenAsync(document, options, token, formattingRules, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
+            return (await FormatTokenAsync(document, documentOptions, token, formattingRules, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
         }
 
         private static bool OnlySmartIndentCloseBrace(DocumentOptionSet options)
@@ -306,12 +303,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var formatter = CreateSmartTokenFormatter(options, formattingRules, root);
-            var changes = await formatter.FormatTokenAsync(document.Project.Solution.Workspace, token, cancellationToken).ConfigureAwait(false);
+            var changes = await formatter.FormatTokenAsync(document.Project.Solution.Workspace.Services, token, cancellationToken).ConfigureAwait(false);
             return changes;
         }
 
-        private static ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
-            => new CSharpSmartTokenFormatter(optionSet, formattingRules, (CompilationUnitSyntax)root);
+        private static ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
+            => new CSharpSmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)root);
 
         private static async Task<ImmutableArray<TextChange>> FormatRangeAsync(
             Document document,
@@ -340,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             var formatter = new CSharpSmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)root);
 
-            var changes = formatter.FormatRange(document.Project.Solution.Workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken);
+            var changes = formatter.FormatRange(document.Project.Solution.Workspace.Services, tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken);
             return changes.ToImmutableArray();
         }
 
