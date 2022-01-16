@@ -10,4 +10,4 @@ To add an option to the options page, follow these instructions.
 // to the backing "GenerationOptions.PlaceSystemNamespaceFirst" for the language "CSharp"
 BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp);
 ```
-4. If you want the option to be searchable in the search bar, add to [VSPackage.resx](https://github.com/dotnet/roslyn/blob/main/src/VisualStudio/CSharp/Impl/VSPackage.resx) in the appropriate block. Each block of terms has a comment describing what page it's for.
+4. If you want the option to be searchable in the search bar, add to [VSPackage.resx](https://github.com/dotnet/roslyn/blob/591e899025f1d4cf9bbb6e9af3ef82506b46f501/src/VisualStudio/CSharp/Impl/VSPackage.resx) in the appropriate block. Each block of terms has a comment describing what page it's for.
