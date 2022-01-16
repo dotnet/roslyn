@@ -500,7 +500,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 solutionEvents.AfterCloseSolution += HandleAfterCloseSolution;
                 try
                 {
-                    ErrorHandler.ThrowOnFailure(solution.CloseSolutionElement((uint)__VSSLNCLOSEOPTIONS.SLNCLOSEOPT_DeleteProject | (uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave, null, 0));
+                    InvokeOnUIThread(cancellationToken =>
+                    {
+                        ErrorHandler.ThrowOnFailure(solution.CloseSolutionElement((uint)__VSSLNCLOSEOPTIONS.SLNCLOSEOPT_DeleteProject | (uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave, null, 0));
+                    });
+
                     semaphore.Wait();
                 }
                 finally
