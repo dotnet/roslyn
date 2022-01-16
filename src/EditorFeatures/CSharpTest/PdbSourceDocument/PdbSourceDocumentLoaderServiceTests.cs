@@ -38,13 +38,13 @@ public class C
                 File.Move(GetSourceFilePath(path), sourceFilePath);
 
                 var sourceLinkService = new Lazy<ISourceLinkService?>(() => new TestSourceLinkService(sourceFilePath: sourceFilePath));
-                var service = new PdbSourceDocumentLoaderService(sourceLinkService);
+                var service = new PdbSourceDocumentLoaderService(sourceLinkService, logger: null);
 
                 using var hash = SHA256.Create();
                 var fileHash = hash.ComputeHash(File.ReadAllBytes(sourceFilePath));
 
                 var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithm.Sha256, fileHash.ToImmutableArray(), null, "https://sourcelink");
-                var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, logger: null, CancellationToken.None);
+                var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
                 Assert.NotNull(result);
                 Assert.Equal(sourceFilePath, result!.FilePath);
@@ -71,10 +71,10 @@ public class C
                 File.Move(GetSourceFilePath(path), sourceFilePath);
 
                 var sourceLinkService = new Lazy<ISourceLinkService?>(() => new TestSourceLinkService(sourceFilePath: sourceFilePath));
-                var service = new PdbSourceDocumentLoaderService(sourceLinkService);
+                var service = new PdbSourceDocumentLoaderService(sourceLinkService, logger: null);
 
                 var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithm.None, default, null, SourceLinkUrl: null);
-                var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, logger: null, CancellationToken.None);
+                var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
                 Assert.Null(result);
             });

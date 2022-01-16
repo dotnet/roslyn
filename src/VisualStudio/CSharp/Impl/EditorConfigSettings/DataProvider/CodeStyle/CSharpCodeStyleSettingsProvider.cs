@@ -103,6 +103,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 description: CSharpVSResources.Prefer_null_check_over_type_check,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
+            yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferParameterNullChecking,
+                description: CSharpVSResources.Prefer_parameter_null_checking,
+                editorConfigOptions: editorConfigOptions,
+                visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)

@@ -242,12 +242,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression">
         <source>Await the preceding expression</source>
-        <target state="new">Await the preceding expression</target>
+        <target state="translated">前の式を待機する</target>
         <note />
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
         <source>Await the preceding expression and add ConfigureAwait({0}).</source>
-        <target state="new">Await the preceding expression and add ConfigureAwait({0}).</target>
+        <target state="translated">前の式を待機し、ConfigureAwait ({0}) を追加します。</target>
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -470,6 +470,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">型を '{0}' に変換</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
+        <source>Could not find portable PDB on disk or embedded.</source>
+        <target state="translated">ポータブル PDB がディスクまたは埋め込みで見つかりませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded_or_server">
+        <source>Could not find PDB on disk, or embedded, or on a symbol server.</source>
+        <target state="translated">ディスク、埋め込み、またはシンボル サーバーで PDB が見つかりませんでした。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="translated">フィールド '{0}' を作成して割り当てる</target>
@@ -550,6 +560,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">CodeFixProvider '{0}' のインスタンスの作成でエラーが発生しました</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_reading_PDB_0">
+        <source>Error reading PDB: '{0}'</source>
+        <target state="translated">PDB: '{0}' の読み込み中にエラーが発生した</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="translated">例:</target>
@@ -567,7 +582,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Explicitly_inherit_documentation">
         <source>Explicitly inherit documentation</source>
-        <target state="new">Explicitly inherit documentation</target>
+        <target state="translated">ドキュメントを明示的に継承する</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -615,14 +630,34 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">ドキュメントの書式設定</target>
         <note />
       </trans-unit>
+      <trans-unit id="Found_PDB_file_at_0">
+        <source>Found PDB file at '{0}'</source>
+        <target state="translated">'{0}' で PDB ファイルが見つかりました</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server">
+        <source>Found PDB on symbol server.</source>
+        <target state="translated">シンボル サーバーで PDB が見つかりました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server_but_could_not_read_file">
+        <source>Found PDB on symbol server but could not read file.</source>
+        <target state="translated">シンボル サーバーで PDB が見つかりましたが、ファイルを読み取ることができませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_embedded_PDB_file">
+        <source>Found embedded PDB file.</source>
+        <target state="translated">埋め込み PDB ファイルが見つかりました。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
         <source>Generate abstract method '{0}'</source>
-        <target state="new">Generate abstract method '{0}'</target>
+        <target state="translated">抽象メソッド '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_property_0">
         <source>Generate abstract property '{0}'</source>
-        <target state="new">Generate abstract property '{0}'</target>
+        <target state="translated">抽象プロパティ '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">
@@ -632,7 +667,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_constant_0">
         <source>Generate constant '{0}'</source>
-        <target state="new">Generate constant '{0}'</target>
+        <target state="translated">定数 '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -647,12 +682,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
-        <target state="new">Generate enum member '{0}'</target>
+        <target state="translated">列挙型メンバー '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_field_0">
         <source>Generate field '{0}'</source>
-        <target state="new">Generate field '{0}'</target>
+        <target state="translated">フィールド '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -662,7 +697,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_method_0">
         <source>Generate method '{0}'</source>
-        <target state="new">Generate method '{0}'</target>
+        <target state="translated">メソッド '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -677,17 +712,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_property_0">
         <source>Generate property '{0}'</source>
-        <target state="new">Generate property '{0}'</target>
+        <target state="translated">プロパティ '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_field_0">
         <source>Generate read-only field '{0}'</source>
-        <target state="new">Generate read-only field '{0}'</target>
+        <target state="translated">読み取り専用フィールド '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_property_0">
         <source>Generate read-only property '{0}'</source>
-        <target state="new">Generate read-only property '{0}'</target>
+        <target state="translated">読み取り専用プロパティ '{0}' を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -912,7 +947,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
-        <target state="new">Miscellaneous Files</target>
+        <target state="translated">その他のファイル</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_control_character">
@@ -1022,7 +1057,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Move_static_members_to_another_type">
         <source>Move static members to another type...</source>
-        <target state="new">Move static members to another type...</target>
+        <target state="translated">静的メンバーを別の型に移行する...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1035,6 +1070,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0} を移動するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigating_to_symbol_0_from_1">
+        <source>Navigating to symbol '{0}' from '{1}'.</source>
+        <target state="translated">"{1}" からシンボル '{0}' に移動しています。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
         <target state="translated">入れ子になった量指定子 {0}</target>
@@ -1043,6 +1083,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction.</source>
         <target state="translated">抽出するための一般的なルート ノードがありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_source_document_info_found_in_PDB">
+        <source>No source document info found in PDB.</source>
+        <target state="translated">PDB にソース ドキュメント情報が見つかりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
@@ -1230,11 +1275,11 @@ This option is recommended if you know that backtracking will not succeed. Preve
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="needs-review-translation">グループ定義の均等化では、既に定義されていたグループの定義を削除し、既に定義されていたグループと現在のグループの間隔を現在のグループに格納します。
-    
-'name1' は現在のグループ (省略可能) で、'name2' は既に定義されていたグループで、'subexpression' は有効な正規表現パターンです。グループ定義の均等化では、name2 の定義を削除し、name2 と name1 の間隔を name1 に格納します。name2 グループが定義されていない場合、一致はバックトラックされます。name2 の最後の定義を削除すると、name2 の以前の定義がわかるため、このコンストラクトによって、かっこや左右の角かっこなど入れ子になったコンストラクトを追跡するカウンターとして name2 グループのキャプチャのスタックを使用できます。
+        <target state="translated">グループ定義の均等化では、既に定義されていたグループの定義を削除し、現在のグループにおいて、既に定義されていたグループと現在のグループの間の差分を保存します。
 
-グループ定義の均等化では、'name2' をスタックとして使用します。入れ子になった各コンストラクトの開始文字が、グループとその Group.Captures コレクションに配置されます。終了文字が一致すると、対応する開始文字がグループから削除され、Captures コレクションが 1 つ減らされます。入れ子になったすべてのコンストラクトの開始文字と終了文字が一致したら、name1 は空になります。</target>
+ "name1" は現在のグループ (オプション) で、"name2" は既に定義されていたグループで、"subexpression" は有効な正規表現パターンです。グループ定義の均等化では、name2 の定義を削除し、name2 と name1 の間の差分を name1 に格納します。name2 グループが定義されていない場合、一致は差し戻します。name2 の最新の定義を削除すると、name2 の以前の定義が明らかになるため、このコンストラクトによって、かっこや左右の角かっこなど入れ子になったコンストラクトを追跡するカウンターとして name2 グループのキャプチャのスタックを使用できます。
+
+グループ定義の均等化では、"name2" をスタックとして使用します。入れ子になった各コンストラクトの開始文字が、グループとその Group.Captures コレクションに配置されます。終了文字が一致すると、対応する開始文字がグループから削除され、Captures コレクションが 1 つ減らされます。入れ子になったすべてのコンストラクトの開始文字と終了文字が一致したら、"name1" は空になります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
@@ -2307,12 +2352,22 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Silent">
         <source>Silent</source>
-        <target state="new">Silent</target>
+        <target state="translated">サイレント</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">アクセシビリティ修飾子を並べ替える</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_code_language_information_was_not_found_in_PDB">
+        <source>Source code language information was not found in PDB.</source>
+        <target state="translated">PDB にソース コードのプログラミング言語情報が見つかりませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_is_a_reference_assembly">
+        <source>Source is a reference assembly, not enough information to find PDB.</source>
+        <target state="translated">ソースは参照アセンブリであり、PDB を見つけるのに十分な情報がありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -2340,6 +2395,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">ラムダとローカル関数を切り替えるには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="translated">アセンブリ パス '{0}' にシンボルが見つかりました</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
         <target state="translated">TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、ファイナライザーをオーバーライドします</target>
@@ -2365,6 +2425,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">選択範囲に、宣言のないローカル関数呼び出しが含まれています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Timeout_SourceLink">
+        <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
+        <target state="translated">SourceLink からソース コードをダウンロードしようとしてタイムアウトしました。後続の要求は成功する可能性があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Timeout_symbol_server">
+        <source>Timed out trying to download PDB from symbol server. Subsequent requests may succeed.</source>
+        <target state="translated">シンボル サーバーから PDB をダウンロードしようとしてタイムアウトしました。後続の要求は成功する可能性があります。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Too_many_bars_in_conditional_grouping">
         <source>Too many | in (?()|)</source>
         <target state="translated">(?()|) で | が多すぎます</target>
@@ -2377,7 +2447,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
-        <target state="new">Types:</target>
+        <target state="translated">型:</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
@@ -2663,6 +2733,46 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_dash_1">
         <source>{0} - {1}</source>
         <target state="translated">{0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB">
+        <source>'{0}' found in embedded PDB.</source>
+        <target state="translated">埋め込み PDB に '{0}' が見つかりました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_checksum_failed">
+        <source>'{0}' found in embedded PDB but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">埋め込み PDB に '{0}' が見つかりましたが、チェックサムが正しくないか、一時ファイルを読み取れませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_could_not_write_file_1">
+        <source>'{0}' found in embedded PDB but could not write to temp file: '{1}'</source>
+        <target state="translated">埋め込み PDB に '{0}' が見つかりましたが、一時ファイルに書き込めませんでした: "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_cached_source_file">
+        <source>'{0}' found in embedded PDB and found cached source file.</source>
+        <target state="translated">埋め込み PDB に '{0}' が見つかり、キャッシュされたソース ファイルが見つかりました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location">
+        <source>'{0}' found in original location.</source>
+        <target state="translated">元の場所に '{0}' が見つかりました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location_but_checksum_failed">
+        <source>'{0}' found in original location but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">元の場所に '{0}' が見つかりましたが、チェックサムが正しくないか、一時ファイルを読み取れませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink">
+        <source>'{0}' found via SourceLink.</source>
+        <target state="translated">'{0}' が SourceLink を通じて見つかりました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink_but_couldnt_read_file">
+        <source>'{0}' found via SourceLink but couldn't read temp file.</source>
+        <target state="translated">'{0}' が SourceLink を通じて見つかりましたが、一時ファイルを読み取ることができませんでした。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -2992,6 +3102,16 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <source>discard</source>
         <target state="translated">破棄</target>
         <note />
+      </trans-unit>
+      <trans-unit id="embedded">
+        <source>embedded</source>
+        <target state="translated">埋め込み</target>
+        <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
+      </trans-unit>
+      <trans-unit id="external">
+        <source>external</source>
+        <target state="translated">外部</target>
+        <note>External means "external source", meaning source files that are not part of the current solution</note>
       </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>

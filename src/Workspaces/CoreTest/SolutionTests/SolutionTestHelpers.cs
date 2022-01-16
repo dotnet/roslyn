@@ -20,17 +20,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
         public static Workspace CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations()
-        {
-            var workspace = CreateWorkspace(new[]
+            => CreateWorkspace(new[]
             {
                 typeof(TestProjectCacheService),
                 typeof(TestTemporaryStorageService)
             });
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0)));
-            return workspace;
-        }
 
         public static Workspace CreateWorkspaceWithPartialSemanticsAndWeakCompilations()
             => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(new[] { typeof(TestProjectCacheService), typeof(TestTemporaryStorageService) });

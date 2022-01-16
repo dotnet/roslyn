@@ -1124,6 +1124,28 @@ class Customer
 }}
 ";
 
+        private static readonly string s_preferParameterNullChecking = $@"
+using System;
+
+class Customer
+{{
+//[
+    // {ServicesVSResources.Prefer_colon}
+    void M1(string value!!)
+    {{
+    }}
+//]
+//[
+    // {ServicesVSResources.Over_colon}
+    void M2(string value)
+    {{
+        if (value is null)
+            throw new ArgumentNullException(nameof(value));
+    }}
+//]
+}}
+";
+
         private static readonly string s_preferNullcheckOverTypeCheck = $@"
 using System;
 
@@ -2108,6 +2130,7 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionStore, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferParameterNullChecking, CSharpVSResources.Prefer_parameter_null_checking, s_preferParameterNullChecking, s_preferParameterNullChecking, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, CSharpVSResources.Prefer_null_check_over_type_check, s_preferNullcheckOverTypeCheck, s_preferNullcheckOverTypeCheck, this, optionStore, nullCheckingGroupTitle));
 
             // Using directive preferences.
