@@ -269,16 +269,16 @@ public class C
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
 
-                VerifyEntryPoint(output, expectZero: false);
+                verifyEntryPoint(output, expectZero: false);
                 VerifyMethods(output, "C", new[] { "void C.Main()", "C..ctor()" });
                 VerifyMvid(output, hasMvidSection: false);
 
-                VerifyEntryPoint(metadataOutput, expectZero: true);
+                verifyEntryPoint(metadataOutput, expectZero: true);
                 VerifyMethods(metadataOutput, "C", new[] { "C..ctor()" });
                 VerifyMvid(metadataOutput, hasMvidSection: true);
             }
 
-            void VerifyEntryPoint(MemoryStream stream, bool expectZero)
+            void verifyEntryPoint(MemoryStream stream, bool expectZero)
             {
                 stream.Position = 0;
                 int entryPoint = new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress;
@@ -902,23 +902,23 @@ public class C
             string name = GetUniqueName();
             string source1 = sourceTemplate.Replace("CHANGE", change1);
             CSharpCompilation comp1 = CreateCompilation(Parse(source1), options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
-            ImmutableArray<byte> image1 = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
+            var image1 = comp1.EmitToStream(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
 
             var source2 = sourceTemplate.Replace("CHANGE", change2);
             Compilation comp2 = CreateCompilation(Parse(source2), options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
-            ImmutableArray<byte> image2 = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
+            var image2 = comp2.EmitToStream(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
 
             if (expectMatch)
             {
-                AssertEx.Equal(image1, image2, message: $"Expecting match for includePrivateMembers={includePrivateMembers} case, but differences were found.");
+                AssertEx.Equal(image1.GetBuffer(), image2.GetBuffer(), message: $"Expecting match for includePrivateMembers={includePrivateMembers} case, but differences were found.");
             }
             else
             {
-                AssertEx.NotEqual(image1, image2, message: $"Expecting difference for includePrivateMembers={includePrivateMembers} case, but they matched.");
+                AssertEx.NotEqual(image1.GetBuffer(), image2.GetBuffer(), message: $"Expecting difference for includePrivateMembers={includePrivateMembers} case, but they matched.");
             }
 
-            var mvid1 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new MemoryStream(image1.DangerousGetUnderlyingArray()));
-            var mvid2 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new MemoryStream(image2.DangerousGetUnderlyingArray()));
+            var mvid1 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(image1);
+            var mvid2 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(image2);
 
             if (!includePrivateMembers)
             {
@@ -932,6 +932,7 @@ public class C
             }
         }
 
+#if NET472
         [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
         public void RefAssembly_InvariantToResourceChanges()
@@ -996,7 +997,7 @@ public class C
                 return comp.EmitToArray(refonlyOptions, metadataPEStream: null, manifestResources: manifestResources);
             }
         }
-
+#endif
         [Fact, WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
         public void RefAssembly_CryptoHashFailedIsOnlyReportedOnce()
         {
@@ -1783,10 +1784,10 @@ public partial class C
     CHANGE
 }
 ";
-            VerifyIgnoresDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(false).WithTolerateErrors(false), success: false);
-            VerifyIgnoresDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(true).WithTolerateErrors(false), success: expectSuccess);
+            verifyIgnoresDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(false).WithTolerateErrors(false), success: false);
+            verifyIgnoresDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(true).WithTolerateErrors(false), success: expectSuccess);
 
-            void VerifyIgnoresDiagnostics(EmitOptions emitOptions, bool success)
+            void verifyIgnoresDiagnostics(EmitOptions emitOptions, bool success)
             {
                 string source = sourceTemplate.Replace("CHANGE", change);
                 string name = GetUniqueName();
@@ -2304,11 +2305,11 @@ struct S
                 var result = comp.Emit(output, metadataPEStream: metadataOutput,
                     options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithIncludePrivateMembers(false));
 
-                VerifyEmbeddedDebugInfo(output, new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.EmbeddedPortablePdb });
-                VerifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { DebugDirectoryEntryType.Reproducible });
+                verifyEmbeddedDebugInfo(output, new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.EmbeddedPortablePdb });
+                verifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { DebugDirectoryEntryType.Reproducible });
             }
 
-            void VerifyEmbeddedDebugInfo(MemoryStream stream, DebugDirectoryEntryType[] expected)
+            void verifyEmbeddedDebugInfo(MemoryStream stream, DebugDirectoryEntryType[] expected)
             {
                 using (var peReader = new PEReader(stream.ToImmutable()))
                 {
@@ -5101,10 +5102,10 @@ class C4
                 var expectedNames = new[]
                     {
                         "<Module>",
-                        "<>A{00000004}`3",
-                        "<>A{00000018}`5",
-                        "<>F{00000004}`5",
-                        "<>F{00000008}`5",
+                        "<>A{00000010}`3",
+                        "<>A{00000140}`5",
+                        "<>F{00000010}`5",
+                        "<>F{00000040}`5",
                         "C1",
                         "C2",
                         "C3",
@@ -5172,7 +5173,7 @@ public class X
 
         [Fact]
         [WorkItem(9308, "https://github.com/dotnet/roslyn/issues/9308")]
-        public void FailingEmitterAllowsCancelationExceptionsThrough()
+        public void FailingEmitterAllowsCancellationExceptionsThrough()
         {
             string source = @"
 public class X

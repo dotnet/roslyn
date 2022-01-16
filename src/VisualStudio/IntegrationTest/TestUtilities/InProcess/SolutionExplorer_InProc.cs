@@ -275,7 +275,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var result = threadingService.ExecuteSynchronously(async () =>
                 {
                     var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
-                    return await configuredProject.Services.PackageReferences.AddAsync(packageName, version).ConfigureAwait(false);
+                    return await configuredProject!.Services.PackageReferences!.AddAsync(packageName, version).ConfigureAwait(false);
                 });
             }
             else
@@ -295,7 +295,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 threadingService.ExecuteSynchronously(async () =>
                 {
                     var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
-                    await configuredProject.Services.PackageReferences.RemoveAsync(packageName).ConfigureAwait(false);
+                    await configuredProject!.Services.PackageReferences!.RemoveAsync(packageName).ConfigureAwait(false);
                 });
             }
             else
@@ -999,11 +999,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var fullFilePath = Path.Combine(projectPath, relativeFilePath);
 
             var projectItems = project.ProjectItems.Cast<EnvDTE.ProjectItem>();
-            var document = projectItems.FirstOrDefault(d => d.FileNames[1].Equals(fullFilePath));
+            var document = projectItems.FirstOrDefault(d => d.get_FileNames(1).Equals(fullFilePath));
 
             if (document == null)
             {
-                throw new InvalidOperationException($"File '{fullFilePath}' could not be found.  Available files: {string.Join(", ", projectItems.Select(x => x.FileNames[1]))}.");
+                throw new InvalidOperationException($"File '{fullFilePath}' could not be found.  Available files: {string.Join(", ", projectItems.Select(x => x.get_FileNames(1)))}.");
             }
 
             return document;

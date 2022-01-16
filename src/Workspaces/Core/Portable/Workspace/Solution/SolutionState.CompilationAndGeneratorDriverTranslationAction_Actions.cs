@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -42,9 +43,9 @@ namespace Microsoft.CodeAnalysis
                 public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
                 {
                     if (priorAction is TouchDocumentAction priorTouchAction &&
-                        priorTouchAction._newState == this._oldState)
+                        priorTouchAction._newState == _oldState)
                     {
-                        return new TouchDocumentAction(priorTouchAction._oldState, this._newState);
+                        return new TouchDocumentAction(priorTouchAction._oldState, _newState);
                     }
 
                     return null;
@@ -70,9 +71,9 @@ namespace Microsoft.CodeAnalysis
                 public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
                 {
                     if (priorAction is TouchAdditionalDocumentAction priorTouchAction &&
-                        priorTouchAction._newState == this._oldState)
+                        priorTouchAction._newState == _oldState)
                     {
-                        return new TouchAdditionalDocumentAction(priorTouchAction._oldState, this._newState);
+                        return new TouchAdditionalDocumentAction(priorTouchAction._oldState, _newState);
                     }
 
                     return null;

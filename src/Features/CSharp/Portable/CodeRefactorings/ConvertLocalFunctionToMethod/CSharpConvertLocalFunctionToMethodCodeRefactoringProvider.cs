@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    CSharpFeaturesResources.Convert_to_method,
                     c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)),
                 localFunction.Span);
         }
@@ -126,9 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 typeParameters: typeParameters.ToImmutableArray(),
                 parameters: parameters.AddRange(capturesAsParameters));
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var defaultOptions = new CodeGenerationOptions(options: options);
-            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, defaultOptions, root.SyntaxTree.Options);
+            var defaultOptions = await CSharpCodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, document, cancellationToken).ConfigureAwait(false);
+            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, defaultOptions, cancellationToken);
 
             var generator = s_generator;
             var editor = new SyntaxEditor(root, generator);
@@ -317,8 +315,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
         private sealed class MyCodeAction : CodeActions.CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Convert_to_method, createChangedDocument, nameof(CSharpFeaturesResources.Convert_to_method))
             {
             }
         }

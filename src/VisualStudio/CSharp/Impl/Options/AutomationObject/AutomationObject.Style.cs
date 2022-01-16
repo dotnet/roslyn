@@ -237,6 +237,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, value); }
         }
 
+        public string Style_PreferParameterNullChecking
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferParameterNullChecking); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferParameterNullChecking, value); }
+        }
+
         public string Style_PreferNullCheckOverTypeCheck
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck); }
@@ -357,6 +363,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, value); }
         }
 
+        public string Style_PreferTupleSwap
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferTupleSwap); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferTupleSwap, value); }
+        }
+
         public string Style_PreferredUsingDirectivePlacement
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement); }
@@ -397,6 +409,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer); }
             set { SetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, value); }
+        }
+
+        public string Style_NamespaceDeclarations
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.NamespaceDeclarations); }
+            set { SetXmlOption(CSharpCodeStyleOptions.NamespaceDeclarations, value); }
         }
     }
 }

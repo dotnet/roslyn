@@ -38,38 +38,36 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             _service = service;
         }
 
-        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return items == null
                 ? ImmutableArray<NavigationBarItem>.Empty
-                : ConvertItems(textSnapshot, items);
+                : ConvertItems(items, textVersion);
         }
 
-        private static ImmutableArray<NavigationBarItem> ConvertItems(ITextSnapshot textSnapshot, IList<FSharpNavigationBarItem> items)
-            => (items ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>()).Where(x => x.Spans.Any()).SelectAsArray(x => ConvertToNavigationBarItem(x, textSnapshot));
+        private static ImmutableArray<NavigationBarItem> ConvertItems(IList<FSharpNavigationBarItem> items, ITextVersion textVersion)
+            => (items ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>()).Where(x => x.Spans.Any()).SelectAsArray(x => ConvertToNavigationBarItem(x, textVersion));
 
         public async Task<bool> TryNavigateToItemAsync(
-            Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+            Document document, NavigationBarItem item, ITextView view, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             // The logic here was ported from FSharp's implementation. The main reason was to avoid shimming INotificationService.
-            if (item.NavigationTrackingSpan != null)
+            // Spans.First() is safe here as we filtered down to only items that have spans in ConvertItems.
+            var span = item.GetCurrentItemSpan(textVersion, item.Spans.First());
+            var workspace = document.Project.Solution.Workspace;
+            var navigationService = workspace.Services.GetRequiredService<IFSharpDocumentNavigationService>();
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            if (navigationService.CanNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, cancellationToken))
             {
-                var span = item.NavigationTrackingSpan.GetSpan(textSnapshot);
-                var workspace = document.Project.Solution.Workspace;
-                var navigationService = workspace.Services.GetRequiredService<IFSharpDocumentNavigationService>();
-
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                if (navigationService.CanNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, cancellationToken))
-                {
-                    navigationService.TryNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, options: null, cancellationToken);
-                }
-                else
-                {
-                    var notificationService = workspace.Services.GetRequiredService<INotificationService>();
-                    notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
-                }
+                navigationService.TryNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, options: null, cancellationToken);
+            }
+            else
+            {
+                var notificationService = workspace.Services.GetRequiredService<INotificationService>();
+                notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
             }
 
             return true;
@@ -80,24 +78,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             return false;
         }
 
-        private static NavigationBarItem ConvertToNavigationBarItem(FSharpNavigationBarItem item, ITextSnapshot textSnapshot)
+        private static NavigationBarItem ConvertToNavigationBarItem(FSharpNavigationBarItem item, ITextVersion textVersion)
         {
-            return new InternalNavigationBarItem(
+            var spans = item.Spans.ToImmutableArrayOrEmpty();
+            return new SimpleNavigationBarItem(
+                textVersion,
                 item.Text,
                 FSharpGlyphHelpers.ConvertTo(item.Glyph),
-                NavigationBarItem.GetTrackingSpans(textSnapshot, item.Spans.ToImmutableArrayOrEmpty()),
-                ConvertItems(textSnapshot, item.ChildItems),
+                spans,
+                ConvertItems(item.ChildItems, textVersion),
                 item.Indent,
                 item.Bolded,
                 item.Grayed);
-        }
-
-        private class InternalNavigationBarItem : NavigationBarItem
-        {
-            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<ITrackingSpan> trackingSpans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
-                : base(text, glyph, trackingSpans, trackingSpans.First(), childItems, indent, bolded, grayed)
-            {
-            }
         }
     }
 }

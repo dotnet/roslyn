@@ -5,7 +5,7 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.PersistentStorage
+namespace Microsoft.CodeAnalysis.Storage
 {
     /// <summary>
     /// Handle that can be used with <see cref="IChecksummedPersistentStorage"/> to read data for a
@@ -18,22 +18,20 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
     {
         [DataMember(Order = 0)]
         public readonly SolutionId Id;
+
         [DataMember(Order = 1)]
         public readonly string? FilePath;
-        [DataMember(Order = 2)]
-        public readonly bool IsPrimaryBranch;
 
-        public SolutionKey(SolutionId id, string? filePath, bool isPrimaryBranch)
+        public SolutionKey(SolutionId id, string? filePath)
         {
             Id = id;
             FilePath = filePath;
-            IsPrimaryBranch = isPrimaryBranch;
         }
 
         public static SolutionKey ToSolutionKey(Solution solution)
             => ToSolutionKey(solution.State);
 
         public static SolutionKey ToSolutionKey(SolutionState solutionState)
-            => new(solutionState.Id, solutionState.FilePath, solutionState.BranchId == solutionState.Workspace.PrimaryBranchId);
+            => new(solutionState.Id, solutionState.FilePath);
     }
 }

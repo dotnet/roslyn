@@ -72,15 +72,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             TypeParameterList                ' tied to parent
             TypeParameter                    ' tied to parent
-            TypeParameterConstraintClause    ' tied to parent
-            TypeConstraint                   ' tied to parent
-            TypeKindConstraint               ' tied to parent
-            NewConstraint                    ' tied to parent
 
             ParameterList                    ' tied to parent
             Parameter                        ' tied to parent
             FieldOrParameterName             ' tied to grand-grandparent (type or method declaration)
-            SimpleAsClause                   ' tied to parent
 
             AttributeList                    ' tied to parent
             Attribute                        ' tied to parent
@@ -235,13 +230,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      Label.EventStatement,
                      Label.TypeParameterList,
                      Label.TypeParameter,
-                     Label.TypeParameterConstraintClause,
-                     Label.TypeConstraint,
-                     Label.TypeKindConstraint,
-                     Label.NewConstraint,
                      Label.ParameterList,
                      Label.Parameter,
-                     Label.SimpleAsClause,
                      Label.AttributeList,
                      Label.Attribute
                     Return 1
@@ -769,10 +759,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = True
                     Return If(ignoreVariableDeclarations, Label.Ignored, Label.FieldOrParameterName)
 
-                Case SyntaxKind.SimpleAsClause
-                    isLeaf = ignoreVariableDeclarations
-                    Return If(ignoreVariableDeclarations, Label.Ignored, Label.SimpleAsClause)
-
                 Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock
                     isLeaf = False
                     Return Label.MethodDeclaration
@@ -839,24 +825,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.TypeParameter
                     isLeaf = False
                     Return Label.TypeParameter
-
-                Case SyntaxKind.TypeParameterSingleConstraintClause,
-                     SyntaxKind.TypeParameterMultipleConstraintClause
-                    isLeaf = False
-                    Return Label.TypeParameterConstraintClause
-
-                Case SyntaxKind.StructureConstraint,
-                     SyntaxKind.ClassConstraint
-                    isLeaf = True
-                    Return Label.TypeKindConstraint
-
-                Case SyntaxKind.NewConstraint
-                    isLeaf = True
-                    Return Label.NewConstraint
-
-                Case SyntaxKind.TypeConstraint
-                    isLeaf = True
-                    Return Label.TypeConstraint
 
                 Case SyntaxKind.ParameterList
                     isLeaf = False

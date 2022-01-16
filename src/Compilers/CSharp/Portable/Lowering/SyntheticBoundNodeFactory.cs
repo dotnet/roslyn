@@ -308,13 +308,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Property(BoundExpression? receiverOpt, PropertySymbol property)
         {
             Debug.Assert((receiverOpt is null) == property.IsStatic);
-            return Call(receiverOpt, property.GetMethod); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
+
+            // check for System.Array.[Length|LongLength] on a single dimensional array,
+            // we have a special node for such cases.
+            Debug.Assert(!(receiverOpt is { Type: ArrayTypeSymbol { IsSZArray: true } } &&
+                           (ReferenceEquals(property, Compilation.GetSpecialTypeMember(CodeAnalysis.SpecialMember.System_Array__Length)) ||
+                            ReferenceEquals(property, Compilation.GetSpecialTypeMember(CodeAnalysis.SpecialMember.System_Array__LongLength)))), "Use BoundArrayLength instead?");
+
+            var accessor = property.GetOwnOrInheritedGetMethod();
+            Debug.Assert(accessor is not null);
+            return Call(receiverOpt, accessor);
         }
 
         public BoundExpression Indexer(BoundExpression? receiverOpt, PropertySymbol property, BoundExpression arg0)
         {
             Debug.Assert((receiverOpt is null) == property.IsStatic);
-            return Call(receiverOpt, property.GetMethod, arg0); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
+            var accessor = property.GetOwnOrInheritedGetMethod();
+            Debug.Assert(accessor is not null);
+            return Call(receiverOpt, accessor, arg0);
         }
 
         public NamedTypeSymbol SpecialType(SpecialType st)
@@ -550,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SynthesizedLocalWithValEscape(
                 CurrentFunction,
                 TypeWithAnnotations.Create(type),
-                SynthesizedLocalKind.InterpolatedStringHandler,
+                SynthesizedLocalKind.LoweringTemp,
                 valEscapeScope,
                 syntax
 #if DEBUG
@@ -571,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAsOperator As(BoundExpression operand, TypeSymbol type)
         {
-            return new BoundAsOperator(this.Syntax, operand, Type(type), Conversion.ExplicitReference, type) { WasCompilerGenerated = true };
+            return new BoundAsOperator(this.Syntax, operand, Type(type), operandPlaceholder: null, operandConversion: null, type) { WasCompilerGenerated = true };
         }
 
         public BoundIsOperator Is(BoundExpression operand, TypeSymbol type)
@@ -580,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Because compiler-generated nodes are not lowered, this conversion is not used later in the compiler.
             // But it is a required part of the `BoundIsOperator` node, so we compute a conversion here.
             Conversion c = Compilation.Conversions.ClassifyBuiltInConversion(operand.Type, type, ref discardedUseSiteInfo);
-            return new BoundIsOperator(this.Syntax, operand, Type(type), c, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean)) { WasCompilerGenerated = true };
+            return new BoundIsOperator(this.Syntax, operand, Type(type), c.Kind, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean)) { WasCompilerGenerated = true };
         }
 
         public BoundBinaryOperator LogicalAnd(BoundExpression left, BoundExpression right)
@@ -802,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(left.Type!.Equals(right.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) || left.Type.IsErrorType());
             Debug.Assert(left.Type.IsReferenceType);
 
-            return new BoundNullCoalescingOperator(Syntax, left, right, Conversion.Identity, BoundNullCoalescingOperatorResultKind.LeftType, left.Type) { WasCompilerGenerated = true };
+            return new BoundNullCoalescingOperator(Syntax, left, right, leftPlaceholder: null, leftConversion: null, BoundNullCoalescingOperatorResultKind.LeftType, left.Type) { WasCompilerGenerated = true };
         }
 
         public BoundStatement If(BoundExpression condition, BoundStatement thenClause, BoundStatement? elseClauseOpt = null)
@@ -1039,6 +1050,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return StringLiteral(ConstantValue.Create(stringValue));
         }
 
+        public BoundLiteral CharLiteral(ConstantValue charConst)
+        {
+            Debug.Assert(charConst.IsChar || charConst.IsDefaultValue);
+            return new BoundLiteral(Syntax, charConst, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Char)) { WasCompilerGenerated = true };
+        }
+
+        public BoundLiteral CharLiteral(Char charValue)
+        {
+            return CharLiteral(ConstantValue.Create(charValue));
+        }
+
         public BoundArrayLength ArrayLength(BoundExpression array)
         {
             Debug.Assert(array.Type is { TypeKind: TypeKind.Array });
@@ -1272,9 +1294,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, ref useSiteInfo);
             Debug.Assert(c.Exists);
             Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty());
-
-            // If this happens, we should probably check if the method has ObsoleteAttribute.
-            Debug.Assert(c.Method is null, "Why are we synthesizing a user-defined conversion after initial binding?");
 
             return Convert(type, arg, c);
         }
@@ -1523,5 +1542,138 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return arguments;
         }
+
+#nullable disable
+        internal BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)
+        {
+            Debug.Assert((operatorKind == BinaryOperatorKind.Equal) || (operatorKind == BinaryOperatorKind.NotEqual) ||
+                (operatorKind == BinaryOperatorKind.NullableNullEqual) || (operatorKind == BinaryOperatorKind.NullableNullNotEqual));
+
+            TypeSymbol exprType = rewrittenExpr.Type;
+
+            // Don't even call this method if the expression cannot be nullable.
+            Debug.Assert(
+                (object)exprType == null ||
+                exprType.IsNullableTypeOrTypeParameter() ||
+                !exprType.IsValueType ||
+                exprType.IsPointerOrFunctionPointer());
+
+            TypeSymbol boolType = Compilation.GetSpecialType(CodeAnalysis.SpecialType.System_Boolean);
+
+            // Fold compile-time comparisons.
+            if (rewrittenExpr.ConstantValue != null)
+            {
+                switch (operatorKind)
+                {
+                    case BinaryOperatorKind.Equal:
+                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
+                    case BinaryOperatorKind.NotEqual:
+                        return Literal(ConstantValue.Create(rewrittenExpr.ConstantValue.IsNull, ConstantValueTypeDiscriminator.Boolean), boolType);
+                }
+            }
+
+            TypeSymbol objectType = SpecialType(CodeAnalysis.SpecialType.System_Object);
+
+            if ((object)exprType != null)
+            {
+                if (exprType.Kind == SymbolKind.TypeParameter)
+                {
+                    // Box type parameters.
+                    rewrittenExpr = Convert(objectType, rewrittenExpr, Conversion.Boxing);
+                }
+                else if (exprType.IsNullableType())
+                {
+                    operatorKind |= BinaryOperatorKind.NullableNull;
+                }
+            }
+            if (operatorKind == BinaryOperatorKind.NullableNullEqual || operatorKind == BinaryOperatorKind.NullableNullNotEqual)
+            {
+                return RewriteNullableNullEquality(syntax, operatorKind, rewrittenExpr, Literal(ConstantValue.Null, objectType), boolType);
+            }
+            else
+            {
+                return Binary(operatorKind, boolType, rewrittenExpr, Null(objectType));
+            }
+        }
+
+        internal BoundExpression MakeNullableHasValue(SyntaxNode syntax, BoundExpression expression)
+        {
+            // https://github.com/dotnet/roslyn/issues/58335: consider restoring the 'private' accessibility of 'static LocalRewriter.UnsafeGetNullableMethod()'
+            return BoundCall.Synthesized(syntax, expression, LocalRewriter.UnsafeGetNullableMethod(syntax, expression.Type, CodeAnalysis.SpecialMember.System_Nullable_T_get_HasValue, Compilation, Diagnostics));
+        }
+
+        internal BoundExpression RewriteNullableNullEquality(
+            SyntaxNode syntax,
+            BinaryOperatorKind kind,
+            BoundExpression loweredLeft,
+            BoundExpression loweredRight,
+            TypeSymbol returnType)
+        {
+            // This handles the case where we have a nullable user-defined struct type compared against null, eg:
+            //
+            // struct S {} ... S? s = whatever; if (s != null)
+            //
+            // If S does not define an overloaded != operator then this is lowered to s.HasValue.
+            //
+            // If the type already has a user-defined or built-in operator then comparing to null is
+            // treated as a lifted equality operator.
+
+            Debug.Assert(loweredLeft != null);
+            Debug.Assert(loweredRight != null);
+            Debug.Assert((object)returnType != null);
+            Debug.Assert(returnType.SpecialType == CodeAnalysis.SpecialType.System_Boolean);
+            Debug.Assert(loweredLeft.IsLiteralNull() != loweredRight.IsLiteralNull());
+
+            BoundExpression nullable = loweredRight.IsLiteralNull() ? loweredLeft : loweredRight;
+
+            // If the other side is known to always be null then we can simply generate true or false, as appropriate.
+
+            if (LocalRewriter.NullableNeverHasValue(nullable))
+            {
+                return Literal(kind == BinaryOperatorKind.NullableNullEqual);
+            }
+
+            BoundExpression nonNullValue = LocalRewriter.NullableAlwaysHasValue(nullable);
+            if (nonNullValue != null)
+            {
+                // We have something like "if (new int?(M()) != null)". We can optimize this to
+                // evaluate M() for its side effects and then result in true or false, as appropriate.
+
+                // TODO: If the expression has no side effects then it can be optimized away here as well.
+
+                return new BoundSequence(
+                    syntax: syntax,
+                    locals: ImmutableArray<LocalSymbol>.Empty,
+                    sideEffects: ImmutableArray.Create<BoundExpression>(nonNullValue),
+                    value: Literal(kind == BinaryOperatorKind.NullableNullNotEqual),
+                    type: returnType);
+            }
+
+            // arr?.Length == null
+            var conditionalAccess = nullable as BoundLoweredConditionalAccess;
+            if (conditionalAccess != null &&
+                (conditionalAccess.WhenNullOpt == null || conditionalAccess.WhenNullOpt.IsDefaultValue()))
+            {
+                BoundExpression whenNotNull = RewriteNullableNullEquality(
+                    syntax,
+                    kind,
+                    conditionalAccess.WhenNotNull,
+                    loweredLeft.IsLiteralNull() ? loweredLeft : loweredRight,
+                    returnType);
+
+                var whenNull = kind == BinaryOperatorKind.NullableNullEqual ? Literal(true) : null;
+
+                return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.HasValueMethodOpt, whenNotNull, whenNull, conditionalAccess.Id, whenNotNull.Type);
+            }
+
+            BoundExpression call = MakeNullableHasValue(syntax, nullable);
+            BoundExpression result = kind == BinaryOperatorKind.NullableNullNotEqual ?
+                call :
+                new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, call, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, returnType);
+
+            return result;
+        }
+        // https://github.com/dotnet/roslyn/issues/58335: Re-enable annotations
+#nullable enable
     }
 }

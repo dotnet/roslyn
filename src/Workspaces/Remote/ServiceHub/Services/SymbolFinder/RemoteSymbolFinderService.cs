@@ -201,8 +201,8 @@ namespace Microsoft.CodeAnalysis.Remote
             public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.AddLiteralItemsAsync(_callbackId, count, cancellationToken), cancellationToken);
 
-            public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.LiteralItemCompletedAsync(_callbackId, cancellationToken), cancellationToken);
+            public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.LiteralItemsCompletedAsync(_callbackId, count, cancellationToken), cancellationToken);
         }
 
         private sealed class FindReferencesProgressCallback : IStreamingFindReferencesProgress, IStreamingProgressTracker
@@ -254,8 +254,8 @@ namespace Microsoft.CodeAnalysis.Remote
             public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.AddReferenceItemsAsync(_callbackId, count, cancellationToken), cancellationToken);
 
-            public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.ReferenceItemCompletedAsync(_callbackId, cancellationToken), cancellationToken);
+            public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.ReferenceItemsCompletedAsync(_callbackId, count, cancellationToken), cancellationToken);
         }
     }
 }

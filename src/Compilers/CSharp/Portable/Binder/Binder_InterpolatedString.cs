@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -17,6 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindInterpolatedString(InterpolatedStringExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureInterpolatedStrings, diagnostics);
+
+            var startText = node.StringStartToken.Text;
+            if (startText.StartsWith("@$\"") && !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings))
+            {
+                Error(diagnostics,
+                    ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable,
+                    node.StringStartToken.GetLocation(),
+                    new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings.RequiredVersion()));
+            }
+
             var builder = ArrayBuilder<BoundExpression>.GetInstance();
             var stringType = GetSpecialType(SpecialType.System_String, diagnostics, node);
             ConstantValue? resultConstant = null;
@@ -28,6 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                var isNonVerbatimInterpolatedString = node.StringStartToken.Kind() != SyntaxKind.InterpolatedVerbatimStringStartToken;
+                var newLinesInInterpolationsAllowed = this.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNewLinesInInterpolations);
+
                 var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
                 foreach (var content in node.Contents)
                 {
@@ -36,6 +51,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SyntaxKind.Interpolation:
                             {
                                 var interpolation = (InterpolationSyntax)content;
+
+                                // If we're prior to C# 11 then we don't allow newlines in the interpolations of
+                                // non-verbatim interpolated strings.  Check for that here and report an error
+                                // if the interpolation spans multiple lines (and thus must have a newline).
+                                //
+                                // Note: don't bother doing this if the interpolation is otherwise malformed or
+                                // we've already reported some other error within it.  No need to spam the user
+                                // with multiple errors (esp as a malformed interpolation may commonly span multiple
+                                // lines due to error recovery).
+                                if (isNonVerbatimInterpolatedString &&
+                                    !interpolation.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error) &&
+                                    !newLinesInInterpolationsAllowed &&
+                                    !interpolation.OpenBraceToken.IsMissing &&
+                                    !interpolation.CloseBraceToken.IsMissing)
+                                {
+                                    var text = node.SyntaxTree.GetText();
+                                    if (text.Lines.GetLineFromPosition(interpolation.OpenBraceToken.SpanStart).LineNumber !=
+                                        text.Lines.GetLineFromPosition(interpolation.CloseBraceToken.SpanStart).LineNumber)
+                                    {
+                                        diagnostics.Add(
+                                            ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString,
+                                            interpolation.CloseBraceToken.GetLocation(),
+                                            this.Compilation.LanguageVersion.ToDisplayString(),
+                                            new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNewLinesInInterpolations.RequiredVersion()));
+                                    }
+                                }
+
                                 var value = BindValue(interpolation.Expression, diagnostics, BindValueKind.RValue);
 
                                 // We need to ensure the argument is not a lambda, method group, etc. It isn't nice to wait until lowering,
@@ -132,21 +174,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // We have 4 possible lowering strategies, dependent on the contents of the string, in this order:
             //  1. The string is a constant value. We can just use the final value.
-            //  2. The WellKnownType DefaultInterpolatedStringHandler is available, and none of the interpolation holes contain an await expression.
+            //  2. The string is composed of 4 or fewer components that are all strings, we can lower to a call to string.Concat without a
+            //     params array. This is very efficient as the runtime can allocate a buffer for the string with exactly the correct length and
+            //     make no intermediate allocations.
+            //  3. The WellKnownType DefaultInterpolatedStringHandler is available, and none of the interpolation holes contain an await expression.
             //     The builder is a ref struct, and we can guarantee the lifetime won't outlive the stack if the string doesn't contain any
             //     awaits, but if it does we cannot use it. This builder is the only way that ref structs can be directly used as interpolation
             //     hole components, which means that ref structs components and await expressions cannot be combined. It is already illegal for
             //     the user to use ref structs in an async method today, but if that were to ever change, this would still need to be respected.
             //     We also cannot use this method if the interpolated string appears within a catch filter, as the builder is disposable and we
             //     cannot put a try/finally inside a filter block.
-            //  3. The string is composed entirely of components that are strings themselves. We can turn this into a single call to string.Concat.
-            //     We prefer the builder over this because the builder can use pooling to avoid new allocations, while this call will potentially
-            //     need to allocate a param array.
-            //  4. The string has heterogeneous data and either InterpolatedStringHandler is unavailable, or one of the holes contains an await
+            //  4. The string is composed of more than 4 components that are all strings themselves. We can turn this into a single
+            //     call to string.Concat. We prefer the builder over this because the builder can use pooling to avoid new allocations, while this
+            //     call will need to allocate a param array.
+            //  5. The string has heterogeneous data and either InterpolatedStringHandler is unavailable, or one of the holes contains an await
             //     expression. This is turned into a call to string.Format.
             //
-            // We need to do the determination of 1, 2, or 3/4 up front, rather than in lowering, as it affects diagnostics (ref structs not being
-            // able to be used, for example). However, between 3 and 4, we don't need to know at this point, so that logic is deferred for lowering.
+            // We need to do the determination of 1, 2, 3, or 4/5 up front, rather than in lowering, as it affects diagnostics (ref structs not being
+            // able to be used, for example). However, between 4 and 5, we don't need to know at this point, so that logic is deferred for lowering.
 
             if (unconvertedInterpolatedString.ConstantValue is not null)
             {
@@ -155,13 +200,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constructWithData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics), data: null);
             }
 
+            // Case 2. Attempt to see if all parts are strings.
+            if (unconvertedInterpolatedString.Parts.Length <= 4 && AllInterpolatedStringPartsAreStrings(unconvertedInterpolatedString.Parts))
+            {
+                return constructWithData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics), data: null);
+            }
+
             if (tryBindAsHandlerType(out var result))
             {
-                // Case 2
+                // Case 3
                 return result;
             }
 
-            // The specifics of 3 vs 4 aren't necessary for this stage of binding. The only thing that matters is that every part needs to be convertible
+            // The specifics of 4 vs 5 aren't necessary for this stage of binding. The only thing that matters is that every part needs to be convertible
             // object.
             return constructWithData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics), data: null);
 
@@ -177,7 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool tryBindAsHandlerType([NotNullWhen(true)] out BoundInterpolatedString? result)
             {
                 result = null;
-                if (unconvertedInterpolatedString.Parts.ContainsAwaitExpression())
+
+                if (InExpressionTree || !InterpolatedStringPartsAreValidInDefaultHandler(unconvertedInterpolatedString))
                 {
                     return false;
                 }
@@ -194,6 +246,141 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static bool InterpolatedStringPartsAreValidInDefaultHandler(BoundUnconvertedInterpolatedString unconvertedInterpolatedString)
+            => !unconvertedInterpolatedString.Parts.ContainsAwaitExpression()
+               && unconvertedInterpolatedString.Parts.All(p => p is not BoundStringInsert { Value.Type.TypeKind: TypeKind.Dynamic });
+
+        private static bool AllInterpolatedStringPartsAreStrings(ImmutableArray<BoundExpression> parts)
+            => parts.All(p => p is BoundLiteral or BoundStringInsert { Value.Type.SpecialType: SpecialType.System_String, Alignment: null, Format: null });
+
+        private bool TryBindUnconvertedBinaryOperatorToDefaultInterpolatedStringHandler(BoundBinaryOperator binaryOperator, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundBinaryOperator? convertedBinaryOperator)
+        {
+            // Much like BindUnconvertedInterpolatedStringToString above, we only want to use DefaultInterpolatedStringHandler if it's worth it. We therefore
+            // check for cases 1 and 2: if they are present, we let normal string binary operator binding machinery handle it. Otherwise, we take care of it ourselves.
+            Debug.Assert(binaryOperator.IsUnconvertedInterpolatedStringAddition);
+            convertedBinaryOperator = null;
+
+            if (InExpressionTree)
+            {
+                return false;
+            }
+
+            var interpolatedStringHandlerType = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler);
+            if (interpolatedStringHandlerType.IsErrorType())
+            {
+                // Can't ever bind to the handler no matter what, so just let the default handling take care of it. Cases 4 and 5 are covered by this.
+                return false;
+            }
+
+            // The constant value is folded as part of creating the unconverted operator. If there is a constant value, then the top-level binary operator
+            // will have one.
+            if (binaryOperator.ConstantValue is not null)
+            {
+                // This is case 1. Let the standard machinery handle it
+                return false;
+            }
+            var partsArrayBuilder = ArrayBuilder<ImmutableArray<BoundExpression>>.GetInstance();
+
+            if (!binaryOperator.VisitBinaryOperatorInterpolatedString(
+                    partsArrayBuilder,
+                    static (BoundUnconvertedInterpolatedString unconvertedInterpolatedString, ArrayBuilder<ImmutableArray<BoundExpression>> partsArrayBuilder) =>
+                    {
+                        if (!InterpolatedStringPartsAreValidInDefaultHandler(unconvertedInterpolatedString))
+                        {
+                            return false;
+                        }
+
+                        partsArrayBuilder.Add(unconvertedInterpolatedString.Parts);
+                        return true;
+                    }))
+            {
+                partsArrayBuilder.Free();
+                return false;
+            }
+
+            Debug.Assert(partsArrayBuilder.Count >= 2);
+
+            if (partsArrayBuilder.Count <= 4 && partsArrayBuilder.All(static parts => AllInterpolatedStringPartsAreStrings(parts)))
+            {
+                // This is case 2. Let the standard machinery handle it
+                partsArrayBuilder.Free();
+                return false;
+            }
+
+            // Case 3. Bind as handler.
+            var (appendCalls, data) = BindUnconvertedInterpolatedPartsToHandlerType(
+                binaryOperator.Syntax,
+                partsArrayBuilder.ToImmutableAndFree(),
+                interpolatedStringHandlerType,
+                diagnostics,
+                isHandlerConversion: false,
+                additionalConstructorArguments: default,
+                additionalConstructorRefKinds: default);
+
+            // Now that the parts have been bound, reconstruct the binary operators.
+            convertedBinaryOperator = UpdateBinaryOperatorWithInterpolatedContents(binaryOperator, appendCalls, data, binaryOperator.Syntax, diagnostics);
+            return true;
+        }
+
+        private BoundBinaryOperator UpdateBinaryOperatorWithInterpolatedContents(BoundBinaryOperator originalOperator, ImmutableArray<ImmutableArray<BoundExpression>> appendCalls, InterpolatedStringHandlerData data, SyntaxNode rootSyntax, BindingDiagnosticBag diagnostics)
+        {
+            var @string = GetSpecialType(SpecialType.System_String, diagnostics, rootSyntax);
+
+            Func<BoundUnconvertedInterpolatedString, int, (ImmutableArray<ImmutableArray<BoundExpression>>, TypeSymbol), BoundExpression> interpolationFactory =
+                createInterpolation;
+            Func<BoundBinaryOperator, BoundExpression, BoundExpression, (ImmutableArray<ImmutableArray<BoundExpression>>, TypeSymbol), BoundExpression> binaryOperatorFactory =
+                createBinaryOperator;
+
+            var rewritten = (BoundBinaryOperator)originalOperator.RewriteInterpolatedStringAddition((appendCalls, @string), interpolationFactory, binaryOperatorFactory);
+
+            return rewritten.Update(BoundBinaryOperator.UncommonData.InterpolatedStringHandlerAddition(data));
+
+            static BoundInterpolatedString createInterpolation(BoundUnconvertedInterpolatedString expression, int i, (ImmutableArray<ImmutableArray<BoundExpression>> AppendCalls, TypeSymbol _) arg)
+            {
+                Debug.Assert(arg.AppendCalls.Length > i);
+                return new BoundInterpolatedString(
+                    expression.Syntax,
+                    interpolationData: null,
+                    arg.AppendCalls[i],
+                    expression.ConstantValue,
+                    expression.Type,
+                    expression.HasErrors);
+            }
+
+            static BoundBinaryOperator createBinaryOperator(BoundBinaryOperator original, BoundExpression left, BoundExpression right, (ImmutableArray<ImmutableArray<BoundExpression>> _, TypeSymbol @string) arg)
+                => new BoundBinaryOperator(
+                    original.Syntax,
+                    BinaryOperatorKind.StringConcatenation,
+                    left,
+                    right,
+                    original.ConstantValue,
+                    methodOpt: null,
+                    constrainedToTypeOpt: null,
+                    LookupResultKind.Viable,
+                    originalUserDefinedOperatorsOpt: default,
+                    arg.@string,
+                    original.HasErrors);
+        }
+
+        private BoundExpression BindUnconvertedInterpolatedExpressionToHandlerType(
+            BoundExpression unconvertedExpression,
+            NamedTypeSymbol interpolatedStringHandlerType,
+            BindingDiagnosticBag diagnostics,
+            ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> additionalConstructorArguments = default,
+            ImmutableArray<RefKind> additionalConstructorRefKinds = default)
+            => unconvertedExpression switch
+            {
+                BoundUnconvertedInterpolatedString interpolatedString => BindUnconvertedInterpolatedStringToHandlerType(
+                    interpolatedString,
+                    interpolatedStringHandlerType,
+                    diagnostics,
+                    isHandlerConversion: true,
+                    additionalConstructorArguments,
+                    additionalConstructorRefKinds),
+                BoundBinaryOperator binary => BindUnconvertedBinaryOperatorToInterpolatedStringHandlerType(binary, interpolatedStringHandlerType, diagnostics, additionalConstructorArguments, additionalConstructorRefKinds),
+                _ => throw ExceptionUtilities.UnexpectedValue(unconvertedExpression.Kind)
+            };
+
         private BoundInterpolatedString BindUnconvertedInterpolatedStringToHandlerType(
             BoundUnconvertedInterpolatedString unconvertedInterpolatedString,
             NamedTypeSymbol interpolatedStringHandlerType,
@@ -202,18 +389,77 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> additionalConstructorArguments = default,
             ImmutableArray<RefKind> additionalConstructorRefKinds = default)
         {
+            var (appendCalls, interpolationData) = BindUnconvertedInterpolatedPartsToHandlerType(
+                unconvertedInterpolatedString.Syntax,
+                ImmutableArray.Create(unconvertedInterpolatedString.Parts),
+                interpolatedStringHandlerType, diagnostics,
+                isHandlerConversion,
+                additionalConstructorArguments,
+                additionalConstructorRefKinds);
+
+            Debug.Assert(appendCalls.Length == 1);
+
+            return new BoundInterpolatedString(
+                unconvertedInterpolatedString.Syntax,
+                interpolationData,
+                appendCalls[0],
+                unconvertedInterpolatedString.ConstantValue,
+                unconvertedInterpolatedString.Type,
+                unconvertedInterpolatedString.HasErrors);
+        }
+
+        private BoundBinaryOperator BindUnconvertedBinaryOperatorToInterpolatedStringHandlerType(
+            BoundBinaryOperator binaryOperator,
+            NamedTypeSymbol interpolatedStringHandlerType,
+            BindingDiagnosticBag diagnostics,
+            ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> additionalConstructorArguments,
+            ImmutableArray<RefKind> additionalConstructorRefKinds)
+        {
+            Debug.Assert(binaryOperator.IsUnconvertedInterpolatedStringAddition);
+
+            var partsArrayBuilder = ArrayBuilder<ImmutableArray<BoundExpression>>.GetInstance();
+
+            binaryOperator.VisitBinaryOperatorInterpolatedString(partsArrayBuilder,
+                static (BoundUnconvertedInterpolatedString unconvertedInterpolatedString, ArrayBuilder<ImmutableArray<BoundExpression>> partsArrayBuilder) =>
+                {
+                    partsArrayBuilder.Add(unconvertedInterpolatedString.Parts);
+                    return true;
+                });
+
+            var (appendCalls, data) = BindUnconvertedInterpolatedPartsToHandlerType(
+                binaryOperator.Syntax,
+                partsArrayBuilder.ToImmutableAndFree(),
+                interpolatedStringHandlerType,
+                diagnostics,
+                isHandlerConversion: true,
+                additionalConstructorArguments,
+                additionalConstructorRefKinds);
+
+            var result = UpdateBinaryOperatorWithInterpolatedContents(binaryOperator, appendCalls, data, binaryOperator.Syntax, diagnostics);
+            return result;
+        }
+
+        private (ImmutableArray<ImmutableArray<BoundExpression>> AppendCalls, InterpolatedStringHandlerData Data) BindUnconvertedInterpolatedPartsToHandlerType(
+            SyntaxNode syntax,
+            ImmutableArray<ImmutableArray<BoundExpression>> partsArray,
+            NamedTypeSymbol interpolatedStringHandlerType,
+            BindingDiagnosticBag diagnostics,
+            bool isHandlerConversion,
+            ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> additionalConstructorArguments,
+            ImmutableArray<RefKind> additionalConstructorRefKinds)
+        {
             Debug.Assert(additionalConstructorArguments.IsDefault
                 ? additionalConstructorRefKinds.IsDefault
                 : additionalConstructorArguments.Length == additionalConstructorRefKinds.Length);
             additionalConstructorArguments = additionalConstructorArguments.NullToEmpty();
             additionalConstructorRefKinds = additionalConstructorRefKinds.NullToEmpty();
 
-            ReportUseSite(interpolatedStringHandlerType, diagnostics, unconvertedInterpolatedString.Syntax);
+            ReportUseSite(interpolatedStringHandlerType, diagnostics, syntax);
 
             // We satisfy the conditions for using an interpolated string builder. Bind all the builder calls unconditionally, so that if
             // there are errors we get better diagnostics than "could not convert to object."
-            var implicitBuilderReceiver = new BoundInterpolatedStringHandlerPlaceholder(unconvertedInterpolatedString.Syntax, interpolatedStringHandlerType) { WasCompilerGenerated = true };
-            var (appendCalls, usesBoolReturn, positionInfo, baseStringLength, numFormatHoles) = BindInterpolatedStringAppendCalls(unconvertedInterpolatedString, implicitBuilderReceiver, diagnostics);
+            var implicitBuilderReceiver = new BoundInterpolatedStringHandlerPlaceholder(syntax, interpolatedStringHandlerType) { WasCompilerGenerated = true };
+            var (appendCallsArray, usesBoolReturn, positionInfo, baseStringLength, numFormatHoles) = BindInterpolatedStringAppendCalls(partsArray, implicitBuilderReceiver, diagnostics);
 
             // Prior to C# 10, all types in an interpolated string expression needed to be convertible to `object`. After 10, some types
             // (such as Span<T>) that are not convertible to `object` are permissible as interpolated string components, provided there
@@ -223,46 +469,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool needToCheckConversionToObject = false;
             if (isHandlerConversion)
             {
-                CheckFeatureAvailability(unconvertedInterpolatedString.Syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
             }
             else if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureImprovedInterpolatedStrings) && diagnostics.AccumulatesDiagnostics)
             {
                 needToCheckConversionToObject = true;
             }
 
-            Debug.Assert(appendCalls.Length == unconvertedInterpolatedString.Parts.Length);
-            Debug.Assert(appendCalls.All(a => a is { HasErrors: true } or BoundCall { Arguments: { Length: > 0 } } or BoundDynamicInvocation));
+            Debug.Assert(appendCallsArray.Select(a => a.Length).SequenceEqual(partsArray.Select(a => a.Length)));
+            Debug.Assert(appendCallsArray.All(appendCalls => appendCalls.All(a => a is { HasErrors: true } or BoundCall { Arguments: { Length: > 0 } } or BoundDynamicInvocation)));
 
             if (needToCheckConversionToObject)
             {
-                TypeSymbol objectType = GetSpecialType(SpecialType.System_Object, diagnostics, unconvertedInterpolatedString.Syntax);
+                TypeSymbol objectType = GetSpecialType(SpecialType.System_Object, diagnostics, syntax);
                 BindingDiagnosticBag conversionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
-                foreach (var currentPart in unconvertedInterpolatedString.Parts)
+                foreach (var parts in partsArray)
                 {
-                    if (currentPart is BoundStringInsert insert)
+                    foreach (var currentPart in parts)
                     {
-                        var value = insert.Value;
-                        bool reported = false;
-                        if (value.Type is not null)
+                        if (currentPart is BoundStringInsert insert)
                         {
-                            value = BindToNaturalType(value, conversionDiagnostics);
-                            if (conversionDiagnostics.HasAnyErrors())
+                            var value = insert.Value;
+                            bool reported = false;
+                            if (value.Type is not null)
                             {
-                                CheckFeatureAvailability(value.Syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
-                                reported = true;
+                                value = BindToNaturalType(value, conversionDiagnostics);
+                                if (conversionDiagnostics.HasAnyErrors())
+                                {
+                                    CheckFeatureAvailability(value.Syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
+                                    reported = true;
+                                }
                             }
-                        }
 
-                        if (!reported)
-                        {
-                            _ = GenerateConversionForAssignment(objectType, value, conversionDiagnostics);
-                            if (conversionDiagnostics.HasAnyErrors())
+                            if (!reported)
                             {
-                                CheckFeatureAvailability(value.Syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
+                                _ = GenerateConversionForAssignment(objectType, value, conversionDiagnostics);
+                                if (conversionDiagnostics.HasAnyErrors())
+                                {
+                                    CheckFeatureAvailability(value.Syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
+                                }
                             }
-                        }
 
-                        conversionDiagnostics.Clear();
+                            conversionDiagnostics.Clear();
+                        }
                     }
                 }
 
@@ -270,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
 
-            var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, unconvertedInterpolatedString.Syntax);
+            var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, syntax);
             int constructorArgumentLength = 3 + additionalConstructorArguments.Length;
             var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(constructorArgumentLength);
 
@@ -281,15 +530,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Add the trailing out validity parameter for the first attempt.Note that we intentionally use `diagnostics` for resolving System.Boolean,
             // because we want to track that we're using the type no matter what.
-            var boolType = GetSpecialType(SpecialType.System_Boolean, diagnostics, unconvertedInterpolatedString.Syntax);
-            var trailingConstructorValidityPlaceholder = new BoundInterpolatedStringArgumentPlaceholder(unconvertedInterpolatedString.Syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, valSafeToEscape: LocalScopeDepth, boolType);
+            var boolType = GetSpecialType(SpecialType.System_Boolean, diagnostics, syntax);
+            var trailingConstructorValidityPlaceholder =
+                new BoundInterpolatedStringArgumentPlaceholder(syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, valSafeToEscape: LocalScopeDepth, boolType)
+                { WasCompilerGenerated = true };
             var outConstructorAdditionalArguments = additionalConstructorArguments.Add(trailingConstructorValidityPlaceholder);
             refKindsBuilder.Add(RefKind.Out);
-            populateArguments(unconvertedInterpolatedString.Syntax, outConstructorAdditionalArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
+            populateArguments(syntax, outConstructorAdditionalArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
 
             BoundExpression constructorCall;
             var outConstructorDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
-            var outConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, unconvertedInterpolatedString.Syntax, outConstructorDiagnostics);
+            var outConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, syntax, outConstructorDiagnostics);
             if (outConstructorCall is not BoundObjectCreationExpression { ResultKind: LookupResultKind.Viable })
             {
                 // MakeConstructorInvocation can call CoerceArguments on the builder if overload resolution succeeded ignoring accessibility, which
@@ -297,11 +548,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentsBuilder.Clear();
 
                 // Try again without an out parameter.
-                populateArguments(unconvertedInterpolatedString.Syntax, additionalConstructorArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
+                populateArguments(syntax, additionalConstructorArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
                 refKindsBuilder.RemoveLast();
 
                 var nonOutConstructorDiagnostics = BindingDiagnosticBag.GetInstance(template: outConstructorDiagnostics);
-                BoundExpression nonOutConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, unconvertedInterpolatedString.Syntax, nonOutConstructorDiagnostics);
+                BoundExpression nonOutConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, syntax, nonOutConstructorDiagnostics);
 
                 if (nonOutConstructorCall is BoundObjectCreationExpression { ResultKind: LookupResultKind.Viable })
                 {
@@ -361,23 +612,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (constructorCall is BoundDynamicObjectCreationExpression)
             {
                 // An interpolated string handler construction cannot use dynamic. Manually construct an instance of '{0}'.
-                diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerCreationCannotUseDynamic, unconvertedInterpolatedString.Syntax.Location, interpolatedStringHandlerType.Name);
+                diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerCreationCannotUseDynamic, syntax.Location, interpolatedStringHandlerType.Name);
             }
 
-            return new BoundInterpolatedString(
-                unconvertedInterpolatedString.Syntax,
-                new InterpolatedStringHandlerData(
-                    interpolatedStringHandlerType,
-                    constructorCall,
-                    usesBoolReturn,
-                    LocalScopeDepth,
-                    additionalConstructorArguments.NullToEmpty(),
-                    positionInfo,
-                    implicitBuilderReceiver),
-                appendCalls,
-                unconvertedInterpolatedString.ConstantValue,
-                unconvertedInterpolatedString.Type,
-                unconvertedInterpolatedString.HasErrors);
+            var interpolationData = new InterpolatedStringHandlerData(
+                                interpolatedStringHandlerType,
+                                constructorCall,
+                                usesBoolReturn,
+                                LocalScopeDepth,
+                                additionalConstructorArguments.NullToEmpty(),
+                                positionInfo,
+                                implicitBuilderReceiver);
+
+            return (appendCallsArray, interpolationData);
 
             static void populateArguments(SyntaxNode syntax, ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> additionalConstructorArguments, int baseStringLength, int numFormatHoles, NamedTypeSymbol intType, ArrayBuilder<BoundExpression> argumentsBuilder)
             {
@@ -435,130 +682,150 @@ namespace Microsoft.CodeAnalysis.CSharp
             return partsBuilder?.ToImmutableAndFree() ?? unconvertedInterpolatedString.Parts;
         }
 
-        private (ImmutableArray<BoundExpression> AppendFormatCalls, bool UsesBoolReturn, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>, int BaseStringLength, int NumFormatHoles) BindInterpolatedStringAppendCalls(
-            BoundUnconvertedInterpolatedString source,
+        private (ImmutableArray<ImmutableArray<BoundExpression>> AppendFormatCalls, bool UsesBoolReturn, ImmutableArray<ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>>, int BaseStringLength, int NumFormatHoles) BindInterpolatedStringAppendCalls(
+            ImmutableArray<ImmutableArray<BoundExpression>> partsArray,
             BoundInterpolatedStringHandlerPlaceholder implicitBuilderReceiver,
             BindingDiagnosticBag diagnostics)
         {
-            if (source.Parts.IsEmpty)
+            if (partsArray.IsEmpty && partsArray.All(p => p.IsEmpty))
             {
-                return (ImmutableArray<BoundExpression>.Empty, false, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>.Empty, 0, 0);
+                return (ImmutableArray<ImmutableArray<BoundExpression>>.Empty, false, ImmutableArray<ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>>.Empty, 0, 0);
             }
 
             bool? builderPatternExpectsBool = null;
-            var builderAppendCalls = ArrayBuilder<BoundExpression>.GetInstance(source.Parts.Length);
-            var positionInfo = ArrayBuilder<(bool IsLiteral, bool HasAlignment, bool HasFormat)>.GetInstance(source.Parts.Length);
+            var firstPartsLength = partsArray[0].Length;
+            var builderAppendCallsArray = ArrayBuilder<ImmutableArray<BoundExpression>>.GetInstance(partsArray.Length);
+            var builderAppendCalls = ArrayBuilder<BoundExpression>.GetInstance(firstPartsLength);
+            var positionInfoArray = ArrayBuilder<ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>>.GetInstance(partsArray.Length);
+            var positionInfo = ArrayBuilder<(bool IsLiteral, bool HasAlignment, bool HasFormat)>.GetInstance(firstPartsLength);
             var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(3);
             var parameterNamesAndLocationsBuilder = ArrayBuilder<(string, Location)?>.GetInstance(3);
             int baseStringLength = 0;
             int numFormatHoles = 0;
 
-            foreach (var part in source.Parts)
+            foreach (var parts in partsArray)
             {
-                Debug.Assert(part is BoundLiteral or BoundStringInsert);
-                string methodName;
-                bool isLiteral;
-                bool hasAlignment;
-                bool hasFormat;
-
-                if (part is BoundStringInsert insert)
+                foreach (var part in parts)
                 {
-                    methodName = "AppendFormatted";
-                    argumentsBuilder.Add(insert.Value);
-                    parameterNamesAndLocationsBuilder.Add(null);
-                    isLiteral = false;
-                    hasAlignment = false;
-                    hasFormat = false;
+                    Debug.Assert(part is BoundLiteral or BoundStringInsert);
+                    string methodName;
+                    bool isLiteral;
+                    bool hasAlignment;
+                    bool hasFormat;
 
-                    if (insert.Alignment is not null)
+                    if (part is BoundStringInsert insert)
                     {
-                        hasAlignment = true;
-                        argumentsBuilder.Add(insert.Alignment);
-                        parameterNamesAndLocationsBuilder.Add(("alignment", insert.Alignment.Syntax.Location));
+                        methodName = BoundInterpolatedString.AppendFormattedMethod;
+                        argumentsBuilder.Add(insert.Value);
+                        parameterNamesAndLocationsBuilder.Add(null);
+                        isLiteral = false;
+                        hasAlignment = false;
+                        hasFormat = false;
+
+                        if (insert.Alignment is not null)
+                        {
+                            hasAlignment = true;
+                            argumentsBuilder.Add(insert.Alignment);
+                            parameterNamesAndLocationsBuilder.Add(("alignment", insert.Alignment.Syntax.Location));
+                        }
+                        if (insert.Format is not null)
+                        {
+                            hasFormat = true;
+                            argumentsBuilder.Add(insert.Format);
+                            parameterNamesAndLocationsBuilder.Add(("format", insert.Format.Syntax.Location));
+                        }
+                        numFormatHoles++;
                     }
-                    if (insert.Format is not null)
+                    else
                     {
-                        hasFormat = true;
-                        argumentsBuilder.Add(insert.Format);
-                        parameterNamesAndLocationsBuilder.Add(("format", insert.Format.Syntax.Location));
+                        var boundLiteral = (BoundLiteral)part;
+                        Debug.Assert(boundLiteral.ConstantValue != null && boundLiteral.ConstantValue.IsString);
+                        var literalText = ConstantValueUtils.UnescapeInterpolatedStringLiteral(boundLiteral.ConstantValue.StringValue);
+                        methodName = BoundInterpolatedString.AppendLiteralMethod;
+                        argumentsBuilder.Add(boundLiteral.Update(ConstantValue.Create(literalText), boundLiteral.Type));
+                        isLiteral = true;
+                        hasAlignment = false;
+                        hasFormat = false;
+                        baseStringLength += literalText.Length;
                     }
-                    numFormatHoles++;
-                }
-                else
-                {
-                    var boundLiteral = (BoundLiteral)part;
-                    Debug.Assert(boundLiteral.ConstantValue != null && boundLiteral.ConstantValue.IsString);
-                    var literalText = ConstantValueUtils.UnescapeInterpolatedStringLiteral(boundLiteral.ConstantValue.StringValue);
-                    methodName = "AppendLiteral";
-                    argumentsBuilder.Add(boundLiteral.Update(ConstantValue.Create(literalText), boundLiteral.Type));
-                    isLiteral = true;
-                    hasAlignment = false;
-                    hasFormat = false;
-                    baseStringLength += literalText.Length;
+
+                    var arguments = argumentsBuilder.ToImmutableAndClear();
+                    ImmutableArray<(string, Location)?> parameterNamesAndLocations;
+                    if (parameterNamesAndLocationsBuilder.Count > 1)
+                    {
+                        parameterNamesAndLocations = parameterNamesAndLocationsBuilder.ToImmutableAndClear();
+                    }
+                    else
+                    {
+                        Debug.Assert(parameterNamesAndLocationsBuilder.Count == 0 || parameterNamesAndLocationsBuilder[0] == null);
+                        parameterNamesAndLocations = default;
+                        parameterNamesAndLocationsBuilder.Clear();
+                    }
+
+                    var call = MakeInvocationExpression(part.Syntax, implicitBuilderReceiver, methodName, arguments, diagnostics, names: parameterNamesAndLocations, searchExtensionMethodsIfNecessary: false);
+                    builderAppendCalls.Add(call);
+                    positionInfo.Add((isLiteral, hasAlignment, hasFormat));
+
+                    Debug.Assert(call is BoundCall or BoundDynamicInvocation or { HasErrors: true });
+
+                    // We just assume that dynamic is going to do the right thing, and runtime will fail if it does not. If there are only dynamic calls, we assume that
+                    // void is returned.
+                    if (call is BoundCall { Method: { ReturnType: var returnType } method })
+                    {
+                        bool methodReturnsBool = returnType.SpecialType == SpecialType.System_Boolean;
+                        if (!methodReturnsBool && returnType.SpecialType != SpecialType.System_Void)
+                        {
+                            // Interpolated string handler method '{0}' is malformed. It does not return 'void' or 'bool'.
+                            diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, part.Syntax.Location, method);
+                        }
+                        else if (builderPatternExpectsBool == null)
+                        {
+                            builderPatternExpectsBool = methodReturnsBool;
+                        }
+                        else if (builderPatternExpectsBool != methodReturnsBool)
+                        {
+                            // Interpolated string handler method '{0}' has inconsistent return types. Expected to return '{1}'.
+                            var expected = builderPatternExpectsBool == true ? Compilation.GetSpecialType(SpecialType.System_Boolean) : Compilation.GetSpecialType(SpecialType.System_Void);
+                            diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, part.Syntax.Location, method, expected);
+                        }
+                    }
                 }
 
-                var arguments = argumentsBuilder.ToImmutableAndClear();
-                ImmutableArray<(string, Location)?> parameterNamesAndLocations;
-                if (parameterNamesAndLocationsBuilder.Count > 1)
-                {
-                    parameterNamesAndLocations = parameterNamesAndLocationsBuilder.ToImmutableAndClear();
-                }
-                else
-                {
-                    Debug.Assert(parameterNamesAndLocationsBuilder.Count == 0 || parameterNamesAndLocationsBuilder[0] == null);
-                    parameterNamesAndLocations = default;
-                    parameterNamesAndLocationsBuilder.Clear();
-                }
-
-                var call = MakeInvocationExpression(part.Syntax, implicitBuilderReceiver, methodName, arguments, diagnostics, names: parameterNamesAndLocations, searchExtensionMethodsIfNecessary: false);
-                builderAppendCalls.Add(call);
-                positionInfo.Add((isLiteral, hasAlignment, hasFormat));
-
-                Debug.Assert(call is BoundCall or BoundDynamicInvocation or { HasErrors: true });
-
-                // We just assume that dynamic is going to do the right thing, and runtime will fail if it does not. If there are only dynamic calls, we assume that
-                // void is returned.
-                if (call is BoundCall { Method: { ReturnType: var returnType } method })
-                {
-                    bool methodReturnsBool = returnType.SpecialType == SpecialType.System_Boolean;
-                    if (!methodReturnsBool && returnType.SpecialType != SpecialType.System_Void)
-                    {
-                        // Interpolated string handler method '{0}' is malformed. It does not return 'void' or 'bool'.
-                        diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, part.Syntax.Location, method);
-                    }
-                    else if (builderPatternExpectsBool == null)
-                    {
-                        builderPatternExpectsBool = methodReturnsBool;
-                    }
-                    else if (builderPatternExpectsBool != methodReturnsBool)
-                    {
-                        // Interpolated string handler method '{0}' has inconsistent return types. Expected to return '{1}'.
-                        var expected = builderPatternExpectsBool == true ? Compilation.GetSpecialType(SpecialType.System_Boolean) : Compilation.GetSpecialType(SpecialType.System_Void);
-                        diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, part.Syntax.Location, method, expected);
-                    }
-                }
+                builderAppendCallsArray.Add(builderAppendCalls.ToImmutableAndClear());
+                positionInfoArray.Add(positionInfo.ToImmutableAndClear());
             }
 
             argumentsBuilder.Free();
             parameterNamesAndLocationsBuilder.Free();
-            return (builderAppendCalls.ToImmutableAndFree(), builderPatternExpectsBool ?? false, positionInfo.ToImmutableAndFree(), baseStringLength, numFormatHoles);
+            builderAppendCalls.Free();
+            positionInfo.Free();
+            return (builderAppendCallsArray.ToImmutableAndFree(), builderPatternExpectsBool ?? false, positionInfoArray.ToImmutableAndFree(), baseStringLength, numFormatHoles);
         }
 
         private BoundExpression BindInterpolatedStringHandlerInMemberCall(
-            BoundUnconvertedInterpolatedString unconvertedString,
+            BoundExpression unconvertedString,
             ArrayBuilder<BoundExpression> arguments,
             ImmutableArray<ParameterSymbol> parameters,
             ref MemberAnalysisResult memberAnalysisResult,
             int interpolatedStringArgNum,
-            TypeSymbol? receiverType,
-            RefKind? receiverRefKind,
-            uint receiverEscapeScope,
+            BoundExpression? receiver,
+            bool requiresInstanceReceiver,
             BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(unconvertedString is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
             var interpolatedStringConversion = memberAnalysisResult.ConversionForArg(interpolatedStringArgNum);
             Debug.Assert(interpolatedStringConversion.IsInterpolatedStringHandler);
             var interpolatedStringParameter = GetCorrespondingParameter(ref memberAnalysisResult, parameters, interpolatedStringArgNum);
-            Debug.Assert(interpolatedStringParameter.Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true });
+            Debug.Assert(interpolatedStringParameter is { Type: NamedTypeSymbol { IsInterpolatedStringHandlerType: true } }
+#pragma warning disable format
+                                                     or
+                                                     {
+                                                         IsParams: true,
+                                                         Type: ArrayTypeSymbol { ElementType: NamedTypeSymbol { IsInterpolatedStringHandlerType: true } },
+                                                         InterpolatedStringHandlerArgumentIndexes.IsEmpty: true
+                                                     });
+#pragma warning restore format
+            Debug.Assert(!interpolatedStringParameter.IsParams || memberAnalysisResult.Kind == MemberResolutionKind.ApplicableInExpandedForm);
 
             if (interpolatedStringParameter.HasInterpolatedStringHandlerArgumentError)
             {
@@ -586,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     interpolatedStringConversion,
                     isCast: false,
                     conversionGroupOpt: null,
-                    interpolatedStringParameter.Type,
+                    interpolatedStringParameter.IsParams ? ((ArrayTypeSymbol)interpolatedStringParameter.Type).ElementType : interpolatedStringParameter.Type,
                     diagnostics);
             }
 
@@ -649,9 +916,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (argumentIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
-                        Debug.Assert(receiverRefKind != null && receiverType is not null);
-                        refKind = receiverRefKind.GetValueOrDefault();
-                        placeholderType = receiverType;
+                        Debug.Assert(receiver!.Type is not null);
+                        refKind = RefKind.None;
+                        placeholderType = receiver.Type;
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                         {
@@ -697,43 +964,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 SyntaxNode placeholderSyntax;
                 uint valSafeToEscapeScope;
+                bool isSuppressed;
 
                 switch (argumentIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
-                        placeholderSyntax = unconvertedString.Syntax;
-                        valSafeToEscapeScope = receiverEscapeScope;
+                        Debug.Assert(receiver != null);
+                        valSafeToEscapeScope = requiresInstanceReceiver
+                            ? receiver.GetRefKind().IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
+                            : Binder.ExternalScope;
+                        isSuppressed = receiver.IsSuppressed;
+                        placeholderSyntax = receiver.Syntax;
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                         placeholderSyntax = unconvertedString.Syntax;
                         valSafeToEscapeScope = Binder.ExternalScope;
+                        isSuppressed = false;
                         break;
                     case >= 0:
                         placeholderSyntax = arguments[argumentIndex].Syntax;
                         valSafeToEscapeScope = GetValEscape(arguments[argumentIndex], LocalScopeDepth);
+                        isSuppressed = arguments[argumentIndex].IsSuppressed;
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(argumentIndex);
                 }
 
                 argumentPlaceholdersBuilder.Add(
-                    new BoundInterpolatedStringArgumentPlaceholder(
+                    (BoundInterpolatedStringArgumentPlaceholder)(new BoundInterpolatedStringArgumentPlaceholder(
                         placeholderSyntax,
                         argumentIndex,
                         valSafeToEscapeScope,
                         placeholderType,
-                        hasErrors: argumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter));
+                        hasErrors: argumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter)
+                    { WasCompilerGenerated = true }.WithSuppression(isSuppressed)));
                 // We use the parameter refkind, rather than what the argument was actually passed with, because that will suppress duplicated errors
                 // about arguments being passed with the wrong RefKind. The user will have already gotten an error about mismatched RefKinds or it will
                 // be a place where refkinds are allowed to differ
                 argumentRefKindsBuilder.Add(refKind);
             }
 
-            var interpolatedString = BindUnconvertedInterpolatedStringToHandlerType(
+            var interpolatedString = BindUnconvertedInterpolatedExpressionToHandlerType(
                 unconvertedString,
                 (NamedTypeSymbol)interpolatedStringParameter.Type,
                 diagnostics,
-                isHandlerConversion: true,
                 additionalConstructorArguments: argumentPlaceholdersBuilder.ToImmutableAndFree(),
                 additionalConstructorRefKinds: argumentRefKindsBuilder.ToImmutableAndFree());
 

@@ -64,6 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             document As Document,
             position As Integer,
             triggerInfo As SignatureHelpTriggerInfo,
+            options As SignatureHelpOptions,
             cancellationToken As CancellationToken
         ) As Task(Of SignatureHelpItems)
 
@@ -86,16 +87,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim allowedEvents = events.WhereAsArray(Function(s) s.Kind = SymbolKind.Event AndAlso Equals(s.ContainingType, containingType)).
                                        OfType(Of IEventSymbol)().
                                        ToImmutableArrayOrEmpty().
-                                       FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
+                                       FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(options.HideAdvancedMembers, semanticModel.Compilation).
                                        Sort(semanticModel, raiseEventStatement.SpanStart)
 
-            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(raiseEventStatement.ArgumentList, raiseEventStatement.Name.SpanStart)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
@@ -103,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             eventSymbol As IEventSymbol,
             raiseEventStatement As RaiseEventStatementSyntax,
             semanticModel As SemanticModel,
-            anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+            structuralTypeDisplayService As IStructuralTypeDisplayService,
             documentationCommentFormattingService As IDocumentationCommentFormattingService
         ) As SignatureHelpItem
 
@@ -113,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim item = CreateItem(
                 eventSymbol, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 False,
                 eventSymbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(eventSymbol, semanticModel, position),

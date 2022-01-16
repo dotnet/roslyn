@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// <summary>
         /// DefinitionItem used to display the additional information and performs navigation.
         /// </summary>
-        public readonly DefinitionItem DefinitionItem;
+        public readonly DefinitionItem.DetachedDefinitionItem DefinitionItem;
 
         /// <summary>
         /// The glyph for this target.
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
         public InheritanceTargetItem(
             InheritanceRelationship relationToMember,
-            DefinitionItem definitionItem,
+            DefinitionItem.DetachedDefinitionItem definitionItem,
             Glyph glyph,
             string displayName)
         {
@@ -51,9 +51,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             CancellationToken cancellationToken)
         {
             var definitionItem = await serializableItem.DefinitionItem.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+
+            // detach this item so that it doesn't hold onto a full solution snapshot in other documents that
+            // are not getting updated.
             return new InheritanceTargetItem(
                 serializableItem.RelationToMember,
-                definitionItem,
+                definitionItem.Detach(),
                 serializableItem.Glyph,
                 serializableItem.DisplayName);
         }

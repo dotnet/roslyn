@@ -266,6 +266,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend MustOverride ReadOnly Property IsCallerFilePath As Boolean
 
+        ''' <summary>
+        ''' The index of the parameter which CallerArgumentExpressionAttribute points to.
+        ''' </summary>
+        ''' <remarks>
+        ''' Returns -1 if there is no valid CallerArgumentExpressionAttribute.
+        ''' The situation is different for reduced extension method parameters, where a value
+        ''' of -2 is returned for no valid attribute, -1 for 'Me' parameter, and the reduced index (i.e, the original index minus 1) otherwise.
+        ''' </remarks>
+        Friend MustOverride ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+
         Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
             Get
                 Return ERRID.ERR_UnsupportedType1
@@ -346,6 +356,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IParameterSymbol_OriginalDefinition As IParameterSymbol Implements IParameterSymbol.OriginalDefinition
             Get
                 Return Me.OriginalDefinition
+            End Get
+        End Property
+
+        Private ReadOnly Property IsNullChecked As Boolean Implements IParameterSymbol.IsNullChecked
+            Get
+                Return False
             End Get
         End Property
 

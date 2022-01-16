@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
@@ -12,12 +13,20 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
     Public MustInherit Class EditingTestBase
         Inherits BasicTestBase
+
+        Public Shared ReadOnly ReloadableAttributeSrc As String = "
+Imports System.Runtime.CompilerServices
+Namespace System.Runtime.CompilerServices
+    Class CreateNewOnMetadataUpdateAttribute
+        Inherits Attribute
+    End Class
+End Namespace
+"
 
         Friend Shared Function CreateAnalyzer() As VisualBasicEditAndContinueAnalyzer
             Return New VisualBasicEditAndContinueAnalyzer()
@@ -82,19 +91,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Optional activeStatements As ActiveStatementsDescription = Nothing,
             Optional semanticEdits As SemanticEditDescription() = Nothing,
             Optional diagnostics As RudeEditDiagnosticDescription() = Nothing) As DocumentAnalysisResultsDescription
-            Return New DocumentAnalysisResultsDescription(activeStatements, semanticEdits, diagnostics)
+            Return New DocumentAnalysisResultsDescription(activeStatements, semanticEdits, lineEdits:=Nothing, diagnostics)
         End Function
 
-        Private Shared Function ParseSource(markedSource As String) As SyntaxTree
+        Private Shared Function ParseSource(markedSource As String, Optional documentIndex As Integer = 0) As SyntaxTree
             Return SyntaxFactory.ParseSyntaxTree(
                 ActiveStatementsDescription.ClearTags(markedSource),
                 VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest),
-                path:="test.vb")
+                path:=documentIndex.ToString())
         End Function
 
-        Friend Shared Function GetTopEdits(src1 As String, src2 As String) As EditScript(Of SyntaxNode)
-            Dim tree1 = ParseSource(src1)
-            Dim tree2 = ParseSource(src2)
+        Friend Shared Function GetTopEdits(src1 As String, src2 As String, Optional documentIndex As Integer = 0) As EditScript(Of SyntaxNode)
+            Dim tree1 = ParseSource(src1, documentIndex)
+            Dim tree2 = ParseSource(src2, documentIndex)
 
             tree1.GetDiagnostics().Verify()
             tree2.GetDiagnostics().Verify()

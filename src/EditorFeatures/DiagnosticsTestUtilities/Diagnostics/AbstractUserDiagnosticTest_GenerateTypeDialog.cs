@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // Added into a different project than the triggering project
             if (projectName != null)
             {
-                var appliedChanges = ApplyOperationsAndGetSolution(testState.Workspace, operations);
+                var appliedChanges = await ApplyOperationsAndGetSolutionAsync(testState.Workspace, operations);
                 var newSolution = appliedChanges.Item2;
                 var triggeredProject = newSolution.GetProject(testState.TriggeredProject.Id);
 

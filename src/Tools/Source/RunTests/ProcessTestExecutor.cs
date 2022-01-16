@@ -75,6 +75,8 @@ namespace RunTests
                 builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}{sep}");
             }
 
+            builder.Append(" --blame-crash --blame-hang-dump-type full --blame-hang-timeout 15minutes");
+
             return builder.ToString();
         }
 
@@ -109,7 +111,7 @@ namespace RunTests
                 ProcessInfo? procDumpProcessInfo = null;
 
                 // NOTE: xUnit doesn't always create the log directory
-                Directory.CreateDirectory(resultsDir);
+                Directory.CreateDirectory(resultsDir!);
 
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>();
@@ -123,7 +125,7 @@ namespace RunTests
                         var doc = XDocument.Load(resultsFilePath);
                         foreach (var test in doc.XPathSelectElements("/assemblies/assembly/collection/test[@result='Fail']"))
                         {
-                            ConsoleUtil.WriteLine($"  {test.Attribute("name").Value}: {test.Attribute("result").Value}");
+                            ConsoleUtil.WriteLine($"  {test.Attribute("name")!.Value}: {test.Attribute("result")!.Value}");
                         }
                     }
                     catch

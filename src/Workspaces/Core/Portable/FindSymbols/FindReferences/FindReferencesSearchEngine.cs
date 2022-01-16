@@ -2,23 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<ISymbol>>>;
-
     internal partial class FindReferencesSearchEngine
     {
         private readonly Solution _solution;
@@ -35,7 +34,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly TaskScheduler _scheduler;
         private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
 
-        private readonly ConcurrentDictionary<ISymbol, SymbolGroup> _symbolToGroup = new();
+        /// <summary>
+        /// Mapping from symbols (unified across metadata/retargeting) and the set of symbols that was produced for 
+        /// them in the case of linked files across projects.  This allows references to be found to any of the unified
+        /// symbols, while the user only gets a single reported group back that corresponds to that entire set.
+        /// </summary>
+        private readonly ConcurrentDictionary<ISymbol, SymbolGroup> _symbolToGroup = new(MetadataUnifyingEquivalenceComparer.Instance);
 
         public FindReferencesSearchEngine(
             Solution solution,
@@ -64,17 +68,53 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                await using var _ = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
+                var disposable = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
+                await using var _ = disposable.ConfigureAwait(false);
 
-                // For the starting symbol, always cascade up and down the inheritance hierarchy.
-                var symbols = await DetermineAllSymbolsAsync(
-                    symbol, FindReferencesCascadeDirection.UpAndDown, cancellationToken).ConfigureAwait(false);
+                // Create the initial set of symbols to search for.  As we walk the appropriate projects in the solution
+                // we'll expand this set as we dicover new symbols to search for in each project.
+                var symbolSet = await SymbolSet.CreateAsync(this, symbol, cancellationToken).ConfigureAwait(false);
 
-                var projectMap = await CreateProjectMapAsync(symbols, cancellationToken).ConfigureAwait(false);
-                var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap, cancellationToken).ConfigureAwait(false);
-                ValidateProjectToDocumentMap(projectToDocumentMap);
+                // Report the initial set of symbols to the caller.
+                var allSymbols = symbolSet.GetAllSymbols();
+                await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
-                await ProcessAsync(projectToDocumentMap, cancellationToken).ConfigureAwait(false);
+                // Determine the set of projects we actually have to walk to find results in.  If the caller provided a
+                // set of documents to search, we only bother with those.
+                var projectsToSearch = await GetProjectIdsToSearchAsync(allSymbols, cancellationToken).ConfigureAwait(false);
+
+                // We need to process projects in order when updating our symbol set.  Say we have three projects (A, B
+                // and C), we cannot necessarily find inherited symbols in C until we have searched B.  Importantly,
+                // while we're processing each project linearly to update the symbol set we're searching for, we still
+                // then process the projects in parallel once we know the set of symbols we're searching for in that
+                // project.
+                var dependencyGraph = _solution.GetProjectDependencyGraph();
+                await _progressTracker.AddItemsAsync(projectsToSearch.Count, cancellationToken).ConfigureAwait(false);
+
+                using var _1 = ArrayBuilder<Task>.GetInstance(out var tasks);
+
+                foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
+                {
+                    if (!projectsToSearch.Contains(projectId))
+                        continue;
+
+                    var currentProject = _solution.GetRequiredProject(projectId);
+
+                    // As we walk each project, attempt to grow the search set appropriately up and down the inheritance
+                    // hierarchy and grab a copy of the symbols to be processed.  Note: this has to happen serially
+                    // which is why we do it in this loop and not inside the concurrent project processing that happens
+                    // below.
+                    await symbolSet.InheritanceCascadeAsync(currentProject, cancellationToken).ConfigureAwait(false);
+                    allSymbols = symbolSet.GetAllSymbols();
+
+                    // Report any new symbols we've cascaded to to our caller.
+                    await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
+
+                    tasks.Add(CreateWorkAsync(() => ProcessProjectAsync(currentProject, allSymbols, cancellationToken), cancellationToken));
+                }
+
+                // Now, wait for all projects to complete.
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
             finally
             {
@@ -82,76 +122,175 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private async Task ProcessAsync(ProjectToDocumentMap projectToDocumentMap, CancellationToken cancellationToken)
+        public Task CreateWorkAsync(Func<Task> createWorkAsync, CancellationToken cancellationToken)
+            => Task.Factory.StartNew(createWorkAsync, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap();
+
+        /// <summary>
+        /// Notify the caller of the engine about the definitions we've found that we're looking for.  We'll only notify
+        /// them once per symbol group, but we may have to notify about new symbols each time we expand our symbol set
+        /// when we walk into a new project.
+        /// </summary>
+        private async Task ReportGroupsAsync(ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessAsync, cancellationToken))
+            foreach (var symbol in symbols)
             {
-                // quick exit
-                if (projectToDocumentMap.Count == 0)
+                // See if this is the first time we're running across this symbol.  Note: no locks are needed
+                // here betwen checking and then adding because this is only ever called serially from within
+                // FindReferencesAsync above (though we still need a ConcurrentDictionary as reads of these 
+                // symbols will happen later in ProcessDocumentAsync.  However, those reads will only happen
+                // after the dependent symbol values were written in, so it will be safe to blindly read them
+                // out.
+                if (!_symbolToGroup.ContainsKey(symbol))
                 {
-                    return;
+                    var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(symbol, _solution, cancellationToken).ConfigureAwait(false);
+                    var group = new SymbolGroup(linkedSymbols);
+
+                    foreach (var groupSymbol in group.Symbols)
+                        _symbolToGroup.TryAdd(groupSymbol, group);
+
+                    await _progress.OnDefinitionFoundAsync(group, cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private async Task<HashSet<ProjectId>> GetProjectIdsToSearchAsync(
+            ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
+        {
+            var projects = _documents != null
+                ? _documents.Select(d => d.Project).ToImmutableHashSet()
+                : _solution.Projects.ToImmutableHashSet();
+
+            var result = new HashSet<ProjectId>();
+
+            foreach (var symbol in symbols)
+            {
+                var dependentProjects = await DependentProjectsFinder.GetDependentProjectsAsync(
+                    _solution, symbol, projects, cancellationToken).ConfigureAwait(false);
+                foreach (var project in dependentProjects)
+                    result.Add(project.Id);
+            }
+
+            return result;
+        }
+
+        private async Task ProcessProjectAsync(Project project, ImmutableArray<ISymbol> allSymbols, CancellationToken cancellationToken)
+        {
+            using var _1 = PooledDictionary<ISymbol, PooledHashSet<string>>.GetInstance(out var symbolToGlobalAliases);
+            using var _2 = PooledDictionary<Document, PooledHashSet<ISymbol>>.GetInstance(out var documentToSymbols);
+            try
+            {
+                foreach (var symbol in allSymbols)
+                {
+                    foreach (var finder in _finders)
+                    {
+                        var aliases = await finder.DetermineGlobalAliasesAsync(
+                            symbol, project, cancellationToken).ConfigureAwait(false);
+                        if (aliases.Length > 0)
+                        {
+                            var globalAliases = Get(symbolToGlobalAliases, symbol);
+                            globalAliases.AddRange(aliases);
+                        }
+                    }
                 }
 
-                // Add a progress item for each (document, symbol, finder) set that we will execute.
-                // We'll mark the item as completed in "ProcessDocumentAsync".
-                var totalFindCount = projectToDocumentMap.Sum(
-                    kvp1 => kvp1.Value.Sum(kvp2 => kvp2.Value.Count));
-                await _progressTracker.AddItemsAsync(totalFindCount, cancellationToken).ConfigureAwait(false);
+                foreach (var symbol in allSymbols)
+                {
+                    var globalAliases = TryGet(symbolToGlobalAliases, symbol);
 
-                using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+                    foreach (var finder in _finders)
+                    {
+                        var documents = await finder.DetermineDocumentsToSearchAsync(
+                            symbol, globalAliases, project, _documents, _options, cancellationToken).ConfigureAwait(false);
 
-                foreach (var (project, documentMap) in projectToDocumentMap)
-                    tasks.Add(Task.Factory.StartNew(() => ProcessProjectAsync(project, documentMap, cancellationToken), cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+                        foreach (var document in documents)
+                        {
+                            var docSymbols = Get(documentToSymbols, document);
+                            docSymbols.Add(symbol);
+                        }
+                    }
+                }
+
+                using var _3 = ArrayBuilder<Task>.GetInstance(out var tasks);
+                foreach (var (document, docSymbols) in documentToSymbols)
+                {
+                    tasks.Add(CreateWorkAsync(() => ProcessDocumentAsync(
+                        document, docSymbols, symbolToGlobalAliases, cancellationToken), cancellationToken));
+                }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
-        }
-
-        [Conditional("DEBUG")]
-        private static void ValidateProjectToDocumentMap(
-            ProjectToDocumentMap projectToDocumentMap)
-        {
-            var set = new HashSet<ISymbol>();
-
-            foreach (var documentMap in projectToDocumentMap.Values)
+            finally
             {
-                foreach (var documentToFinderList in documentMap)
-                {
-                    set.Clear();
+                foreach (var (_, symbols) in documentToSymbols)
+                    symbols.Free();
 
-                    foreach (var tuple in documentToFinderList.Value)
-                        Debug.Assert(set.Add(tuple));
+                foreach (var (_, globalAliases) in symbolToGlobalAliases)
+                    globalAliases.Free();
+
+                await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            static PooledHashSet<U> Get<T, U>(PooledDictionary<T, PooledHashSet<U>> dictionary, T key) where T : notnull
+            {
+                if (!dictionary.TryGetValue(key, out var set))
+                {
+                    set = PooledHashSet<U>.GetInstance();
+                    dictionary.Add(key, set);
                 }
+
+                return set;
             }
         }
 
-        private async ValueTask HandleLocationAsync(ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken)
-        {
-            var group = await GetOrCreateSymbolGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
-            await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
-        }
+        private static PooledHashSet<U>? TryGet<T, U>(Dictionary<T, PooledHashSet<U>> dictionary, T key) where T : notnull
+            => dictionary.TryGetValue(key, out var set) ? set : null;
 
-        private async ValueTask<SymbolGroup> GetOrCreateSymbolGroupAsync(ISymbol symbol, CancellationToken cancellationToken)
+        private async Task ProcessDocumentAsync(
+            Document document, HashSet<ISymbol> symbols,
+            Dictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases,
+            CancellationToken cancellationToken)
         {
-            // See if this symbol is already associated with a symbol group.
-            if (!_symbolToGroup.TryGetValue(symbol, out var group))
+            await _progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
+
+            SemanticModel? model = null;
+            try
             {
-                // If not, compute the group it should be associated with.
-                group = await DetermineSymbolGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+                model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                // now try to update our mapping.
-                lock (_symbolToGroup)
+                // start cache for this semantic model
+                FindReferenceCache.Start(model);
+
+                foreach (var symbol in symbols)
                 {
-                    // Another thread may have beat us, so only do this if we're actually the first to get here.
-                    if (!_symbolToGroup.TryGetValue(symbol, out _))
-                    {
-                        foreach (var groupSymbol in group.Symbols)
-                            Contract.ThrowIfFalse(_symbolToGroup.TryAdd(groupSymbol, group));
-                    }
+                    var globalAliases = TryGet(symbolToGlobalAliases, symbol);
+                    await ProcessDocumentAsync(document, model, symbol, globalAliases, cancellationToken).ConfigureAwait(false);
                 }
             }
+            finally
+            {
+                FindReferenceCache.Stop(model);
 
-            return group;
+                await _progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task ProcessDocumentAsync(
+            Document document, SemanticModel semanticModel, ISymbol symbol,
+            HashSet<string>? globalAliases, CancellationToken cancellationToken)
+        {
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, cancellationToken))
+            {
+                // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
+                // happened.  So tehre must be a group for this symbol in our map.
+                var group = _symbolToGroup[symbol];
+                foreach (var finder in _finders)
+                {
+                    var references = await finder.FindReferencesInDocumentAsync(
+                        symbol, globalAliases, document, semanticModel, _options, cancellationToken).ConfigureAwait(false);
+                    foreach (var (_, location) in references)
+                        await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+                }
+            }
         }
     }
 }

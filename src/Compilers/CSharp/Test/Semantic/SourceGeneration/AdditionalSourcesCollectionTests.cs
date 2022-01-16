@@ -15,7 +15,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
+
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
     public class AdditionalSourcesCollectionTests
@@ -24,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Theory]
         [InlineData("abc")] // abc.cs
         [InlineData("abc.cs")] //abc.cs
+        [InlineData("abc+nested.cs")] //abc+nested.cs
+        [InlineData("abc`1.cs")] //abc`1.cs
         [InlineData("abc.vb")] // abc.vb.cs
         [InlineData("abc.generated.cs")]
         [InlineData("abc_-_")]
@@ -32,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [InlineData("abc(1).cs")]
         [InlineData("abc[1].cs")]
         [InlineData("abc{1}.cs")]
+        [WorkItem(58476, "https://github.com/dotnet/roslyn/issues/58476")]
         public void HintName_ValidValues(string hintName)
         {
             AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
@@ -135,6 +140,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var exception = Assert.Throws<ArgumentException>("hintName", () => asc.Add(hintName2, SourceText.From("", Encoding.UTF8)));
 
             Assert.Contains(hintName2, exception.Message);
+        }
+
+        [Fact]
+        public void Hint_Name_Must_Be_Unique_When_Combining_Soruces()
+        {
+            AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
+            asc.Add("hintName1", SourceText.From("", Encoding.UTF8));
+            asc.Add("hintName2", SourceText.From("", Encoding.UTF8));
+
+            AdditionalSourcesCollection asc2 = new AdditionalSourcesCollection(".cs");
+            asc2.Add("hintName3", SourceText.From("", Encoding.UTF8));
+            asc2.Add("hintName1", SourceText.From("", Encoding.UTF8));
+
+            var exception = Assert.Throws<ArgumentException>("hintName", () => asc.CopyTo(asc2));
+            Assert.Contains("hintName1", exception.Message);
         }
 
         [Theory]

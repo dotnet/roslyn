@@ -8,12 +8,18 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
@@ -124,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 case ObjectListKind.Hierarchy:
                     var parentKind = this.ParentKind;
-                    categoryField = parentKind == ObjectListKind.Types || parentKind == ObjectListKind.BaseTypes
+                    categoryField = parentKind is ObjectListKind.Types or ObjectListKind.BaseTypes
                         ? (uint)_LIB_LISTTYPE.LLT_CLASSES
                         : (uint)_LIB_LISTTYPE.LLT_PACKAGE;
 
@@ -418,7 +424,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private bool IsExpandableType(uint index)
         {
-            if (!(GetListItem(index) is TypeListItem typeListItem))
+            if (GetListItem(index) is not TypeListItem typeListItem)
             {
                 return false;
             }
@@ -611,9 +617,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             {
                 var name = GetText(i, VSTREETEXTOPTIONS.TTO_DISPLAYTEXT);
 
-                if (_kind == ObjectListKind.Types ||
-                    _kind == ObjectListKind.Namespaces ||
-                    _kind == ObjectListKind.Members)
+                if (_kind is ObjectListKind.Types or
+                    ObjectListKind.Namespaces or
+                    ObjectListKind.Members)
                 {
                     if (string.Equals(matchName, name, StringComparison.Ordinal))
                     {
@@ -737,28 +743,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         protected override string GetTipText(uint index, VSTREETOOLTIPTYPE eTipType)
             => null;
 
-        protected override int GoToSource(uint index, VSOBJGOTOSRCTYPE srcType)
+        protected override async Task GoToSourceAsync(uint index, VSOBJGOTOSRCTYPE srcType)
         {
-            if (srcType == VSOBJGOTOSRCTYPE.GS_DEFINITION)
+            try
             {
-                if (GetListItem(index) is SymbolListItem symbolItem && symbolItem.SupportsGoToDefinition)
+                using var token = _manager.AsynchronousOperationListener.BeginAsyncOperation(nameof(GoToSourceAsync));
+                using var context = _manager.OperationExecutor.BeginExecute(ServicesVSResources.IntelliSense, EditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
+
+                var cancellationToken = context.UserCancellationToken;
+                if (srcType == VSOBJGOTOSRCTYPE.GS_DEFINITION &&
+                    GetListItem(index) is SymbolListItem symbolItem &&
+                    symbolItem.SupportsGoToDefinition)
                 {
                     var project = this.LibraryManager.Workspace.CurrentSolution.GetProject(symbolItem.ProjectId);
-                    var compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var symbol = symbolItem.ResolveSymbol(compilation);
 
-                    if (this.LibraryManager.Workspace.TryGoToDefinition(symbol, project, CancellationToken.None))
-                    {
-                        return VSConstants.S_OK;
-                    }
-                    else
-                    {
-                        return VSConstants.S_FALSE;
-                    }
+                    await this.LibraryManager.Workspace.TryGoToDefinitionAsync(symbol, project, cancellationToken).ConfigureAwait(false);
                 }
             }
-
-            return VSConstants.E_FAIL;
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+            {
+            }
         }
 
         protected override uint GetUpdateCounter()
@@ -835,12 +844,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 if (data.type == VSCOMPONENTTYPE.VSCOMPONENTTYPE_ComPlus)
                 {
-                    if (!(listItem is ReferenceListItem referenceListItem))
+                    if (listItem is not ReferenceListItem referenceListItem)
                     {
                         continue;
                     }
 
-                    if (!(referenceListItem.MetadataReference is PortableExecutableReference metadataReference))
+                    if (referenceListItem.MetadataReference is not PortableExecutableReference metadataReference)
                     {
                         continue;
                     }
@@ -861,7 +870,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                         continue;
                     }
 
-                    if (!(this.LibraryManager.ServiceProvider.GetService(typeof(SVsSolution)) is IVsSolution vsSolution))
+                    if (this.LibraryManager.ServiceProvider.GetService(typeof(SVsSolution)) is not IVsSolution vsSolution)
                     {
                         return false;
                     }
@@ -894,7 +903,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     return false;
                 }
 
-                if (!(this.LibraryManager.ServiceProvider.GetService(typeof(SVsSolution)) is IVsSolution vsSolution))
+                if (this.LibraryManager.ServiceProvider.GetService(typeof(SVsSolution)) is not IVsSolution vsSolution)
                 {
                     return false;
                 }
@@ -917,12 +926,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
             else
             {
-                if (!(listItem is ReferenceListItem referenceListItem))
+                if (listItem is not ReferenceListItem referenceListItem)
                 {
                     return false;
                 }
 
-                if (!(referenceListItem.MetadataReference is PortableExecutableReference portableExecutableReference))
+                if (referenceListItem.MetadataReference is not PortableExecutableReference portableExecutableReference)
                 {
                     return false;
                 }

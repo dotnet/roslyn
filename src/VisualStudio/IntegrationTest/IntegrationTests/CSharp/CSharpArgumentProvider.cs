@@ -264,8 +264,11 @@ public class TestClass
             VisualStudio.Editor.Verify.CurrentLineText("Test(0$$)", assertCaretPosition: true);
         }
 
+        /// <summary>
+        /// Argument completion with no arguments.
+        /// </summary>
         [WpfFact]
-        public void SemicolonWithTabTabCompletion()
+        public void SemicolonWithTabTabCompletion1()
         {
             SetUpEditor(@"
 public class Test
@@ -292,8 +295,74 @@ public class Test
             VisualStudio.Editor.Verify.CurrentLineText("f.ToString();$$", assertCaretPosition: true);
         }
 
+        /// <summary>
+        /// Argument completion with one or more arguments.
+        /// </summary>
         [WpfFact]
-        public void SmartBreakLineWithTabTabCompletion()
+        public void SemicolonWithTabTabCompletion2()
+        {
+            SetUpEditor(@"
+public class Test
+{
+    private object f;
+
+    public void Method()
+    {$$
+    }
+}
+");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("object.Equ");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("object.Equals$$", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+            VisualStudio.Editor.Verify.CurrentLineText("object.Equals(null$$)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(';');
+            VisualStudio.Editor.Verify.CurrentLineText("object.Equals(null);$$", assertCaretPosition: true);
+        }
+
+        /// <summary>
+        /// Argument completion with exactly one argument.
+        /// </summary>
+        [WpfFact]
+        public void SemicolonWithTabTabCompletion3()
+        {
+            SetUpEditor(@"
+public class Test
+{
+    private object f;
+
+    public void Method(int value)
+    {$$
+    }
+
+    public void Method2(int value)
+    {
+    }
+}
+");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("this.M2");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("this.Method2$$", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+            VisualStudio.Editor.Verify.CurrentLineText("this.Method2(value$$)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(';');
+            VisualStudio.Editor.Verify.CurrentLineText("this.Method2(value);$$", assertCaretPosition: true);
+        }
+
+        [WpfFact]
+        public void SmartBreakLineWithTabTabCompletion1()
         {
             SetUpEditor(@"
 public class Test
@@ -325,6 +394,45 @@ public class Test
     public void Method()
     {
         f.ToString();
+$$
+    }
+}
+", assertCaretPosition: true);
+        }
+
+        [WpfFact]
+        public void SmartBreakLineWithTabTabCompletion2()
+        {
+            SetUpEditor(@"
+public class Test
+{
+    private object f;
+
+    public void Method()
+    {$$
+    }
+}
+");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("object.Equ");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("object.Equals$$", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+            VisualStudio.Editor.Verify.CurrentLineText("object.Equals(null$$)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(Shift(VirtualKey.Enter));
+            VisualStudio.Editor.Verify.TextContains(@"
+public class Test
+{
+    private object f;
+
+    public void Method()
+    {
+        object.Equals(null);
 $$
     }
 }

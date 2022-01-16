@@ -48,15 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             if (MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStaticByRefactoringCaptures(localFunction, semanticModel, out var captures))
             {
                 context.RegisterRefactoring(new MyCodeAction(
-                    CSharpAnalyzersResources.Make_local_function_static,
                     c => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, c)));
             }
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpAnalyzersResources.Make_local_function_static, createChangedDocument, nameof(CSharpAnalyzersResources.Make_local_function_static))
             {
             }
         }

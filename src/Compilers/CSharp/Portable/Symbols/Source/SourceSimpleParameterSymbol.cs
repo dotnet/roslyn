@@ -31,6 +31,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        public override bool IsNullChecked
+        {
+            get
+            {
+                var node = this.GetNonNullSyntaxNode();
+                if (node is ParameterSyntax param)
+                {
+                    return param.ExclamationExclamationToken.Kind() == SyntaxKind.ExclamationExclamationToken;
+                }
+                return false;
+            }
+        }
+
         internal override bool IsMetadataOptional
         {
             get { return false; }
@@ -84,6 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsCallerMemberName
         {
             get { return false; }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return -1; }
         }
 
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;

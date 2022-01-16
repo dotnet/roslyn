@@ -6,6 +6,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expres
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class CastOperatorsKeywordRecommenderTests
+        Inherits RecommenderTests
+
         Private Shared ReadOnly Property AllTypeConversionOperatorKeywords As String()
             Get
                 Dim keywords As New List(Of String) From {"CType", "DirectCast", "TryCast"}

@@ -737,27 +737,6 @@ namespace Microsoft.CodeAnalysis
             return count;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        private struct ImmutableArrayProxy<T>
-        {
-            internal T[] MutableArray;
-        }
-
-        // TODO(https://github.com/dotnet/corefx/issues/34126): Remove when System.Collections.Immutable
-        // provides a Span API
-        internal static T[] DangerousGetUnderlyingArray<T>(this ImmutableArray<T> array)
-            => Unsafe.As<ImmutableArray<T>, ImmutableArrayProxy<T>>(ref array).MutableArray;
-
-        internal static ReadOnlySpan<T> AsSpan<T>(this ImmutableArray<T> array)
-            => array.DangerousGetUnderlyingArray();
-
-        internal static ImmutableArray<T> DangerousCreateFromUnderlyingArray<T>([MaybeNull] ref T[] array)
-        {
-            var proxy = new ImmutableArrayProxy<T> { MutableArray = array };
-            array = null!;
-            return Unsafe.As<ImmutableArrayProxy<T>, ImmutableArray<T>>(ref proxy);
-        }
-
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
             where K : notnull
         {

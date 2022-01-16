@@ -943,6 +943,28 @@ End Class"
 
             Await TestMissingInRegularAndScriptAsync(source)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestClassObject() As Task
+            Dim source =
+"Class F
+    Public x As Integer
+    Public y As Integer
+
+    Public Sub F(x As Integer, y As Integer)
+        Me.x = x
+        Me.y = y
+    End Sub
+End Class
+
+Class TestClass
+    Public Function N(f As F)
+        Return f.[|x|]
+    End Function
+End Class"
+
+            Await TestMissingInRegularAndScriptAsync(source)
+        End Function
     End Class
 End Namespace
 

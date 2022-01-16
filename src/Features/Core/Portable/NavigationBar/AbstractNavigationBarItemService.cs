@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var solution = document.Project.Solution;
-
+                // Call the project overload.  We don't need the full solution synchronized over to the OOP
+                // in order to get accurate navbar contents for this document.
                 var result = await client.TryInvokeAsync<IRemoteNavigationBarItemService, ImmutableArray<SerializableNavigationBarItem>>(
-                    solution,
+                    document.Project,
                     (service, solutionInfo, cancellationToken) => service.GetItemsAsync(solutionInfo, document.Id, supportsCodeGeneration, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 

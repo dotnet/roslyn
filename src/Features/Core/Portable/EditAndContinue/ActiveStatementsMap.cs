@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -72,12 +72,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
+                if (!TryGetUpToDateSpan(debugInfo, remapping, out var baseSpan))
+                {
+                    continue;
+                }
+
                 if (!updatedSpansByDocumentPath.TryGetValue(documentName, out var documentInfos))
                 {
                     updatedSpansByDocumentPath.Add(documentName, documentInfos = ArrayBuilder<(ManagedActiveStatementDebugInfo, SourceFileSpan, int)>.GetInstance());
                 }
 
-                documentInfos.Add((debugInfo, new SourceFileSpan(documentName, GetUpToDateSpan(debugInfo, remapping)), ordinal++));
+                documentInfos.Add((debugInfo, new SourceFileSpan(documentName, baseSpan), ordinal++));
             }
 
             foreach (var (_, infos) in updatedSpansByDocumentPath)
@@ -113,13 +118,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new ActiveStatementsMap(byDocumentPath, byInstruction.ToImmutableDictionary());
         }
 
-        private static LinePositionSpan GetUpToDateSpan(ManagedActiveStatementDebugInfo activeStatementInfo, ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> remapping)
+        private static bool TryGetUpToDateSpan(ManagedActiveStatementDebugInfo activeStatementInfo, ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> remapping, out LinePositionSpan newSpan)
         {
-            var activeSpan = activeStatementInfo.SourceSpan.ToLinePositionSpan();
-
-            if ((activeStatementInfo.Flags & ActiveStatementFlags.MethodUpToDate) != 0)
+            // Drop stale active statements - their location in the current snapshot is unknown.
+            if (activeStatementInfo.Flags.HasFlag(ActiveStatementFlags.Stale))
             {
-                return activeSpan;
+                newSpan = default;
+                return false;
+            }
+
+            var activeSpan = activeStatementInfo.SourceSpan.ToLinePositionSpan();
+            if (activeStatementInfo.Flags.HasFlag(ActiveStatementFlags.MethodUpToDate))
+            {
+                newSpan = activeSpan;
+                return true;
             }
 
             var instructionId = activeStatementInfo.ActiveInstruction;
@@ -131,16 +143,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     if (region.Span.Span.Contains(activeSpan) && activeStatementInfo.DocumentName == region.Span.Path)
                     {
-                        return activeSpan.AddLineDelta(region.LineDelta);
+                        newSpan = activeSpan.AddLineDelta(region.LineDelta);
+                        return true;
                     }
                 }
             }
 
-            // The active statement is in a method that's not up-to-date but the active span have not changed.
-            // We only add changed spans to non-remappable regions map, so we won't find unchanged span there.
-            // Return the original span.
-            return activeSpan;
+            // The active statement is in a method instance that was updated during Hot Reload session,
+            // at which point the location of the span was not known. 
+            newSpan = default;
+            return false;
         }
+
+        public bool IsEmpty
+            => InstructionMap.IsEmpty();
 
         internal async ValueTask<ImmutableArray<UnmappedActiveStatement>> GetOldActiveStatementsAsync(IEditAndContinueAnalyzer analyzer, Document oldDocument, CancellationToken cancellationToken)
         {

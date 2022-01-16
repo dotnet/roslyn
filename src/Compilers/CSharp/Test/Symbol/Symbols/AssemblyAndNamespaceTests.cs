@@ -676,5 +676,17 @@ int x; // 1
                 // int x; // 1
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "x").WithLocation(3, 5));
         }
+
+        [Fact, WorkItem(54836, "https://github.com/dotnet/roslyn/issues/54836")]
+        public void AssemblyRetargetableAttributeIsRespected()
+        {
+            var code = @"
+using System.Reflection;
+[assembly: AssemblyFlags(AssemblyNameFlags.Retargetable)]";
+
+            var comp = CreateCompilation(code);
+            Assert.True(comp.Assembly.Identity.IsRetargetable);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }

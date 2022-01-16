@@ -7,8 +7,8 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -43,6 +43,87 @@ class C
 class C
 {
     static void Main(string[] args)
+    {
+        while (true)
+        {
+            <AS:1>Goo(2);</AS:1>
+        }
+    }
+
+    static void Goo(int a)
+    {
+        <AS:0>Console.WriteLine(a);</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Goo(2);"));
+        }
+
+        [Fact]
+        public void Update_Inner_NewCommentAtEndOfActiveStatement()
+        {
+            var src1 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        <AS:1>Goo(1);</AS:1>
+    }
+
+    static void Goo(int a)
+    {
+        <AS:0>Console.WriteLine(a);</AS:0>
+    }
+}";
+            var src2 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        <AS:1>Goo(1);</AS:1>//
+    }
+
+    static void Goo(int a)
+    {
+        <AS:0>Console.WriteLine(a);</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        /// <summary>
+        /// CreateNewOnMetadataUpdate has no effect in presence of active statements (in break mode).
+        /// </summary>
+        [Fact]
+        public void Update_Inner_Reloadable()
+        {
+            var src1 = ReloadableAttributeSrc + @"
+[CreateNewOnMetadataUpdate]
+class C
+{
+    static void Main()
+    {
+        <AS:1>Goo(1);</AS:1>
+    }
+
+    static void Goo(int a)
+    {
+        <AS:0>Console.WriteLine(a);</AS:0>
+    }
+}";
+            var src2 = ReloadableAttributeSrc + @"
+[CreateNewOnMetadataUpdate]
+class C
+{
+    static void Main()
     {
         while (true)
         {
@@ -138,10 +219,14 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
+        /// <summary>
+        /// CreateNewOnMetadataUpdate has no effect in presence of active statements (in break mode).
+        /// </summary>
         [Fact]
-        public void Update_Inner_NewCommentAtEndOfActiveStatement()
+        public void Update_Leaf_Reloadable()
         {
-            var src1 = @"
+            var src1 = ReloadableAttributeSrc + @"
+[CreateNewOnMetadataUpdate]
 class C
 {
     static void Main(string[] args)
@@ -154,24 +239,33 @@ class C
         <AS:0>Console.WriteLine(a);</AS:0>
     }
 }";
-            var src2 = @"
+            var src2 = ReloadableAttributeSrc + @"
+[CreateNewOnMetadataUpdate]
 class C
 {
     static void Main(string[] args)
     {
-        <AS:1>Goo(1);</AS:1>//
+        while (true)
+        {
+            <AS:1>Goo(1);</AS:1>
+        }
     }
 
     static void Goo(int a)
     {
-        <AS:0>Console.WriteLine(a);</AS:0>
+        <AS:0>Console.WriteLine(a + 1);</AS:0>
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemantics(active,
+                expectedSemanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), preserveLocalVariables: true),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Goo"), preserveLocalVariables: true)
+                });
         }
 
         [WorkItem(846588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846588")]
@@ -803,8 +897,13 @@ class Goo
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Renamed, "int b", FeaturesResources.parameter));
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Goo..ctor"))
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
         }
 
         [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
@@ -1306,28 +1405,32 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
-        public void InstanceConstructor_DeleteParameterless()
+        [Theory]
+        [InlineData("class ")]
+        [InlineData("struct")]
+        public void InstanceConstructor_DeleteParameterless(string typeKind)
         {
-            var src1 = "partial class C { public C() { <AS:0>System.Console.WriteLine(1);</AS:0> } }";
-            var src2 = "<AS:0>partial class C</AS:0> { }";
+            var src1 = "partial " + typeKind + " C { public C() { <AS:0>System.Console.WriteLine(1);</AS:0> } }";
+            var src2 = "<AS:0>partial " + typeKind + " C</AS:0> { }";
 
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "partial class C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()")));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "partial " + typeKind + " C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()")));
         }
 
         #endregion
 
         #region Field and Property Initializers
 
-        [Fact]
-        public void InstancePropertyInitializer_Leaf_Update()
+        [Theory]
+        [InlineData("class ")]
+        [InlineData("struct")]
+        public void InstancePropertyInitializer_Leaf_Update(string typeKind)
         {
             var src1 = @"
-class C
+" + typeKind + @" C
 {
     int a { get; } = <AS:0>1</AS:0>;
 
@@ -1339,7 +1442,7 @@ class C
     }
 }";
             var src2 = @"
-class C
+" + typeKind + @" C
 {
     int a { get; } = <AS:0>2</AS:0>;
 
@@ -1356,12 +1459,46 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
-        [Fact]
-        public void InstanceFieldInitializer_Leaf_Update1()
+        [Theory]
+        [InlineData("class ")]
+        [InlineData("struct")]
+        public void InstancePropertyInitializer_Leaf_Update_SynthesizedConstructor(string typeKind)
         {
             var src1 = @"
-class C
+" + typeKind + @" C
+{
+    int a { get; } = <AS:0>1</AS:0>;
+
+    static void Main(string[] args)
+    {
+        <AS:1>C c = new C();</AS:1>
+    }
+}";
+            var src2 = @"
+" + typeKind + @" C
+{
+    int a { get; } = <AS:0>2</AS:0>;
+
+    static void Main(string[] args)
+    {
+        <AS:1>C c = new C();</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
+
+        [Theory]
+        [InlineData("class ")]
+        [InlineData("struct")]
+        public void InstanceFieldInitializer_Leaf_Update1(string typeKind)
+        {
+            var src1 = @"
+" + typeKind + @" C
 {
     <AS:0>int a = 1</AS:0>, b = 2;
 
@@ -1373,11 +1510,42 @@ class C
     }
 }";
             var src2 = @"
-class C
+" + typeKind + @" C
 {
     <AS:0>int a = 2</AS:0>, b = 2;
 
     public C() {}
+
+    static void Main(string[] args)
+    {
+        <AS:1>C c = new C();</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Theory]
+        [InlineData("class ")]
+        [InlineData("struct")]
+        public void InstanceFieldInitializer_Leaf_Update1_SynthesizedConstructor(string typeKind)
+        {
+            var src1 = @"
+" + typeKind + @" C
+{
+    <AS:0>int a = 1</AS:0>, b = 2;
+
+    static void Main(string[] args)
+    {
+        <AS:1>C c = new C();</AS:1>
+    }
+}";
+            var src2 = @"
+" + typeKind + @" C
+{
+    <AS:0>int a = 2</AS:0>, b = 2;
 
     static void Main(string[] args)
     {
@@ -1496,8 +1664,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.MethodBodyAdd, "get", CSharpFeaturesResources.property_getter));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -1867,7 +2034,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "a = 1", FeaturesResources.const_field));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1", FeaturesResources.const_field));
         }
 
         [Fact]
@@ -1917,7 +2084,8 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "a = 1", FeaturesResources.const_field));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1, b = 2", FeaturesResources.const_field),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1, b = 2", FeaturesResources.const_field));
         }
 
         [Fact]
@@ -8631,6 +8799,36 @@ class C
         }
 
         [Fact]
+        public void Lambdas_ActiveStatementUpdate()
+        {
+            var src1 = @"
+using System;
+class C
+{
+    static void Main(string[] args)
+    {
+        Func<int, int, int> f = (int a, int b) => <AS:0>a + b + 1</AS:0>;
+        <AS:1>f(2);</AS:1>
+    }
+}";
+            var src2 = @"
+using System;
+class C
+{
+    static void Main(string[] args)
+    {
+        Func<int, int, int> f = (_, _) => <AS:0>10</AS:0>;
+        <AS:1>f(2);</AS:1>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active, capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
         public void Lambdas_ActiveStatementRemoved1()
         {
             var src1 = @"
@@ -10483,7 +10681,9 @@ class C
                 });
         }
 
-        [Fact, WorkItem(51177, "https://github.com/dotnet/roslyn/issues/51177")]
+        [Fact]
+        [WorkItem(51177, "https://github.com/dotnet/roslyn/issues/51177")]
+        [WorkItem(54758, "https://github.com/dotnet/roslyn/issues/54758")]
         public void InsertDeleteMethod_Active()
         {
             // Moving active method declaration in a file with active statements.
@@ -10506,7 +10706,8 @@ class C
                         }),
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcB1, srcB2, path: "1"),
-                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "partial class C", DeletedSymbolDisplay(FeaturesResources.method, "F()")) })
+                        // TODO: this is odd AS location https://github.com/dotnet/roslyn/issues/54758
+                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "      partial c", DeletedSymbolDisplay(FeaturesResources.method, "F()")) })
                 });
         }
 
@@ -10873,11 +11074,11 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2, flags: new[]
             {
-                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsLeafFrame,
-                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsNonLeafFrame,
-                ActiveStatementFlags.IsLeafFrame,
-                ActiveStatementFlags.IsNonLeafFrame,
-                ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.IsLeafFrame
+                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.LeafFrame,
+                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.NonLeafFrame,
+                ActiveStatementFlags.LeafFrame,
+                ActiveStatementFlags.NonLeafFrame,
+                ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.LeafFrame
             });
 
             edits.VerifyRudeDiagnostics(active,
@@ -10908,7 +11109,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2, flags: new[]
             {
-                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsLeafFrame
+                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.LeafFrame
             });
 
             edits.VerifyRudeDiagnostics(active,
@@ -10936,7 +11137,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2, flags: new[]
             {
-                ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.IsLeafFrame
+                ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.LeafFrame
             });
 
             edits.VerifyRudeDiagnostics(active,

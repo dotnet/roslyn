@@ -13,11 +13,13 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Utilities;
 using IServiceProvider = System.IServiceProvider;
 using Task = System.Threading.Tasks.Task;
 
@@ -42,6 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
+        public readonly IUIThreadOperationExecutor OperationExecutor;
+        public readonly IAsynchronousOperationListener AsynchronousOperationListener;
+
         protected AbstractObjectBrowserLibraryManager(
             string languageName,
             Guid libraryGuid,
@@ -57,6 +62,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             _libraryService = new Lazy<ILibraryService>(() => Workspace.Services.GetLanguageServices(_languageName).GetService<ILibraryService>());
             _streamingPresenter = componentModel.DefaultExportProvider.GetExportedValue<IStreamingFindUsagesPresenter>();
+
+            OperationExecutor = componentModel.DefaultExportProvider.GetExportedValue<IUIThreadOperationExecutor>();
+            AsynchronousOperationListener = componentModel.DefaultExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.LibraryManager);
         }
 
         internal abstract AbstractDescriptionBuilder CreateDescriptionBuilder(
@@ -125,9 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 UpdateClassAndMemberVersions();
             }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
             {
-                // make it crash VS on any exception
             }
         }
 
@@ -531,7 +538,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             catch (OperationCanceledException)
             {
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Critical))
             {
             }
         }

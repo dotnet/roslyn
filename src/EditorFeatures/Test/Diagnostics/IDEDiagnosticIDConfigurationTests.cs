@@ -303,9 +303,6 @@ dotnet_diagnostic.IDE0048.severity = %value%
 # IDE0049
 dotnet_diagnostic.IDE0049.severity = %value%
 
-# IDE0050
-dotnet_diagnostic.IDE0050.severity = %value%
-
 # IDE0051
 dotnet_diagnostic.IDE0051.severity = %value%
 
@@ -420,6 +417,21 @@ dotnet_diagnostic.IDE0120.severity = %value%
 # IDE0130
 dotnet_diagnostic.IDE0130.severity = %value%
 
+# IDE0160
+dotnet_diagnostic.IDE0160.severity = %value%
+
+# IDE0161
+dotnet_diagnostic.IDE0161.severity = %value%
+
+# IDE0170
+dotnet_diagnostic.IDE0170.severity = %value%
+
+# IDE0180
+dotnet_diagnostic.IDE0180.severity = %value%
+
+# IDE0190
+dotnet_diagnostic.IDE0190.severity = %value%
+
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
 
@@ -520,9 +532,6 @@ dotnet_diagnostic.IDE0048.severity = %value%
 
 # IDE0049
 dotnet_diagnostic.IDE0049.severity = %value%
-
-# IDE0050
-dotnet_diagnostic.IDE0050.severity = %value%
 
 # IDE0051
 dotnet_diagnostic.IDE0051.severity = %value%
@@ -834,7 +843,7 @@ dotnet_style_prefer_inferred_anonymous_type_member_names = true
 csharp_style_pattern_matching_over_is_with_cast_check = true
 
 # IDE0039, PreferLocalOverAnonymousFunction
-csharp_style_pattern_local_over_anonymous_function = true
+csharp_style_prefer_local_over_anonymous_function = true
 
 # IDE0040, RequireAccessibilityModifiers
 dotnet_style_require_accessibility_modifiers = for_non_interface_members
@@ -886,9 +895,6 @@ dotnet_style_predefined_type_for_locals_parameters_members = true
 
 # IDE0049, PreferIntrinsicPredefinedTypeKeywordInMemberAccess
 dotnet_style_predefined_type_for_member_access = true
-
-# IDE0050
-No editorconfig based code style option
 
 # IDE0051
 No editorconfig based code style option
@@ -992,8 +998,23 @@ No editorconfig based code style option
 # IDE0130, PreferNamespaceAndFolderMatchStructure
 dotnet_style_namespace_match_folder = true
 
-# IDE0150
-No editorconfig based code style option
+# IDE0150, PreferNullCheckOverTypeCheck
+csharp_style_prefer_null_check_over_type_check = true
+
+# IDE0160, NamespaceDeclarations
+csharp_style_namespace_declarations = block_scoped
+
+# IDE0161, NamespaceDeclarations
+csharp_style_namespace_declarations = block_scoped
+
+# IDE0170, PreferExtendedPropertyPattern
+csharp_style_prefer_extended_property_pattern = true
+
+# IDE0180, PreferTupleSwap
+csharp_style_prefer_tuple_swap = true
+
+# IDE0190, PreferParameterNullChecking
+csharp_style_prefer_parameter_null_checking = true
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
@@ -1146,9 +1167,6 @@ dotnet_style_predefined_type_for_locals_parameters_members = true
 
 # IDE0049, PreferIntrinsicPredefinedTypeKeywordInMemberAccess
 dotnet_style_predefined_type_for_member_access = true
-
-# IDE0050
-No editorconfig based code style option
 
 # IDE0051
 No editorconfig based code style option

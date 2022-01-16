@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../FeaturesResources.resx">
     <body>
       <trans-unit id="0_directive">
         <source>#{0} directive</source>
-        <target state="new">#{0} directive</target>
+        <target state="translated">{0} 号指令</target>
         <note />
       </trans-unit>
       <trans-unit id="AM_PM_abbreviated">
@@ -39,6 +39,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>A subtraction must be the last element in a character class</source>
         <target state="translated">负号必须是字符类中的最后一个元素</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
+      </trans-unit>
+      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application">
+        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</source>
+        <target state="translated">访问已捕获变量“{0}”(以前未在 {1} 中访问过)需要重启应用程序。</target>
+        <note />
       </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
@@ -95,29 +100,94 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">添加元组元素名称 "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">将“{0}”添加到泛型类型会中止调试会话。</target>
+      <trans-unit id="Adding_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Adding {0} around an active statement requires restarting the application.</source>
+        <target state="translated">在活动语句周围添加 {0} 需要重新启动应用程序。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
-        <target state="translated">将 "{0}" 添加进接口方法将阻止调试会话继续。</target>
+      <trans-unit id="Adding_0_into_a_1_requires_restarting_the_application">
+        <source>Adding {0} into a {1} requires restarting the application.</source>
+        <target state="translated">将 {0} 添加进 {1} 中需要重新启动应用程序。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
-        <target state="translated">将 "{0}" 添加进接口将阻止调试会话继续。</target>
+      <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_requires_restarting_the_application">
+        <source>Adding {0} into a class with explicit or sequential layout requires restarting the application.</source>
+        <target state="translated">将 {0} 添加到具有显式或顺序布局的类中需要重新启动应用程序。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a positional parameter to a record will prevent the debug session from continuing.</source>
-        <target state="translated">将位置参数添加到记录将阻止调试会话继续。</target>
+      <trans-unit id="Adding_0_into_a_generic_type_requires_restarting_the_application">
+        <source>Adding {0} into a generic type requires restarting the application.</source>
+        <target state="translated">向泛型类型添加 {0} 需要重启应用程序。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
-        <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
-        <target state="translated">添加具有显式接口说明符的方法将阻止调试会话继续。</target>
+      <trans-unit id="Adding_0_into_an_interface_method_requires_restarting_the_application">
+        <source>Adding {0} into an interface method requires restarting the application.</source>
+        <target state="translated">将 {0} 添加到接口方法中需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_requires_restarting_the_application">
+        <source>Adding {0} into an interface requires restarting the application.</source>
+        <target state="translated">将 {0} 添加到接口需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_requires_restarting_the_application">
+        <source>Adding {0} requires restarting the application.</source>
+        <target state="translated">添加 {0} 要求重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
+        <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
+        <target state="translated">添加访问已在不同范围内声明的捕获的变量“{1}”和“{2}”的 {0} 需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
+        <source>Adding {0} with the Handles clause requires restarting the application.</source>
+        <target state="translated">使用 Handles 子句添加 {0} 需要重新启动应用程序。</target>
+        <note>{Locked="Handles"} "Handles" is VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adding_a_MustOverride_0_or_overriding_an_inherited_0_requires_restarting_the_application">
+        <source>Adding a MustOverride {0} or overriding an inherited {0} requires restarting the application.</source>
+        <target state="translated">添加 MustOverride {0} 或替代继承的 {0} 需要重新启动应用程序。</target>
+        <note>{Locked="MustOverride"} "MustOverride" is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_requires_restarting_the_application">
+        <source>Adding a constructor to a type with a field or property initializer that contains an anonymous function requires restarting the application.</source>
+        <target state="translated">使用包含匿名类型的字段或属性初始值设定项向类型添加构造函数需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_generic_0_requires_restarting_the_application">
+        <source>Adding a generic {0} requires restarting the application.</source>
+        <target state="translated">添加泛型 {0} 要求重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_method_with_an_explicit_interface_specifier_requires_restarting_the_application">
+        <source>Adding a method with an explicit interface specifier requires restarting the application.</source>
+        <target state="translated">添加具有显式接口说明符的方法需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_new_file_requires_restarting_the_application">
+        <source>Adding a new file requires restarting the application.</source>
+        <target state="translated">添加新文件需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_user_defined_0_requires_restarting_the_application">
+        <source>Adding a user defined {0} requires restarting the application.</source>
+        <target state="translated">添加用户定义的 {0} 需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application">
+        <source>Adding an abstract {0} or overriding an inherited {0} requires restarting the application.</source>
+        <target state="translated">添加抽象 {0} 或重写继承的 {0} 要求重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_an_extern_0_requires_restarting_the_application">
+        <source>Adding an extern {0} requires restarting the application.</source>
+        <target state="translated">添加 extern {0} 需要重启应用程序。</target>
+        <note>{Locked="extern"} "extern" is C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adding_an_imported_method_requires_restarting_the_application">
+        <source>Adding an imported method requires restarting the application.</source>
+        <target state="translated">添加导入的方法需要重新启动应用程序。</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -140,10 +210,10 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">替换条件不捕获且不能命名</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
       </trans-unit>
-      <trans-unit id="An_update_that_causes_the_return_type_of_implicit_main_to_change_will_prevent_the_debug_session_from_continuing">
-        <source>An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</source>
-        <target state="new">An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</target>
-        <note />
+      <trans-unit id="An_update_that_causes_the_return_type_of_implicit_main_to_change_requires_restarting_the_application">
+        <source>An update that causes the return type of the implicit Main method to change requires restarting the application.</source>
+        <target state="translated">导致隐式 Main 方法的返回类型更改的更新需要重新启动应用程序。</target>
+        <note>{Locked="Main"} is C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
@@ -155,10 +225,30 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">应用对象/集合初始化首选项</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
-        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
-        <target state="translated">活动语句已从其初始方法中删除。必须还原更改才能继续或重新启动调试会话。</target>
+      <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
+        <source>Applying source changes while the application is running is not supported by the runtime.</source>
+        <target state="translated">在应用程序运行时，运行时不支持应用源更改。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_requires_restarting_the_application">
+        <source>Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</source>
+        <target state="translated">缺少属性“{0}”。更新异步方法或迭代器需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
+        <source>Asynchronously waits for the task to finish.</source>
+        <target state="translated">异步等待任务完成。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Await_the_preceding_expression">
+        <source>Await the preceding expression</source>
+        <target state="translated">等待前面的表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
+        <source>Await the preceding expression and add ConfigureAwait({0}).</source>
+        <target state="translated">等待前面的表达式并添加 ConfigureAwait({0})。</target>
+        <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
@@ -195,6 +285,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">捕获编号不能为零</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
+      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
+        <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
+        <target state="translated">捕获之前尚未捕获到的变量“{0}”需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
+        <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
+        <target state="translated">中止访问 {1} 中捕获的变量“{0}”需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
+        <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
+        <target state="translated">取消捕获变量“{0}”需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
         <source>&lt;infer&gt;</source>
         <target state="translated">&lt;推断&gt;</target>
@@ -230,19 +335,74 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">在应用程序运行时，将不应用在项目“{0}”中所作的更改</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
-        <source>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</source>
-        <target state="translated">将“{0}”从异步更改为同步会阻止调试会话继续执行。</target>
+      <trans-unit id="ChangesRequiredSynthesizedType">
+        <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
+        <target state="translated">一个或多个更改导致编译器创建新类型，这需要重新启动应用程序，因为运行时不支持该应用程序</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
-        <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
-        <target state="translated">将“{0}”更改为“{1}”会阻止调试会话继续执行，因为它会更改状态机的形状。</target>
+      <trans-unit id="Changing_0_from_asynchronous_to_synchronous_requires_restarting_the_application">
+        <source>Changing {0} from asynchronous to synchronous requires restarting the application.</source>
+        <target state="translated">将 {0} 从异步更改为同步需要重启应用程序。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
-        <target state="translated">更改 {0} 的可见性将会中止调试会话。</target>
+      <trans-unit id="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine">
+        <source>Changing '{0}' to '{1}' requires restarting the application because it changes the shape of the state machine.</source>
+        <target state="translated">将“{0}”更改为“{1}”需要重启应用程序，因为它会更改状态机的形状。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_a_field_to_an_event_or_vice_versa_requires_restarting_the_application">
+        <source>Changing a field to an event or vice versa requires restarting the application.</source>
+        <target state="translated">将字段更改为事件或将事件更改为字段需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
+        <source>Changing constraints of {0} requires restarting the application.</source>
+        <target state="translated">更改 {0} 的约束需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_parameter_types_of_0_requires_restarting_the_application">
+        <source>Changing parameter types of {0} requires restarting the application.</source>
+        <target state="translated">更改 {0} 的参数类型需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
+        <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
+        <target state="translated">更改 {1} 的伪自定义属性“{0}”需要重启应用程序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
+        <source>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</source>
+        <target state="translated">更改捕获的变量“{0}”的声明范围需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_parameters_of_0_requires_restarting_the_application">
+        <source>Changing the parameters of {0} requires restarting the application.</source>
+        <target state="translated">更改 {0} 的参数需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_return_type_of_0_requires_restarting_the_application">
+        <source>Changing the return type of {0} requires restarting the application.</source>
+        <target state="translated">更改 {0} 的返回类型需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_type_of_0_requires_restarting_the_application">
+        <source>Changing the type of {0} requires restarting the application.</source>
+        <target state="translated">更改 {0} 的类型需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
+        <source>Changing the type of a captured variable '{0}' previously of type '{1}' requires restarting the application.</source>
+        <target state="translated">更改类型为“{1}”的以前捕获变量“{0}”的类型需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_type_parameters_of_0_requires_restarting_the_application">
+        <source>Changing type parameters of {0} requires restarting the application.</source>
+        <target state="translated">更改 {0} 的类型参数需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_requires_restarting_the_application">
+        <source>Changing visibility of {0} requires restarting the application.</source>
+        <target state="translated">更改 {0} 的可见性要求重启应用程序。</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -292,7 +452,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Convert_to_record_struct">
         <source>Convert to record struct</source>
-        <target state="new">Convert to record struct</target>
+        <target state="translated">转换为记录结构</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
@@ -300,9 +460,24 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">转换为结构</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="translated">转换为元组</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_type_to_0">
         <source>Convert type to '{0}'</source>
         <target state="translated">将类型转换为“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
+        <source>Could not find portable PDB on disk or embedded.</source>
+        <target state="translated">在磁盘或嵌入源上找不到可移植 PDB。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded_or_server">
+        <source>Could not find PDB on disk, or embedded, or on a symbol server.</source>
+        <target state="translated">在磁盘、嵌入源或符号服务器上找不到 PDB。</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
@@ -325,9 +500,19 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">创建其余部分并赋值为属性</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a positional parameter from a record will prevent the debug session from continuing.</source>
-        <target state="translated">从记录中删除位置参数将阻止调试会话继续。</target>
+      <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Deleting {0} around an active statement requires restarting the application.</source>
+        <target state="translated">删除活动语句周围的 {0} 需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_0_requires_restarting_the_application">
+        <source>Deleting {0} requires restarting the application.</source>
+        <target state="translated">删除 {0} 需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
+        <source>Deleting captured variable '{0}' requires restarting the application.</source>
+        <target state="translated">删除捕获的变量“{0}”需要重新启动应用程序。</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -356,13 +541,8 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
-        <source>Changes made in project '{0}' will prevent the debug session from continuing: {1}</source>
-        <target state="translated">在项目“{0}”中所作的更改将阻止调试会话继续: {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
-        <source>Edit and continue is not supported by the runtime.</source>
-        <target state="translated">运行时不支持“编辑并继续”。</target>
+        <source>Changes made in project '{0}' require restarting the application: {1}</source>
+        <target state="translated">在项目“{0}”中所做的更改要求重新启动应用程序: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -380,6 +560,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">创建 CodeFixProvider“{0}”的实例时出错</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_reading_PDB_0">
+        <source>Error reading PDB: '{0}'</source>
+        <target state="translated">读取 PDB 时出错:“{0}”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="translated">示例:</target>
@@ -393,6 +578,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
         <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
         <target state="translated">记录的显示实施方法参数名必须匹配编辑器生成的等效“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="translated">显式继承文档</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -440,9 +630,44 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">设置文档格式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Found_PDB_file_at_0">
+        <source>Found PDB file at '{0}'</source>
+        <target state="translated">在“{0}”处找到 PDB 文件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server">
+        <source>Found PDB on symbol server.</source>
+        <target state="translated">在符号服务器上找到 PDB。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server_but_could_not_read_file">
+        <source>Found PDB on symbol server but could not read file.</source>
+        <target state="translated">在符号服务器上找到 PDB，但无法读取文件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_embedded_PDB_file">
+        <source>Found embedded PDB file.</source>
+        <target state="translated">找到嵌入的 PDB 文件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_method_0">
+        <source>Generate abstract method '{0}'</source>
+        <target state="translated">生成抽象方法“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_property_0">
+        <source>Generate abstract property '{0}'</source>
+        <target state="translated">生成抽象属性“{0}”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">生成比较运算符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constant_0">
+        <source>Generate constant '{0}'</source>
+        <target state="translated">生成常数“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -455,9 +680,24 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">在“{0}”中生成构造函数(包含属性)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_enum_member_0">
+        <source>Generate enum member '{0}'</source>
+        <target state="translated">生成枚举成员“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_0">
+        <source>Generate field '{0}'</source>
+        <target state="translated">生成字段“{0}”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">为 "{0}" 生成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_method_0">
+        <source>Generate method '{0}'</source>
+        <target state="translated">生成方法“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -468,6 +708,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
         <target state="translated">生成参数 {0}(和重写/实现)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_property_0">
+        <source>Generate property '{0}'</source>
+        <target state="translated">生成属性“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_field_0">
+        <source>Generate read-only field '{0}'</source>
+        <target state="translated">生成只读字段“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_property_0">
+        <source>Generate read-only property '{0}'</source>
+        <target state="translated">生成只读属性“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -530,14 +785,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">通过“{0}”实现</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing">
-        <source>Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</source>
-        <target state="translated">将记录位置参数“{0}”实施为只读将阻止调试会话继续，</target>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application">
+        <source>Implementing a record positional parameter '{0}' as read only requires restarting the application,</source>
+        <target state="translated">将记录位置参数“{0}”实现为只读需要重启应用程序，</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing">
-        <source>Implementing a record positional parameter '{0}' with a set accessor will prevent the debug session from continuing.</source>
-        <target state="translated">使用设置访问器实施记录位置参数“{0}”将阻止调试会话继续。</target>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application">
+        <source>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</source>
+        <target state="translated">实现带有集取值函数的记录位置参数“{0}”需要重新启动应用程序。</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -597,17 +852,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Introduce_parameter">
         <source>Introduce parameter</source>
-        <target state="new">Introduce parameter</target>
+        <target state="translated">引入参数</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter_for_0">
         <source>Introduce parameter for '{0}'</source>
-        <target state="new">Introduce parameter for '{0}'</target>
+        <target state="translated">为 '{0}' 引入参数</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter_for_all_occurrences_of_0">
         <source>Introduce parameter for all occurrences of '{0}'</source>
-        <target state="new">Introduce parameter for all occurrences of '{0}'</target>
+        <target state="translated">为 '{0}' 的所有出现引入参数</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_query_variable">
@@ -619,6 +874,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Invalid group name: Group names must begin with a word character</source>
         <target state="translated">组名无效: 组名必须以单词字符开头</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
+      </trans-unit>
+      <trans-unit id="Invalid_selection">
+        <source>Invalid selection.</source>
+        <target state="translated">无效的选择。</target>
+        <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
@@ -635,14 +895,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">反转条件</target>
         <note />
       </trans-unit>
-      <trans-unit id="Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing">
-        <source>Making a method an iterator will prevent the debug session from continuing.</source>
-        <target state="translated">创造方法迭代器将阻止调试会话继续。</target>
+      <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application">
+        <source>Making a method an iterator requires restarting the application.</source>
+        <target state="translated">使方法成为迭代器需要重新启动应用程序。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Making_a_method_async_will_prevent_the_debug_session_from_continuing">
-        <source>Making a method 'async' will prevent the debug session from continuing.</source>
-        <target state="translated">创建方法“异步”将阻止调试会话继续。</target>
+      <trans-unit id="Making_a_method_asynchronous_requires_restarting_the_application">
+        <source>Making a method asynchronous requires restarting the application.</source>
+        <target state="translated">使方法成为异步需要重新启动应用程序。</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -685,24 +945,99 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0} 必须返回支持读取和查找操作的流。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Miscellaneous_Files">
+        <source>Miscellaneous Files</source>
+        <target state="translated">杂项文件</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Missing_control_character">
         <source>Missing control character</source>
         <target state="translated">缺少控制字符</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
       </trans-unit>
-      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
-        <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
-        <target state="translated">修改“{0}”的主体将阻止调试会话继续，因为主体包含的语句过多。</target>
+      <trans-unit id="Modifying_0_which_contains_a_static_variable_requires_restarting_the_application">
+        <source>Modifying {0} which contains a static variable requires restarting the application.</source>
+        <target state="translated">修改包含静态变量的 {0} 需要重启应用程序。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">修改“{0}”的主体将防止调试会话继续，原因是出现内部错误: {1}</target>
-        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
+      <trans-unit id="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_requires_restarting_the_application">
+        <source>Modifying {0} which contains an Aggregate, Group By, or Join query clauses requires restarting the application.</source>
+        <target state="translated">修改包含 Aggregate、Group By 或 Join 查询子句的 {0} 需要重启应用程序。</target>
+        <note>{Locked="Aggregate"}{Locked="Group By"}{Locked="Join"} are VB keywords and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
-        <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
-        <target state="translated">修改源文件“{0}”将阻止调试会话继续，因为该文件太大。</target>
+      <trans-unit id="Modifying_0_which_contains_the_stackalloc_operator_requires_restarting_the_application">
+        <source>Modifying {0} which contains the stackalloc operator requires restarting the application.</source>
+        <target state="translated">修改包含 stackalloc 运算符的 {0} 需要重启应用程序。</target>
+        <note>{Locked="stackalloc"} "stackalloc" is C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_requires_restarting_the_application">
+        <source>Modifying a catch/finally handler with an active statement in the try block requires restarting the application.</source>
+        <target state="translated">修改带有 try 块中的活动语句的 catch/finally 处理程序需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_catch_handler_around_an_active_statement_requires_restarting_the_application">
+        <source>Modifying a catch handler around an active statement requires restarting the application.</source>
+        <target state="translated">修改活动语句周围的 catch 处理程序需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_generic_method_requires_restarting_the_application">
+        <source>Modifying a generic method requires restarting the application.</source>
+        <target state="translated">修改泛型方法需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_method_inside_the_context_of_a_generic_type_requires_restarting_the_application">
+        <source>Modifying a method inside the context of a generic type requires restarting the application.</source>
+        <target state="translated">在泛型类型的上下文中修改方法需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_requires_restarting_the_application">
+        <source>Modifying a try/catch/finally statement when the finally block is active requires restarting the application.</source>
+        <target state="translated">在 finally 块处于活动状态时修改 try/catch/finally 语句需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application">
+        <source>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</source>
+        <target state="translated">修改包含 On Error 或 Resume 语句的活动 {0} 需要重新启动应用程序。</target>
+        <note>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements">
+        <source>Modifying the body of {0} requires restarting the application because the body has too many statements.</source>
+        <target state="translated">修改 {0} 的正文需要重启应用程序，因为正文的语句太多。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_due_to_internal_error_1">
+        <source>Modifying the body of {0} requires restarting the application due to internal error: {1}</source>
+        <target state="translated">修改 {0} 的正文要求重启应用程序，原因为内部错误: {1}</target>
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don't add any punctation after or around {1}</note>
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big">
+        <source>Modifying source file '{0}' requires restarting the application because the file is too big.</source>
+        <target state="translated">修改源文件“{0}”需要重启应用程序，因为该文件太大。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1">
+        <source>Modifying source file '{0}' requires restarting the application due to internal error: {1}</source>
+        <target state="translated">由于内部错误“{1}”，修改源文件“{0}”需要重启应用程序</target>
+        <note>{2} is a multi-line exception message including a stacktrace. Place it at the end of the message and don't add any punctation after or around {1}</note>
+      </trans-unit>
+      <trans-unit id="Modifying_source_with_experimental_language_features_enabled_requires_restarting_the_application">
+        <source>Modifying source with experimental language features enabled requires restarting the application.</source>
+        <target state="translated">在启用实验语言功能的情况下修改源需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_requires_restarting_the_application">
+        <source>Modifying the initializer of {0} in a generic type requires restarting the application.</source>
+        <target state="translated">在泛型类型中修改 {0} 的初始化表达式需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_requires_restarting_the_application">
+        <source>Modifying whitespace or comments in {0} inside the context of a generic type requires restarting the application.</source>
+        <target state="translated">修改泛型类型上下文内 {0} 中空格或注释需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_whitespace_or_comments_in_a_generic_0_requires_restarting_the_application">
+        <source>Modifying whitespace or comments in a generic {0} requires restarting the application.</source>
+        <target state="translated">修改泛型 {0} 中的空格或注释需要重启应用程序。</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -720,24 +1055,49 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">将文件移动到项目根文件夹</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type">
+        <source>Move static members to another type...</source>
+        <target state="translated">将静态成员移到另一类型...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to namespace...</source>
         <target state="translated">移动到命名空间...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">修改源文件“{0}”将防止调试会话继续，原因是出现内部错误: {1}</target>
-        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
+      <trans-unit id="Moving_0_requires_restarting_the_application">
+        <source>Moving {0} requires restarting the application.</source>
+        <target state="translated">移动 {0} 要求重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating_to_symbol_0_from_1">
+        <source>Navigating to symbol '{0}' from '{1}'.</source>
+        <target state="translated">从“{1}”导航到符号“{0}”。</target>
+        <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
         <target state="translated">嵌套限定符 {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
+      <trans-unit id="No_common_root_node_for_extraction">
+        <source>No common root node for extraction.</source>
+        <target state="translated">没有可用于提取的公共根节点。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_source_document_info_found_in_PDB">
+        <source>No source document info found in PDB.</source>
+        <target state="translated">未在 PDB 中找到源文档信息。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
         <source>No valid location to insert method call.</source>
         <target state="translated">没有插入方法调用的有效位置。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_valid_selection_to_perform_extraction">
+        <source>No valid selection to perform extraction.</source>
+        <target state="translated">没有执行提取的有效选择。</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -911,15 +1271,15 @@ This option is recommended if you know that backtracking will not succeed. Preve
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
         <source>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
         <target state="translated">均衡组定义删除以前定义的组的定义，并在当前组中存储以前定义的组和当前组之间的时间间隔。
-    
-"name1" 是当前组(可选)，"name2" 是以前定义的组，而 "subexpression" 是任何有效的正则表达式模式。均衡组定义将删除 name2 的定义，并在 name1 中存储 name2 和 name1 之间的间隔。如果未定义 name2 组，则匹配回溯。由于删除 name2 的最后一个定义会发现 name2 的上一个定义，此构造使你能够使用作为计数器的组的捕获堆栈来跟踪嵌套构造(如括号)或左括号和右括号。
 
-均衡组定义使用 "name2" 作为堆栈。每个嵌套构造的开始字符都放在该组中并位于其组中。捕获集合。匹配结束字符时，将从组中删除其相应的左符号，并减小捕获集合 1。在所有嵌套构造的开始和结束字符都匹配后，"name1" 为空。</target>
+“name1” 是当前组(可选)，“name2” 是以前定义的组，而 “subexpression” 是任何有效的正则表达式模式。均衡组定义将删除 name2 的定义，并在 name1 中存储 name2 和 name1 之间的间隔。如果未定义 name2 组，则匹配回溯。由于删除 name2 的最后一个定义会发现 name2 的上一个定义，此构造使你能够将组 name2 的捕获堆栈用作计数器来跟踪嵌套构造(如括号或左括号和右括号)。
+
+均衡组定义使用 “name2” 作为堆栈。每个嵌套构造的开始字符都放在该组中并位于其组中。捕获集合。匹配结束字符时，将从组中删除其相应的开始字符，并且捕获集合将减少 1。在所有嵌套构造的开始和结束字符都匹配后，“name1” 为空。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
@@ -1940,6 +2300,31 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">删除未使用的变量</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
+        <source>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
+        <target state="translated">删除已访问在不同作用域中声明的已捕获变量“{1}”和“{2}”的 {0} 需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">
+        <source>Removing {0} that contains an active statement requires restarting the application.</source>
+        <target state="translated">删除包含活动语句的 {0} 需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_requires_restarting_the_application">
+        <source>Renaming {0} requires restarting the application.</source>
+        <target state="translated">重命名 {0} 要求重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Renaming {0} requires restarting the application because it is not supported by the runtime.</source>
+        <target state="translated">重命名 {0} 需要重新启动应用程序，因为运行时不支持它。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_a_captured_variable_from_0_to_1_requires_restarting_the_application">
+        <source>Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</source>
+        <target state="translated">将捕获的变量从“{0}”重命名为“{1}”需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">将 "{0}" 替换为 "{1}"</target>
@@ -1955,9 +2340,34 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">原始编辑</target>
         <note />
       </trans-unit>
+      <trans-unit id="Selection_does_not_contain_a_valid_token">
+        <source>Selection does not contain a valid token.</source>
+        <target state="translated">所选内容不包含有效令牌。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_not_contained_inside_a_type">
+        <source>Selection not contained inside a type.</source>
+        <target state="translated">所选内容不包含在类型内。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Silent">
+        <source>Silent</source>
+        <target state="translated">无提示</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">对可访问性修饰符排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_code_language_information_was_not_found_in_PDB">
+        <source>Source code language information was not found in PDB.</source>
+        <target state="translated">在 PDB 中找不到源代码语言信息。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_is_a_reference_assembly">
+        <source>Source is a reference assembly, not enough information to find PDB.</source>
+        <target state="translated">源是引用程序集，信息不足，无法查找 PDB。</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -1978,6 +2388,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">抑制 {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Switching_between_lambda_and_local_function_requires_restarting_the_application">
+        <source>Switching between a lambda and a local function requires restarting the application.</source>
+        <target state="translated">在 lambda 和本地函数之间切换需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="translated">在程序集路径 "{0}" 中找到符号</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
@@ -2005,6 +2425,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">所选内容包含不带声明的本地函数调用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Timeout_SourceLink">
+        <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
+        <target state="translated">尝试从 SourceLink 下载源代码时超时。如果继续尝试进行请求，有可能会成功。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Timeout_symbol_server">
+        <source>Timed out trying to download PDB from symbol server. Subsequent requests may succeed.</source>
+        <target state="translated">尝试从符号服务器下载 PDB 时超时。如果继续尝试进行请求，有可能会成功。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Too_many_bars_in_conditional_grouping">
         <source>Too many | in (?()|)</source>
         <target state="translated">(?()|) 中的 | 太多</target>
@@ -2014,6 +2444,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Too many )'s</source>
         <target state="translated">")" 太多</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
+      </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="translated">类型:</target>
+        <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
@@ -2095,14 +2530,104 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">展开参数列表</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">更新活动语句周围的“{0}”将阻止调试会话继续执行。</target>
+      <trans-unit id="Updating_0_requires_restarting_the_application">
+        <source>Updating '{0}' requires restarting the application.</source>
+        <target state="translated">更新“{0}”需要重启应用程序。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_the_attributes_of_0_is_not_supported_by_the_runtime">
-        <source>Updating the attributes of '{0}' is not supported by the runtime.</source>
-        <target state="new">Updating the attributes of '{0}' is not supported by the runtime.</target>
+      <trans-unit id="Updating_a_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating a {0} around an active statement requires restarting the application.</source>
+        <target state="translated">更新活动语句周围的 {0} 需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_requires_restarting_the_application">
+        <source>Updating a complex statement containing an await expression requires restarting the application.</source>
+        <target state="translated">更新包含 await 表达式的复杂语句需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_an_active_statement_requires_restarting_the_application">
+        <source>Updating an active statement requires restarting the application.</source>
+        <target state="translated">更新活动语句需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
+        <target state="translated">更新活动语句周围的 async 或 iterator 修饰符需要重新启动应用程序。</target>
+        <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Updating a reloadable type (marked by {0}) or its member requires restarting the application because is not supported by the runtime.</source>
+        <target state="translated">更新可重载类型(由 {0} 标记)或其成员需要重启应用程序，因为运行时不支持。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_Handles_clause_of_0_requires_restarting_the_application">
+        <source>Updating the Handles clause of {0} requires restarting the application.</source>
+        <target state="translated">更新 {0} 的 Handles 子句需要重新启动应用程序。</target>
+        <note>{Locked="Handles"} "Handles" is VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_Implements_clause_of_a_0_requires_restarting_the_application">
+        <source>Updating the Implements clause of a {0} requires restarting the application.</source>
+        <target state="translated">更新 {0} 的 Implements 子句需要重新启动应用程序。</target>
+        <note>{Locked="Implements"} "Implements" is VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_alias_of_Declare_statement_requires_restarting_the_application">
+        <source>Updating the alias of Declare statement requires restarting the application.</source>
+        <target state="translated">更新 Declare 语句的别名需要重新启动应用程序。</target>
+        <note>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Updating the attributes of {0} requires restarting the application because it is not supported by the runtime.</source>
+        <target state="translated">更新 {0} 的属性需要重启应用程序，因为它不受运行时支持。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_requires_restarting_the_application">
+        <source>Updating the base class and/or base interface(s) of {0} requires restarting the application.</source>
+        <target state="translated">更新 {0} 的基类和/或基接口需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_initializer_of_0_requires_restarting_the_application">
+        <source>Updating the initializer of {0} requires restarting the application.</source>
+        <target state="translated">更新 {0} 的初始化表达式需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_kind_of_a_property_event_accessor_requires_restarting_the_application">
+        <source>Updating the kind of a property/event accessor requires restarting the application.</source>
+        <target state="translated">更新属性/事件取值函数的类型需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_kind_of_a_type_requires_restarting_the_application">
+        <source>Updating the kind of a type requires restarting the application.</source>
+        <target state="translated">更新类型的种类需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_library_name_of_Declare_statement_requires_restarting_the_application">
+        <source>Updating the library name of Declare statement requires restarting the application.</source>
+        <target state="translated">更新 Declare 语句的库名称需要重启应用程序。</target>
+        <note>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_modifiers_of_0_requires_restarting_the_application">
+        <source>Updating the modifiers of {0} requires restarting the application.</source>
+        <target state="translated">更新 {0} 的修饰符需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_size_of_a_0_requires_restarting_the_application">
+        <source>Updating the size of a {0} requires restarting the application.</source>
+        <target state="translated">更新 {0} 的大小需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
+        <source>Updating the type of {0} requires restarting the application.</source>
+        <target state="translated">更新 {0} 的类型需要重启应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_underlying_type_of_0_requires_restarting_the_application">
+        <source>Updating the underlying type of {0} requires restarting the application.</source>
+        <target state="translated">更新 {0} 的基础差异需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_variance_of_0_requires_restarting_the_application">
+        <source>Updating the variance of {0} requires restarting the application.</source>
+        <target state="translated">更新 {0} 的差异需要重新启动应用程序。</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -2208,6 +2733,46 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_dash_1">
         <source>{0} - {1}</source>
         <target state="translated">{0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB">
+        <source>'{0}' found in embedded PDB.</source>
+        <target state="translated">在嵌入的 PDB 中找到“{0}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_checksum_failed">
+        <source>'{0}' found in embedded PDB but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">在嵌入 PDB 中找到“{0}”，但校验和错误或无法读取临时文件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_could_not_write_file_1">
+        <source>'{0}' found in embedded PDB but could not write to temp file: '{1}'</source>
+        <target state="translated">在嵌入的 PDB 中找到“{0}”，但无法写入临时文件:“{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_cached_source_file">
+        <source>'{0}' found in embedded PDB and found cached source file.</source>
+        <target state="translated">在嵌入的 PDB 中找到“{0}”，并找到缓存的源文件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location">
+        <source>'{0}' found in original location.</source>
+        <target state="translated">在原始位置找到“{0}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location_but_checksum_failed">
+        <source>'{0}' found in original location but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">在原始位置找到“{0}”，但校验和错误或无法读取临时文件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink">
+        <source>'{0}' found via SourceLink.</source>
+        <target state="translated">通过 SourceLink 找到“{0}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink_but_couldnt_read_file">
+        <source>'{0}' found via SourceLink but couldn't read temp file.</source>
+        <target state="translated">通过 SourceLink 找到“{0}”，但无法读取临时文件。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -2383,11 +2948,11 @@ Although it's possible to display the ten thousandths of a second component of a
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
 When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="new">The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
+        <target state="translated">"f" 自定义格式说明符表示秒部分的最高有效位；即表示日期和时间值中的十分之一秒数。
 
-If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
+如果在没有其他自定义格式说明符的情况下使用 "f" 格式说明符，则该说明符将被解释为 "f" 标准日期和时间格式说明符。
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
+将 "f" 格式说明符用作提供给 ParseExact 或 TryParseExact 方法的格式字符串的一部分时，"f" 格式说明符的数目会指示成功分析字符串时必须存在的秒部分的最高有效位的数目。</target>
         <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
@@ -2456,9 +3021,14 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">"HH" 自定义格式说明符(另加任意数量的 "H" 说明符)将小时表示为从 00 至 23 的数字，即通过从零开始的 24 小时制表示小时，自午夜开始对小时计数。一位数字的小时数设置为带前导零的格式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="all_anonymous_types_in_container">
+        <source>all anonymous types in container</source>
+        <target state="translated">容器中的所有匿名类型</target>
+        <note />
+      </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
-        <target state="new">and update call sites directly</target>
+        <target state="translated">并直接更新调用站点</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -2533,6 +3103,16 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <target state="translated">放弃</target>
         <note />
       </trans-unit>
+      <trans-unit id="embedded">
+        <source>embedded</source>
+        <target state="translated">嵌入源</target>
+        <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
+      </trans-unit>
+      <trans-unit id="external">
+        <source>external</source>
+        <target state="translated">外部源</target>
+        <note>External means "external source", meaning source files that are not part of the current solution</note>
+      </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>
         <target state="translated">从元数据</target>
@@ -2604,12 +3184,17 @@ The "f" standard format specifier represents a combination of the long date ("D"
       </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
         <source>into extracted method to invoke at call sites</source>
-        <target state="new">into extracted method to invoke at call sites</target>
+        <target state="translated">到已提取方法，以在调用站点上进行调用</target>
         <note />
       </trans-unit>
       <trans-unit id="into_new_overload">
         <source>into new overload</source>
-        <target state="new">into new overload</target>
+        <target state="translated">到新重载</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="just_this_anonymous_type">
+        <source>just this anonymous type</source>
+        <target state="translated">仅此匿名类型</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
@@ -2850,36 +3435,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">生成所有</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_enum_member_1_0">
-        <source>Generate enum member '{1}.{0}'</source>
-        <target state="translated">生成枚举成员“{1}.{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constant_1_0">
-        <source>Generate constant '{1}.{0}'</source>
-        <target state="translated">生成常数“{1}.{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_1_0">
-        <source>Generate read-only property '{1}.{0}'</source>
-        <target state="translated">生成只读属性“{1}.{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_1_0">
-        <source>Generate property '{1}.{0}'</source>
-        <target state="translated">生成属性“{1}.{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_1_0">
-        <source>Generate read-only field '{1}.{0}'</source>
-        <target state="translated">生成只读字段“{1}.{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_1_0">
-        <source>Generate field '{1}.{0}'</source>
-        <target state="translated">生成字段“{1}.{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_local_0">
         <source>Generate local '{0}'</source>
         <target state="translated">生成本地“{0}”</target>
@@ -2965,11 +3520,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">为“{0}”引入查询变量</target>
         <note />
       </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">匿名类型:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="is_">
         <source>is</source>
         <target state="translated">是</target>
@@ -3017,6 +3567,11 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">"g" 或 "gg" 自定义格式说明符(另加任意数量的其他 "g" 说明符)表示期间或纪元，如果要设置格式的日期不具有关联的时期或纪元字符串，则格式操作将忽略该说明符。
 
 如果使用 "g" 格式说明符而没有其他自定义格式说明符，则该说明符将被解释为 "g" 标准日期和时间格式说明符。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="property_accessor">
+        <source>property accessor</source>
+        <target state="translated">属性访问器</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
@@ -3079,336 +3634,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">未知的位置</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a complex statement containing an await expression will prevent the debug session from continuing.</source>
-        <target state="translated">更新包含 Await 表达式的复杂语句将中止调试会话。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
-        <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
-        <target state="translated">捕获之前尚未捕获过的变量“{0}”将阻止调试会话继续执行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_capture_variable_0_will_prevent_the_debug_session_from_continuing">
-        <source>Ceasing to capture variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">中止捕获变量“{0}”将阻止调试会话继续执行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting captured variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">删除捕获的变量“{0}”将阻止调试会话继续执行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the type of a captured variable '{0}' previously of type '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">更改之前类型为“{1}”的捕获的变量“{0}”的类型将阻止调试会话继续执行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_parameters_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the parameters of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更改“{0}”的参数将阻止调试会话继续执行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_return_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the return type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更改“{0}”的返回类型将阻止调试会话继续执行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更改“{0}”的类型将阻止调试会话继续执行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the declaration scope of a captured variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更改捕获的变量“{0}”的声明范围将阻止调试会话继续执行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing">
-        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} will prevent the debug session from continuing.</source>
-        <target state="translated">访问 {1} 中之前尚未访问过的捕获的变量“{0}”将阻止调试会话继续执行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_will_prevent_the_debug_session_from_continuing">
-        <source>Ceasing to access captured variable '{0}' in {1} will prevent the debug session from continuing.</source>
-        <target state="translated">中止访问 {1} 中的捕获的变量“{0}”将阻止调试会话继续执行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' that accesses captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</source>
-        <target state="translated">添加访问捕获的变量“{1}”和“{2}”(在不同范围中声明)的“{0}”将阻止调试会话继续执行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing">
-        <source>Removing '{0}' that accessed captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</source>
-        <target state="translated">删除访问捕获的变量“{1}”和“{2}”(在不同范围中声明)的“{0}”将阻止调试会话继续执行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">将“{0}”添加进“{1}”将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</source>
-        <target state="translated">将“{0}”添加到具有显式或有序布局的类将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the modifiers of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的修饰符将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the Handles clause of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的 Handles 子句将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_with_the_Handles_clause_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' with the Handles clause will prevent the debug session from continuing.</source>
-        <target state="translated">向“{0}”添加 Handles 子句将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the Implements clause of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的 Implements 子句将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">将约束从“{0}”更改为“{1}” 将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的变型将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的类型将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_initializer_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the initializer of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的初始值设定项将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_size_of_a_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the size of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的大小将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_underlying_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the underlying type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的基础类型将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">更新“{0}”的基类和/或基接口将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a field to an event or vice versa will prevent the debug session from continuing.</source>
-        <target state="translated">更新事件的字段或更新字段的事件都将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_type_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a type will prevent the debug session from continuing.</source>
-        <target state="translated">更新类型的种类将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
-        <target state="translated">更新一个属性/事件访问器的种类将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
-        <target state="translated">更新方法 (Sub/Function) 的种类将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the library name of Declare Statement will prevent the debug session from continuing.</source>
-        <target state="translated">更新 Declare 语句的库名将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_alias_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the alias of Declare Statement will prevent the debug session from continuing.</source>
-        <target state="translated">更新“Declare 语句”的别名将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Renaming_0_will_prevent_the_debug_session_from_continuing">
-        <source>Renaming '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">重命名“{0}”将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">添加“{0}”将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding an abstract '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">添加摘要“{0}”或替代继承的“{0}”将会中止调试会话。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_MustOverride_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a MustOverride '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">添加 MustOverride“{0}”或替代继承的“{0}”将会中止调试会话。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_an_extern_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding an extern '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">添加外部“{0}”将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_an_imported_method_will_prevent_the_debug_session_from_continuing">
-        <source>Adding an imported method will prevent the debug session from continuing.</source>
-        <target state="translated">添加导入的方法将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_user_defined_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a user defined '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">添加用户定义的“{0}”将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_generic_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a generic '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">添加泛型“{0}”将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">在活动语句周围添加“{0}”将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Moving_0_will_prevent_the_debug_session_from_continuing">
-        <source>Moving '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">移动“{0}”将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting {0} will prevent the debug session from continuing.</source>
-        <target state="translated">删除 {0} 将会中止调试会话。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">删除活动语句周围的“{0}”将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">添加方法主体将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a method body will prevent the debug session from continuing.</source>
-        <target state="translated">删除方法主体将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">更新当前语句的 async 或 iterator 修饰符可以阻止调试会话继续。</target>
-        <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a generic method will prevent the debug session from continuing.</source>
-        <target state="translated">修改泛型方法将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_whitespace_or_comments_in_a_generic_0_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying whitespace or comments in a generic '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">修改泛型“{0}”中的空白或注释将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_method_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a method inside the context of a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">修改某个泛型类型上下文内的方法将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying whitespace or comments in '{0}' inside the context of a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">修改泛型类型上下文内“{0}”的空白或注释将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">修改泛型类型中的“{0}”的初始值设定项将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing.</source>
-        <target state="translated">使用包含匿名类型的字段或属性初始值设定项向类型添加构造函数将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Renaming_a_captured_variable_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Renaming a captured variable, from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">如果将捕获的变量从“{0}”重命名为“{1}”，调试会话将不能继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing.</source>
-        <target state="translated">修改带有 try 块中的活动语句的 catch/finally 处理程序将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a try/catch/finally statement when the finally block is active will prevent the debug session from continuing.</source>
-        <target state="translated">在 finally 块处于活动状态时修改 try/catch/finally 语句将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_catch_handler_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a catch handler around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">修改活动语句周围的 catch 处理程序将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</source>
-        <target state="translated">修改含“stackalloc”运算符的“{0}”将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</source>
-        <target state="translated">修改含“On Error”或“Resume”语句的活动“{0}”将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing.</source>
-        <target state="translated">修改包含 Aggregate、Group By 或 Join 查询子句的“{0}”将阻止调试会话继续执行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_source_with_experimental_language_features_enabled_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying source with experimental language features enabled will prevent the debug session from continuing.</source>
-        <target state="translated">修改已启用实验性语言功能的源将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">更新活动语句将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Removing {0} that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">删除包含活动语句的 {0} 将会中止调试会话。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a new file will prevent the debug session from continuing.</source>
-        <target state="translated">添加一个新文件将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_will_prevent_the_debug_session_from_continuing">
-        <source>Attribute '{0}' is missing. Updating an async method or an iterator will prevent the debug session from continuing.</source>
-        <target state="translated">特性“{0}”缺失。更新异步方法或迭代器将阻止调试会话继续。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unexpected_interface_member_kind_colon_0">
         <source>Unexpected interface member kind: {0}</source>
         <target state="translated">意外的接口成员种类:{0}</target>
@@ -3417,21 +3642,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Unknown_symbol_kind">
         <source>Unknown symbol kind</source>
         <target state="translated">未知符号种类</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_property_1_0">
-        <source>Generate abstract property '{1}.{0}'</source>
-        <target state="translated">生成抽象属性“{1}.{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_method_1_0">
-        <source>Generate abstract method '{1}.{0}'</source>
-        <target state="translated">生成抽象方法“{1}.{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_method_1_0">
-        <source>Generate method '{1}.{0}'</source>
-        <target state="translated">生成方法“{1}.{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
@@ -3623,11 +3833,6 @@ Do you want to continue?</source>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
         <source>TODO: set large fields to null</source>
         <target state="translated">TODO: 将大型字段设置为 null</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</source>
-        <target state="translated">修改包含静态变量的“{0}”将阻止调试会话继续执行。</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">
@@ -3846,6 +4051,11 @@ If the "K" format specifier is used without other custom format specifiers, it's
 对于 DateTimeOffset 值，"K" 格式说明符等效于 "zzz" 格式说明符，并生成一个包含来自 UTC 的 DateTimeOffset 值偏移量的结果字符串。
 
 如果使用 "K" 格式说明符而没有其他自定义格式说明符，则该说明符将被解释为标准日期和时间格式说明符，并引发 FormatException。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type">
+        <source>type</source>
+        <target state="translated">类型</target>
         <note />
       </trans-unit>
       <trans-unit id="type_constraint">
@@ -4105,16 +4315,6 @@ This version used in: {2}</source>
         <target state="translated">添加缺少的参数节点</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_containing_scope_async">
-        <source>Make containing scope async</source>
-        <target state="translated">将包含范围改为 Async</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async_return_Task">
-        <source>Make containing scope async (return Task)</source>
-        <target state="translated">将包含范围改为 Async (返回“任务”)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="paren_Unknown_paren">
         <source>(Unknown)</source>
         <target state="translated">(未知)</target>
@@ -4358,11 +4558,6 @@ This version used in: {2}</source>
       <trans-unit id="Use_0">
         <source>Use {0}</source>
         <target state="translated">使用 {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing">
-        <source>Switching between a lambda and a local function will prevent the debug session from continuing.</source>
-        <target state="translated">在 lambda 与本地函数之间切换可能会导致无法继续调试会话。</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">

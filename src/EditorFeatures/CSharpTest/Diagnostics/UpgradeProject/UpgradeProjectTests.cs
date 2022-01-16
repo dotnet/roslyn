@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
                 var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
 
-                var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
+                var appliedChanges = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
                 var oldSolution = appliedChanges.Item1;
                 var newSolution = appliedChanges.Item2;
                 Assert.All(newSolution.Projects.Where(p => p.Language == LanguageNames.CSharp),
@@ -1054,7 +1054,7 @@ class Test
         }
 
         [Fact]
-        public async Task UpgradeProjectForImplicitImplementationOfNonPublicMemebers_CS8704()
+        public async Task UpgradeProjectForImplicitImplementationOfNonPublicMembers_CS8704()
         {
             await TestLanguageVersionUpgradedAsync(
 @"
@@ -1070,6 +1070,38 @@ class C1 : [|I1|]
 ",
                 expected: LanguageVersion.CSharp10,
                 new CSharpParseOptions(LanguageVersion.CSharp9));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForTargetTypedConditional()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+class C
+{
+    void M(bool b)
+    {
+        int? i = [|b ? 1 : null|];
+    }
+}",
+                expected: LanguageVersion.CSharp9,
+                new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [Fact, WorkItem(57154, "https://github.com/dotnet/roslyn/issues/57154")]
+        public async Task UpgradeProjectForNewLinesInInterpolations()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+class Test
+{
+    void M()
+    {
+        var v = $""x{
+                    1 + 1
+                 [|}|]y"";
+    }
+}",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp8));
         }
     }
 }

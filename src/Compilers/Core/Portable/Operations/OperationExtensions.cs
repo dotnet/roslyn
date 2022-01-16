@@ -15,6 +15,14 @@ namespace Microsoft.CodeAnalysis.Operations
     public static partial class OperationExtensions
     {
         /// <summary>
+        /// Helper function to simplify the access to the function pointer signature of an FunctionPointerInvocationOperation
+        /// </summary>
+        public static IMethodSymbol GetFunctionPointerSignature(this IFunctionPointerInvocationOperation functionPointer)
+        {
+            return ((IFunctionPointerTypeSymbol)functionPointer.Target.Type!).Signature;
+        }
+
+        /// <summary>
         /// This will check whether context around the operation has any error such as syntax or semantic error
         /// </summary>
         internal static bool HasErrors(this IOperation operation, Compilation compilation, CancellationToken cancellationToken = default(CancellationToken))
@@ -85,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 yield return operation;
             }
 
-            var stack = ArrayBuilder<Operation.Enumerator>.GetInstance();
+            var stack = ArrayBuilder<IOperation.OperationList.Enumerator>.GetInstance();
             stack.Push(((Operation)operation).ChildOperations.GetEnumerator());
 
             while (stack.Any())
