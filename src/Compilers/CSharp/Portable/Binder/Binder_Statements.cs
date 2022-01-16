@@ -1668,12 +1668,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new CSDiagnosticInfo(ErrorCode.ERR_BadEventUsageNoField, leastOverridden);
         }
 
-        internal static bool IsPropertyAssignableFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
+        internal static bool IsPropertyAssignedThroughBackingField(BoundPropertyAccess propertyAccess, Symbol fromMember)
         {
-            return IsPropertyAssignableFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember);
+            return IsPropertyAssignedThroughBackingField(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember);
         }
 
-        private static bool IsPropertyAssignableFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
+        /// <summary>
+        /// Determines whether a property is assigned through the backing field within a symbol <paramref name="fromMember"/>
+        /// </summary>
+        /// <remarks>
+        /// A property is assigned through backing field within a constructor or a field assignment.
+        /// </remarks>
+        private static bool IsPropertyAssignedThroughBackingField(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
         {
             if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
@@ -1681,7 +1687,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return propertySymbol is SourcePropertySymbolBase sourceProperty &&
-                    (sourceProperty.GetMethodIsEquivalentToBackingFieldRead || sourceProperty.SetMethodIsEquivalentToBackingFieldWrite) && // PROTOTYPE(semi-auto-props): TODO: Support assigning semi auto prop from constructors.
+                    // PROTOTYPE(semi-auto-props): TODO: Support assigning semi auto prop from constructors. Probably by adjusting IsEquivalentToBackingFieldAccess implementation?
+                    // To be assigned through backing field, either SetMethod is null, or it's equivalent to backing field write
+                    sourceProperty.SetMethod is not SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: false } &&
                     TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
                     IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic) &&
                     (sourceProperty.IsStatic || receiver.Kind == BoundKind.ThisReference);

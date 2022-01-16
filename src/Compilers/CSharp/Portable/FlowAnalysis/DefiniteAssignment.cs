@@ -964,7 +964,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var propAccess = (BoundPropertyAccess)expr;
 
-                        if (Binder.IsPropertyAssignableFromConstructor(propAccess, this.CurrentSymbol)) // PROTOTYPE(semi-auto-props): Revise this method call is the behavior we want and add unit tests..
+                        // PROTOTYPE(semi-auto-props): The call to IsPropertyAssignedThroughBackingField isn't sensible.
+                        // We get here for property read.
+                        // This applies to ALL IsPropertyAssignedThroughBackingField calls in this file.
+                        if (Binder.IsPropertyAssignedThroughBackingField(propAccess, this.CurrentSymbol)) // PROTOTYPE(semi-auto-props): Revise this method call is the behavior we want and add unit tests..
                         {
                             var propSymbol = propAccess.PropertySymbol;
                             member = (propSymbol as SourcePropertySymbolBase)?.BackingField;
@@ -1189,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     {
                         var propertyAccess = (BoundPropertyAccess)node;
-                        if (Binder.IsPropertyAssignableFromConstructor(propertyAccess, this.CurrentSymbol)) // PROTOTYPE(semi-auto-props): Revise this method call is the behavior we want and add unit tests..
+                        if (Binder.IsPropertyAssignedThroughBackingField(propertyAccess, this.CurrentSymbol)) // PROTOTYPE(semi-auto-props): Revise this method call is the behavior we want and add unit tests..
                         {
                             var property = propertyAccess.PropertySymbol;
                             var backingField = (property as SourcePropertySymbolBase)?.BackingField;
@@ -2240,7 +2243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
             var result = base.VisitPropertyAccess(node);
-            if (Binder.IsPropertyAssignableFromConstructor(node, this.CurrentSymbol)) // PROTOTYPE(semi-auto-props): Revise this method call is the behavior we want and add unit tests..
+            if (Binder.IsPropertyAssignedThroughBackingField(node, this.CurrentSymbol)) // PROTOTYPE(semi-auto-props): Revise this method call is the behavior we want and add unit tests..
             {
                 var property = node.PropertySymbol;
                 var backingField = (property as SourcePropertySymbolBase)?.BackingField;

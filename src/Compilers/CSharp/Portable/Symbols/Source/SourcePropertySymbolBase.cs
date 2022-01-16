@@ -784,10 +784,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool GetMethodIsEquivalentToBackingFieldRead => _getMethod?.BodyShouldBeSynthesized == true;
-
-        internal bool SetMethodIsEquivalentToBackingFieldWrite => _setMethod?.BodyShouldBeSynthesized == true;
-
 #nullable disable
 
         internal override bool MustCallMethodsDirectly
