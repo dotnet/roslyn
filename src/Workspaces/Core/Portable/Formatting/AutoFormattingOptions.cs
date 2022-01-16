@@ -45,19 +45,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             public static PerLanguageOption2<FormattingOptions.IndentStyle> SmartIndent { get; } =
                 new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: FormattingOptions.IndentStyle.Smart);
 
-            /// <summary>
-            /// Default value of 120 was picked based on the amount of code in a github.com diff at 1080p.
-            /// That resolution is the most common value as per the last DevDiv survey as well as the latest
-            /// Steam hardware survey.  This also seems to a reasonable length default in that shorter
-            /// lengths can often feel too cramped for .NET languages, which are often starting with a
-            /// default indentation of at least 16 (for namespace, class, member, plus the final construct
-            /// indentation).
-            /// 
-            /// TODO: Currently the option has no storage and always has its default value. See https://github.com/dotnet/roslyn/pull/30422#issuecomment-436118696.
-            /// </summary>
-            internal static Option2<int> PreferredWrappingColumn { get; } =
-                new(FeatureName, FormattingOptionGroups.NewLine, nameof(PreferredWrappingColumn), defaultValue: 120);
-
             internal static readonly PerLanguageOption2<bool> AutoFormattingOnReturn =
                 new(FeatureName, OptionGroup.Default, nameof(AutoFormattingOnReturn), defaultValue: true,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return"));
