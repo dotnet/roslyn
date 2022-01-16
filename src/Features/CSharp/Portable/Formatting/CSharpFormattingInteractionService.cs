@@ -44,16 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public bool SupportsFormatSelection => true;
         public bool SupportsFormatOnReturn => false;
 
-        public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
+        public bool SupportsFormattingOnTypedCharacter(Document document, AutoFormattingOptions options, char ch)
         {
-            // Performance: This method checks several options to determine if we should do smart
-            // indent, none of which are controlled by editorconfig. Instead of calling 
-            // document.GetOptionsAsync we can use the Workspace's global options and thus save the
-            // work of attempting to read in the editorconfig file.
-            var optionSet = document.Project.Solution.Workspace.Options;
-
-            var options = AutoFormattingOptions.From(optionSet, document.Project.Language);
-
             var smartIndentOn = options.IndentStyle == FormattingOptions.IndentStyle.Smart;
 
             // We consider the proper placement of a close curly or open curly when it is typed at

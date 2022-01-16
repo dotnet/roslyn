@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         bool FormatOnSemicolon,
         bool FormatOnCloseBrace)
     {
+        public static AutoFormattingOptions From(Project project)
+            => From(project.Solution.Options, project.Language);
+
         public static AutoFormattingOptions From(OptionSet options, string language)
             => new(
                 IndentStyle: options.GetOption(Metadata.SmartIndent, language),

@@ -166,7 +166,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             }
             else if (args is TypeCharCommandArgs typeCharArgs)
             {
-                if (!service.SupportsFormattingOnTypedCharacter(document, typeCharArgs.TypedChar))
+                var options = AutoFormattingOptions.From(document.Project);
+                if (!service.SupportsFormattingOnTypedCharacter(document, options, typeCharArgs.TypedChar))
                 {
                     return;
                 }
