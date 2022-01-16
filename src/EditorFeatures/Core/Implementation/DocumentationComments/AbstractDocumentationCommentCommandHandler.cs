@@ -111,7 +111,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return returnValue;
         }
 
-
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
             => nextHandler();
 
