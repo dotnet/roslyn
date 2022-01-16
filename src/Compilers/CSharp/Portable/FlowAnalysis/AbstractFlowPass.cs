@@ -570,17 +570,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.PropertyAccess:
                     var access = (BoundPropertyAccess)node;
-
-                    if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol))
-                    {
-                        var backingField = (access.PropertySymbol as SourcePropertySymbolBase)?.BackingField;
-                        if (backingField != null)
-                        {
-                            //VisitFieldAccessInternal(access.ReceiverOpt, backingField);
-                            break;
-                        }
-                    }
-
                     goto default;
 
                 case BoundKind.FieldAccess:
