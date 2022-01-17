@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis
             // that contains the declaration
             while (rootOperation.Parent is not null)
             {
+                if (rootOperation is IBlockOperation)
+                {
+                    break;
+                }
+
                 rootOperation = rootOperation.Parent;
             }
 
@@ -77,7 +82,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var syntax = reference is IVariableDeclaratorOperation variableDeclarator
-                    ? variableDeclarator.GetVariableInitializer().Value.Syntax
+                    ? variableDeclarator.GetVariableInitializer()!.Value.Syntax
                     : reference.Syntax;
 
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
@@ -96,7 +101,7 @@ namespace Microsoft.CodeAnalysis
             {
                 ILocalReferenceOperation localReference => localReference.Local.Equals(symbol),
                 IParameterReferenceOperation parameterReference => parameterReference.Parameter.Equals(symbol),
-                IAssignmentOperation assignment => assignment is not IDeconstructionAssignmentOperation && IsSymbolReferencedByOperation(assignment.Target, symbol, allowNullInitializer: false),
+                IAssignmentOperation assignment => IsSymbolReferencedByOperation(assignment.Target, symbol, allowNullInitializer: false),
                 IForEachLoopOperation loopOperation => IsSymbolReferencedByOperation(loopOperation.LoopControlVariable, symbol, allowNullInitializer: true),
                 ITupleOperation tupleOperation => tupleOperation.Elements.Any(element => IsSymbolReferencedByOperation(element, symbol, allowNullInitializer: false)),
 
