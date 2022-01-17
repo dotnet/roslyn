@@ -89,27 +89,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // (x); -> x;
             if (node.IsParentKind(SyntaxKind.ExpressionStatement))
-            {
                 return true;
-            }
 
             // => (x)   ->   => x
             if (node.IsParentKind(SyntaxKind.ArrowExpressionClause))
-            {
                 return true;
-            }
 
             // checked((x)) -> checked(x)
-            if (node.IsParentKind(SyntaxKind.CheckedExpression) ||
-                node.IsParentKind(SyntaxKind.UncheckedExpression))
-            {
+            if (node.Parent?.Kind() is SyntaxKind.CheckedExpression or SyntaxKind.UncheckedExpression)
                 return true;
-            }
+
             // ((x, y)) -> (x, y)
             if (expression.IsKind(SyntaxKind.TupleExpression))
-            {
                 return true;
-            }
 
             // int Prop => (x); -> int Prop => x;
             if (node.Parent is ArrowExpressionClauseSyntax arrowExpressionClause && arrowExpressionClause.Expression == node)
@@ -161,30 +153,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Cases:
             //   (C)(this) -> (C)this
             if (node.IsParentKind(SyntaxKind.CastExpression) && expression.IsKind(SyntaxKind.ThisExpression))
-            {
                 return true;
-            }
 
             // Cases:
             //   y((x)) -> y(x)
             if (node.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument) && argument.Expression == node)
-            {
                 return true;
-            }
 
             // Cases:
             //   $"{(x)}" -> $"{x}"
             if (node.IsParentKind(SyntaxKind.Interpolation))
-            {
                 return true;
-            }
 
             // Cases:
             //   ($"{x}") -> $"{x}"
             if (expression.IsKind(SyntaxKind.InterpolatedStringExpression))
-            {
                 return true;
-            }
 
             // Cases:
             //   {(x)} -> {x}
@@ -192,9 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 // Assignment expressions are not allowed in initializers
                 if (expression.IsAnyAssignExpression())
-                {
                     return false;
-                }
 
                 return true;
             }
@@ -207,9 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 // Assignment expressions are not allowed unless member is named
                 if (anonymousDeclarator.NameEquals == null && expression.IsAnyAssignExpression())
-                {
                     return false;
-                }
 
                 return true;
             }
@@ -217,17 +197,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Cases:
             // where (x + 1 > 14) -> where x + 1 > 14
             if (node.Parent is QueryClauseSyntax)
-            {
                 return true;
-            }
 
             // Cases:
             //   (x)   -> x
             //   (x.y) -> x.y
             if (IsSimpleOrDottedName(expression))
-            {
                 return true;
-            }
 
             // Cases:
             //   ('')      -> ''
@@ -238,15 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //   (default) -> default;
             //   (1)       -> 1
             if (expression.IsAnyLiteralExpression())
-            {
                 return true;
-            }
 
             // (this)   -> this
             if (expression.IsKind(SyntaxKind.ThisExpression))
-            {
                 return true;
-            }
 
             // x ?? (throw ...) -> x ?? throw ...
             if (expression.IsKind(SyntaxKind.ThrowExpression) &&
@@ -258,35 +230,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // case (x): -> case x:
             if (node.IsParentKind(SyntaxKind.CaseSwitchLabel))
-            {
                 return true;
-            }
 
             // case (x) when y: -> case x when y:
             if (node.IsParentKind(SyntaxKind.ConstantPattern) &&
                 node.Parent.IsParentKind(SyntaxKind.CasePatternSwitchLabel))
-            {
                 return true;
-            }
 
             // case x when (y): -> case x when y:
             if (node.IsParentKind(SyntaxKind.WhenClause))
-            {
                 return true;
-            }
 
             // #if (x)   ->   #if x
             if (node.Parent is DirectiveTriviaSyntax)
-            {
                 return true;
-            }
 
             // Switch expression arm
             // x => (y)
             if (node.Parent is SwitchExpressionArmSyntax arm && arm.Expression == node)
-            {
                 return true;
-            }
 
             // If we have: (X)(++x) or (X)(--x), we don't want to remove the parens. doing so can
             // make the ++/-- now associate with the previous part of the cast expression.
@@ -313,9 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // parenthesized expression) now only conditionally run depending on if 'x' is null or
             // not.
             if (expression.IsKind(SyntaxKind.ConditionalAccessExpression))
-            {
                 return false;
-            }
 
             // Operator precedence cases:
             // - If the parent is not an expression, do not remove parentheses
@@ -542,11 +502,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 var expression = node.Expression;
 
-                if (expression.IsKind(
-                        SyntaxKind.UnaryMinusExpression,
-                        SyntaxKind.UnaryPlusExpression,
-                        SyntaxKind.PointerIndirectionExpression,
-                        SyntaxKind.AddressOfExpression))
+                if (expression.Kind() is
+                        SyntaxKind.UnaryMinusExpression or
+                        SyntaxKind.UnaryPlusExpression or
+                        SyntaxKind.PointerIndirectionExpression or
+                        SyntaxKind.AddressOfExpression)
                 {
                     return true;
                 }
@@ -698,8 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return IsSimpleOrDottedName(greaterThanExpression.Left)
-                && (greaterThanExpression.Right.IsKind(SyntaxKind.ParenthesizedExpression)
-                    || greaterThanExpression.Right.IsKind(SyntaxKind.CastExpression));
+                && greaterThanExpression.Right.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.CastExpression;
         }
 
         private static bool IsSimpleOrDottedName(ExpressionSyntax expression)
