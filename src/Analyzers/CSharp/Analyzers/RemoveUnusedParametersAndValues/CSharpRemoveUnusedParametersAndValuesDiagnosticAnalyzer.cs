@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             => node is RecordDeclarationSyntax;
 
         protected override bool SupportsDiscard(SyntaxTree tree)
-            => ((CSharpParseOptions)tree.Options).LanguageVersion >= LanguageVersion.CSharp7;
+            => tree.Options.LanguageVersion() >= LanguageVersion.CSharp7;
 
         protected override bool MethodHasHandlesClause(IMethodSymbol method)
             => false;

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 
         protected override bool IsSupported(SyntaxKind assignmentKind, ParseOptions options)
             => assignmentKind != SyntaxKind.CoalesceExpression ||
-            ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp8;
+            options.LanguageVersion() >= LanguageVersion.CSharp8;
 
         protected override int TryGetIncrementOrDecrement(SyntaxKind opKind, object constantValue)
         {
