@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -37,7 +38,7 @@ public class C
             var g = SyntaxGenerator.GetGenerator(document);
             var root = await document.GetSyntaxRootAsync();
             var attr = g.Attribute("MyAttr");
-            var options = SyntaxFormattingOptions.Default;
+            var options = CSharpSyntaxFormattingOptions.Default;
 
             var param = root.DescendantNodes().OfType<ParameterSyntax>().First();
             var root1 = root.ReplaceNode(param, g.AddAttributes(param, g.Attribute("MyAttr")));
