@@ -118,39 +118,32 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
         }
 
-        private static async Task HandleForEachStatementAsync(Document document, SyntaxEditor editor, ForEachStatementSyntax forEach, CancellationToken cancellationToken)
-        {
-            var typeSyntax = forEach.Type.StripRefIfNeeded();
-            var declarationSyntax = forEach.Identifier.Parent;
-
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
-
-            RoslynDebug.AssertNotNull(typeSymbol);
-            RoslynDebug.AssertNotNull(declarationSyntax);
-
-            typeSymbol = AdjustNullabilityOfTypeSymbol(
-                typeSymbol,
-                semanticModel,
-                declarationSyntax,
+        private static Task HandleForEachStatementAsync(Document document, SyntaxEditor editor, ForEachStatementSyntax forEach, CancellationToken cancellationToken)
+            => UpdateTypeSyntaxAsync(
+                document,
+                editor,
+                forEach.Type,
+                forEach.Identifier.Parent!,
                 cancellationToken);
 
-            editor.ReplaceNode(typeSyntax, GenerateTypeDeclaration(typeSyntax, typeSymbol));
-        }
+        private static Task HandleVariableDeclarationAsync(Document document, SyntaxEditor editor, VariableDeclarationSyntax varDecl, CancellationToken cancellationToken)
+            => UpdateTypeSyntaxAsync(
+                document,
+                editor,
+                varDecl.Type,
+                // Since we're only dealing with variable declaration using var, we know
+                // that implicitly typed variables cannot have multiple declarators in
+                // a single declaration (CS0819). Only one variable should be present
+                varDecl.Variables.Single().Identifier.Parent!,
+                cancellationToken);
 
-        private static async Task HandleVariableDeclarationAsync(Document document, SyntaxEditor editor, VariableDeclarationSyntax varDecl, CancellationToken cancellationToken)
+        private static async Task UpdateTypeSyntaxAsync(Document document, SyntaxEditor editor, TypeSyntax typeSyntax, SyntaxNode declarationSyntax, CancellationToken cancellationToken)
         {
-            var typeSyntax = varDecl.Type.StripRefIfNeeded();
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            typeSyntax = typeSyntax.StripRefIfNeeded();
 
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
             RoslynDebug.AssertNotNull(typeSymbol);
-
-            // Since we're only dealing with variable declaration using var, we know
-            // that implicitly typed variables cannot have multiple declarators in
-            // a single declaration (CS0819). Only one variable should be present
-            var declarationSyntax = varDecl.Variables.Single().Identifier.Parent;
-            RoslynDebug.AssertNotNull(declarationSyntax);
 
             typeSymbol = AdjustNullabilityOfTypeSymbol(
                 typeSymbol,
