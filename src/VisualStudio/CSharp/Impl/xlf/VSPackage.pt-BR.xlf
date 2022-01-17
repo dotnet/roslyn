@@ -82,8 +82,9 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;</source>
-        <target state="translated">Variáveis reatribuídas de sublinhado;
+Inheritance Margin;
+Stack Trace Explorer;</source>
+        <target state="needs-review-translation">Variáveis reatribuídas de sublinhado;
 Exibir as dicas embutidas;
 Mostrar os diagnósticos de arquivos fechados;
 Colorir a expressão regular; 
