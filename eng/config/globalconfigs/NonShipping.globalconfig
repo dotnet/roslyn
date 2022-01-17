@@ -16,6 +16,10 @@ dotnet_diagnostic.RS1019.severity = none
 dotnet_diagnostic.RS1025.severity = none
 # Enable concurrent execution - suppress for non-shipping/test projects
 dotnet_diagnostic.RS1026.severity = none
+# Define diagnostic message correctly
+dotnet_diagnostic.RS1032.severity = none
+# Define diagnostic description correctly
+dotnet_diagnostic.RS1033.severity = none
 # Do not use generic CodeAction.Create to create CodeAction - not useful for tests
 dotnet_diagnostic.RS0005.severity = none
 # Do not call 'GetTestAccessor()' from production code: does not apply to tests

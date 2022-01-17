@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PerformanceTrackerService() :
-            this(DefaultMinLOFValue, DefaultAverageThreshold, DefaultStddevThreshold)
+        public PerformanceTrackerService()
+            : this(DefaultMinLOFValue, DefaultAverageThreshold, DefaultStddevThreshold)
         {
         }
 

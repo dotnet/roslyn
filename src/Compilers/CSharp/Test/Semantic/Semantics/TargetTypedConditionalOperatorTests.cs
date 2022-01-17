@@ -24,7 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // they are error cases but included here for convenience.
 
             // Implicit constant expression conversions
-            TestConditional("b ? 1 : 2", "System.Int16", "System.Int32");
+            TestConditional("b ? 1 : 2", "System.Int16", "System.Int32",
+                // (6,26): error CS0266: Cannot implicitly convert type 'int' to 'short'. An explicit conversion exists (are you missing a cast?)
+                //         System.Int16 t = b ? 1 : 2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b ? 1 : 2").WithArguments("int", "short").WithLocation(6, 26));
             TestConditional("b ? -1L : 1UL", "System.Double", null);
 
             // Implicit reference conversions
@@ -38,10 +41,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestConditional("b ? GetUInt() : GetInt()", "System.Int64", null);
 
             // Implicit enumeration conversions
-            TestConditional("b ? 0 : 0", "color", "System.Int32");
+            TestConditional("b ? 0 : 0", "color", "System.Int32",
+                // (6,19): error CS0266: Cannot implicitly convert type 'int' to 'color'. An explicit conversion exists (are you missing a cast?)
+                //         color t = b ? 0 : 0;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b ? 0 : 0").WithArguments("int", "color").WithLocation(6, 19));
 
             // Implicit interpolated string conversions
-            TestConditional(@"b ? $""x"" : $""x""", "System.FormattableString", "System.String");
+            TestConditional(@"b ? $""x"" : $""x""", "System.FormattableString", "System.String",
+                // (6,38): error CS0029: Cannot implicitly convert type 'string' to 'System.FormattableString'
+                //         System.FormattableString t = b ? $"x" : $"x";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"b ? $""x"" : $""x""").WithArguments("string", "System.FormattableString").WithLocation(6, 38));
 
             // Implicit nullable conversions
             // Null literal conversions
@@ -69,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             // Implicit constant expression conversions
             TestConditional("b ? 1000000 : 2", "System.Int16", "System.Int32",
-                // (6,30): error CS0029: Cannot implicitly convert type 'int' to 'short'
+                // (6,26): error CS0266: Cannot implicitly convert type 'int' to 'short'. An explicit conversion exists (are you missing a cast?)
                 //         System.Int16 t = b ? 1000000 : 2;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1000000").WithArguments("int", "short").WithLocation(6, 30)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b ? 1000000 : 2").WithArguments("int", "short").WithLocation(6, 26)
                 );
 
             // Implicit reference conversions
@@ -93,24 +102,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // Implicit enumeration conversions
             TestConditional("b ? 1 : 0", "color", "System.Int32",
-                // (6,23): error CS0029: Cannot implicitly convert type 'int' to 'color'
+                // (6,19): error CS0266: Cannot implicitly convert type 'int' to 'color'. An explicit conversion exists (are you missing a cast?)
                 //         color t = b ? 1 : 0;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "color").WithLocation(6, 23)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b ? 1 : 0").WithArguments("int", "color").WithLocation(6, 19)
                 );
 
             // Implicit interpolated string conversions
             TestConditional(@"b ? $""x"" : ""x""", "System.FormattableString", "System.String",
-                // (6,49): error CS0029: Cannot implicitly convert type 'string' to 'System.FormattableString'
+                // (6,38): error CS0029: Cannot implicitly convert type 'string' to 'System.FormattableString'
                 //         System.FormattableString t = b ? $"x" : "x";
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""x""").WithArguments("string", "System.FormattableString").WithLocation(6, 49)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"b ? $""x"" : ""x""").WithArguments("string", "System.FormattableString").WithLocation(6, 38)
                 );
 
             // Implicit nullable conversions
             // Null literal conversions
             TestConditional(@"b ? """" : null", "System.Int64?", "System.String",
-                // (6,31): error CS0029: Cannot implicitly convert type 'string' to 'long?'
+                // (6,27): error CS0029: Cannot implicitly convert type 'string' to 'long?'
                 //         System.Int64? t = b ? "" : null;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "long?").WithLocation(6, 31)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"b ? """" : null").WithArguments("string", "long?").WithLocation(6, 27)
                 );
             TestConditional(@"b ? 1 : """"", "System.Int64?", null,
                 // (6,35): error CS0029: Cannot implicitly convert type 'string' to 'long?'
@@ -154,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NonbreakingChange()
+        public void NonBreakingChange_01()
         {
             var source = @"
 class C
@@ -179,11 +188,8 @@ class C
         }
 
         [Fact]
-        public void BreakingChange_02()
+        public void NonBreakingChange_02()
         {
-            // Prior to C# 9.0, this program compiles without error, as only the overload M(long, long)
-            // is a candidate. With the semantic changes in C# 9.0, both are candidates, but neither is
-            // more specific.
             var source = @"
 class C
 {
@@ -201,16 +207,12 @@ class C
                 var comp = CreateCompilation(
                     source, options: TestOptions.ReleaseExe,
                     parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion))
-                    .VerifyDiagnostics(
-                        // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(short, short)' and 'C.M(long, long)'
-                        //         M(b ? 1 : 2, 1);
-                        Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(short, short)", "C.M(long, long)").WithLocation(9, 9)
-                    );
+                    .VerifyDiagnostics();
             }
         }
 
         [Fact]
-        public void NonBreakingChange_01()
+        public void NonBreakingChange_03()
         {
             var source = @"
 class C
@@ -233,7 +235,7 @@ class C
         }
 
         [Fact]
-        public void NonBreakingChange_02()
+        public void NonBreakingChange_04()
         {
             var source = @"
 class Program
@@ -309,7 +311,7 @@ class Program
     static int M3(int x, int y) => x;
 }}
 
-public enum color {{ Red, Blue, Green }};
+public enum @color {{ Red, Blue, Green }};
 
 class A {{ }}
 class B : A {{ public static implicit operator X(B self) => new X(); }}
@@ -450,6 +452,266 @@ public class Program {
                 .VerifyEmitDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()), options: TestOptions.DebugDll)
                 .VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("sbyte", "System.Int32", "System.SByte")]
+        [InlineData("short", "System.Int32", "System.Int16")]
+        [InlineData("int", "System.Int32", "System.Int32")]
+        [InlineData("long", "System.Int64", "System.Int64")]
+        [InlineData("byte", "System.Int32", "System.Byte")]
+        [InlineData("ushort", "System.Int32", "System.UInt16")]
+        [WorkItem(49598, "https://github.com/dotnet/roslyn/issues/49598")]
+        public void IntType_01(string sourceType, string resultType1, string resultType2)
+        {
+            var source =
+$@"class Program
+{{
+    static void Main()
+    {{
+        {sourceType}? a = 1;
+        var b = true;
+        var c1 = a ?? (b ? 2 : 3);
+        var c2 = a ?? (true ? 2 : 3);
+        var c3 = a ?? (false ? 2 : 3);
+        Report(c1);
+        Report(c2);
+        Report(c3);
+    }}
+    static void Report(object obj)
+    {{
+        System.Console.WriteLine(""{{0}}: {{1}}"", obj.GetType().FullName, obj);
+    }}
+}}";
+            var expectedOutput =
+$@"{resultType1}: 1
+{resultType2}: 1
+{resultType2}: 1";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp3), expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()), expectedOutput: expectedOutput);
+        }
+
+        [Theory]
+        [InlineData("uint")]
+        [InlineData("ulong")]
+        [WorkItem(49598, "https://github.com/dotnet/roslyn/issues/49598")]
+        public void IntType_02(string sourceType)
+        {
+            var source =
+$@"class Program
+{{
+    static void Main()
+    {{
+        {sourceType}? a = 1;
+        var b = true;
+        var c1 = a ?? (b ? 2 : 3);
+        var c2 = a ?? (true ? 2 : 3);
+        var c3 = a ?? (false ? 2 : 3);
+        Report(c1);
+        Report(c2);
+        Report(c3);
+    }}
+    static void Report(object obj)
+    {{
+        System.Console.WriteLine(""{{0}}: {{1}}"", obj.GetType().FullName, obj);
+    }}
+}}";
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (7,18): error CS0019: Operator '??' cannot be applied to operands of type 'uint?' and 'int'
+                //         var c1 = a ?? (b ? 2 : 3);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a ?? (b ? 2 : 3)").WithArguments("??", $"{sourceType}?", "int").WithLocation(7, 18)
+            };
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp3)).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion())).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem(49598, "https://github.com/dotnet/roslyn/issues/49598")]
+        public void IntType_03()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        char? a = 'A';
+        var b = true;
+        var c1 = a ?? (b ? 'B' : 'C');
+        var c2 = a ?? (true ? 'B' : 'C');
+        var c3 = a ?? (false ? 'B' : 'C');
+        Report(c1);
+        Report(c2);
+        Report(c3);
+    }
+    static void Report(object obj)
+    {
+        System.Console.WriteLine(""{0}: {1}"", obj.GetType().FullName, obj);
+    }
+}";
+            var expectedOutput =
+@"System.Char: A
+System.Char: A
+System.Char: A";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp3), expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()), expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(49598, "https://github.com/dotnet/roslyn/issues/49598")]
+        public void IntType_04()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        char? a = 'A';
+        var b = true;
+        var c1 = a ?? (b ? 0 : 0);
+        var c2 = a ?? (true ? 0 : 0);
+        var c3 = a ?? (false ? 0 : 0);
+        Report(c1);
+        Report(c2);
+        Report(c3);
+    }
+    static void Report(object obj)
+    {
+        System.Console.WriteLine(""{0}: {1}"", obj.GetType().FullName, obj);
+    }
+}";
+            var expectedOutput =
+@"System.Int32: 65
+System.Int32: 65
+System.Int32: 65";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp3), expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()), expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(49627, "https://github.com/dotnet/roslyn/issues/49627")]
+        public void UserDefinedConversions_01()
+        {
+            var source =
+@"struct A
+{
+    public static implicit operator A(short s) => throw null;
+    public static implicit operator int(A a) => throw null;
+    public static A operator+(A x, A y) => throw null;
+}
+struct B
+{
+    public static implicit operator B(int i) => throw null;
+}
+class Program
+{
+    static B F(bool b, A a) 
+    {
+        return (b ? a : 0) + a;
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3)).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion())).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(49627, "https://github.com/dotnet/roslyn/issues/49627")]
+        public void UserDefinedConversions_02()
+        {
+            var source =
+@"struct A
+{
+    public static implicit operator A(int i) => throw null;
+    public static implicit operator int(A a) => throw null;
+    public static A operator+(A x, A y) => throw null;
+}
+struct B
+{
+    public static implicit operator B(int i) => throw null;
+}
+class Program
+{
+    static B F(bool b, A a) 
+    {
+        return (b ? a : 0) + a;
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (15,16): error CS0029: Cannot implicitly convert type 'A' to 'B'
+                //         return (b ? a : 0) + a;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(b ? a : 0) + a").WithArguments("A", "B").WithLocation(15, 16),
+                // (15,17): error CS8957: Conditional expression is not valid in language version 7.3 because a common type was not found between 'A' and 'int'. To use a target-typed conversion, upgrade to language version 9.0 or greater.
+                //         return (b ? a : 0) + a;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvTargetTypedConditional, "b ? a : 0").WithArguments("7.3", "A", "int", "9.0").WithLocation(15, 17));
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion())).VerifyDiagnostics(
+                // (15,16): error CS0029: Cannot implicitly convert type 'A' to 'B'
+                //         return (b ? a : 0) + a;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(b ? a : 0) + a").WithArguments("A", "B").WithLocation(15, 16));
+        }
+
+        [Fact]
+        public void NaturalType_01()
+        {
+            var source =
+@"class Program
+{
+    static void F(bool b, object x, string y)
+    {
+        _ = b ? x : y;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Equal("System.Object", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Object", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NaturalType_02()
+        {
+            var source =
+@"class Program
+{
+    static void F(bool b, int x)
+    {
+        int? y = b ? x : null;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Int32?", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DiagnosticClarity_LangVersion8()
+        {
+            var source = @"
+class C
+{
+    void M(bool b)
+    {
+        int? i = b ? 1 : null;
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS8957: Conditional expression is not valid in language version 8.0 because a common type was not found between 'int' and '<null>'. To use a target-typed conversion, upgrade to language version 9.0 or greater.
+                //         int? i = b ? 1 : null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvTargetTypedConditional, "b ? 1 : null").WithArguments("8.0", "int", "<null>", "9.0").WithLocation(6, 18));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 
@@ -13,17 +11,28 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Represents the results of overload resolution for a single member.
     /// </summary>
     [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
-    internal struct MemberResolutionResult<TMember> where TMember : Symbol
+    internal readonly struct MemberResolutionResult<TMember> where TMember : Symbol
     {
         private readonly TMember _member;
         private readonly TMember _leastOverriddenMember;
         private readonly MemberAnalysisResult _result;
 
-        internal MemberResolutionResult(TMember member, TMember leastOverriddenMember, MemberAnalysisResult result)
+        /// <summary>
+        /// At least one type argument was inferred from a function type.
+        /// </summary>
+        internal readonly bool HasTypeArgumentInferredFromFunctionType;
+
+        internal MemberResolutionResult(TMember member, TMember leastOverriddenMember, MemberAnalysisResult result, bool hasTypeArgumentInferredFromFunctionType)
         {
             _member = member;
             _leastOverriddenMember = leastOverriddenMember;
             _result = result;
+            HasTypeArgumentInferredFromFunctionType = hasTypeArgumentInferredFromFunctionType;
+        }
+
+        internal MemberResolutionResult<TMember> WithResult(MemberAnalysisResult result)
+        {
+            return new MemberResolutionResult<TMember>(Member, LeastOverriddenMember, result, HasTypeArgumentInferredFromFunctionType);
         }
 
         internal bool IsNull
@@ -88,12 +97,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal MemberResolutionResult<TMember> Worse()
         {
-            return new MemberResolutionResult<TMember>(Member, LeastOverriddenMember, MemberAnalysisResult.Worse());
+            return WithResult(MemberAnalysisResult.Worse());
         }
 
         internal MemberResolutionResult<TMember> Worst()
         {
-            return new MemberResolutionResult<TMember>(Member, LeastOverriddenMember, MemberAnalysisResult.Worst());
+            return WithResult(MemberAnalysisResult.Worst());
         }
 
         internal bool HasUseSiteDiagnosticToReport
@@ -112,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _result; }
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             throw new NotSupportedException();
         }

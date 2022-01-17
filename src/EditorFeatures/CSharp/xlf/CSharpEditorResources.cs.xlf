@@ -72,6 +72,11 @@
         <target state="translated">Modul se nenašel!</target>
         <note />
       </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="translated">Vně namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (Pro vložení stiskněte TAB.)</target>

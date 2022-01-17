@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -29,9 +27,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        public void SetPersistenceOption(bool value)
-            => SetOption("Enabled", PersistentStorageOptions.OptionName, value);
-
         public bool IsPrettyListingOn(string languageName)
             => _inProc.IsPrettyListingOn(languageName);
 
@@ -56,11 +51,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void CleanUpWorkspace()
             => _inProc.CleanUpWorkspace();
 
+        public void ResetOptions()
+            => _inProc.ResetOptions();
+
         public void CleanUpWaitingService()
             => _inProc.CleanUpWaitingService();
-
-        public void SetQuickInfo(bool value)
-            => _inProc.EnableQuickInfo(value);
 
         public void SetImportCompletionOption(bool value)
         {
@@ -77,11 +72,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 value: value);
         }
 
+        public void SetEnableDecompilationOption(bool value)
+        {
+            SetOption("NavigateToDecompiledSources", "FeatureOnOffOptions", value);
+        }
+
+        public void SetArgumentCompletionSnippetsOption(bool value)
+        {
+            SetPerLanguageOption(
+                optionName: CompletionViewOptions.EnableArgumentCompletionSnippets.Name,
+                feature: CompletionViewOptions.EnableArgumentCompletionSnippets.Feature,
+                language: LanguageNames.CSharp,
+                value: value);
+
+            SetPerLanguageOption(
+                optionName: CompletionViewOptions.EnableArgumentCompletionSnippets.Name,
+                feature: CompletionViewOptions.EnableArgumentCompletionSnippets.Feature,
+                language: LanguageNames.VisualBasic,
+                value: value);
+        }
+
         public void SetTriggerCompletionInArgumentLists(bool value)
         {
             SetPerLanguageOption(
-                optionName: CompletionOptions.TriggerInArgumentLists.Name,
-                feature: CompletionOptions.TriggerInArgumentLists.Feature,
+                optionName: CompletionOptions.Metadata.TriggerInArgumentLists.Name,
+                feature: CompletionOptions.Metadata.TriggerInArgumentLists.Feature,
                 language: LanguageNames.CSharp,
                 value: value);
         }
@@ -101,9 +116,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
         }
 
-        public void SetFeatureOption(string feature, string optionName, string language, string valueString)
+        public void SetFileScopedNamespaces(bool value)
+            => _inProc.SetFileScopedNamespaces(value);
+
+        public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
+        {
+            SetOption(
+                optionName: LanguageServices.Implementation.SourceGeneratedFileManager.Options.EnableOpeningInWorkspace.Name,
+                feature: LanguageServices.Implementation.SourceGeneratedFileManager.Options.EnableOpeningInWorkspace.Feature,
+                value: value);
+        }
+
+        public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
 
-        public string GetWorkingFolder() => _inProc.GetWorkingFolder();
+        public string? GetWorkingFolder() => _inProc.GetWorkingFolder();
     }
 }

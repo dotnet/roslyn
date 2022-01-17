@@ -105,7 +105,7 @@
         </GroupBox>
         <StackPanel
             Grid.Row="3"
-            Margin="0, 5, 8, 0"
+            Margin="0, 5, 6, 0"
             HorizontalAlignment="Right"
             Orientation="Horizontal">
             <Button

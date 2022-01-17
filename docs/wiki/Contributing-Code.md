@@ -2,15 +2,15 @@
 
 Before submitting a feature or substantial code contribution, please discuss it with the team and ensure it follows the product [roadmap](Roadmap.md). The team rigorously reviews and tests all code submissions. The submissions must meet an extremely high bar for quality, design, and roadmap appropriateness.
 
-The Roslyn project is a member of the [.NET Foundation](https://github.com/orgs/dotnet) and follows the same [developer guide](https://github.com/dotnet/runtime/blob/master/docs/coding-guidelines/coding-style.md).  The team enforces this by regularly running the [.NET code formatter tool](https://github.com/dotnet/codeformatter) on the code base.  Contributors should ensure they follow these guidelines when making submissions.  
+The Roslyn project is a member of the [.NET Foundation](https://github.com/orgs/dotnet) and follows the same [developer guide](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md).  The team enforces this by regularly running the [.NET code formatter tool](https://github.com/dotnet/codeformatter) on the code base.  Contributors should ensure they follow these guidelines when making submissions.  
 
 For now, the team has set the following limits on pull requests:
 
 - Contributions beyond the level of a bug fix must be discussed with the team first, or they will likely be declined. As our process matures and our experience grows, the team expects to take larger contributions.
-- Only contributions against the master branch will be accepted. Authors submitting pull requests that target experimental feature branches or release branches will likely be asked target their pull request at the master branch.
-- Pull requests that do not merge easily with the tip of the master branch will be declined. The author will be asked to merge with tip and update the pull request.
+- Only contributions against the main branch will be accepted. Authors submitting pull requests that target experimental feature branches or release branches will likely be asked target their pull request at the main branch.
+- Pull requests that do not merge easily with the tip of the main branch will be declined. The author will be asked to merge with tip and update the pull request.
 - Submissions must meet functional and performance expectations, including scenarios for which the team doesn't yet have open source tests. This means you may be asked to fix and resubmit your pull request against a new open test case if it fails one of these tests.
-- Submissions must follow the [.editorconfig](http://editorconfig.org/) settings for each directory. For the most part, these follow the rules stated in the [.NET Foundation Coding Guidelines](https://github.com/dotnet/runtime/blob/master/docs/coding-guidelines/coding-style.md) with the exception that most Roslyn projects prefer to use 'var' everywhere.
+- Submissions must follow the [.editorconfig](http://editorconfig.org/) settings for each directory. For the most part, these follow the rules stated in the [.NET Foundation Coding Guidelines](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md) with the exception that most Roslyn projects prefer to use 'var' everywhere.
 - Contributors must sign the [.NET CLA](https://cla.dotnetfoundation.org/)
 
 When you are ready to proceed with making a change, get set up to [build](Building-Testing-and-Debugging.md) the code and familiarize yourself with our workflow and our coding conventions. These two blogs posts on contributing code to open source projects are good too: Open Source Contribution Etiquette by Miguel de Icaza and Don’t “Push” Your Pull Requests by Ilya Grigorik.
@@ -25,7 +25,7 @@ You must sign a [Contributor License Agreement (CLA)](http://cla.dotnetfoundatio
 
 ### Getting started coding in Visual Studio
 
-See our getting started guide [here](https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md).
+See our getting started guide [here](https://github.com/dotnet/roslyn/blob/main/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md).
 
 ### Creating New Issues
 
@@ -42,7 +42,7 @@ Please follow these guidelines when creating new issues in the issue tracker:
 
 ### Coding Conventions
 
-- Use the coding style outlined in the [.NET Foundation Coding Guidelines](https://github.com/dotnet/runtime/blob/master/docs/coding-guidelines/coding-style.md)
+- Use the coding style outlined in the [.NET Foundation Coding Guidelines](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md)
 - Use plain code to validate parameters at public boundaries. Do not use Contracts or magic helpers.
 
     ```csharp

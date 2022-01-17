@@ -42,6 +42,9 @@ namespace Microsoft.CodeAnalysis.Structure
         /// </summary>
         public bool IsDefaultCollapsed { get; }
 
+        /// <summary>
+        /// A string defined from <see cref="BlockTypes"/>.
+        /// </summary>
         public string Type { get; }
 
         public BlockSpan(

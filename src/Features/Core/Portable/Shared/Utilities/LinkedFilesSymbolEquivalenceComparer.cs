@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// <summary>
     /// For completion and quickinfo in linked files, we compare symbols from different documents
     /// to determine if they are similar enough for us to suppress the platform dependence
-    /// warning icon. We consider symbols equivalent if they have the same name and kind.
+    /// warning icon. We consider symbols equivalent if they have the same name.
     /// </summary>
     internal sealed class LinkedFilesSymbolEquivalenceComparer : IEqualityComparer<ISymbol>
     {

@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             HashSet<LocalSymbol> assignLocals)
             : base(slotAllocatorOpt, compilationState, diagnostics)
         {
@@ -230,12 +230,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<ClosureDebugInfo> closureDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             HashSet<LocalSymbol> assignLocals)
         {
             Debug.Assert((object)thisType != null);
             Debug.Assert(((object)thisParameter == null) || (TypeSymbol.Equals(thisParameter.Type, thisType, TypeCompareKind.ConsiderEverything2)));
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
+            Debug.Assert(diagnostics.DiagnosticBag is object);
 
             var analysis = Analysis.Analyze(
                 loweredBody,
@@ -245,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 slotAllocatorOpt,
                 compilationState,
                 closureDebugInfoBuilder,
-                diagnostics);
+                diagnostics.DiagnosticBag);
 
             CheckLocalsDefined(loweredBody);
             var rewriter = new ClosureConversion(
@@ -463,7 +464,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     topLevelMethodId,
                     originalMethod,
                     nestedFunction.BlockSyntax,
-                    lambdaId);
+                    lambdaId,
+                    CompilationState);
                 nestedFunction.SynthesizedLoweredMethod = synthesizedMethod;
             });
 
@@ -492,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// unfortunately either containing method or containing class could be synthetic
         /// therefore could have no syntax.
         /// </param>
-        private SynthesizedClosureEnvironment GetStaticFrame(DiagnosticBag diagnostics, SyntaxNode syntax)
+        private SynthesizedClosureEnvironment GetStaticFrame(BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             if ((object)_lazyStaticLambdaFrame == null)
             {
@@ -1307,6 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiver,
                     method,
                     node.IsExtensionMethod,
+                    node.WasTargetTyped,
                     VisitType(node.Type));
             }
             return base.VisitDelegateCreationExpression(node);
@@ -1333,7 +1336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                              receiver.Kind == BoundKind.TypeExpression &&
                              remappedMethod is { RequiresInstanceReceiver: false, IsStatic: true });
 
-                return node.Update(remappedMethod, node.Type);
+                return node.Update(remappedMethod, constrainedToTypeOpt: node.ConstrainedToTypeOpt, node.Type);
             }
 
             return base.VisitFunctionPointerLoad(node);
@@ -1604,6 +1607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver,
                 referencedMethod,
                 isExtensionMethod: false,
+                wasTargetTyped: false,
                 type: type);
 
             // if the block containing the lambda is not the innermost block,
@@ -1633,17 +1637,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // different from the local variable `type`, which has the node's type substituted for the current container.
                         var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type).Type;
 
-                        var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
-                            // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 
-                            // no need to include the top-level method ordinal in the field name.
-                            (closureKind == ClosureKind.General) ? -1 : topLevelMethodId.Ordinal,
-                            topLevelMethodId.Generation,
-                            lambdaId.Ordinal,
-                            lambdaId.Generation);
+                        var hasTypeParametersFromAnyMethod = cacheVariableType.ContainsMethodTypeParameter();
 
-                        var cacheField = new SynthesizedLambdaCacheFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, _topLevelMethod, isReadOnly: false, isStatic: closureKind == ClosureKind.Singleton);
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField.GetCciAdapter());
-                        cache = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
+                        // If we want to cache a variable by moving its value into a field,
+                        // the variable cannot use any type parameter from the method it is currently declared within.
+                        if (!hasTypeParametersFromAnyMethod)
+                        {
+                            var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
+                                // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already,
+                                // no need to include the top-level method ordinal in the field name.
+                                (closureKind == ClosureKind.General) ? -1 : topLevelMethodId.Ordinal,
+                                topLevelMethodId.Generation,
+                                lambdaId.Ordinal,
+                                lambdaId.Generation);
+
+                            var cacheField = new SynthesizedLambdaCacheFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, _topLevelMethod, isReadOnly: false, isStatic: closureKind == ClosureKind.Singleton);
+                            CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField.GetCciAdapter());
+                            cache = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
+                            result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
+                        }
                     }
                     else
                     {
@@ -1654,9 +1666,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (_addedStatements == null) _addedStatements = ArrayBuilder<BoundStatement>.GetInstance();
                         cache = F.Local(cacheLocal);
                         _addedStatements.Add(F.Assignment(cache, F.Null(type)));
+                        result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
                     }
-
-                    result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
                 }
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
                 {

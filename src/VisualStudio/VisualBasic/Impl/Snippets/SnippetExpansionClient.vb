@@ -2,11 +2,18 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -16,6 +23,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFunctions
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports MSXML
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
@@ -24,16 +32,42 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     Friend NotInheritable Class SnippetExpansionClient
         Inherits AbstractSnippetExpansionClient
 
-        Public Sub New(threadingContext As IThreadingContext, languageServiceId As Guid, textView As ITextView, subjectBuffer As ITextBuffer, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService)
-            MyBase.New(threadingContext, languageServiceId, textView, subjectBuffer, editorAdaptersFactoryService)
+        Public Sub New(
+                threadingContext As IThreadingContext,
+                languageServiceId As Guid,
+                textView As ITextView,
+                subjectBuffer As ITextBuffer,
+                signatureHelpControllerProvider As SignatureHelpControllerProvider,
+                editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
+                editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
+                argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
+                globalOptions As IGlobalOptionService)
+            MyBase.New(threadingContext, languageServiceId, textView, subjectBuffer, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, argumentProviders, globalOptions)
         End Sub
 
-        Public Shared Function GetSnippetExpansionClient(threadingContext As IThreadingContext, textView As ITextView, subjectBuffer As ITextBuffer, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService) As AbstractSnippetExpansionClient
+        Public Shared Function GetSnippetExpansionClient(
+                threadingContext As IThreadingContext,
+                textView As ITextView,
+                subjectBuffer As ITextBuffer,
+                signatureHelpControllerProvider As SignatureHelpControllerProvider,
+                editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
+                editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
+                argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
+                globalOptions As IGlobalOptionService) As AbstractSnippetExpansionClient
 
             Dim expansionClient As AbstractSnippetExpansionClient = Nothing
 
             If Not textView.Properties.TryGetProperty(GetType(AbstractSnippetExpansionClient), expansionClient) Then
-                expansionClient = New SnippetExpansionClient(threadingContext, Guids.VisualBasicDebuggerLanguageId, textView, subjectBuffer, editorAdaptersFactoryService)
+                expansionClient = New SnippetExpansionClient(
+                    threadingContext,
+                    Guids.VisualBasicDebuggerLanguageId,
+                    textView,
+                    subjectBuffer,
+                    signatureHelpControllerProvider,
+                    editorCommandHandlerServiceFactory,
+                    editorAdaptersFactoryService,
+                    argumentProviders,
+                    globalOptions)
                 textView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), expansionClient)
             End If
 
@@ -65,6 +99,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Return Nothing
         End Function
 
+        Protected Overrides ReadOnly Property FallbackDefaultLiteral As String = "Nothing"
+
         Public Overrides Function GetExpansionFunction(xmlFunctionNode As IXMLDOMNode, bstrFieldName As String, ByRef pFunc As IVsExpansionFunction) As Integer
             Dim snippetFunctionName As String = Nothing
             Dim param As String = Nothing
@@ -92,9 +128,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
         Friend Overrides Function AddImports(
                 document As Document,
+                preferences As CodeGenerationPreferences,
                 position As Integer,
                 snippetNode As XElement,
-                placeSystemNamespaceFirst As Boolean,
                 allowInHiddenRegions As Boolean,
                 cancellationToken As CancellationToken) As Document
             Dim importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName))
@@ -117,6 +153,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             End If
 
             Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
+
+            Dim placeSystemNamespaceFirst = preferences.Options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language)
 
             Dim newRoot = CType(root, CompilationUnitSyntax).AddImportsStatements(newImportsStatements, placeSystemNamespaceFirst)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
@@ -222,6 +260,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                                                                ordinalIgnoreCaseStringComparer.Equals(x.XmlNamespace.Value.ToString(), xmlNamespaceImportsClause.XmlNamespace.Value.ToString())) Then
                         uniqueClauses.Add(clause)
                     End If
+
                     Continue For
                 End If
             Next

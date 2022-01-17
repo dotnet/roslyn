@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis
 {
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly AdditionalSourcesCollection _additionalSources;
 
-        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxContextReceiver? syntaxReceiver, AdditionalSourcesCollection additionalSources, CancellationToken cancellationToken = default)
+        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxContextReceiver? syntaxReceiver, string sourceExtension, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
             ParseOptions = parseOptions;
@@ -28,12 +29,12 @@ namespace Microsoft.CodeAnalysis
             SyntaxReceiver = (syntaxReceiver as SyntaxContextReceiverAdaptor)?.Receiver;
             SyntaxContextReceiver = (syntaxReceiver is SyntaxContextReceiverAdaptor) ? null : syntaxReceiver;
             CancellationToken = cancellationToken;
-            _additionalSources = additionalSources;
+            _additionalSources = new AdditionalSourcesCollection(sourceExtension);
             _diagnostics = new DiagnosticBag();
         }
 
         /// <summary>
-        /// Get the current <see cref="Compilation"/> at the time of execution.
+        /// Get the current <see cref="CodeAnalysis.Compilation"/> at the time of execution.
         /// </summary>
         /// <remarks>
         /// This compilation contains only the user supplied code; other generated code is not
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         public Compilation Compilation { get; }
 
         /// <summary>
-        /// Get the <see cref="ParseOptions"/> that will be used to parse any added sources.
+        /// Get the <see cref="CodeAnalysis.ParseOptions"/> that will be used to parse any added sources.
         /// </summary>
         public ParseOptions ParseOptions { get; }
 
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis
         public ISyntaxContextReceiver? SyntaxContextReceiver { get; }
 
         /// <summary>
-        /// A <see cref="CancellationToken"/> that can be checked to see if the generation should be cancelled.
+        /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the generation should be cancelled.
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis
         /// Adds source code in the form of a <see cref="string"/> to the compilation.
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
-        /// <param name="source">The source code to be add to the compilation</param>
+        /// <param name="source">The source code to add to the compilation</param>
         public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8));
 
         /// <summary>
@@ -97,6 +98,18 @@ namespace Microsoft.CodeAnalysis
 
         internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics) ToImmutableAndFree()
             => (_additionalSources.ToImmutableAndFree(), _diagnostics.ToReadOnlyAndFree());
+
+        internal void Free()
+        {
+            _additionalSources.Free();
+            _diagnostics.Free();
+        }
+
+        internal void CopyToProductionContext(SourceProductionContext ctx)
+        {
+            _additionalSources.CopyTo(ctx.Sources);
+            ctx.Diagnostics.AddRange(_diagnostics);
+        }
     }
 
     /// <summary>
@@ -111,17 +124,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// A <see cref="CancellationToken"/> that can be checked to see if the initialization should be cancelled.
+        /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the initialization should be cancelled.
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
         internal GeneratorInfo.Builder InfoBuilder { get; }
-
-        internal void RegisterForAdditionalFileChanges(EditCallback<AdditionalFileEdit> callback)
-        {
-            CheckIsEmpty(InfoBuilder.EditCallback);
-            InfoBuilder.EditCallback = callback;
-        }
 
         /// <summary>
         /// Register a <see cref="SyntaxReceiverCreator"/> for this generator, which can be used to create an instance of an <see cref="ISyntaxReceiver"/>.
@@ -167,6 +174,26 @@ namespace Microsoft.CodeAnalysis
             InfoBuilder.SyntaxContextReceiverCreator = receiverCreator;
         }
 
+        /// <summary>
+        /// Register a callback that is invoked after initialization.
+        /// </summary>
+        /// <remarks>
+        /// This method allows a generator to opt-in to an extra phase in the generator lifecycle called PostInitialization. After being initialized
+        /// any generators that have opted in will have their provided callback invoked with a <see cref="GeneratorPostInitializationContext"/> instance
+        /// that can be used to alter the compilation that is provided to subsequent generator phases.
+        /// 
+        /// For example a generator may choose to add sources during PostInitialization. These will be added to the compilation before execution and
+        /// will be visited by a registered <see cref="ISyntaxReceiver"/> and available for semantic analysis as part of the <see cref="GeneratorExecutionContext.Compilation"/>
+        /// 
+        /// Note that any sources added during PostInitialization <i>will</i> be visible to the later phases of other generators operating on the compilation. 
+        /// </remarks>
+        /// <param name="callback">An <see cref="Action{T}"/> that accepts a <see cref="GeneratorPostInitializationContext"/> that will be invoked after initialization.</param>
+        public void RegisterForPostInitialization(Action<GeneratorPostInitializationContext> callback)
+        {
+            CheckIsEmpty(InfoBuilder.PostInitCallback);
+            InfoBuilder.PostInitCallback = (context) => callback(new GeneratorPostInitializationContext(context.AdditionalSources, context.CancellationToken));
+        }
+
         private static void CheckIsEmpty<T>(T x, string? typeName = null) where T : class?
         {
             if (x is object)
@@ -193,21 +220,41 @@ namespace Microsoft.CodeAnalysis
         public SyntaxNode Node { get; }
 
         /// <summary>
-        /// The <see cref="SemanticModel" /> that can be queried to obtain information about <see cref="Node"/>.
+        /// The <see cref="CodeAnalysis.SemanticModel" /> that can be queried to obtain information about <see cref="Node"/>.
         /// </summary>
         public SemanticModel SemanticModel { get; }
     }
 
-    internal readonly struct GeneratorEditContext
+    /// <summary>
+    /// Context passed to a source generator when it has opted-in to PostInitialization via <see cref="GeneratorInitializationContext.RegisterForPostInitialization(Action{GeneratorPostInitializationContext})"/>
+    /// </summary>
+    public readonly struct GeneratorPostInitializationContext
     {
-        internal GeneratorEditContext(AdditionalSourcesCollection sources, CancellationToken cancellationToken = default)
+        private readonly AdditionalSourcesCollection _additionalSources;
+
+        internal GeneratorPostInitializationContext(AdditionalSourcesCollection additionalSources, CancellationToken cancellationToken)
         {
-            AdditionalSources = sources;
+            _additionalSources = additionalSources;
             CancellationToken = cancellationToken;
         }
 
+        /// <summary>
+        /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the PostInitialization should be cancelled.
+        /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        public AdditionalSourcesCollection AdditionalSources { get; }
+        /// <summary>
+        /// Adds source code in the form of a <see cref="string"/> to the compilation that will be available during subsequent phases
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
+        /// <param name="source">The source code to add to the compilation</param>
+        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8));
+
+        /// <summary>
+        /// Adds a <see cref="SourceText"/> to the compilation that will be available during subsequent phases
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
+        public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(hintName, sourceText);
     }
 }

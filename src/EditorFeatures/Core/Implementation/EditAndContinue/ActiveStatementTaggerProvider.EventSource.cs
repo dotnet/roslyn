@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
@@ -12,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     {
         private sealed class EventSource : AbstractWorkspaceTrackingTaggerEventSource
         {
-            public EventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
-                : base(subjectBuffer, delay)
+            public EventSource(ITextBuffer subjectBuffer)
+                : base(subjectBuffer)
             {
             }
 

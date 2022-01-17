@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             SyntaxKind.StructDeclaration,
             SyntaxKind.ClassDeclaration,
             SyntaxKind.RecordDeclaration,
+            SyntaxKind.RecordStructDeclaration,
             SyntaxKind.EnumDeclaration,
         };
 

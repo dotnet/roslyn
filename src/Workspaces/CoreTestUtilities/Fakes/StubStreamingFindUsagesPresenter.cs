@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Fakes
         {
         }
 
-        public virtual FindUsagesContext StartSearch(string title, bool supportsReferences)
-            => new SimpleFindUsagesContext(CancellationToken.None);
+        public virtual (FindUsagesContext, CancellationToken) StartSearch(string title, bool supportsReferences)
+            => (new SimpleFindUsagesContext(), CancellationToken.None);
 
-        public virtual FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
-            => new SimpleFindUsagesContext(CancellationToken.None);
+        public virtual (FindUsagesContext, CancellationToken) StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+            => (new SimpleFindUsagesContext(), CancellationToken.None);
     }
 }

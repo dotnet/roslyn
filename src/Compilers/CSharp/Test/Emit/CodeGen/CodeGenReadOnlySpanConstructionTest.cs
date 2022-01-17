@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenReadOnlySpanConstructionTest : CSharpTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void EmptyOrNullStringConv()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            var comp = CreateCompilation(@"
 using System;
 
 class Test
@@ -37,7 +37,7 @@ class Test
     }
 }
 
-", TestOptions.ReleaseExe);
+", targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: "TrueTrue", verify: Verification.Passes).VerifyIL("Test.Main", @"
 {
@@ -46,10 +46,10 @@ class Test
   .locals init (System.ReadOnlySpan<char> V_0, //s1
                 System.ReadOnlySpan<char> V_1) //s2
   IL_0000:  ldstr      """"
-  IL_0005:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_000a:  stloc.0
   IL_000b:  ldstr      """"
-  IL_0010:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
+  IL_0010:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_0015:  stloc.1
   IL_0016:  ldloca.s   V_0
   IL_0018:  call       ""int System.ReadOnlySpan<char>.Length.get""
@@ -58,10 +58,10 @@ class Test
   IL_0024:  ceq
   IL_0026:  call       ""void System.Console.Write(bool)""
   IL_002b:  ldnull
-  IL_002c:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
+  IL_002c:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_0031:  stloc.0
   IL_0032:  ldnull
-  IL_0033:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
+  IL_0033:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_0038:  stloc.1
   IL_0039:  ldloca.s   V_0
   IL_003b:  call       ""int System.ReadOnlySpan<char>.Length.get""
@@ -421,7 +421,7 @@ class Test
 
         [Fact]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
-        public void EnumArrayCtorPEverify()
+        public void EnumArrayCtorPEVerify()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
@@ -492,11 +492,11 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
         public void ConvInMethodCall()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            var comp = CreateCompilation(@"
 using System;
 
 class Test
@@ -513,14 +513,14 @@ class Test
     }
 }
 
-", TestOptions.ReleaseExe);
+", targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: "P10", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       28 (0x1c)
   .maxstack  3
   IL_0000:  ldstr      ""QWERTYUIOP""
-  IL_0005:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_000a:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=10 <PrivateImplementationDetails>.C848E1013F9F04A9D63FA43CE7FD4AF035152C7C669A4A404B67107CEE5F2E4E""
   IL_000f:  ldc.i4.s   10
   IL_0011:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
@@ -562,7 +562,7 @@ class Test
         yield break;
     }
 }
-", WithNonNullTypesTrue(TestOptions.ReleaseExe));
+", WithNullableEnable(TestOptions.ReleaseExe));
             var cv = CompileAndVerify(comp, expectedOutput: "", verify: Verification.Passes);
             cv.VerifyIL("Test.<>c__1<T>.<M1>b__1_0(T[])", @"
 {
@@ -630,7 +630,7 @@ public class X
         System.Console.WriteLine(d(2));
     }
 }
-", WithNonNullTypesTrue(TestOptions.ReleaseExe));
+", WithNullableEnable(TestOptions.ReleaseExe));
             var cv = CompileAndVerify(comp, expectedOutput: "100", verify: Verification.Passes);
             cv.VerifyIL("X.<>c__DisplayClass0_0<TSrc>.<Outer>b__0(int)", @"{
   // Code size       26 (0x1a)

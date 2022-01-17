@@ -390,13 +390,42 @@ class C
             var tree = Parse(text);
             var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
-            var errors = comp.GetDiagnostics().ToArray();
-            Assert.Equal(3, errors.Length);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS1001: Identifier expected
+                // namespace
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 10),
+                // (1,10): error CS1514: { expected
+                // namespace
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 10),
+                // (1,10): error CS1513: } expected
+                // namespace
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 10));
 
             var nsArray = tree.GetCompilationUnitRoot().DescendantNodes().Where(node => node.IsKind(SyntaxKind.NamespaceDeclaration)).ToArray();
             Assert.Equal(1, nsArray.Length);
 
             var nsSyntax = nsArray[0] as NamespaceDeclarationSyntax;
+            var symbol = model.GetDeclaredSymbol(nsSyntax);
+            Assert.Equal(string.Empty, symbol.Name);
+        }
+
+        [WorkItem(539740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539740")]
+        [Fact]
+        public void FileScopedNamespaceWithoutName()
+        {
+            var text = "namespace;";
+            var tree = Parse(text);
+            var comp = CreateCompilation(tree);
+            var model = comp.GetSemanticModel(tree);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS1001: Identifier expected
+                // namespace;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 10));
+
+            var nsArray = tree.GetCompilationUnitRoot().DescendantNodes().Where(node => node.IsKind(SyntaxKind.FileScopedNamespaceDeclaration)).ToArray();
+            Assert.Equal(1, nsArray.Length);
+
+            var nsSyntax = nsArray[0] as FileScopedNamespaceDeclarationSyntax;
             var symbol = model.GetDeclaredSymbol(nsSyntax);
             Assert.Equal(string.Empty, symbol.Name);
         }
@@ -1670,7 +1699,7 @@ class C
         public void AliasCalledVar()
         {
             var source = @"
-using var = Q;
+using @var = Q;
 
 class Q
 {
@@ -3815,6 +3844,28 @@ class C
             Assert.Equal("lib", target.ContainingAssembly.Name);
         }
 
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void LookupInNamespace(string ob, string cb)
+        {
+            var source = @"
+namespace NS
+" + ob + @"
+    class C
+    {
+        void M() { }
+        void M0() { }
+    }
+" + cb + @"
+";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var methodDecl = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+            var endPosition = methodDecl.Body.OpenBraceToken.EndPosition;
+            var symbol = model.LookupSymbols(endPosition, name: "M0").Single();
+            Assert.Equal("void NS.C.M0()", symbol.ToTestDisplayString());
+        }
+
         [WorkItem(1019366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019366")]
         [WorkItem(273, "CodePlex")]
         [ClrOnlyFact]
@@ -4232,6 +4283,30 @@ class C
 
             var speculativeTypeInfo = specModel.GetTypeInfo(replacementIfStatement.Condition);
             Assert.Equal(SpecialType.System_Boolean, speculativeTypeInfo.Type.SpecialType);
+        }
+
+        [Fact, WorkItem(52013, "https://github.com/dotnet/roslyn/issues/52013")]
+        public void NameOf_ArgumentDoesNotExist()
+        {
+            var source = @"
+using System.Diagnostics;
+
+public partial class C
+{
+    [Conditional(nameof(DEBUG))]
+    void M() { }
+
+";
+            var comp = CreateCompilation(source);
+            var method = (IMethodSymbol)comp.GetTypeByMetadataName("C").GetMembers("M").Single().GetPublicSymbol();
+            var attribute = method.GetAttributes().Single();
+            Assert.Equal("DEBUG", attribute.ConstructorArguments[0].Value);
+
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetRoot();
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("DEBUG", model.GetConstantValue(root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single()));
         }
 
         #region "regression helper"

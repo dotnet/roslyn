@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using Microsoft.CodeAnalysis.BuildTasks;
+using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -492,6 +493,23 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
             Assert.Contains(@"C:\Test Path (123)\hellovb.vb(6,9): warning BC40008: 'Public Property x As Integer' is obsolete.", engine.Log);
             Assert.Contains(@"C:\Test Path (123)\hellovb.vb(6,13): error BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Integer'.", engine.Log);
             Assert.Contains(@"C:\Test Path (123)\hellovb.vb(7,9): error BC30451: 'asdf' is not declared. It may be inaccessible due to its protection level.", engine.Log);
+        }
+
+        [Fact]
+        [WorkItem(52467, "https://github.com/dotnet/roslyn/issues/52467")]
+        public void UnexpectedExceptionLogsMessage()
+        {
+            var engine = new MockEngine();
+            var vbc = new Vbc()
+            {
+                BuildEngine = engine,
+            };
+
+            vbc.ExecuteTool(@"q:\path\vbc.exe", "", "", new TestableCompilerServerLogger()
+            {
+                LogFunc = delegate { throw new Exception(""); }
+            });
+            Assert.False(string.IsNullOrEmpty(engine.Log));
         }
     }
 }

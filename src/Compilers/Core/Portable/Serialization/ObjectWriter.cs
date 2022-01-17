@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 
@@ -381,15 +382,17 @@ namespace Roslyn.Utilities
         /// </summary>
         private struct WriterReferenceMap
         {
-            private readonly Dictionary<object, int> _valueToIdMap;
+            // PERF: Use segmented collection to avoid Large Object Heap allocations during serialization.
+            // https://github.com/dotnet/roslyn/issues/43401
+            private readonly SegmentedDictionary<object, int> _valueToIdMap;
             private readonly bool _valueEquality;
             private int _nextId;
 
-            private static readonly ObjectPool<Dictionary<object, int>> s_referenceDictionaryPool =
-                new(() => new Dictionary<object, int>(128, ReferenceEqualityComparer.Instance));
+            private static readonly ObjectPool<SegmentedDictionary<object, int>> s_referenceDictionaryPool =
+                new(() => new SegmentedDictionary<object, int>(128, ReferenceEqualityComparer.Instance));
 
-            private static readonly ObjectPool<Dictionary<object, int>> s_valueDictionaryPool =
-                new(() => new Dictionary<object, int>(128));
+            private static readonly ObjectPool<SegmentedDictionary<object, int>> s_valueDictionaryPool =
+                new(() => new SegmentedDictionary<object, int>(128));
 
             public WriterReferenceMap(bool valueEquality)
             {
@@ -398,7 +401,7 @@ namespace Roslyn.Utilities
                 _nextId = 0;
             }
 
-            private static ObjectPool<Dictionary<object, int>> GetDictionaryPool(bool valueEquality)
+            private static ObjectPool<SegmentedDictionary<object, int>> GetDictionaryPool(bool valueEquality)
                 => valueEquality ? s_valueDictionaryPool : s_referenceDictionaryPool;
 
             public void Dispose()
@@ -565,15 +568,17 @@ namespace Roslyn.Utilities
 
                 if (_recursionDepth % MaxRecursionDepth == 0)
                 {
+                    _cancellationToken.ThrowIfCancellationRequested();
+
                     // If we're recursing too deep, move the work to another thread to do so we
-                    // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
-                    // to do this work.  That way we don't end up blocking the threadpool.
-                    var task = Task.Factory.StartNew(
-                        a => WriteArrayValues((Array)a!),
-                        array,
-                        _cancellationToken,
-                        TaskCreationOptions.LongRunning,
-                        TaskScheduler.Default);
+                    // don't blow the stack.
+                    var task = SerializationThreadPool.RunOnBackgroundThreadAsync(
+                        a =>
+                        {
+                            WriteArrayValues((Array)a!);
+                            return null;
+                        },
+                        array);
 
                     // We must not proceed until the additional task completes. After returning from a write, the underlying
                     // stream providing access to raw memory will be closed; if this occurs before the separate thread
@@ -885,15 +890,17 @@ namespace Roslyn.Utilities
 
                 if (_recursionDepth % MaxRecursionDepth == 0)
                 {
+                    _cancellationToken.ThrowIfCancellationRequested();
+
                     // If we're recursing too deep, move the work to another thread to do so we
-                    // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
-                    // to do this work.  That way we don't end up blocking the threadpool.
-                    var task = Task.Factory.StartNew(
-                        obj => WriteObjectWorker((IObjectWritable)obj!),
-                        writable,
-                        _cancellationToken,
-                        TaskCreationOptions.LongRunning,
-                        TaskScheduler.Default);
+                    // don't blow the stack.
+                    var task = SerializationThreadPool.RunOnBackgroundThreadAsync(
+                        obj =>
+                        {
+                            WriteObjectWorker((IObjectWritable)obj!);
+                            return null;
+                        },
+                        writable);
 
                     // We must not proceed until the additional task completes. After returning from a write, the underlying
                     // stream providing access to raw memory will be closed; if this occurs before the separate thread

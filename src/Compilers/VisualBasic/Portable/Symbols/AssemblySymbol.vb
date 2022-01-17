@@ -49,6 +49,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IAssemblySymbolInternal_CorLibrary As IAssemblySymbolInternal Implements IAssemblySymbolInternal.CorLibrary
+            Get
+                Return CorLibrary
+            End Get
+        End Property
+
         ''' <summary>
         ''' A helper method for ReferenceManager to set the system assembly, which provides primitive 
         ''' types like Object, String, etc., e.g. mscorlib.dll. 
@@ -344,9 +350,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property RuntimeSupportsDefaultInterfaceImplementation As Boolean
             Get
-                Return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) IsNot Nothing
+                Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces)
             End Get
         End Property
+
+        Private Function RuntimeSupportsFeature(feature As SpecialMember) As Boolean
+            Debug.Assert(SpecialMembers.GetDescriptor(feature).DeclaringTypeId = SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+
+            Dim runtimeFeature = GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+            Return runtimeFeature.IsClassType() AndAlso runtimeFeature.IsMetadataAbstract AndAlso runtimeFeature.IsMetadataSealed AndAlso
+                   GetSpecialTypeMember(feature) IsNot Nothing
+        End Function
 
         ''' <summary>
         ''' Return an array of assemblies involved in canonical type resolution of
@@ -520,53 +534,80 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 result = Nothing
             End If
 
-            If (IsAcceptableMatchForGetTypeByNameAndArity(result)) Then
+            If IsAcceptableMatchForGetTypeByNameAndArity(result) Then
                 Return result
             End If
 
             result = Nothing
 
-            If includeReferences Then
-                ' Lookup in references
-                Dim references As ImmutableArray(Of AssemblySymbol) = Me.Modules(0).GetReferencedAssemblySymbols()
-
-                For i As Integer = 0 To references.Length - 1 Step 1
-                    Debug.Assert(Not (TypeOf Me Is SourceAssemblySymbol AndAlso references(i).IsMissing)) ' Non-source assemblies can have missing references
-                    Dim candidate As NamedTypeSymbol = references(i).LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
-
-                    If isWellKnownType AndAlso Not IsValidWellKnownType(candidate) Then
-                        candidate = Nothing
-                    End If
-
-                    If IsAcceptableMatchForGetTypeByNameAndArity(candidate) AndAlso
-                        Not candidate.IsHiddenByVisualBasicEmbeddedAttribute() AndAlso
-                        Not candidate.IsHiddenByCodeAnalysisEmbeddedAttribute() AndAlso
-                        Not TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything) Then
-
-                        If (result IsNot Nothing) Then
-                            ' Ambiguity
-                            If ignoreCorLibraryDuplicatedTypes Then
-                                If IsInCorLib(candidate) Then
-                                    ' ignore candidate
-                                    Continue For
-                                End If
-                                If IsInCorLib(result) Then
-                                    ' drop previous result
-                                    result = candidate
-                                    Continue For
-                                End If
-                            End If
-
-                            conflicts = (result.ContainingAssembly, candidate.ContainingAssembly)
-                            Return Nothing
-                        End If
-
-                        result = candidate
-                    End If
-                Next
+            If Not includeReferences Then
+                Return result
             End If
 
+            ' Then try corlib, when finding a result there means we've found the final result
+            Dim skipCorLibrary = False
+
+            If CorLibrary IsNot Me AndAlso
+                Not CorLibrary.IsMissing AndAlso
+                Not ignoreCorLibraryDuplicatedTypes Then
+
+                Dim corLibCandidate As NamedTypeSymbol = CorLibrary.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+                skipCorLibrary = True
+
+                If IsValidCandidate(corLibCandidate, isWellKnownType) Then
+                    Return corLibCandidate
+                End If
+            End If
+
+            ' Lookup in references
+            Dim references As ImmutableArray(Of AssemblySymbol) = Me.Modules(0).GetReferencedAssemblySymbols()
+
+            For i As Integer = 0 To references.Length - 1 Step 1
+                Debug.Assert(Not (TypeOf Me Is SourceAssemblySymbol AndAlso references(i).IsMissing)) ' Non-source assemblies can have missing references
+                Dim reference = references(i)
+
+                If skipCorLibrary AndAlso reference Is CorLibrary Then
+                    Continue For
+                End If
+
+                Dim candidate As NamedTypeSymbol = reference.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+
+                If Not IsValidCandidate(candidate, isWellKnownType) OrElse
+                        TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything) Then
+
+                    Continue For
+                End If
+
+                If result IsNot Nothing Then
+                    ' Ambiguity
+                    If ignoreCorLibraryDuplicatedTypes Then
+                        If IsInCorLib(candidate) Then
+                            ' ignore candidate
+                            Continue For
+                        End If
+                        If IsInCorLib(result) Then
+                            ' drop previous result
+                            result = candidate
+                            Continue For
+                        End If
+                    End If
+
+                    conflicts = (result.ContainingAssembly, candidate.ContainingAssembly)
+                    Return Nothing
+                End If
+
+                result = candidate
+            Next
+
             Return result
+        End Function
+
+        Private Function IsValidCandidate(candidate As NamedTypeSymbol, isWellKnownType As Boolean) As Boolean
+
+            Return (Not isWellKnownType OrElse IsValidWellKnownType(candidate)) AndAlso
+                IsAcceptableMatchForGetTypeByNameAndArity(candidate) AndAlso
+                Not candidate.IsHiddenByVisualBasicEmbeddedAttribute() AndAlso
+                Not candidate.IsHiddenByCodeAnalysisEmbeddedAttribute()
         End Function
 
         Private Function IsInCorLib(type As NamedTypeSymbol) As Boolean

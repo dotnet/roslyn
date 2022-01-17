@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             if (propertyDeclaration.ExplicitInterfaceSpecifier != null)
             {
                 var semanticModel = document.SemanticModel;
-                propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) as IPropertySymbol;
+                propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken);
                 if (propertySymbol != null && !propertySymbol.ExplicitInterfaceImplementations.Any())
                 {
                     var info = semanticModel.GetTypeInfo(propertyDeclaration.ExplicitInterfaceSpecifier.Name, cancellationToken);
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 return true;
             }
 
-            if (expression.IsParentKind(SyntaxKind.NameColon) &&
+            if (expression.IsParentKind(SyntaxKind.NameColon, SyntaxKind.ExpressionColon) &&
                 expression.Parent.IsParentKind(SyntaxKind.Subpattern))
             {
                 return true;
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             return expression.CanReplaceWithLValue(document.SemanticModel, cancellationToken);
         }
 
-        protected override bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, OptionSet options, SemanticModel semanticModel, CancellationToken cancellationToken, out SyntaxNode newRoot)
+        protected override bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, SemanticModel semanticModel, CancellationToken cancellationToken, out SyntaxNode newRoot)
         {
             var token = identifierToken;
             var node = identifierToken.Parent as IdentifierNameSyntax;

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -187,11 +188,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (Application.Current != null && Application.Current.MainWindow != null)
             {
-                _rootDependencyObject = Application.Current.MainWindow as DependencyObject;
+                _rootDependencyObject = Application.Current.MainWindow;
             }
             else
             {
-                _rootDependencyObject = _presentationSource.RootVisual as DependencyObject;
+                _rootDependencyObject = _presentationSource.RootVisual;
             }
 
             _rootInputElement = _rootDependencyObject as IInputElement;
@@ -342,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var notificationService = _model.Session.Workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(ex.Message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
             }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {
                 // Show a nice error to the user via an info bar
                 var errorReportingService = _model.Session.Workspace.Services.GetService<IErrorReportingService>();
@@ -352,7 +353,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 errorReportingService.ShowGlobalErrorInfo(
-                    string.Format(EditorFeaturesWpfResources.Error_performing_rename_0, ex.Message),
+                    message: string.Format(EditorFeaturesWpfResources.Error_performing_rename_0, ex.Message),
+                    TelemetryFeatureName.InlineRename,
+                    ex,
                     new InfoBarUI(
                         WorkspacesResources.Show_Stack_Trace,
                         InfoBarUI.UIKind.HyperLink,

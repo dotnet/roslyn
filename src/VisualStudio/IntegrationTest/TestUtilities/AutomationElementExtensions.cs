@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
 using UIAutomationClient;
@@ -275,10 +274,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return item;
         }
 
+        [DoesNotReturn]
         private static void ThrowUnableToFindChildException(string path, IUIAutomationElement item)
         {
             // if not found, build a list of available children for debugging purposes
-            var validChildren = new List<string>();
+            var validChildren = new List<string?>();
 
             try
             {
@@ -298,7 +298,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 string.Join(", ", validChildren)));
         }
 
-        private static string SimpleControlTypeName(IUIAutomationElement element)
+        private static string? SimpleControlTypeName(IUIAutomationElement element)
         {
             var type = ControlType.LookupById((int)element.GetCurrentPropertyValue(AutomationElementIdentifiers.ControlTypeProperty.Id));
             return type?.LocalizedControlType;

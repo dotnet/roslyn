@@ -39,7 +39,7 @@ namespace RunTests
             builder.Append($@"test");
             builder.Append($@" {sep}{assemblyInfo.AssemblyName}{sep}");
             var typeInfoList = assemblyInfo.PartitionInfo.TypeInfoList;
-            if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.Trait) || !string.IsNullOrWhiteSpace(Options.NoTrait))
+            if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.TestFilter))
             {
                 builder.Append($@" --filter {sep}");
                 var any = false;
@@ -50,22 +50,10 @@ namespace RunTests
                 }
                 builder.Append(sep);
 
-                if (Options.Trait is object)
+                if (Options.TestFilter is object)
                 {
-                    foreach (var trait in Options.Trait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        MaybeAddSeparator();
-                        builder.Append($"Trait={trait}");
-                    }
-                }
-
-                if (Options.NoTrait is object)
-                {
-                    foreach (var trait in Options.NoTrait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        MaybeAddSeparator('&');
-                        builder.Append($"Trait!~{trait}");
-                    }
+                    MaybeAddSeparator();
+                    builder.Append(Options.TestFilter);
                 }
 
                 void MaybeAddSeparator(char separator = '|')
@@ -86,6 +74,8 @@ namespace RunTests
             {
                 builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}{sep}");
             }
+
+            builder.Append(" --blame-crash --blame-hang-dump-type full --blame-hang-timeout 15minutes");
 
             return builder.ToString();
         }
@@ -121,7 +111,7 @@ namespace RunTests
                 ProcessInfo? procDumpProcessInfo = null;
 
                 // NOTE: xUnit doesn't always create the log directory
-                Directory.CreateDirectory(resultsDir);
+                Directory.CreateDirectory(resultsDir!);
 
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>();
@@ -135,7 +125,7 @@ namespace RunTests
                         var doc = XDocument.Load(resultsFilePath);
                         foreach (var test in doc.XPathSelectElements("/assemblies/assembly/collection/test[@result='Fail']"))
                         {
-                            ConsoleUtil.WriteLine($"  {test.Attribute("name").Value}: {test.Attribute("result").Value}");
+                            ConsoleUtil.WriteLine($"  {test.Attribute("name")!.Value}: {test.Attribute("result")!.Value}");
                         }
                     }
                     catch

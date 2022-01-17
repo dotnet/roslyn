@@ -128,7 +128,11 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 using (Gate.DisposableWait(CancellationToken.None))
                 {
-                    _recoverySource = new AsyncLazy<T>(RecoverAsync, Recover, cacheResult: false);
+                    // Only assume the instance is saved if the saveTask completed successfully. If the save did not
+                    // complete, we can still rely on a constant value source to provide the instance.
+                    _recoverySource = saveTask.Status == TaskStatus.RanToCompletion
+                        ? new AsyncLazy<T>(RecoverAsync, Recover, cacheResult: false)
+                        : new ConstantValueSource<T>(instance);
 
                     // Need to keep instance alive until recovery source is updated.
                     GC.KeepAlive(instance);

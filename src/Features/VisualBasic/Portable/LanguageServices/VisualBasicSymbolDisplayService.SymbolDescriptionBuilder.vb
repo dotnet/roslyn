@@ -5,6 +5,8 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Classification.Classifiers
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -28,10 +30,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
 
             Public Sub New(semanticModel As SemanticModel,
                            position As Integer,
-                           workspace As Workspace,
-                           anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                           services As HostWorkspaceServices,
+                           structuralTypeDisplayService As IStructuralTypeDisplayService,
+                           options As SymbolDescriptionOptions,
                            cancellationToken As CancellationToken)
-                MyBase.New(semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
+                MyBase.New(semanticModel, position, services, structuralTypeDisplayService, options, cancellationToken)
             End Sub
 
             Protected Overrides Sub AddDeprecatedPrefix()
@@ -66,6 +69,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     Space())
             End Sub
 
+            Protected Overrides Sub AddEnumUnderlyingTypeSeparator()
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    Space(),
+                    Keyword("As"),
+                    Space())
+            End Sub
+
             Protected Overrides Function GetInitializerSourcePartsAsync(symbol As ISymbol) As Task(Of ImmutableArray(Of SymbolDisplayPart))
                 If TypeOf symbol Is IParameterSymbol Then
                     Return GetInitializerSourcePartsAsync(DirectCast(symbol, IParameterSymbol))
@@ -76,6 +86,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 End If
 
                 Return SpecializedTasks.EmptyImmutableArray(Of SymbolDisplayPart)
+            End Function
+
+            Protected Overrides Function ToMinimalDisplayParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer, format As SymbolDisplayFormat) As ImmutableArray(Of SymbolDisplayPart)
+                Return CodeAnalysis.VisualBasic.ToMinimalDisplayParts(symbol, semanticModel, position, format)
+            End Function
+
+            Protected Overrides Function GetNavigationHint(symbol As ISymbol) As String
+                Return If(symbol Is Nothing, Nothing, CodeAnalysis.VisualBasic.SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat))
             End Function
 
             Private Async Function GetFirstDeclarationAsync(Of T As SyntaxNode)(symbol As ISymbol) As Task(Of T)
@@ -142,8 +160,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     Dim semanticModel = GetSemanticModel(equalsValue.SyntaxTree)
                     If semanticModel IsNot Nothing Then
                         Return Await Classifier.GetClassifiedSymbolDisplayPartsAsync(
-                            semanticModel, equalsValue.Value.Span,
-                            Me.Workspace, cancellationToken:=Me.CancellationToken).ConfigureAwait(False)
+                            Services, semanticModel, equalsValue.Value.Span, Options.ClassificationOptions, CancellationToken).ConfigureAwait(False)
                     End If
                 End If
 
@@ -156,6 +173,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     Dim syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()
                     AddCaptures(syntax)
                 End If
+            End Sub
+
+            Protected Overrides Sub InlineAllDelegateAnonymousTypes(semanticModel As SemanticModel, position As Integer, structuralTypeDisplayService As IStructuralTypeDisplayService, groupMap As Dictionary(Of SymbolDescriptionGroups, IList(Of SymbolDisplayPart)))
+Restart:
+                For Each pair In groupMap
+                    Dim group = pair.Key
+                    Dim parts = pair.Value
+                    Dim updatedParts = structuralTypeDisplayService.InlineDelegateAnonymousTypes(parts, semanticModel, position)
+                    If parts IsNot updatedParts Then
+                        groupMap(group) = updatedParts
+                        GoTo Restart
+                    End If
+                Next
             End Sub
 
             Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat

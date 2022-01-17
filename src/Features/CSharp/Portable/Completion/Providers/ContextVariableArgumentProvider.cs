@@ -4,17 +4,18 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportArgumentProvider(nameof(ContextVariableArgumentProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(FirstBuiltInArgumentProvider))]
     [Shared]
-    internal sealed class ContextVariableArgumentProvider : ArgumentProvider
+    internal sealed class ContextVariableArgumentProvider : AbstractContextVariableArgumentProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -22,21 +23,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        protected override string ThisOrMeKeyword => SyntaxFacts.GetText(SyntaxKind.ThisKeyword);
+
+        protected override bool IsInstanceContext(SyntaxTree syntaxTree, SyntaxToken targetToken, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => syntaxTree.IsInstanceContext(targetToken, semanticModel, cancellationToken);
+
         public override async Task ProvideArgumentAsync(ArgumentContext context)
         {
-            if (context.PreviousValue is not null)
+            await base.ProvideArgumentAsync(context).ConfigureAwait(false);
+            if (context.DefaultValue is not null)
             {
-                return;
-            }
-
-            var semanticModel = await context.Document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
-            var symbols = semanticModel.LookupSymbols(context.Position, name: context.Parameter.Name);
-            foreach (var symbol in symbols)
-            {
-                if (SymbolEqualityComparer.Default.Equals(context.Parameter.Type, symbol.GetSymbolType()))
+                switch (context.Parameter.RefKind)
                 {
-                    context.DefaultValue = context.Parameter.Name;
-                    return;
+                    case RefKind.Ref:
+                        context.DefaultValue = "ref " + context.DefaultValue;
+                        break;
+
+                    case RefKind.Out:
+                        context.DefaultValue = "out " + context.DefaultValue;
+                        break;
+
+                    case RefKind.In:
+                    case RefKind.None:
+                    default:
+                        break;
                 }
             }
         }

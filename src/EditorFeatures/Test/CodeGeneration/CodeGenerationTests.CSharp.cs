@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
     public C();
 }";
                 await TestAddConstructorAsync(input, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -365,7 +365,43 @@ class C
     public event System.Action E;
 }";
                 await TestAddEventAsync(input, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddCustomEventToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"class [|C2|]
+{
+    event EventHandler Click
+    {
+        add
+        {
+            Events.AddHandler(""ClickEvent"", value)
+        }
+        remove
+        {
+            Events.RemoveHandler(""ClickEvent"", value)
+        }
+    }
+}";
+                var input = "class [|C1|] { }";
+                var expected = @"class C1
+{
+    event EventHandler Click
+    {
+        add
+        {
+            Events.AddHandler(""ClickEvent"", value)
+        }
+        remove
+        {
+            Events.RemoveHandler(""ClickEvent"", value)
+        }
+    }
+}";
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -378,7 +414,7 @@ class C
 }";
                 await TestAddEventAsync(input, expected,
                     modifiers: new Editing.DeclarationModifiers(isUnsafe: true),
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -401,7 +437,7 @@ class C
                 await TestAddEventAsync(input, expected,
                     addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
                     removeMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -416,6 +452,28 @@ class C
 }";
                 await TestAddMethodAsync(input, expected,
                     returnType: typeof(void));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddMethodToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"class [|C2|]
+{
+    public int FInt()
+    {
+        return 0;
+    }
+}";
+                var input = "class [|C1|] { }";
+                var expected = @"class C1
+{
+    public int FInt()
+    {
+        return 0;
+    }
+}";
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -493,7 +551,7 @@ class C
 }";
                 await TestAddMethodAsync(input, expected,
                     returnType: typeof(int),
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -922,6 +980,34 @@ class C
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddPropertyToClassFromSourceSymbol()
+            {
+                var sourceGenerated = @"class [|C2|]
+{
+    public int P
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}";
+                var input = "class [|C1|] { }";
+                var expected = @"class C1
+{
+    public int P
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}";
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public async Task AddIndexer1()
             {
                 var input = "class [|C|] { }";
@@ -930,8 +1016,7 @@ class C
                     type: typeof(string),
                     parameters: Parameters(Parameter(typeof(int), "i")),
                     getStatements: "return String.Empty;",
-                    isIndexer: true,
-                    codeGenerationOptions: new CodeGenerationOptions(parseOptions: CSharpParseOptions.Default));
+                    isIndexer: true);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1002,7 +1087,7 @@ class C { }";
             public async Task AddAttributeToMethods()
             {
                 var input = "class C { public void [|M()|] { } }";
-                var expected = "class C {[System.Serializable] public void M() { } }";
+                var expected = "class C { [System.Serializable] public void M() { } }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1018,7 +1103,7 @@ class C { }";
             public async Task AddAttributeToFields()
             {
                 var input = "class C { [|public int F|]; }";
-                var expected = "class C {[System.Serializable] public int F; }";
+                var expected = "class C { [System.Serializable] public int F; }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1034,7 +1119,7 @@ class C { }";
             public async Task AddAttributeToProperties()
             {
                 var input = "class C { public int [|P|] { get; set; }}";
-                var expected = "class C {[System.Serializable] public int P { get; set; } }";
+                var expected = "class C { [System.Serializable] public int P { get; set; } }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1083,7 +1168,7 @@ enum C { One, Two }";
             public async Task AddAttributeToEnumMembers()
             {
                 var input = "enum C { [|One|], Two }";
-                var expected = "enum C {[System.Serializable] One, Two }";
+                var expected = "enum C { [System.Serializable] One, Two }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1099,7 +1184,7 @@ enum C { One, Two }";
             public async Task AddAttributeToIndexer()
             {
                 var input = "class C { public int [|this[int y]|] { get; set; }}";
-                var expected = "class C {[System.Serializable] public int this[int y] { get; set; } }";
+                var expected = "class C { [System.Serializable] public int this[int y] { get; set; } }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1115,7 +1200,7 @@ enum C { One, Two }";
             public async Task AddAttributeToOperator()
             {
                 var input = "class C { public static C operator [|+|] (C c1, C c2) { return new C(); }}";
-                var expected = "class C {[System.Serializable] public static C operator +(C c1, C c2) { return new C(); } }";
+                var expected = "class C { [System.Serializable] public static C operator +(C c1, C c2) { return new C(); } }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1452,7 +1537,7 @@ namespace N
 }";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                     forceLanguage: LanguageNames.CSharp,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
         }
 
@@ -1471,7 +1556,7 @@ public static class [|C|]
     public static void ExtMethod1(this string s, int y, string z);
 }";
             await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
+                context: new CodeGenerationContext(generateMethodBodies: false),
                 onlyGenerateMembers: true);
         }
 
@@ -1503,7 +1588,7 @@ End Namespace
     }
 }";
             await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                context: new CodeGenerationContext(generateMethodBodies: false));
         }
 
         [WorkItem(812738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812738")]
@@ -1521,7 +1606,7 @@ End Class";
     public void Goo(int x, ref int y, ref object z);
 }";
             await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
+                context: new CodeGenerationContext(generateMethodBodies: false),
                 onlyGenerateMembers: true);
         }
 
@@ -1556,7 +1641,7 @@ namespace N
     }
 }";
             await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
+                context: new CodeGenerationContext(generateMethodBodies: false),
                 onlyGenerateMembers: true);
         }
     }

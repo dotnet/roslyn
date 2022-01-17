@@ -7,6 +7,7 @@ Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -22,11 +23,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Sub New()
         End Sub
 
-        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
-            Get
-                Return VisualBasicSyntaxFacts.Instance
-            End Get
-        End Property
+        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+
+        Friend Overrides Function EndOfLine(text As String) As SyntaxTrivia
+            Return SyntaxFactory.EndOfLine(text)
+        End Function
 
         Friend Overloads Overrides Function LocalDeclarationStatement(type As SyntaxNode, identifier As SyntaxToken, Optional initializer As SyntaxNode = Nothing, Optional isConst As Boolean = False) As SyntaxNode
             Return SyntaxFactory.LocalDeclarationStatement(
@@ -96,8 +97,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.InterpolatedStringText(textToken)
         End Function
 
-        Friend Overrides Function InterpolatedStringTextToken(content As String) As SyntaxToken
-            Return SyntaxFactory.InterpolatedStringTextToken(content, "")
+        Friend Overrides Function InterpolatedStringTextToken(content As String, value As String) As SyntaxToken
+            Return SyntaxFactory.InterpolatedStringTextToken(content, value)
         End Function
 
         Friend Overrides Function Interpolation(syntaxNode As SyntaxNode) As SyntaxNode
@@ -120,6 +121,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.TypeParameterList(
                 SyntaxFactory.SeparatedList(Of TypeParameterSyntax)(
                     typeParameterNames.Select(Function(n) SyntaxFactory.TypeParameter(n))))
+        End Function
+
+        Friend Overrides Function Type(typeSymbol As ITypeSymbol, typeContext As Boolean) As SyntaxNode
+            Return If(typeContext, typeSymbol.GenerateTypeSyntax(), typeSymbol.GenerateExpressionSyntax())
+        End Function
+
+        Public Overrides Function NegateEquality(generator As SyntaxGenerator, node As SyntaxNode, left As SyntaxNode, negatedKind As Operations.BinaryOperatorKind, right As SyntaxNode) As SyntaxNode
+            Select Case negatedKind
+                Case BinaryOperatorKind.Equals
+                    Return If(node.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression),
+                        generator.ValueEqualsExpression(left, right),
+                        generator.ReferenceEqualsExpression(left, right))
+                Case BinaryOperatorKind.NotEquals
+                    Return If(node.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression),
+                        generator.ValueNotEqualsExpression(left, right),
+                        generator.ReferenceNotEqualsExpression(left, right))
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(negatedKind)
+            End Select
         End Function
 
 #Region "Patterns"

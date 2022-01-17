@@ -4,9 +4,11 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -16,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class ParenthesizedExpressionSyntaxExtensions
     {
-        public static bool CanRemoveParentheses(this ParenthesizedExpressionSyntax node, SemanticModel semanticModel)
+        public static bool CanRemoveParentheses(
+            this ParenthesizedExpressionSyntax node, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (node.OpenParenToken.IsMissing || node.CloseParenToken.IsMissing)
             {
@@ -56,14 +59,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (expression is StackAllocArrayCreationExpressionSyntax ||
-                expression is ImplicitStackAllocArrayCreationExpressionSyntax)
+            if (expression is StackAllocArrayCreationExpressionSyntax or ImplicitStackAllocArrayCreationExpressionSyntax)
             {
                 // var span = (stackalloc byte[8]);
                 // https://github.com/dotnet/roslyn/issues/44629
                 // The code semantics changes if the parenthesis removed.
                 // With parenthesis:    variable span is of type `Span<byte>`.
                 // Without parenthesis: variable span is of type `byte*` which can only be used in unsafe context.
+                if (node.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax varDecl } })
+                {
+                    // we have either `var x = (stackalloc byte[8])` or `Span<byte> x = (stackalloc byte[8])`.  The former
+                    // is not safe to remove. the latter is.
+                    if (semanticModel.GetTypeInfo(varDecl.Type, cancellationToken).Type is
+                        {
+                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                            ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
+                        })
+                    {
+                        return !varDecl.Type.IsVar;
+                    }
+                }
+
                 return false;
             }
 
@@ -136,7 +152,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Handle expression-level ambiguities
             if (RemovalMayIntroduceCastAmbiguity(node) ||
                 RemovalMayIntroduceCommaListAmbiguity(node) ||
-                RemovalMayIntroduceInterpolationAmbiguity(node))
+                RemovalMayIntroduceInterpolationAmbiguity(node) ||
+                RemovalWouldChangeConstantReferenceToTypeReference(node, expression, semanticModel, cancellationToken))
             {
                 return false;
             }
@@ -306,6 +323,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return parentExpression != null && !RemovalChangesAssociation(node, parentExpression, semanticModel);
         }
 
+        private static bool RemovalWouldChangeConstantReferenceToTypeReference(
+            ParenthesizedExpressionSyntax node, ExpressionSyntax expression,
+            SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // With cases like: `if (x is (Y))` then we cannot remove the parens if it would make Y now bind to a type
+            // instead of a constant.
+            if (node.Parent is not ConstantPatternSyntax { Parent: IsPatternExpressionSyntax })
+                return false;
+
+            var exprSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
+            if (exprSymbol is not IFieldSymbol { IsConst: true } field)
+                return false;
+
+            // See if interpreting the same expression as a type in this location binds.
+            var potentialType = semanticModel.GetSpeculativeTypeInfo(expression.SpanStart, expression, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+            return potentialType is not (null or IErrorTypeSymbol);
+        }
+
         private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = SharedPools.Default<Stack<SyntaxNode>>();
 
         private static bool RemovalMayIntroduceInterpolationAmbiguity(ParenthesizedExpressionSyntax node)
@@ -397,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // If the expression's precedence is the same as its parent, and both are binary expressions,
                 // check for associativity and commutability.
 
-                if (!(expression is BinaryExpressionSyntax || expression is AssignmentExpressionSyntax))
+                if (expression is not (BinaryExpressionSyntax or AssignmentExpressionSyntax))
                 {
                     // If the expression is not a binary expression, association never changes.
                     return false;
@@ -668,12 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static bool IsSimpleOrDottedName(ExpressionSyntax expression)
-        {
-            return expression.IsKind(
-                SyntaxKind.IdentifierName,
-                SyntaxKind.QualifiedName,
-                SyntaxKind.SimpleMemberAccessExpression);
-        }
+            => expression.Kind() is SyntaxKind.IdentifierName or SyntaxKind.QualifiedName or SyntaxKind.SimpleMemberAccessExpression;
 
         public static bool CanRemoveParentheses(this ParenthesizedPatternSyntax node)
         {
@@ -689,6 +719,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (pattern is ParenthesizedPatternSyntax)
                 return true;
 
+            // We're parenthesized discard pattern. We cannot remove parens.
+            // x is (_)
+            if (pattern is DiscardPatternSyntax && node.Parent is IsPatternExpressionSyntax)
+                return false;
+
             // (not ...) -> not ...
             //
             // this is safe because unary patterns have the highest precedence, so even if you had:
@@ -696,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //
             // you can safely convert to `not ... or not ...`
             var patternPrecedence = pattern.GetOperatorPrecedence();
-            if (patternPrecedence == OperatorPrecedence.Primary || patternPrecedence == OperatorPrecedence.Unary)
+            if (patternPrecedence is OperatorPrecedence.Primary or OperatorPrecedence.Unary)
                 return true;
 
             // We're parenthesized and are inside a parenthesized pattern.  We can remove our parens.

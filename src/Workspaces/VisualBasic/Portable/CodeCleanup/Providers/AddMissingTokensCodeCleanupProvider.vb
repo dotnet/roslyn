@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Protected Overrides Async Function GetRewriterAsync(document As Document, root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Task(Of Rewriter)
+        Protected Overrides Async Function GetRewriterAsync(document As Document, root As SyntaxNode, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken) As Task(Of Rewriter)
             Return Await AddMissingTokensRewriter.CreateAsync(document, spans, cancellationToken).ConfigureAwait(False)
         End Function
 
@@ -264,6 +264,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                                          If n.ParameterList.HasLeadingTrivia Then
                                                              newParamList = newParamList.WithLeadingTrivia(n.ParameterList.GetLeadingTrivia)
                                                          End If
+
                                                          If n.ParameterList.HasTrailingTrivia Then
                                                              newParamList = newParamList.WithTrailingTrivia(n.ParameterList.GetTrailingTrivia)
                                                          End If
@@ -280,6 +281,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                                                      Return nodeWithParams
                                                  End Function
+
                 Return AddParenthesesTransform(node, newNode, nameChecker, Function(n) n.ParameterList, transform)
             End Function
 

@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Not TypeOf ancestor Is ExpressionRangeVariableSyntax AndAlso
                    Not TypeOf ancestor Is InferredFieldInitializerSyntax Then
 
-                    Dim symbol = semanticModel.GetDeclaredSymbol(ancestor)
+                    Dim symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken)
 
                     If symbol IsNot Nothing Then
                         If symbol.Locations.Contains(location) Then
@@ -237,6 +237,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsInsideNameOfExpression(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInsideNameOfExpression
             Return node.FirstAncestorOrSelf(Of NameOfExpressionSyntax) IsNot Nothing
+        End Function
+
+        Public Function GetLocalFunctionSymbols(compilation As Compilation, symbol As ISymbol, cancellationToken As CancellationToken) As ImmutableArray(Of IMethodSymbol) Implements ISemanticFacts.GetLocalFunctionSymbols
+            Return ImmutableArray(Of IMethodSymbol).Empty
         End Function
     End Class
 End Namespace

@@ -26,10 +26,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             => _language = language;
 
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
-            var option = document.Project.Solution.Workspace.Options.GetOption(RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
-            if (!option)
+            if (!options.HighlightRelatedRegexComponentsUnderCursor)
             {
                 return default;
             }
@@ -120,9 +119,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private RegexEscapeNode FindReferenceNode(RegexNode node, VirtualChar virtualChar)
         {
-            if (node.Kind == RegexKind.BackreferenceEscape ||
-                node.Kind == RegexKind.CaptureEscape ||
-                node.Kind == RegexKind.KCaptureEscape)
+            if (node.Kind is RegexKind.BackreferenceEscape or
+                RegexKind.CaptureEscape or
+                RegexKind.KCaptureEscape)
             {
                 if (node.Contains(virtualChar))
                 {

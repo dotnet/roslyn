@@ -51,10 +51,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, host)
         End Function
 
-        Private Shared Async Function TestStreamingFeature(element As XElement,
-                                                    searchSingleFileOnly As Boolean,
-                                                    uiVisibleOnly As Boolean,
-                                                    host As TestHost) As Task
+        Private Shared Async Function TestStreamingFeature(
+                element As XElement,
+                searchSingleFileOnly As Boolean,
+                uiVisibleOnly As Boolean,
+                host As TestHost) As Task
             ' We don't support testing features that only expect partial results.
             If searchSingleFileOnly OrElse uiVisibleOnly Then
                 Return
@@ -72,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                     Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
                     Dim context = New TestContext()
-                    Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context)
+                    Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context, CancellationToken.None)
 
                     Dim expectedDefinitions =
                         workspace.Documents.Where(Function(d) d.AnnotatedSpans.ContainsKey(DefinitionKey) AndAlso d.AnnotatedSpans(DefinitionKey).Any()).
@@ -168,6 +169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     propertyValues = New HashSet(Of String)()
                     additionalPropertiesMap.Add(propertyName, propertyValues)
                 End If
+
                 propertyValues.Add(propertyValue)
             Next
 
@@ -230,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return definition.DisplayIfNoReferences
             End Function
 
-            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem) As ValueTask
+            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem, cancellationToken As CancellationToken) As ValueTask
                 SyncLock gate
                     Me.Definitions.Add(definition)
                 End SyncLock
@@ -238,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return Nothing
             End Function
 
-            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem) As ValueTask
+            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem, cancellationToken As CancellationToken) As ValueTask
                 SyncLock gate
                     References.Add(reference)
                 End SyncLock
@@ -254,7 +256,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Optional uiVisibleOnly As Boolean = False,
                 Optional options As FindReferencesSearchOptions = Nothing) As Task
 
+            Await TestAPI(definition, host, explicit:=False, searchSingleFileOnly, uiVisibleOnly, options)
+            Await TestAPI(definition, host, explicit:=True, searchSingleFileOnly, uiVisibleOnly, options)
+        End Function
+
+        Private Async Function TestAPI(
+                definition As XElement,
+                host As TestHost,
+                explicit As Boolean,
+                searchSingleFileOnly As Boolean,
+                uiVisibleOnly As Boolean,
+                options As FindReferencesSearchOptions) As Task
             options = If(options, FindReferencesSearchOptions.Default)
+            options = options.With(explicit:=explicit)
             Using workspace = TestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host))
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 
@@ -425,6 +439,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 builder.Append(suffix)
                 position = span.End
             Next
+
             builder.Append(text.GetSubText(New TextSpan(position, text.Length - position)))
 
             Return instance.ToStringAndFree()

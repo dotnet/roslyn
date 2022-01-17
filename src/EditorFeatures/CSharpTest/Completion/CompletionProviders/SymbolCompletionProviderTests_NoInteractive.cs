@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
@@ -29,13 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription, List<CompletionFilter> matchingFilters, CompletionItemFlags? flags = null)
+            string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
+            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags = null)
         {
             return base.VerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
                 SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                inlineDescription, matchingFilters, flags);
+                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -334,7 +336,9 @@ class C
 
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             var service = CompletionService.GetService(document);
-            var completions = await service.GetCompletionsAsync(document, position);
+            var options = CompletionOptions.Default;
+            var displayOptions = SymbolDescriptionOptions.Default;
+            var (completions, _) = await service.GetCompletionsInternalAsync(document, position, options);
 
             var item = completions.Items.First(i => i.DisplayText == "Beep");
             var edit = testDocument.GetTextBuffer().CreateEdit();
@@ -344,7 +348,7 @@ class C
             var currentDocument = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
             Assert.NotEqual(currentDocument, document);
-            var description = service.GetDescriptionAsync(document, item);
+            var description = service.GetDescriptionAsync(document, item, options, displayOptions);
         }
     }
 }

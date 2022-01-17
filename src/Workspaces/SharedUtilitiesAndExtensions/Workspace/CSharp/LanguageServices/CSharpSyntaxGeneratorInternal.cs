@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -14,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
@@ -31,7 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
-        internal override SyntaxNode LocalDeclarationStatement(SyntaxNode type, SyntaxToken name, SyntaxNode initializer, bool isConst)
+        internal override SyntaxTrivia EndOfLine(string text)
+            => SyntaxFactory.EndOfLine(text);
+
+        internal override SyntaxNode LocalDeclarationStatement(SyntaxNode? type, SyntaxToken name, SyntaxNode? initializer, bool isConst)
         {
             return SyntaxFactory.LocalDeclarationStatement(
                 isConst ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ConstKeyword)) : default,
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value)
             => SyntaxFactory.EqualsValueClause(operatorToken, (ExpressionSyntax)value);
 
-        internal static VariableDeclarationSyntax VariableDeclaration(SyntaxNode type, SyntaxToken name, SyntaxNode expression)
+        internal static VariableDeclarationSyntax VariableDeclaration(SyntaxNode? type, SyntaxToken name, SyntaxNode? expression)
         {
             return SyntaxFactory.VariableDeclaration(
                 type == null ? SyntaxFactory.IdentifierName("var") : (TypeSyntax)type,
@@ -77,8 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var other => other,
             };
 
-        internal override SyntaxNode YieldReturnStatement(SyntaxNode expressionOpt = null)
-            => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, (ExpressionSyntax)expressionOpt);
+        internal override SyntaxNode YieldReturnStatement(SyntaxNode expression)
+            => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, (ExpressionSyntax)expression);
 
         /// <summary>
         /// C# always requires a type to be present with a local declaration.  (Even if that type is
@@ -92,11 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode InterpolatedStringText(SyntaxToken textToken)
             => SyntaxFactory.InterpolatedStringText(textToken);
 
-        internal override SyntaxToken InterpolatedStringTextToken(string content)
+        internal override SyntaxToken InterpolatedStringTextToken(string content, string value)
             => SyntaxFactory.Token(
                 SyntaxFactory.TriviaList(),
                 SyntaxKind.InterpolatedStringTextToken,
-                content, "",
+                content, value,
                 SyntaxFactory.TriviaList());
 
         internal override SyntaxNode Interpolation(SyntaxNode syntaxNode)
@@ -127,6 +129,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 RefKind.In when !forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword)),
                 RefKind.RefReadOnly when forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)),
                 _ => throw ExceptionUtilities.UnexpectedValue(refKind),
+            };
+
+        internal override SyntaxNode Type(ITypeSymbol typeSymbol, bool typeContext)
+            => typeContext ? typeSymbol.GenerateTypeSyntax() : typeSymbol.GenerateExpressionSyntax();
+
+        public override SyntaxNode NegateEquality(SyntaxGenerator generator, SyntaxNode binaryExpression, SyntaxNode left, BinaryOperatorKind negatedKind, SyntaxNode right)
+            => negatedKind switch
+            {
+                BinaryOperatorKind.Equals => generator.ReferenceEqualsExpression(left, right),
+                BinaryOperatorKind.NotEquals => generator.ReferenceNotEqualsExpression(left, right),
+                _ => throw ExceptionUtilities.UnexpectedValue(negatedKind),
             };
 
         #region Patterns

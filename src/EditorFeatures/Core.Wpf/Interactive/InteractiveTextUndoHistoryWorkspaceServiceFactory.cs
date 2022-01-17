@@ -6,6 +6,7 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             {
                 undoHistory = null;
 
-                if (!(editorWorkspace is InteractiveWorkspace))
+                if (editorWorkspace is not InteractiveWindowWorkspace)
                 {
                     return false;
                 }

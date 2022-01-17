@@ -21,8 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp,
-        Name = nameof(CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryDiscardDesignation), Shared]
     internal partial class CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -81,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
                                     SyntaxFactory.TypePattern(((DeclarationPatternSyntax)current).Type)
                                                  .WithAdditionalAnnotations(Formatter.Annotation));
                         }
+
                         break;
                     case RecursivePatternSyntax recursivePattern:
                         editor.ReplaceNode(

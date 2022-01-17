@@ -543,6 +543,55 @@ end class
             Assert.NotEqual(typeResult.Locations.Single().Location.SourceSpan, constructorResult.Locations.Single().Location.SourceSpan);
         }
 
+        [Fact, WorkItem(49624, "https://github.com/dotnet/roslyn/issues/49624")]
+        public async Task DoNotIncludeSameNamedAlias()
+        {
+            var text = @"
+using NestedDummy = Test.Dummy.NestedDummy;
+
+namespace Test
+{
+    public class DummyFactory
+    {
+        public NestedDummy Create() => new NestedDummy();
+    }
+}
+
+namespace Test
+{
+	public class Dummy
+	{
+		public class NestedDummy { }
+	}
+}
+";
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text, LanguageNames.CSharp);
+            var project = solution.Projects.First();
+            var compilation = await project.GetCompilationAsync();
+            var symbol = compilation.GetTypeByMetadataName("Test.Dummy+NestedDummy");
+
+            var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
+            Assert.Equal(2, result.Count);
+
+            var typeResult = result.Single(r => r.Definition.Kind == SymbolKind.NamedType);
+            var constructorResult = result.Single(r => r.Definition.Kind == SymbolKind.Method);
+
+            // Should be one hit for the type and one for the constructor.
+            Assert.Equal(2, typeResult.Locations.Count());
+            Assert.Equal(1, constructorResult.Locations.Count());
+
+            // those locations should not be the same
+            Assert.True(typeResult.Locations.All(loc => loc.Location.SourceSpan != constructorResult.Locations.Single().Location.SourceSpan));
+
+            // Constructor still binds to the alias.
+            Assert.NotNull(constructorResult.Locations.Single().Alias);
+
+            // One type reference is to the type itself, and one is through the alias.
+            Assert.True(typeResult.Locations.Count(loc => loc.Alias == null) == 1);
+            Assert.True(typeResult.Locations.Count(loc => loc.Alias != null) == 1);
+        }
+
         private static void Verify(ReferencedSymbol reference, HashSet<int> expectedMatchedLines)
         {
             void verifier(Location location)

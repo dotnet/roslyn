@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
-        <target state="translated">İlişkisel işleçleri içinde: = Transfeleri'nin &lt; &gt; &lt;&gt; = nasıl olduğunu =</target>
+        <target state="translated">İlişkisel işleçleri içinde: = Transfeleri'nin &lt;&gt; &lt;&gt; = nasıl olduğunu =</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments">
@@ -51,6 +51,16 @@
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">Başvuru eşitliği denetimleri için 'Is Nothing'i tercih et</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_object_creation">
+        <source>Prefer simplified object creation</source>
+        <target state="translated">Basitleştirilmiş nesne oluşturmayı tercih et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_Imports">
+        <source>Remove unnecessary Imports</source>
+        <target state="translated">Gereksiz Import'ları kaldır</target>
+        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
@@ -166,6 +176,11 @@
         <source>Import Directives</source>
         <target state="translated">İçeri Aktarma Yönergeleri</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Sort_imports">
+        <source>Sort imports</source>
+        <target state="translated">Import'ları sırala</target>
+        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>

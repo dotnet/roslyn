@@ -49,7 +49,7 @@ End Class
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=badStream,
-                    diagnostics:=diags,
+                    diagnostics:=New BindingDiagnosticBag(diags),
                     cancellationToken:=Nothing)
 
                 AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
@@ -8346,13 +8346,13 @@ End Class
             CompileCheckDiagnosticsAndXmlDocument(FormatSourceXml(xmlSource, xmlFile),
     <error>
         <![CDATA[
+BC42306: XML comment tag 'returns' is not permitted on a 'WithEvents variable' language element.
 BC42306: XML comment tag 'returns' is not permitted on a 'class' language element.
 BC42306: XML comment tag 'returns' is not permitted on a 'delegate sub' language element.
 BC42306: XML comment tag 'returns' is not permitted on a 'enum' language element.
 BC42306: XML comment tag 'returns' is not permitted on a 'event' language element.
 BC42306: XML comment tag 'returns' is not permitted on a 'sub' language element.
 BC42306: XML comment tag 'returns' is not permitted on a 'variable' language element.
-BC42306: XML comment tag 'returns' is not permitted on a 'WithEvents variable' language element.
 BC42313: XML comment tag 'returns' is not permitted on a 'WriteOnly' Property.
 BC42315: XML comment tag 'returns' is not permitted on a 'declare sub' language element.
 ]]>
@@ -8504,8 +8504,8 @@ End Class
         <![CDATA[
 BC42306: XML comment tag 'value' is not permitted on a 'class' language element.
 BC42306: XML comment tag 'value' is not permitted on a 'declare' language element.
-BC42306: XML comment tag 'value' is not permitted on a 'delegate' language element.
 BC42306: XML comment tag 'value' is not permitted on a 'delegate sub' language element.
+BC42306: XML comment tag 'value' is not permitted on a 'delegate' language element.
 BC42306: XML comment tag 'value' is not permitted on a 'enum' language element.
 BC42306: XML comment tag 'value' is not permitted on a 'event' language element.
 BC42306: XML comment tag 'value' is not permitted on a 'function' language element.
@@ -8785,8 +8785,8 @@ BC42306: XML comment tag 'typeparam' is not permitted on a 'property' language e
 BC42306: XML comment tag 'typeparam' is not permitted on a 'variable' language element.
 BC42306: XML comment tag 'typeparamref' is not permitted on a 'module' language element.
 BC42317: XML comment type parameter 'P9' does not match a type parameter on the corresponding 'declare' statement.
-BC42317: XML comment type parameter 'P9' does not match a type parameter on the corresponding 'delegate' statement.
 BC42317: XML comment type parameter 'P9' does not match a type parameter on the corresponding 'delegate sub' statement.
+BC42317: XML comment type parameter 'P9' does not match a type parameter on the corresponding 'delegate' statement.
 BC42317: XML comment type parameter 'P9' does not match a type parameter on the corresponding 'function' statement.
 BC42317: XML comment type parameter 'P9' does not match a type parameter on the corresponding 'interface' statement.
 BC42317: XML comment type parameter 'P9' does not match a type parameter on the corresponding 'structure' statement.
@@ -12536,7 +12536,7 @@ End Class
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=diags,
+                    diagnostics:=New BindingDiagnosticBag(diags),
                     cancellationToken:=Nothing,
                     filterTree:=comp.SyntaxTrees(0))
 
@@ -12553,7 +12553,7 @@ BC42312: XML documentation comments must precede member or type declarations.
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=diags,
+                    diagnostics:=New BindingDiagnosticBag(diags),
                     cancellationToken:=Nothing,
                     filterTree:=comp.SyntaxTrees(0),
                     filterSpanWithinTree:=New Text.TextSpan(0, 0))
@@ -12566,7 +12566,7 @@ BC42312: XML documentation comments must precede member or type declarations.
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=diags,
+                    diagnostics:=New BindingDiagnosticBag(diags),
                     cancellationToken:=Nothing,
                     filterTree:=comp.SyntaxTrees(1))
 
@@ -12583,7 +12583,7 @@ BC42312: XML documentation comments must precede member or type declarations.
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=diags,
+                    diagnostics:=New BindingDiagnosticBag(diags),
                     cancellationToken:=Nothing,
                     filterTree:=Nothing)
 
@@ -12603,7 +12603,7 @@ BC42312: XML documentation comments must precede member or type declarations.
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=diags,
+                    diagnostics:=New BindingDiagnosticBag(diags),
                     cancellationToken:=Nothing,
                     filterTree:=Nothing,
                     filterSpanWithinTree:=New Text.TextSpan(0, 0))

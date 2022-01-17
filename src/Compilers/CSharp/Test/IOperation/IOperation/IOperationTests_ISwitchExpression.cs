@@ -12,8 +12,71 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests_SwitchExpression : SemanticModelTestBase
+    public class IOperationTests_ISwitchExpression : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_NonExhaustive()
+        {
+            //null case is not handled -> not exhaustive
+            string source = @"
+namespace Tests
+{
+    public class Prog
+    {
+        static int EvalPoint((int, int)? point) => /*<bind>*/point switch
+        {
+            (0, int t) => t > 2 ? 3 : 4,
+            var (_, _) => 2
+        }/*</bind>*/;
+
+        static void Main()
+        {
+			EvalPoint(null);
+        }
+    }
+}
+";
+            string expectedOperationTree = @"ISwitchExpressionOperation (2 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'point switc ... }')
+  Value: 
+    IParameterReferenceOperation: point (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)?) (Syntax: 'point')
+  Arms(2):
+      ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '(0, int t)  ... > 2 ? 3 : 4')
+        Pattern: 
+          IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '(0, int t)') (InputType: (System.Int32, System.Int32)?, NarrowedType: (System.Int32, System.Int32), DeclaredSymbol: null, MatchedType: (System.Int32, System.Int32), DeconstructSymbol: null)
+            DeconstructionSubpatterns (2):
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '0') (InputType: System.Int32, NarrowedType: System.Int32)
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int t') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 t, MatchesNull: False)
+            PropertySubpatterns (0)
+        Value: 
+          IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: 't > 2 ? 3 : 4')
+            Condition: 
+              IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 't > 2')
+                Left: 
+                  ILocalReferenceOperation: t (OperationKind.LocalReference, Type: System.Int32) (Syntax: 't')
+                Right: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            WhenTrue: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            WhenFalse: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+        Locals: Local_1: System.Int32 t
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: 'var (_, _) => 2')
+        Pattern: 
+          IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '(_, _)') (InputType: (System.Int32, System.Int32)?, NarrowedType: (System.Int32, System.Int32), DeclaredSymbol: null, MatchedType: (System.Int32, System.Int32), DeconstructSymbol: null)
+            DeconstructionSubpatterns (2):
+                IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+            PropertySubpatterns (0)
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact]
         public void SwitchExpression_Basic()
@@ -29,7 +92,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (3 arms) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'x switch {  ... 4, _ => 5 }')
+ISwitchExpressionOperation (3 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'x switch {  ... 4, _ => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(3):
@@ -73,7 +136,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (0 arms) (OperationKind.SwitchExpression, Type: System.Object) (Syntax: 'x switch { }')
+ISwitchExpressionOperation (0 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Object) (Syntax: 'x switch { }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(0)
@@ -101,7 +164,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch { => 5 }')
+ISwitchExpressionOperation (1 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch { => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(1):
@@ -137,7 +200,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (3 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... 4, _ => 5 }')
+ISwitchExpressionOperation (3 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... 4, _ => 5 }')
   Value: 
     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x')
       Children(0)
@@ -185,7 +248,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: System.Object) (Syntax: 'x switch {  ...  _ => ""Z"" }')
+ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Object) (Syntax: 'x switch {  ...  _ => ""Z"" }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(2):
@@ -227,7 +290,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-    ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'x switch {  ...  _ => ""Z"" }')
+    ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'x switch {  ...  _ => ""Z"" }')
       Value: 
         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
       Arms(2):
@@ -273,7 +336,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch { _ /*=>*/ 5 }')
+ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch { _ /*=>*/ 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(1):
@@ -306,7 +369,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'x switch { _ => /*5*/ }')
+ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'x switch { _ => /*5*/ }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(1):
@@ -340,7 +403,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... ound => 5 }')
+ISwitchExpressionOperation (1 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... ound => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(1):
@@ -379,7 +442,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'x switch {  ...  NotFound }')
+ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'x switch {  ...  NotFound }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(1):
@@ -413,7 +476,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... 5, 1 => 2 }')
+ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... 5, 1 => 2 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(2):
@@ -453,7 +516,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'x switch {  ... 2, _ => 5 }')
+ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'x switch {  ... 2, _ => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(2):
@@ -491,7 +554,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'x switch {  ... alse => 5 }')
+ISwitchExpressionOperation (2 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'x switch {  ... alse => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(2):
@@ -533,7 +596,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'x switch {  ... true => 5 }')
+ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'x switch {  ... true => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(2):
@@ -571,7 +634,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... ound => 5 }')
+ISwitchExpressionOperation (1 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... ound => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(1):
@@ -610,7 +673,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... nt z => 5 }')
+ISwitchExpressionOperation (1 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... nt z => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(1):
@@ -637,6 +700,120 @@ ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: Syste
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "z").WithArguments("z").WithLocation(7, 54)
             };
             VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void TargetTypedSwitchExpression_ImplicitCast()
+        {
+            var source = @"
+using System;
+bool b = true;
+/*<bind>*/Action<string> a = b switch { true => arg => {}, false => arg => {} };/*</bind>*/";
+
+            var expectedOperationTree = @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Action<stri ... rg => {} };')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Action<stri ... arg => {} }')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action<System.String> a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a = b switc ... arg => {} }')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= b switch  ... arg => {} }')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action<System.String>, IsImplicit) (Syntax: 'b switch {  ... arg => {} }')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Action<System.String>) (Syntax: 'b switch {  ... arg => {} }')
+                    Value: 
+                      ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'b')
+                    Arms(2):
+                        ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: 'true => arg => {}')
+                          Pattern: 
+                            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'true') (InputType: System.Boolean, NarrowedType: System.Boolean)
+                              Value: 
+                                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                          Value: 
+                            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.String>, IsImplicit) (Syntax: 'arg => {}')
+                              Target: 
+                                IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'arg => {}')
+                                  IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+                                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{}')
+                                      ReturnedValue: 
+                                        null
+                        ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: 'false => arg => {}')
+                          Pattern: 
+                            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'false') (InputType: System.Boolean, NarrowedType: System.Boolean)
+                              Value: 
+                                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                          Value: 
+                            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.String>, IsImplicit) (Syntax: 'arg => {}')
+                              Target: 
+                                IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'arg => {}')
+                                  IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+                                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{}')
+                                      ReturnedValue: 
+                                        null
+    Initializer: 
+      null
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void TargetTypedSwitchExpression_ExplicitCast()
+        {
+            var source = @"
+using System;
+bool b = true;
+/*<bind>*/var a = (Action<string>)(b switch { true => arg => {}, false => arg => {} });/*</bind>*/";
+
+            var expectedOperationTree = @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var a = (Ac ... g => {} });')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var a = (Ac ... rg => {} })')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Action<System.String> a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a = (Action ... rg => {} })')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (Action<s ... rg => {} })')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action<System.String>) (Syntax: '(Action<str ... rg => {} })')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Action<System.String>) (Syntax: 'b switch {  ... arg => {} }')
+                    Value: 
+                      ILocalReferenceOperation: b (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'b')
+                    Arms(2):
+                        ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: 'true => arg => {}')
+                          Pattern: 
+                            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'true') (InputType: System.Boolean, NarrowedType: System.Boolean)
+                              Value: 
+                                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                          Value: 
+                            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.String>, IsImplicit) (Syntax: 'arg => {}')
+                              Target: 
+                                IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'arg => {}')
+                                  IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+                                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{}')
+                                      ReturnedValue: 
+                                        null
+                        ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: 'false => arg => {}')
+                          Pattern: 
+                            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'false') (InputType: System.Boolean, NarrowedType: System.Boolean)
+                              Value: 
+                                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                          Value: 
+                            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.String>, IsImplicit) (Syntax: 'arg => {}')
+                              Target: 
+                                IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'arg => {}')
+                                  IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+                                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{}')
+                                      ReturnedValue: 
+                                        null
+    Initializer: 
+      null
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]

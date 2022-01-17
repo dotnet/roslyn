@@ -17,6 +17,11 @@
         <target state="translated">Quitar instrucciones Import innecesarias</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_object_creation">
+        <source>Simplify object creation</source>
+        <target state="translated">Simplificar la creación de objetos</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -6,13 +6,14 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -33,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         {
             return new Dictionary<OptionKey2, object>
             {
-                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
-                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
+                { new OptionKey2(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
+                { new OptionKey2(FormattingBehaviorOptions.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
                 { new OptionKey2(BraceCompletionOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
             };
         }
@@ -424,103 +425,8 @@ class Program
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var syntaxRoot = await document.GetSyntaxRootAsync();
-
-            var node = Formatter.Format(syntaxRoot, spans, workspace);
-            Assert.Equal(expected, node.ToFullString());
-        }
-
-        [WorkItem(987373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/987373")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatSpansWithCollapsing()
-        {
-            var code = @"class C
-{
-    public void M()
-    {
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        [|if(true){}|]
-        while(true){}
-        [|if(true){}|]
-    }
-}";
-            var expected = @"class C
-{
-    public void M()
-    {
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        if (true) { }
-        while (true) { }
-        if (true) { }
-    }
-}";
-            using var workspace = TestWorkspace.CreateCSharp(code);
-            var subjectDocument = workspace.Documents.Single();
-            var spans = subjectDocument.SelectedSpans;
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions2.AllowDisjointSpanMerging, true)));
-
-            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-            var syntaxRoot = await document.GetSyntaxRootAsync();
-
-            var node = Formatter.Format(syntaxRoot, spans, workspace);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None).ConfigureAwait(false);
+            var node = Formatter.Format(syntaxRoot, spans, workspace.Services, options, rules: null, CancellationToken.None);
             Assert.Equal(expected, node.ToFullString());
         }
 
@@ -1172,7 +1078,7 @@ class C : Attribute
 }";
             var optionSet = new Dictionary<OptionKey2, object>
                             {
-                                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
+                                { new OptionKey2(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
                             };
             AssertFormatAfterTypeChar(code, expected, optionSet);
         }
@@ -1235,7 +1141,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey2, object>
             {
-                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { new OptionKey2(FormattingBehaviorOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1267,7 +1173,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey2, object>
             {
-                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { new OptionKey2(FormattingBehaviorOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1325,7 +1231,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
+                    { new OptionKey2(FormattingBehaviorOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1357,7 +1263,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                    { new OptionKey2(FormattingBehaviorOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -2171,6 +2077,35 @@ using MS.B;
 
         [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_KeepMultipleLinesBetweenGroups_FileScopedNamespace()
+        {
+            var code = @"$$
+namespace N;
+
+using System.A;
+using System.B;
+
+
+using MS.A;
+using MS.B;
+";
+
+            var expected = @"$$
+namespace N;
+
+using System.A;
+using System.B;
+
+
+using MS.A;
+using MS.B;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void SeparateGroups_DoNotGroupIfNotSorted()
         {
             var code = @"$$
@@ -2256,7 +2191,11 @@ namespace TestApp
             var annotatedMarkerTrivia = markerTrivia.WithAdditionalAnnotations(annotation);
             root = root.ReplaceTrivia(markerTrivia, annotatedMarkerTrivia);
 
-            var formattedRoot = Formatter.Format(root, new AdhocWorkspace());
+            using var workspace = new AdhocWorkspace();
+
+            var options = SyntaxFormattingOptions.Default;
+
+            var formattedRoot = Formatter.Format(root, workspace.Services, options, CancellationToken.None);
             var annotatedTrivia = formattedRoot.GetAnnotatedTrivia("marker");
 
             Assert.Single(annotatedTrivia);

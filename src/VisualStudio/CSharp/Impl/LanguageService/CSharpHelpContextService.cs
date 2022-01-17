@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -119,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (TryGetTextForSpecialCharacters(token, out var text) ||
                 TryGetTextForContextualKeyword(token, out text) ||
                 TryGetTextForCombinationKeyword(token, syntaxFacts, out text) ||
-                TryGetTextForKeyword(token, syntaxFacts, out text) ||
+                TryGetTextForKeyword(token, out text) ||
                 TryGetTextForPreProcessor(token, syntaxFacts, out text) ||
                 TryGetTextForOperator(token, document, out text) ||
                 TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text))
@@ -171,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
             else
             {
-                symbol = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken)
+                symbol = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace.Services, cancellationToken)
                                       .GetAnySymbol(includeType: true);
 
                 if (symbol == null)
@@ -213,6 +214,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 text = Keyword("nullForgiving");
                 return true;
+            }
+
+            // Workaround IsPredefinedOperator returning true for '<' in generics.
+            if (token is { RawKind: (int)SyntaxKind.LessThanToken, Parent: not BinaryExpressionSyntax })
+            {
+                text = null;
+                return false;
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -344,7 +352,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
         }
 
-        private static bool TryGetTextForKeyword(SyntaxToken token, ISyntaxFactsService syntaxFacts, out string text)
+        private static bool TryGetTextForKeyword(SyntaxToken token, out string text)
         {
             if (token.IsKind(SyntaxKind.InKeyword))
             {
@@ -398,7 +406,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (syntaxFacts.IsTypeNamedDynamic(token, token.Parent))
+            if (token.IsTypeNamedDynamic())
             {
                 text = "dynamic_CSharpKeyword";
                 return true;
@@ -427,7 +435,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         public override string FormatSymbol(ISymbol symbol)
         {
-            if (symbol is ITypeSymbol || symbol is INamespaceSymbol)
+            if (symbol is ITypeSymbol or INamespaceSymbol)
             {
                 return FormatNamespaceOrTypeSymbol((INamespaceOrTypeSymbol)symbol);
             }

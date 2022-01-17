@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return 0;
         };
 
-        public static IEnumerable<ValueTuple<SyntaxToken, SyntaxToken>> ConvertToTokenPairs(this SyntaxNode root, IList<TextSpan> spans)
+        public static IEnumerable<(SyntaxToken, SyntaxToken)> ConvertToTokenPairs(this SyntaxNode root, IReadOnlyList<TextSpan> spans)
         {
             Contract.ThrowIfNull(root);
             Contract.ThrowIfFalse(spans.Count > 0);
