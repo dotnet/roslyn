@@ -1690,6 +1690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return propertySymbol is SourcePropertySymbolBase sourceProperty &&
                     // To be assigned through backing field, either SetMethod is null, or it's equivalent to backing field write
+                    // PROTOTYPE(semi-auto-props): TODO: Do we need to use `GetOwnOrInheritedSetMethod` instead of `SetMethod`? Add tests.
                     sourceProperty.SetMethod is not SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: false } &&
                     TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
                     IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic) &&
