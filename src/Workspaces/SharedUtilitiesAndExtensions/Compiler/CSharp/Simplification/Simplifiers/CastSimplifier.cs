@@ -776,17 +776,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     // If we have `(T?)TExpr == TExpr` then we can potentially remove this cast if the caller determines
                     // that there is an outer contextual cast to `T?` higher up.
                     var castSideType = semanticModel.GetTypeInfo(castSide, cancellationToken).Type;
-                    var otherSideType = semanticModel.GetTypeInfo(otherSide, cancellationToken).Type;
                     var castedExpressionType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type;
 
-                    if (castSideType.IsNullable(out var underlyingType) &&
-                        Equals(underlyingType, castedExpressionType))
+                    if (castSideType.IsNullable(out var underlyingType) && Equals(underlyingType, castedExpressionType))
                     {
-                        if (Equals(castSideType, otherSideType) ||
-                            Equals(underlyingType, otherSideType))
-                        {
+                        var otherSideType = semanticModel.GetTypeInfo(otherSide, cancellationToken).Type;
+                        if (Equals(castSideType, otherSideType) || Equals(underlyingType, otherSideType))
                             return false;
-                        }
                     }
                 }
             }
