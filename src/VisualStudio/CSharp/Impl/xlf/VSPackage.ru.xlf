@@ -82,8 +82,9 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;</source>
-        <target state="translated">Подчеркивать переназначенные переменные;
+Inheritance Margin;
+Stack Trace Explorer;</source>
+        <target state="needs-review-translation">Подчеркивать переназначенные переменные;
 Показывать встроенные подсказки;
 Показывать диагностику для закрытых файлов;
 Выделять регулярные выражения;
