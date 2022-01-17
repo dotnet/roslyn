@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 throw ExceptionUtilities.UnexpectedValue(declarationContext?.Kind());
             }
         }
+
         private static async Task HandleDeclarationExpressionAsync(Document document, SyntaxEditor editor, DeclarationExpressionSyntax declarationExpression, CancellationToken cancellationToken)
         {
             var typeSyntax = declarationExpression.Type;
