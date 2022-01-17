@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -31,10 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         {
             context.RegisterCompilationStartAction(context =>
             {
-                if (((CSharpCompilation)context.Compilation).LanguageVersion < LanguageVersion.CSharp9)
-                {
+                if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp9)
                     return;
-                }
 
                 context.RegisterOperationAction(c => AnalyzeIsTypeOperation(c), OperationKind.IsType);
                 context.RegisterOperationAction(c => AnalyzeNegatedPatternOperation(c), OperationKind.NegatedPattern);

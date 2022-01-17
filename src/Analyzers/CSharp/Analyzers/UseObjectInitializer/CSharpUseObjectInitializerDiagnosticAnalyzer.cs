@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
         {
             // object initializers are only available in C# 3.0 and above.  Don't offer this refactoring
             // in projects targeting a lesser version.
-            return ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp3;
+            return compilation.LanguageVersion() >= LanguageVersion.CSharp3;
         }
 
         protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;

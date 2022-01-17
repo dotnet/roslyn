@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         }
 
         internal static bool CanOfferUseFileScoped(OptionSet optionSet, CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax declaration, bool forAnalyzer)
-            => CanOfferUseFileScoped(optionSet, root, declaration, forAnalyzer, ((CSharpParseOptions)root.SyntaxTree.Options).LanguageVersion);
+            => CanOfferUseFileScoped(optionSet, root, declaration, forAnalyzer, root.SyntaxTree.Options.LanguageVersion());
 
         internal static bool CanOfferUseFileScoped(
             OptionSet optionSet,

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseThrowExpression
 
         protected override bool IsSupported(Compilation compilation)
         {
-            return ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp7;
+            return compilation.LanguageVersion() >= LanguageVersion.CSharp7;
         }
 
         protected override bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol? expressionTypeOpt, CancellationToken cancellationToken)

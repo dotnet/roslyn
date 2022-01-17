@@ -1248,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // Removing a cast may cause a conditional-expression conversion to come into existence.  This is
             // fine as long as we're in C# 9 or above.
-            var languageVersion = ((CSharpCompilation)originalSemanticModel.Compilation).LanguageVersion;
+            var languageVersion = originalSemanticModel.Compilation.LanguageVersion();
             if (languageVersion < LanguageVersion.CSharp9 &&
                 IntroducedConditionalExpressionConversion(rewrittenExpression, rewrittenSemanticModel, cancellationToken))
             {

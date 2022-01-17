@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         {
             if (newNameNode.IsKind(SyntaxKind.DiscardDesignation)
                 && parent.IsKind(SyntaxKind.DeclarationPattern, out DeclarationPatternSyntax declarationPattern)
-                && ((CSharpParseOptions)parent.SyntaxTree.Options).LanguageVersion.IsCSharp9OrAbove())
+                && parent.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
             {
                 var trailingTrivia = declarationPattern.Type.GetTrailingTrivia()
                     .AddRange(newNameNode.GetLeadingTrivia())

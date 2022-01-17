@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
                 // in projects targeting a lesser version.
 
                 var compilation = compilationContext.Compilation;
-                if (((CSharpCompilation)compilation).LanguageVersion < LanguageVersion.CSharp10)
+                if (compilation.LanguageVersion() < LanguageVersion.CSharp10)
                     return;
 
                 context.RegisterSyntaxNodeAction(AnalyzeSubpattern, SyntaxKind.Subpattern);

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
             ElementAccessExpressionSyntax>
     {
         protected override bool ShouldAnalyze(Compilation compilation)
-            => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
+            => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;

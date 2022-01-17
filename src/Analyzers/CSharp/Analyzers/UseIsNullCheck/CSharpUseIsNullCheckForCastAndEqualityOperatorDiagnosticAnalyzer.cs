@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UseIsNullCheck;
@@ -32,10 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(context =>
             {
-                if (((CSharpCompilation)context.Compilation).LanguageVersion < LanguageVersion.CSharp7)
-                {
+                if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp7)
                     return;
-                }
 
                 context.RegisterSyntaxNodeAction(n => AnalyzeSyntax(n), SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression);
             });

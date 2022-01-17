@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             VariableDeclaratorSyntax>
     {
         protected override bool AreCollectionInitializersSupported(Compilation compilation)
-            => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp3;
+            => compilation.LanguageVersion() >= LanguageVersion.CSharp3;
 
         protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;
     }
