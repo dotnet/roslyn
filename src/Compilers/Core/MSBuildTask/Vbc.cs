@@ -252,6 +252,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
+        internal void LogCompilerOutput_ForTestingOnly(string output, MessageImportance messageImportance) => LogCompilerOutput(output, messageImportance);
+
         /// <summary>
         ///  Return the name of the tool to execute.
         /// </summary>
