@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Tags;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         private readonly IThreadingContext _threadingContext;
         private readonly ICodeRefactoringService _codeRefactoringService;
+        private readonly IPasteTrackingService _pasteTrackingService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ICodeFixService _codeFixService;
         private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
@@ -60,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public SuggestedActionsSourceProvider(
             IThreadingContext threadingContext,
             ICodeRefactoringService codeRefactoringService,
+            IPasteTrackingService pasteTrackingService,
             IDiagnosticAnalyzerService diagnosticService,
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandler,
@@ -71,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             _threadingContext = threadingContext;
             _codeRefactoringService = codeRefactoringService;
+            _pasteTrackingService = pasteTrackingService;
             _diagnosticService = diagnosticService;
             _codeFixService = codeFixService;
             _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;

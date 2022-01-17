@@ -2,18 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     var documentId = arguments.DocumentId;
                     var projectId = arguments.ProjectId;
-                    var project = solution.GetProject(projectId);
+                    var project = solution.GetRequiredProject(projectId);
                     var document = arguments.DocumentId != null
                         ? solution.GetTextDocument(arguments.DocumentId) ?? await solution.GetSourceGeneratedDocumentAsync(arguments.DocumentId, cancellationToken).ConfigureAwait(false)
                         : null;
@@ -96,6 +98,29 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return default;
+            }, cancellationToken);
+        }
+
+        public ValueTask<bool> HasRefactoringsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, TextSpan? pastedTextSpan, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async cancellationToken =>
+            {
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_HasRefactoringsAsync, documentId.ProjectId.DebugName, cancellationToken))
+                {
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                    var document = solution.GetRequiredDocument(documentId);
+
+                    var mefHostExportProvider = (IMefHostExportProvider)solution.Workspace.Services.HostServices;
+                    var service = mefHostExportProvider.GetExports<ICodeRefactoringService>().Single().Value;
+
+                    // Make sure the paste tracking service for this process has the correct text span
+                    var pasteTrackingService = (RemotePasteTrackingService?)mefHostExportProvider.GetExports<IPasteTrackingService>().SingleOrDefault()?.Value;
+                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var container = sourceText.Container;
+                    using var _ = pasteTrackingService?.SetPastedTextSpanForRemoteCall(container, pastedTextSpan);
+
+                    return await service.HasRefactoringsAsync(document, textSpan, pastedTextSpan, cancellationToken).ConfigureAwait(false);
+                }
             }, cancellationToken);
         }
     }

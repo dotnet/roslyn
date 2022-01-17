@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         private readonly IPasteTrackingService _pasteTrackingService;
         protected abstract string CodeActionTitle { get; }
 
-        public AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService pasteTrackingService)
+        protected AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService pasteTrackingService)
             => _pasteTrackingService = pasteTrackingService;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             }
 
             // Check pasted text span for missing imports
-            var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
+            var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 
             var analysis = await addMissingImportsService.AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (!analysis.CanAddMissingImports)

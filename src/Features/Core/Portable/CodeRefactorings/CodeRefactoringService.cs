@@ -15,11 +15,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if DEBUG
+using System.Diagnostics;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -34,10 +40,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider>.CreateValueCallback _createProjectCodeRefactoringsProvider
             = new(r => new ProjectCodeRefactoringProvider(r));
 
+        private readonly IPasteTrackingService? _pasteTrackingService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeRefactoringService(
-            [ImportMany] IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
+            [ImportMany] IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers,
+            [Import(AllowDefault = true)] IPasteTrackingService? pasteTrackingService)
         {
             // convert set of all code refactoring providers into a map from language to a lazy initialized list of ordered providers.
             _lazyLanguageToProvidersMap = new Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>>(
@@ -49,6 +58,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                                 grp.Key,
                                 new Lazy<ImmutableArray<CodeRefactoringProvider>>(() => ExtensionOrderer.Order(grp).Select(lz => lz.Value).ToImmutableArray())))));
             _lazyRefactoringToMetadataMap = new(() => providers.Where(provider => provider.IsValueCreated).ToImmutableDictionary(provider => provider.Value, provider => provider.Metadata));
+
+            _pasteTrackingService = pasteTrackingService;
         }
 
         private static IEnumerable<Lazy<CodeRefactoringProvider, OrderableLanguageMetadata>> DistributeLanguages(IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
@@ -83,8 +94,45 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         public async Task<bool> HasRefactoringsAsync(
             Document document,
-            TextSpan state,
+            TextSpan textSpan,
+            TextSpan? pastedTextSpan,
             CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client is not null)
+            {
+                var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, bool>(
+                    document.Project.Solution,
+                    invocation: (service, solutionInfo, cancellationToken) => service.HasRefactoringsAsync(solutionInfo, document.Id, textSpan, pastedTextSpan, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                if (result.HasValue)
+                {
+                    return result.Value;
+                }
+            }
+
+#if DEBUG
+            // Verify that the paste tracking service for the current process is already tracking the expected pasted
+            // text span.
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            if (pastedTextSpan is object)
+            {
+                RoslynDebug.AssertNotNull(_pasteTrackingService);
+                Debug.Assert(_pasteTrackingService.TryGetPastedTextSpan(sourceText.Container, out var trackedPastedTextSpan)
+                    && trackedPastedTextSpan == pastedTextSpan);
+            }
+            else
+            {
+                Debug.Assert(_pasteTrackingService is null
+                    || !_pasteTrackingService.TryGetPastedTextSpan(sourceText.Container, out _));
+            }
+#endif
+
+            return await HasRefactoringsInCurrentProcessAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<bool> HasRefactoringsInCurrentProcessAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
 
@@ -94,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                 var refactoring = await GetRefactoringFromProviderAsync(
-                    document, state, provider, providerMetadata, extensionManager, isBlocking: false, cancellationToken).ConfigureAwait(false);
+                    document, textSpan, provider, providerMetadata, extensionManager, isBlocking: false, cancellationToken).ConfigureAwait(false);
 
                 if (refactoring != null)
                 {
