@@ -179,9 +179,6 @@ End Class
             MarkupTestFile.GetPosition(codeWithMarkup, code, position)
 
             Using workspace = TestWorkspace.CreateVisualBasic(code)
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)))
-
                 Dim hostdoc = workspace.Documents.First()
                 Dim buffer = hostdoc.GetTextBuffer()
 
@@ -191,9 +188,8 @@ End Class
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
                 Dim root = DirectCast(Await document.GetSyntaxRootAsync(), CompilationUnitSyntax)
                 Dim options = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
-                Dim documentIndentStyle = options.GetOption(AutoFormattingOptions.Metadata.SmartIndent)
 
-                Dim formattingRules = New SpecialFormattingRule(documentIndentStyle).Concat(Formatter.GetDefaultFormattingRules(document))
+                Dim formattingRules = New SpecialFormattingRule(indentStyle).Concat(Formatter.GetDefaultFormattingRules(document))
 
                 ' get token
                 Dim token = root.FindToken(position)
