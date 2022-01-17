@@ -211,6 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             return false;
         }
+
         private static bool IsDelegateCreationCastSafeToRemove(
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
             SemanticModel originalSemanticModel, IDelegateCreationOperation originalDelegateCreationOperation,
@@ -773,15 +774,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                     // if we have `(T?)TExpr == nullableTExpr` then we can also remove this cast as the language will
                     // insert the same nullable widening cast implicitly.
+                    //
+                    // If we have `(T?)TExpr == TExpr` then we can potentially remove this cast if the caller determines
+                    // that there is an outer contextual cast to `T?` higher up.
                     var castSideType = semanticModel.GetTypeInfo(castSide, cancellationToken).Type;
                     var otherSideType = semanticModel.GetTypeInfo(otherSide, cancellationToken).Type;
                     var castedExpressionType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type;
 
                     if (castSideType.IsNullable(out var underlyingType) &&
-                        Equals(underlyingType, castedExpressionType) &&
-                        Equals(castSideType, otherSideType))
+                        Equals(underlyingType, castedExpressionType))
                     {
-                        return false;
+                        if (Equals(castSideType, otherSideType) ||
+                            Equals(underlyingType, otherSideType))
+                        {
+                            return false;
+                        }
                     }
                 }
             }
