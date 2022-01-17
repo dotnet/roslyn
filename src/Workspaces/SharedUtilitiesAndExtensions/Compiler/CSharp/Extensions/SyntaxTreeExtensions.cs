@@ -12,7 +12,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
-
     internal static partial class SyntaxTreeExtensions
     {
         public static ISet<SyntaxKind> GetPrecedingModifiers(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
