@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.SizeOfExpression:
                 case SyntaxKind.PointerMemberAccessExpression:
                     // From C# spec, 7.3.1:
-                    // Primary: x.y  x?.y  x?[y]  f(x)  a[x]  x++  x-- new  typeof  default  checked  unchecked  delegate x! 
+                    // Primary: x.y  x?.y  x?[y]  f(x)  a[x]  x++  x--  new  typeof  default  checked  unchecked  delegate  x! 
 
                     return OperatorPrecedence.Primary;
 
