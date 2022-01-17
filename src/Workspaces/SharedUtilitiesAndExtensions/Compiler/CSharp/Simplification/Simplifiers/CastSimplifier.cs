@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Explicit conversions are conversions that cannot be proven to always succeed, conversions
             // that are known to possibly lose information.  As such, we need to preserve this as it 
             // has necessary runtime behavior that must be kept.
-            if (IsExplicitCastThatMustBePreserved(castNode, originalConversion))
+            if (IsExplicitCastThatMustBePreserved(originalSemanticModel, castNode, originalConversion, cancellationToken))
                 return false;
 
             // we are starting with code like `(X)expr` and converting to just `expr`. Post rewrite we need
@@ -733,7 +733,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 ? conversion.Operand
                 : value;
 
-        private static bool IsExplicitCastThatMustBePreserved(ExpressionSyntax castNode, Conversion conversion)
+        private static bool IsExplicitCastThatMustBePreserved(
+            SemanticModel semanticModel,
+            ExpressionSyntax castOrAsNode,
+            Conversion conversion,
+            CancellationToken cancellationToken)
         {
             if (!conversion.IsExplicit)
                 return false;
@@ -753,15 +757,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             //
             // Note: this does not apply for `as byte?`.  This is an explicit as-cast that can produce null values and
             // so it should be maintained.
-            if (conversion.IsNullable && castNode is CastExpressionSyntax)
+            if (conversion.IsNullable && castOrAsNode is CastExpressionSyntax castExpression)
             {
-                var parent = castNode.WalkUpParentheses();
+                var parent = castOrAsNode.WalkUpParentheses();
                 if (parent.Parent is ConditionalExpressionSyntax conditionalExpression)
                 {
-                    if ((conditionalExpression.WhenTrue == parent && conditionalExpression.WhenFalse.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression) ||
-                        (conditionalExpression.WhenFalse == parent && conditionalExpression.WhenTrue.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression))
-                    {
+                    // If we have `(T?)expr == null` or `null == (T?)expr` then we can potentially remove this cast as
+                    // the lang will implicitly create such a cast with an appropriate type and null.
+                    var (castSide, otherSide) = conditionalExpression.WhenTrue == parent
+                        ? (conditionalExpression.WhenTrue, conditionalExpression.WhenFalse)
+                        : (conditionalExpression.WhenFalse, conditionalExpression.WhenTrue);
+
+                    if (otherSide.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression)
                         return false;
+
+                    // if we have `(T?)TExpr == nullableTExpr` then we can also remove this cast as the language will
+                    // insert the same nullable widening cast implicitly.
+                    var castSideType = semanticModel.GetTypeInfo(castOrAsNode, cancellationToken).Type;
+                    var otherSideType = semanticModel.GetTypeInfo(otherSide, cancellationToken).Type;
+                    if (castSideType.IsNullable(out var underlyingType) && Equals(castSideType, otherSideType))
+                    {
+                        var castedType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type;
+                        if (Equals(underlyingType, castedType))
+                            return false;
                     }
                 }
             }

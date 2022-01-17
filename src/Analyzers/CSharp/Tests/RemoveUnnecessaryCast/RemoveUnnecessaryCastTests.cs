@@ -12464,5 +12464,35 @@ class C
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [WorkItem(58898, "https://github.com/dotnet/roslyn/issues/58898")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task SameNullableTypeOnBothSidesOfConditional1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        var id = true ? [|(Guid?)|]Guid.NewGuid() : [|(Guid?)|]Guid.Empty;
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        var id = true ? Guid.NewGuid() : (Guid?)Guid.Empty;
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
     }
 }
