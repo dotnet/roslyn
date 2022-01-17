@@ -773,13 +773,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                     // if we have `(T?)TExpr == nullableTExpr` then we can also remove this cast as the language will
                     // insert the same nullable widening cast implicitly.
-                    var castSideType = semanticModel.GetTypeInfo(castOrAsNode, cancellationToken).Type;
+                    var castSideType = semanticModel.GetTypeInfo(castSide, cancellationToken).Type;
                     var otherSideType = semanticModel.GetTypeInfo(otherSide, cancellationToken).Type;
-                    if (castSideType.IsNullable(out var underlyingType) && Equals(castSideType, otherSideType))
+                    var castedExpressionType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type;
+
+                    if (castSideType.IsNullable(out var underlyingType) &&
+                        Equals(underlyingType, castedExpressionType) &&
+                        Equals(castSideType, otherSideType))
                     {
-                        var castedType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type;
-                        if (Equals(underlyingType, castedType))
-                            return false;
+                        return false;
                     }
                 }
             }
