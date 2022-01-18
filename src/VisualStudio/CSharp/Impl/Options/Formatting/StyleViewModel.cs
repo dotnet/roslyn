@@ -1134,7 +1134,7 @@ class Customer
     enum E
     {{
         A,
-        B,
+        B
     }}
 //]
 }}
