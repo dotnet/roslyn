@@ -1051,11 +1051,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    if (_lazyUnderlyingDefinitionToMemberMap is null)
-                    {
-                        Interlocked.CompareExchange(ref _lazyUnderlyingDefinitionToMemberMap, computeDefinitionToMemberMap(), null);
-                    }
-                    return _lazyUnderlyingDefinitionToMemberMap;
+                    return _lazyUnderlyingDefinitionToMemberMap ??= computeDefinitionToMemberMap();
 
                     SmallDictionary<Symbol, Symbol> computeDefinitionToMemberMap()
                     {
