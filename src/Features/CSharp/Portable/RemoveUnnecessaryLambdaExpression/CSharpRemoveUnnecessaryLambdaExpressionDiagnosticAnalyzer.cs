@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
         {
             context.RegisterCompilationStartAction(context =>
             {
-                if (((CSharpCompilation)context.Compilation).LanguageVersion.IsCSharp11OrAbove())
+                if (context.Compilation.LanguageVersion().IsCSharp11OrAbove())
                 {
                     var expressionType = context.Compilation.ExpressionOfTType();
                     context.RegisterSyntaxNodeAction(

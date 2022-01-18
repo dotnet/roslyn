@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             var cancellationToken = context.CancellationToken;
 
             // Not available prior to C# 9.
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp9)
+            if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp9)
                 return;
 
             var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);

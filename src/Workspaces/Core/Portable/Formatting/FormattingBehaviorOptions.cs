@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
                 SmartIndent,
                 PreferredWrappingColumn,
-                AllowDisjointSpanMerging,
                 AutoFormattingOnReturn,
                 AutoFormattingOnTyping,
                 AutoFormattingOnSemicolon,
@@ -53,12 +52,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// </summary>
         internal static Option2<int> PreferredWrappingColumn { get; } =
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(PreferredWrappingColumn), defaultValue: 120);
-
-        /// <summary>
-        /// TODO: Currently the option has no storage and always has its default value. 
-        /// </summary>
-        internal static Option2<bool> AllowDisjointSpanMerging { get; } =
-            new(FeatureName, OptionGroup.Default, nameof(AllowDisjointSpanMerging), defaultValue: false);
 
         internal static readonly PerLanguageOption2<bool> AutoFormattingOnReturn =
             new(FeatureName, OptionGroup.Default, nameof(AutoFormattingOnReturn), defaultValue: true,
