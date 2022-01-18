@@ -1921,7 +1921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             // TODO: should events be handled specially too?
-            if (RegularPropertyAccess(node.Left))
+            if (node.Left.Kind == BoundKind.PropertyAccess)
             {
                 var left = (BoundPropertyAccess)node.Left;
                 var property = left.PropertySymbol;
