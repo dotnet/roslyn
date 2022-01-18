@@ -1213,6 +1213,18 @@ public class C1
             comp.TestOnlyCompilationData = accessorBindingData;
 
             comp.VerifyDiagnostics(); // PROTOTYPE(semi-auto-props): Is this the correct behavior?
+            // PROTOTYPE(semi-auto-props): If we're going to have a diagnostic that P1 must be non-null when exiting constructor,
+            // then we need another test in constructor like:
+            /*
+                try
+                {
+                    x = "";
+                }
+                catch (Exception)
+                {
+                    x ??= ""; // No warning, but should have warning if the line is removed.
+                }
+             */
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -1243,6 +1255,102 @@ public class C1
             Assert.Equal(2, properties.Length);
             Assert.NotNull(properties[0].FieldKeywordBackingField);
             Assert.NotNull(properties[1].FieldKeywordBackingField);
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void InStruct()
+        {
+            var comp = CreateCompilation(@"
+struct S_WithAutoProperty
+{
+    public int P { get; set; }
+}
+
+struct S_WithManualProperty
+{
+    public int P { get => 0; set => _ = value; }
+}
+
+struct S_WithSemiAutoProperty
+{
+    public int P { get => field; set => field = value; }
+}
+
+class C
+{
+    void M1()
+    {
+        S_WithAutoProperty s1;
+        S_WithAutoProperty s2 = s1;
+    }
+
+    void M2()
+    {
+        S_WithManualProperty s1;
+        S_WithManualProperty s2 = s1;
+    }
+
+    void M3()
+    {
+        S_WithSemiAutoProperty s1;
+        S_WithSemiAutoProperty s2 = s1;
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(
+                // (22,33): error CS0165: Use of unassigned local variable 's1'
+                //         S_WithAutoProperty s2 = s1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(22, 33)
+            );
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void InStruct_02()
+        {
+            var comp = CreateCompilation(@"
+struct S
+{
+    public int P { get => field; set => field = value; }
+
+    public S(int arg)
+    {
+        P = 0;
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics();
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void InStruct_03()
+        {
+            var comp = CreateCompilation(@"
+struct S
+{
+    public int P { get; set; }
+
+    public S(int arg)
+    {
+        P = 0;
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics();
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
