@@ -2352,7 +2352,7 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       </trans-unit>
       <trans-unit id="Silent">
         <source>Silent</source>
-        <target state="translated">Silent</target>
+        <target state="translated">Silencieux</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
