@@ -2029,5 +2029,44 @@ record struct RecordStruct(string Prop1!!, string Prop2!!);
   IL_0024:  ret
 }");
         }
+
+        [Fact, WorkItem(58824, "https://github.com/dotnet/roslyn/issues/58824")]
+        public void TestWithEmbeddedReference()
+        {
+            var source = @"
+using System;
+
+C.M(""a"");
+Console.Write(1);
+try
+{
+    C.M(null);
+    Console.Write(0);
+}
+catch
+{
+    Console.Write(2);
+}
+
+class C
+{
+    public static void M(string s!!)
+    {
+    }
+}
+";
+            var verifier = CompileAndVerify(source, references: new[] { TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(true) }, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", @"
+{
+    // Code size       12 (0xc)
+    .maxstack  2
+    IL_0000:  ldarg.0
+    IL_0001:  ldstr      ""s""
+    IL_0006:  call       ""ThrowIfNull""
+    IL_000b:  ret
+}
+");
+        }
     }
 }
