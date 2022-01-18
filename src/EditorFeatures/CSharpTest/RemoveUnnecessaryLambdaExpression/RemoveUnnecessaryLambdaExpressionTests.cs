@@ -52,7 +52,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
-        public async Task Test1()
+        public async Task TestBasicCase()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -1459,6 +1459,36 @@ namespace System.Diagnostics.CodeAnalysis
     }
 }
 ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
+        public async Task TestTrivia1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar(/*before*/[|s => |]Quux(s)/*after*/);
+    }
+
+    void Bar(Func<int, string> f) { }
+    string Quux(int i) => default;
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar(/*before*/Quux/*after*/);
+    }
+
+    void Bar(Func<int, string> f) { }
+    string Quux(int i) => default;
+}");
         }
     }
 }
