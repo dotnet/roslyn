@@ -208,6 +208,121 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
+        public sealed override IEnumerable<(Cci.ITypeDefinition, ImmutableArray<Cci.DebugSourceDocument>)> GetTypeToDebugDocumentMap(EmitContext context)
+        {
+            var typesToProcess = ArrayBuilder<Cci.ITypeDefinition>.GetInstance();
+            var debugDocuments = ArrayBuilder<Cci.DebugSourceDocument>.GetInstance();
+            var methodDocumentList = PooledHashSet<Cci.DebugSourceDocument>.GetInstance();
+
+            var namespacesAndTopLevelTypesToProcess = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
+            namespacesAndTopLevelTypesToProcess.Push(SourceModule.GlobalNamespace);
+            while (namespacesAndTopLevelTypesToProcess.Count > 0)
+            {
+                var symbol = namespacesAndTopLevelTypesToProcess.Pop();
+
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.Namespace:
+                        var location = GetSmallestSourceLocationOrNull(symbol);
+
+                        // filtering out synthesized symbols not having real source 
+                        // locations such as anonymous types, etc...
+                        if (location != null)
+                        {
+                            foreach (var member in symbol.GetMembers())
+                            {
+                                switch (member.Kind)
+                                {
+                                    case SymbolKind.Namespace:
+                                    case SymbolKind.NamedType:
+                                        namespacesAndTopLevelTypesToProcess.Push((NamespaceOrTypeSymbol)member);
+                                        break;
+                                    default:
+                                        throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                                }
+                            }
+                        }
+                        break;
+                    case SymbolKind.NamedType:
+                        Debug.Assert(debugDocuments.Count == 0);
+                        Debug.Assert(methodDocumentList.Count == 0);
+                        Debug.Assert(typesToProcess.Count == 0);
+
+                        var typeDefinition = (Cci.ITypeDefinition)symbol.GetCciAdapter();
+                        typesToProcess.Push(typeDefinition);
+                        GetDocumentsForMethodsAndNestedTypes(methodDocumentList, typesToProcess, context);
+
+                        foreach (var loc in symbol.Locations)
+                        {
+                            if (!loc.IsInSource)
+                            {
+                                continue;
+                            }
+
+                            var span = loc.GetLineSpan();
+                            var debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: null);
+
+                            // If we have a debug document that is already referenced by method debug info in this type, or a nested type,
+                            // then we don't need to include it. Since its impossible to declare a nested type without also including
+                            // a declaration for its containing type, we don't need to consider nested types in this method itself.
+                            if (debugDocument is not null && !methodDocumentList.Contains(debugDocument))
+                            {
+                                debugDocuments.Add(debugDocument);
+                            }
+                        }
+
+                        if (debugDocuments.Count > 0)
+                        {
+                            yield return (typeDefinition, debugDocuments.ToImmutable());
+                        }
+
+                        debugDocuments.Clear();
+                        methodDocumentList.Clear();
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+                }
+            }
+
+            namespacesAndTopLevelTypesToProcess.Free();
+            debugDocuments.Free();
+            methodDocumentList.Free();
+            typesToProcess.Free();
+        }
+
+        /// <summary>
+        /// Gets a list of documents from the method definitions in the types in <paramref name="typesToProcess"/> or any
+        /// nested types of those types.
+        /// </summary>
+        private static void GetDocumentsForMethodsAndNestedTypes(PooledHashSet<Cci.DebugSourceDocument> documentList, ArrayBuilder<Cci.ITypeDefinition> typesToProcess, EmitContext context)
+        {
+            while (typesToProcess.Count > 0)
+            {
+                var definition = typesToProcess.Pop();
+
+                var typeMethods = definition.GetMethods(context);
+                foreach (var method in typeMethods)
+                {
+                    var body = method.GetBody(context);
+                    if (body is null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var point in body.SequencePoints)
+                    {
+                        documentList.Add(point.Document);
+                    }
+                }
+
+                var nestedTypes = definition.GetNestedTypes(context);
+                foreach (var nestedTypeDefinition in nestedTypes)
+                {
+                    typesToProcess.Push(nestedTypeDefinition);
+                }
+            }
+        }
+
         public sealed override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
         {
             var result = new MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation>();
@@ -365,11 +480,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual bool IgnoreAccessibility => false;
 
         /// <summary>
-        /// True if this module is an ENC update.
-        /// </summary>
-        internal virtual bool IsEncDelta => false;
-
-        /// <summary>
         /// Override the dynamic operation context type for all dynamic calls in the module.
         /// </summary>
         internal virtual NamedTypeSymbol GetDynamicOperationContextType(NamedTypeSymbol contextType)
@@ -385,6 +495,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
         {
             return ImmutableArray<AnonymousTypeKey>.Empty;
+        }
+
+        internal virtual ImmutableArray<SynthesizedDelegateKey> GetPreviousAnonymousDelegates()
+        {
+            return ImmutableArray<SynthesizedDelegateKey>.Empty;
         }
 
         internal virtual int GetNextAnonymousTypeIndex()
@@ -542,9 +657,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     continue;
                 }
 
+                // exported types are not emitted in EnC deltas (hence generation 0):
                 string fullEmittedName = MetadataHelpers.BuildQualifiedName(
                     ((Cci.INamespaceTypeReference)type.GetCciAdapter()).NamespaceName,
-                    Cci.MetadataWriter.GetMangledName(type.GetCciAdapter()));
+                    Cci.MetadataWriter.GetMangledName(type.GetCciAdapter(), generation: 0));
 
                 // First check against types declared in the primary module
                 if (ContainsTopLevelType(fullEmittedName))
@@ -1173,18 +1289,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+#nullable enable
         private Cci.IMethodReference Translate(
             MethodSymbol methodSymbol,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
             bool needDeclaration)
         {
-            object reference;
+            object? reference;
             Cci.IMethodReference methodRef;
             NamedTypeSymbol container = methodSymbol.ContainingType;
 
             // Method of anonymous type being translated
-            if (container.IsAnonymousType)
+            if (container?.IsAnonymousType == true)
             {
                 Debug.Assert(!needDeclaration);
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
@@ -1247,6 +1364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             return methodSymbol.GetCciAdapter();
         }
+#nullable disable
 
         internal Cci.IMethodReference TranslateOverriddenMethodReference(
             MethodSymbol methodSymbol,
@@ -1414,17 +1532,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 AddSynthesizedDefinition(result.ContainingType, result.GetCciAdapter());
                 return result;
             }
-        }
-
-        internal NamedTypeSymbol GetFixedImplementationType(FieldSymbol field)
-        {
-            // Note that this method is called only after ALL fixed buffer types have been placed in the map.
-            // At that point the map is all filled in and will not change further.  Therefore it is safe to
-            // pull values from the map without locking.
-            NamedTypeSymbol result;
-            var found = _fixedImplementationTypes.TryGetValue(field, out result);
-            Debug.Assert(found);
-            return result;
         }
 
         protected override Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
@@ -1662,10 +1769,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute);
         }
 
+        internal void EnsureNullableContextAttributeExists()
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableContextAttribute);
+        }
+
         internal void EnsureNativeIntegerAttributeExists()
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute);
         }
+
+#nullable enable
+        /// <summary>
+        /// Creates the ThrowIfNull and Throw helpers if needed.
+        /// </summary>
+        /// <remarks>
+        /// The ThrowIfNull and Throw helpers are modeled off of the helpers on ArgumentNullException.
+        /// https://github.com/dotnet/runtime/blob/22663769611ba89cd92d14cfcb76e287f8af2335/src/libraries/System.Private.CoreLib/src/System/ArgumentNullException.cs#L56-L69
+        /// </remarks>
+        internal MethodSymbol EnsureThrowIfNullFunctionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag? diagnostics)
+        {
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
+            var throwIfNullAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowIfNullFunctionName);
+            if (throwIfNullAdapter is null)
+            {
+                TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
+                TypeSymbol argumentType = factory.SpecialType(SpecialType.System_Object);
+                TypeSymbol paramNameType = factory.SpecialType(SpecialType.System_String);
+                var sourceModule = SourceModule;
+
+                // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
+                privateImplClass.TryAddSynthesizedMethod(new SynthesizedThrowMethod(sourceModule, privateImplClass, returnType, paramNameType).GetCciAdapter());
+                var actuallyAddedThrowMethod = (SynthesizedThrowMethod)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName)!.GetInternalSymbol()!;
+                privateImplClass.TryAddSynthesizedMethod(new SynthesizedThrowIfNullMethod(sourceModule, privateImplClass, actuallyAddedThrowMethod, returnType, argumentType, paramNameType).GetCciAdapter());
+                throwIfNullAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowIfNullFunctionName)!;
+            }
+
+            var internalSymbol = (SynthesizedThrowIfNullMethod)throwIfNullAdapter.GetInternalSymbol()!;
+            // the ThrowMethod referenced by the ThrowIfNullMethod must be the same instance as the ThrowMethod contained in the PrivateImplementationDetails
+            Debug.Assert((object?)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName)!.GetInternalSymbol() == internalSymbol.ThrowMethod);
+            return internalSymbol;
+        }
+#nullable disable
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
         {

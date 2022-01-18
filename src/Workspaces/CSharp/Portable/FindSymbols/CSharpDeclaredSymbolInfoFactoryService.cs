@@ -31,7 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         BaseNamespaceDeclarationSyntax,
         TypeDeclarationSyntax,
         EnumDeclarationSyntax,
-        MemberDeclarationSyntax>
+        MemberDeclarationSyntax,
+        NameSyntax,
+        QualifiedNameSyntax,
+        IdentifierNameSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -363,6 +366,18 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
 
         protected override SyntaxList<UsingDirectiveSyntax> GetUsingAliases(BaseNamespaceDeclarationSyntax node)
             => node.Usings;
+
+        protected override NameSyntax GetName(BaseNamespaceDeclarationSyntax node)
+            => node.Name;
+
+        protected override NameSyntax GetLeft(QualifiedNameSyntax node)
+            => node.Left;
+
+        protected override NameSyntax GetRight(QualifiedNameSyntax node)
+            => node.Right;
+
+        protected override SyntaxToken GetIdentifier(IdentifierNameSyntax node)
+            => node.Identifier;
 
         private static bool IsNestedType(BaseTypeDeclarationSyntax typeDecl)
             => typeDecl.Parent is BaseTypeDeclarationSyntax;

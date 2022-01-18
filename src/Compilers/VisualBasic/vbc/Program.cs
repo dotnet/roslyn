@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.CommandLine;
 
@@ -29,14 +30,13 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 
         private static int MainCore(string[] args)
         {
-            var requestId = Guid.NewGuid();
-            using var logger = new CompilerServerLogger($"vbc {requestId}");
+            using var logger = new CompilerServerLogger($"vbc {Process.GetCurrentProcess().Id}");
 
 #if BOOTSTRAP
             ExitingTraceListener.Install(logger);
 #endif
 
-            return BuildClient.Run(args, RequestLanguage.VisualBasicCompile, Vbc.Run, logger, requestId);
+            return BuildClient.Run(args, RequestLanguage.VisualBasicCompile, Vbc.Run, BuildClient.GetCompileOnServerFunc(logger));
         }
 
         public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)

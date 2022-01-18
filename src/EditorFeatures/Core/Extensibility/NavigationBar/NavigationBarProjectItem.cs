@@ -4,8 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -21,9 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor
             Workspace workspace,
             DocumentId documentId,
             string language)
-                : base(text, glyph,
-                       trackingSpans: ImmutableArray<ITrackingSpan>.Empty,
-                       navigationTrackingSpan: null,
+                : base(textVersion: null, text, glyph,
+                       spans: ImmutableArray<TextSpan>.Empty,
                        childItems: ImmutableArray<NavigationBarItem>.Empty,
                        indent: 0, bolded: false, grayed: false)
         {
@@ -45,18 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor
             => Equals(obj as NavigationBarProjectItem);
 
         public bool Equals(NavigationBarProjectItem? item)
-            => item is not null &&
-               Text == item.Text &&
-               Glyph == item.Glyph &&
+            => base.Equals(item) &&
                Workspace == item.Workspace &&
                DocumentId == item.DocumentId &&
                Language == item.Language;
 
         public override int GetHashCode()
-            => Hash.Combine(Text,
-               Hash.Combine((int)Glyph,
-               Hash.Combine(Workspace,
-               Hash.Combine(DocumentId,
-                            Language.GetHashCode()))));
+            => throw new NotImplementedException();
     }
 }

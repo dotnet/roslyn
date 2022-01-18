@@ -80,7 +80,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteGreenTypes()
         {
-            var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode).ToList();
             foreach (var node in nodes)
             {
                 WriteLine();
@@ -454,7 +454,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteGreenVisitor(bool withResult)
         {
-            var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode).ToList();
 
             WriteLine();
             WriteLine("internal partial class CSharpSyntaxVisitor" + (withResult ? "<TResult>" : ""));
@@ -522,7 +522,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteGreenRewriter()
         {
-            var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode).ToList();
 
             WriteLine();
             WriteLine("internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNode>");
@@ -565,7 +565,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteContextualGreenFactories()
         {
-            var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode)).ToList();
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
             WriteLine();
             WriteLine("internal partial class ContextAwareSyntax");
             OpenBlock();
@@ -582,7 +582,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteStaticGreenFactories()
         {
-            var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode)).ToList();
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
             WriteLine();
             WriteLine("internal static partial class SyntaxFactory");
             OpenBlock();
@@ -608,7 +608,7 @@ namespace CSharpSyntaxGenerator
             WriteLine("=> new Type[]");
             OpenBlock();
 
-            var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode)).ToList();
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
             foreach (var node in nodes)
             {
                 WriteLine($"typeof({node.Name}),");
@@ -788,7 +788,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedTypes()
         {
-            var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode).ToList();
             foreach (var node in nodes)
             {
                 WriteLine();
@@ -934,8 +934,8 @@ namespace CSharpSyntaxGenerator
 
                 foreach (var field in nodeFields)
                 {
-                    if (field.Type != "SyntaxToken"
-                        && field.Type != "SyntaxList<SyntaxToken>")
+                    if (field.Type is not "SyntaxToken"
+                        and not "SyntaxList<SyntaxToken>")
                     {
                         if (IsSeparatedNodeList(field.Type) || field.Type == "SyntaxNodeOrTokenList")
                         {
@@ -1046,7 +1046,7 @@ namespace CSharpSyntaxGenerator
                     Write("internal override SyntaxNode? GetNodeSlot(int index)");
 
                     var relevantNodes = nodeFields.Select((field, index) => (field, index))
-                                                  .Where(t => t.field.Type != "SyntaxToken" && t.field.Type != "SyntaxList<SyntaxToken>");
+                                                  .Where(t => t.field.Type is not "SyntaxToken" and not "SyntaxList<SyntaxToken>");
                     if (!relevantNodes.Any())
                     {
                         WriteLine(" => null;");
@@ -1092,7 +1092,7 @@ namespace CSharpSyntaxGenerator
                     Write("internal override SyntaxNode? GetCachedSlot(int index)");
 
                     var relevantNodes = nodeFields.Select((field, index) => (field, index))
-                                                  .Where(t => t.field.Type != "SyntaxToken" && t.field.Type != "SyntaxList<SyntaxToken>");
+                                                  .Where(t => t.field.Type is not "SyntaxToken" and not "SyntaxList<SyntaxToken>");
                     if (!relevantNodes.Any())
                     {
                         WriteLine(" => null;");
@@ -1166,7 +1166,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRedVisitor(bool genericResult)
         {
             string genericArgs = genericResult ? "<TResult>" : "";
-            var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode).ToList();
 
             WriteLine();
             WriteLine("public partial class CSharpSyntaxVisitor" + genericArgs);
@@ -1391,7 +1391,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedRewriter()
         {
-            var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode).ToList();
 
             WriteLine();
             WriteLine("public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>");
@@ -1437,7 +1437,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedFactories()
         {
-            var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode)).OfType<Node>().ToList();
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).OfType<Node>().ToList();
             WriteLine();
             WriteLine("public static partial class SyntaxFactory");
             OpenBlock();
@@ -1755,7 +1755,7 @@ namespace CSharpSyntaxGenerator
 
         private static bool IsAttributeOrModifiersList(Field f)
         {
-            return f.Name == "AttributeLists" || f.Name == "Modifiers";
+            return f.Name is "AttributeLists" or "Modifiers";
         }
 
         private IEnumerable<Field> DetermineMinimalFactoryFields(Node nd)

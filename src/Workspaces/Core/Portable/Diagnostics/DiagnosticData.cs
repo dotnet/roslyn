@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
-                diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
+                diagnostic.Descriptor.ImmutableCustomTags(),
                 (additionalProperties == null) ? diagnostic.Properties : diagnostic.Properties.AddRange(additionalProperties),
                 projectId,
                 location,

@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var info = SemanticModel.GetTypeInfo(creation, CancellationToken);
 
-                if (!(info.Type is INamedTypeSymbol type))
+                if (info.Type is not INamedTypeSymbol type)
                 {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
@@ -949,8 +949,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Infer operands of && and || as bool regardless of the other operand.
-                if (operatorToken.Kind() == SyntaxKind.AmpersandAmpersandToken ||
-                    operatorToken.Kind() == SyntaxKind.BarBarToken)
+                if (operatorToken.Kind() is SyntaxKind.AmpersandAmpersandToken or
+                    SyntaxKind.BarBarToken)
                 {
                     return CreateResult(SpecialType.System_Boolean);
                 }
@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // user needs and can cause lambda suggestion mode while
                     // typing type arguments:
                     // https://github.com/dotnet/roslyn/issues/14492
-                    if (!(binop is AssignmentExpressionSyntax))
+                    if (binop is not AssignmentExpressionSyntax)
                     {
                         otherSideTypes = otherSideTypes.Where(t => !t.InferredType.IsDelegateType());
                     }
@@ -985,12 +985,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // For &, &=, |, |=, ^, and ^=, since we couldn't infer the type of either side, 
                 // try to infer the type of the entire binary expression.
-                if (operatorToken.Kind() == SyntaxKind.AmpersandToken ||
-                    operatorToken.Kind() == SyntaxKind.AmpersandEqualsToken ||
-                    operatorToken.Kind() == SyntaxKind.BarToken ||
-                    operatorToken.Kind() == SyntaxKind.BarEqualsToken ||
-                    operatorToken.Kind() == SyntaxKind.CaretToken ||
-                    operatorToken.Kind() == SyntaxKind.CaretEqualsToken)
+                if (operatorToken.Kind() is SyntaxKind.AmpersandToken or
+                    SyntaxKind.AmpersandEqualsToken or
+                    SyntaxKind.BarToken or
+                    SyntaxKind.BarEqualsToken or
+                    SyntaxKind.CaretToken or
+                    SyntaxKind.CaretEqualsToken)
                 {
                     var parentTypes = InferTypes(binop);
                     if (parentTypes.Any())

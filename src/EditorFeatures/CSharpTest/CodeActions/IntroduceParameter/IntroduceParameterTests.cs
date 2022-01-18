@@ -1820,5 +1820,117 @@ class TestClass
 
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestClassObject()
+        {
+            var code =
+@"
+class F
+{
+    public int x;
+    public int y;
+
+    public F(int x, int y)
+    {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+class TestClass
+{
+    int N(F f)
+    {
+        return f.[|x|];
+    }
+
+    void M()
+    {
+        N(new F(1, 2));
+    }
+}
+";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestReferenceInDifferentDocumentWithUsings()
+        {
+            var code =
+@"<Workspace>
+    <Project Language= ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+using System.Linq;
+
+namespace Foo
+{
+    public class Bar
+    {
+        public Bar()
+        {
+            [|var x = 2|];
+        }
+    }
+}
+        </Document>
+
+        <Document>
+namespace Refactorings
+{
+    using Foo;
+    class Program
+    {
+        public Program(int x)
+        {
+            var bar = new Bar();
+
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+
+            var expected =
+@"<Workspace>
+    <Project Language= ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+using System.Linq;
+
+namespace Foo
+{
+    public class Bar
+    {
+        public Bar(int x)
+        {
+        }
+    }
+}
+        </Document>
+
+        <Document>
+namespace Refactorings
+{
+    using Foo;
+    class Program
+    {
+        public Program(int x)
+        {
+            var bar = new Bar(2);
+
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(code, expected, 0);
+        }
     }
 }

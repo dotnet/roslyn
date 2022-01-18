@@ -4,7 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
@@ -69,5 +71,45 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         public TextSpan GetSpan()
             => EmbeddedSyntaxHelpers.GetSpan(this.VirtualChars);
+
+        public override string ToString()
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            WriteTo(sb, leading: false, trailing: false);
+            return sb.ToString();
+        }
+
+        public string ToFullString()
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            WriteTo(sb, leading: true, trailing: true);
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Writes the token to a stringbuilder.
+        /// </summary>
+        /// <param name="leading">If false, leading trivia will not be added</param>
+        /// <param name="trailing">If false, trailing trivia will not be added</param>
+        public void WriteTo(StringBuilder sb, bool leading, bool trailing)
+        {
+            if (leading && !LeadingTrivia.IsDefault)
+            {
+                foreach (var trivia in LeadingTrivia)
+                {
+                    sb.Append(trivia.ToString());
+                }
+            }
+
+            sb.Append(VirtualChars.CreateString());
+
+            if (trailing && !TrailingTrivia.IsDefault)
+            {
+                foreach (var trivia in TrailingTrivia)
+                {
+                    sb.Append(trivia.ToString());
+                }
+            }
+        }
     }
 }

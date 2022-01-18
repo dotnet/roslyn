@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     m["server"] = _serverTypeName;
                     foreach (var kvp in _findDocumentResults)
                     {
-                        var info = kvp.Key.ToString();
+                        var info = kvp.Key.ToString()!;
                         m[info] = kvp.Value.GetCount();
                     }
                 }));

@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class StaticAbstractMembersInInterfacesTests : CSharpTestBase
     {
+        private const TargetFramework _supportingFramework = TargetFramework.Net60;
+
         [Fact]
         public void MethodModifiers_01()
         {
@@ -65,7 +67,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -303,7 +305,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -411,7 +413,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (7,25): error CS0112: A static member cannot be marked as 'virtual'
@@ -504,7 +506,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS0500: 'I1.M01()' cannot declare a body because it is marked abstract
@@ -591,7 +593,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
@@ -714,7 +716,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
@@ -823,7 +825,7 @@ partial interface I3
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,19): error CS0106: The modifier 'sealed' is not valid for this item
@@ -908,7 +910,7 @@ partial interface I3
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,19): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
@@ -978,7 +980,7 @@ interface I3
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,21): error CS0106: The modifier 'abstract' is not valid for this item
@@ -1018,7 +1020,7 @@ partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -1055,7 +1057,7 @@ partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             ValidatePartialSealedStatic_02(compilation1);
         }
@@ -1111,7 +1113,7 @@ partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             ValidatePartialSealedStatic_02(compilation1);
         }
@@ -1132,7 +1134,7 @@ partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             ValidatePartialSealedStatic_02(compilation1);
         }
@@ -1149,7 +1151,7 @@ partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,34): error CS0750: A partial method cannot have the 'abstract' modifier
@@ -1190,7 +1192,7 @@ partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,34): error CS0750: A partial method cannot have the 'abstract' modifier
@@ -1251,7 +1253,7 @@ partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,34): error CS0750: A partial method cannot have the 'abstract' modifier
@@ -1306,7 +1308,7 @@ partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,34): error CS0500: 'I1.M01()' cannot declare a body because it is marked abstract
@@ -1363,7 +1365,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,34): error CS0621: 'I1.M01()': virtual or abstract members cannot be private
@@ -1421,7 +1423,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -1745,7 +1747,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -1853,7 +1855,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (7,25): error CS0112: A static member cannot be marked as 'virtual'
@@ -1928,7 +1930,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,32): error CS0500: 'I1.M01.get' cannot declare a body because it is marked abstract
@@ -2015,7 +2017,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
@@ -2120,7 +2122,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
@@ -2239,7 +2241,7 @@ public delegate void D();
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -2571,7 +2573,7 @@ public delegate void D();
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -2681,7 +2683,7 @@ public delegate void D();
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (7,28): error CS0112: A static member cannot be marked as 'virtual'
@@ -2757,7 +2759,7 @@ public delegate void D();
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,33): error CS8712: 'I1.M01': abstract event cannot use event accessor syntax
@@ -2846,7 +2848,7 @@ public delegate void D();
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
@@ -2952,7 +2954,7 @@ public delegate void D();
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
@@ -3069,7 +3071,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -3307,7 +3309,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -3415,7 +3417,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (7,31): error CS0106: The modifier 'virtual' is not valid for this item
@@ -3508,7 +3510,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,32): error CS0500: 'I1.operator +(I1)' cannot declare a body because it is marked abstract
@@ -3595,7 +3597,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
@@ -3718,7 +3720,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
@@ -3823,7 +3825,7 @@ public interface I3
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
@@ -3868,7 +3870,7 @@ public interface I3
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -3913,7 +3915,7 @@ public interface I3
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (6,34): error CS0500: 'I1.operator !=(I1, I1)' cannot declare a body because it is marked abstract
@@ -4015,7 +4017,7 @@ public interface I3
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
@@ -4078,7 +4080,7 @@ public interface I3
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                              parseOptions: TestOptions.Regular9,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -4141,7 +4143,7 @@ public interface I3
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,39): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
@@ -4248,7 +4250,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,25): error CS0681: The modifier 'abstract' is not valid on fields. Try using a property instead.
@@ -4287,7 +4289,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,33): error CS0180: 'I1.M01()' cannot be both extern and abstract
@@ -4320,7 +4322,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,33): error CS0180: 'I1.M01()' cannot be both extern and abstract
@@ -4358,7 +4360,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
         }
@@ -4378,7 +4380,7 @@ abstract class C1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,33): error CS0112: A static member cannot be marked as 'abstract'
@@ -4414,7 +4416,7 @@ class C1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,24): error CS0238: 'C1.M01()' cannot be sealed because it is not an override
@@ -4447,7 +4449,7 @@ struct C1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,33): error CS0112: A static member cannot be marked as 'abstract'
@@ -4483,7 +4485,7 @@ struct C1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,24): error CS0238: 'C1.M01()' cannot be sealed because it is not an override
@@ -4513,7 +4515,10 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
+
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            Assert.True(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -4551,6 +4556,22 @@ interface I1
                 //     abstract static void M01();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 26)
                 );
+
+            Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            Assert.False(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net50);
+
+            compilation2.VerifyDiagnostics(
+                // (4,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static void M01();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 26)
+                );
+
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            Assert.False(compilation2.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
         }
 
         [Theory]
@@ -4581,7 +4602,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -4619,7 +4640,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -4743,7 +4764,7 @@ interface I1<T> where T : I1<T>
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -4805,7 +4826,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -4874,7 +4895,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -4948,7 +4969,7 @@ public interface I3 : I2
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var source2 =
 @"
@@ -5023,7 +5044,7 @@ class C8
 ";
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             var expected = new[] {
@@ -5063,7 +5084,7 @@ class C8
 
             compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.EmitToImageReference() });
 
             compilation2.VerifyDiagnostics(expected);
@@ -5091,7 +5112,7 @@ public struct S : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var source2 =
 @"
@@ -5143,14 +5164,14 @@ class C6 : C5<I1>
 ";
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyEmitDiagnostics();
 
             compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.EmitToImageReference() });
 
             compilation2.VerifyEmitDiagnostics();
@@ -5172,7 +5193,7 @@ interface I2<out T1, in T2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
             compilation1.VerifyDiagnostics(
                 // (5,21): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.P2'. 'T2' is contravariant.
                 //     abstract static T2 P2 { get; }
@@ -5199,7 +5220,7 @@ interface I2<out T1, in T2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
             compilation1.VerifyDiagnostics(
                 // (5,21): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.M2()'. 'T2' is contravariant.
                 //     abstract static T2 M2();
@@ -5226,7 +5247,7 @@ interface I2<out T1, in T2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
             compilation1.VerifyDiagnostics(
                 // (5,58): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.E2'. 'T2' is contravariant.
                 //     abstract static event System.Action<System.Func<T2>> E2;
@@ -5255,7 +5276,7 @@ interface I3<out T3>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
             compilation1.VerifyDiagnostics(
                 // (4,36): error CS1961: Invalid variance: The type parameter 'T2' must be contravariantly valid on 'I2<T2>.operator +(I2<T2>)'. 'T2' is covariant.
                 //     abstract static int operator +(I2<T2> x);
@@ -5337,7 +5358,7 @@ interface I13
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (4,26): error CS0562: The parameter of a unary operator must be the containing type
                 //     static bool operator +(T1 x) => throw null;
@@ -5433,7 +5454,7 @@ interface I13
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
             compilation1.VerifyDiagnostics(
                 // (4,24): error CS0559: The parameter type for ++ or -- operator must be the containing type
                 //     static T1 operator ++(T1 x) => throw null;
@@ -5540,7 +5561,7 @@ interface I15<T151, T152> where T151 : I15<T151, T152> where T152 : I15<T151, T1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
             compilation1.VerifyDiagnostics(
                 // (4,24): error CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
                 //     static T1 operator ++(I1<T1> x) => throw null;
@@ -5647,7 +5668,7 @@ interface I13
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators)).Verify(
                 // (4,26): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static bool operator +(T1 x, bool y) => throw null;
@@ -5742,7 +5763,7 @@ interface I13
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators)).Verify(
                 // (4,26): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static bool operator +(bool y, T1 x) => throw null;
@@ -5843,7 +5864,7 @@ interface I14
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (4,26): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
                 //     static bool operator <<(T1 x, int y) => throw null;
@@ -5964,7 +5985,7 @@ interface I19<T19_1, T19_2> where T19_1 : I19<T19_1, T19_2>, T19_2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
             compilation1.VerifyDiagnostics(
                 // (4,39): error CS0555: User-defined operator cannot convert a type to itself
                 //     abstract static explicit operator T1(T1 y);
@@ -6085,7 +6106,7 @@ interface I19<T19_1, T19_2> where T19_1 : I19<T19_1, T19_2>, T19_2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
             compilation1.VerifyDiagnostics(
                 // (4,39): error CS0555: User-defined operator cannot convert a type to itself
                 //     abstract static explicit operator T1(T1 y);
@@ -6166,7 +6187,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -6252,7 +6273,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (35,20): error CS0119: 'T' is a type parameter, which is not valid in the given context
@@ -6301,7 +6322,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -6335,7 +6356,7 @@ class Test
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -6413,7 +6434,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -6458,7 +6479,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             // https://github.com/dotnet/roslyn/issues/53796: Confirm whether we want to enable the 'from t in T' scenario.
             compilation1.VerifyDiagnostics(
@@ -6493,11 +6514,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -6508,7 +6529,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -6563,7 +6584,7 @@ class Test<T> where T : I1<T>
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -6619,7 +6640,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -6782,7 +6803,7 @@ class Test
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -6980,7 +7001,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -7034,11 +7055,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -7049,7 +7070,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (12,31): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -7094,7 +7115,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (9,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -7133,7 +7154,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -7154,7 +7175,7 @@ class Test
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -7216,7 +7237,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -7266,11 +7287,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -7281,7 +7302,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (12,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -7339,7 +7360,7 @@ class C<T>
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (9,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -7388,7 +7409,7 @@ class C<T>
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -7463,7 +7484,7 @@ class C<T>
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -7584,7 +7605,7 @@ class C<T>
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -7644,11 +7665,11 @@ class C<T>
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -7659,7 +7680,7 @@ class C<T>
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (21,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -7721,7 +7742,7 @@ public partial interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -7803,7 +7824,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreAppAndCSharp);
+                                                 targetFramework: _supportingFramework);
 
             if (success)
             {
@@ -8009,7 +8030,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -8124,7 +8145,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (12,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -8208,7 +8229,7 @@ partial class Test
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -8321,7 +8342,7 @@ partial class Test
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -8495,7 +8516,7 @@ public partial interface I1<T0>
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -8560,7 +8581,7 @@ public partial interface I1<T0>
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -8669,7 +8690,7 @@ public partial interface I1<T0>
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -8743,7 +8764,7 @@ public partial interface I1<T0>
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -8884,7 +8905,7 @@ class Test
 ";
                 var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreAppAndCSharp);
+                                                     targetFramework: _supportingFramework);
 
                 var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
                 verifier.VerifyIL("Test.M03<T, U>(T, T)",
@@ -8949,7 +8970,7 @@ class Test
 
                 compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreAppAndCSharp);
+                                                 targetFramework: _supportingFramework);
 
                 verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
                 verifier.VerifyIL("Test.M03<T, U>(T, T)",
@@ -9052,7 +9073,7 @@ class Test
 ";
                 var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreAppAndCSharp);
+                                                     targetFramework: _supportingFramework);
 
                 var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -9163,7 +9184,7 @@ class Test
 
                 compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreAppAndCSharp);
+                                                 targetFramework: _supportingFramework);
 
                 verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -9365,7 +9386,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -9495,7 +9516,7 @@ class Test
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -9659,7 +9680,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -9730,7 +9751,7 @@ class Test
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -9837,7 +9858,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -9893,7 +9914,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreAppAndCSharp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -9981,7 +10002,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -10029,7 +10050,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -10079,11 +10100,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -10094,7 +10115,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -10135,11 +10156,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreAppAndCSharp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             if (success)
@@ -10157,7 +10178,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
 
@@ -10223,11 +10244,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -10238,7 +10259,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (12,31): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -10271,11 +10292,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -10286,7 +10307,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (12,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -10347,7 +10368,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -10435,7 +10456,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -10526,7 +10547,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -10621,7 +10642,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (14,20): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -10671,7 +10692,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -10690,7 +10711,7 @@ class Test
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -10756,7 +10777,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -10776,7 +10797,7 @@ class Test
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -10847,7 +10868,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -10885,7 +10906,7 @@ class Test
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -10966,7 +10987,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -11015,7 +11036,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -11064,7 +11085,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -11116,11 +11137,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -11131,7 +11152,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -11165,11 +11186,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -11180,7 +11201,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -11214,11 +11235,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -11229,7 +11250,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -11290,7 +11311,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -11384,7 +11405,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -11476,7 +11497,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (14,20): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -11532,7 +11553,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -11571,7 +11592,7 @@ class Test
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -11652,7 +11673,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -11698,7 +11719,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -11744,11 +11765,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -11759,7 +11780,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -11793,11 +11814,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -11808,7 +11829,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -11875,7 +11896,7 @@ class Test
 ";
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (6,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
@@ -11903,7 +11924,7 @@ class Test
 ";
             var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation2.VerifyDiagnostics(
                 // (6,9): error CS0119: 'T' is a type, which is not valid in the given context
@@ -11969,7 +11990,7 @@ class Test
 ";
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (6,11): error CS1545: Property, indexer, or event 'I1.Item[int]' is not supported by the language; try directly calling accessor methods 'I1.get_Item(int)' or 'I1.set_Item(int, int)'
@@ -11992,7 +12013,7 @@ class Test
 ";
             var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation2, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -12065,7 +12086,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -12124,44 +12145,56 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
             verifier.VerifyIL("Test.M02<T, U>()",
 @"
 {
-  // Code size       24 (0x18)
+  // Code size       39 (0x27)
   .maxstack  2
   .locals init (System.Action V_0)
   IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  constrained. ""T""
-  IL_0008:  ldftn      ""void I1.M01()""
-  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0013:  stloc.0
-  IL_0014:  br.s       IL_0016
-  IL_0016:  ldloc.0
-  IL_0017:  ret
+  IL_0001:  ldsfld     ""System.Action Test.<>O.<0>__M01""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_0022
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  constrained. ""T""
+  IL_0011:  ldftn      ""void I1.M01()""
+  IL_0017:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001c:  dup
+  IL_001d:  stsfld     ""System.Action Test.<>O.<0>__M01""
+  IL_0022:  stloc.0
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.0
+  IL_0026:  ret
 }
 ");
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
             verifier.VerifyIL("Test.M02<T, U>()",
 @"
 {
-  // Code size       19 (0x13)
+  // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldnull
-  IL_0001:  constrained. ""T""
-  IL_0007:  ldftn      ""void I1.M01()""
-  IL_000d:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0012:  ret
+  IL_0000:  ldsfld     ""System.Action Test.<>O.<0>__M01""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0021
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  constrained. ""T""
+  IL_0010:  ldftn      ""void I1.M01()""
+  IL_0016:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001b:  dup
+  IL_001c:  stsfld     ""System.Action Test.<>O.<0>__M01""
+  IL_0021:  ret
 }
 ");
 
@@ -12203,7 +12236,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -12249,11 +12282,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -12264,7 +12297,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,28): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -12325,7 +12358,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,31): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -12384,7 +12417,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -12408,7 +12441,7 @@ class Test
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -12463,7 +12496,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -12509,11 +12542,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -12524,7 +12557,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,31): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -12585,7 +12618,7 @@ unsafe class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
@@ -12647,7 +12680,7 @@ unsafe class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -12669,7 +12702,7 @@ unsafe class Test
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll.WithAllowUnsafe(true),
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -12722,7 +12755,7 @@ unsafe class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll.WithAllowUnsafe(true),
                                                  parseOptions: TestOptions.RegularPreview,
@@ -12768,11 +12801,11 @@ unsafe class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll.WithAllowUnsafe(true),
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -12783,7 +12816,7 @@ unsafe class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,31): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -12845,7 +12878,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1.M01()'
@@ -12925,7 +12958,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1.M01()'
@@ -13001,7 +13034,7 @@ interface I8 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (12,25): warning CS0108: 'I3.M01()' hides inherited member 'I1.M01()'. Use the new keyword if hiding was intended.
@@ -13065,11 +13098,11 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -13080,7 +13113,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (4,20): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -13117,7 +13150,7 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -13166,7 +13199,7 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -13217,7 +13250,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -13278,7 +13311,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -13332,7 +13365,7 @@ public class C2 : C1, I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -13349,7 +13382,7 @@ public class C3 : C2, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
-                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     targetFramework: _supportingFramework,
                                                      references: new[] { reference });
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
                 }
@@ -13447,7 +13480,7 @@ public class C5 : C2, I1
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -13474,7 +13507,7 @@ public class C5 : C2, I1
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
         }
@@ -13504,7 +13537,7 @@ public class C1 : I1
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics();
 
@@ -13517,7 +13550,7 @@ public class C1 : I1
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics();
 
@@ -13531,7 +13564,7 @@ public class C1 : I1
 
             var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation2.VerifyEmitDiagnostics(
                 // (4,19): error CS0539: 'C1.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -13580,7 +13613,7 @@ public class C1 : I2
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics(
                 // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01()'
@@ -13624,7 +13657,7 @@ class C2 : C1, I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -13708,7 +13741,7 @@ class C2 : I1
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -13807,7 +13840,7 @@ public class C2 : C1, I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -13824,7 +13857,7 @@ public class C3 : C2, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
-                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         targetFramework: _supportingFramework,
                                                          references: new[] { reference });
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
                 }
@@ -13893,7 +13926,7 @@ public class C2 : C1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -13910,7 +13943,7 @@ public class C3 : C2, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
-                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         targetFramework: _supportingFramework,
                                                          references: new[] { reference });
                     var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -13985,8 +14018,8 @@ public class C1<T> : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains("M01")).Count());
             compilation1.VerifyDiagnostics();
@@ -14004,7 +14037,7 @@ public class C2 : C1<int>, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -14068,8 +14101,8 @@ public class C1<T> : I1<T>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains("M01")).Count());
             compilation1.VerifyDiagnostics();
@@ -14087,7 +14120,7 @@ public class C2 : C1<int>, I1<int>
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -14149,8 +14182,8 @@ public class C1<T> : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains("M01")).Count());
             compilation1.VerifyDiagnostics();
@@ -14168,7 +14201,7 @@ public class C2 : C1<int>, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -14218,8 +14251,8 @@ public class C1<T> : I1<T>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains("M01")).Count());
 
@@ -14238,7 +14271,7 @@ public class C2 : C1<int>, I1<int>
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -14292,8 +14325,8 @@ public class C11<T> : C1<T>, I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains("M01")).Count());
             compilation1.VerifyDiagnostics();
@@ -14311,7 +14344,7 @@ public class C2 : C11<int>, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -14378,8 +14411,8 @@ public class C11<T> : C1<T>, I1<T>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains("M01")).Count());
             compilation1.VerifyDiagnostics();
@@ -14397,7 +14430,7 @@ public class C2 : C11<int>, I1<int>
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -14515,7 +14548,7 @@ public interface I2<T> where T : I2<T>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadIncDecRetType or (int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator +(C1)'
@@ -14653,7 +14686,7 @@ public interface I2<T> where T : I2<T>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator >>(C1, int)'
@@ -14787,7 +14820,7 @@ interface I14 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             ErrorCode badSignatureError = op.Length != 2 ? ErrorCode.ERR_BadUnaryOperatorSignature : ErrorCode.ERR_BadIncDecSignature;
             ErrorCode badAbstractSignatureError = op.Length != 2 ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadAbstractIncDecSignature;
@@ -14950,7 +14983,7 @@ interface I14 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             bool isShift = op == "<<" || op == ">>";
             ErrorCode badSignatureError = isShift ? ErrorCode.ERR_BadShiftOperatorSignature : ErrorCode.ERR_BadBinaryOperatorSignature;
@@ -15098,11 +15131,11 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
@@ -15113,7 +15146,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
                 // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -15160,11 +15193,11 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
@@ -15175,7 +15208,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -15212,7 +15245,7 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -15261,7 +15294,7 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -15310,7 +15343,7 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -15359,7 +15392,7 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -15411,7 +15444,7 @@ public interface I1<T> where T : I1<T>
             var opName = UnaryOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -15491,7 +15524,7 @@ partial " + typeKeyword + @"
             var opName = UnaryOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -15576,7 +15609,7 @@ partial " + typeKeyword + @"
             var opName = BinaryOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -15641,7 +15674,7 @@ public interface I1
             var opName = UnaryOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
@@ -15723,7 +15756,7 @@ partial " + typeKeyword + @"
             var opName = UnaryOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
@@ -15808,7 +15841,7 @@ partial " + typeKeyword + @"
             var opName = BinaryOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
 
             var tree = compilation1.SyntaxTrees.Single();
@@ -15872,7 +15905,7 @@ public class C2 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -15891,7 +15924,7 @@ public class C3 : C2, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
-                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     targetFramework: _supportingFramework,
                                                      references: new[] { reference });
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
                 }
@@ -15945,7 +15978,7 @@ public partial class C2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -15964,7 +15997,7 @@ public class C3 : C2, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
-                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     targetFramework: _supportingFramework,
                                                      references: new[] { reference });
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
                 }
@@ -16021,7 +16054,7 @@ public partial class C2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -16040,7 +16073,7 @@ public class C3 : C2, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
-                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     targetFramework: _supportingFramework,
                                                      references: new[] { reference });
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
                 }
@@ -16145,7 +16178,7 @@ public class C5 : C2, I1
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -16178,7 +16211,7 @@ public class C5 : C2, I1
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
         }
@@ -16270,7 +16303,7 @@ public class C5 : C2, I1
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -16303,7 +16336,7 @@ public class C5 : C2, I1
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
         }
@@ -16339,7 +16372,7 @@ public class C1 : I1
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics();
 
@@ -16353,7 +16386,7 @@ public class C1 : I1
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics();
 
@@ -16367,7 +16400,7 @@ public class C1 : I1
 
             var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation2.VerifyEmitDiagnostics(
                 // (4,27): error CS0539: 'C1.operator ~(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -16414,7 +16447,7 @@ public class C1 : I1
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics();
 
@@ -16428,7 +16461,7 @@ public class C1 : I1
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics();
 
@@ -16442,7 +16475,7 @@ public class C1 : I1
 
             var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation2.VerifyEmitDiagnostics(
                 // (4,27): error CS0539: 'C1.operator <(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -16498,7 +16531,7 @@ public class C1 : I2
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics(
                 // (2,19): error CS0535: 'C1' does not implement interface member 'I1.operator ~(I1)'
@@ -16561,7 +16594,7 @@ public class C1 : I2
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics(
                 // (2,19): error CS0535: 'C1' does not implement interface member 'I1.operator /(I1, int)'
@@ -16627,7 +16660,7 @@ public partial class C1
             var opName = BinaryOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -16728,7 +16761,7 @@ class C2 : I1<C2>
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -16839,7 +16872,7 @@ class C2 : I1<C2>
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -16968,7 +17001,7 @@ class C2 : I1<C2>
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -17063,7 +17096,7 @@ public partial class C2 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -17082,7 +17115,7 @@ public class C3 : C2, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
-                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         targetFramework: _supportingFramework,
                                                          references: new[] { reference });
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
                 }
@@ -17123,7 +17156,7 @@ public partial class C2 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -17141,7 +17174,7 @@ public class C3 : C2, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
-                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         targetFramework: _supportingFramework,
                                                          references: new[] { reference });
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
                 }
@@ -17218,7 +17251,7 @@ public partial class C2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -17237,7 +17270,7 @@ public class C3 : C2, I1<C2>
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
-                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         targetFramework: _supportingFramework,
                                                          references: new[] { reference });
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
                 }
@@ -17331,7 +17364,7 @@ public partial class C2 : C1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -17350,7 +17383,7 @@ public class C3 : C2, I1<C2>
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
-                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     targetFramework: _supportingFramework,
                                                      references: new[] { reference });
                     var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -17450,8 +17483,8 @@ public partial class C1<T, U>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             compilation1.VerifyDiagnostics();
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains(opName)).Count());
@@ -17469,7 +17502,7 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -17553,8 +17586,8 @@ public partial class C1<T, U> : I1<C1<T, U>, U>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             compilation1.VerifyDiagnostics();
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains(opName)).Count());
@@ -17572,7 +17605,7 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -17649,8 +17682,8 @@ public partial class C1<T, U>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             compilation1.VerifyDiagnostics();
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains(opName)).Count());
@@ -17668,7 +17701,7 @@ public class C2 : C11<int, int>, I1<C11<int, int>, C1<int, int>>
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -17806,7 +17839,7 @@ class
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
 
@@ -17956,7 +17989,7 @@ struct
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
 
@@ -18026,7 +18059,7 @@ class C2 : I1<C2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OpTFRetType or (int)ErrorCode.ERR_OperatorNeedsMatch)).Verify(
                 // (9,20): error CS0540: 'C1.I1<int>.operator -(I1<int>)': containing type does not implement interface 'I1<int>'
@@ -18071,7 +18104,7 @@ struct C2 : I1<C2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (9,23): error CS0540: 'C1.I1<string>.operator %(I1<string>, int)': containing type does not implement interface 'I1<string>'
@@ -18142,7 +18175,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1.M01'
@@ -18222,7 +18255,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1.M01'
@@ -18298,7 +18331,7 @@ interface I8 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (12,24): warning CS0108: 'I3.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
@@ -18363,11 +18396,11 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -18378,7 +18411,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (4,19): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -18415,7 +18448,7 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -18479,7 +18512,7 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -18533,7 +18566,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -18627,7 +18660,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -18717,7 +18750,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -18803,7 +18836,7 @@ public class C2 : C1, I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -18820,7 +18853,7 @@ public class C3 : C2, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
-                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     targetFramework: _supportingFramework,
                                                      references: new[] { reference });
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
                 }
@@ -18982,7 +19015,7 @@ public class C5 : C2, I1
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -19023,7 +19056,7 @@ public class C5 : C2, I1
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
         }
@@ -19073,7 +19106,7 @@ public class C1 : I1
 
                 var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation1.VerifyEmitDiagnostics();
 
@@ -19090,7 +19123,7 @@ public class C1 : I1
 
                 compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.Regular9,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation1.VerifyEmitDiagnostics();
 
@@ -19104,7 +19137,7 @@ public class C1 : I1
 
                 var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation2.VerifyEmitDiagnostics(
                     // (4,18): error CS0539: 'C1.M01' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -19132,7 +19165,7 @@ public class C1 : I1
 
                 var compilation3 = CreateCompilationWithIL(source3, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 CompileAndVerify(compilation3, sourceSymbolValidator: validate3, symbolValidator: validate3, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -19184,7 +19217,7 @@ public class C1 : I1
 
                 var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation1.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01'
@@ -19213,7 +19246,7 @@ public class C1 : I1
 
                 var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 CompileAndVerify(compilation2, sourceSymbolValidator: validate2, symbolValidator: validate2, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -19265,7 +19298,7 @@ public class C1 : I1
 
                 var compilation3 = CreateCompilationWithIL(source3, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 CompileAndVerify(compilation3, sourceSymbolValidator: validate3, symbolValidator: validate3, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -19338,7 +19371,7 @@ public class C1 : I1
 
                 var compilation4 = CreateCompilationWithIL(source4, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation4.VerifyDiagnostics(
                     // (4,29): error CS0550: 'C1.I1.M01.set' adds an accessor not found in interface member 'I1.M01'
@@ -19368,7 +19401,7 @@ public class C1 : I1
 
                 var compilation5 = CreateCompilationWithIL(source5, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 CompileAndVerify(compilation5, sourceSymbolValidator: validate5, symbolValidator: validate5, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -19427,7 +19460,7 @@ public class C1 : I1
 
                 var compilation6 = CreateCompilationWithIL(source6, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation6.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01.get'
@@ -19454,7 +19487,7 @@ public class C1 : I1
 
                 var compilation7 = CreateCompilationWithIL(source7, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation7.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01.get'
@@ -19516,7 +19549,7 @@ public class C1 : I1
 
                 var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation1.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01'
@@ -19545,7 +19578,7 @@ public class C1 : I1
 
                 var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 CompileAndVerify(compilation2, sourceSymbolValidator: validate2, symbolValidator: validate2, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -19597,7 +19630,7 @@ public class C1 : I1
 
                 var compilation3 = CreateCompilationWithIL(source3, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 CompileAndVerify(compilation3, sourceSymbolValidator: validate3, symbolValidator: validate3, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -19670,7 +19703,7 @@ public class C1 : I1
 
                 var compilation4 = CreateCompilationWithIL(source4, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation4.VerifyDiagnostics(
                     // (4,24): error CS0550: 'C1.I1.M01.get' adds an accessor not found in interface member 'I1.M01'
@@ -19700,7 +19733,7 @@ public class C1 : I1
 
                 var compilation5 = CreateCompilationWithIL(source5, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 CompileAndVerify(compilation5, sourceSymbolValidator: validate5, symbolValidator: validate5, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -19759,7 +19792,7 @@ public class C1 : I1
 
                 var compilation6 = CreateCompilationWithIL(source6, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation6.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01.set'
@@ -19786,7 +19819,7 @@ public class C1 : I1
 
                 var compilation7 = CreateCompilationWithIL(source7, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation7.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01.set'
@@ -19877,7 +19910,7 @@ public class C1 : I2
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics(
                 // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01'
@@ -19927,7 +19960,7 @@ class C2 : C1, I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -20116,7 +20149,7 @@ class C3 : I2
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -20296,7 +20329,7 @@ public class C2 : C1, I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -20313,7 +20346,7 @@ public class C3 : C2, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
-                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         targetFramework: _supportingFramework,
                                                          references: new[] { reference });
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
                 }
@@ -20409,7 +20442,7 @@ public class C2 : C1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -20426,7 +20459,7 @@ public class C3 : C2, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
-                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         targetFramework: _supportingFramework,
                                                          references: new[] { reference });
                     var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -20536,8 +20569,8 @@ public class C1<T> : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().OfType<PropertySymbol>().Where(m => m.Name.Contains("M01")).Count());
             compilation1.VerifyDiagnostics();
@@ -20555,7 +20588,7 @@ public class C2 : C1<int>, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -20605,8 +20638,8 @@ public class C1<T> : I1<T>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().OfType<PropertySymbol>().Where(m => m.Name.Contains("M01")).Count());
 
@@ -20625,7 +20658,7 @@ public class C2 : C1<int>, I1<int>
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -20696,7 +20729,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1.M01'
@@ -20776,7 +20809,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1.M01'
@@ -20852,7 +20885,7 @@ interface I8 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (12,40): warning CS0108: 'I3.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
@@ -20917,11 +20950,11 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -20935,7 +20968,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (4,35): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -20975,7 +21008,7 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -21036,7 +21069,7 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -21087,7 +21120,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -21181,7 +21214,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -21267,7 +21300,7 @@ public class C2 : C1, I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -21284,7 +21317,7 @@ public class C3 : C2, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
-                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     targetFramework: _supportingFramework,
                                                      references: new[] { reference });
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
                 }
@@ -21451,7 +21484,7 @@ public class C5 : C2, I1
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -21492,7 +21525,7 @@ public class C5 : C2, I1
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
         }
@@ -21543,7 +21576,7 @@ public class C1 : I1
 
                 var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation1.VerifyEmitDiagnostics();
 
@@ -21560,7 +21593,7 @@ public class C1 : I1
 
                 compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.Regular9,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation1.VerifyEmitDiagnostics();
 
@@ -21574,7 +21607,7 @@ public class C1 : I1
 
                 var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation2.VerifyEmitDiagnostics(
                     // (4,34): error CS0539: 'C1.M01' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -21602,7 +21635,7 @@ public class C1 : I1
 
                 var compilation3 = CreateCompilationWithIL(source3, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 CompileAndVerify(compilation3, sourceSymbolValidator: validate3, symbolValidator: validate3, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -21656,7 +21689,7 @@ public class C1 : I1
 
                 var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation1.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01'
@@ -21685,7 +21718,7 @@ public class C1 : I1
 
                 var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation2.VerifyDiagnostics(
                     // (4,34): error CS0065: 'C1.I1.M01': event property must have both add and remove accessors
@@ -21714,7 +21747,7 @@ public class C1 : I1
 
                 var compilation3 = CreateCompilationWithIL(source3, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 CompileAndVerify(compilation3, sourceSymbolValidator: validate3, symbolValidator: validate3, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -21786,7 +21819,7 @@ public class C1 : I1
 
                 var compilation4 = CreateCompilationWithIL(source4, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation4.VerifyDiagnostics(
                     // (4,46): error CS0550: 'C1.I1.M01.remove' adds an accessor not found in interface member 'I1.M01'
@@ -21816,7 +21849,7 @@ public class C1 : I1
 
                 var compilation5 = CreateCompilationWithIL(source5, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation5.VerifyDiagnostics(
                     // (4,38): error CS0065: 'C1.M01': event property must have both add and remove accessors
@@ -21843,7 +21876,7 @@ public class C1 : I1
 
                 var compilation6 = CreateCompilationWithIL(source6, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation6.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01.add'
@@ -21873,7 +21906,7 @@ public class C1 : I1
 
                 var compilation7 = CreateCompilationWithIL(source7, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation7.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01.add'
@@ -21936,7 +21969,7 @@ public class C1 : I1
 
                 var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation1.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01'
@@ -21965,7 +21998,7 @@ public class C1 : I1
 
                 var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation2.VerifyDiagnostics(
                     // (4,34): error CS0065: 'C1.I1.M01': event property must have both add and remove accessors
@@ -21994,7 +22027,7 @@ public class C1 : I1
 
                 var compilation3 = CreateCompilationWithIL(source3, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 CompileAndVerify(compilation3, sourceSymbolValidator: validate3, symbolValidator: validate3, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -22066,7 +22099,7 @@ public class C1 : I1
 
                 var compilation4 = CreateCompilationWithIL(source4, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation4.VerifyDiagnostics(
                     // (4,40): error CS0550: 'C1.I1.M01.add' adds an accessor not found in interface member 'I1.M01'
@@ -22096,7 +22129,7 @@ public class C1 : I1
 
                 var compilation5 = CreateCompilationWithIL(source5, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation5.VerifyDiagnostics(
                     // (4,38): error CS0065: 'C1.M01': event property must have both add and remove accessors
@@ -22123,7 +22156,7 @@ public class C1 : I1
 
                 var compilation6 = CreateCompilationWithIL(source6, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation6.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01.remove'
@@ -22153,7 +22186,7 @@ public class C1 : I1
 
                 var compilation7 = CreateCompilationWithIL(source7, ilSource, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: _supportingFramework);
 
                 compilation7.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01.remove'
@@ -22247,7 +22280,7 @@ public class C1 : I2
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics(
                 // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01'
@@ -22297,7 +22330,7 @@ class C2 : C1, I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -22498,7 +22531,7 @@ class C4 : I2
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -22802,7 +22835,7 @@ public class C2 : C1, I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -22819,7 +22852,7 @@ public class C3 : C2, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
-                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         targetFramework: _supportingFramework,
                                                          references: new[] { reference });
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
                 }
@@ -22915,7 +22948,7 @@ public class C2 : C1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -22932,7 +22965,7 @@ public class C3 : C2, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
-                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         targetFramework: _supportingFramework,
                                                          references: new[] { reference });
                     var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -23043,8 +23076,8 @@ public class C1<T> : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().OfType<EventSymbol>().Where(m => m.Name.Contains("M01")).Count());
             compilation1.VerifyDiagnostics();
@@ -23062,7 +23095,7 @@ public class C2 : C1<int>, I1
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -23112,8 +23145,8 @@ public class C1<T> : I1<T>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().OfType<EventSymbol>().Where(m => m.Name.Contains("M01")).Count());
 
@@ -23132,7 +23165,7 @@ public class C2 : C1<int>, I1<int>
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -23236,7 +23269,7 @@ public interface I2<T> where T : I2<T>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.explicit operator int(C1)'
@@ -23370,7 +23403,7 @@ interface I14<T> : I1<T> where T : I1<T>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (12,23): error CS0556: User-defined conversion must convert to or from the enclosing type
@@ -23486,11 +23519,11 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -23501,7 +23534,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -23535,7 +23568,7 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -23584,7 +23617,7 @@ typeKeyword + @"
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -23638,7 +23671,7 @@ public interface I1<T> where T : I1<T>
             var opName = ConversionOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -23730,7 +23763,7 @@ interface I1<T> where T : I1<T>
             var opName = ConversionOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
@@ -23808,7 +23841,7 @@ public class C2 : I1<C2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -23827,7 +23860,7 @@ public class C3 : C2, I1<C2>
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
-                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     targetFramework: _supportingFramework,
                                                      references: new[] { reference });
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
                 }
@@ -23944,7 +23977,7 @@ public class C5 : C2, I1<C1>
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -23977,7 +24010,7 @@ public class C5 : C2, I1<C1>
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
         }
@@ -24014,7 +24047,7 @@ public class C1 : I1<C1>
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics();
 
@@ -24028,7 +24061,7 @@ public class C1 : I1<C1>
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics();
 
@@ -24042,7 +24075,7 @@ public class C1 : I1<C1>
 
             var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation2.VerifyEmitDiagnostics(
                 // (4,37): error CS0539: 'C1.implicit operator int(C1)' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -24102,7 +24135,7 @@ public class C1 : I2<C1>
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics(
                 // (2,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.explicit operator int(C1)'
@@ -24149,7 +24182,7 @@ public class C2 : C1<C2>, I1<C2>
             var opName = ConversionOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -24249,7 +24282,7 @@ class C2 : I1<C2>
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -24350,7 +24383,7 @@ public class C2 : C1<C2>, I1<C2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
 
@@ -24369,7 +24402,7 @@ public class C3 : C2, I1<C2>
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
-                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         targetFramework: _supportingFramework,
                                                          references: new[] { reference });
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
                 }
@@ -24445,8 +24478,8 @@ public class C1<T, U> : I1<C1<T, U>, U>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             compilation1.VerifyDiagnostics();
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains(opName)).Count());
@@ -24464,7 +24497,7 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -24527,8 +24560,8 @@ public class C1<T, U> : I1<C1<T, U>, U>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
 
             compilation1.VerifyDiagnostics();
             Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains(opName)).Count());
@@ -24546,7 +24579,7 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { reference });
 
                     CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -24666,7 +24699,7 @@ class
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
 
@@ -24733,7 +24766,7 @@ class C2 : I1<C2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (9,21): error CS0540: 'C1.I1<int>.implicit operator int(int)': containing type does not implement interface 'I1<int>'
@@ -24789,7 +24822,7 @@ class Test<T> where T : I1<T>
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var error = (op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv);
 
@@ -24855,7 +24888,7 @@ class C<T>
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
                 // (4,39): error CS0552: 'I1.implicit operator bool(I1)': user-defined conversions to or from an interface are not allowed
@@ -24915,7 +24948,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -25001,7 +25034,7 @@ class Test
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -25115,7 +25148,7 @@ class C<T>
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -25188,7 +25221,7 @@ class C<T>
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -25299,7 +25332,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -25355,7 +25388,7 @@ class C<T>
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -25404,11 +25437,11 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -25419,7 +25452,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (12,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -25460,11 +25493,11 @@ class C<T>
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -25475,7 +25508,7 @@ class C<T>
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (21,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -25525,7 +25558,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -25611,7 +25644,7 @@ class Test
 
             compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                              parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp);
+                                             targetFramework: _supportingFramework);
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -25731,7 +25764,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var error = (op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv);
 
@@ -25781,7 +25814,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var error = (op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv);
 
@@ -25824,7 +25857,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -25875,7 +25908,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -25923,7 +25956,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -25971,7 +26004,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -26014,7 +26047,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                     parseOptions: TestOptions.RegularPreview,
-                                                    targetFramework: TargetFramework.NetCoreApp);
+                                                    targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -26067,7 +26100,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -26116,7 +26149,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                     parseOptions: TestOptions.RegularPreview,
-                                                    targetFramework: TargetFramework.NetCoreApp);
+                                                    targetFramework: _supportingFramework);
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -26172,7 +26205,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
             compilation1.VerifyDiagnostics(
                 // (15,16): error CS0030: Cannot convert type 'T' to 'int'
                 //         return (int)x;
@@ -26214,7 +26247,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
             compilation1.VerifyDiagnostics(
                 // (15,16): error CS0030: Cannot convert type 'int' to 'T'
                 //         return (T)x;
@@ -26252,7 +26285,7 @@ class YetAnother : Interface<int, int>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -26333,7 +26366,7 @@ public class Base<T> : Interface<T, T>
 
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation0.VerifyDiagnostics();
 
@@ -26345,7 +26378,7 @@ public class Derived : Base<int>, Interface<int, int>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation0.EmitToImageReference() });
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
@@ -26402,7 +26435,7 @@ public class Base<T> : Interface<T, T>
 
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { CreateEmptyCompilation("").ToMetadataReference() });
 
             compilation0.VerifyDiagnostics();
@@ -26415,7 +26448,7 @@ public class Derived : Base<int>, Interface<int, int>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 targetFramework: _supportingFramework,
                                                  references: new[] { compilation0.ToMetadataReference() });
 
             var d = compilation1.GlobalNamespace.GetTypeMember("Derived");
@@ -26465,7 +26498,7 @@ class Other : Interface<int, int>
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation2.VerifyDiagnostics(
                 // (9,15): error CS0535: 'Other' does not implement interface member 'Interface<int, int>.Method(int)'
@@ -26500,9 +26533,9 @@ public interface I2<T> where T : I2<T>
 }
 ";
 
-            var compilation2 = CreateCompilation(new[] { source2, UnmanagedCallersOnlyAttributeDefinition }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation2.VerifyDiagnostics(
                 // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
@@ -26628,9 +26661,8 @@ class Test
 ";
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
-            // Conversions aren't flagged due to https://github.com/dotnet/roslyn/issues/54113.
             compilation1.VerifyDiagnostics(
                 // (6,11): error CS0570: 'I1.M1()' is not supported by the language
                 //         T.M1();
@@ -26640,7 +26672,10 @@ class Test
                 Diagnostic(ErrorCode.ERR_BindToBogus, "+x").WithArguments("I1.operator +(I1)").WithLocation(7, 13),
                 // (8,13): error CS0570: 'I1.operator +(I1, I1)' is not supported by the language
                 //         _ = x + y;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "x + y").WithArguments("I1.operator +(I1, I1)").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_BindToBogus, "x + y").WithArguments("I1.operator +(I1, I1)").WithLocation(8, 13),
+                // (14,16): error CS0570: 'I2<T>.implicit operator int(T)' is not supported by the language
+                //         return x;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "x").WithArguments("I2<T>.implicit operator int(T)").WithLocation(14, 16)
                 );
         }
 
@@ -26669,9 +26704,9 @@ class C : I1<C>
 }
 ";
 
-            var compilation2 = CreateCompilation(new[] { source2, UnmanagedCallersOnlyAttributeDefinition }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation2.VerifyDiagnostics(
                 // (15,47): error CS8932: 'UnmanagedCallersOnly' method 'C.M1()' cannot implement interface member 'I1<C>.M1()' in type 'C'
@@ -26717,9 +26752,9 @@ class C : I1<C>
 }
 ";
 
-            var compilation2 = CreateCompilation(new[] { source2, UnmanagedCallersOnlyAttributeDefinition }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: _supportingFramework);
 
             compilation2.VerifyDiagnostics(
                 // (15,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.

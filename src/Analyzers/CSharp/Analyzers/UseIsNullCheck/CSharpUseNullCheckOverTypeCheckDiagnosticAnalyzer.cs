@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -18,8 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             : base(IDEDiagnosticIds.UseNullCheckOverTypeCheckDiagnosticId,
                    EnforceOnBuildValues.UseNullCheckOverTypeCheck,
                    CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck,
-                   CSharpAnalyzersResources.Prefer_null_check_over_type_check,
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Null_check_can_be_clarified), AnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+                   LanguageNames.CSharp,
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Prefer_null_check_over_type_check), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Null_check_can_be_clarified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -30,10 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         {
             context.RegisterCompilationStartAction(context =>
             {
-                if (((CSharpCompilation)context.Compilation).LanguageVersion < LanguageVersion.CSharp9)
-                {
+                if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp9)
                     return;
-                }
 
                 context.RegisterOperationAction(c => AnalyzeIsTypeOperation(c), OperationKind.IsType);
                 context.RegisterOperationAction(c => AnalyzeNegatedPatternOperation(c), OperationKind.NegatedPattern);

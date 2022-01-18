@@ -36,14 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-        {
-            if (!workspace.Options.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
-            {
-                return null;
-            }
-
-            return new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
-        }
+            => new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
@@ -159,29 +152,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
                 if (loadDiagnostic != null)
-                {
                     return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
-                }
 
                 var project = document.Project;
                 var analyzers = GetAnalyzers(project.Solution.State.Analyzers, project);
                 if (analyzers.IsEmpty)
-                {
                     return ImmutableArray<DiagnosticData>.Empty;
-                }
 
                 var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
                     project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
                 var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
                 var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
 
-                var builder = ArrayBuilder<DiagnosticData>.GetInstance();
+                using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
                 foreach (var analyzer in analyzers)
-                {
                     builder.AddRange(await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false));
-                }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
 
             private static ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(HostDiagnosticAnalyzers hostAnalyzers, Project project)

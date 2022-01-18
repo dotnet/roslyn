@@ -33,9 +33,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                         await AddImplementedSymbolsAsync(graphBuilder, node, implementedSymbols, cancellationToken).ConfigureAwait(false);
                     }
-                    else if (symbol is IMethodSymbol ||
-                             symbol is IPropertySymbol ||
-                             symbol is IEventSymbol)
+                    else if (symbol is IMethodSymbol or
+                             IPropertySymbol or
+                             IEventSymbol)
                     {
                         var implements = await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
                         await AddImplementedSymbolsAsync(graphBuilder, node, implements, cancellationToken).ConfigureAwait(false);

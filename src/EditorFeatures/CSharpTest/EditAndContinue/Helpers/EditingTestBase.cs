@@ -10,11 +10,11 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public abstract class EditingTestBase : CSharpTestBase
     {
+        public static readonly string ReloadableAttributeSrc = @"
+using System.Runtime.CompilerServices;
+namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttribute : Attribute {} }
+";
+
         internal static CSharpEditAndContinueAnalyzer CreateAnalyzer()
         {
             return new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
@@ -110,9 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
             var needsSyntaxMap = oldHasStateMachineSuspensionPoint && newHasStateMachineSuspensionPoint;
 
-            Assert.Equal(kind != MethodKind.Regular && kind != MethodKind.ConstructorWithParameters, needsSyntaxMap);
+            Assert.Equal(kind is not MethodKind.Regular and not MethodKind.ConstructorWithParameters, needsSyntaxMap);
 
-            if (kind == MethodKind.Regular || kind == MethodKind.ConstructorWithParameters)
+            if (kind is MethodKind.Regular or MethodKind.ConstructorWithParameters)
             {
                 Assert.Empty(diagnostics);
             }

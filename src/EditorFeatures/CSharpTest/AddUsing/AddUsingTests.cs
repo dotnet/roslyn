@@ -52,6 +52,67 @@ class Class
 
         [Theory]
         [CombinatorialData]
+        public async Task TestTypeFromMultipleNamespaces1_FileScopedNamespace_Outer(TestHost testHost)
+        {
+            await TestAsync(
+@"
+namespace N;
+
+class Class
+{
+    [|IDictionary|] Method()
+    {
+        Goo();
+    }
+}",
+@"
+using System.Collections;
+
+namespace N;
+
+class Class
+{
+    IDictionary Method()
+    {
+        Goo();
+    }
+}", testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestTypeFromMultipleNamespaces1_FileScopedNamespace_Inner(TestHost testHost)
+        {
+            await TestAsync(
+@"
+namespace N;
+
+using System;
+
+class Class
+{
+    [|IDictionary|] Method()
+    {
+        Goo();
+    }
+}",
+@"
+namespace N;
+
+using System;
+using System.Collections;
+
+class Class
+{
+    IDictionary Method()
+    {
+        Goo();
+    }
+}", testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
         [WorkItem(11241, "https://github.com/dotnet/roslyn/issues/11241")]
         public async Task TestAddImportWithCaseChange(TestHost testHost)
         {
@@ -2530,6 +2591,68 @@ namespace ExternAliases
         [Theory]
         [CombinatorialData]
         [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
+        public async Task TestAddUsingsWithPreExistingExternAlias_FileScopedNamespace(TestHost testHost)
+        {
+            const string InitialWorkspace = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""lib"" CommonReferences=""true"">
+        <Document FilePath=""lib.cs"">
+namespace ProjectLib;
+{
+    public class Project
+    {
+    }
+}
+
+namespace AnotherNS
+{
+    public class AnotherClass
+    {
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
+        <ProjectReference Alias=""P"">lib</ProjectReference>
+        <Document FilePath=""Program.cs"">
+extern alias P;
+using P::ProjectLib;
+namespace ExternAliases;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Project p = new Project();
+        var x = new [|AnotherClass()|];
+    }
+} 
+</Document>
+    </Project>
+</Workspace>";
+
+            const string ExpectedDocumentText = @"
+extern alias P;
+
+using P::AnotherNS;
+using P::ProjectLib;
+namespace ExternAliases;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Project p = new Project();
+        var x = new [|AnotherClass()|];
+    }
+} 
+";
+            await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         public async Task TestAddUsingsNoExtern(TestHost testHost)
         {
             const string InitialWorkspace = @"
@@ -2573,6 +2696,55 @@ namespace ExternAliases
         {
             var x = new AnotherClass();
         }
+    }
+} 
+";
+            await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
+        public async Task TestAddUsingsNoExtern_FileScopedNamespace(TestHost testHost)
+        {
+            const string InitialWorkspace = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""lib"" CommonReferences=""true"">
+        <Document FilePath=""lib.cs"">
+namespace AnotherNS;
+
+public class AnotherClass
+{
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
+        <ProjectReference Alias=""P"">lib</ProjectReference>
+        <Document FilePath=""Program.cs"">
+using P::AnotherNS;
+namespace ExternAliases;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = new [|AnotherClass()|];
+    }
+} 
+</Document>
+    </Project>
+</Workspace>";
+
+            const string ExpectedDocumentText = @"extern alias P;
+
+using P::AnotherNS;
+namespace ExternAliases;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = new AnotherClass();
     }
 } 
 ";
@@ -6358,7 +6530,7 @@ class Program
 </Workspace>";
 
             await TestMissingAsync(InitialWorkspace, new TestParameters(
-                options: Option(CompletionOptions.HideAdvancedMembers, true),
+                options: Option(CompletionOptions.Metadata.HideAdvancedMembers, true),
                 testHost: testHost));
         }
     }

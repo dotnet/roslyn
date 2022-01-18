@@ -4,9 +4,11 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -14,17 +16,20 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal abstract partial class AbstractSyntaxTreeFactoryService : ISyntaxTreeFactoryService
     {
-        // Recoverable trees only save significant memory for larger trees
-        internal readonly int MinimumLengthForRecoverableTree;
-        private readonly bool _hasCachingService;
+        private readonly int _minimumLengthForRecoverableTree;
 
         internal HostLanguageServices LanguageServices { get; }
 
-        public AbstractSyntaxTreeFactoryService(HostLanguageServices languageServices)
+        public AbstractSyntaxTreeFactoryService(
+            IGlobalOptionService optionService,
+            HostLanguageServices languageServices)
         {
-            this.LanguageServices = languageServices;
-            this.MinimumLengthForRecoverableTree = languageServices.WorkspaceServices.Workspace.Options.GetOption(CacheOptions.RecoverableTreeLengthThreshold);
-            _hasCachingService = languageServices.WorkspaceServices.GetService<IProjectCacheHostService>() != null;
+            LanguageServices = languageServices;
+
+            var cacheService = languageServices.WorkspaceServices.GetService<IProjectCacheHostService>();
+
+            _minimumLengthForRecoverableTree = (cacheService != null && !optionService.GetOption(WorkspaceConfigurationOptions.DisableRecoverableTrees)) ?
+                cacheService.MinimumLengthForRecoverableTree : int.MaxValue;
         }
 
         public abstract ParseOptions GetDefaultParseOptions();
@@ -33,9 +38,10 @@ namespace Microsoft.CodeAnalysis.Host
         public abstract SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding encoding, SyntaxNode root);
         public abstract SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
         public abstract ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
+        public abstract ParseOptions TryParsePdbParseOptions(IReadOnlyDictionary<string, string> metadata);
 
         public virtual bool CanCreateRecoverableTree(SyntaxNode root)
-            => _hasCachingService && root.FullSpan.Length >= this.MinimumLengthForRecoverableTree;
+            => root.FullSpan.Length > _minimumLengthForRecoverableTree;
 
         protected static SyntaxNode RecoverNode(SyntaxTree tree, TextSpan textSpan, int kind)
         {

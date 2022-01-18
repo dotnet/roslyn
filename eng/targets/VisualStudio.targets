@@ -144,8 +144,8 @@
           BeforeTargets="DeployVsixExtensionFiles"
 	       	DependsOnTargets="GetVsixDeploymentPath">
 
-    <Error Text="Deployment to Dev17 is not supported in this branch. Use the corresponding *-vs-deps branch." 
-           Condition="$([MSBuild]::ValueOrDefault('$(ExtensionsPath)', '').Contains('17.0'))"/>
+    <Error Text="Deployment to Dev16 is not supported in this *-vs-deps branch. Use the corresponding non-VS branch." 
+           Condition="$([MSBuild]::ValueOrDefault('$(ExtensionsPath)', '').Contains('16.0'))"/>
   </Target>
 
   <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />

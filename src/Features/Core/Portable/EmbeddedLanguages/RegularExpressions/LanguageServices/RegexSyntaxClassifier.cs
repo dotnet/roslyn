@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         public override void AddClassifications(
-            Workspace workspace, SyntaxToken token, SemanticModel semanticModel,
+            SyntaxToken token, SemanticModel semanticModel, ClassificationOptions options,
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (_info.StringLiteralTokenKind != token.RawKind)
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return;
             }
 
-            if (!workspace.Options.GetOption(RegularExpressionsOptions.ColorizeRegexPatterns, semanticModel.Language))
+            if (!options.ColorizeRegexPatterns)
             {
                 return;
             }
@@ -327,7 +327,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
 
             public void Visit(RegexAlternationNode node)
-                => AddClassification(node.BarToken, ClassificationTypeNames.RegexAlternation);
+            {
+                for (var i = 1; i < node.SequenceList.NodesAndTokens.Length; i += 2)
+                    AddClassification(node.SequenceList.NodesAndTokens[i].Token, ClassificationTypeNames.RegexAlternation);
+            }
 
             public void Visit(RegexSimpleEscapeNode node)
                 => ClassifyWholeNode(node, node.IsSelfEscape()

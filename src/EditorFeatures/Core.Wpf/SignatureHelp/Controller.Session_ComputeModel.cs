@@ -86,10 +86,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             }
                         }
 
+                        var options = SignatureHelpOptions.From(document.Project);
+
                         // first try to query the providers that can trigger on the specified character
                         var (provider, items) = await ComputeItemsAsync(
                             providers, caretPosition, triggerInfo,
-                            document, cancellationToken).ConfigureAwait(false);
+                            options, document, cancellationToken).ConfigureAwait(false);
 
                         if (provider == null)
                         {
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                                     .WithSelectedParameter(selection.SelectedParameter);
                     }
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -182,6 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 ImmutableArray<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
                 SignatureHelpTriggerInfo triggerInfo,
+                SignatureHelpOptions options,
                 Document document,
                 CancellationToken cancellationToken)
             {
@@ -196,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var currentItems = await provider.GetItemsAsync(document, caretPosition, triggerInfo, cancellationToken).ConfigureAwait(false);
+                        var currentItems = await provider.GetItemsAsync(document, caretPosition, triggerInfo, options, cancellationToken).ConfigureAwait(false);
                         if (currentItems != null && currentItems.ApplicableSpan.IntersectsWith(caretPosition.Position))
                         {
                             // If another provider provides sig help items, then only take them if they
@@ -217,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                     return (bestProvider, bestItems);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
                     return (null, null);
                 }

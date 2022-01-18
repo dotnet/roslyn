@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -54,8 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected AbstractDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListener listener)
-            : base(threadingContext, listener)
+            : base(threadingContext, globalOptions, listener)
         {
             _diagnosticService = diagnosticService;
             _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
@@ -118,12 +120,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected internal virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
             => diagnosticData.DataLocation is object ? ImmutableArray.Create(diagnosticData.DataLocation) : ImmutableArray<DiagnosticDataLocation>.Empty;
 
-        protected override Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
+        protected override Task ProduceTagsAsync(
+            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
         {
-            return ProduceTagsAsync(context, spanToTag);
+            return ProduceTagsAsync(context, spanToTag, cancellationToken);
         }
 
-        private async Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
+        private async Task ProduceTagsAsync(
+            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, CancellationToken cancellationToken)
         {
             if (!this.IsEnabled)
             {
@@ -138,7 +142,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             var editorSnapshot = spanToTag.SnapshotSpan.Snapshot;
 
-            var cancellationToken = context.CancellationToken;
             var workspace = document.Project.Solution.Workspace;
 
             // See if we've marked any spans as those we want to suppress diagnostics for.
@@ -149,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
             var buckets = _diagnosticService.GetPushDiagnosticBuckets(
-                workspace, document.Project.Id, document.Id, InternalDiagnosticsOptions.NormalDiagnosticMode, context.CancellationToken);
+                workspace, document.Project.Id, document.Id, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken);
 
             foreach (var bucket in buckets)
             {

@@ -6,11 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -21,12 +25,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     /// <summary>
     /// Root type for both document and workspace diagnostic pull requests.
     /// </summary>
-    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : IRequestHandler<TDiagnosticsParams, TReport[]?>
-        where TReport : DiagnosticReport
+    /// <typeparam name="TDiagnosticsParams">The LSP input param type</typeparam>
+    /// <typeparam name="TReport">The LSP type that is reported via IProgress</typeparam>
+    /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
+    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : IRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
     {
+        protected record struct PreviousResult(string PreviousResultId, TextDocumentIdentifier TextDocument);
+
         /// <summary>
         /// Special value we use to designate workspace diagnostics vs document diagnostics.  Document diagnostics
-        /// should always <see cref="DiagnosticReport.Supersedes"/> a workspace diagnostic as the former are 'live'
+        /// should always <see cref="VSInternalDiagnosticReport.Supersedes"/> a workspace diagnostic as the former are 'live'
         /// while the latter are cached and may be stale.
         /// </summary>
         protected const int WorkspaceDiagnosticIdentifier = 1;
@@ -35,14 +43,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected readonly IDiagnosticService DiagnosticService;
 
         /// <summary>
-        /// Lock to protect <see cref="_documentIdToLastResultId"/> and <see cref="_nextDocumentResultId"/>.
+        /// Lock to protect <see cref="_documentIdToLastResult"/> and <see cref="_nextDocumentResultId"/>.
+        /// Since this is a non-mutating request handler it is possible for
+        /// calls to <see cref="HandleRequestAsync(TDiagnosticsParams, RequestContext, CancellationToken)"/>
+        /// to run concurrently.
         /// </summary>
-        private readonly object _gate = new();
+        private readonly SemaphoreSlim _semaphore = new(1);
 
         /// <summary>
-        /// Mapping of a document to the last result id we reported for it.
+        /// Mapping of a document to the data used to make the last diagnostic report which contains:
+        /// <list type="bullet">
+        ///   <item>The resultId reported to the client.</item>
+        ///   <item>The <see cref="Project.GetDependentVersionAsync(CancellationToken)"/> of the project snapshot that was used to calculate diagnostics.
+        ///       <para>Note that this version can change even when nothing has actually changed (for example, forking the LSP text, reloading the same project).
+        ///       So we additionally store:</para></item>
+        ///   <item>A checksum representing the project and its dependencies from <see cref="Project.GetDependentChecksumAsync(CancellationToken)"/>.</item>
+        /// </list>
+        /// This is used to determine if we need to re-calculate diagnostics.
         /// </summary>
-        private readonly Dictionary<(Workspace workspace, DocumentId documentId), string> _documentIdToLastResultId = new();
+        private readonly Dictionary<(Workspace workspace, DocumentId documentId), (string resultId, VersionStamp projectDependentVersion, Checksum projectDependentChecksum)> _documentIdToLastResult = new();
 
         /// <summary>
         /// The next available id to label results with.  Note that results are tagged on a per-document bases.  That
@@ -59,21 +78,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             IDiagnosticService diagnosticService)
         {
             DiagnosticService = diagnosticService;
-            DiagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
         }
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
 
         /// <summary>
-        /// Gets the progress object to stream results to.
-        /// </summary>
-        protected abstract IProgress<TReport[]>? GetProgress(TDiagnosticsParams diagnosticsParams);
-
-        /// <summary>
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
         /// used so we can report which documents were removed and can have all their diagnostics cleared.
         /// </summary>
-        protected abstract DiagnosticParams[]? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
+        protected abstract ImmutableArray<PreviousResult>? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
 
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
@@ -81,10 +94,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected abstract ImmutableArray<Document> GetOrderedDocuments(RequestContext context);
 
         /// <summary>
-        /// Creates the <see cref="DiagnosticReport"/> instance we'll report back to clients to let them know our
+        /// Creates the <see cref="VSInternalDiagnosticReport"/> instance we'll report back to clients to let them know our
         /// progress.  Subclasses can fill in data specific to their needs as appropriate.
         /// </summary>
-        protected abstract TReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId);
+        protected abstract TReport CreateReport(TextDocumentIdentifier identifier, LSP.Diagnostic[]? diagnostics, string? resultId);
+
+        protected abstract TReturn? CreateReturn(BufferedProgress<TReport> progress);
 
         /// <summary>
         /// Produce the diagnostics for the specified document.
@@ -96,32 +111,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// </summary>
         protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData);
 
-        private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs updateArgs)
-        {
-            if (updateArgs.DocumentId == null)
-                return;
-
-            // Ensure we do not clear the cached results while the handler is reading (and possibly then writing)
-            // to the cached results.
-            lock (_gate)
-            {
-                // Whenever we hear about changes to a document, drop the data we've stored for it.  We'll recompute it as
-                // necessary on the next request.
-                _documentIdToLastResultId.Remove((updateArgs.Workspace, updateArgs.DocumentId));
-            }
-        }
-
-        public async Task<TReport[]?> HandleRequestAsync(
+        public async Task<TReturn?> HandleRequestAsync(
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
             context.TraceInformation($"{this.GetType()} started getting diagnostics");
 
             // The progress object we will stream reports to.
-            using var progress = BufferedProgress.Create(GetProgress(diagnosticsParams));
+            using var progress = BufferedProgress.Create(diagnosticsParams.PartialResultToken);
 
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
-            var previousResults = GetPreviousResults(diagnosticsParams) ?? Array.Empty<DiagnosticParams>();
+            var previousResults = GetPreviousResults(diagnosticsParams) ?? ImmutableArray<PreviousResult>.Empty;
             context.TraceInformation($"previousResults.Length={previousResults.Length}");
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
@@ -148,10 +148,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     continue;
                 }
 
-                if (HaveDiagnosticsChanged(documentToPreviousDiagnosticParams, document, out var newResultId))
+                var newResultId = await GetNewResultIdAsync(documentToPreviousDiagnosticParams, document, cancellationToken).ConfigureAwait(false);
+                if (newResultId != null)
                 {
                     context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
-                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, cancellationToken).ConfigureAwait(false));
+                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, context.ClientCapabilities, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.
             context.TraceInformation($"{this.GetType()} finished getting diagnostics");
-            return progress.GetValues();
+            return CreateReturn(progress);
         }
 
         private static bool IncludeDocument(Document document, string? clientName)
@@ -182,12 +183,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return wantsRazorDoc == isRazorDoc;
         }
 
-        private static Dictionary<Document, DiagnosticParams> GetDocumentToPreviousDiagnosticParams(
-            RequestContext context, DiagnosticParams[] previousResults)
+        private static Dictionary<Document, PreviousResult> GetDocumentToPreviousDiagnosticParams(
+            RequestContext context, ImmutableArray<PreviousResult> previousResults)
         {
             Contract.ThrowIfNull(context.Solution);
 
-            var result = new Dictionary<Document, DiagnosticParams>();
+            var result = new Dictionary<Document, PreviousResult>();
             foreach (var diagnosticParams in previousResults)
             {
                 if (diagnosticParams.TextDocument != null)
@@ -205,6 +206,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             RequestContext context,
             Document document,
             string resultId,
+            ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
             // Being asked about this document for the first time.  Or being asked again and we have different
@@ -215,12 +217,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 ? InternalDiagnosticsOptions.RazorDiagnosticMode
                 : InternalDiagnosticsOptions.NormalDiagnosticMode;
 
-            var workspace = document.Project.Solution.Workspace;
-            var isPull = workspace.IsPullDiagnostics(diagnosticMode);
+            var isPull = context.GlobalOptions.IsPullDiagnostics(diagnosticMode);
 
             context.TraceInformation($"Getting '{(isPull ? "pull" : "push")}' diagnostics with mode '{diagnosticMode}'");
 
-            using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
+            using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
 
             if (isPull)
             {
@@ -229,13 +230,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 context.TraceInformation($"Got {diagnostics.Length} diagnostics");
 
                 foreach (var diagnostic in diagnostics)
-                    result.Add(ConvertDiagnostic(document, text, diagnostic));
+                    result.Add(ConvertDiagnostic(document, text, diagnostic, clientCapabilities));
             }
 
             return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToArray(), resultId);
         }
 
-        private void HandleRemovedDocuments(RequestContext context, DiagnosticParams[] previousResults, BufferedProgress<TReport> progress)
+        private void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousResult> previousResults, BufferedProgress<TReport> progress)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -260,31 +261,47 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         /// <summary>
-        /// Returns true if diagnostics have changed since the last request and if so,
-        /// calculates a new resultId to use for subsequent computation and caches it.
+        /// If diagnostics have changed since the last request this calculates and returns a new
+        /// non-null resultId to use for subsequent computation and caches it.
         /// </summary>
         /// <param name="documentToPreviousDiagnosticParams">the resultIds the client sent us.</param>
         /// <param name="document">the document we are currently calculating results for.</param>
-        /// <param name="newResultId">the resultId to report new diagnostics with if changed.</param>
-        private bool HaveDiagnosticsChanged(
-            Dictionary<Document, DiagnosticParams> documentToPreviousDiagnosticParams,
+        /// <returns>Null when diagnostics are unchanged, otherwise returns a non-null new resultId.</returns>
+        private async Task<string?> GetNewResultIdAsync(
+            Dictionary<Document, PreviousResult> documentToPreviousDiagnosticParams,
             Document document,
-            [NotNullWhen(true)] out string? newResultId)
+            CancellationToken cancellationToken)
         {
-            // Read and write the cached resultId to _documentIdToLastResultId in a single transaction
-            // to prevent in-between updates to _documentIdToLastResultId triggered by OnDiagnosticsUpdated.
-            lock (_gate)
+            var workspace = document.Project.Solution.Workspace;
+            var currentProjectDependentVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var workspace = document.Project.Solution.Workspace;
                 if (documentToPreviousDiagnosticParams.TryGetValue(document, out var previousParams) &&
-                       _documentIdToLastResultId.TryGetValue((workspace, document.Id), out var lastReportedResultId) &&
-                       lastReportedResultId == previousParams.PreviousResultId)
+                    previousParams.PreviousResultId != null &&
+                    _documentIdToLastResult.TryGetValue((workspace, document.Id), out var lastResult) &&
+                    lastResult.resultId == previousParams.PreviousResultId)
                 {
-                    // Our cached resultId for the document matches the resultId the client passed to us.
-                    // This means the diagnostics have not changed and we do not need to re-compute.
-                    newResultId = null;
-                    return false;
+                    if (lastResult.projectDependentVersion == currentProjectDependentVersion)
+                    {
+                        // The client's resultId matches our cached resultId and the project dependent version is an
+                        // exact match for our current project dependent version (meaning the project and none of its dependencies
+                        // have changed, or even forked, since we last calculated diagnostics).
+                        // We return early here to avoid calculating checksums as we know nothing is changed.
+                        return null;
+                    }
+
+                    // The current project dependent version does not match the last reported.  This may be because we've forked
+                    // or reloaded a project, so fall back to calculating project checksums to determine if anything is actually changed.
+                    var aggregateChecksum = await document.Project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
+                    if (lastResult.projectDependentChecksum == aggregateChecksum)
+                    {
+                        // Checksums match which means content has not changed and we do not need to re-calculate.
+                        return null;
+                    }
                 }
+
+                // Client didn't give us a resultId, we have nothing cached, or what we had cached didn't match the current project.
+                // We need to calculate diagnostics and store what we calculated the diagnostics for.
 
                 // Keep track of the diagnostics we reported here so that we can short-circuit producing diagnostics for
                 // the same diagnostic set in the future.  Use a custom result-id per type (doc diagnostics or workspace
@@ -295,13 +312,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 //
                 // Note that we can safely update the map before computation as any cancellation or exception
                 // during computation means that the client will never recieve this resultId and so cannot ask us for it.
-                newResultId = $"{GetType().Name}:{_nextDocumentResultId++}";
-                _documentIdToLastResultId[(document.Project.Solution.Workspace, document.Id)] = newResultId;
-                return true;
+                var newResultId = $"{GetType().Name}:{_nextDocumentResultId++}";
+                var currentProjectDependentChecksum = await document.Project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
+                _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, currentProjectDependentVersion, currentProjectDependentChecksum);
+                return newResultId;
             }
         }
 
-        private VSDiagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData)
+        private LSP.Diagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData, ClientCapabilities capabilities)
         {
             Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
             Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a document diagnostic that did not have a {nameof(diagnosticData.DataLocation)}");
@@ -314,24 +332,42 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             //   3.  The VS LSP client does not support document pull diagnostics for files outside our content type.
             //   4.  This matches classic behavior where we only squiggle the original location anyway.
             var useMappedSpan = false;
-            return new VSDiagnostic
+            if (!capabilities.HasVisualStudioLspCapability())
             {
-                Source = GetType().Name,
-                Code = diagnosticData.Id,
-                Message = diagnosticData.Message,
-                Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
-                Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMappedSpan)),
-                Tags = ConvertTags(diagnosticData),
-                DiagnosticType = diagnosticData.Category,
-                Projects = new[]
+                var diagnostic = CreateBaseLspDiagnostic();
+                return diagnostic;
+            }
+            else
+            {
+                var vsDiagnostic = CreateBaseLspDiagnostic();
+                vsDiagnostic.DiagnosticType = diagnosticData.Category;
+                vsDiagnostic.Projects = new[]
                 {
-                    new ProjectAndContext
+                    new VSDiagnosticProjectInformation
                     {
                         ProjectIdentifier = project.Id.Id.ToString(),
                         ProjectName = project.Name,
                     },
-                },
-            };
+                };
+
+                return vsDiagnostic;
+            }
+
+            // We can just use VSDiagnostic as it doesn't have any default properties set that
+            // would get automatically serialized.
+            LSP.VSDiagnostic CreateBaseLspDiagnostic()
+            {
+                return new LSP.VSDiagnostic
+                {
+                    Source = "Roslyn",
+                    Code = diagnosticData.Id,
+                    CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.HelpLink),
+                    Message = diagnosticData.Message,
+                    Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
+                    Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMappedSpan)),
+                    Tags = ConvertTags(diagnosticData),
+                };
+            }
         }
 
         private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity)
@@ -374,6 +410,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
                 result.Add(DiagnosticTag.Unnecessary);
+
+            if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue))
+                result.Add(VSDiagnosticTags.EditAndContinueError);
 
             return result.ToArray();
         }

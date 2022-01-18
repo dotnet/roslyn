@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PatternMatching;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -37,28 +36,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // Map our value to 'Fuzzy' as that's the lower value the platform supports.
                 (PatternMatchKind.LowercaseSubstring, NavigateToMatchKind.Fuzzy));
 
-        public static Task SearchFullyLoadedProjectInCurrentProcessAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
-            IImmutableSet<string> kinds, Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
-        {
-            return FindSearchResultsAsync(
-                project, priorityDocuments, searchDocument: null, pattern: searchPattern, kinds, onResultFound, cancellationToken);
-        }
-
-        public static Task SearchFullyLoadedDocumentInCurrentProcessAsync(
-            Document document, string searchPattern, IImmutableSet<string> kinds,
-            Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
-        {
-            return FindSearchResultsAsync(
-                document.Project, priorityDocuments: ImmutableArray<Document>.Empty,
-                document, searchPattern, kinds, onResultFound, cancellationToken);
-        }
-
-        private static async Task FindSearchResultsAsync(
+        private static async Task SearchProjectInCurrentProcessAsync(
             Project project, ImmutableArray<Document> priorityDocuments,
             Document? searchDocument, string pattern, IImmutableSet<string> kinds,
             Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
+            // We're doing a real search over the fully loaded solution now.  No need to hold onto the cached map
+            // of potentially stale indices.
+            ClearCachedData();
+
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
 
@@ -71,16 +57,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // Then process non-priority documents.
             var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d)).ToSet();
             await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
-
-            // if the caller is only searching a single doc, and we already covered it above, don't bother computing
-            // source-generator docs.
-            if (searchDocument != null && (highPriDocs.Contains(searchDocument) || lowPriDocs.Contains(searchDocument)))
-                return;
-
-            // Finally, generate and process and source-generated docs.  this may take some time, so we always want to
-            // do this after the other documents.
-            var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs.ToSet<Document>(), cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task ProcessDocumentsAsync(
@@ -112,60 +88,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 document.Id, document, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task SearchCachedDocumentsInCurrentProcessAsync(
-            Workspace workspace,
-            ImmutableArray<DocumentKey> documentKeys,
-            ImmutableArray<DocumentKey> priorityDocumentKeys,
-            string searchPattern,
-            IImmutableSet<string> kinds,
-            Func<RoslynNavigateToItem, Task> onItemFound,
-            CancellationToken cancellationToken)
-        {
-            var stringTable = new StringTable();
-
-            var highPriDocsSet = priorityDocumentKeys.ToSet();
-            var lowPriDocs = documentKeys.WhereAsArray(d => !highPriDocsSet.Contains(d));
-
-            // If the user created a dotted pattern then we'll grab the last part of the name
-            var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
-            var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
-
-            await SearchCachedDocumentsInCurrentProcessAsync(
-                workspace, priorityDocumentKeys, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
-
-            await SearchCachedDocumentsInCurrentProcessAsync(
-                workspace, lowPriDocs, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task SearchCachedDocumentsInCurrentProcessAsync(
-            Workspace workspace,
-            ImmutableArray<DocumentKey> documentKeys,
-            string patternName,
-            string patternContainer,
-            DeclaredSymbolInfoKindSet kinds,
-            Func<RoslynNavigateToItem, Task> onItemFound,
-            StringTable stringTable,
-            CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
-
-            foreach (var documentKey in documentKeys)
-            {
-                tasks.Add(Task.Run(async () =>
-                {
-                    var index = await SyntaxTreeIndex.LoadAsync(
-                        workspace, documentKey, checksum: null, stringTable, cancellationToken).ConfigureAwait(false);
-                    if (index == null)
-                        return;
-
-                    await ProcessIndexAsync(
-                        documentKey.Id, document: null, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
-                }, cancellationToken));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-
         private static async Task ProcessIndexAsync(
             DocumentId documentId, Document? document,
             string patternName, string? patternContainer,
@@ -183,6 +105,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             foreach (var declaredSymbolInfo in index.DeclaredSymbolInfos)
             {
+                // Namespaces are never returned in nav-to as they're too common and have too many locations.
+                if (declaredSymbolInfo.Kind == DeclaredSymbolInfoKind.Namespace)
+                    continue;
+
                 await AddResultIfMatchAsync(
                     documentId, document,
                     declaredSymbolInfo,

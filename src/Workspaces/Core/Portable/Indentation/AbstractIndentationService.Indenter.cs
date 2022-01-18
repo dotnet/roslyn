@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                     _tabSize,
                     this.OptionSet.GetOption(FormattingOptions.IndentationSize, Root.Language),
                     tokenStream: null,
-                    _syntaxFacts);
+                    document.Document.GetRequiredLanguageService<IHeaderFactsService>());
             }
 
             public IndentationResult? GetDesiredIndentation(FormattingOptions.IndentStyle indentStyle)
@@ -170,8 +170,8 @@ namespace Microsoft.CodeAnalysis.Indentation
                     var sourceText = Tree.GetText(CancellationToken);
 
                     var formatter = _service.CreateSmartTokenFormatter(this);
-                    var changes = formatter.FormatTokenAsync(Document.Project.Solution.Workspace, token, CancellationToken)
-                                           .WaitAndGetResult(CancellationToken);
+                    var changes = formatter.FormatTokenAsync(Document.Project.Solution.Workspace.Services, token, CancellationToken)
+                                           .WaitAndGetResult_CanCallOnBackground(CancellationToken);
 
                     var updatedSourceText = sourceText.WithChanges(changes);
                     if (LineToBeIndented.LineNumber < updatedSourceText.Lines.Count)

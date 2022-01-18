@@ -4,6 +4,7 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
@@ -61,6 +62,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
                 statements:=New SyntaxList(Of StatementSyntax)(ifTrueStatement),
                 elseIfBlocks:=Nothing,
                 elseBlock:=Nothing)
+        End Function
+
+        Protected Overrides Function TryAddNullCheckToParameterDeclaration(document As Document, parameterSyntax As ParameterSyntax, cancellationToken As CancellationToken) As Document
+            Return Nothing
         End Function
     End Class
 End Namespace

@@ -388,7 +388,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
 
         private bool TryGenerateNewClass(ObjectCreationExpressionSyntax objectCreationExpression)
         {
-            if (!(SemanticModel.GetSymbolInfo(objectCreationExpression.Type).Symbol is ITypeSymbol type))
+            if (SemanticModel.GetSymbolInfo(objectCreationExpression.Type).Symbol is not ITypeSymbol type)
             {
                 return false;
             }

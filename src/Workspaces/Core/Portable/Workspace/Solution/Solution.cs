@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SerializableOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
+            : this(new SolutionState(new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -46,8 +47,6 @@ namespace Microsoft.CodeAnalysis
         internal int WorkspaceVersion => _state.WorkspaceVersion;
 
         internal SolutionServices Services => _state.Services;
-
-        internal BranchId BranchId => _state.BranchId;
 
         internal ProjectState? GetProjectState(ProjectId projectId) => _state.GetProjectState(projectId);
 
@@ -1703,16 +1702,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets a copy of the solution isolated from the original so that they do not share computed state.
-        /// 
-        /// Use isolated solutions when doing operations that are likely to access a lot of text,
-        /// syntax trees or compilations that are unlikely to be needed again after the operation is done. 
-        /// When the isolated solution is reclaimed so will the computed state.
+        /// Formerly, returned a copy of the solution isolated from the original so that they do not share computed state. It now does nothing.
         /// </summary>
+        [Obsolete("This method no longer produces a Solution that does not share state and is no longer necessary to call.", error: false)]
+        [EditorBrowsable(EditorBrowsableState.Never)] // hide this since it is obsolete and only leads to confusion
         public Solution GetIsolatedSolution()
         {
-            var newState = _state.GetIsolatedSolution();
-            return new Solution(newState);
+            // To maintain compat, just return ourself, which will be functionally identical.
+            return this;
         }
 
         /// <summary>

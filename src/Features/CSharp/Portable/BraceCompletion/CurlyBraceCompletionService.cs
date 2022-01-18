@@ -296,8 +296,10 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             var spanToFormat = TextSpan.FromBounds(Math.Max(startPoint, 0), endPoint);
             var rules = document.GetFormattingRules(spanToFormat, braceFormattingIndentationRules);
+            var services = document.Project.Solution.Workspace.Services;
+            var formattingOptions = SyntaxFormattingOptions.Create(documentOptions, services, document.Project.Language);
             var result = Formatter.GetFormattingResult(
-                root, SpecializedCollections.SingletonEnumerable(spanToFormat), document.Project.Solution.Workspace, documentOptions, rules, cancellationToken);
+                root, SpecializedCollections.SingletonEnumerable(spanToFormat), services, formattingOptions, rules, cancellationToken);
             if (result == null)
             {
                 return (ImmutableArray<TextChange>.Empty, closingPoint);

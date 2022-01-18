@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                      tryBlock,
                                                      node.Locals,
                                                      node.DeclarationsOpt.LocalDeclarations,
-                                                     node.IDisposableConversion,
                                                      node.PatternDisposeInfoOpt,
                                                      node.AwaitOpt,
                                                      awaitKeyword);
@@ -63,7 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                        BoundBlock body,
                                                        ImmutableArray<LocalSymbol> locals,
                                                        ImmutableArray<BoundLocalDeclaration> declarations,
-                                                       Conversion iDisposableConversion,
                                                        MethodArgumentInfo? patternDisposeInfo,
                                                        BoundAwaitableInfo? awaitOpt,
                                                        SyntaxToken awaitKeyword)
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock result = body;
             for (int i = declarations.Length - 1; i >= 0; i--) //NB: inner-to-outer = right-to-left
             {
-                result = RewriteDeclarationUsingStatement(syntax, declarations[i], result, iDisposableConversion, awaitKeyword, awaitOpt, patternDisposeInfo);
+                result = RewriteDeclarationUsingStatement(syntax, declarations[i], result, awaitKeyword, awaitOpt, patternDisposeInfo);
             }
 
             // Declare all locals in a single, top-level block so that the scope is correct in the debugger
@@ -96,7 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                body,
                                                                ImmutableArray<LocalSymbol>.Empty,
                                                                usingDeclarations.LocalDeclarations,
-                                                               usingDeclarations.IDisposableConversion,
                                                                usingDeclarations.PatternDisposeInfoOpt,
                                                                awaitOpt: usingDeclarations.AwaitOpt,
                                                                awaitKeyword: syntax.AwaitKeyword);
@@ -155,7 +152,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundAssignmentOperator tempAssignment;
             BoundLocal boundTemp;
-            if (expressionType is null || expressionType.IsDynamic())
+
+            if (expressionType.IsDynamic())
             {
                 // IDisposable temp = (IDisposable) expr;
                 // or
@@ -169,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression tempInit = MakeConversionNode(
                     expressionSyntax,
                     rewrittenExpression,
-                    Conversion.GetTrivialConversion(node.IDisposableConversion.Kind),
+                    Conversion.ImplicitDynamic,
                     iDisposableType,
                     @checked: false,
                     constantValueOpt: rewrittenExpression.ConstantValue);
@@ -208,7 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode usingSyntax,
             BoundLocalDeclaration localDeclaration,
             BoundBlock tryBlock,
-            Conversion iDisposableConversion,
             SyntaxToken awaitKeywordOpt,
             BoundAwaitableInfo? awaitOpt,
             MethodArgumentInfo? patternDisposeInfo)
@@ -246,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression tempInit = MakeConversionNode(
                     declarationSyntax,
                     boundLocal,
-                    iDisposableConversion,
+                    Conversion.ImplicitDynamic,
                     iDisposableType,
                     @checked: false);
 
@@ -375,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isNullableValueType)
             {
                 // local.HasValue
-                ifCondition = MakeNullableHasValue(syntax, local);
+                ifCondition = _factory.MakeNullableHasValue(syntax, local);
             }
             else if (local.Type.IsValueType)
             {
@@ -384,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // local != null
-                ifCondition = MakeNullCheck(syntax, local, BinaryOperatorKind.NotEqual);
+                ifCondition = _factory.MakeNullCheck(syntax, local, BinaryOperatorKind.NotEqual);
             }
 
             BoundStatement finallyStatement;
