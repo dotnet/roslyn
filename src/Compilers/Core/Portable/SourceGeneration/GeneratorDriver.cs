@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         generator.Initialize(pipelineContext);
                     }
-                    catch (Exception e) when (ExceptionUtilities.IsNotCancelled(e, cancellationToken))
+                    catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken))
                     {
                         ex = e;
                     }

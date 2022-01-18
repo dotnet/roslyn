@@ -1527,13 +1527,17 @@ class C { }
                 Assert.IsType<InvalidOperationException>(e.InnerException);
             }
 
+            CancellationTokenSource cts = new CancellationTokenSource();
+            cts.Cancel();
+
             // cancellation is not wrapped, and is bubbled up
-            Assert.Throws<OperationCanceledException>(() => timeoutFunc(30, new CancellationToken(true)));
-            Assert.Throws<OperationCanceledException>(() => userTimeoutFunc(30, new CancellationToken(true)));
+            Assert.Throws<OperationCanceledException>(() => timeoutFunc(30, cts.Token));
+            Assert.Throws<OperationCanceledException>(() => userTimeoutFunc(30, cts.Token));
 
             // unless it wasn't *our* cancellation token, in which case it still gets wrapped
-            Assert.Throws<OperationCanceledException>(() => otherTimeoutFunc(30, CancellationToken.None));
-            Assert.Throws<UserFunctionException>(() => userOtherTimeoutFunc(30, CancellationToken.None));
+            Assert.True(cts.TryReset());
+            Assert.Throws<OperationCanceledException>(() => otherTimeoutFunc(30, cts.Token));
+            Assert.Throws<UserFunctionException>(() => userOtherTimeoutFunc(30,  cts.Token));
         }
 
         [Fact]
