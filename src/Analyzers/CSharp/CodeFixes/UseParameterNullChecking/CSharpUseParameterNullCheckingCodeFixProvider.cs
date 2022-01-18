@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                         editor.ReplaceNode(nullCoalescing, parameterReferenceSyntax.WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker));
                         break;
                     case IfStatementSyntax:
-                    case ExpressionStatementSyntax { Expression: BinaryExpressionSyntax(SyntaxKind.CoalesceExpression) }:
+                    case ExpressionStatementSyntax { Expression: AssignmentExpressionSyntax { Right: BinaryExpressionSyntax(SyntaxKind.CoalesceExpression) } }:
                         editor.RemoveNode(node);
                         break;
                     default:
