@@ -52,19 +52,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var result);
 
             // Ugly hack.  Remove the "Invoke" name the compiler layer adds to the parts.
-            for (var i = 0; i < parts.Length;)
+            foreach (var part in parts)
             {
-                if (i + 1 < parts.Length &&
-                    parts[i].Kind == SymbolDisplayPartKind.Space &&
-                    Equals(invokeMethod, parts[i + 1].Symbol))
-                {
-                    i += 2;
-                }
-                else
-                {
-                    result.Add(parts[i]);
-                    i++;
-                }
+                if (!Equals(invokeMethod, part.Symbol))
+                    result.Add(part);
             }
 
             return result.ToImmutable();

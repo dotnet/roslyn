@@ -7962,7 +7962,7 @@ TResult {FeaturesResources.is_} string"));
                 AnonymousTypes(
 $@"
 {FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} delegate string(ref int)"));
+    'a {FeaturesResources.is_} delegate string (ref int)"));
         }
 
         [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
@@ -7984,7 +7984,7 @@ $@"
                 AnonymousTypes(
 $@"
 {FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} delegate string(ref int)"));
+    'a {FeaturesResources.is_} delegate string (ref int)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
