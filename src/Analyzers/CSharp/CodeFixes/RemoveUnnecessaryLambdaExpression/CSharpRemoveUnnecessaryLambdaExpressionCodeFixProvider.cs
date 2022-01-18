@@ -68,10 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             return Task.CompletedTask;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Remove_unnecessary_lambda_expression, createChangedDocument, nameof(CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider))
+                : base(CSharpAnalyzersResources.Remove_unnecessary_lambda_expression, createChangedDocument, nameof(CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider))
             {
             }
         }

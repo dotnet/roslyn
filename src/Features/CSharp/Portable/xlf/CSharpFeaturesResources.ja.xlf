@@ -142,11 +142,6 @@
         <target state="translated">競合が検出されました。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Lambda_expression_can_be_removed">
-        <source>Lambda expression can be removed</source>
-        <target state="new">Lambda expression can be removed</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">可能な場合、private フィールドを読み取り専用にする</target>
@@ -165,11 +160,6 @@
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
         <target state="translated">'new' 修飾子の削除</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_lambda_expression">
-        <source>Remove unnecessary lambda expression</source>
-        <target state="new">Remove unnecessary lambda expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Reverse_for_statement">

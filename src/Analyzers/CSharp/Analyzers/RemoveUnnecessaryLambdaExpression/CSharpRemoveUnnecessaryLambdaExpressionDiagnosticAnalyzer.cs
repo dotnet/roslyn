@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                    EnforceOnBuildValues.RemoveUnnecessaryLambdaExpression,
                    CSharpCodeStyleOptions.PreferMethodGroupConversion,
                    LanguageNames.CSharp,
-                   new LocalizableResourceString(nameof(CSharpFeaturesResources.Remove_unnecessary_lambda_expression), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)),
-                   new LocalizableResourceString(nameof(CSharpFeaturesResources.Lambda_expression_can_be_removed), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_lambda_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Lambda_expression_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    isUnnecessary: true)
         {
         }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
 
             // Looks like a reasonable candidate to simplify.  Now switch to semantics to check for sure.
 
-            if (CSharpSemanticFactsService.Instance.IsInExpressionTree(semanticModel, anonymousFunction, expressionType, cancellationToken))
+            if (CSharpSemanticFacts.Instance.IsInExpressionTree(semanticModel, anonymousFunction, expressionType, cancellationToken))
                 return;
 
             // If we have `object obj = x => Goo(x);` we don't want to simplify.  The compiler warns if you write
