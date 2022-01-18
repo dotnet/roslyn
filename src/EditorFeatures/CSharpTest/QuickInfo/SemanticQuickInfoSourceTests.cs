@@ -7958,7 +7958,7 @@ TResult {FeaturesResources.is_} string"));
         var $$v = (ref int i) => i.ToString();
     }
 }",
-                MainDescription("(local variable) 'a v"),
+                MainDescription($"({FeaturesResources.local_variable}) 'a v"),
                 AnonymousTypes(
 $@"
 {FeaturesResources.Types_colon}
