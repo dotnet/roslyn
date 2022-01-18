@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     }
                     else if (symbol.IsAnonymousDelegateType())
                     {
+                        _namedTypes.Add(symbol, (order: _namedTypes.Count, count: 1));
                         symbol.DelegateInvokeMethod?.Accept(this);
                     }
                     else

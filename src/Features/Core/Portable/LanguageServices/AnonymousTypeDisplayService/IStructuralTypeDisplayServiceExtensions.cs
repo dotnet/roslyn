@@ -12,25 +12,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal static class IStructuralTypeDisplayServiceExtensions
     {
-        public static IList<SymbolDisplayPart> InlineDelegateAnonymousTypes(
-            this IStructuralTypeDisplayService service, IList<SymbolDisplayPart> parts, SemanticModel semanticModel, int position)
-        {
-            var result = parts;
-            while (true)
-            {
-                var delegateAnonymousType = result.Select(p => p.Symbol).OfType<INamedTypeSymbol>().FirstOrDefault(s => s.IsAnonymousDelegateType());
-                if (delegateAnonymousType == null)
-                {
-                    break;
-                }
+        //public static IList<SymbolDisplayPart> InlineDelegateAnonymousTypes(
+        //    this IStructuralTypeDisplayService service, IList<SymbolDisplayPart> parts, SemanticModel semanticModel, int position)
+        //{
+        //    var result = parts;
+        //    while (true)
+        //    {
+        //        var delegateAnonymousType = result.Select(p => p.Symbol).OfType<INamedTypeSymbol>().FirstOrDefault(s => s.IsAnonymousDelegateType());
+        //        if (delegateAnonymousType == null)
+        //        {
+        //            break;
+        //        }
 
-                result = result == parts ? new List<SymbolDisplayPart>(parts) : result;
-                ReplaceAnonymousType(result, delegateAnonymousType,
-                    service.GetAnonymousTypeParts(delegateAnonymousType, semanticModel, position));
-            }
+        //        result = result == parts ? new List<SymbolDisplayPart>(parts) : result;
+        //        ReplaceAnonymousType(result, delegateAnonymousType,
+        //            service.GetAnonymousTypeParts(delegateAnonymousType, semanticModel, position));
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
         private static void ReplaceAnonymousType(
             IList<SymbolDisplayPart> list,

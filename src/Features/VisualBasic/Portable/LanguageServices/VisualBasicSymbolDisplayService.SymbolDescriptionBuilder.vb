@@ -175,18 +175,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 End If
             End Sub
 
-            Protected Overrides Sub InlineAllDelegateAnonymousTypes(semanticModel As SemanticModel, position As Integer, structuralTypeDisplayService As IStructuralTypeDisplayService, groupMap As Dictionary(Of SymbolDescriptionGroups, IList(Of SymbolDisplayPart)))
-Restart:
-                For Each pair In groupMap
-                    Dim group = pair.Key
-                    Dim parts = pair.Value
-                    Dim updatedParts = structuralTypeDisplayService.InlineDelegateAnonymousTypes(parts, semanticModel, position)
-                    If parts IsNot updatedParts Then
-                        groupMap(group) = updatedParts
-                        GoTo Restart
-                    End If
-                Next
-            End Sub
+            '            Protected Overrides Sub InlineAllDelegateAnonymousTypes(semanticModel As SemanticModel, position As Integer, structuralTypeDisplayService As IStructuralTypeDisplayService, groupMap As Dictionary(Of SymbolDescriptionGroups, IList(Of SymbolDisplayPart)))
+            'Restart:
+            '                For Each pair In groupMap
+            '                    Dim group = pair.Key
+            '                    Dim parts = pair.Value
+            '                    Dim updatedParts = structuralTypeDisplayService.InlineDelegateAnonymousTypes(parts, semanticModel, position)
+            '                    If parts IsNot updatedParts Then
+            '                        groupMap(group) = updatedParts
+            '                        GoTo Restart
+            '                    End If
+            '                Next
+            '            End Sub
 
             Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat
                 Get

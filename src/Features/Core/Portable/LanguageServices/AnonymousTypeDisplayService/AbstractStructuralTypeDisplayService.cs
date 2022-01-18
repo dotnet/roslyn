@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
@@ -15,8 +16,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected static readonly SymbolDisplayFormat s_minimalWithoutExpandedTuples = SymbolDisplayFormat.MinimallyQualifiedFormat.AddMiscellaneousOptions(
             SymbolDisplayMiscellaneousOptions.CollapseTupleTypes);
 
-        public abstract ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
-            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
+        protected abstract ImmutableArray<SymbolDisplayPart> GetNormalAnonymousTypeParts(INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
+        protected abstract ImmutableArray<SymbolDisplayPart> GetDelegateAnonymousTypeParts(INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
+
+        public ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position)
+            => anonymousType.IsAnonymousDelegateType()
+                ? GetDelegateAnonymousTypeParts(anonymousType, semanticModel, position)
+                : GetNormalAnonymousTypeParts(anonymousType, semanticModel, position);
 
         public StructuralTypeDisplayInfo GetTypeDisplayInfo(
             ISymbol orderSymbol,
@@ -47,9 +53,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 var structuralType = transitiveStructuralTypeReferences[i];
                 typeParts.AddRange(Space(count: 4));
-                typeParts.Add(Part(
-                    structuralType.IsValueType ? SymbolDisplayPartKind.StructName : SymbolDisplayPartKind.ClassName,
-                    structuralType, structuralType.Name));
+
+                var kind =
+                    structuralType.IsValueType ? SymbolDisplayPartKind.StructName :
+                    structuralType.IsDelegateType() ? SymbolDisplayPartKind.DelegateName : SymbolDisplayPartKind.ClassName;
+
+                typeParts.Add(Part(kind, structuralType, structuralType.Name));
                 typeParts.AddRange(Space());
                 typeParts.Add(PlainText(FeaturesResources.is_));
                 typeParts.AddRange(Space());
@@ -65,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
 
             // Now, inline any delegate anonymous types we've got.
-            typeParts = this.InlineDelegateAnonymousTypes(typeParts, semanticModel, position);
+            // typeParts = this.InlineDelegateAnonymousTypes(typeParts, semanticModel, position);
 
             // Finally, assign a name to all the anonymous types.
             var structuralTypeToName = GenerateStructuralTypeNames(transitiveStructuralTypeReferences);
