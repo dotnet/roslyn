@@ -2051,16 +2051,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var property = node.PropertySymbol;
 
-            if (Binder.AccessingAutoPropertyFromConstructor(node, _symbol))
-            {
-                var backingField = (property as SourcePropertySymbolBase)?.BackingField;
-                if (backingField != null)
-                {
-                    VisitFieldAccessInternal(node.ReceiverOpt, backingField);
-                    return null;
-                }
-            }
-
             var method = GetReadMethod(property);
             VisitReceiverBeforeCall(node.ReceiverOpt, method);
             VisitReceiverAfterCall(node.ReceiverOpt, method);
