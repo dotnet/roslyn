@@ -657,17 +657,20 @@ internal class C1<T1>
         public void RecordSynthesizedMembers()
         {
             string source = @"
-record R;
+record R
+{
+    public int MyProperty { get; }
+}
 ";
             CompileAndVerify(source, symbolValidator: validate, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            void validate(ModuleSymbol module)
+            static void validate(ModuleSymbol module)
             {
                 var record = module.GlobalNamespace.GetTypeMember("R");
-                Assert.Equal(12, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
+                Assert.Equal(15, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
 
                 var equalityContractGetter = record.GetMember("get_EqualityContract");
-                validateCompilerGeneratedAttribute(equalityContractGetter);
+                Assert.Empty(equalityContractGetter.GetAttributes());
 
                 var toString = record.GetMember(WellKnownMemberNames.ObjectToString);
                 validateCompilerGeneratedAttribute(toString);
@@ -701,9 +704,18 @@ record R;
 
                 var equalityContract = record.GetMember("EqualityContract");
                 validateCompilerGeneratedAttribute(equalityContract);
+
+                var myProperty = record.GetMember("MyProperty");
+                Assert.Empty(myProperty.GetAttributes());
+
+                var myPropertyGetter = record.GetMember("get_MyProperty");
+                validateCompilerGeneratedAttribute(myPropertyGetter);
+
+                var myPropertyBackingField = record.GetMember("<MyProperty>k__BackingField");
+                validateCompilerGeneratedAttribute(myPropertyBackingField);
             }
 
-            void validateCompilerGeneratedAttribute(Symbol symbol)
+            static void validateCompilerGeneratedAttribute(Symbol symbol)
             {
                 var attributeNames = GetAttributeNames(symbol.GetAttributes());
                 Assert.Contains("CompilerGeneratedAttribute", attributeNames);
@@ -715,14 +727,17 @@ record R;
         public void RecordStructSynthesizedMembers()
         {
             string source = @"
-record struct R;
+record struct R
+{
+    public int MyProperty { get; }
+}
 ";
             CompileAndVerify(source, symbolValidator: validate, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            void validate(ModuleSymbol module)
+            static void validate(ModuleSymbol module)
             {
                 var record = module.GlobalNamespace.GetTypeMember("R");
-                Assert.Equal(8, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
+                Assert.Equal(11, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
 
                 var toString = record.GetMember(WellKnownMemberNames.ObjectToString);
                 validateCompilerGeneratedAttribute(toString);
@@ -746,9 +761,18 @@ record struct R;
 
                 var ctor = record.GetMember(WellKnownMemberNames.InstanceConstructorName);
                 Assert.Empty(ctor.GetAttributes());
+
+                var myProperty = record.GetMember("MyProperty");
+                Assert.Empty(myProperty.GetAttributes());
+
+                var myPropertyGetter = record.GetMember("get_MyProperty");
+                validateCompilerGeneratedAttribute(myPropertyGetter);
+
+                var myPropertyBackingField = record.GetMember("<MyProperty>k__BackingField");
+                validateCompilerGeneratedAttribute(myPropertyBackingField);
             }
 
-            void validateCompilerGeneratedAttribute(Symbol symbol)
+            static void validateCompilerGeneratedAttribute(Symbol symbol)
             {
                 var attributeNames = GetAttributeNames(symbol.GetAttributes());
                 Assert.Contains("CompilerGeneratedAttribute", attributeNames);
@@ -773,7 +797,7 @@ namespace System.Runtime.CompilerServices
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
 
-            void validate(ModuleSymbol module)
+            static void validate(ModuleSymbol module)
             {
                 var record = module.GlobalNamespace.GetTypeMember("R");
                 Assert.Equal(17, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
@@ -782,7 +806,7 @@ namespace System.Runtime.CompilerServices
                 validateCompilerGeneratedAttribute(p1_backingField);
 
                 var equalityContractGetter = record.GetMember("get_EqualityContract");
-                validateCompilerGeneratedAttribute(equalityContractGetter);
+                Assert.Empty(equalityContractGetter.GetAttributes());
 
                 var get_P1 = record.GetMember("get_P1");
                 validateCompilerGeneratedAttribute(get_P1);
@@ -830,7 +854,7 @@ namespace System.Runtime.CompilerServices
                 Assert.Empty(p1.GetAttributes());
             }
 
-            void validateCompilerGeneratedAttribute(Symbol symbol)
+            static void validateCompilerGeneratedAttribute(Symbol symbol)
             {
                 var attributeNames = GetAttributeNames(symbol.GetAttributes());
                 Assert.Contains("CompilerGeneratedAttribute", attributeNames);
