@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -24,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     from parts in _groupMap.Values
                     from part in parts
                     where part.Symbol.IsAnonymousType() || part.Symbol.IsTupleType()
-                    select (INamedTypeSymbol)part.Symbol;
+                    select (INamedTypeSymbol)part.Symbol!;
 
                 var info = _structuralTypeDisplayService.GetTypeDisplayInfo(
                     firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);
