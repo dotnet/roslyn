@@ -67,6 +67,11 @@
         <target state="translated">인라인 변수 선언</target>
         <note />
       </trans-unit>
+      <trans-unit id="Lambda_expression_can_be_removed">
+        <source>Lambda expression can be removed</source>
+        <target state="new">Lambda expression can be removed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
         <target state="translated">위치가 잘못된 using 지시문</target>
@@ -120,6 +125,11 @@
       <trans-unit id="Remove_suppression_operators">
         <source>Remove suppression operators</source>
         <target state="translated">비표시 오류(Suppression) 연산자 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_lambda_expression">
+        <source>Remove unnecessary lambda expression</source>
+        <target state="new">Remove unnecessary lambda expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">

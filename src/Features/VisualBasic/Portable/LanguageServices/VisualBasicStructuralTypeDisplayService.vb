@@ -61,8 +61,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Return members.ToImmutableAndFree()
         End Function
 
-        Private Shared Function MassageDelegateParts(delegateInvoke As IMethodSymbol,
-                                              parts As IEnumerable(Of SymbolDisplayPart)) As IEnumerable(Of SymbolDisplayPart)
+        Private Shared Function MassageDelegateParts(
+                delegateInvoke As IMethodSymbol,
+                parts As IEnumerable(Of SymbolDisplayPart)) As IEnumerable(Of SymbolDisplayPart)
             ' So ugly.  We remove the 'Invoke' name that was added by the symbol display service.
             Dim result = New List(Of SymbolDisplayPart)
             For Each part In parts

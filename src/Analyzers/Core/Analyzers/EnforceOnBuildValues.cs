@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild UseImplicitObjectCreation = /*IDE0090*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild RemoveRedundantEquality = /*IDE0100*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild RemoveUnnecessaryDiscardDesignation = /*IDE0110*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild RemoveUnnecessaryLambdaExpression = /*IDE0200*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild InvokeDelegateWithConditionalAccess = /*IDE1005*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild NamingRule = /*IDE1006*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild MatchFolderAndNamespace = /*IDE0130*/ EnforceOnBuild.Recommended;
