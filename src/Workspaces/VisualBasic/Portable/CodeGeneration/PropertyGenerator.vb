@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                            options As CodeGenerationOptions) As StatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)([property], options)
             If reusableSyntax IsNot Nothing Then
-                Return reusableSyntax.GetDeclarationBlockFromBegin()
+                Return reusableSyntax
             End If
 
             Dim declaration = GeneratePropertyDeclarationWorker([property], destination, options)
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 (setMethod IsNot Nothing AndAlso Not setMethod.IsAbstract)
 
             Dim hasNoBody =
-                Not options.GenerateMethodBodies OrElse
+                Not options.Context.GenerateMethodBodies OrElse
                 destination = CodeGenerationDestination.InterfaceType OrElse
                 [property].IsAbstract OrElse
                 Not hasStatements

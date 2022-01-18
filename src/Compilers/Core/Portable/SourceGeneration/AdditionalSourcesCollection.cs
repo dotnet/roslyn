@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(hintName));
             }
 
-            // allow any identifier character or [.,-_ ()[]{}]
+            // allow any identifier character or [.,-+`_ ()[]{}]
             for (int i = 0; i < hintName.Length; i++)
             {
                 char c = hintName[i];
@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis
                     && c != '.'
                     && c != ','
                     && c != '-'
+                    && c != '+'
+                    && c != '`'
                     && c != '_'
                     && c != ' '
                     && c != '('
@@ -95,6 +97,27 @@ namespace Microsoft.CodeAnalysis
                 }
             }
             return false;
+        }
+
+        public void CopyTo(AdditionalSourcesCollection asc)
+        {
+            // we know the individual hint names are valid, but we do need to check that they
+            // don't collide with any we already have
+            if (asc._sourcesAdded.Count == 0)
+            {
+                asc._sourcesAdded.AddRange(this._sourcesAdded);
+            }
+            else
+            {
+                foreach (var source in this._sourcesAdded)
+                {
+                    if (asc.Contains(source.HintName))
+                    {
+                        throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameUniquePerGenerator, source.HintName), "hintName");
+                    }
+                    asc._sourcesAdded.Add(source);
+                }
+            }
         }
 
         internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree() => _sourcesAdded.ToImmutableAndFree();

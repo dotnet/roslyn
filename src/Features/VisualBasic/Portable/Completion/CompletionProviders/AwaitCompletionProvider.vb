@@ -4,10 +4,11 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -20,11 +21,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
+            MyBase.New(VisualBasicSyntaxFacts.Instance)
         End Sub
+
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CommonTriggerChars
 
-        Private Protected Overrides Function GetSpanStart(declaration As SyntaxNode) As Integer
+        Protected Overrides Function GetSpanStart(declaration As SyntaxNode) As Integer
             Select Case declaration.Kind()
                 Case SyntaxKind.FunctionBlock,
                      SyntaxKind.SubBlock
@@ -39,8 +47,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Private Protected Overrides Function GetAsyncSupportingDeclaration(token As SyntaxToken) As SyntaxNode
+        Protected Overrides Function GetAsyncSupportingDeclaration(token As SyntaxToken) As SyntaxNode
             Return token.GetAncestor(Function(node) node.IsAsyncSupportedFunctionSyntax())
+        End Function
+
+        Protected Overrides Function GetTypeSymbolOfExpression(semanticModel As SemanticModel, potentialAwaitableExpression As SyntaxNode, cancellationToken As CancellationToken) As ITypeSymbol
+            Dim memberAccessExpression = TryCast(potentialAwaitableExpression, MemberAccessExpressionSyntax)?.Expression
+            If memberAccessExpression Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim symbol = semanticModel.GetSymbolInfo(memberAccessExpression.WalkDownParentheses(), cancellationToken).Symbol
+            Return If(TypeOf symbol Is ITypeSymbol, Nothing, semanticModel.GetTypeInfo(memberAccessExpression, cancellationToken).Type)
+        End Function
+
+        Protected Overrides Function GetExpressionToPlaceAwaitInFrontOf(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxNode
+            Dim dotToken = GetDotTokenLeftOfPosition(syntaxTree, position, cancellationToken)
+            If Not dotToken.HasValue Then
+                Return Nothing
+            End If
+
+            Dim memberAccess = TryCast(dotToken.Value.Parent, MemberAccessExpressionSyntax)
+            If memberAccess Is Nothing Then
+                Return Nothing
+            End If
+
+            If memberAccess.Expression.GetParentConditionalAccessExpression() IsNot Nothing Then
+                Return Nothing
+            End If
+
+            Return memberAccess
+        End Function
+
+        Protected Overrides Function GetDotTokenLeftOfPosition(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxToken?
+            Dim tokenOnLeft = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+            Dim dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(position)
+            If Not dotToken.IsKind(SyntaxKind.DotToken) Then
+                Return Nothing
+            End If
+
+            If dotToken.GetPreviousToken().IsKind(SyntaxKind.IntegerLiteralToken, SyntaxKind.FloatingLiteralToken, SyntaxKind.DecimalLiteralToken, SyntaxKind.DateLiteralToken) Then
+                Return Nothing
+            End If
+
+            Return dotToken
         End Function
     End Class
 End Namespace

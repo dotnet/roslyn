@@ -74,17 +74,36 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     description: "description",
                     helpLink: "http://link"));
 
+            var syntaxError = new DiagnosticData(
+                id: "CS0002",
+                category: "Test",
+                message: "syntax error",
+                enuMessageForBingSearch: "test3 message format",
+                severity: DiagnosticSeverity.Error,
+                defaultSeverity: DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                warningLevel: 0,
+                customTags: ImmutableArray.Create("Test3"),
+                properties: ImmutableDictionary<string, string?>.Empty,
+                document.Project.Id,
+                new DiagnosticDataLocation(document.Id, new TextSpan(1, 2), originalFilePath: sourcePath, 0, 1, 0, 5, mappedFilePath: null, 0, 0, 0, 0),
+                language: "C#",
+                title: "title",
+                description: "description",
+                helpLink: "http://link");
+
             var rudeEdits = ImmutableArray.Create(
                 (document.Id, ImmutableArray.Create(new RudeEditDiagnostic(RudeEditKind.Insert, TextSpan.FromBounds(1, 10), 123, new[] { "a" }))),
                 (document.Id, ImmutableArray.Create(new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(1, 10), 123, new[] { "b" }))));
 
-            var actual = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, CancellationToken.None);
+            var actual = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, CancellationToken.None);
 
             AssertEx.Equal(new[]
             {
                 $@"Error CS0012: {razorPath} (10,10)-(10,15): error",
-                $@"Error ENC0021: {sourcePath} (0,1)-(0,10): {string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, "a")}",
-                $@"Error ENC0033: {sourcePath} (0,1)-(0,10): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "b")}"
+                $@"Error CS0002: {sourcePath} (0,1)-(0,5): syntax error",
+                $@"RestartRequired ENC0021: {sourcePath} (0,1)-(0,10): {string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, "a")}",
+                $@"RestartRequired ENC0033: {sourcePath} (0,1)-(0,10): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "b")}",
             }, actual.Select(d => $"{d.Severity} {d.Id}: {d.FilePath} {d.Span.GetDebuggerDisplay()}: {d.Message}"));
         }
     }

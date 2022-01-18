@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_object_creation">
         <source>Prefer simplified object creation</source>
-        <target state="translated">簡略化されたオブジェクト作成を優先</target>
+        <target state="translated">簡素化されたオブジェクト作成を優先</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports">

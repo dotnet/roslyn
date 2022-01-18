@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 => v < 0x80;
 
             private static char ToLowerAsciiInvariant(char c)
-                => 'A' <= c && c <= 'Z'
+                => c is >= 'A' and <= 'Z'
                     ? (char)(c | 0x20)
                     : c;
 

@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -28,20 +27,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly object _gate = new();
         private readonly RegistryKey _registryKey;
 
-        public LocalUserRegistryOptionPersister(IThreadingContext threadingContext, IServiceProvider serviceProvider)
+        private LocalUserRegistryOptionPersister(RegistryKey registryKey)
         {
-            // Starting with Dev16, the ILocalRegistry service is expected to be free-threaded, and aquiring it from the
-            // global service provider is expected to complete without any UI thread marshaling requirements. However,
-            // since none of this is publicly documented, we keep this assertion for maximum compatibility assurance.
-            // https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.vsregistry.registryroot
-            // https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.ilocalregistry
-            // https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.slocalregistry
-            threadingContext.ThrowIfNotOnUIThread();
-
-            _registryKey = VSRegistry.RegistryRoot(serviceProvider, __VsLocalRegistryType.RegType_UserSettings, writable: true);
+            _registryKey = registryKey;
         }
 
-        private static bool TryGetKeyPathAndName(IOption option, out string path, out string key)
+        public static async Task<LocalUserRegistryOptionPersister> CreateAsync(IAsyncServiceProvider provider)
+        {
+            // SLocalRegistry service is free-threaded -- see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1408594.
+            // Note: not using IAsyncServiceProvider.GetServiceAsync<TService, TInterface> since the extension method might switch to UI thread.
+            // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1408619/.
+            var localRegistry = (ILocalRegistry4?)await provider.GetServiceAsync(typeof(SLocalRegistry)).ConfigureAwait(false);
+            Contract.ThrowIfNull(localRegistry);
+            Contract.ThrowIfFalse(ErrorHandler.Succeeded(localRegistry.GetLocalRegistryRootEx((uint)__VsLocalRegistryType.RegType_UserSettings, out var rootHandle, out var rootPath)));
+
+            var handle = (__VsLocalRegistryRootHandle)rootHandle;
+            Contract.ThrowIfTrue(string.IsNullOrEmpty(rootPath));
+            Contract.ThrowIfTrue(handle == __VsLocalRegistryRootHandle.RegHandle_Invalid);
+
+            var root = (__VsLocalRegistryRootHandle.RegHandle_LocalMachine == handle) ? Registry.LocalMachine : Registry.CurrentUser;
+            return new LocalUserRegistryOptionPersister(root.CreateSubKey(rootPath, RegistryKeyPermissionCheck.ReadWriteSubTree));
+        }
+
+        private static bool TryGetKeyPathAndName(IOption option, [NotNullWhen(true)] out string? path, [NotNullWhen(true)] out string? key)
         {
             var serialization = option.StorageLocations.OfType<LocalUserProfileStorageLocation>().SingleOrDefault();
 
@@ -60,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        bool IOptionPersister.TryFetch(OptionKey optionKey, out object value)
+        bool IOptionPersister.TryFetch(OptionKey optionKey, out object? value)
         {
             if (!TryGetKeyPathAndName(optionKey.Option, out var path, out var key))
             {
@@ -80,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 // Options that are of type bool have to be serialized as integers
                 if (optionKey.Option.Type == typeof(bool))
                 {
-                    value = subKey.GetValue(key, defaultValue: (bool)optionKey.Option.DefaultValue ? 1 : 0).Equals(1);
+                    value = subKey.GetValue(key, defaultValue: (bool)optionKey.Option.DefaultValue! ? 1 : 0).Equals(1);
                     return true;
                 }
                 else if (optionKey.Option.Type == typeof(long))
@@ -133,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return false;
         }
 
-        bool IOptionPersister.TryPersist(OptionKey optionKey, object value)
+        bool IOptionPersister.TryPersist(OptionKey optionKey, object? value)
         {
             if (_registryKey == null)
             {
@@ -148,19 +156,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             lock (_gate)
             {
                 using var subKey = _registryKey.CreateSubKey(path);
+
                 // Options that are of type bool have to be serialized as integers
                 if (optionKey.Option.Type == typeof(bool))
                 {
+                    Contract.ThrowIfNull(value);
                     subKey.SetValue(key, (bool)value ? 1 : 0, RegistryValueKind.DWord);
                     return true;
                 }
-                else if (optionKey.Option.Type == typeof(long))
+
+                if (optionKey.Option.Type == typeof(long))
                 {
+                    Contract.ThrowIfNull(value);
+
                     subKey.SetValue(key, value, RegistryValueKind.QWord);
                     return true;
                 }
-                else if (optionKey.Option.Type.IsEnum)
+
+                if (optionKey.Option.Type.IsEnum)
                 {
+                    Contract.ThrowIfNull(value);
+
                     // If the enum is larger than an int, store as a QWord
                     if (Marshal.SizeOf(Enum.GetUnderlyingType(optionKey.Option.Type)) > Marshal.SizeOf(typeof(int)))
                     {
@@ -173,11 +189,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
                     return true;
                 }
-                else
-                {
-                    subKey.SetValue(key, value);
-                    return true;
-                }
+
+                subKey.SetValue(key, value);
+                return true;
             }
         }
     }

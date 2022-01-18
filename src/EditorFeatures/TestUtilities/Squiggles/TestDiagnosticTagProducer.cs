@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -21,34 +22,35 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 {
-    internal sealed class TestDiagnosticTagProducer<TProvider>
-        where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
+    internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
+        where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<TTag>
+        where TTag : class, ITag
     {
-        internal static Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<IErrorTag>>)> GetDiagnosticsAndErrorSpans(
+        internal static Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpans(
             TestWorkspace workspace,
             IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
         {
-            return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider>(workspace, analyzerMap);
+            return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(workspace, analyzerMap);
         }
 
-        internal static async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs)
+        internal static async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs)
         {
-            var source = new TestDiagnosticUpdateSource(workspace);
-            using (var wrapper = new DiagnosticTaggerWrapper<TProvider, IErrorTag>(workspace, updateSource: source))
-            {
-                var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
-                using (var disposable = tagger as IDisposable)
-                {
-                    source.RaiseDiagnosticsUpdated(updateArgs);
+            var globalOptions = workspace.GetService<IGlobalOptionService>();
+            var source = new TestDiagnosticUpdateSource(globalOptions);
 
-                    await wrapper.WaitForTags();
+            using var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, updateSource: source);
 
-                    var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
-                    var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
+            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(workspace.Documents.First().GetTextBuffer());
+            using var disposable = (IDisposable)tagger;
 
-                    return spans;
-                }
-            }
+            source.RaiseDiagnosticsUpdated(updateArgs);
+
+            await wrapper.WaitForTags();
+
+            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
+
+            return spans;
         }
 
         internal static DiagnosticData CreateDiagnosticData(TestHostDocument document, TextSpan span)
@@ -72,14 +74,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
         {
             private ImmutableArray<DiagnosticData> _diagnostics = ImmutableArray<DiagnosticData>.Empty;
-            private readonly Workspace _workspace;
+            private readonly IGlobalOptionService _globalOptions;
 
-            public TestDiagnosticUpdateSource(Workspace workspace)
-                => _workspace = workspace;
+            public TestDiagnosticUpdateSource(IGlobalOptionService globalOptions)
+                => _globalOptions = globalOptions;
 
             public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
             {
-                _diagnostics = args.GetPushDiagnostics(_workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                _diagnostics = args.GetPushDiagnostics(_globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 DiagnosticsUpdated?.Invoke(this, args);
             }
 

@@ -548,5 +548,38 @@ internal struct S1 { }
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [WorkItem(55703, "https://github.com/dotnet/roslyn/issues/55703")]
+        public async Task TestPartial_WithExistingModifier()
+        {
+            var source = @"
+partial class [|C|]
+{
+}
+
+public partial class C
+{
+}
+";
+            var fixedSource = @"
+public partial class C
+{
+}
+
+public partial class C
+{
+}
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Preview,
+            };
+
+            await test.RunAsync();
+        }
     }
 }

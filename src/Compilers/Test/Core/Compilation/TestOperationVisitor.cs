@@ -62,10 +62,49 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 var isImplicit = operation.IsImplicit;
 
-                foreach (IOperation child in operation.Children)
+                var count = ((Operation)operation).ChildOperationsCount;
+                var builder = count == 0 ? null : ArrayBuilder<IOperation>.GetInstance(count);
+                foreach (IOperation child in operation.ChildOperations)
                 {
                     Assert.NotNull(child);
+                    builder.Add(child);
                 }
+
+                Assert.Equal(count, builder?.Count ?? 0);
+
+                if (count > 0)
+                {
+                    Assert.Same(builder[0], operation.ChildOperations.First());
+                    Assert.Same(builder[^1], operation.ChildOperations.Last());
+
+                    var forwards = operation.ChildOperations.GetEnumerator();
+                    Assert.True(forwards.MoveNext());
+                    var first = forwards.Current;
+                    forwards.Reset();
+                    Assert.True(forwards.MoveNext());
+                    Assert.Same(first, forwards.Current);
+
+                    var reversed = operation.ChildOperations.Reverse().GetEnumerator();
+                    Assert.True(reversed.MoveNext());
+                    var last = reversed.Current;
+                    reversed.Reset();
+                    Assert.True(reversed.MoveNext());
+                    Assert.Same(last, reversed.Current);
+                }
+                else
+                {
+                    Assert.Throws<InvalidOperationException>(() => operation.ChildOperations.First());
+                    Assert.Throws<InvalidOperationException>(() => operation.ChildOperations.Last());
+                }
+
+                foreach (IOperation child in operation.ChildOperations.Reverse())
+                {
+                    Assert.NotNull(child);
+                    Assert.Same(child, builder[--count]);
+                }
+
+                Assert.Equal(0, count);
+                builder?.Free();
 
                 if (operation.SemanticModel != null)
                 {
@@ -80,13 +119,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.Block, operation.Kind);
             VisitLocals(operation.Locals);
 
-            AssertEx.Equal(operation.Operations, operation.Children);
+            AssertEx.Equal(operation.Operations, operation.ChildOperations);
         }
 
         public override void VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation)
         {
             Assert.Equal(OperationKind.VariableDeclarationGroup, operation.Kind);
-            AssertEx.Equal(operation.Declarations, operation.Children);
+            AssertEx.Equal(operation.Declarations, operation.ChildOperations);
         }
 
         public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
@@ -101,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 children = children.Concat(new[] { initializer });
             }
 
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitVariableDeclaration(IVariableDeclarationOperation operation)
@@ -115,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 children = children.Concat(new[] { initializer });
             }
 
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitSwitch(ISwitchOperation operation)
@@ -123,14 +162,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.Switch, operation.Kind);
             VisitLocals(operation.Locals);
             Assert.NotNull(operation.ExitLabel);
-            AssertEx.Equal(new[] { operation.Value }.Concat(operation.Cases), operation.Children);
+            AssertEx.Equal(new[] { operation.Value }.Concat(operation.Cases), operation.ChildOperations);
         }
 
         public override void VisitSwitchCase(ISwitchCaseOperation operation)
         {
             Assert.Equal(OperationKind.SwitchCase, operation.Kind);
             VisitLocals(operation.Locals);
-            AssertEx.Equal(operation.Clauses.Concat(operation.Body), operation.Children);
+            AssertEx.Equal(operation.Clauses.Concat(operation.Body), operation.ChildOperations);
 
             VerifySubTree(((SwitchCaseOperation)operation).Condition, hasNonNullParent: true);
         }
@@ -175,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             VisitCaseClauseOperation(operation);
             Assert.Equal(CaseKind.SingleValue, operation.CaseKind);
-            AssertEx.Equal(new[] { operation.Value }, operation.Children);
+            AssertEx.Equal(new[] { operation.Value }, operation.ChildOperations);
         }
 
         private static void VisitCaseClauseOperation(ICaseClauseOperation operation)
@@ -190,14 +229,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(CaseKind.Relational, operation.CaseKind);
             var relation = operation.Relation;
 
-            AssertEx.Equal(new[] { operation.Value }, operation.Children);
+            AssertEx.Equal(new[] { operation.Value }, operation.ChildOperations);
         }
 
         public override void VisitDefaultCaseClause(IDefaultCaseClauseOperation operation)
         {
             VisitCaseClauseOperation(operation);
             Assert.Equal(CaseKind.Default, operation.CaseKind);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         private static void VisitLocals(ImmutableArray<ILocalSymbol> locals)
@@ -243,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitForLoop(IForLoopOperation operation)
@@ -263,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             children = children.Concat(new[] { operation.Body });
             children = children.Concat(operation.AtLoopBottom);
 
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitForToLoop(IForToLoopOperation operation)
@@ -284,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<IOperation> children;
             children = new[] { operation.LoopControlVariable, operation.InitialValue, operation.LimitValue, operation.StepValue, operation.Body };
             children = children.Concat(operation.NextVariables);
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitForEachLoop(IForEachLoopOperation operation)
@@ -293,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(LoopKind.ForEach, operation.LoopKind);
 
             IEnumerable<IOperation> children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body }.Concat(operation.NextVariables);
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
             ForEachLoopOperationInfo info = ((ForEachLoopOperation)operation).Info;
             if (info != null)
             {
@@ -330,11 +369,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.Operation == null)
             {
-                Assert.Empty(operation.Children);
+                Assert.Empty(operation.ChildOperations);
             }
             else
             {
-                Assert.Same(operation.Operation, operation.Children.Single());
+                Assert.Same(operation.Operation, operation.ChildOperations.Single());
             }
         }
 
@@ -354,13 +393,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     break;
             }
 
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitEmpty(IEmptyOperation operation)
         {
             Assert.Equal(OperationKind.Empty, operation.Kind);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitReturn(IReturnOperation operation)
@@ -369,18 +408,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (operation.ReturnedValue == null)
             {
                 Assert.NotEqual(OperationKind.YieldReturn, operation.Kind);
-                Assert.Empty(operation.Children);
+                Assert.Empty(operation.ChildOperations);
             }
             else
             {
-                Assert.Same(operation.ReturnedValue, operation.Children.Single());
+                Assert.Same(operation.ReturnedValue, operation.ChildOperations.Single());
             }
         }
 
         public override void VisitLock(ILockOperation operation)
         {
             Assert.Equal(OperationKind.Lock, operation.Kind);
-            AssertEx.Equal(new[] { operation.LockedValue, operation.Body }, operation.Children);
+            AssertEx.Equal(new[] { operation.LockedValue, operation.Body }, operation.ChildOperations);
         }
 
         public override void VisitTry(ITryOperation operation)
@@ -394,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 children = children.Concat(new[] { operation.Finally });
             }
 
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitCatchClause(ICatchClauseOperation operation)
@@ -415,14 +454,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             children = children.Concat(new[] { operation.Handler });
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitUsing(IUsingOperation operation)
         {
             Assert.Equal(OperationKind.Using, operation.Kind);
             VisitLocals(operation.Locals);
-            AssertEx.Equal(new[] { operation.Resources, operation.Body }, operation.Children);
+            AssertEx.Equal(new[] { operation.Resources, operation.Body }, operation.ChildOperations);
             Assert.NotEqual(OperationKind.VariableDeclaration, operation.Resources.Kind);
             Assert.NotEqual(OperationKind.VariableDeclarator, operation.Resources.Kind);
 
@@ -442,37 +481,37 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.None, operation.Kind);
             VisitLocals(operation.Locals);
-            AssertEx.Equal(new[] { operation.Variables, operation.Body }, operation.Children);
+            AssertEx.Equal(new[] { operation.Variables, operation.Body }, operation.ChildOperations);
         }
 
         internal override void VisitAggregateQuery(IAggregateQueryOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);
-            AssertEx.Equal(new[] { operation.Group, operation.Aggregation }, operation.Children);
+            AssertEx.Equal(new[] { operation.Group, operation.Aggregation }, operation.ChildOperations);
         }
 
         public override void VisitExpressionStatement(IExpressionStatementOperation operation)
         {
             Assert.Equal(OperationKind.ExpressionStatement, operation.Kind);
-            Assert.Same(operation.Operation, operation.Children.Single());
+            Assert.Same(operation.Operation, operation.ChildOperations.Single());
         }
 
         internal override void VisitWithStatement(IWithStatementOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);
-            AssertEx.Equal(new[] { operation.Value, operation.Body }, operation.Children);
+            AssertEx.Equal(new[] { operation.Value, operation.Body }, operation.ChildOperations);
         }
 
         public override void VisitStop(IStopOperation operation)
         {
             Assert.Equal(OperationKind.Stop, operation.Kind);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitEnd(IEndOperation operation)
         {
             Assert.Equal(OperationKind.End, operation.Kind);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitInvocation(IInvocationOperation operation)
@@ -491,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 children = operation.Arguments;
             }
 
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
 
             // Make sure that all static member references or invocations of static methods do not have implicit IInstanceReferenceOperations
             // as their receivers
@@ -502,13 +541,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public override void VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation)
+        {
+            Assert.Equal(OperationKind.FunctionPointerInvocation, operation.Kind);
+            Assert.NotNull(operation.Target);
+
+            IEnumerable<IOperation> children = new[] { operation.Target }.Concat(operation.Arguments);
+
+            var signature = operation.GetFunctionPointerSignature();
+            Assert.NotNull(signature);
+            Assert.Same(((IFunctionPointerTypeSymbol)operation.Target.Type).Signature, signature);
+
+            AssertEx.Equal(children, operation.ChildOperations);
+        }
+
         public override void VisitArgument(IArgumentOperation operation)
         {
             Assert.Equal(OperationKind.Argument, operation.Kind);
             Assert.Contains(operation.ArgumentKind, new[] { ArgumentKind.DefaultValue, ArgumentKind.Explicit, ArgumentKind.ParamArray });
             var parameter = operation.Parameter;
 
-            Assert.Same(operation.Value, operation.Children.Single());
+            Assert.Same(operation.Value, operation.ChildOperations.Single());
             var inConversion = operation.InConversion;
             var outConversion = operation.OutConversion;
 
@@ -521,19 +574,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitOmittedArgument(IOmittedArgumentOperation operation)
         {
             Assert.Equal(OperationKind.OmittedArgument, operation.Kind);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitArrayElementReference(IArrayElementReferenceOperation operation)
         {
             Assert.Equal(OperationKind.ArrayElementReference, operation.Kind);
-            AssertEx.Equal(new[] { operation.ArrayReference }.Concat(operation.Indices), operation.Children);
+            AssertEx.Equal(new[] { operation.ArrayReference }.Concat(operation.Indices), operation.ChildOperations);
+        }
+
+        public override void VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation)
+        {
+            Assert.Equal(OperationKind.ImplicitIndexerReference, operation.Kind);
+            AssertEx.Equal(new[] { operation.Instance, operation.Argument }, operation.ChildOperations);
+
+            Assert.NotNull(operation.LengthSymbol);
+            Assert.NotNull(operation.IndexerSymbol);
         }
 
         internal override void VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);
-            Assert.Same(operation.Pointer, operation.Children.Single());
+            Assert.Same(operation.Pointer, operation.ChildOperations.Single());
         }
 
         public override void VisitLocalReference(ILocalReferenceOperation operation)
@@ -541,20 +603,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.LocalReference, operation.Kind);
             Assert.NotNull(operation.Local);
             var isDeclaration = operation.IsDeclaration;
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitParameterReference(IParameterReferenceOperation operation)
         {
             Assert.Equal(OperationKind.ParameterReference, operation.Kind);
             Assert.NotNull(operation.Parameter);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitInstanceReference(IInstanceReferenceOperation operation)
         {
             Assert.Equal(OperationKind.InstanceReference, operation.Kind);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
             var referenceKind = operation.ReferenceKind;
         }
 
@@ -586,7 +648,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 children = additionalChildren;
             }
 
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitFieldReference(IFieldReferenceOperation operation)
@@ -627,26 +689,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.EventAssignment, operation.Kind);
             var adds = operation.Adds;
-            AssertEx.Equal(new[] { operation.EventReference, operation.HandlerValue }, operation.Children);
+            AssertEx.Equal(new[] { operation.EventReference, operation.HandlerValue }, operation.ChildOperations);
         }
 
         public override void VisitConditionalAccess(IConditionalAccessOperation operation)
         {
             Assert.Equal(OperationKind.ConditionalAccess, operation.Kind);
             Assert.NotNull(operation.Type);
-            AssertEx.Equal(new[] { operation.Operation, operation.WhenNotNull }, operation.Children);
+            AssertEx.Equal(new[] { operation.Operation, operation.WhenNotNull }, operation.ChildOperations);
         }
 
         public override void VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation)
         {
             Assert.Equal(OperationKind.ConditionalAccessInstance, operation.Kind);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         internal override void VisitPlaceholder(IPlaceholderOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitUnaryOperator(IUnaryOperation operation)
@@ -658,7 +720,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isLifted = operation.IsLifted;
             var isChecked = operation.IsChecked;
 
-            Assert.Same(operation.Operand, operation.Children.Single());
+            Assert.Same(operation.Operand, operation.ChildOperations.Single());
         }
 
         public override void VisitBinaryOperator(IBinaryOperation operation)
@@ -672,7 +734,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isChecked = operation.IsChecked;
             var isCompareText = operation.IsCompareText;
 
-            AssertEx.Equal(new[] { operation.LeftOperand, operation.RightOperand }, operation.Children);
+            AssertEx.Equal(new[] { operation.LeftOperand, operation.RightOperand }, operation.ChildOperations);
         }
 
         public override void VisitTupleBinaryOperator(ITupleBinaryOperation operation)
@@ -681,7 +743,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.TupleBinary, operation.Kind);
             var binaryOperationKind = operation.OperatorKind;
 
-            AssertEx.Equal(new[] { operation.LeftOperand, operation.RightOperand }, operation.Children);
+            AssertEx.Equal(new[] { operation.LeftOperand, operation.RightOperand }, operation.ChildOperations);
         }
 
         public override void VisitConversion(IConversionOperation operation)
@@ -707,7 +769,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     break;
             }
 
-            Assert.Same(operation.Operand, operation.Children.Single());
+            Assert.Same(operation.Operand, operation.ChildOperations.Single());
         }
 
         public override void VisitConditional(IConditionalOperation operation)
@@ -717,25 +779,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.WhenFalse != null)
             {
-                AssertEx.Equal(new[] { operation.Condition, operation.WhenTrue, operation.WhenFalse }, operation.Children);
+                AssertEx.Equal(new[] { operation.Condition, operation.WhenTrue, operation.WhenFalse }, operation.ChildOperations);
             }
             else
             {
-                AssertEx.Equal(new[] { operation.Condition, operation.WhenTrue }, operation.Children);
+                AssertEx.Equal(new[] { operation.Condition, operation.WhenTrue }, operation.ChildOperations);
             }
         }
 
         public override void VisitCoalesce(ICoalesceOperation operation)
         {
             Assert.Equal(OperationKind.Coalesce, operation.Kind);
-            AssertEx.Equal(new[] { operation.Value, operation.WhenNull }, operation.Children);
+            AssertEx.Equal(new[] { operation.Value, operation.WhenNull }, operation.ChildOperations);
             var valueConversion = operation.ValueConversion;
         }
 
         public override void VisitCoalesceAssignment(ICoalesceAssignmentOperation operation)
         {
             Assert.Equal(OperationKind.CoalesceAssignment, operation.Kind);
-            AssertEx.Equal(new[] { operation.Target, operation.Value }, operation.Children);
+            AssertEx.Equal(new[] { operation.Target, operation.Value }, operation.ChildOperations);
         }
 
         public override void VisitIsType(IIsTypeOperation operation)
@@ -743,35 +805,35 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.IsType, operation.Kind);
             Assert.NotNull(operation.TypeOperand);
             bool isNegated = operation.IsNegated;
-            Assert.Same(operation.ValueOperand, operation.Children.Single());
+            Assert.Same(operation.ValueOperand, operation.ChildOperations.Single());
         }
 
         public override void VisitSizeOf(ISizeOfOperation operation)
         {
             Assert.Equal(OperationKind.SizeOf, operation.Kind);
             Assert.NotNull(operation.TypeOperand);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitTypeOf(ITypeOfOperation operation)
         {
             Assert.Equal(OperationKind.TypeOf, operation.Kind);
             Assert.NotNull(operation.TypeOperand);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitAnonymousFunction(IAnonymousFunctionOperation operation)
         {
             Assert.Equal(OperationKind.AnonymousFunction, operation.Kind);
             Assert.NotNull(operation.Symbol);
-            Assert.Same(operation.Body, operation.Children.Single());
+            Assert.Same(operation.Body, operation.ChildOperations.Single());
         }
 
         public override void VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation)
         {
             Assert.Equal(OperationKind.FlowAnonymousFunction, operation.Kind);
             Assert.NotNull(operation.Symbol);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitLocalFunction(ILocalFunctionOperation operation)
@@ -781,7 +843,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.Body != null)
             {
-                var children = operation.Children.ToImmutableArray();
+                var children = operation.ChildOperations.ToImmutableArray();
                 Assert.Same(operation.Body, children[0]);
                 if (operation.IgnoredBody != null)
                 {
@@ -796,26 +858,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             else
             {
                 Assert.Null(operation.IgnoredBody);
-                Assert.Empty(operation.Children);
+                Assert.Empty(operation.ChildOperations);
             }
         }
 
         public override void VisitLiteral(ILiteralOperation operation)
         {
             Assert.Equal(OperationKind.Literal, operation.Kind);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitAwait(IAwaitOperation operation)
         {
             Assert.Equal(OperationKind.Await, operation.Kind);
-            Assert.Same(operation.Operation, operation.Children.Single());
+            Assert.Same(operation.Operation, operation.ChildOperations.Single());
         }
 
         public override void VisitNameOf(INameOfOperation operation)
         {
             Assert.Equal(OperationKind.NameOf, operation.Kind);
-            Assert.Same(operation.Argument, operation.Children.Single());
+            Assert.Same(operation.Argument, operation.ChildOperations.Single());
         }
 
         public override void VisitThrow(IThrowOperation operation)
@@ -823,18 +885,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.Throw, operation.Kind);
             if (operation.Exception == null)
             {
-                Assert.Empty(operation.Children);
+                Assert.Empty(operation.ChildOperations);
             }
             else
             {
-                Assert.Same(operation.Exception, operation.Children.Single());
+                Assert.Same(operation.Exception, operation.ChildOperations.Single());
             }
         }
 
         public override void VisitAddressOf(IAddressOfOperation operation)
         {
             Assert.Equal(OperationKind.AddressOf, operation.Kind);
-            Assert.Same(operation.Reference, operation.Children.Single());
+            Assert.Same(operation.Reference, operation.ChildOperations.Single());
         }
 
         public override void VisitObjectCreation(IObjectCreationOperation operation)
@@ -859,13 +921,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 children = children.Concat(new[] { operation.Initializer });
             }
 
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation)
         {
             Assert.Equal(OperationKind.AnonymousObjectCreation, operation.Kind);
-            AssertEx.Equal(operation.Initializers, operation.Children);
+            AssertEx.Equal(operation.Initializers, operation.ChildOperations);
             foreach (var initializer in operation.Initializers)
             {
                 var simpleAssignment = (ISimpleAssignmentOperation)initializer;
@@ -886,37 +948,37 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 children = children.Concat(new[] { operation.Initializer });
             }
 
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitDynamicInvocation(IDynamicInvocationOperation operation)
         {
             Assert.Equal(OperationKind.DynamicInvocation, operation.Kind);
-            AssertEx.Equal(new[] { operation.Operation }.Concat(operation.Arguments), operation.Children);
+            AssertEx.Equal(new[] { operation.Operation }.Concat(operation.Arguments), operation.ChildOperations);
         }
 
         public override void VisitDynamicIndexerAccess(IDynamicIndexerAccessOperation operation)
         {
             Assert.Equal(OperationKind.DynamicIndexerAccess, operation.Kind);
-            AssertEx.Equal(new[] { operation.Operation }.Concat(operation.Arguments), operation.Children);
+            AssertEx.Equal(new[] { operation.Operation }.Concat(operation.Arguments), operation.ChildOperations);
         }
 
         public override void VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation)
         {
             Assert.Equal(OperationKind.ObjectOrCollectionInitializer, operation.Kind);
-            AssertEx.Equal(operation.Initializers, operation.Children);
+            AssertEx.Equal(operation.Initializers, operation.ChildOperations);
         }
 
         public override void VisitMemberInitializer(IMemberInitializerOperation operation)
         {
             Assert.Equal(OperationKind.MemberInitializer, operation.Kind);
-            AssertEx.Equal(new[] { operation.InitializedMember, operation.Initializer }, operation.Children);
+            AssertEx.Equal(new[] { operation.InitializedMember, operation.Initializer }, operation.ChildOperations);
         }
 
         private void VisitSymbolInitializer(ISymbolInitializerOperation operation)
         {
             VisitLocals(operation.Locals);
-            Assert.Same(operation.Value, operation.Children.Single());
+            Assert.Same(operation.Value, operation.ChildOperations.Single());
         }
 
         public override void VisitFieldInitializer(IFieldInitializerOperation operation)
@@ -963,19 +1025,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 children = children.Concat(new[] { operation.Initializer });
             }
 
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitArrayInitializer(IArrayInitializerOperation operation)
         {
             Assert.Equal(OperationKind.ArrayInitializer, operation.Kind);
             Assert.Null(operation.Type);
-            AssertEx.Equal(operation.ElementValues, operation.Children);
+            AssertEx.Equal(operation.ElementValues, operation.ChildOperations);
         }
 
         private void VisitAssignment(IAssignmentOperation operation)
         {
-            AssertEx.Equal(new[] { operation.Target, operation.Value }, operation.Children);
+            AssertEx.Equal(new[] { operation.Target, operation.Value }, operation.ChildOperations);
         }
 
         public override void VisitSimpleAssignment(ISimpleAssignmentOperation operation)
@@ -1021,13 +1083,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isLifted = operation.IsLifted;
             var isChecked = operation.IsChecked;
 
-            Assert.Same(operation.Target, operation.Children.Single());
+            Assert.Same(operation.Target, operation.ChildOperations.Single());
         }
 
         public override void VisitParenthesized(IParenthesizedOperation operation)
         {
             Assert.Equal(OperationKind.Parenthesized, operation.Kind);
-            Assert.Same(operation.Operand, operation.Children.Single());
+            Assert.Same(operation.Operand, operation.ChildOperations.Single());
         }
 
         public override void VisitDynamicMemberReference(IDynamicMemberReferenceOperation operation)
@@ -1044,18 +1106,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.Instance == null)
             {
-                Assert.Empty(operation.Children);
+                Assert.Empty(operation.ChildOperations);
             }
             else
             {
-                Assert.Same(operation.Instance, operation.Children.Single());
+                Assert.Same(operation.Instance, operation.ChildOperations.Single());
             }
         }
 
         public override void VisitDefaultValue(IDefaultValueOperation operation)
         {
             Assert.Equal(OperationKind.DefaultValue, operation.Kind);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation)
@@ -1063,11 +1125,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.TypeParameterObjectCreation, operation.Kind);
             if (operation.Initializer == null)
             {
-                Assert.Empty(operation.Children);
+                Assert.Empty(operation.ChildOperations);
             }
             else
             {
-                Assert.Same(operation.Initializer, operation.Children.Single());
+                Assert.Same(operation.Initializer, operation.ChildOperations.Single());
             }
         }
 
@@ -1076,11 +1138,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.None, operation.Kind);
             if (operation.Initializer == null)
             {
-                Assert.Empty(operation.Children);
+                Assert.Empty(operation.ChildOperations);
             }
             else
             {
-                Assert.Same(operation.Initializer, operation.Children.Single());
+                Assert.Same(operation.Initializer, operation.ChildOperations.Single());
             }
         }
 
@@ -1093,13 +1155,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.Tuple, operation.Kind);
             var naturalType = operation.NaturalType;
-            AssertEx.Equal(operation.Elements, operation.Children);
+            AssertEx.Equal(operation.Elements, operation.ChildOperations);
         }
 
         public override void VisitInterpolatedString(IInterpolatedStringOperation operation)
         {
             Assert.Equal(OperationKind.InterpolatedString, operation.Kind);
-            AssertEx.Equal(operation.Parts, operation.Children);
+            AssertEx.Equal(operation.Parts, operation.ChildOperations);
         }
 
         public override void VisitInterpolatedStringText(IInterpolatedStringTextOperation operation)
@@ -1109,7 +1171,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 Assert.Equal(OperationKind.Literal, ((IConversionOperation)operation.Text).Operand.Kind);
             }
-            Assert.Same(operation.Text, operation.Children.Single());
+            Assert.Same(operation.Text, operation.ChildOperations.Single());
         }
 
         public override void VisitInterpolation(IInterpolationOperation operation)
@@ -1130,7 +1192,46 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 children = children.Concat(new[] { operation.FormatString });
             }
 
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
+        }
+
+        public override void VisitInterpolatedStringHandlerCreation(IInterpolatedStringHandlerCreationOperation operation)
+        {
+            Assert.Equal(OperationKind.InterpolatedStringHandlerCreation, operation.Kind);
+            IEnumerable<IOperation> children = new[] { operation.HandlerCreation, operation.Content };
+            AssertEx.Equal(children, operation.ChildOperations);
+            Assert.True(operation.HandlerCreation is IObjectCreationOperation or IDynamicObjectCreationOperation or IInvalidOperation);
+            Assert.True(operation.Content is IInterpolatedStringAdditionOperation or IInterpolatedStringOperation);
+            _ = operation.HandlerCreationHasSuccessParameter;
+            _ = operation.HandlerAppendCallsReturnBool;
+        }
+
+        public override void VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation)
+        {
+            Assert.Equal(OperationKind.InterpolatedStringAddition, operation.Kind);
+            AssertEx.Equal(new[] { operation.Left, operation.Right }, operation.ChildOperations);
+            Assert.True(operation.Left is IInterpolatedStringAdditionOperation or IInterpolatedStringOperation);
+            Assert.True(operation.Right is IInterpolatedStringAdditionOperation or IInterpolatedStringOperation);
+        }
+
+        public override void VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation)
+        {
+            Assert.Equal(OperationKind.InterpolatedStringHandlerArgumentPlaceholder, operation.Kind);
+            if (operation.PlaceholderKind is InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver or InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument)
+            {
+                Assert.Equal(-1, operation.ArgumentIndex);
+            }
+            else
+            {
+                Assert.Equal(InterpolatedStringArgumentPlaceholderKind.CallsiteArgument, operation.PlaceholderKind);
+                Assert.True(operation.ArgumentIndex >= 0);
+            }
+        }
+
+        public override void VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation)
+        {
+            Assert.True(operation.Kind is OperationKind.InterpolatedStringAppendFormatted or OperationKind.InterpolatedStringAppendLiteral or OperationKind.InterpolatedStringAppendInvalid);
+            Assert.True(operation.AppendCall is IInvocationOperation or IDynamicInvocationOperation or IInvalidOperation);
         }
 
         private void VisitPatternCommon(IPatternOperation pattern)
@@ -1145,7 +1246,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.ConstantPattern, operation.Kind);
             VisitPatternCommon(operation);
-            Assert.Same(operation.Value, operation.Children.Single());
+            Assert.Same(operation.Value, operation.ChildOperations.Single());
         }
 
         public override void VisitRelationalPattern(IRelationalPatternOperation operation)
@@ -1158,7 +1259,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                                   Operations.BinaryOperatorKind.Equals or // Error cases
                                                   Operations.BinaryOperatorKind.NotEquals);
             VisitPatternCommon(operation);
-            Assert.Same(operation.Value, operation.Children.Single());
+            Assert.Same(operation.Value, operation.ChildOperations.Single());
         }
 
         public override void VisitBinaryPattern(IBinaryPatternOperation operation)
@@ -1166,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.BinaryPattern, operation.Kind);
             VisitPatternCommon(operation);
             Assert.True(operation.OperatorKind switch { Operations.BinaryOperatorKind.Or => true, Operations.BinaryOperatorKind.And => true, _ => false });
-            var children = operation.Children.ToArray();
+            var children = operation.ChildOperations.ToArray();
             Assert.Equal(2, children.Length);
             Assert.Same(operation.LeftPattern, children[0]);
             Assert.Same(operation.RightPattern, children[1]);
@@ -1176,7 +1277,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.NegatedPattern, operation.Kind);
             VisitPatternCommon(operation);
-            Assert.Same(operation.Pattern, operation.Children.Single());
+            Assert.Same(operation.Pattern, operation.ChildOperations.Single());
         }
 
         public override void VisitTypePattern(ITypePatternOperation operation)
@@ -1184,7 +1285,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.TypePattern, operation.Kind);
             Assert.NotNull(operation.MatchedType);
             VisitPatternCommon(operation);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
@@ -1217,7 +1318,40 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 Assert.Null(operation.DeclaredSymbol);
             }
 
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
+        }
+
+        public override void VisitSlicePattern(ISlicePatternOperation operation)
+        {
+            Assert.Equal(OperationKind.SlicePattern, operation.Kind);
+            VisitPatternCommon(operation);
+
+            if (operation.Pattern != null)
+            {
+                Assert.Same(operation.Pattern, operation.ChildOperations.Single());
+            }
+            else
+            {
+                Assert.Empty(operation.ChildOperations);
+            }
+        }
+
+        public override void VisitListPattern(IListPatternOperation operation)
+        {
+            Assert.Equal(OperationKind.ListPattern, operation.Kind);
+            VisitPatternCommon(operation);
+            var designation = (operation.Syntax as CSharp.Syntax.ListPatternSyntax)?.Designation;
+            if (designation.IsKind(CSharp.SyntaxKind.SingleVariableDesignation))
+            {
+                Assert.NotNull(operation.DeclaredSymbol);
+            }
+            else
+            {
+                Assert.Null(operation.DeclaredSymbol);
+            }
+
+            IEnumerable<IOperation> children = operation.Patterns.Cast<IOperation>();
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitRecursivePattern(IRecursivePatternOperation operation)
@@ -1261,14 +1395,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<IOperation> children = operation.DeconstructionSubpatterns.Cast<IOperation>();
             children = children.Concat(operation.PropertySubpatterns);
 
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitPropertySubpattern(IPropertySubpatternOperation operation)
         {
             Assert.NotNull(operation.Pattern);
             var children = new IOperation[] { operation.Member, operation.Pattern };
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
 
             if (operation.Member.Kind == OperationKind.Invalid)
             {
@@ -1297,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.SwitchExpression, operation.Kind);
             Assert.NotNull(operation.Value);
             var children = operation.Arms.Cast<IOperation>().Prepend(operation.Value);
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation)
@@ -1311,13 +1445,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var children = operation.Guard == null
                 ? new[] { operation.Pattern, operation.Value }
                 : new[] { operation.Pattern, operation.Guard, operation.Value };
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
 
         public override void VisitIsPattern(IIsPatternOperation operation)
         {
             Assert.Equal(OperationKind.IsPattern, operation.Kind);
-            AssertEx.Equal(new[] { operation.Value, operation.Pattern }, operation.Children);
+            AssertEx.Equal(new[] { operation.Value, operation.Pattern }, operation.ChildOperations);
         }
 
         public override void VisitPatternCaseClause(IPatternCaseClauseOperation operation)
@@ -1328,24 +1462,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.Guard != null)
             {
-                AssertEx.Equal(new[] { operation.Pattern, operation.Guard }, operation.Children);
+                AssertEx.Equal(new[] { operation.Pattern, operation.Guard }, operation.ChildOperations);
             }
             else
             {
-                Assert.Same(operation.Pattern, operation.Children.Single());
+                Assert.Same(operation.Pattern, operation.ChildOperations.Single());
             }
         }
 
         public override void VisitTranslatedQuery(ITranslatedQueryOperation operation)
         {
             Assert.Equal(OperationKind.TranslatedQuery, operation.Kind);
-            Assert.Same(operation.Operation, operation.Children.Single());
+            Assert.Same(operation.Operation, operation.ChildOperations.Single());
         }
 
         public override void VisitDeclarationExpression(IDeclarationExpressionOperation operation)
         {
             Assert.Equal(OperationKind.DeclarationExpression, operation.Kind);
-            Assert.Same(operation.Expression, operation.Children.Single());
+            Assert.Same(operation.Expression, operation.ChildOperations.Single());
         }
 
         public override void VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation)
@@ -1357,20 +1491,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitDelegateCreation(IDelegateCreationOperation operation)
         {
             Assert.Equal(OperationKind.DelegateCreation, operation.Kind);
-            Assert.Same(operation.Target, operation.Children.Single());
+            Assert.Same(operation.Target, operation.ChildOperations.Single());
         }
 
         public override void VisitRaiseEvent(IRaiseEventOperation operation)
         {
             Assert.Equal(OperationKind.RaiseEvent, operation.Kind);
-            AssertEx.Equal(new IOperation[] { operation.EventReference }.Concat(operation.Arguments), operation.Children);
+            AssertEx.Equal(new IOperation[] { operation.EventReference }.Concat(operation.Arguments), operation.ChildOperations);
         }
 
         public override void VisitRangeCaseClause(IRangeCaseClauseOperation operation)
         {
             VisitCaseClauseOperation(operation);
             Assert.Equal(CaseKind.Range, operation.CaseKind);
-            AssertEx.Equal(new[] { operation.MinimumValue, operation.MaximumValue }, operation.Children);
+            AssertEx.Equal(new[] { operation.MinimumValue, operation.MaximumValue }, operation.ChildOperations);
         }
 
         public override void VisitConstructorBodyOperation(IConstructorBodyOperation operation)
@@ -1396,7 +1530,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 builder.Add(operation.ExpressionBody);
             }
 
-            AssertEx.Equal(builder, operation.Children);
+            AssertEx.Equal(builder, operation.ChildOperations);
             builder.Free();
         }
 
@@ -1409,27 +1543,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 if (operation.ExpressionBody != null)
                 {
-                    AssertEx.Equal(new[] { operation.BlockBody, operation.ExpressionBody }, operation.Children);
+                    AssertEx.Equal(new[] { operation.BlockBody, operation.ExpressionBody }, operation.ChildOperations);
                 }
                 else
                 {
-                    Assert.Same(operation.BlockBody, operation.Children.Single());
+                    Assert.Same(operation.BlockBody, operation.ChildOperations.Single());
                 }
             }
             else if (operation.ExpressionBody != null)
             {
-                Assert.Same(operation.ExpressionBody, operation.Children.Single());
+                Assert.Same(operation.ExpressionBody, operation.ChildOperations.Single());
             }
             else
             {
-                Assert.Empty(operation.Children);
+                Assert.Empty(operation.ChildOperations);
             }
         }
 
         public override void VisitDiscardOperation(IDiscardOperation operation)
         {
             Assert.Equal(OperationKind.Discard, operation.Kind);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
 
             var discardSymbol = operation.DiscardSymbol;
             Assert.Equal(operation.Type, discardSymbol.Type);
@@ -1439,14 +1573,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.DiscardPattern, operation.Kind);
             VisitPatternCommon(operation);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitFlowCapture(IFlowCaptureOperation operation)
         {
             Assert.Equal(OperationKind.FlowCapture, operation.Kind);
             Assert.True(operation.IsImplicit);
-            Assert.Same(operation.Value, operation.Children.Single());
+            Assert.Same(operation.Value, operation.ChildOperations.Single());
 
             switch (operation.Value.Kind)
             {
@@ -1478,28 +1612,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.FlowCaptureReference, operation.Kind);
             Assert.True(operation.IsImplicit);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitIsNull(IIsNullOperation operation)
         {
             Assert.Equal(OperationKind.IsNull, operation.Kind);
             Assert.True(operation.IsImplicit);
-            Assert.Same(operation.Operand, operation.Children.Single());
+            Assert.Same(operation.Operand, operation.ChildOperations.Single());
         }
 
         public override void VisitCaughtException(ICaughtExceptionOperation operation)
         {
             Assert.Equal(OperationKind.CaughtException, operation.Kind);
             Assert.True(operation.IsImplicit);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         public override void VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
         {
             Assert.Equal(OperationKind.StaticLocalInitializationSemaphore, operation.Kind);
             Assert.True(operation.IsImplicit);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
             Assert.NotNull(operation.Local);
             Assert.True(operation.Local.IsStatic);
         }
@@ -1508,7 +1642,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.Range, operation.Kind);
 
-            IOperation[] children = operation.Children.ToArray();
+            IOperation[] children = operation.ChildOperations.ToArray();
 
             int index = 0;
 
@@ -1528,20 +1662,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitReDim(IReDimOperation operation)
         {
             Assert.Equal(OperationKind.ReDim, operation.Kind);
-            AssertEx.Equal(operation.Clauses, operation.Children);
+            AssertEx.Equal(operation.Clauses, operation.ChildOperations);
             var preserve = operation.Preserve;
         }
 
         public override void VisitReDimClause(IReDimClauseOperation operation)
         {
             Assert.Equal(OperationKind.ReDimClause, operation.Kind);
-            AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.DimensionSizes), operation.Children);
+            AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.DimensionSizes), operation.ChildOperations);
         }
 
         public override void VisitUsingDeclaration(IUsingDeclarationOperation operation)
         {
             Assert.NotNull(operation.DeclarationGroup);
-            AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.DeclarationGroup), operation.Children);
+            AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.DeclarationGroup), operation.ChildOperations);
             Assert.True(operation.DeclarationGroup.IsImplicit);
             Assert.Null(operation.Type);
             Assert.False(operation.ConstantValue.HasValue);
@@ -1564,7 +1698,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.With, operation.Kind);
             _ = operation.CloneMethod;
             IEnumerable<IOperation> children = SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.Initializer);
-            AssertEx.Equal(children, operation.Children);
+            AssertEx.Equal(children, operation.ChildOperations);
         }
     }
 }

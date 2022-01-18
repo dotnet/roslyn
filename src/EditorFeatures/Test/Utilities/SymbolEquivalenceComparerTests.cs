@@ -1132,6 +1132,196 @@ class C
         }
 
         [Fact]
+        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        public async Task TestTuples1()
+        {
+            var csharpCode1 =
+@"
+class C
+{
+    void M((int, int) i) { }
+}";
+
+            var csharpCode2 =
+@"
+class C
+{
+    void M(int i) { }
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+            var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+
+            var method_v1 = type1_v1.GetMembers("M").Single();
+            var method_v2 = type1_v2.GetMembers("M").Single();
+
+            Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
+        }
+
+        [Fact]
+        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        public async Task TestTuples2()
+        {
+            var csharpCode1 =
+@"
+class C
+{
+    void M((int, int) i) { }
+}";
+
+            var csharpCode2 =
+@"
+class C
+{
+    void M(System.ValueTuple<int> i) { }
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+            var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+
+            var method_v1 = type1_v1.GetMembers("M").Single();
+            var method_v2 = type1_v2.GetMembers("M").Single();
+
+            Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
+        }
+
+        [Fact]
+        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        public async Task TestTuples3()
+        {
+            var csharpCode1 =
+@"
+class C
+{
+    void M((int, int) i) { }
+}";
+
+            var csharpCode2 =
+@"
+class C
+{
+    void M(System.ValueTuple<int, int> i) { }
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+            var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+
+            var method_v1 = type1_v1.GetMembers("M").Single();
+            var method_v2 = type1_v2.GetMembers("M").Single();
+
+            Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
+            Assert.True(SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(method_v1, method_v2));
+        }
+
+        [Fact]
+        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        public async Task TestTuples4()
+        {
+            var csharpCode1 =
+@"
+class C
+{
+    void M((int a, int b) i) { }
+}";
+
+            var csharpCode2 =
+@"
+class C
+{
+    void M(System.ValueTuple<int, int> i) { }
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+            var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+
+            var method_v1 = type1_v1.GetMembers("M").Single();
+            var method_v2 = type1_v2.GetMembers("M").Single();
+
+            Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
+            Assert.False(SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(method_v1, method_v2));
+        }
+
+        [Fact]
+        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        public async Task TestTuples5()
+        {
+            var csharpCode1 =
+@"
+class C
+{
+    void M((int a, int b) i) { }
+}";
+
+            var csharpCode2 =
+@"
+class C
+{
+    void M((int, int) i) { }
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+            var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+
+            var method_v1 = type1_v1.GetMembers("M").Single();
+            var method_v2 = type1_v2.GetMembers("M").Single();
+
+            Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
+            Assert.False(SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(method_v1, method_v2));
+        }
+
+        [Fact]
+        [WorkItem(56133, "https://github.com/dotnet/roslyn/issues/56133")]
+        [WorkItem(1388780, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1388780")]
+        [WorkItem(1391743, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1391743")]
+        [WorkItem(1393352, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393352")]
+        public async Task TestTuples6()
+        {
+            var csharpCode1 =
+@"
+class C
+{
+    void M((int a, int b) i) { }
+}";
+
+            var csharpCode2 =
+@"
+class C
+{
+    void M((int a, int b, int c) i) { }
+}";
+
+            using var workspace1 = TestWorkspace.CreateCSharp(csharpCode1);
+            using var workspace2 = TestWorkspace.CreateCSharp(csharpCode2);
+            var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+            var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+
+            var method_v1 = type1_v1.GetMembers("M").Single();
+            var method_v2 = type1_v2.GetMembers("M").Single();
+
+            Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
+        }
+
+        [Fact]
         public async Task TestNullable()
         {
             var csharpCode1 =

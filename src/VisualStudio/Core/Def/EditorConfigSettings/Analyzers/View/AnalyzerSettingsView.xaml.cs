@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
             InitializeComponent();
             _viewModel = viewModel;
             TableControl = _viewModel.GetTableControl();
-            AnalyzerTable.Child = TableControl.Control;
+            AnalyzerTable.Content = TableControl.Control;
         }
 
         public UserControl SettingControl => this;

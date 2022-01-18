@@ -8111,6 +8111,49 @@ class C
             );
         }
 
+        [Fact, WorkItem(57025, "https://github.com/dotnet/roslyn/issues/57025")]
+        public void UnmanagedCallersOnlyRequiresNonRef_Errors()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    static ref int M1() => throw null;
+
+    [UnmanagedCallersOnly]
+    static ref readonly int M2() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M3(ref int o) => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M4(in int o) => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M5(out int o) => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (6,12): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     static ref int M1() => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "ref int").WithLocation(6, 12),
+                // (9,12): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     static ref readonly int M2() => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "ref readonly int").WithLocation(9, 12),
+                // (12,20): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     static void M3(ref int o) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "ref int o").WithLocation(12, 20),
+                // (15,20): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     static void M4(in int o) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "in int o").WithLocation(15, 20),
+                // (18,20): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     static void M5(out int o) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "out int o").WithLocation(18, 20)
+            );
+        }
+
         [Fact]
         public void UnmanagedCallersOnlyRequiresUnmanagedTypes_Valid()
         {
@@ -8729,7 +8772,47 @@ class Test
 }
 ", il);
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                    // (6,13): error CS0570: 'C.implicit operator int(C)' is not supported by the language
+                    //         _ = (int)x;
+                    Diagnostic(ErrorCode.ERR_BindToBogus, "(int)x").WithArguments("C.implicit operator int(C)").WithLocation(6, 13)
+            );
+        }
+
+        [Fact]
+        [WorkItem(54113, "https://github.com/dotnet/roslyn/issues/54113")]
+        public void UnmanagedCallersOnlyDefinedOnConversion_InSource()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C1
+{
+    [UnmanagedCallersOnly]
+    public static implicit operator int(C1 c) => throw null;
+}
+class C2
+{
+    [UnmanagedCallersOnly]
+    public static explicit operator int(C2 c) => throw null;
+}
+class Test
+{
+    void M(C1 x, C2 y)
+    {
+        _ = (int)x;
+        _ = (int)y;
+    }
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6),
+                // (10,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(10, 6)
+            );
         }
 
         [Fact]
@@ -9431,7 +9514,13 @@ static class CExt
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "ls").WithArguments("CExt.Deconstruct(S, out int, out int)").WithLocation(11, 32),
                 // (12,18): error CS8901: 'CExt.Deconstruct(S, out int, out int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         _ = s is (int _, int _);
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "(int _, int _)").WithArguments("CExt.Deconstruct(S, out int, out int)").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "(int _, int _)").WithArguments("CExt.Deconstruct(S, out int, out int)").WithLocation(12, 18),
+                // (18,46): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     public static void Deconstruct(this S s, out int i1, out int i2) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "out int i1").WithLocation(18, 46),
+                // (18,58): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     public static void Deconstruct(this S s, out int i1, out int i2) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "out int i2").WithLocation(18, 58)
             );
         }
 
@@ -9534,7 +9623,10 @@ static class CExt
             comp.VerifyDiagnostics(
                 // (10,29): error CS8901: 'CExt.GetPinnableReference(S)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //             fixed (int* i = s)
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "s").WithArguments("CExt.GetPinnableReference(S)").WithLocation(10, 29)
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "s").WithArguments("CExt.GetPinnableReference(S)").WithLocation(10, 29),
+                // (20,19): error CS8977: Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.
+                //     public static ref int GetPinnableReference(this S s) => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, "ref int").WithLocation(20, 19)
             );
         }
 
@@ -9835,55 +9927,28 @@ class A
             );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/47125")]
+        [Fact]
+        [WorkItem(47125, "https://github.com/dotnet/roslyn/issues/47125")]
         public void UnmanagedCallersOnlyWithLoopInUsage_3()
         {
-            // Remove UnmanagedCallersOnlyWithLoopInUsage_3_Release when
-            // this is unskipped.
-
             var comp = CreateCompilation(new[] { @"
 #nullable enable
-using System.Runtime.InteropServices;
-class C
-{
-    [UnmanagedCallersOnly(CallConvs = F())]
-    static Type[] F() { }
-}
-", UnmanagedCallersOnlyAttribute });
-
-            comp.VerifyDiagnostics(
-            );
-        }
-
-        [ConditionalFact(typeof(IsRelease))]
-        public void UnmanagedCallersOnlyWithLoopInUsage_3_Release()
-        {
-            // The bug in UnmanagedCallersOnlyWithLoopInUsage_3 is only
-            // triggered by the nullablewalker, which is unconditionally
-            // run in debug mode. We also want to verify the use-site
-            // diagnostic for unmanagedcallersonly does not cause a loop,
-            // so we have a separate version that does not have nullable
-            // enabled and only runs in release to verify. When
-            // https://github.com/dotnet/roslyn/issues/47125 is fixed, this
-            // test can be removed
-
-            var comp = CreateCompilation(new[] { @"
 using System;
 using System.Runtime.InteropServices;
 class C
 {
     [UnmanagedCallersOnly(CallConvs = F())]
-    static Type[] F() => null;
+    static Type[] F() { throw null!; }
 }
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (6,39): error CS8901: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                // (7,39): error CS8901: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //     [UnmanagedCallersOnly(CallConvs = F())]
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()").WithArguments("C.F()").WithLocation(6, 39),
-                // (6,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()").WithArguments("C.F()").WithLocation(7, 39),
+                // (7,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [UnmanagedCallersOnly(CallConvs = F())]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()").WithLocation(6, 39)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()").WithLocation(7, 39)
             );
         }
 
@@ -9915,50 +9980,10 @@ unsafe class C
             );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/47125")]
+        [Fact]
+        [WorkItem(47125, "https://github.com/dotnet/roslyn/issues/47125")]
         public void UnmanagedCallersOnlyWithLoopInUsage_5()
         {
-            var comp = CreateCompilationWithFunctionPointers(new[] { @"
-using System;
-using System.Runtime.InteropServices;
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-class Attr : Attribute
-{
-    public Attr(int i) {}
-}
-unsafe class C
-{
-    [UnmanagedCallersOnly]
-    [Attr(F())]
-    static int F()
-    {
-        return 0;
-    }
-}
-", UnmanagedCallersOnlyAttribute });
-
-            comp.VerifyDiagnostics(
-                // (12,11): error CS8901: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
-                //     [Attr(F())]
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()", isSuppressed: false).WithArguments("C.F()").WithLocation(12, 11),
-                // (12,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //     [Attr(F())]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()", isSuppressed: false).WithLocation(12, 11)
-            );
-        }
-
-        [ConditionalFact(typeof(IsRelease))]
-        public void UnmanagedCallersOnlyWithLoopInUsage_5_Release()
-        {
-            // The bug in UnmanagedCallersOnlyWithLoopInUsage_5 is only
-            // triggered by the nullablewalker, which is unconditionally
-            // run in debug mode. We also want to verify the use-site
-            // diagnostic for unmanagedcallersonly does not cause a loop,
-            // so we have a separate version that does not have nullable
-            // enabled and only runs in release to verify. When
-            // https://github.com/dotnet/roslyn/issues/47125 is fixed, this
-            // test can be removed
-
             var comp = CreateCompilationWithFunctionPointers(new[] { @"
 using System;
 using System.Runtime.InteropServices;
@@ -11375,6 +11400,199 @@ class C<T> {}
                 // [Attr(typeof(C<delegate*<void>[]>))]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(C<delegate*<void>[]>)").WithLocation(6, 7)
             );
+        }
+
+        [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
+        public void SwitchExpression_01()
+        {
+            var code = @"
+unsafe
+{
+    delegate*<string, void> ptr = &M;
+    bool b = true;
+    ptr(b switch { true => ""true"", false => ""false"" });
+}
+
+static void M(string s) => System.Console.WriteLine(s);
+";
+
+            var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (delegate*<string, void> V_0, //ptr
+                delegate*<string, void> V_1,
+                string V_2,
+                delegate*<string, void> V_3)
+  IL_0000:  ldftn      ""void Program.<<Main>$>g__M|0_0(string)""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.1
+  IL_000a:  brfalse.s  IL_0014
+  IL_000c:  ldstr      ""true""
+  IL_0011:  stloc.2
+  IL_0012:  br.s       IL_001a
+  IL_0014:  ldstr      ""false""
+  IL_0019:  stloc.2
+  IL_001a:  ldloc.1
+  IL_001b:  stloc.3
+  IL_001c:  ldloc.2
+  IL_001d:  ldloc.3
+  IL_001e:  calli      ""delegate*<string, void>""
+  IL_0023:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
+        public void SwitchExpression_02()
+        {
+            var code = @"
+unsafe
+{
+    delegate*<string, void> ptr1 = &M1;
+    delegate*<string, void> ptr2 = &M2;
+    bool b = true;
+    (b switch { true => ptr1, false => ptr2 })(""true"");
+}
+
+static void M1(string s) => System.Console.WriteLine(s);
+static void M2(string s) => throw null;
+";
+
+            var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (delegate*<string, void> V_0, //ptr1
+                delegate*<string, void> V_1, //ptr2
+                delegate*<string, void> V_2,
+                delegate*<string, void> V_3)
+  IL_0000:  ldftn      ""void Program.<<Main>$>g__M1|0_0(string)""
+  IL_0006:  stloc.0
+  IL_0007:  ldftn      ""void Program.<<Main>$>g__M2|0_1(string)""
+  IL_000d:  stloc.1
+  IL_000e:  ldc.i4.1
+  IL_000f:  brfalse.s  IL_0015
+  IL_0011:  ldloc.0
+  IL_0012:  stloc.2
+  IL_0013:  br.s       IL_0017
+  IL_0015:  ldloc.1
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.2
+  IL_0018:  stloc.3
+  IL_0019:  ldstr      ""true""
+  IL_001e:  ldloc.3
+  IL_001f:  calli      ""delegate*<string, void>""
+  IL_0024:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
+        public void SwitchExpression_03()
+        {
+            var code = @"
+unsafe
+{
+    delegate*<string, void> ptr1 = &M1;
+    delegate*<object, void> ptr2 = &M2;
+    bool b = true;
+    (b switch { true => ptr1, false => ptr2 })(""true"");
+}
+
+static void M1(string s) => System.Console.WriteLine(s);
+static void M2(object s) => throw null;
+";
+
+            var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (delegate*<string, void> V_0, //ptr1
+                delegate*<object, void> V_1, //ptr2
+                delegate*<string, void> V_2,
+                delegate*<string, void> V_3)
+  IL_0000:  ldftn      ""void Program.<<Main>$>g__M1|0_0(string)""
+  IL_0006:  stloc.0
+  IL_0007:  ldftn      ""void Program.<<Main>$>g__M2|0_1(object)""
+  IL_000d:  stloc.1
+  IL_000e:  ldc.i4.1
+  IL_000f:  brfalse.s  IL_0015
+  IL_0011:  ldloc.0
+  IL_0012:  stloc.2
+  IL_0013:  br.s       IL_0017
+  IL_0015:  ldloc.1
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.2
+  IL_0018:  stloc.3
+  IL_0019:  ldstr      ""true""
+  IL_001e:  ldloc.3
+  IL_001f:  calli      ""delegate*<string, void>""
+  IL_0024:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
+        public void SwitchExpression_04()
+        {
+            var code = @"
+unsafe
+{
+    delegate*<string, void> ptr1 = &M1;
+    delegate*<string, void> ptr2 = &M2;
+    bool b = true;
+    (b switch { true => ptr1, false => ptr2 })(b switch { true => ""true"", false => ""false"" });
+}
+
+static void M1(string s) => System.Console.WriteLine(s);
+static void M2(string s) => throw null;
+";
+
+            var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       57 (0x39)
+  .maxstack  2
+  .locals init (delegate*<string, void> V_0, //ptr1
+                delegate*<string, void> V_1, //ptr2
+                bool V_2, //b
+                delegate*<string, void> V_3,
+                string V_4,
+                delegate*<string, void> V_5)
+  IL_0000:  ldftn      ""void Program.<<Main>$>g__M1|0_0(string)""
+  IL_0006:  stloc.0
+  IL_0007:  ldftn      ""void Program.<<Main>$>g__M2|0_1(string)""
+  IL_000d:  stloc.1
+  IL_000e:  ldc.i4.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
+  IL_0011:  brfalse.s  IL_0017
+  IL_0013:  ldloc.0
+  IL_0014:  stloc.3
+  IL_0015:  br.s       IL_0019
+  IL_0017:  ldloc.1
+  IL_0018:  stloc.3
+  IL_0019:  ldloc.3
+  IL_001a:  ldloc.2
+  IL_001b:  brfalse.s  IL_0026
+  IL_001d:  ldstr      ""true""
+  IL_0022:  stloc.s    V_4
+  IL_0024:  br.s       IL_002d
+  IL_0026:  ldstr      ""false""
+  IL_002b:  stloc.s    V_4
+  IL_002d:  stloc.s    V_5
+  IL_002f:  ldloc.s    V_4
+  IL_0031:  ldloc.s    V_5
+  IL_0033:  calli      ""delegate*<string, void>""
+  IL_0038:  ret
+}
+");
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");

@@ -243,8 +243,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return false;
                 }
 
-                if (oldMember is BaseTypeDeclarationSyntax ||
-                    oldMember is DelegateDeclarationSyntax)
+                if (oldMember is BaseTypeDeclarationSyntax or
+                    DelegateDeclarationSyntax)
                 {
                     return CompareTypeDeclarations(oldMember, newMember, newNodeParent, eventQueue);
                 }
@@ -513,8 +513,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 CodeModelEventQueue eventQueue)
             {
                 Debug.Assert(oldMember != null && newMember != null);
-                Debug.Assert(oldMember is BaseTypeDeclarationSyntax || oldMember is DelegateDeclarationSyntax);
-                Debug.Assert(newMember is BaseTypeDeclarationSyntax || newMember is DelegateDeclarationSyntax);
+                Debug.Assert(oldMember is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax);
+                Debug.Assert(newMember is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax);
 
                 // If the kind doesn't match, it has to be a remove/add.
                 if (oldMember.Kind() != newMember.Kind())
@@ -663,8 +663,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return false;
                 }
 
-                if (oldNamespaceOrType is BaseTypeDeclarationSyntax ||
-                    oldNamespaceOrType is DelegateDeclarationSyntax)
+                if (oldNamespaceOrType is BaseTypeDeclarationSyntax or
+                    DelegateDeclarationSyntax)
                 {
                     return CompareTypeDeclarations(oldNamespaceOrType, newNamespaceOrType, newNodeParent, eventQueue);
                 }

@@ -45,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IVsRunningDocumentTable _runningDocumentTable;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
         private readonly VisualStudioDocumentNavigationService _visualStudioDocumentNavigationService;
+        private readonly IGlobalOptionService _globalOptions;
 
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
@@ -71,14 +72,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <remarks>All accesses should be on the UI thread.</remarks>
         private readonly Dictionary<Guid, SourceGeneratedDocumentIdentity> _directoryInfoOnDiskByContainingDirectoryId = new();
 
-        /// <summary>
-        /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
-        /// surprised by this and we want some time to work through those issues.
-        /// </summary>
-        internal static readonly Option2<bool?> EnableOpeningInWorkspace =
-            new(nameof(SourceGeneratedFileManager), nameof(EnableOpeningInWorkspace), defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment"));
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SourceGeneratedFileManager(
@@ -87,6 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ITextDocumentFactoryService textDocumentFactoryService,
             VisualStudioWorkspace visualStudioWorkspace,
+            IGlobalOptionService globalOptions,
             VisualStudioDocumentNavigationService visualStudioDocumentNavigationService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
@@ -97,6 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _temporaryDirectory = Path.Combine(Path.GetTempPath(), "VSGeneratedDocuments");
             _visualStudioWorkspace = visualStudioWorkspace;
             _visualStudioDocumentNavigationService = visualStudioDocumentNavigationService;
+            _globalOptions = globalOptions;
 
             Directory.CreateDirectory(_temporaryDirectory);
 
@@ -189,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // Attach to the text buffer if we haven't already
                 if (!_openFiles.TryGetValue(moniker, out var openFile))
                 {
-                    openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, documentIdentity, _threadingContext);
+                    openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, documentIdentity, _globalOptions, _threadingContext);
                     _openFiles.Add(moniker, openFile);
 
                     _threadingContext.JoinableTaskFactory.Run(() => openFile.RefreshFileAsync(CancellationToken.None).AsTask());
@@ -231,6 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly ITextBuffer _textBuffer;
             private readonly Workspace _workspace;
             private readonly SourceGeneratedDocumentIdentity _documentIdentity;
+            private readonly IGlobalOptionService _globalOptions;
 
             /// <summary>
             /// A read-only region that we create across the entire file to prevent edits unless we are the one making them.
@@ -262,13 +258,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private ImageMoniker _currentWindowFrameImageMoniker = default;
             private IVsInfoBarUIElement? _currentWindowFrameInfoBarElement = null;
 
-            public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, Workspace workspace, SourceGeneratedDocumentIdentity documentIdentity, IThreadingContext threadingContext)
+            public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, Workspace workspace, SourceGeneratedDocumentIdentity documentIdentity, IGlobalOptionService globalOptions, IThreadingContext threadingContext)
                 : base(threadingContext, assertIsForeground: true)
             {
                 _fileManager = fileManager;
                 _textBuffer = textBuffer;
                 _workspace = workspace;
                 _documentIdentity = documentIdentity;
+                _globalOptions = globalOptions;
 
                 // We'll create a read-only region for the file, but it'll be a dynamic region we can temporarily suspend
                 // while we're doing edits.
@@ -397,7 +394,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         // If the file isn't already open, open it now. We may transition between opening and closing
                         // if the file is repeatedly appearing and disappearing.
-                        var connectToWorkspace = _workspace.Options.GetOption(EnableOpeningInWorkspace) ?? false;
+                        var connectToWorkspace = _workspace.Options.GetOption(Options.EnableOpeningInWorkspace) ??
+                                                 _workspace.Options.GetOption(Options.EnableOpeningInWorkspaceFeatureFlag);
 
                         if (connectToWorkspace && !_workspace.IsDocumentOpen(_documentIdentity.DocumentId))
                         {
@@ -509,15 +507,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         [Export(typeof(IOptionProvider))]
-        private class OptionProvider : IOptionProvider
+        internal sealed class Options : IOptionProvider
         {
+            private const string FeatureName = "SourceGeneratedFileManager";
+
+            /// <summary>
+            /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
+            /// surprised by this and we want some time to work through those issues.
+            /// </summary>
+            internal static readonly Option2<bool?> EnableOpeningInWorkspace = new(FeatureName, nameof(EnableOpeningInWorkspace), defaultValue: null,
+                new RoamingProfileStorageLocation("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment"));
+
+            internal static readonly Option2<bool> EnableOpeningInWorkspaceFeatureFlag = new(FeatureName, nameof(EnableOpeningInWorkspaceFeatureFlag), defaultValue: false,
+                new FeatureFlagStorageLocation("Roslyn.SourceGeneratorsEnableOpeningInWorkspace"));
+
+            ImmutableArray<IOption> IOptionProvider.Options => ImmutableArray.Create<IOption>(
+                EnableOpeningInWorkspace,
+                EnableOpeningInWorkspaceFeatureFlag);
+
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public OptionProvider()
+            public Options()
             {
             }
-
-            public ImmutableArray<IOption> Options => ImmutableArray.Create<IOption>(EnableOpeningInWorkspace);
         }
     }
 }

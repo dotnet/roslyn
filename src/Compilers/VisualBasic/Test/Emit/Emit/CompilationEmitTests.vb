@@ -784,6 +784,7 @@ End Function",
             End If
         End Sub
 
+#If NET472 Then
         <ConditionalFact(GetType(WindowsDesktopOnly))>
         <WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
         Public Sub RefAssembly_InvariantToResourceChanges_RefOut()
@@ -857,7 +858,7 @@ End Function",
             Dim refonlyOptions = EmitOptions.[Default].WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
             Return comp.EmitToArray(refonlyOptions, metadataPEStream:=Nothing, manifestResources:=manifestResources)
         End Function
-
+#End If
         <Fact, WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
         Public Sub RefAssembly_CryptoHashFailedIsOnlyReportedOnce()
             Dim hash_resources =

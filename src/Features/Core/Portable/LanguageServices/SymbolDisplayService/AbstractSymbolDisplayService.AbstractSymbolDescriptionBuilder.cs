@@ -11,7 +11,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,8 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected abstract partial class AbstractSymbolDescriptionBuilder
         {
             private static readonly SymbolDisplayFormat s_typeParameterOwnerFormat =
-                new(
-                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                     typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                     genericsOptions:
                         SymbolDisplayGenericsOptions.IncludeTypeParameters |
@@ -39,8 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
 
             private static readonly SymbolDisplayFormat s_memberSignatureDisplayFormat =
-                new(
-                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
                     memberOptions:
                         SymbolDisplayMemberOptions.IncludeRef |
@@ -66,40 +67,42 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                         SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
                         SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
-                        SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
+                        SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral |
+                        SymbolDisplayMiscellaneousOptions.CollapseTupleTypes);
 
             private static readonly SymbolDisplayFormat s_descriptionStyle =
-                new(
-                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                new(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                     delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
                     parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
-                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
+                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.CollapseTupleTypes,
                     kindOptions: SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword);
 
             private static readonly SymbolDisplayFormat s_globalNamespaceStyle =
-                new(
-                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included);
+                new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included);
 
             private readonly SemanticModel _semanticModel;
             private readonly int _position;
-            private readonly IAnonymousTypeDisplayService _anonymousTypeDisplayService;
+            private readonly IStructuralTypeDisplayService _structuralTypeDisplayService;
             private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap = new();
             private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = new();
             private readonly Func<ISymbol, string> _getNavigationHint;
 
-            protected readonly Workspace Workspace;
+            protected readonly HostWorkspaceServices Services;
+            protected readonly SymbolDescriptionOptions Options;
             protected readonly CancellationToken CancellationToken;
 
             protected AbstractSymbolDescriptionBuilder(
                 SemanticModel semanticModel,
                 int position,
-                Workspace workspace,
-                IAnonymousTypeDisplayService anonymousTypeDisplayService,
+                HostWorkspaceServices services,
+                IStructuralTypeDisplayService structuralTypeDisplayService,
+                SymbolDescriptionOptions options,
                 CancellationToken cancellationToken)
             {
-                _anonymousTypeDisplayService = anonymousTypeDisplayService;
-                Workspace = workspace;
+                _structuralTypeDisplayService = structuralTypeDisplayService;
+                Services = services;
+                Options = options;
                 CancellationToken = cancellationToken;
                 _semanticModel = semanticModel;
                 _position = position;
@@ -157,7 +160,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 await AddDescriptionPartAsync(firstSymbol).ConfigureAwait(false);
 
                 AddOverloadCountPart(symbols);
-                FixAllAnonymousTypes(firstSymbol);
+                FixAllStructuralTypes(firstSymbol);
                 AddExceptions(firstSymbol);
                 AddCaptures(firstSymbol);
 
@@ -166,7 +169,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private void AddDocumentationContent(ISymbol symbol)
             {
-                var formatter = Workspace.Services.GetLanguageServices(_semanticModel.Language).GetRequiredService<IDocumentationCommentFormattingService>();
+                var formatter = Services.GetLanguageServices(_semanticModel.Language).GetRequiredService<IDocumentationCommentFormattingService>();
 
                 if (symbol is IParameterSymbol or ITypeParameterSymbol)
                 {
@@ -442,7 +445,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     case SymbolDescriptionGroups.ValueDocumentation:
                         return 1;
 
-                    case SymbolDescriptionGroups.AnonymousTypes:
+                    case SymbolDescriptionGroups.StructuralTypes:
                         return 0;
 
                     case SymbolDescriptionGroups.Exceptions:
@@ -458,7 +461,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> BuildDescriptionSections()
             {
-                var includeNavigationHints = this.Workspace.Options.GetOption(QuickInfoOptions.IncludeNavigationHintsInQuickInfo);
+                var includeNavigationHints = Options.QuickInfoOptions.IncludeNavigationHintsInQuickInfo;
 
                 // Merge the two maps into one final result.
                 var result = new Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>(_documentationMap);

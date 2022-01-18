@@ -383,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             // Remove all document errors
-            foreach (var documentId in project.DocumentIds)
+            foreach (var documentId in project.DocumentIds.Concat(project.AdditionalDocumentIds).Concat(project.AnalyzerConfigDocumentIds))
             {
                 ClearBuildOnlyDocumentErrors(solution, projectId, documentId);
             }
@@ -875,7 +875,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                 void RecordProjectContainsErrors()
                 {
-                    RoslynDebug.Assert(key is DocumentId || key is ProjectId);
+                    RoslynDebug.Assert(key is DocumentId or ProjectId);
                     var projectId = (key is DocumentId documentId) ? documentId.ProjectId : (ProjectId)(object)key;
 
                     // New errors reported for project, need to refresh live errors.

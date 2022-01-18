@@ -826,31 +826,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var nodes = root.DescendantNodes().ToImmutableArray();
-            var convertedMethodGroups = nodes
-                .WhereAsArray(
-                    n =>
-                    {
-                        if (!n.IsKind(SyntaxKind.IdentifierName) ||
-                            !semanticModel.GetMemberGroup(n, cancellationToken).Any())
-                        {
-                            return false;
-                        }
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var convertedMethodNodes);
 
-                        ISymbol? convertedType = semanticModel.GetTypeInfo(n, cancellationToken).ConvertedType;
+            foreach (var node in root.DescendantNodes())
+            {
+                if (!node.IsKind(SyntaxKind.IdentifierName) ||
+                    !semanticModel.GetMemberGroup(node, cancellationToken).Any())
+                {
+                    continue;
+                }
 
-                        if (convertedType != null)
-                        {
-                            convertedType = convertedType.OriginalDefinition;
-                        }
+                var convertedType = (ISymbol?)semanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
+                convertedType = convertedType?.OriginalDefinition;
 
-                        if (convertedType != null)
-                        {
-                            convertedType = SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken) ?? convertedType;
-                        }
+                if (convertedType != null)
+                {
+                    convertedType = await SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).ConfigureAwait(false)
+                        ?? convertedType;
+                }
 
-                        return Equals(convertedType, symbol.ContainingType);
-                    })
+                if (Equals(convertedType, symbol.ContainingType))
+                    convertedMethodNodes.Add(node);
+            }
+
+            var convertedMethodGroups = convertedMethodNodes
                 .Select(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol)
                 .WhereNotNull()
                 .ToImmutableArray();

@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild RemoveConfusingSuppressionForIsExpression = /*IDE0080*/ EnforceOnBuild.HighlyRecommended;
         public const EnforceOnBuild UseBlockScopedNamespace = /*IDE0160*/ EnforceOnBuild.HighlyRecommended;
         public const EnforceOnBuild UseFileScopedNamespace = /*IDE0161*/ EnforceOnBuild.HighlyRecommended;
+        public const EnforceOnBuild UseTupleSwap = /*IDE0180*/ EnforceOnBuild.HighlyRecommended;
 
         /* EnforceOnBuild.Recommended */
         public const EnforceOnBuild UseThrowExpression = /*IDE0016*/ EnforceOnBuild.Recommended;
@@ -75,16 +76,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild UseImplicitObjectCreation = /*IDE0090*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild RemoveRedundantEquality = /*IDE0100*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild RemoveUnnecessaryDiscardDesignation = /*IDE0110*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild RemoveUnnecessaryLambdaExpression = /*IDE0200*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild InvokeDelegateWithConditionalAccess = /*IDE1005*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild NamingRule = /*IDE1006*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild MatchFolderAndNamespace = /*IDE0130*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild SimplifyObjectCreation = /*IDE0140*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild SimplifyPropertyPattern = /*IDE0170*/ EnforceOnBuild.Recommended;
 
         /* EnforceOnBuild.WhenExplicitlyEnabled */
         public const EnforceOnBuild RemoveUnnecessaryCast = /*IDE0004*/ EnforceOnBuild.WhenExplicitlyEnabled; // TODO: Move to 'Recommended' OR 'HighlyRecommended' bucket once performance problems are addressed: https://github.com/dotnet/roslyn/issues/43304
         public const EnforceOnBuild PopulateSwitchStatement = /*IDE0010*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild UseInferredMemberName = /*IDE0037*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild UseIsNullCheck = /*IDE0041*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild UseParameterNullChecking = /*IDE0190*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild AddRequiredParentheses = /*IDE0048*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ExpressionValueIsUnused = /*IDE0058*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild MakeStructFieldsWritable = /*IDE0064*/ EnforceOnBuild.WhenExplicitlyEnabled;
