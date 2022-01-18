@@ -1689,6 +1689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(semi-auto-props): TODO: Support assigning semi auto prop from constructors.
 
             return propertySymbol is SourcePropertySymbolBase sourceProperty &&
+                    sourceProperty.GetMethod is not null &&
                     // To be assigned through backing field, either SetMethod is null, or it's equivalent to backing field write
                     // PROTOTYPE(semi-auto-props): TODO: Do we need to use `GetOwnOrInheritedSetMethod` instead of `SetMethod`? Add tests.
                     sourceProperty.SetMethod is not SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: false } &&

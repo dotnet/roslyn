@@ -2364,6 +2364,9 @@ class C
                 // (7,19): error CS0548: 'C.P3': property or indexer must have at least one accessor
                 //     public string P3 { } = string.Empty;
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P3").WithArguments("C.P3").WithLocation(7, 19),
+                // (10,9): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
+                //         P = "";
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(10, 9),
                 // (11,27): error CS0154: The property or indexer 'C.P2' cannot be used in this context because it lacks the get accessor
                 //         Console.WriteLine(P2);
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "P2").WithArguments("C.P2").WithLocation(11, 27),
