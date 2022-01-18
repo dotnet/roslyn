@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private static readonly string[] s_separator = { Environment.NewLine };
 
-        private protected override void LogCompilerOutput(string output, MessageImportance messageImportance)
+        internal override void LogCompilerOutput(string output, MessageImportance messageImportance)
         {
             var lines = output.Split(s_separator, StringSplitOptions.None);
             foreach (string line in lines)
@@ -251,8 +251,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 LogEventsFromTextOutput(line, messageImportance);
             }
         }
-
-        internal void LogCompilerOutput_ForTestingOnly(string output, MessageImportance messageImportance) => LogCompilerOutput(output, messageImportance);
 
         /// <summary>
         ///  Return the name of the tool to execute.

@@ -339,6 +339,7 @@ End Module
 
         <Fact()>
         <WorkItem(47790, "https://github.com/dotnet/roslyn/issues/47790")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub LogErrorsWithColumnNumbers()
             ' Arguments with quoted rootnamespace and main type are unquoted when
             ' the arguments are read in by the command line compiler.
