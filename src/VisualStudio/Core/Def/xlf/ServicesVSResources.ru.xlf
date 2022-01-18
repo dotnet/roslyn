@@ -1032,6 +1032,11 @@
         <target state="translated">Предпочитать статические локальные функции</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_trailing_commas">
+        <source>Prefer trailing commas</source>
+        <target state="new">Prefer trailing commas</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_tuple_swap">
         <source>Prefer tuple swap</source>
         <target state="translated">Предпочитать переключение кортежей</target>
