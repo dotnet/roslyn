@@ -75,9 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModel);
         }
 
-        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
-            => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
-
         public bool IsStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             return semanticModel.SyntaxTree.IsStatementContext(
