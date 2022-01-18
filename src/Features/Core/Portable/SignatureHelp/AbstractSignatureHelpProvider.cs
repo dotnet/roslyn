@@ -172,10 +172,6 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IList<SignatureHelpSymbolParameter> parameters,
             IList<SymbolDisplayPart>? descriptionParts)
         {
-            //prefixParts = structuralTypeDisplayService.InlineDelegateAnonymousTypes(prefixParts, semanticModel, position);
-            //separatorParts = structuralTypeDisplayService.InlineDelegateAnonymousTypes(separatorParts, semanticModel, position);
-            //suffixParts = structuralTypeDisplayService.InlineDelegateAnonymousTypes(suffixParts, semanticModel, position);
-            //parameters = parameters.Select(p => InlineDelegateAnonymousTypes(p, semanticModel, position, structuralTypeDisplayService)).ToList();
             descriptionParts = descriptionParts == null
                 ? SpecializedCollections.EmptyList<SymbolDisplayPart>()
                 : descriptionParts;
@@ -237,22 +233,6 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 info.ReplaceStructuralTypes(parameter.DisplayParts, semanticModel, position),
                 info.ReplaceStructuralTypes(parameter.SelectedDisplayParts, semanticModel, position));
         }
-
-        //private static SignatureHelpSymbolParameter InlineDelegateAnonymousTypes(
-        //    SignatureHelpSymbolParameter parameter,
-        //    SemanticModel semanticModel,
-        //    int position,
-        //    IStructuralTypeDisplayService structuralTypeDisplayService)
-        //{
-        //    return new SignatureHelpSymbolParameter(
-        //        parameter.Name,
-        //        parameter.IsOptional,
-        //        parameter.DocumentationFactory,
-        //        structuralTypeDisplayService.InlineDelegateAnonymousTypes(parameter.DisplayParts, semanticModel, position),
-        //        structuralTypeDisplayService.InlineDelegateAnonymousTypes(parameter.PrefixDisplayParts, semanticModel, position),
-        //        structuralTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SuffixDisplayParts, semanticModel, position),
-        //        structuralTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SelectedDisplayParts, semanticModel, position));
-        //}
 
         public async Task<SignatureHelpItems?> GetItemsAsync(
             Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)

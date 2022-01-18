@@ -73,9 +73,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
             }
 
-            // Now, inline any delegate anonymous types we've got.
-            // typeParts = this.InlineDelegateAnonymousTypes(typeParts, semanticModel, position);
-
             // Finally, assign a name to all the anonymous types.
             var structuralTypeToName = GenerateStructuralTypeNames(transitiveStructuralTypeReferences);
             typeParts = StructuralTypeDisplayInfo.ReplaceStructuralTypes(
