@@ -422,5 +422,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return GetXmlOption(CSharpCodeStyleOptions.NamespaceDeclarations); }
             set { SetXmlOption(CSharpCodeStyleOptions.NamespaceDeclarations, value); }
         }
+
+        public string Style_PreferTrailingCommas
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferTrailingCommas); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferTrailingCommas, value); }
+        }
     }
 }
