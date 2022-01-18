@@ -67,6 +67,11 @@
         <target state="translated">內嵌變數宣告</target>
         <note />
       </trans-unit>
+      <trans-unit id="Lambda_expression_can_be_removed">
+        <source>Lambda expression can be removed</source>
+        <target state="new">Lambda expression can be removed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
         <target state="translated">using 指示詞位置錯誤</target>
@@ -120,6 +125,11 @@
       <trans-unit id="Remove_suppression_operators">
         <source>Remove suppression operators</source>
         <target state="translated">移除隱藏的運算子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_lambda_expression">
+        <source>Remove unnecessary lambda expression</source>
+        <target state="new">Remove unnecessary lambda expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">

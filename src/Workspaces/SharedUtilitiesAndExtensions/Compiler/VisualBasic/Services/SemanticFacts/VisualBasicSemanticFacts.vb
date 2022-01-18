@@ -242,5 +242,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetLocalFunctionSymbols(compilation As Compilation, symbol As ISymbol, cancellationToken As CancellationToken) As ImmutableArray(Of IMethodSymbol) Implements ISemanticFacts.GetLocalFunctionSymbols
             Return ImmutableArray(Of IMethodSymbol).Empty
         End Function
+
+        Public Function IsInExpressionTree(semanticModel As SemanticModel, node As SyntaxNode, expressionTypeOpt As INamedTypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInExpressionTree
+            Return node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken)
+        End Function
     End Class
 End Namespace
