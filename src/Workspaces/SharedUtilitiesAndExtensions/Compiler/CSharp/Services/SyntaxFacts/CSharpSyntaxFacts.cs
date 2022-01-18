@@ -435,7 +435,21 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => c == '@';
 
         public bool IsValidIdentifier(string identifier)
-            => SyntaxFacts.IsValidIdentifier(identifier) && SyntaxFacts.GetKeywordKind(identifier) == SyntaxKind.None;
+        {
+            if (identifier.Length == 0)
+            {
+                return false;
+            }
+
+            if (identifier[0] == '@')
+            {
+                return SyntaxFacts.IsValidIdentifier(identifier.Substring(1));
+            }
+            else
+            {
+                return SyntaxFacts.IsValidIdentifier(identifier) && SyntaxFacts.GetKeywordKind(identifier) == SyntaxKind.None;
+            }
+        }
 
         public bool IsVerbatimIdentifier(string identifier)
         {
