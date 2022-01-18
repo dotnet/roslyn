@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
         private static bool IsIdentityOrImplicitConversion(Compilation compilation, ITypeSymbol type1, ITypeSymbol type2)
         {
             // Dynamic can have an identity conversion between types.  But it can have a very different effect on the
-            // generated code.  Do not allow the change if these are nto in agreement.
+            // generated code.  Do not allow the change if these are not in agreement.
             if (type1 is IDynamicTypeSymbol != type2 is IDynamicTypeSymbol)
                 return false;
 
