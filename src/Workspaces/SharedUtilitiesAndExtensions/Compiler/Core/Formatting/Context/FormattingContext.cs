@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return IsFormattingDisabled(spanBetweenTwoTokens);
         }
 
-        public AnalyzerConfigOptions Options => _engine.Options;
+        public SyntaxFormattingOptions Options => _engine.Options;
 
         public TreeData TreeData => _engine.TreeData;
 
