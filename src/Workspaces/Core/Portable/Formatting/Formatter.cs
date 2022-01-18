@@ -78,16 +78,12 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the document's workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted document.</returns>
-        public static async Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OptionSet? options = null, CancellationToken cancellationToken = default)
+        public static Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OptionSet? options = null, CancellationToken cancellationToken = default)
         {
             var formattingService = document.GetLanguageService<IFormattingService>();
-            if (formattingService == null)
-            {
-                return document;
-            }
-
-            options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return await formattingService.FormatAsync(document, spans, options, cancellationToken).ConfigureAwait(false);
+            return formattingService == null
+                ? SpecializedTasks.FromResult(document)
+                : formattingService.FormatAsync(document, spans, options, cancellationToken);
         }
 
         internal static async Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
