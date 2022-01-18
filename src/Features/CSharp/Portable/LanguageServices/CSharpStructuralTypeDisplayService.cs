@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
         protected override string DelegateKeyword => SyntaxFacts.GetText(SyntaxKind.DelegateKeyword);
 
         protected override ImmutableArray<SymbolDisplayPart> GetNormalAnonymousTypeParts(
-            INamedTypeSymbol anonymousType,
-            SemanticModel semanticModel,
-            int position)
+            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position)
         {
             using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var members);
 
