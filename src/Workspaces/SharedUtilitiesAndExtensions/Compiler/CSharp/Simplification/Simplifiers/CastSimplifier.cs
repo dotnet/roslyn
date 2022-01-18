@@ -81,6 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IsRemovableBitwiseEnumNegation(cast, semanticModel, cancellationToken))
                 return true;
 
+            // Special case for converting a method group to object. The compiler issues a warning if the cast is removed:
+            // warning CS8974: Converting method group 'ToString' to non-delegate type 'object'. Did you intend to invoke the method?
+            if (semanticModel.GetOperation(cast.Expression)?.Kind == OperationKind.MethodReference)
+                return false;
+
             return IsCastSafeToRemove(cast, cast.Expression, semanticModel, cancellationToken);
         }
 

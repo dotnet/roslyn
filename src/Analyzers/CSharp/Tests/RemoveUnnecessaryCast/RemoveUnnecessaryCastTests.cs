@@ -12644,5 +12644,26 @@ class C
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [WorkItem(58804, "https://github.com/dotnet/roslyn/issues/58804")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task ConvertingMethodGroupToObject()
+        {
+            var code = @"
+class C
+{
+    static object M(object o)
+    {
+        return (object)o.ToString;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
     }
 }
