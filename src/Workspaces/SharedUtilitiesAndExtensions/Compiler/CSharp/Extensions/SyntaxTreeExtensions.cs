@@ -354,10 +354,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar)
         {
             if (!token.IsKind(
-                SyntaxKind.StringLiteralToken,
-                SyntaxKind.CharacterLiteralToken,
-                SyntaxKind.SingleLineRawStringLiteralToken,
-                SyntaxKind.MultiLineRawStringLiteralToken))
+                    SyntaxKind.StringLiteralToken,
+                    SyntaxKind.CharacterLiteralToken,
+                    SyntaxKind.SingleLineRawStringLiteralToken,
+                    SyntaxKind.MultiLineRawStringLiteralToken))
             {
                 throw new ArgumentException(CSharpCompilerExtensionsResources.Expected_string_or_char_literal, nameof(token));
             }
@@ -401,10 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
             }
 
-            if (token.IsKind(
-                SyntaxKind.StringLiteralToken,
-                SyntaxKind.SingleLineRawStringLiteralToken,
-                SyntaxKind.MultiLineRawStringLiteralToken))
+            if (token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
             {
                 var span = token.Span;
 
@@ -416,13 +413,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             if (token.IsKind(
-                SyntaxKind.InterpolatedStringStartToken,
-                SyntaxKind.InterpolatedStringTextToken,
-                SyntaxKind.InterpolatedStringEndToken,
-                SyntaxKind.InterpolatedSingleLineRawStringStartToken,
-                SyntaxKind.InterpolatedSingleLineRawStringEndToken,
-                SyntaxKind.InterpolatedMultiLineRawStringStartToken,
-                SyntaxKind.InterpolatedMultiLineRawStringEndToken))
+                    SyntaxKind.InterpolatedStringStartToken,
+                    SyntaxKind.InterpolatedStringTextToken,
+                    SyntaxKind.InterpolatedStringEndToken,
+                    SyntaxKind.InterpolatedSingleLineRawStringStartToken,
+                    SyntaxKind.InterpolatedSingleLineRawStringEndToken,
+                    SyntaxKind.InterpolatedMultiLineRawStringStartToken,
+                    SyntaxKind.InterpolatedMultiLineRawStringEndToken))
             {
                 return token.SpanStart < position && token.Span.End > position;
             }

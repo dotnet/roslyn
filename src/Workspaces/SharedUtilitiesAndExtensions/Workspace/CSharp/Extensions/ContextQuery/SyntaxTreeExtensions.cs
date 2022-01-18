@@ -2656,9 +2656,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // $"{ |
             // $@"{ |
+            // $"""{ |
             // $"{x} { |
             // $@"{x} { |
-            if (token.IsKind(SyntaxKind.OpenBraceToken))
+            // $"""{x} { |
+            if (token.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.RawInterpolationOpenToken))
             {
                 return token.Parent.IsKind(SyntaxKind.Interpolation, out InterpolationSyntax? interpolation)
                     && interpolation.OpenBraceToken == token;

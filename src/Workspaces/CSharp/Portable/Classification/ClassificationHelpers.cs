@@ -151,9 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 || token.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken)
                 || token.IsKind(SyntaxKind.InterpolatedMultiLineRawStringEndToken)
                 || token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken)
-                || token.IsKind(SyntaxKind.SingleLineRawStringLiteralExpression)
-                || token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
-                || token.IsKind(SyntaxKind.MultiLineRawStringLiteralExpression);
+                || token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken);
         }
 
         private static bool IsVerbatimStringToken(SyntaxToken token)

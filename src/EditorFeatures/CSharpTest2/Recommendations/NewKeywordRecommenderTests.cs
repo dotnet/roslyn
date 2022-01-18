@@ -1117,5 +1117,36 @@ class C
             await VerifyKeywordAsync(AddInsideMethod(
 @"ref int x = ref $$"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRawStringInterpolation_SingleLine()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var x = $""""""{$$}"""""""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRawStringInterpolation_SingleLineIncomplete()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var x = $""""""{$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRawStringInterpolation_MultiLine()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var x = $""""""
+{$$}
+"""""""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRawStringInterpolation_MultiLineIncomplete()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var x = $""""""
+{$$"));
+        }
     }
 }
