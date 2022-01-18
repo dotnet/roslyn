@@ -578,11 +578,6 @@ namespace Analyzer.Utilities
         private static ICategorizedAnalyzerConfigOptions GetOrComputeCategorizedAnalyzerConfigOptions(
             this AnalyzerOptions options, Compilation compilation)
         {
-            if (options.AdditionalFiles.Any(f => PathHelper.GetFileName(f.Path).Equals(".editorconfig".AsSpan(), StringComparison.OrdinalIgnoreCase)))
-            {
-                throw new InvalidOperationException("Passing '.editorconfig' files as additional files is no longer needed. It will be implicitly discovered (if the file is in the project's directory or any ancestor directory), or it should be converted into a 'globalconfig'. See 'https://docs.microsoft.com/dotnet/fundamentals/code-analysis/configuration-files'.");
-            }
-
             // TryGetValue upfront to avoid allocating createValueCallback if the entry already exists.
             if (s_cachedOptions.TryGetValue(options, out var categorizedAnalyzerConfigOptions))
             {
