@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
 
-            if (_options.NewLineForClausesInQuery == newOptions.NewLineForClausesInQuery)
+            if (_options.NewLines.HasFlag(NewLinePlacement.BetweenQueryExpressionClauses) == newOptions.NewLines.HasFlag(NewLinePlacement.BetweenQueryExpressionClauses))
             {
                 return this;
             }
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SyntaxKind.SelectKeyword:
                     if (currentToken.GetAncestor<QueryExpressionSyntax>() != null)
                     {
-                        if (_options.NewLineForClausesInQuery)
+                        if (_options.NewLines.HasFlag(NewLinePlacement.BetweenQueryExpressionClauses))
                         {
                             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                         }

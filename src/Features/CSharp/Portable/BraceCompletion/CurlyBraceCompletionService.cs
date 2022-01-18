@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             {
                 var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
 
-                if (_options.NewLinesForBracesInObjectCollectionArrayInitializers == newOptions.NewLinesForBracesInObjectCollectionArrayInitializers)
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers) == newOptions.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers))
                 {
                     return this;
                 }
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                     SyntaxKind.ArrayInitializerExpression,
                     SyntaxKind.ImplicitArrayCreationExpression))
                 {
-                    if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
+                    if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers))
                     {
                         return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                     }

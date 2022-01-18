@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
 
-            if (_options.IndentBraces == newOptions.IndentBraces)
+            if (_options.Indentation.HasFlag(IndentationPlacement.Braces) == newOptions.Indentation.HasFlag(IndentationPlacement.Braces))
             {
                 return this;
             }
@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            if (_options.IndentBraces)
+            if (_options.Indentation.HasFlag(IndentationPlacement.Braces))
             {
-                AddIndentBlockOperation(list, bracePair.Item1, bracePair.Item1, bracePair.Item1.Span);
-                AddIndentBlockOperation(list, bracePair.Item2, bracePair.Item2, bracePair.Item2.Span);
+                AddIndentBlockOperation(list, bracePair.openBrace, bracePair.openBrace, bracePair.openBrace.Span);
+                AddIndentBlockOperation(list, bracePair.closeBrace, bracePair.closeBrace, bracePair.closeBrace.Span);
             }
         }
     }

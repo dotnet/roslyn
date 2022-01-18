@@ -34,10 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
 
             if (_options.LabelPositioning == newOptions.LabelPositioning &&
-                _options.IndentBlock == newOptions.IndentBlock &&
-                _options.IndentSwitchCaseSection == newOptions.IndentSwitchCaseSection &&
-                _options.IndentSwitchCaseSectionWhenBlock == newOptions.IndentSwitchCaseSectionWhenBlock &&
-                _options.IndentSwitchSection == newOptions.IndentSwitchSection)
+                _options.Indentation == newOptions.Indentation)
             {
                 return this;
             }
@@ -85,23 +82,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            if (!_options.IndentSwitchCaseSection && !_options.IndentSwitchCaseSectionWhenBlock)
+            if (!_options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContents) && !_options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock))
             {
                 // Never indent
                 return;
             }
 
-            var alwaysIndent = _options.IndentSwitchCaseSection && _options.IndentSwitchCaseSectionWhenBlock;
+            var alwaysIndent = _options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContents) && _options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock);
             if (!alwaysIndent)
             {
                 // Only one of these values can be true at this point.
-                Debug.Assert(_options.IndentSwitchCaseSection != _options.IndentSwitchCaseSectionWhenBlock);
+                Debug.Assert(_options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContents) != _options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock));
 
                 var firstStatementIsBlock =
                     section.Statements.Count > 0 &&
                     section.Statements[0].IsKind(SyntaxKind.Block);
 
-                if (_options.IndentSwitchCaseSectionWhenBlock != firstStatementIsBlock)
+                if (_options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock) != firstStatementIsBlock)
                 {
                     return;
                 }
@@ -232,13 +229,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracePair);
             }
 
-            if (node is BlockSyntax && !_options.IndentBlock)
+            if (node is BlockSyntax && !_options.Indentation.HasFlag(IndentationPlacement.BlockContents))
             {
                 // do not add indent operation for block
                 return;
             }
 
-            if (node is SwitchStatementSyntax && !_options.IndentSwitchSection)
+            if (node is SwitchStatementSyntax && !_options.Indentation.HasFlag(IndentationPlacement.SwitchSection))
             {
                 // do not add indent operation for switch statement
                 return;
