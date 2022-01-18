@@ -2051,7 +2051,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var property = node.PropertySymbol;
 
-            if (Binder.IsPropertyAssignedThroughBackingField(node, _symbol)) // PROTOTYPE(semi-auto-props): Revise this method call is the behavior we want and add unit tests..
+            // PROTOTYPE(semi-auto-props): Add tests for semi auto property once assigning in constructors is supported.
+            // A test that gets to this code path can be similar to CodeGenConstructorInitTests.TestInitializerInCtor003
+            if (Binder.IsReadingThroughBackingFieldInConstructor(node, _symbol))
             {
                 var backingField = (property as SourcePropertySymbolBase)?.BackingField;
                 if (backingField != null)

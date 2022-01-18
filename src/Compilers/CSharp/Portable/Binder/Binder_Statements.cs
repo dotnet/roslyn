@@ -1668,6 +1668,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new CSDiagnosticInfo(ErrorCode.ERR_BadEventUsageNoField, leastOverridden);
         }
 
+        internal static bool IsReadingThroughBackingFieldInConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
+        {
+            var propertySymbol = propertyAccess.PropertySymbol;
+            var receiver = propertyAccess.ReceiverOpt;
+            if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+            {
+                propertySymbol = propertySymbol.OriginalDefinition;
+            }
+
+            return propertySymbol is SourcePropertySymbolBase sourceProperty &&
+                sourceProperty.GetMethod is SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } &&
+                TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
+                    IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic) &&
+                    (sourceProperty.IsStatic || receiver.Kind == BoundKind.ThisReference);
+        }
+
         internal static bool IsPropertyAssignedThroughBackingField(BoundPropertyAccess propertyAccess, Symbol fromMember)
         {
             return IsPropertyAssignedThroughBackingField(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember);

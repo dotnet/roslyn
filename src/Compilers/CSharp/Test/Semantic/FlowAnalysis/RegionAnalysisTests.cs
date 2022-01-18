@@ -145,6 +145,144 @@ struct S
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
         }
 
+        [Fact]
+        public void DataFlowsInAndNullable_Property_InConstructor()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+struct S
+{
+    public int F;
+    public S(int f)
+    {
+        this.F = f;
+
+        int? i = 1;
+        S s = new S(1);
+
+/*<bind>*/
+        Console.WriteLine(i.Value);
+        Console.WriteLine(s.P);
+/*</bind>*/
+    }
+
+    public int P { get; set; }
+}
+");
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("i, s", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("f, i, s", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry));
+            Assert.Equal("f, i, s", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit));
+            Assert.Equal("i, s", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("this, f", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, f, i, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+        }
+
+        [Theory]
+        [InlineData("get;", true)]
+        [InlineData("get; set;", true)]
+        [InlineData("get => 0;", false)]
+        [InlineData("get => 0; set => _ = value;", false)]
+        public void DataFlowsInAndNullable_InstanceProperty(string accessors, bool isAutoProp)
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements($@"
+struct S
+{{
+    public int P {{ {accessors} }}
+
+    public S(int p)
+    {{
+        this.P = p;
+    }}
+
+    static void Main(string[] args)
+    {{
+        S s = new S(1);
+
+/*<bind>*/
+        Console.WriteLine(s.P);
+/*</bind>*/
+    }}
+}}
+");
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("args, s", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry));
+            Assert.Equal("args, s", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit));
+            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+
+            if (isAutoProp)
+            {
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            }
+            else
+            {
+                Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            }
+
+            Assert.Equal("args, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+        }
+
+        [Theory]
+        [InlineData("get;", true)]
+        [InlineData("get; set;", true)]
+        [InlineData("get => 0;", false)]
+        [InlineData("get => 0; set => _ = value;", false)]
+        public void DataFlowsInAndNullable_InstanceProperty_InConstructor(string accessors, bool isAutoProp)
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements($@"
+struct S
+{{
+    public int P {{ {accessors} }}
+
+    public S(int p)
+    {{
+        this.P = p;
+
+        S s = new S(1);
+
+/*<bind>*/
+        Console.WriteLine(s.P);
+/*</bind>*/
+    }}
+}}
+");
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("this, p, s", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry));
+            Assert.Equal("this, p, s", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit));
+            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("this, p", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+
+            if (isAutoProp)
+            {
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+                Assert.Equal("p, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+            }
+            else
+            {
+                Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+                Assert.Equal("this, p, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+            }
+
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+        }
+
         [WorkItem(538238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538238")]
         [Fact]
         public void TestDataFlowsIn03()
