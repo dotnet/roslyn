@@ -1414,7 +1414,7 @@ class Iterators
         {
             GetChars(null!);
         }
-        catch
+        catch (ArgumentNullException)
         {
             Console.Write(2);
         }
@@ -2095,7 +2095,7 @@ try
     await c.M(""a"");
     Console.Write(1);
 }
-catch
+catch (ArgumentNullException)
 {
     Console.Write(0);
 }
@@ -2105,7 +2105,7 @@ try
     _ = c.M(null!);
     Console.Write(0);
 }
-catch
+catch (ArgumentNullException)
 {
     Console.Write(2);
 }
@@ -2166,7 +2166,7 @@ class C
             await local(""a"");
             Console.Write(1);
         }
-        catch
+        catch (ArgumentNullException)
         {
             Console.Write(0);
         }
@@ -2176,7 +2176,7 @@ class C
             _ = local(null!);
             Console.Write(0);
         }
-        catch
+        catch (ArgumentNullException)
         {
             Console.Write(2);
         }
@@ -2217,6 +2217,73 @@ class C
         }
 
         [Fact]
+        public void AsyncLambda()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+await C.M();
+
+class C
+{
+    public static async Task M()
+    {
+        var lambda = async Task (string s!!) => { };
+        try
+        {
+            await lambda(""a"");
+            Console.Write(1);
+        }
+        catch (ArgumentNullException)
+        {
+            Console.Write(0);
+        }
+
+        try
+        {
+            _ = lambda(null!);
+            Console.Write(0);
+        }
+        catch (ArgumentNullException)
+        {
+            Console.Write(2);
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics(
+                // (11,46): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         var lambda = async Task (string s!!) => { };
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(11, 46));
+            verifier.VerifyIL("C.<>c.<M>b__0_0", @"
+{
+    // Code size       58 (0x3a)
+    .maxstack  2
+    .locals init (C.<>c.<<M>b__0_0>d V_0)
+    IL_0000:  ldarg.1
+    IL_0001:  ldstr      ""s""
+    IL_0006:  call       ""ThrowIfNull""
+    IL_000b:  ldloca.s   V_0
+    IL_000d:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()""
+    IL_0012:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<>c.<<M>b__0_0>d.<>t__builder""
+    IL_0017:  ldloca.s   V_0
+    IL_0019:  ldc.i4.m1
+    IL_001a:  stfld      ""int C.<>c.<<M>b__0_0>d.<>1__state""
+    IL_001f:  ldloca.s   V_0
+    IL_0021:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<>c.<<M>b__0_0>d.<>t__builder""
+    IL_0026:  ldloca.s   V_0
+    IL_0028:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<C.<>c.<<M>b__0_0>d>(ref C.<>c.<<M>b__0_0>d)""
+    IL_002d:  ldloca.s   V_0
+    IL_002f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<>c.<<M>b__0_0>d.<>t__builder""
+    IL_0034:  call       ""System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get""
+    IL_0039:  ret
+}
+");
+        }
+
+        [Fact]
         public void AsyncMethod_2()
         {
             var source = @"
@@ -2229,7 +2296,7 @@ try
     await c.M(""a"");
     Console.Write(1);
 }
-catch
+catch (ArgumentNullException)
 {
     Console.Write(0);
 }
@@ -2239,7 +2306,7 @@ try
     _ = c.M(null!);
     Console.Write(0);
 }
-catch
+catch (ArgumentNullException)
 {
     Console.Write(2);
 }

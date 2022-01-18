@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, localFunctionOrdinal);
                 }
 
-                return (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node)!;
+                return base.VisitLocalFunctionStatement(node)!;
             }
             finally
             {
