@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
-            OptionSet options,
+            ExtractMethodOptions options,
             bool selectionInExpression,
             SemanticDocument document,
             SyntaxAnnotation firstTokenAnnotation,
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public OperationStatus Status { get; }
         public TextSpan OriginalSpan { get; }
         public TextSpan FinalSpan { get; }
-        public OptionSet Options { get; }
+        public ExtractMethodOptions Options { get; }
         public bool SelectionInExpression { get; }
         public SemanticDocument SemanticDocument { get; private set; }
         public SyntaxAnnotation FirstTokenAnnotation { get; }
@@ -192,14 +192,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var argument = arguments[0];
             var expression = syntaxFacts.GetExpressionOfArgument(argument);
             return syntaxFacts.IsFalseLiteralExpression(expression);
-        }
-
-        public bool DontPutOutOrRefOnStruct
-        {
-            get
-            {
-                return Options.GetOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, SemanticDocument.Project.Language);
-            }
         }
     }
 }

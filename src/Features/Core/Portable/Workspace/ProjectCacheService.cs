@@ -42,6 +42,12 @@ namespace Microsoft.CodeAnalysis.Host
             _implicitCacheMonitor = new ImplicitCacheMonitor(this, implicitCacheTimeout);
         }
 
+        /// <summary>
+        /// Recoverable trees only save significant memory for larger trees.
+        /// </summary>
+        public int MinimumLengthForRecoverableTree
+            => 4 * 1024;
+
         public bool IsImplicitCacheEmpty
         {
             get

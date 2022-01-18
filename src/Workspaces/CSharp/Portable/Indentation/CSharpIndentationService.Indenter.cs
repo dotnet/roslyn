@@ -24,10 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         protected override ISmartTokenFormatter CreateSmartTokenFormatter(Indenter indenter)
         {
-            var workspace = indenter.Document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+            var services = indenter.Document.Project.Solution.Workspace.Services;
+            var formattingRuleFactory = services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
             var rules = formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start).Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document));
-
             return new CSharpSmartTokenFormatter(indenter.OptionSet, rules, indenter.Root);
         }
 

@@ -82,8 +82,9 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;</source>
-        <target state="translated">为重新分配变量添加下划线;
+Inheritance Margin;
+Stack Trace Explorer;</source>
+        <target state="needs-review-translation">为重新分配变量添加下划线;
 显示内联提示;
 显示对已关闭文件的诊断;
 对正则表达式着色;

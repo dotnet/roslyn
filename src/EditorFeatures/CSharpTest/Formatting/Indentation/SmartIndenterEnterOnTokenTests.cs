@@ -1519,7 +1519,7 @@ class C
 
             Assert.True(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                    Formatter.GetDefaultFormattingRules(workspace, root.Language),
+                    Formatter.GetDefaultFormattingRules(document),
                     root, line.AsTextLine(), optionService, await document.GetOptionsAsync(), out _));
 
             var actualIndentation = await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
@@ -1562,7 +1562,7 @@ class C
 
             Assert.False(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                    Formatter.GetDefaultFormattingRules(workspace, root.Language),
+                    Formatter.GetDefaultFormattingRules(document),
                     root, line.AsTextLine(), optionService, await document.GetOptionsAsync(), out _));
 
             TestIndentation(workspace, indentationLine, expectedIndentation);
