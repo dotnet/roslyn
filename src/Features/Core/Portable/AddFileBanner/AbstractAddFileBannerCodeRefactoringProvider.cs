@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var siblingBanner = await TryGetBannerAsync(siblingDocument, siblingRoot!, cancellationToken).ConfigureAwait(false);
+                var siblingBanner = await TryGetBannerAsync(siblingDocument, siblingRoot, cancellationToken).ConfigureAwait(false);
                 if (siblingBanner.Length > 0 && !siblingDocument.IsGeneratedCode(cancellationToken))
                 {
                     context.RegisterRefactoring(
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         }
 
         private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(
-            Document document, SyntaxNode root, CancellationToken cancellationToken)
+            Document document, SyntaxNode? root, CancellationToken cancellationToken)
         {
             var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
