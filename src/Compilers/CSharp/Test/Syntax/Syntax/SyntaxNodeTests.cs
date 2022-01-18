@@ -3808,9 +3808,9 @@ namespace HelloWorld
         public void TestExclamationExclamationUpdate()
         {
             var text = "(string s!!)";
-            var expression = SyntaxFactory.ParseParameterList(text).Parameters[0];
-            var newExpression = expression.Update(expression.AttributeLists, expression.Modifiers, expression.Type, expression.Identifier, expression.Default).ToString();
-            Assert.Equal("string s!!", newExpression);
+            var parameter = SyntaxFactory.ParseParameterList(text).Parameters[0];
+            var newParameter = parameter.Update(parameter.AttributeLists, parameter.Modifiers, parameter.Type, parameter.Identifier, parameter.Default).ToString();
+            Assert.Equal("string s!!", newParameter);
         }
     }
 }
