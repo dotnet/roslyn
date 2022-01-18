@@ -2,62 +2,79 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
+    [Flags]
+    internal enum SpacePlacement
+    {
+        IgnoreAroundVariableDeclaration = 1,
+        AfterMethodDeclarationName = 1 << 1,
+        BetweenEmptyMethodDeclarationParentheses = 1 << 2,
+        WithinMethodDeclarationParenthesis = 1 << 3,
+        AfterMethodCallName = 1 << 4,
+        BetweenEmptyMethodCallParentheses = 1 << 5,
+        WithinMethodCallParentheses = 1 << 6,
+        AfterControlFlowStatementKeyword = 1 << 7,
+        WithinExpressionParentheses = 1 << 8,
+        WithinCastParentheses = 1 << 9,
+        BeforeSemicolonsInForStatement = 1 << 10,
+        AfterSemicolonsInForStatement = 1 << 11,
+        WithinOtherParentheses = 1 << 12,
+        AfterCast = 1 << 13,
+        BeforeOpenSquareBracket = 1 << 14,
+        BetweenEmptySquareBrackets = 1 << 15,
+        WithinSquareBrackets = 1 << 16,
+        AfterColonInBaseTypeDeclaration = 1 << 17,
+        BeforeColonInBaseTypeDeclaration = 1 << 18,
+        AfterComma = 1 << 19,
+        BeforeComma = 1 << 20,
+        AfterDot = 1 << 21,
+        BeforeDot = 1 << 22,
+    }
+
+    [Flags]
+    internal enum NewLinePlacement
+    {
+        BeforeMembersInObjectInitializers = 1,
+        BeforeMembersInAnonymousTypes = 1 << 1,
+        BeforeElse = 1 << 2,
+        BeforeCatch = 1 << 3,
+        BeforeFinally = 1 << 4,
+        BeforeOpenBraceInTypes = 1 << 5,
+        BeforeOpenBraceInAnonymousTypes = 1 << 6,
+        BeforeOpenBraceInObjectCollectionArrayInitializers = 1 << 7,
+        BeforeOpenBraceInProperties = 1 << 8,
+        BeforeOpenBraceInMethods = 1 << 9,
+        BeforeOpenBraceInAccessors = 1 << 10,
+        BeforeOpenBraceInAnonymousMethods = 1 << 11,
+        BeforeOpenBraceInLambdaExpressionBody = 1 << 12,
+        BeforeOpenBraceInControlBlocks = 1 << 13,
+        BetweenQueryExpressionClauses = 1 << 14
+    }
+
+    [Flags]
+    internal enum IndentationPlacement
+    {
+        Braces = 1,
+        BlockContents = 1 << 1,
+        SwitchCaseContents = 1 << 2,
+        SwitchCaseContentsWhenBlock = 1 << 3,
+        SwitchSection = 1 << 4
+    }
+
     internal sealed class CSharpSyntaxFormattingOptions : SyntaxFormattingOptions
     {
-        public readonly bool IndentBraces;
-
-        public readonly bool SpacesIgnoreAroundVariableDeclaration;
-        public readonly bool SpacingAfterMethodDeclarationName;
-        public readonly bool SpaceBetweenEmptyMethodDeclarationParentheses;
-        public readonly bool SpaceWithinMethodDeclarationParenthesis;
-        public readonly bool SpaceAfterMethodCallName;
-        public readonly bool SpaceBetweenEmptyMethodCallParentheses;
-        public readonly bool SpaceWithinMethodCallParentheses;
-        public readonly bool SpaceAfterControlFlowStatementKeyword;
-        public readonly bool SpaceWithinExpressionParentheses;
-        public readonly bool SpaceWithinCastParentheses;
-        public readonly bool SpaceBeforeSemicolonsInForStatement;
-        public readonly bool SpaceAfterSemicolonsInForStatement;
-        public readonly bool SpaceWithinOtherParentheses;
-        public readonly bool SpaceAfterCast;
-        public readonly bool SpaceBeforeOpenSquareBracket;
-        public readonly bool SpaceBetweenEmptySquareBrackets;
-        public readonly bool SpaceWithinSquareBrackets;
-        public readonly bool SpaceAfterColonInBaseTypeDeclaration;
-        public readonly bool SpaceBeforeColonInBaseTypeDeclaration;
-        public readonly bool SpaceAfterComma;
-        public readonly bool SpaceBeforeComma;
-        public readonly bool SpaceAfterDot;
-        public readonly bool SpaceBeforeDot;
+        public readonly SpacePlacement Spacing;
         public readonly BinaryOperatorSpacingOptions SpacingAroundBinaryOperator;
-
-        public readonly bool NewLineForMembersInObjectInit;
-        public readonly bool NewLineForMembersInAnonymousTypes;
-        public readonly bool NewLineForElse;
-        public readonly bool NewLineForCatch;
-        public readonly bool NewLineForFinally;
-        public readonly bool NewLinesForBracesInTypes;
-        public readonly bool NewLinesForBracesInAnonymousTypes;
-        public readonly bool NewLinesForBracesInObjectCollectionArrayInitializers;
-        public readonly bool NewLinesForBracesInProperties;
-        public readonly bool NewLinesForBracesInMethods;
-        public readonly bool NewLinesForBracesInAccessors;
-        public readonly bool NewLinesForBracesInAnonymousMethods;
-        public readonly bool NewLinesForBracesInLambdaExpressionBody;
-        public readonly bool NewLinesForBracesInControlBlocks;
-        public readonly bool WrappingKeepStatementsOnSingleLine;
+        public readonly NewLinePlacement NewLines;
         public readonly LabelPositionOptions LabelPositioning;
-        public readonly bool IndentBlock;
-        public readonly bool IndentSwitchCaseSection;
-        public readonly bool IndentSwitchCaseSectionWhenBlock;
-        public readonly bool IndentSwitchSection;
-        public readonly bool NewLineForClausesInQuery;
+        public readonly IndentationPlacement Indentation;
+        public readonly bool WrappingKeepStatementsOnSingleLine;
         public readonly bool WrappingPreserveSingleLine;
 
         public CSharpSyntaxFormattingOptions(
@@ -66,52 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             int indentationSize,
             string newLine,
             bool separateImportDirectiveGroups,
-            bool indentBraces,
-            bool spacesIgnoreAroundVariableDeclaration,
-            bool spacingAfterMethodDeclarationName,
-            bool spaceBetweenEmptyMethodDeclarationParentheses,
-            bool spaceWithinMethodDeclarationParenthesis,
-            bool spaceAfterMethodCallName,
-            bool spaceBetweenEmptyMethodCallParentheses,
-            bool spaceWithinMethodCallParentheses,
-            bool spaceAfterControlFlowStatementKeyword,
-            bool spaceWithinExpressionParentheses,
-            bool spaceWithinCastParentheses,
-            bool spaceBeforeSemicolonsInForStatement,
-            bool spaceAfterSemicolonsInForStatement,
-            bool spaceWithinOtherParentheses,
-            bool spaceAfterCast,
-            bool spaceBeforeOpenSquareBracket,
-            bool spaceBetweenEmptySquareBrackets,
-            bool spaceWithinSquareBrackets,
-            bool spaceAfterColonInBaseTypeDeclaration,
-            bool spaceBeforeColonInBaseTypeDeclaration,
-            bool spaceAfterComma,
-            bool spaceBeforeComma,
-            bool spaceAfterDot,
-            bool spaceBeforeDot,
+            SpacePlacement spacing,
             BinaryOperatorSpacingOptions spacingAroundBinaryOperator,
-            bool newLineForMembersInObjectInit,
-            bool newLineForMembersInAnonymousTypes,
-            bool newLineForElse,
-            bool newLineForCatch,
-            bool newLineForFinally,
-            bool newLinesForBracesInTypes,
-            bool newLinesForBracesInAnonymousTypes,
-            bool newLinesForBracesInObjectCollectionArrayInitializers,
-            bool newLinesForBracesInProperties,
-            bool newLinesForBracesInMethods,
-            bool newLinesForBracesInAccessors,
-            bool newLinesForBracesInAnonymousMethods,
-            bool newLinesForBracesInLambdaExpressionBody,
-            bool newLinesForBracesInControlBlocks,
-            bool wrappingKeepStatementsOnSingleLine,
+            NewLinePlacement newLines,
             LabelPositionOptions labelPositioning,
-            bool indentBlock,
-            bool indentSwitchCaseSection,
-            bool indentSwitchCaseSectionWhenBlock,
-            bool indentSwitchSection,
-            bool newLineForClausesInQuery,
+            IndentationPlacement indentation,
+            bool wrappingKeepStatementsOnSingleLine,
             bool wrappingPreserveSingleLine)
             : base(useTabs,
                   tabSize,
@@ -119,52 +96,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                   newLine,
                   separateImportDirectiveGroups)
         {
-            IndentBraces = indentBraces;
-            SpacesIgnoreAroundVariableDeclaration = spacesIgnoreAroundVariableDeclaration;
-            SpacingAfterMethodDeclarationName = spacingAfterMethodDeclarationName;
-            SpaceBetweenEmptyMethodDeclarationParentheses = spaceBetweenEmptyMethodDeclarationParentheses;
-            SpaceWithinMethodDeclarationParenthesis = spaceWithinMethodDeclarationParenthesis;
-            SpaceAfterMethodCallName = spaceAfterMethodCallName;
-            SpaceBetweenEmptyMethodCallParentheses = spaceBetweenEmptyMethodCallParentheses;
-            SpaceWithinMethodCallParentheses = spaceWithinMethodCallParentheses;
-            SpaceAfterControlFlowStatementKeyword = spaceAfterControlFlowStatementKeyword;
-            SpaceWithinExpressionParentheses = spaceWithinExpressionParentheses;
-            SpaceWithinCastParentheses = spaceWithinCastParentheses;
-            SpaceBeforeSemicolonsInForStatement = spaceBeforeSemicolonsInForStatement;
-            SpaceAfterSemicolonsInForStatement = spaceAfterSemicolonsInForStatement;
-            SpaceWithinOtherParentheses = spaceWithinOtherParentheses;
-            SpaceAfterCast = spaceAfterCast;
-            SpaceBeforeOpenSquareBracket = spaceBeforeOpenSquareBracket;
-            SpaceBetweenEmptySquareBrackets = spaceBetweenEmptySquareBrackets;
-            SpaceWithinSquareBrackets = spaceWithinSquareBrackets;
-            SpaceAfterColonInBaseTypeDeclaration = spaceAfterColonInBaseTypeDeclaration;
-            SpaceBeforeColonInBaseTypeDeclaration = spaceBeforeColonInBaseTypeDeclaration;
-            SpaceAfterComma = spaceAfterComma;
-            SpaceBeforeComma = spaceBeforeComma;
-            SpaceAfterDot = spaceAfterDot;
-            SpaceBeforeDot = spaceBeforeDot;
+            Spacing = spacing;
             SpacingAroundBinaryOperator = spacingAroundBinaryOperator;
-            NewLineForMembersInObjectInit = newLineForMembersInObjectInit;
-            NewLineForMembersInAnonymousTypes = newLineForMembersInAnonymousTypes;
-            NewLineForElse = newLineForElse;
-            NewLineForCatch = newLineForCatch;
-            NewLineForFinally = newLineForFinally;
-            NewLinesForBracesInTypes = newLinesForBracesInTypes;
-            NewLinesForBracesInAnonymousTypes = newLinesForBracesInAnonymousTypes;
-            NewLinesForBracesInObjectCollectionArrayInitializers = newLinesForBracesInObjectCollectionArrayInitializers;
-            NewLinesForBracesInProperties = newLinesForBracesInProperties;
-            NewLinesForBracesInMethods = newLinesForBracesInMethods;
-            NewLinesForBracesInAccessors = newLinesForBracesInAccessors;
-            NewLinesForBracesInAnonymousMethods = newLinesForBracesInAnonymousMethods;
-            NewLinesForBracesInLambdaExpressionBody = newLinesForBracesInLambdaExpressionBody;
-            NewLinesForBracesInControlBlocks = newLinesForBracesInControlBlocks;
-            WrappingKeepStatementsOnSingleLine = wrappingKeepStatementsOnSingleLine;
+            NewLines = newLines;
             LabelPositioning = labelPositioning;
-            IndentBlock = indentBlock;
-            IndentSwitchCaseSection = indentSwitchCaseSection;
-            IndentSwitchCaseSectionWhenBlock = indentSwitchCaseSectionWhenBlock;
-            IndentSwitchSection = indentSwitchSection;
-            NewLineForClausesInQuery = newLineForClausesInQuery;
+            Indentation = indentation;
+            WrappingKeepStatementsOnSingleLine = wrappingKeepStatementsOnSingleLine;
             WrappingPreserveSingleLine = wrappingPreserveSingleLine;
         }
 
@@ -174,52 +111,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             indentationSize: FormattingOptions2.IndentationSize.DefaultValue,
             newLine: FormattingOptions2.NewLine.DefaultValue,
             separateImportDirectiveGroups: GenerationOptions.SeparateImportDirectiveGroups.DefaultValue,
-            indentBraces: CSharpFormattingOptions2.IndentBraces.DefaultValue,
-            spacesIgnoreAroundVariableDeclaration: CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration.DefaultValue,
-            spacingAfterMethodDeclarationName: CSharpFormattingOptions2.SpacingAfterMethodDeclarationName.DefaultValue,
-            spaceBetweenEmptyMethodDeclarationParentheses: CSharpFormattingOptions2.SpaceBetweenEmptyMethodDeclarationParentheses.DefaultValue,
-            spaceWithinMethodDeclarationParenthesis: CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis.DefaultValue,
-            spaceAfterMethodCallName: CSharpFormattingOptions2.SpaceAfterMethodCallName.DefaultValue,
-            spaceBetweenEmptyMethodCallParentheses: CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses.DefaultValue,
-            spaceWithinMethodCallParentheses: CSharpFormattingOptions2.SpaceWithinMethodCallParentheses.DefaultValue,
-            spaceAfterControlFlowStatementKeyword: CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword.DefaultValue,
-            spaceWithinExpressionParentheses: CSharpFormattingOptions2.SpaceWithinExpressionParentheses.DefaultValue,
-            spaceWithinCastParentheses: CSharpFormattingOptions2.SpaceWithinCastParentheses.DefaultValue,
-            spaceBeforeSemicolonsInForStatement: CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement.DefaultValue,
-            spaceAfterSemicolonsInForStatement: CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement.DefaultValue,
-            spaceWithinOtherParentheses: CSharpFormattingOptions2.SpaceWithinOtherParentheses.DefaultValue,
-            spaceAfterCast: CSharpFormattingOptions2.SpaceAfterCast.DefaultValue,
-            spaceBeforeOpenSquareBracket: CSharpFormattingOptions2.SpaceBeforeOpenSquareBracket.DefaultValue,
-            spaceBetweenEmptySquareBrackets: CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets.DefaultValue,
-            spaceWithinSquareBrackets: CSharpFormattingOptions2.SpaceWithinSquareBrackets.DefaultValue,
-            spaceAfterColonInBaseTypeDeclaration: CSharpFormattingOptions2.SpaceAfterColonInBaseTypeDeclaration.DefaultValue,
-            spaceBeforeColonInBaseTypeDeclaration: CSharpFormattingOptions2.SpaceBeforeColonInBaseTypeDeclaration.DefaultValue,
-            spaceAfterComma: CSharpFormattingOptions2.SpaceAfterComma.DefaultValue,
-            spaceBeforeComma: CSharpFormattingOptions2.SpaceBeforeComma.DefaultValue,
-            spaceAfterDot: CSharpFormattingOptions2.SpaceAfterDot.DefaultValue,
-            spaceBeforeDot: CSharpFormattingOptions2.SpaceBeforeDot.DefaultValue,
+            spacing:
+                (CSharpFormattingOptions2.SpacingAfterMethodDeclarationName.DefaultValue ? SpacePlacement.AfterMethodDeclarationName : 0) |
+                (CSharpFormattingOptions2.SpaceBetweenEmptyMethodDeclarationParentheses.DefaultValue ? SpacePlacement.BetweenEmptyMethodDeclarationParentheses : 0) |
+                (CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis.DefaultValue ? SpacePlacement.WithinMethodDeclarationParenthesis : 0) |
+                (CSharpFormattingOptions2.SpaceAfterMethodCallName.DefaultValue ? SpacePlacement.AfterMethodCallName : 0) |
+                (CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses.DefaultValue ? SpacePlacement.BetweenEmptyMethodCallParentheses : 0) |
+                (CSharpFormattingOptions2.SpaceWithinMethodCallParentheses.DefaultValue ? SpacePlacement.WithinMethodCallParentheses : 0) |
+                (CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword.DefaultValue ? SpacePlacement.AfterControlFlowStatementKeyword : 0) |
+                (CSharpFormattingOptions2.SpaceWithinExpressionParentheses.DefaultValue ? SpacePlacement.WithinExpressionParentheses : 0) |
+                (CSharpFormattingOptions2.SpaceWithinCastParentheses.DefaultValue ? SpacePlacement.WithinCastParentheses : 0) |
+                (CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement.DefaultValue ? SpacePlacement.BeforeSemicolonsInForStatement : 0) |
+                (CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement.DefaultValue ? SpacePlacement.AfterSemicolonsInForStatement : 0) |
+                (CSharpFormattingOptions2.SpaceWithinOtherParentheses.DefaultValue ? SpacePlacement.WithinOtherParentheses : 0) |
+                (CSharpFormattingOptions2.SpaceAfterCast.DefaultValue ? SpacePlacement.AfterCast : 0) |
+                (CSharpFormattingOptions2.SpaceBeforeOpenSquareBracket.DefaultValue ? SpacePlacement.BeforeOpenSquareBracket : 0) |
+                (CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets.DefaultValue ? SpacePlacement.BetweenEmptySquareBrackets : 0) |
+                (CSharpFormattingOptions2.SpaceWithinSquareBrackets.DefaultValue ? SpacePlacement.WithinSquareBrackets : 0) |
+                (CSharpFormattingOptions2.SpaceAfterColonInBaseTypeDeclaration.DefaultValue ? SpacePlacement.AfterColonInBaseTypeDeclaration : 0) |
+                (CSharpFormattingOptions2.SpaceBeforeColonInBaseTypeDeclaration.DefaultValue ? SpacePlacement.BeforeColonInBaseTypeDeclaration : 0) |
+                (CSharpFormattingOptions2.SpaceAfterComma.DefaultValue ? SpacePlacement.AfterComma : 0) |
+                (CSharpFormattingOptions2.SpaceBeforeComma.DefaultValue ? SpacePlacement.BeforeComma : 0) |
+                (CSharpFormattingOptions2.SpaceAfterDot.DefaultValue ? SpacePlacement.AfterDot : 0) |
+                (CSharpFormattingOptions2.SpaceBeforeDot.DefaultValue ? SpacePlacement.BeforeDot : 0),
             spacingAroundBinaryOperator: CSharpFormattingOptions2.SpacingAroundBinaryOperator.DefaultValue,
-            newLineForMembersInObjectInit: CSharpFormattingOptions2.NewLineForMembersInObjectInit.DefaultValue,
-            newLineForMembersInAnonymousTypes: CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes.DefaultValue,
-            newLineForElse: CSharpFormattingOptions2.NewLineForElse.DefaultValue,
-            newLineForCatch: CSharpFormattingOptions2.NewLineForCatch.DefaultValue,
-            newLineForFinally: CSharpFormattingOptions2.NewLineForFinally.DefaultValue,
-            newLinesForBracesInTypes: CSharpFormattingOptions2.NewLinesForBracesInTypes.DefaultValue,
-            newLinesForBracesInAnonymousTypes: CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes.DefaultValue,
-            newLinesForBracesInObjectCollectionArrayInitializers: CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers.DefaultValue,
-            newLinesForBracesInProperties: CSharpFormattingOptions2.NewLinesForBracesInProperties.DefaultValue,
-            newLinesForBracesInMethods: CSharpFormattingOptions2.NewLinesForBracesInMethods.DefaultValue,
-            newLinesForBracesInAccessors: CSharpFormattingOptions2.NewLinesForBracesInAccessors.DefaultValue,
-            newLinesForBracesInAnonymousMethods: CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods.DefaultValue,
-            newLinesForBracesInLambdaExpressionBody: CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody.DefaultValue,
-            newLinesForBracesInControlBlocks: CSharpFormattingOptions2.NewLinesForBracesInControlBlocks.DefaultValue,
-            wrappingKeepStatementsOnSingleLine: CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine.DefaultValue,
+            newLines:
+                (CSharpFormattingOptions2.NewLineForMembersInObjectInit.DefaultValue ? NewLinePlacement.BeforeMembersInObjectInitializers : 0) |
+                (CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes.DefaultValue ? NewLinePlacement.BeforeMembersInAnonymousTypes : 0) |
+                (CSharpFormattingOptions2.NewLineForElse.DefaultValue ? NewLinePlacement.BeforeElse : 0) |
+                (CSharpFormattingOptions2.NewLineForCatch.DefaultValue ? NewLinePlacement.BeforeCatch : 0) |
+                (CSharpFormattingOptions2.NewLineForFinally.DefaultValue ? NewLinePlacement.BeforeFinally : 0) |
+                (CSharpFormattingOptions2.NewLinesForBracesInTypes.DefaultValue ? NewLinePlacement.BeforeOpenBraceInTypes : 0) |
+                (CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes.DefaultValue ? NewLinePlacement.BeforeOpenBraceInAnonymousTypes : 0) |
+                (CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers.DefaultValue ? NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers : 0) |
+                (CSharpFormattingOptions2.NewLinesForBracesInProperties.DefaultValue ? NewLinePlacement.BeforeOpenBraceInProperties : 0) |
+                (CSharpFormattingOptions2.NewLinesForBracesInMethods.DefaultValue ? NewLinePlacement.BeforeOpenBraceInMethods : 0) |
+                (CSharpFormattingOptions2.NewLinesForBracesInAccessors.DefaultValue ? NewLinePlacement.BeforeOpenBraceInAccessors : 0) |
+                (CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods.DefaultValue ? NewLinePlacement.BeforeOpenBraceInAnonymousMethods : 0) |
+                (CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody.DefaultValue ? NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody : 0) |
+                (CSharpFormattingOptions2.NewLinesForBracesInControlBlocks.DefaultValue ? NewLinePlacement.BeforeOpenBraceInControlBlocks : 0) |
+                (CSharpFormattingOptions2.NewLineForClausesInQuery.DefaultValue ? NewLinePlacement.BetweenQueryExpressionClauses : 0),
             labelPositioning: CSharpFormattingOptions2.LabelPositioning.DefaultValue,
-            indentBlock: CSharpFormattingOptions2.IndentBlock.DefaultValue,
-            indentSwitchCaseSection: CSharpFormattingOptions2.IndentSwitchCaseSection.DefaultValue,
-            indentSwitchCaseSectionWhenBlock: CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock.DefaultValue,
-            indentSwitchSection: CSharpFormattingOptions2.IndentSwitchSection.DefaultValue,
-            newLineForClausesInQuery: CSharpFormattingOptions2.NewLineForClausesInQuery.DefaultValue,
+            indentation:
+                (CSharpFormattingOptions2.IndentBraces.DefaultValue ? IndentationPlacement.Braces : 0) |
+                (CSharpFormattingOptions2.IndentBlock.DefaultValue ? IndentationPlacement.BlockContents : 0) |
+                (CSharpFormattingOptions2.IndentSwitchCaseSection.DefaultValue ? IndentationPlacement.SwitchCaseContents : 0) |
+                (CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock.DefaultValue ? IndentationPlacement.SwitchCaseContentsWhenBlock : 0) |
+                (CSharpFormattingOptions2.IndentSwitchSection.DefaultValue ? IndentationPlacement.SwitchSection : 0),
+            wrappingKeepStatementsOnSingleLine: CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine.DefaultValue,
             wrappingPreserveSingleLine: CSharpFormattingOptions2.WrappingPreserveSingleLine.DefaultValue);
 
         public static CSharpSyntaxFormattingOptions Create(AnalyzerConfigOptions options)
@@ -229,52 +168,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 indentationSize: options.GetOption(FormattingOptions2.IndentationSize),
                 newLine: options.GetOption(FormattingOptions2.NewLine),
                 separateImportDirectiveGroups: options.GetOption(GenerationOptions.SeparateImportDirectiveGroups),
-                indentBraces: options.GetOption(CSharpFormattingOptions2.IndentBraces),
-                spacesIgnoreAroundVariableDeclaration: options.GetOption(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration),
-                spacingAfterMethodDeclarationName: options.GetOption(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName),
-                spaceBetweenEmptyMethodDeclarationParentheses: options.GetOption(CSharpFormattingOptions2.SpaceBetweenEmptyMethodDeclarationParentheses),
-                spaceWithinMethodDeclarationParenthesis: options.GetOption(CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis),
-                spaceAfterMethodCallName: options.GetOption(CSharpFormattingOptions2.SpaceAfterMethodCallName),
-                spaceBetweenEmptyMethodCallParentheses: options.GetOption(CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses),
-                spaceWithinMethodCallParentheses: options.GetOption(CSharpFormattingOptions2.SpaceWithinMethodCallParentheses),
-                spaceAfterControlFlowStatementKeyword: options.GetOption(CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword),
-                spaceWithinExpressionParentheses: options.GetOption(CSharpFormattingOptions2.SpaceWithinExpressionParentheses),
-                spaceWithinCastParentheses: options.GetOption(CSharpFormattingOptions2.SpaceWithinCastParentheses),
-                spaceBeforeSemicolonsInForStatement: options.GetOption(CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement),
-                spaceAfterSemicolonsInForStatement: options.GetOption(CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement),
-                spaceWithinOtherParentheses: options.GetOption(CSharpFormattingOptions2.SpaceWithinOtherParentheses),
-                spaceAfterCast: options.GetOption(CSharpFormattingOptions2.SpaceAfterCast),
-                spaceBeforeOpenSquareBracket: options.GetOption(CSharpFormattingOptions2.SpaceBeforeOpenSquareBracket),
-                spaceBetweenEmptySquareBrackets: options.GetOption(CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets),
-                spaceWithinSquareBrackets: options.GetOption(CSharpFormattingOptions2.SpaceWithinSquareBrackets),
-                spaceAfterColonInBaseTypeDeclaration: options.GetOption(CSharpFormattingOptions2.SpaceAfterColonInBaseTypeDeclaration),
-                spaceBeforeColonInBaseTypeDeclaration: options.GetOption(CSharpFormattingOptions2.SpaceBeforeColonInBaseTypeDeclaration),
-                spaceAfterComma: options.GetOption(CSharpFormattingOptions2.SpaceAfterComma),
-                spaceBeforeComma: options.GetOption(CSharpFormattingOptions2.SpaceBeforeComma),
-                spaceAfterDot: options.GetOption(CSharpFormattingOptions2.SpaceAfterDot),
-                spaceBeforeDot: options.GetOption(CSharpFormattingOptions2.SpaceBeforeDot),
+                spacing:
+                    (options.GetOption(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration) ? SpacePlacement.IgnoreAroundVariableDeclaration : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName) ? SpacePlacement.AfterMethodDeclarationName : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceBetweenEmptyMethodDeclarationParentheses) ? SpacePlacement.BetweenEmptyMethodDeclarationParentheses : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis) ? SpacePlacement.WithinMethodDeclarationParenthesis : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceAfterMethodCallName) ? SpacePlacement.AfterMethodCallName : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses) ? SpacePlacement.BetweenEmptyMethodCallParentheses : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceWithinMethodCallParentheses) ? SpacePlacement.WithinMethodCallParentheses : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword) ? SpacePlacement.AfterControlFlowStatementKeyword : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceWithinExpressionParentheses) ? SpacePlacement.WithinExpressionParentheses : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceWithinCastParentheses) ? SpacePlacement.WithinCastParentheses : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement) ? SpacePlacement.BeforeSemicolonsInForStatement : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement) ? SpacePlacement.AfterSemicolonsInForStatement : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceWithinOtherParentheses) ? SpacePlacement.WithinOtherParentheses : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceAfterCast) ? SpacePlacement.AfterCast : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceBeforeOpenSquareBracket) ? SpacePlacement.BeforeOpenSquareBracket : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets) ? SpacePlacement.BetweenEmptySquareBrackets : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceWithinSquareBrackets) ? SpacePlacement.WithinSquareBrackets : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceAfterColonInBaseTypeDeclaration) ? SpacePlacement.AfterColonInBaseTypeDeclaration : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceBeforeColonInBaseTypeDeclaration) ? SpacePlacement.BeforeColonInBaseTypeDeclaration : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceAfterComma) ? SpacePlacement.AfterComma : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceBeforeComma) ? SpacePlacement.BeforeComma : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceAfterDot) ? SpacePlacement.AfterDot : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.SpaceBeforeDot) ? SpacePlacement.BeforeDot : 0),
                 spacingAroundBinaryOperator: options.GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator),
-                newLineForMembersInObjectInit: options.GetOption(CSharpFormattingOptions2.NewLineForMembersInObjectInit),
-                newLineForMembersInAnonymousTypes: options.GetOption(CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes),
-                newLineForElse: options.GetOption(CSharpFormattingOptions2.NewLineForElse),
-                newLineForCatch: options.GetOption(CSharpFormattingOptions2.NewLineForCatch),
-                newLineForFinally: options.GetOption(CSharpFormattingOptions2.NewLineForFinally),
-                newLinesForBracesInTypes: options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInTypes),
-                newLinesForBracesInAnonymousTypes: options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes),
-                newLinesForBracesInObjectCollectionArrayInitializers: options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers),
-                newLinesForBracesInProperties: options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInProperties),
-                newLinesForBracesInMethods: options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInMethods),
-                newLinesForBracesInAccessors: options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInAccessors),
-                newLinesForBracesInAnonymousMethods: options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods),
-                newLinesForBracesInLambdaExpressionBody: options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody),
-                newLinesForBracesInControlBlocks: options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInControlBlocks),
-                wrappingKeepStatementsOnSingleLine: options.GetOption(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine),
+                newLines:
+                    (options.GetOption(CSharpFormattingOptions2.NewLineForMembersInObjectInit) ? NewLinePlacement.BeforeMembersInObjectInitializers : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes) ? NewLinePlacement.BeforeMembersInAnonymousTypes : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.NewLineForElse) ? NewLinePlacement.BeforeElse : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.NewLineForCatch) ? NewLinePlacement.BeforeCatch : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.NewLineForFinally) ? NewLinePlacement.BeforeFinally : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInTypes) ? NewLinePlacement.BeforeOpenBraceInTypes : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes) ? NewLinePlacement.BeforeOpenBraceInAnonymousTypes : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers) ? NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInProperties) ? NewLinePlacement.BeforeOpenBraceInProperties : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInMethods) ? NewLinePlacement.BeforeOpenBraceInMethods : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInAccessors) ? NewLinePlacement.BeforeOpenBraceInAccessors : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods) ? NewLinePlacement.BeforeOpenBraceInAnonymousMethods : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody) ? NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInControlBlocks) ? NewLinePlacement.BeforeOpenBraceInControlBlocks : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.NewLineForClausesInQuery) ? NewLinePlacement.BetweenQueryExpressionClauses : 0),
                 labelPositioning: options.GetOption(CSharpFormattingOptions2.LabelPositioning),
-                indentBlock: options.GetOption(CSharpFormattingOptions2.IndentBlock),
-                indentSwitchCaseSection: options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSection),
-                indentSwitchCaseSectionWhenBlock: options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock),
-                indentSwitchSection: options.GetOption(CSharpFormattingOptions2.IndentSwitchSection),
-                newLineForClausesInQuery: options.GetOption(CSharpFormattingOptions2.NewLineForClausesInQuery),
+                indentation:
+                    (options.GetOption(CSharpFormattingOptions2.IndentBraces) ? IndentationPlacement.Braces : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.IndentBlock) ? IndentationPlacement.BlockContents : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSection) ? IndentationPlacement.SwitchCaseContents : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock) ? IndentationPlacement.SwitchCaseContentsWhenBlock : 0) |
+                    (options.GetOption(CSharpFormattingOptions2.IndentSwitchSection) ? IndentationPlacement.SwitchSection : 0),
+                wrappingKeepStatementsOnSingleLine: options.GetOption(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine),
                 wrappingPreserveSingleLine: options.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine));
     }
 }
