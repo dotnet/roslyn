@@ -82,9 +82,8 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</source>
-        <target state="needs-review-translation">다시 할당된 변수에 밑줄 긋기;
+Inheritance Margin;</source>
+        <target state="translated">다시 할당된 변수에 밑줄 긋기;
 인라인 힌트 표시;
 닫힌 파일에 대한 진단 표시;
 정규식 색 지정; 

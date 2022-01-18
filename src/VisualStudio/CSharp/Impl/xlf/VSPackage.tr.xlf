@@ -82,9 +82,8 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</source>
-        <target state="needs-review-translation">Yeniden atanan değişkenleri altını çiz;
+Inheritance Margin;</source>
+        <target state="translated">Yeniden atanan değişkenleri altını çiz;
 Satır içi ipuçlarını göster;
 Kapatılan dosyalara ilişkin tanılamaları göster;
 Normal ifadeyi renklendir; 

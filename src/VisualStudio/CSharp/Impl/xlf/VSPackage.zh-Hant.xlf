@@ -82,9 +82,8 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</source>
-        <target state="needs-review-translation">為重新指派的變數加上底線;
+Inheritance Margin;</source>
+        <target state="translated">為重新指派的變數加上底線;
 顯示內嵌提示;
 顯示已關閉檔案的診斷;
 為規則運算式添加色彩; 
