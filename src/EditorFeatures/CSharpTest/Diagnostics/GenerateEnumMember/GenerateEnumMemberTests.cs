@@ -50,7 +50,7 @@ enum Color
 
 enum Color
 {
-    Red
+    Red,
 }");
         }
 
@@ -81,7 +81,7 @@ enum Color
 enum Color
 {
     Red,
-    Blue
+    Blue,
 }");
         }
 
@@ -145,7 +145,7 @@ enum Color
 {
     Red,
     Blue,
-    Green
+    Green,
 }");
         }
 
@@ -176,7 +176,7 @@ enum Color
 enum Color
 {
     Red = 0,
-    Blue = 1
+    Blue = 1,
 }");
         }
 
@@ -207,7 +207,7 @@ enum Color
 enum Color
 {
     Red = 1,
-    Blue = 2
+    Blue = 2,
 }");
         }
 
@@ -238,7 +238,7 @@ enum Color
 enum Color
 {
     Red = 2,
-    Blue = 4
+    Blue = 4,
 }");
         }
 
@@ -273,7 +273,7 @@ enum Color
     Red = 1,
     Yellow = 2,
     Green = 4,
-    Blue = 8
+    Blue = 8,
 }");
         }
 
@@ -306,7 +306,7 @@ enum Color
 {
     Red = 1,
     Green = 2,
-    Blue = 3
+    Blue = 3,
 }");
         }
 
@@ -341,7 +341,7 @@ enum Color
     Yellow = 0,
     Red = 1,
     Green = 2,
-    Blue = 3
+    Blue = 3,
 }");
         }
 
@@ -372,7 +372,7 @@ enum Color
 enum Color
 {
     Green = 5,
-    Blue = 6
+    Blue = 6,
 }");
         }
 
@@ -403,7 +403,7 @@ enum Color
 enum Color
 {
     Green = 1 << 0,
-    Blue = 1 << 1
+    Blue = 1 << 1,
 }");
         }
 
@@ -434,7 +434,7 @@ enum Color
 enum Color
 {
     Green = 1 << 5,
-    Blue = 1 << 6
+    Blue = 1 << 6,
 }");
         }
 
@@ -467,7 +467,7 @@ enum Color
 {
     Red = 2,
     Green = 1 << 5,
-    Blue = 33
+    Blue = 33,
 }");
         }
 
@@ -498,7 +498,7 @@ enum Color
 enum Color
 {
     Red = 0b01,
-    Blue = 0b10
+    Blue = 0b10,
 }");
         }
 
@@ -529,7 +529,7 @@ enum Color
 enum Color
 {
     Red = 0x1,
-    Blue = 0x2
+    Blue = 0x2,
 }");
         }
 
@@ -560,7 +560,7 @@ enum Color
 enum Color
 {
     Red = 0x9,
-    Blue = 0xA
+    Blue = 0xA,
 }");
         }
 
@@ -591,7 +591,7 @@ enum Color
 enum Color
 {
     Red = 0xF,
-    Blue = 0x10
+    Blue = 0x10,
 }");
         }
 
@@ -622,7 +622,7 @@ enum Color
 enum Color
 {
     Red = int.MaxValue,
-    Blue = int.MinValue
+    Blue = int.MinValue,
 }");
         }
 
@@ -653,7 +653,7 @@ enum Color : ushort
 enum Color : ushort
 {
     Red = 65535,
-    Blue = 0
+    Blue = 0,
 }");
         }
 
@@ -684,7 +684,7 @@ enum Color : long
 enum Color : long
 {
     Red = long.MaxValue,
-    Blue = long.MinValue
+    Blue = long.MinValue,
 }");
         }
 
@@ -715,7 +715,7 @@ enum Color : long
 enum Color : long
 {
     Red = 0b0111111111111111111111111111111111111111111111111111111111111111,
-    Blue = 0b1000000000000000000000000000000000000000000000000000000000000000
+    Blue = 0b1000000000000000000000000000000000000000000000000000000000000000,
 }");
         }
 
@@ -746,7 +746,7 @@ enum Color : long
 enum Color : long
 {
     Red = 0x7FFFFFFFFFFFFFFF,
-    Blue = 0x8000000000000000
+    Blue = 0x8000000000000000,
 }");
         }
 
@@ -778,7 +778,7 @@ enum Color : long
 enum Color : long
 {
     Red = 0xFFFFFFFFFFFFFFFF,
-    Blue
+    Blue,
 }");
         }
 
@@ -812,7 +812,7 @@ enum Color : long
 {
     Red = 0xFFFFFFFFFFFFFFFF,
     Green = 0x0,
-    Blue = 0x1
+    Blue = 0x1,
 }");
         }
 
@@ -843,7 +843,7 @@ enum Color : long
 enum Color : long
 {
     Red = 0x414 / 2,
-    Blue = 523
+    Blue = 523,
 }");
         }
 
@@ -874,7 +874,7 @@ enum Color : ulong
 enum Color : ulong
 {
     Red = ulong.MaxValue,
-    Blue = 0
+    Blue = 0,
 }");
         }
 
@@ -905,7 +905,7 @@ enum Color : long
 enum Color : long
 {
     Red = -10,
-    Blue = -9
+    Blue = -9,
 }");
         }
 
@@ -940,7 +940,7 @@ enum Color
     Red,
     Green,
     Yellow = -1,
-    Blue = 2
+    Blue = 2,
 }");
         }
 
@@ -975,7 +975,7 @@ enum Color
     Red,
     Green = 10,
     Yellow,
-    Blue
+    Blue,
 }");
         }
 
@@ -1007,7 +1007,7 @@ enum Color
 enum Color 
 {
     Red,
-    Blue
+    Blue,
     //Blue
 }");
         }
@@ -1040,7 +1040,7 @@ enum Color
 enum Color 
 {
     Red,
-    Blue
+    Blue,
     /*Blue*/
 }");
         }
@@ -1072,7 +1072,7 @@ enum Color
 enum Color
 {
     Red = int.MinValue,
-    Blue = -2147483647
+    Blue = -2147483647,
 }");
         }
 
@@ -1103,7 +1103,7 @@ enum Color
 enum Color
 {
     Red = int.MinValue + 100,
-    Blue = -2147483547
+    Blue = -2147483547,
 }");
         }
 
@@ -1134,7 +1134,7 @@ enum Color : byte
 enum Color : byte
 {
     Red = 255,
-    Blue = 0
+    Blue = 0,
 }");
         }
 
@@ -1167,7 +1167,7 @@ enum Color
 {
     Red = 1 << 1,
     Green = 1 << 2,
-    Blue = 1 << 3
+    Blue = 1 << 3,
 }");
         }
 
@@ -1198,7 +1198,7 @@ enum Color
 enum Color
 {
     Red = 2 >> 1,
-    Blue = 2
+    Blue = 2,
 }");
         }
 
@@ -1231,7 +1231,7 @@ enum Color
 {
     Red = int.MinValue,
     Green = 1,
-    Blue = 2
+    Blue = 2,
 }");
         }
 
@@ -1264,7 +1264,7 @@ enum Circular
 {
     A = B,
     B,
-    C
+    C,
 }");
         }
 
@@ -1295,7 +1295,7 @@ enum Circular : byte
 enum Circular : byte
 {
     A = -2,
-    B
+    B,
 }");
         }
 
@@ -1334,7 +1334,7 @@ class A
     public new enum BaseColor
     {
         Yellow = 3,
-        Blue = 4
+        Blue = 4,
     }
 }
 
@@ -1383,7 +1383,7 @@ class A
     public enum BaseColor
     {
         Yellow = 3,
-        Blue = 4
+        Blue = 4,
     }
 }
 
@@ -1431,7 +1431,7 @@ class A
     {
         Red = 1,
         Green = 2,
-        Blue = 3
+        Blue = 3,
     }
 }");
         }
@@ -1467,7 +1467,7 @@ enum Color
     Red,
     Green,
     Yellow = Green,
-    Blue = 2
+    Blue = 2,
 }");
         }
 
@@ -1504,7 +1504,7 @@ enum Color
     Red,
     Green = 10,
     Yellow,
-    Blue
+    Blue,
 }");
         }
 
@@ -1533,7 +1533,7 @@ enum Weekday
 enum Weekday
 {
     Monday,
-    Tuesday
+    Tuesday,
 }");
         }
 
@@ -1565,7 +1565,7 @@ enum Color
 enum Color
 {
     Red,
-    @enum
+    @enum,
 }");
         }
 
@@ -1682,7 +1682,7 @@ class Program
 {
     A = 1,
     B,
-    C
+    C,
 }
 
 class Program
@@ -1721,7 +1721,7 @@ enum Color : long
 enum Color : long
 {
     Green = 1L << 0,
-    Blue = 1L << 1
+    Blue = 1L << 1,
 }");
         }
 
@@ -1753,7 +1753,7 @@ enum Color : uint
 enum Color : uint
 {
     Green = 1u << 0,
-    Blue = 1u << 1
+    Blue = 1u << 1,
 }");
         }
 
@@ -1785,7 +1785,7 @@ enum Color : ulong
 enum Color : ulong
 {
     Green = 1UL << 0,
-    Blue = 1UL << 1
+    Blue = 1UL << 1,
 }");
         }
     }

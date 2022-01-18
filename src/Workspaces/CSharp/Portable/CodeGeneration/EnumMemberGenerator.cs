@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var member = GenerateEnumMemberDeclaration(enumMember, destination, options, cancellationToken);
 
-            if (members.Count > 0 && !members.LastOrDefault().IsKind(SyntaxKind.CommaToken))
+            if (members.Count > 0 && !members[^1].IsKind(SyntaxKind.CommaToken))
             {
                 var lastMember = members.Last();
                 var trailingTrivia = lastMember.GetTrailingTrivia();
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             members.Add(member);
 
-            if (options.Options.GetOption(CSharpCodeStyleOptions.PreferTrailingCommas).Value)
+            if (options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferTrailingCommas).Value)
             {
                 members.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
             }
