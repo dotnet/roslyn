@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
     <Export, [Shared]>
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
         Public Sub New()
         End Sub
 
-        Protected Overrides ReadOnly Property DelegateKeyword As String = SyntaxFacts.GetText(SyntaxKind.DelegateKeyword)
+        Protected Overrides ReadOnly Property SyntaxFactsService As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
         Protected Overrides Function GetNormalAnonymousTypeParts(
                 anonymousType As INamedTypeSymbol,

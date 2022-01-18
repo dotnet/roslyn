@@ -10,11 +10,11 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
         {
         }
 
-        protected override string DelegateKeyword => SyntaxFacts.GetText(SyntaxKind.DelegateKeyword);
+        protected override ISyntaxFacts SyntaxFactsService => CSharpSyntaxFacts.Instance;
 
         protected override ImmutableArray<SymbolDisplayPart> GetNormalAnonymousTypeParts(
             INamedTypeSymbol anonymousType,
