@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private LoweredDynamicOperationFactory _dynamicFactory;
         private bool _sawLambdas;
         private int _availableLocalFunctionOrdinal;
+        private readonly int _topLevelMethodOrdinal;
+        private DelegateCacheRewriter? _lazyDelegateCacheRewriter;
         private bool _inExpressionLambda;
 
         private bool _sawAwait;
@@ -57,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
+            _topLevelMethodOrdinal = containingMethodOrdinal;
             _diagnostics = diagnostics;
 
             Debug.Assert(instrumenter != null);

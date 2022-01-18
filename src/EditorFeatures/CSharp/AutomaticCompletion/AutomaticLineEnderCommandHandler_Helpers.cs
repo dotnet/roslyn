@@ -27,9 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             SyntaxNode newNode,
             SyntaxNode anchorNode,
             ImmutableArray<StatementSyntax> nodesToInsert,
+            DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
         {
-            var rootEditor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var services = document.Project.Solution.Workspace.Services;
+            var rootEditor = new SyntaxEditor(root, services);
 
             // 1. Insert the node before anchor node
             rootEditor.InsertAfter(anchorNode, nodesToInsert);
@@ -40,11 +42,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
             // 4. Format the new node so that the inserted braces/blocks would have correct indentation and formatting.
             var newNodeAfterInsertion = newRoot.GetAnnotatedNodes(s_replacementNodeAnnotation).Single();
+
+            var options = SyntaxFormattingOptions.Create(documentOptions, services, root.Language);
+
             var formattedNewRoot = Formatter.Format(
                 newRoot,
                 newNodeAfterInsertion.Span,
-                document.Project.Solution.Workspace,
-                cancellationToken: cancellationToken);
+                services,
+                options,
+                cancellationToken);
 
             // 4. Use the annotation to find the end of the open brace, it would be the new caret position
             var nextCaretPosition = formattedNewRoot.GetAnnotatedTokens(s_openBracePositionAnnotation).Single().Span.End;
@@ -70,11 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             var newNodeAfterInsertion = newRoot.GetAnnotatedNodes(s_replacementNodeAnnotation).Single();
 
             // 4. Format the new node so that the inserted braces/blocks would have correct indentation and formatting.
-            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var options = SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
             var formattedNewRoot = Formatter.Format(
                 newRoot,
                 newNodeAfterInsertion.Span,
-                document.Project.Solution.Workspace,
+                document.Project.Solution.Workspace.Services,
                 options,
                 cancellationToken: cancellationToken);
             return formattedNewRoot;
@@ -145,6 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                           newNode: AddBlockToEmbeddedStatementOwner(embeddedStatementOwner, documentOptions),
                           anchorNode: embeddedStatementOwner,
                           nodesToInsert: ImmutableArray<StatementSyntax>.Empty.Add(statement),
+                          documentOptions,
                           cancellationToken),
                 DoStatementSyntax doStatementNode => AddBraceToDoStatement(document, root, doStatementNode, documentOptions, statement, cancellationToken),
                 IfStatementSyntax ifStatementNode => AddBraceToIfStatement(document, root, ifStatementNode, documentOptions, statement, cancellationToken),
@@ -184,6 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     newNode: AddBlockToEmbeddedStatementOwner(doStatementNode, documentOptions),
                     anchorNode: doStatementNode,
                     nodesToInsert: ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                    documentOptions,
                     cancellationToken);
             }
 
@@ -236,6 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     AddBlockToEmbeddedStatementOwner(ifStatementNode, documentOptions),
                     ifStatementNode,
                     ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                    documentOptions,
                     cancellationToken);
             }
 
@@ -300,6 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     WithBraces(elseClauseNode, documentOptions),
                     elseClauseNode.Parent!,
                     ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                    documentOptions,
                     cancellationToken);
             }
 

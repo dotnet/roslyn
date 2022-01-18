@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public FunctionPointerParameterSymbol(TypeWithAnnotations typeWithAnnotations, RefKind refKind, int ordinal, FunctionPointerMethodSymbol containingSymbol, ImmutableArray<CustomModifier> refCustomModifiers)
         {
+            Debug.Assert(typeWithAnnotations.HasType);
             TypeWithAnnotations = typeWithAnnotations;
             RefKind = refKind;
             Ordinal = ordinal;

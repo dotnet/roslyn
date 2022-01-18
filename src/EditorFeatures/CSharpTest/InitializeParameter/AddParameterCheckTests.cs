@@ -2743,5 +2743,69 @@ class C
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
             }.RunAsync();
         }
+
+        [WorkItem(58811, "https://github.com/dotnet/roslyn/issues/58811")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingParameter1()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public C(string s,[||]{|CS1031:{|CS1001:)|}|}
+    {
+    }
+}";
+            await VerifyCS.VerifyRefactoringAsync(source, source);
+        }
+
+        [WorkItem(58811, "https://github.com/dotnet/roslyn/issues/58811")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingParameter2()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public C(string s,[||] {|CS1031:{|CS1001:)|}|}
+    {
+    }
+}";
+            await VerifyCS.VerifyRefactoringAsync(source, source);
+        }
+
+        [WorkItem(58811, "https://github.com/dotnet/roslyn/issues/58811")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingParameter3()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public C(string s, [||]{|CS1031:{|CS1001:)|}|}
+    {
+    }
+}";
+            await VerifyCS.VerifyRefactoringAsync(source, source);
+        }
+
+        [WorkItem(58811, "https://github.com/dotnet/roslyn/issues/58811")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingParameter4()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public C(string s, [||] {|CS1031:{|CS1001:)|}|}
+    {
+    }
+}";
+            await VerifyCS.VerifyRefactoringAsync(source, source);
+        }
     }
 }

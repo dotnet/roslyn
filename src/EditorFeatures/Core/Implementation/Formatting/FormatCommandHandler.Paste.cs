@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             }
         }
 
-        private static void ExecuteCommandWorker(PasteCommandArgs args, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
+        private void ExecuteCommandWorker(PasteCommandArgs args, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
         {
             if (!caretPosition.HasValue)
             {
@@ -60,12 +60,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            var solution = document.Project.Solution;
-            if (!solution.Options.GetOption(FormattingBehaviorOptions.FormatOnPaste, document.Project.Language))
+            if (!_globalOptions.GetOption(FormattingOptionsMetadata.FormatOnPaste, document.Project.Language))
             {
                 return;
             }
 
+            var solution = document.Project.Solution;
             if (!solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
                 return;

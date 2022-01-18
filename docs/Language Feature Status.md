@@ -26,7 +26,7 @@ efforts behind them.
 | [Cache delegates for static method group](https://github.com/dotnet/roslyn/issues/5835) | main | [In Progress](https://github.com/dotnet/roslyn/pull/58288) | [pawchen](https://github.com/pawchen) | [AlekseyTs](https://github.com/AlekseyTs), [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs) |
 | [Switch on ReadOnlySpan<char>](https://github.com/dotnet/csharplang/issues/1881) | main | [In Progress](https://github.com/dotnet/roslyn/pull/44388) | [YairHalberstadt ](https://github.com/YairHalberstadt) | [cston](https://github.com/cston), [RikkiGibson](https://github.com/RikkiGibson) | [jcouv](https://github.com/jcouv) |
 | [nameof accessing instance memebers](https://github.com/dotnet/roslyn/issues/40229) | main | [In Progress](https://github.com/dotnet/roslyn/pull/48754) | [YairHalberstadt ](https://github.com/YairHalberstadt) | [333fred](https://github.com/333fred), [AlekseyTs](https://github.com/AlekseyTs)  | [333fred](https://github.com/333fred) |
-
+| [Utf8 String Literals](https://github.com/dotnet/csharplang/issues/184) | [Utf8StringLiterals](https://github.com/dotnet/roslyn/tree/features/Utf8StringLiterals) | [In Progress](https://github.com/dotnet/roslyn/issues/58848) | [AlekseyTs](https://github.com/AlekseyTs) | [cston](https://github.com/cston), [RikkiGibson](https://github.com/RikkiGibson) | [MadsTorgersen](https://github.com/MadsTorgersen) |
   
 # C# 10.0
 

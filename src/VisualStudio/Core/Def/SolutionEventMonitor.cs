@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Notification;
@@ -12,15 +10,17 @@ using Microsoft.VisualStudio.Shell;
 namespace Microsoft.VisualStudio.LanguageServices
 {
     /// <summary>
-    /// Monitors Visual Studio's UIContext for SolutionBuilding and notifies the GlobalOperationService.
-    /// The intent is to suspend analysis of non-essential files for the duration of a build.
+    /// Monitors Visual Studio's UIContext for Solution building/opening/closing and notifies the GlobalOperationService.
+    /// The intent is to suspend analysis of non-essential files for the duration of these solution operations.
     /// </summary>
     internal sealed class SolutionEventMonitor : IDisposable
     {
         private const string SolutionBuilding = "Solution Building";
         private const string SolutionOpening = "Solution Opening";
+        private const string SolutionClosing = "Solution Closing";
 
-        private IGlobalOperationNotificationService _notificationService;
+        private readonly UIContext? _solutionClosingContext;
+        private IGlobalOperationNotificationService? _notificationService;
         private readonly Dictionary<string, GlobalOperationRegistration> _operations = new();
 
         public SolutionEventMonitor(VisualStudioWorkspace workspace)
@@ -45,6 +45,16 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
 
                 KnownUIContexts.SolutionOpeningContext.UIContextChanged += SolutionOpeningContextChanged;
+
+                _solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
+
+                // make sure we set initial state correctly. otherwise, we can get into a race where we might miss the very first events
+                if (_solutionClosingContext.IsActive)
+                {
+                    ContextChanged(active: true, operation: SolutionClosing);
+                }
+
+                _solutionClosingContext.UIContextChanged += SolutionClosingContextChanged;
             }
         }
 
@@ -62,6 +72,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                 _notificationService = null;
                 KnownUIContexts.SolutionBuildingContext.UIContextChanged -= SolutionBuildingContextChanged;
                 KnownUIContexts.SolutionOpeningContext.UIContextChanged -= SolutionOpeningContextChanged;
+
+                if (_solutionClosingContext != null)
+                    _solutionClosingContext.UIContextChanged -= SolutionClosingContextChanged;
             }
         }
 
@@ -70,6 +83,9 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void SolutionOpeningContextChanged(object sender, UIContextChangedEventArgs e)
             => ContextChanged(e.Activated, SolutionOpening);
+
+        private void SolutionClosingContextChanged(object sender, UIContextChangedEventArgs e)
+            => ContextChanged(e.Activated, SolutionClosing);
 
         private void ContextChanged(bool active, string operation)
         {

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -140,27 +141,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
                 ? TestWorkspace.CreateCSharp(codeWithMarker, composition: s_composition)
                 : TestWorkspace.CreateVisualBasic(codeWithMarker, composition: s_composition);
 
-        internal void AssertFormatWithTransformation(Workspace workspace, string expected, OptionSet optionSet, IEnumerable<AbstractFormattingRule> rules, SyntaxNode root)
-        {
-            var newRootNode = Formatter.Format(root, SpecializedCollections.SingletonEnumerable(root.FullSpan), workspace, optionSet, rules, CancellationToken.None);
-
-            Assert.Equal(expected, newRootNode.ToFullString());
-
-            // test doesn't use parsing option. add one if needed later
-            var newRootNodeFromString = ParseCompilationUnit(expected);
-
-            // simple check to see whether two nodes are equivalent each other.
-            Assert.True(newRootNodeFromString.IsEquivalentTo(newRootNode));
-        }
-
-        internal static void AssertFormat(Workspace workspace, string expected, OptionSet optionSet, IEnumerable<AbstractFormattingRule> rules, ITextBuffer clonedBuffer, SyntaxNode root)
-        {
-            var changes = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(root.FullSpan), workspace, optionSet, rules, CancellationToken.None);
-            var actual = ApplyResultAndGetFormattedText(clonedBuffer, changes);
-
-            Assert.Equal(expected, actual);
-        }
-
         private static string ApplyResultAndGetFormattedText(ITextBuffer buffer, IList<TextChange> changes)
         {
             using (var edit = buffer.CreateEdit())
@@ -199,26 +179,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
                 factory.TextSpan = spans.First();
             }
 
-            var options = workspace.Options;
+            var optionSet = workspace.Options;
             if (changedOptionSet != null)
             {
                 foreach (var entry in changedOptionSet)
                 {
-                    options = options.WithChangedOption(entry.Key, entry.Value);
+                    optionSet = optionSet.WithChangedOption(entry.Key, entry.Value);
                 }
             }
 
             var root = await syntaxTree.GetRootAsync();
-            var rules = formattingRuleProvider.CreateRule(workspace.CurrentSolution.GetDocument(syntaxTree), 0).Concat(Formatter.GetDefaultFormattingRules(workspace, root.Language));
+            var options = SyntaxFormattingOptions.Create(optionSet, workspace.Services, root.Language);
+
+            document = workspace.CurrentSolution.GetDocument(syntaxTree);
+            var rules = formattingRuleProvider.CreateRule(document, 0).Concat(Formatter.GetDefaultFormattingRules(document));
             AssertFormat(workspace, expected, options, rules, clonedBuffer, root, spans);
 
             // format with node and transform
             AssertFormatWithTransformation(workspace, expected, options, rules, root, spans);
         }
 
-        internal void AssertFormatWithTransformation(Workspace workspace, string expected, OptionSet optionSet, IEnumerable<AbstractFormattingRule> rules, SyntaxNode root, IEnumerable<TextSpan> spans)
+        internal void AssertFormatWithTransformation(Workspace workspace, string expected, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> rules, SyntaxNode root, IEnumerable<TextSpan> spans)
         {
-            var newRootNode = Formatter.Format(root, spans, workspace, optionSet, rules, CancellationToken.None);
+            var newRootNode = Formatter.Format(root, spans, workspace.Services, options, rules, CancellationToken.None);
 
             Assert.Equal(expected, newRootNode.ToFullString());
 
@@ -229,9 +212,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.True(newRootNodeFromString.IsEquivalentTo(newRootNode));
         }
 
-        internal void AssertFormat(Workspace workspace, string expected, OptionSet optionSet, IEnumerable<AbstractFormattingRule> rules, ITextBuffer clonedBuffer, SyntaxNode root, IEnumerable<TextSpan> spans)
+        internal void AssertFormat(Workspace workspace, string expected, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> rules, ITextBuffer clonedBuffer, SyntaxNode root, IEnumerable<TextSpan> spans)
         {
-            var result = Formatter.GetFormattedTextChanges(root, spans, workspace, optionSet, rules, CancellationToken.None);
+            var result = Formatter.GetFormattedTextChanges(root, spans, workspace.Services, options, rules, CancellationToken.None);
             var actual = ApplyResultAndGetFormattedText(clonedBuffer, result);
 
             if (actual != expected)
@@ -298,7 +281,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         /// <remarks>uses an <see cref="AdhocWorkspace"/> for formatting context, since the <paramref name="node"/> is not associated with a <see cref="SyntaxTree"/> </remarks>
         protected static void AssertFormatOnArbitraryNode(SyntaxNode node, string expected)
         {
-            var result = Formatter.Format(node, new AdhocWorkspace());
+            using var workspace = new AdhocWorkspace();
+            var options = SyntaxFormattingOptions.Default;
+            var result = Formatter.Format(node, workspace.Services, options, CancellationToken.None);
             var actual = result.GetText().ToString();
 
             Assert.Equal(expected, actual);
