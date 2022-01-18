@@ -2352,7 +2352,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Silent">
         <source>Silent</source>
-        <target state="translated">Silent</target>
+        <target state="translated">Invisibile</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
