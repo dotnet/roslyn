@@ -73,8 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
 
             // Syntax checks first.
 
-            // Don't simplify static lambdas.  The user made them explicitly static to make it clear it doesn't capture
-            // anything.  If we get rid of the lambda it won't be clear anymore if capturing/allocs are happening or not.
+            // Don't simplify static lambdas.  The user made them explicitly static to make it clear it must only cause
+            // a single allocation for the cached delegate. If we get rid of the lambda (and thus the static-keyword) it
+            // won't be clear anymore if the member-group-conversion allocation is cached or not.
             if (anonymousFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
                 return;
 
