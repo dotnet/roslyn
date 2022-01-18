@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (document == null)
                     return null;
 
-                var options = CodeActionOptionsFactory.GetCodeActionOptions(document.Project, isBlocking: true);
+                var options = CodeActionOptionsFactory.GetCodeActionOptions(document.Project, isBlocking: false);
 
                 using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 var linkedToken = linkedTokenSource.Token;
