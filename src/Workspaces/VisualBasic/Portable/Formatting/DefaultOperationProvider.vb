@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -30,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             _options = options
         End Sub
 
-        Public Overrides Function WithOptions(options As AnalyzerConfigOptions) As AbstractFormattingRule
-            Dim cachedOptions = New CachedOptions(options)
+        Public Overrides Function WithOptions(options As SyntaxFormattingOptions) As AbstractFormattingRule
+            Dim cachedOptions = New CachedOptions(options.Options)
 
             If cachedOptions = _options Then
                 Return Me

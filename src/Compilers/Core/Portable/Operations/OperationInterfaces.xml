@@ -3191,7 +3191,7 @@
     <Property Name="LengthSymbol" Type="ISymbol?">
       <Comments>
         <summary>
-          The <c>Length</c> or <c>Count</c> property that is being used to fetch the length value.
+          The <c>Length</c> or <c>Count</c> property that is used to fetch the length value.
           Returns <c>null</c> if no such property is found.
         </summary>
       </Comments>
@@ -3199,7 +3199,7 @@
     <Property Name="IndexerSymbol" Type="ISymbol?">
       <Comments>
         <summary>
-          The indexer that is being used to fetch elements.
+          The indexer that is used to fetch elements.
           Returns <c>null</c> for an array input.
         </summary>
       </Comments>
@@ -3234,6 +3234,41 @@
       <Comments>
         <summary>
           The pattern that the slice value is matched with, if any.
+        </summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="IImplicitIndexerReferenceOperation" Base="IOperation" ChildrenOrder="Instance,Argument" HasType="true">
+    <Comments>
+      <summary>
+        Represents a reference to an implicit System.Index or System.Range indexer over a non-array type.
+        <para>
+          Current usage:
+          (1) C# implicit System.Index or System.Range indexer reference expression.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="Instance" Type="IOperation">
+      <Comments>
+        <summary>Instance of the type to be indexed.</summary>
+      </Comments>
+    </Property>
+    <Property Name="Argument" Type="IOperation">
+      <Comments>
+        <summary>System.Index or System.Range value.</summary>
+      </Comments>
+    </Property>
+    <Property Name="LengthSymbol" Type="ISymbol">
+      <Comments>
+        <summary>
+          The <c>Length</c> or <c>Count</c> property that might be used to fetch the length value.
+        </summary>
+      </Comments>
+    </Property>
+    <Property Name="IndexerSymbol" Type="ISymbol">
+      <Comments>
+        <summary>
+          Symbol for the underlying indexer or a slice method that is used to implement the implicit indexer.
         </summary>
       </Comments>
     </Property>

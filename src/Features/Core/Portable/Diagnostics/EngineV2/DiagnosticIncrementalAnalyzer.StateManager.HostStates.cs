@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             public IEnumerable<StateSet> GetAllHostStateSets()
             {
-                var analyzerReferencesMap = _workspace.CurrentSolution.State.Analyzers.GetHostAnalyzerReferencesMap();
+                var analyzerReferences = _workspace.CurrentSolution.State.Analyzers.HostAnalyzerReferences;
                 foreach (var (key, value) in _hostAnalyzerStateMap)
                 {
-                    if (key.AnalyzerReferences == analyzerReferencesMap)
+                    if (key.AnalyzerReferences == analyzerReferences)
                     {
                         foreach (var stateSet in value.OrderedStateSets)
                         {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private HostAnalyzerStateSets GetOrCreateHostStateSets(Project project, ProjectAnalyzerStateSets projectStateSets)
             {
-                var key = new HostAnalyzerStateSetKey(project.Language, project.Solution.State.Analyzers.GetHostAnalyzerReferencesMap());
+                var key = new HostAnalyzerStateSetKey(project.Language, project.Solution.State.Analyzers.HostAnalyzerReferences);
                 var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, project.Solution.State.Analyzers);
                 return hostStateSets.WithExcludedAnalyzers(projectStateSets.SkippedAnalyzersInfo.SkippedAnalyzers);
 

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 return;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (((CSharpParseOptions)root.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp9)
+            if (root.SyntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp9)
                 return;
 
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

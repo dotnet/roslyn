@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
             {
                 // Tuples are only available in C# 7 and above.
                 var compilation = context.Compilation;
-                if (((CSharpCompilation)compilation).LanguageVersion < LanguageVersion.CSharp7)
+                if (compilation.LanguageVersion() < LanguageVersion.CSharp7)
                     return;
 
                 context.RegisterSyntaxNodeAction(
