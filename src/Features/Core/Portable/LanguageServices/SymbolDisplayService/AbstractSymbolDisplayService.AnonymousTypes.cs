@@ -17,19 +17,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             private void FixAllStructuralTypes(ISymbol firstSymbol)
             {
-                // First, inline all the delegate anonymous types.  This is how VB prefers to display
-                // things.
-                // InlineAllDelegateAnonymousTypes(_semanticModel, _position, _structuralTypeDisplayService, _groupMap);
-
                 // Now, replace all normal anonymous types and tuples with 'a, 'b, etc. and create a
                 // Structural Types: section to display their info.
-                FixStructuralTypes(firstSymbol);
-            }
 
-            // protected abstract void InlineAllDelegateAnonymousTypes(SemanticModel semanticModel, int position, IStructuralTypeDisplayService structuralTypeDisplayService, Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> groupMap);
-
-            private void FixStructuralTypes(ISymbol firstSymbol)
-            {
                 var directStructuralTypes =
                     from parts in _groupMap.Values
                     from part in parts
