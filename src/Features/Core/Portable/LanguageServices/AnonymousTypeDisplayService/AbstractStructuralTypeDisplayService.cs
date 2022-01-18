@@ -16,13 +16,57 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected static readonly SymbolDisplayFormat s_minimalWithoutExpandedTuples = SymbolDisplayFormat.MinimallyQualifiedFormat.AddMiscellaneousOptions(
             SymbolDisplayMiscellaneousOptions.CollapseTupleTypes);
 
+        private static readonly SymbolDisplayFormat s_delegateDisplay =
+            s_minimalWithoutExpandedTuples.WithMemberOptions(s_minimalWithoutExpandedTuples.MemberOptions & ~SymbolDisplayMemberOptions.IncludeContainingType);
+
         protected abstract ImmutableArray<SymbolDisplayPart> GetNormalAnonymousTypeParts(INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
-        protected abstract ImmutableArray<SymbolDisplayPart> GetDelegateAnonymousTypeParts(INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
 
         public ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position)
             => anonymousType.IsAnonymousDelegateType()
                 ? GetDelegateAnonymousTypeParts(anonymousType, semanticModel, position)
                 : GetNormalAnonymousTypeParts(anonymousType, semanticModel, position);
+
+        private ImmutableArray<SymbolDisplayPart> GetDelegateAnonymousTypeParts(
+            INamedTypeSymbol anonymousType,
+            SemanticModel semanticModel,
+            int position)
+        {
+            using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
+
+            var invokeMethod = anonymousType.DelegateInvokeMethod ?? throw ExceptionUtilities.Unreachable;
+
+            parts.Add(Punctuation("<"));
+            parts.AddRange(AbstractStructuralTypeDisplayService.MassageDelegateParts(invokeMethod, invokeMethod.ToMinimalDisplayParts(
+                semanticModel, position, s_delegateDisplay)));
+            parts.Add(Punctuation(">"));
+
+            return parts.ToImmutable();
+        }
+
+        private static ImmutableArray<SymbolDisplayPart> MassageDelegateParts(
+            IMethodSymbol invokeMethod,
+            ImmutableArray<SymbolDisplayPart> parts)
+        {
+            using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var result);
+
+            // Ugly hack.  Remove the "Invoke" name the compiler layer adds to the parts.
+            for (var i = 0; i < parts.Length;)
+            {
+                if (i + 1 < parts.Length &&
+                    parts[i].Kind == SymbolDisplayPartKind.Space &&
+                    Equals(invokeMethod, parts[i + 1].Symbol))
+                {
+                    i += 2;
+                }
+                else
+                {
+                    result.Add(parts[i]);
+                    i++;
+                }
+            }
+
+            return result.ToImmutable();
+        }
 
         public StructuralTypeDisplayInfo GetTypeDisplayInfo(
             ISymbol orderSymbol,

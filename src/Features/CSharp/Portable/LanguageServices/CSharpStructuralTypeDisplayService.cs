@@ -21,9 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
     [ExportLanguageService(typeof(IStructuralTypeDisplayService), LanguageNames.CSharp), Shared]
     internal class CSharpStructuralTypeDisplayService : AbstractStructuralTypeDisplayService
     {
-        private static readonly SymbolDisplayFormat s_minimalWithoutContainingType =
-            s_minimalWithoutExpandedTuples.WithMemberOptions(s_minimalWithoutExpandedTuples.MemberOptions & ~SymbolDisplayMemberOptions.IncludeContainingType);
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpStructuralTypeDisplayService()
@@ -61,28 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.CloseBraceToken)));
 
             return members.ToImmutable();
-        }
-
-        protected override ImmutableArray<SymbolDisplayPart> GetDelegateAnonymousTypeParts(
-            INamedTypeSymbol anonymousType,
-            SemanticModel semanticModel,
-            int position)
-        {
-            using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
-
-            parts.AddRange(anonymousType.DelegateInvokeMethod.ToMinimalDisplayParts(semanticModel, position, s_minimalWithoutContainingType));
-
-            // change the display from `bool Invoke(int x, string y)` to `bool delegate(int x, string y)`. `delegate`
-            // helps make it clear what sort of signature we're showing, and the lack of the name is appropriate as this
-            // is an anonymous delegate.
-            var namePart = parts.FirstOrNull(p => p.Kind == SymbolDisplayPartKind.MethodName && p.ToString() == anonymousType.DelegateInvokeMethod.Name);
-            if (namePart != null)
-            {
-                var index = parts.IndexOf(namePart.Value);
-                parts[index] = new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "delegate");
-            }
-
-            return parts.ToImmutable();
         }
     }
 }
