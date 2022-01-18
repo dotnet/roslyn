@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
 
             foreach (var statement in block.Statements)
             {
-                var parameter = TryGetParameterNullCheckedByStatement(statement, out var location);
+                var parameter = TryGetParameterNullCheckedByStatement(statement, out var diagnosticLocation);
                 if (ParameterCanUseNullChecking(parameter)
                     && parameter.DeclaringSyntaxReferences.FirstOrDefault() is SyntaxReference reference
                     && reference.SyntaxTree.Equals(statement.SyntaxTree)
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 {
                     context.ReportDiagnostic(DiagnosticHelper.Create(
                         Descriptor,
-                        location ?? statement.GetLocation(),
+                        diagnosticLocation ?? statement.GetLocation(),
                         option.Notification.Severity,
                         additionalLocations: new[] { parameterSyntax.GetLocation() },
                         properties: null));
