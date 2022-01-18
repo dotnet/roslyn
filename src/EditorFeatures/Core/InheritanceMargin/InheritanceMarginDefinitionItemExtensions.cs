@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
             if (location.IsInMetadata)
             {
                 return DefinitionItem.CreateMetadataDefinition(
-                    ImmutableArray<string>.Empty,
-                    ImmutableArray<TaggedText>.Empty,
-                    ImmutableArray<TaggedText>.Empty,
+                    tags: ImmutableArray<string>.Empty,
+                    displayParts: ImmutableArray<TaggedText>.Empty,
+                    nameDisplayParts: ImmutableArray<TaggedText>.Empty,
                     solution,
                     symbol);
             }
@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 {
                     var documentSpan = new DocumentSpan(document, location.SourceSpan);
                     return DefinitionItem.Create(
-                        ImmutableArray<string>.Empty,
-                        ImmutableArray<TaggedText>.Empty,
+                        tags: ImmutableArray<string>.Empty,
+                        displayParts: ImmutableArray<TaggedText>.Empty,
                         documentSpan,
-                        ImmutableArray<TaggedText>.Empty);
+                        nameDisplayParts: ImmutableArray<TaggedText>.Empty);
                 }
             }
 
