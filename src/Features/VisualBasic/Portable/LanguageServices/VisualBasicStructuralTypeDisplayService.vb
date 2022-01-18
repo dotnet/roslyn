@@ -20,6 +20,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
         Public Sub New()
         End Sub
 
+        Protected Overrides ReadOnly Property DelegateKeyword As String = SyntaxFacts.GetText(SyntaxKind.DelegateKeyword)
+
         Protected Overrides Function GetNormalAnonymousTypeParts(
                 anonymousType As INamedTypeSymbol,
                 semanticModel As SemanticModel,

@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private static readonly SymbolDisplayFormat s_delegateDisplay =
             s_minimalWithoutExpandedTuples.WithMemberOptions(s_minimalWithoutExpandedTuples.MemberOptions & ~SymbolDisplayMemberOptions.IncludeContainingType);
 
+        protected abstract string DelegateKeyword { get; }
         protected abstract ImmutableArray<SymbolDisplayPart> GetNormalAnonymousTypeParts(INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
 
         public ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position)
@@ -35,10 +36,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             var invokeMethod = anonymousType.DelegateInvokeMethod ?? throw ExceptionUtilities.Unreachable;
 
-            parts.Add(Punctuation("<"));
-            parts.AddRange(AbstractStructuralTypeDisplayService.MassageDelegateParts(invokeMethod, invokeMethod.ToMinimalDisplayParts(
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, symbol: null, DelegateKeyword));
+            parts.AddRange(Space());
+            parts.AddRange(MassageDelegateParts(invokeMethod, invokeMethod.ToMinimalDisplayParts(
                 semanticModel, position, s_delegateDisplay)));
-            parts.Add(Punctuation(">"));
 
             return parts.ToImmutable();
         }

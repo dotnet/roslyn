@@ -951,7 +951,7 @@ Module Program
 End Module
 ]]></Text>.NormalizedValue,
             MainDescription($"({FeaturesResources.local_variable}) a As 'a"),
-            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} <Sub()>"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} Delegate Sub()"))
         End Function
 
         <WorkItem(543624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543624")>
@@ -968,7 +968,7 @@ Module Program
 End Module
 ]]></Text>.NormalizedValue,
             MainDescription($"({FeaturesResources.local_variable}) a As 'a"),
-            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} <Function() As Integer>"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} Delegate Function() As Integer"))
         End Function
 
         <WorkItem(543624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543624")>
@@ -985,7 +985,7 @@ End Module
 ]]></Text>.NormalizedValue,
             MainDescription($"({FeaturesResources.local_variable}) a As 'a"),
             AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf &
-                           $"    'a {FeaturesResources.is_} <Function() As 'b>" & vbCrLf &
+                           $"    'a {FeaturesResources.is_} Delegate Function() As 'b" & vbCrLf &
                            $"    'b {FeaturesResources.is_} New With {{ .Goo As String }}"))
         End Function
 
@@ -1004,9 +1004,9 @@ End Module
 ]]></Text>.NormalizedValue,
             MainDescription($"({FeaturesResources.local_variable}) a As 'a"),
             AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf &
-                           $"    'a {FeaturesResources.is_} <Function(i As Integer) As 'b>" & vbCrLf &
+                           $"    'a {FeaturesResources.is_} Delegate Function(i As Integer) As 'b" & vbCrLf &
                            $"    'b {FeaturesResources.is_} New With {{ .Sq As Integer, .M As 'c }}" & vbCrLf &
-                           $"    'c {FeaturesResources.is_} <Function(j As Integer) As Integer>"))
+                           $"    'c {FeaturesResources.is_} Delegate Function(j As Integer) As Integer"))
         End Function
 
         <WorkItem(543389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543389")>
