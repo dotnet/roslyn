@@ -40,7 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             End Using
         End Function
 
-        Private Function FindMemberByName(name As String, memberArray As ImmutableArray(Of SymbolViewModel(Of ISymbol))) As SymbolViewModel(Of ISymbol)
+        Private Shared Function FindMemberByName(name As String, memberArray As ImmutableArray(Of SymbolViewModel(Of ISymbol))) As SymbolViewModel(Of ISymbol)
             Dim member = memberArray.FirstOrDefault(Function(memberViewModel) memberViewModel.Symbol.Name.Equals(name))
             Assert.NotNull(member)
             Return member
