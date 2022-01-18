@@ -23,6 +23,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     where part.Symbol.IsAnonymousType() || part.Symbol.IsTupleType()
                     select (INamedTypeSymbol)part.Symbol!;
 
+                // If the first symbol is an anonymous delegate, just show it's full sig in-line in the main
+                // description.  Otherwise, replace it with 'a, 'b etc. and show its sig in the 'Types:' section.
+
+                if (firstSymbol.IsAnonymousDelegateType())
+                    directStructuralTypes = directStructuralTypes.Except(new[] { (INamedTypeSymbol)firstSymbol });
+
                 var info = _structuralTypeDisplayService.GetTypeDisplayInfo(
                     firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);
 

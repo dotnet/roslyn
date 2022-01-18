@@ -7914,6 +7914,7 @@ T {FeaturesResources.is_} int
 TResult {FeaturesResources.is_} string"));
         }
 
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAnonymousSynthesizedLambdaType()
         {
@@ -7925,7 +7926,49 @@ TResult {FeaturesResources.is_} string"));
         $$var v = (ref int i) => i.ToString();
     }
 }",
-                MainDescription("delegate string <anonymous delegate>(ref int)"));
+                MainDescription("delegate string <anonymous delegate>(ref int)"),
+                AnonymousTypes(""));
+        }
+
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        var $$v = (ref int i) => i.ToString();
+    }
+}",
+                MainDescription("(local variable) 'a v"),
+                AnonymousTypes(
+$@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} string delegate(ref int)"));
+        }
+
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        var v = (ref int i) => i.ToString();
+        $$Goo(v);
+    }
+
+    T Goo<T>(T t) => default;
+}",
+                MainDescription("'a C.Goo<'a>('a t)"),
+                AnonymousTypes(
+$@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} string delegate(ref int)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
