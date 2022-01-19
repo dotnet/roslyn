@@ -8,19 +8,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Threading;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal class FindReferencesWindowInProcess : InProcComponent
+    [TestService]
+    internal partial class FindReferencesWindowInProcess
     {
-        public FindReferencesWindowInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         public async Task<ImmutableArray<ITableEntryHandle2>> GetContentsAsync(string windowCaption, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

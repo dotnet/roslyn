@@ -9,18 +9,12 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Threading;
 
-namespace Roslyn.VisualStudio.IntegrationTests.InProcess
+namespace Microsoft.VisualStudio.Extensibility.Testing
 {
-    internal class WorkspaceInProcess : InProcComponent
+    internal partial class WorkspaceInProcess
     {
-        public WorkspaceInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         internal static void EnableAsynchronousOperationTracking()
         {
             AsynchronousOperationListenerProvider.Enable(true);
@@ -74,13 +68,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var listenerProvider = await GetComponentModelServiceAsync<AsynchronousOperationListenerProvider>(cancellationToken);
             var workspace = await GetComponentModelServiceAsync<VisualStudioWorkspace>(cancellationToken);
             await listenerProvider.WaitAllAsync(workspace, featureNames).WithCancellation(cancellationToken);
-        }
-
-        public async Task WaitForProjectSystemAsync(CancellationToken cancellationToken)
-        {
-            var operationProgressStatus = await GetRequiredGlobalServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(cancellationToken);
-            var stageStatus = operationProgressStatus.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
-            await stageStatus.WaitForCompletionAsync().WithCancellation(cancellationToken);
         }
     }
 }

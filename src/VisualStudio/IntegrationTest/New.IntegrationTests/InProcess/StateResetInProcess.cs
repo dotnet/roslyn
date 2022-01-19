@@ -9,18 +9,15 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal class StateResetInProcess : InProcComponent
+    [TestService]
+    internal partial class StateResetInProcess
     {
-        public StateResetInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         public async Task ResetGlobalOptionsAsync(CancellationToken cancellationToken)
         {
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
@@ -36,6 +33,18 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public async Task ResetHostSettingsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            // Suggestion mode defaults to on for debugger views, and off for other views.
+            await TestServices.Editor.SetUseSuggestionModeAsync(forDebuggerTextView: true, true, cancellationToken);
+            await TestServices.Editor.SetUseSuggestionModeAsync(forDebuggerTextView: false, false, cancellationToken);
+
+            // Make sure responsive completion doesn't interfere if integration tests run slowly.
+            var editorOptionsFactory = await GetComponentModelServiceAsync<IEditorOptionsFactoryService>(cancellationToken);
+            var options = editorOptionsFactory.GlobalOptions;
+            options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, false);
+
+            var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
+            options.SetOptionValue(latencyGuardOptionKey, false);
 
             // Close all Find References windows
             await foreach (var window in TestServices.Shell.EnumerateWindowsAsync(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Tool, cancellationToken).WithCancellation(cancellationToken))

@@ -12,10 +12,10 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
-using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp

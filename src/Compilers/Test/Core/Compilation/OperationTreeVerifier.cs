@@ -387,9 +387,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void VisitChildren(IOperation operation)
         {
-            Debug.Assert(operation.Children.All(o => o != null));
+            Debug.Assert(operation.ChildOperations.All(o => o != null));
 
-            var children = operation.Children.ToImmutableArray();
+            var children = operation.ChildOperations.ToImmutableArray();
             if (!children.IsEmpty || operation.Kind != OperationKind.None)
             {
                 VisitArray(children, "Children", logElementCount: true);
@@ -926,6 +926,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.ArrayReference, "Array reference");
             VisitArray(operation.Indices, "Indices", logElementCount: true);
+        }
+
+        public override void VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation)
+        {
+            LogString(nameof(IImplicitIndexerReferenceOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Instance, "Instance");
+            Visit(operation.Argument, "Argument");
+
+            Indent();
+            LogSymbol(operation.LengthSymbol, $"{nameof(operation.LengthSymbol)}");
+            LogNewLine();
+
+            LogSymbol(operation.IndexerSymbol, $"{nameof(operation.IndexerSymbol)}");
+            LogNewLine();
+            Unindent();
         }
 
         internal override void VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation)

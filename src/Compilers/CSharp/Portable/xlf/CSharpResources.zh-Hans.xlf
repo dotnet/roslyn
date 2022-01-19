@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
         <source>'{0}' cannot be made nullable.</source>
-        <target state="new">'{0}' cannot be made nullable.</target>
+        <target state="translated">“{0}”不可以为 Null。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotClone">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotUseRefInUnmanagedCallersOnly">
         <source>Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</source>
-        <target state="new">Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</target>
+        <target state="translated">无法在具有 “UnmanagedCallersOnly” 特性的方法的签名中使用 “ref”、“in” 或 “out”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument">
@@ -407,6 +407,11 @@
         <target state="translated">"else" 不能用在语句的开头。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
+        <source>Cannot update because an inferred delegate type has changed.</source>
+        <target state="new">Cannot update because an inferred delegate type has changed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">无法使用 "UnmanagedCallersOnly" 对应用程序入口点进行特性化。</target>
@@ -464,7 +469,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <target state="translated">表达式树不能包含模式 System.Index 或 System.Range 索引器访问</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
@@ -627,6 +632,11 @@
         <target state="translated">带有 "in" 修饰符的参数不能用于动态调度的表达式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IncorrectNullCheckSyntax">
+        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
+        <target state="translated">参数 null 检查语法不正确。应为 "!!"。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
         <target state="translated">C# {0} 中不支持从包含密封 'Object.ToString' 的记录继承。请使用语言版本 '{1}’ 或更高版本。</target>
@@ -689,7 +699,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
         <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
-        <target state="new">Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</target>
+        <target state="translated">引用要编制索引的实例的内插字符串处理程序转换不能用于索引器成员初始化表达式中。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -764,12 +774,12 @@
       </trans-unit>
       <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
         <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
-        <target state="new">The contextual keyword 'var' cannot be used as an explicit lambda return type</target>
+        <target state="translated">上下文关键字 “var” 不能用作显式 lambda 返回类型</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
-        <target state="new">A lambda expression with attributes cannot be converted to an expression tree</target>
+        <target state="translated">无法将具有属性的 lambda 表达式转换为表达式树</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -789,7 +799,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
-        <target state="new">Slice patterns may only be used once and directly inside a list pattern.</target>
+        <target state="translated">切片模式只能使用一次，并且直接在列表模式内使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -847,6 +857,11 @@
         <target state="translated">只有一个记录分部声明可以具有参数列表</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MustNullCheckInImplementation">
+        <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
+        <target state="translated">参数 "{0}" 只能在实现方法中包含感叹号 null 检查。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">"new()" 约束不能与 "unmanaged" 约束一起使用</target>
@@ -854,7 +869,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
         <source>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</source>
-        <target state="new">Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</target>
+        <target state="translated">C# {0}不支持非逐字内插字符串内的换行符。请使用语言版本 {1} 或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
@@ -887,6 +902,11 @@
         <target state="translated">无法确定输出目录</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
+        <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
+        <target state="translated">参数 "{0}" 是不可为 null 的值类型，不能进行 null 检查。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
         <source>Record member '{0}' must be private.</source>
         <target state="translated">记录成员“{0}”必须是非公开的。</target>
@@ -915,6 +935,11 @@
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">“{0}”必须允许替代，因为包含的记录未密封。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullCheckingOnOutParameter">
+        <source>'out' parameter '{0}' cannot be null-checked.</source>
+        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1047,6 +1072,11 @@
         <target state="translated">主构造函数与合成的复制构造函数冲突。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
+        <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
+        <target state="translated">在带有参数列表的 "record struct" 中声明的构造函数必须具有调用主构造函数或显式声明的构造函数的 "this" 初始值设定项。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">无法将“{1}”重新赋值为“{0}”，因为“{1}”具有比“{0}”更窄的转义范围。</target>
@@ -1167,6 +1197,11 @@
         <target state="translated">已指定 stdin 参数 "-"，但尚未从标准输入流重定向输入。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
+        <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
+        <target state="translated">具有字段初始值设定项的“结构”必须包含显式声明的构造函数。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
         <target state="translated">该模式不可访问。它已由 switch 表达式的前一个 arm 处理或无法匹配。</target>
@@ -1234,12 +1269,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
         <source>List patterns may not be used for a value of type '{0}'.</source>
-        <target state="new">List patterns may not be used for a value of type '{0}'.</target>
+        <target state="translated">列表模式不能用于类型为“{0}”的值。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
         <source>Slice patterns may not be used for a value of type '{0}'.</source>
-        <target state="new">Slice patterns may not be used for a value of type '{0}'.</target>
+        <target state="translated">切片模式不能用于类型为“{0}”的值。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
@@ -1317,11 +1352,6 @@
         <target state="translated">lambda 返回类型</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureLengthPattern">
-        <source>length pattern</source>
-        <target state="new">length pattern</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureLineSpanDirective">
         <source>line span directive</source>
         <target state="translated">行跨度指令</target>
@@ -1329,12 +1359,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureListPattern">
         <source>list pattern</source>
-        <target state="new">list pattern</target>
+        <target state="translated">列表模式</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
         <source>newlines in interpolations</source>
-        <target state="new">newlines in interpolations</target>
+        <target state="translated">内插中的换行符</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
@@ -1375,6 +1405,11 @@
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
         <target state="translated">在结构上</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_ParameterNullChecking">
+        <source>parameter null-checking</source>
+        <target state="translated">参数 null 检查</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1459,12 +1494,12 @@
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
         <source>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</source>
-        <target state="new">The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</target>
+        <target state="translated">操作可能在运行时溢出“{0}”(请使用“unchecked”语法替代)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
-        <target state="new">The operation may overflow at runtime (use 'unchecked' syntax to override)</target>
+        <target state="translated">操作可能在运行时溢出(请使用“unchecked”语法替代)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -1489,22 +1524,42 @@
       </trans-unit>
       <trans-unit id="WRN_LowerCaseTypeName">
         <source>The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
-        <target state="new">The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <target state="translated">类型名称 "{0}" 仅包含小写 ascii 字符。此类名称可能会成为该语言的保留值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_LowerCaseTypeName_Title">
         <source>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
-        <target state="new">The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <target state="translated">该类型名称仅包含小写 ascii 字符。此类名称可能会成为该语言的保留值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
-        <target state="new">Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</target>
+        <target state="translated">将方法组“{0}”转换为非委托类型“{1}”。是否希望调用此方法?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
-        <target state="new">Converting method group to non-delegate type</target>
+        <target state="translated">将方法组转换为非委托类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull">
+        <source>Parameter '{0}' is null-checked but is null by default.</source>
+        <target state="translated">对参数 "{0}" 进行了 null 检查，但默认情况下该参数为 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
+        <source>Parameter is null-checked but is null by default.</source>
+        <target state="translated">对参数进行了 null 检查，但默认情况下该参数为 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableType">
+        <source>Nullable type '{0}' is null-checked and will throw if null.</source>
+        <target state="translated">对可以为 null 的类型“{0}”进行了 null 检查，如果为 null，将抛出异常。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableType_Title">
+        <source>Nullable type is null-checked and will throw if null.</source>
+        <target state="translated">对可以为 null 的类型进行了 null 检查，如果为 null，将抛出异常。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1519,7 +1574,7 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
         <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="needs-review-translation">参数 {0} 在参数列表中的 {1} 后发生，但被用作内插字符串处理程序转换的参数。这将要求调用方在调用站点使用命名参数重新排列参数。请考虑将内插字符串处理程序参数放在涉及的所有参数的后面。</target>
+        <target state="translated">参数“{0}”出现在参数列表中的“{1}”之后，但用作内插字符串处理程序转换的参数。这将要求调用方在调用站点使用已命名参数重新排列参数。请考虑将内插字符串处理程序参数放在涉及的所有参数的后面。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
@@ -2229,7 +2284,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSwitchExpression">
         <source>&lt;switch expression&gt;</source>
-        <target state="translated">&lt;switch expression&gt;</target>
+        <target state="translated">&lt;开关表达式&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTargetTypedConditional">

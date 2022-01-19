@@ -747,6 +747,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             stateMachine = stateMachine ?? asyncStateMachine;
                         }
 
+                        var factory = new SyntheticBoundNodeFactory(method, methodWithBody.Body.Syntax, compilationState, diagnosticsThisMethod);
+                        var nullCheckStatements = LocalRewriter.ConstructNullCheckedStatementList(method.Parameters, factory);
+                        if (!nullCheckStatements.IsEmpty)
+                        {
+                            loweredBody = factory.StatementList(nullCheckStatements.Concat(loweredBody));
+                        }
+                        SetGlobalErrorIfTrue(nullCheckStatements.HasErrors() || diagnosticsThisMethod.HasAnyErrors());
+
                         if (_emitMethodBodies && !diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                         {
                             emittedBody = GenerateMethodBody(
@@ -971,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // no need to emit the default ctor, we are not emitting those
-                if (methodSymbol.IsDefaultValueTypeConstructor(requireZeroInit: true))
+                if (methodSymbol.IsDefaultValueTypeConstructor())
                 {
                     return;
                 }
@@ -1211,12 +1219,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     hasErrors = hasErrors || (hasBody && loweredBodyOpt.HasErrors) || diagsForCurrentMethod.HasAnyErrors();
                     SetGlobalErrorIfTrue(hasErrors);
-
+                    CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
                     // don't emit if the resulting method would contain initializers with errors
                     if (!hasErrors && (hasBody || includeNonEmptyInitializersInBody))
                     {
                         Debug.Assert(!(methodSymbol.IsImplicitInstanceConstructor && methodSymbol.ParameterCount == 0) ||
-                                     !methodSymbol.IsDefaultValueTypeConstructor(requireZeroInit: true));
+                                     !methodSymbol.IsDefaultValueTypeConstructor());
 
                         // Fields must be initialized before constructor initializer (which is the first statement of the analyzed body, if specified),
                         // so that the initialization occurs before any method overridden by the declaring class can be invoked from the base constructor
@@ -1288,14 +1296,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (hasBody)
                             {
-                                boundStatements = boundStatements.Concat(ImmutableArray.Create(loweredBodyOpt));
+                                boundStatements = boundStatements.Concat(loweredBodyOpt);
+                            }
+
+                            var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
+
+                            var nullCheckStatements = LocalRewriter.ConstructNullCheckedStatementList(methodSymbol.Parameters, factory);
+                            boundStatements = nullCheckStatements.Concat(boundStatements);
+                            hasErrors = nullCheckStatements.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
+                            SetGlobalErrorIfTrue(hasErrors);
+                            if (hasErrors)
+                            {
+                                _diagnostics.AddRange(diagsForCurrentMethod);
+                                return;
                             }
                         }
-
                         if (_emitMethodBodies && (!(methodSymbol is SynthesizedStaticConstructor cctor) || cctor.ShouldEmit(processedInitializers.BoundInitializers)))
                         {
-                            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
-
                             var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
 
                             var emittedBody = GenerateMethodBody(
@@ -1735,7 +1752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         constructorSyntax.Identifier.ValueText);
                 }
 
-                Debug.Assert(!sourceMethod.IsDefaultValueTypeConstructor(requireZeroInit: false));
+                Debug.Assert(!sourceMethod.IsDefaultValueTypeConstructor());
                 if (sourceMethod.IsExtern)
                 {
                     return null;

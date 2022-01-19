@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
         <source>'{0}' cannot be made nullable.</source>
-        <target state="new">'{0}' cannot be made nullable.</target>
+        <target state="translated">'{0}'은(는) nullable이 될 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotClone">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotUseRefInUnmanagedCallersOnly">
         <source>Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</source>
-        <target state="new">Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</target>
+        <target state="translated">'UnmanagedCallersOnly'로 특성이 지정된 메서드의 시그니처에는 'ref', 'in' 또는 'out'을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument">
@@ -407,6 +407,11 @@
         <target state="translated">'else'로 문을 시작할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
+        <source>Cannot update because an inferred delegate type has changed.</source>
+        <target state="new">Cannot update because an inferred delegate type has changed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">애플리케이션 진입점에는 'UnmanagedCallersOnly' 특성을 지정할 수 없습니다.</target>
@@ -464,7 +469,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <target state="translated">식 트리에는 System.Index 또는 System.Range 패턴의 인덱서 액세스를 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
@@ -627,6 +632,11 @@
         <target state="translated">동적으로 디스패치된 식에서 'in' 한정자가 있는 인수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IncorrectNullCheckSyntax">
+        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
+        <target state="translated">잘못된 매개 변수 Null 검사 구문입니다. '!!'이어야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
         <target state="translated">봉인된 'Object.ToString'이 있는 레코드에서 상속은 C# {0}에서 지원되지 않습니다. 언어 버전 '{1}'이상을 사용하세요.</target>
@@ -689,7 +699,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
         <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
-        <target state="new">Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</target>
+        <target state="translated">인덱싱되는 인스턴스를 참조하는 보간된 문자열 처리기 변환은 인덱서 멤버 이니셜라이저에서 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -764,12 +774,12 @@
       </trans-unit>
       <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
         <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
-        <target state="new">The contextual keyword 'var' cannot be used as an explicit lambda return type</target>
+        <target state="translated">'var' 상황별 키워드는 명시적 람다 반환 형식으로 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
-        <target state="new">A lambda expression with attributes cannot be converted to an expression tree</target>
+        <target state="translated">특성이 있는 람다 식은 식 트리로 변환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -789,7 +799,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
-        <target state="new">Slice patterns may only be used once and directly inside a list pattern.</target>
+        <target state="translated">조각 패턴은 목록 패턴 내에서 바로 한 번만 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -847,6 +857,11 @@
         <target state="translated">단일 레코드 partial 선언에만 매개 변수 목록을 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MustNullCheckInImplementation">
+        <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
+        <target state="translated">매개 변수 '{0}'은(는) 구현 메서드에서 느낌표 Null 검사만 포함할 수 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">new()' 제약 조건은 'unmanaged' 제약 조건과 함께 사용할 수 없습니다.</target>
@@ -854,7 +869,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
         <source>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</source>
-        <target state="new">Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</target>
+        <target state="translated">축자가 아닌 보간된 문자열 내의 줄 바꿈은 C# {0}에서 지원되지 않습니다. {1} 이상의 언어 버전을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
@@ -887,6 +902,11 @@
         <target state="translated">출력 디렉터리를 확인할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
+        <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
+        <target state="translated">매개 변수 '{0}'은(는) Null을 허용하지 않는 값 형식이므로 Null을 검사할 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
         <source>Record member '{0}' must be private.</source>
         <target state="translated">레코드 멤버 '{0}'은(는) 프라이빗이어야 합니다.</target>
@@ -915,6 +935,11 @@
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">포함된 레코드가 봉인되지 않았으므로 '{0}'은(는) 재정의를 허용해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullCheckingOnOutParameter">
+        <source>'out' parameter '{0}' cannot be null-checked.</source>
+        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1047,6 +1072,11 @@
         <target state="translated">기본 생성자가 합성된 복사 생성자와 충돌합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
+        <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
+        <target state="translated">매개 변수 목록을 사용하여 '레코드 구조체'에 선언된 생성자에는 기본 생성자 또는 명시적으로 선언된 생성자를 호출하는 'this' 이니셜라이저가 있어야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">'{1}'을(를) '{0}'에 참조 할당할 수 없습니다. '{1}'이(가) '{0}'보다 이스케이프 범위가 좁기 때문입니다.</target>
@@ -1167,6 +1197,11 @@
         <target state="translated">stdin 인수 '-'를 지정했지만 표준 입력 스트림에서 입력이 리디렉션되지 않았습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
+        <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
+        <target state="translated">필드 이니셜라이저가 있는 '구조체'에는 명시적으로 선언된 생성자가 포함되어야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
         <target state="translated">패턴에 연결할 수 없습니다. 이미 switch 식의 이전 ARM에서 처리되었거나 일치시킬 수 없습니다.</target>
@@ -1234,12 +1269,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
         <source>List patterns may not be used for a value of type '{0}'.</source>
-        <target state="new">List patterns may not be used for a value of type '{0}'.</target>
+        <target state="translated">목록 패턴은 '{0}' 형식 값에 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
         <source>Slice patterns may not be used for a value of type '{0}'.</source>
-        <target state="new">Slice patterns may not be used for a value of type '{0}'.</target>
+        <target state="translated">조각 패턴은 '{0}' 형식 값에 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
@@ -1317,11 +1352,6 @@
         <target state="translated">람다 반환 유형</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureLengthPattern">
-        <source>length pattern</source>
-        <target state="new">length pattern</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureLineSpanDirective">
         <source>line span directive</source>
         <target state="translated">라인 범위 지시문</target>
@@ -1329,12 +1359,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureListPattern">
         <source>list pattern</source>
-        <target state="new">list pattern</target>
+        <target state="translated">목록 패턴</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
         <source>newlines in interpolations</source>
-        <target state="new">newlines in interpolations</target>
+        <target state="translated">보간에서 줄 바꿈</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
@@ -1375,6 +1405,11 @@
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
         <target state="translated">구조체에서 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_ParameterNullChecking">
+        <source>parameter null-checking</source>
+        <target state="translated">매개 변수 Null 확인</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1459,12 +1494,12 @@
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
         <source>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</source>
-        <target state="new">The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</target>
+        <target state="translated">작업이 런타임에 '{0}'을(를) 오버플로할 수 있습니다('선택되지 않은' 구문을 사용하여 재정의).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
-        <target state="new">The operation may overflow at runtime (use 'unchecked' syntax to override)</target>
+        <target state="translated">작업이 런타임에 오버플로될 수 있습니다('선택되지 않은' 구문을 사용하여 재정의).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -1489,22 +1524,42 @@
       </trans-unit>
       <trans-unit id="WRN_LowerCaseTypeName">
         <source>The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
-        <target state="new">The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <target state="translated">형식 이름 '{0}'에는 소문자 ASCII 문자만 포함됩니다. 이러한 이름은 언어에 대해 예약될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_LowerCaseTypeName_Title">
         <source>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
-        <target state="new">The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <target state="translated">형식 이름에는 소문자 ASCII 문자만 포함됩니다. 이러한 이름은 언어에 대해 예약될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
-        <target state="new">Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</target>
+        <target state="translated">메서드 그룹 '{0}'을(를) 비 위임 유형 '{1}'(으)로 변환하는 중입니다. 메서드를 호출하려고 했습니까?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
-        <target state="new">Converting method group to non-delegate type</target>
+        <target state="translated">메소드 그룹을 비 위임 유형으로 변환</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull">
+        <source>Parameter '{0}' is null-checked but is null by default.</source>
+        <target state="translated">매개 변수 '{0}'은(는) Null로 확인되었지만 기본적으로 Null입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
+        <source>Parameter is null-checked but is null by default.</source>
+        <target state="translated">매개 변수가 Null로 확인되었지만 기본적으로 Null입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableType">
+        <source>Nullable type '{0}' is null-checked and will throw if null.</source>
+        <target state="translated">nullable 형식 '{0}'은(는) Null로 확인되었으며 Null이면 throw됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullCheckingOnNullableType_Title">
+        <source>Nullable type is null-checked and will throw if null.</source>
+        <target state="translated">nullable 형식은 Null로 확인되며 Null이면 throw됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1519,7 +1574,7 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
         <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="needs-review-translation">매개 변수 {0}은 매개 변수 목록에서 {1} 다음에 나타나지만 보간된 문자열 처리기 변환을 위한 인수로 사용됩니다. 이렇게 하려면 호출자가 호출 사이트에서 명명된 인수를 사용하여 매개 변수를 재정렬해야 합니다. 관련된 모든 인수 뒤에 보간된 문자열 처리기 매개 변수를 넣는 것을 고려하세요.</target>
+        <target state="translated">‘{0}’ 매개 변수는 매개 변수 목록에서 ‘{1}’ 다음에 나타나지만 보간된 문자열 처리기 변환을 위한 인수로 사용됩니다. 이렇게 하려면 호출자가 호출 사이트에서 명명된 인수를 사용하여 매개 변수를 재정렬해야 합니다. 관련된 모든 인수 뒤에 보간된 문자열 처리기 매개 변수를 넣는 것을 고려하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">

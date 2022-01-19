@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
@@ -13,13 +14,9 @@ using IAsyncDisposable = System.IAsyncDisposable;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal class TelemetryInProcess : InProcComponent
+    [TestService]
+    internal partial class TelemetryInProcess
     {
-        public TelemetryInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         internal async Task<TelemetryVerifier> EnableTestTelemetryChannelAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

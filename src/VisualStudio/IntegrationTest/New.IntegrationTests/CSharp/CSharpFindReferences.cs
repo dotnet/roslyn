@@ -15,7 +15,6 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.VisualStudio.IntegrationTests;
-using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp

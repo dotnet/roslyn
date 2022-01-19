@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
         protected abstract string EscapeResourceString(string input);
         protected abstract TStatementSyntax CreateParameterCheckIfStatement(DocumentOptionSet options, TExpressionSyntax condition, TStatementSyntax ifTrueStatement);
+        protected abstract Document? TryAddNullCheckToParameterDeclaration(Document document, TParameterSyntax parameterSyntax, CancellationToken cancellationToken);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
@@ -80,8 +81,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
-            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
-            IBlockOperation? blockStatementOpt, CancellationToken cancellationToken)
+            Document document,
+            TParameterSyntax parameterSyntax,
+            IParameterSymbol parameter,
+            SyntaxNode functionDeclaration,
+            IMethodSymbol methodSymbol,
+            IBlockOperation? blockStatementOpt,
+            CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -95,7 +101,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
             result.Add(new MyCodeAction(
                 FeaturesResources.Add_null_check,
-                c => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, c),
+                c => AddNullCheckAsync(document, parameterSyntax, parameter, functionDeclaration, methodSymbol, blockStatementOpt, c),
                 nameof(FeaturesResources.Add_null_check)));
 
             // Also, if this was a string, offer to add the special checks to 
@@ -134,11 +140,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     continue;
 
                 var generator = SyntaxGenerator.GetGenerator(document);
-                var parameterNodes = generator.GetParameters(functionDeclaration);
+                var parameterNodes = (IReadOnlyList<TParameterSyntax>)generator.GetParameters(functionDeclaration);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var parameter = GetParameterAtOrdinal(index, parameterNodes, semanticModel, cancellationToken);
+                var (parameterSyntax, parameter) = GetParameterAtOrdinal(index, parameterNodes, semanticModel, cancellationToken);
                 if (parameter == null)
                     continue;
+                Contract.ThrowIfNull(parameterSyntax);
 
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
@@ -155,25 +162,25 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 }
 
                 // For all other parameters, add null check - updates document
-                document = await AddNullCheckAsync(document, parameter, functionDeclaration,
+                document = await AddNullCheckAsync(document, parameterSyntax, parameter, functionDeclaration,
                     (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
             }
 
             return document;
         }
 
-        private static IParameterSymbol? GetParameterAtOrdinal(int index, IReadOnlyList<SyntaxNode> parameterNodes, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static (TParameterSyntax?, IParameterSymbol?) GetParameterAtOrdinal(int index, IReadOnlyList<TParameterSyntax> parameterNodes, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             foreach (var parameterNode in parameterNodes)
             {
                 var parameter = (IParameterSymbol)semanticModel.GetRequiredDeclaredSymbol(parameterNode, cancellationToken);
                 if (index == parameter.Ordinal)
                 {
-                    return parameter;
+                    return (parameterNode, parameter);
                 }
             }
 
-            return null;
+            return default;
         }
 
         private static bool ContainsNullCoalesceCheck(
@@ -257,6 +264,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return false;
             }
 
+            if (parameter.IsNullChecked)
+            {
+                return false;
+            }
+
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // Look for an existing "if (p == null)" statement, or "p ?? throw" check.  If we already
@@ -312,19 +324,27 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private async Task<Document> AddNullCheckAsync(
             Document document,
+            TParameterSyntax parameterSyntax,
             IParameterSymbol parameter,
             SyntaxNode functionDeclaration,
             IMethodSymbol method,
             IBlockOperation? blockStatementOpt,
             CancellationToken cancellationToken)
         {
-            // First see if we can convert a statement of the form "this.s = s" into "this.s = s ?? throw ...".
-            var documentOpt = await TryAddNullCheckToAssignmentAsync(
+            // First see if we can adopt the '!!' parameter null checking syntax.
+            var modifiedDocument = TryAddNullCheckToParameterDeclaration(document, parameterSyntax, cancellationToken);
+            if (modifiedDocument != null)
+            {
+                return modifiedDocument;
+            }
+
+            // Then see if we can convert a statement of the form "this.s = s" into "this.s = s ?? throw ...".
+            modifiedDocument = await TryAddNullCheckToAssignmentAsync(
                 document, parameter, blockStatementOpt, cancellationToken).ConfigureAwait(false);
 
-            if (documentOpt != null)
+            if (modifiedDocument != null)
             {
-                return documentOpt;
+                return modifiedDocument;
             }
 
             // If we can't, then just offer to add an "if (s == null)" statement.
@@ -363,7 +383,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
             var nullCheckStatement = generateNullCheck(semanticModel, editor.Generator);
 
             // We may be inserting a statement into a single-line container.  In that case,

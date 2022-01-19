@@ -42,6 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         public bool IsListVisible => Frames.Count > 0;
         public bool IsInstructionTextVisible => Frames.Count == 0;
 
+        private int _id;
+
         internal void OnClear()
         {
             Frames.Clear();
@@ -61,6 +63,44 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             Frames.CollectionChanged += CallstackLines_CollectionChanged;
         }
 
+        public bool Matches(string text) => text.GetHashCode() == _id;
+
+        public void OnPaste_CallOnUIThread(string text)
+        {
+            IsLoading = true;
+            Frames.Clear();
+            var cancellationToken = _threadingContext.DisposalToken;
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                try
+                {
+                    var result = await StackTraceAnalyzer.AnalyzeAsync(text, cancellationToken).ConfigureAwait(false);
+                    await SetStackTraceResultAsync(result, text, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    IsLoading = false;
+                }
+            }, cancellationToken);
+        }
+
+        public async System.Threading.Tasks.Task SetStackTraceResultAsync(StackTraceAnalysisResult result, string originalText, System.Threading.CancellationToken cancellationToken)
+        {
+            _id = originalText.GetHashCode();
+            var viewModels = result.ParsedFrames.Select(l => GetViewModel(l));
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            Selection = null;
+            Frames.Clear();
+
+            foreach (var vm in viewModels)
+            {
+                Frames.Add(vm);
+            }
+        }
+
         private void CallstackLines_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             NotifyPropertyChanged(nameof(IsListVisible));
@@ -74,44 +114,6 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 Selection = null;
                 Frames.Clear();
             }
-        }
-
-        internal void OnPaste()
-        {
-            Frames.Clear();
-            var textObject = Clipboard.GetData(DataFormats.Text);
-
-            if (textObject is string text)
-            {
-                OnPaste(text);
-            }
-        }
-
-        internal void OnPaste(string text)
-        {
-            System.Threading.Tasks.Task.Run(async () =>
-            {
-                try
-                {
-                    var result = await StackTraceAnalyzer.AnalyzeAsync(text, _threadingContext.DisposalToken).ConfigureAwait(false);
-                    var viewModels = result.ParsedFrames.Select(l => GetViewModel(l));
-
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                    Selection = null;
-                    Frames.Clear();
-
-                    foreach (var vm in viewModels)
-                    {
-                        Frames.Add(vm);
-                    }
-                }
-                finally
-                {
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    IsLoading = false;
-                }
-            }, _threadingContext.DisposalToken);
         }
 
         private FrameViewModel GetViewModel(ParsedFrame frame)

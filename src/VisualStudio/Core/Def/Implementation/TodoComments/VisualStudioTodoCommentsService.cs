@@ -111,6 +111,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                     _asyncListener,
                     cancellationToken));
 
+            // Now that we've started, let the VS todo list know to start listening to us
+            _eventListenerTracker.EnsureEventListener(_workspace, this);
+
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
@@ -121,9 +124,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // todo comments it will call back into us to notify VS about it.
             _lazyConnection = client.CreateConnection<IRemoteTodoCommentsDiscoveryService>(callbackTarget: this);
-
-            // Now that we've started, let the VS todo list know to start listening to us
-            _eventListenerTracker.EnsureEventListener(_workspace, this);
 
             // Now kick off scanning in the OOP process.
             // If the call fails an error has already been reported and there is nothing more to do.

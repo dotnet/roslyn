@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -17,13 +18,9 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal class ErrorListInProcess : InProcComponent
+    [TestService]
+    internal partial class ErrorListInProcess
     {
-        public ErrorListInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         public Task ShowErrorListAsync(CancellationToken cancellationToken)
             => ShowErrorListAsync(ErrorSource.Build | ErrorSource.Other, minimumSeverity: __VSERRORCATEGORY.EC_WARNING, cancellationToken);
 

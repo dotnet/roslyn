@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,18 +15,18 @@ namespace Microsoft.CodeAnalysis.InlineHints
     internal abstract class AbstractInlineHintsService : IInlineHintsService
     {
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
-            Document document, TextSpan textSpan, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, InlineHintsOptions options, CancellationToken cancellationToken)
         {
             var inlineParameterService = document.GetLanguageService<IInlineParameterNameHintsService>();
             var inlineTypeService = document.GetLanguageService<IInlineTypeHintsService>();
 
             var parameters = inlineParameterService == null
                 ? ImmutableArray<InlineHint>.Empty
-                : await inlineParameterService.GetInlineHintsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+                : await inlineParameterService.GetInlineHintsAsync(document, textSpan, options.ParameterOptions, options.DisplayOptions, cancellationToken).ConfigureAwait(false);
 
             var types = inlineTypeService == null
                 ? ImmutableArray<InlineHint>.Empty
-                : await inlineTypeService.GetInlineHintsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+                : await inlineTypeService.GetInlineHintsAsync(document, textSpan, options.TypeOptions, options.DisplayOptions, cancellationToken).ConfigureAwait(false);
 
             return parameters.Concat(types);
         }

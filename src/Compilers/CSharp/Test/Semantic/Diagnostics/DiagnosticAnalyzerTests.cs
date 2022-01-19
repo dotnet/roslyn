@@ -1502,7 +1502,7 @@ class NonGeneratedCode{0}
             generatedFileNames.Add(myGeneratedFileTrueName);
             tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: myGeneratedFileTrueName);
             builder.Add(tree);
-            var analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "true"));
+            var analyzerConfigOptions = new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "true"));
             analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
 
             // (2) "generated_code = TRUE" (case insensitive)
@@ -1510,22 +1510,22 @@ class NonGeneratedCode{0}
             generatedFileNames.Add(myGeneratedFileCaseInsensitiveTrueName);
             tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: myGeneratedFileCaseInsensitiveTrueName);
             builder.Add(tree);
-            analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "TRUE"));
+            analyzerConfigOptions = new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "TRUE"));
             analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
 
             // (3) "generated_code = false"
             tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: "MyGeneratedFileFalse.cs");
             builder.Add(tree);
-            analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "false"));
+            analyzerConfigOptions = new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "false"));
             analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
 
             // (4) "generated_code = auto"
             tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: "MyGeneratedFileAuto.cs");
             builder.Add(tree);
-            analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "auto"));
+            analyzerConfigOptions = new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "auto"));
             analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
 
-            var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(analyzerConfigOptionsPerTreeBuilder.ToImmutable(), CompilerAnalyzerConfigOptions.Empty);
+            var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(analyzerConfigOptionsPerTreeBuilder.ToImmutable(), DictionaryAnalyzerConfigOptions.Empty);
             var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
 
             // Verify no compiler diagnostics.

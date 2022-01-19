@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Private ReadOnly _lineContinuations(s_lineContinuationCacheSize) As LineContinuationTrivia
 
-        Public Sub New(treeInfo As TreeData, options As AnalyzerConfigOptions)
+        Public Sub New(treeInfo As TreeData, options As SyntaxFormattingOptions)
             MyBase.New(treeInfo, options)
         End Sub
 

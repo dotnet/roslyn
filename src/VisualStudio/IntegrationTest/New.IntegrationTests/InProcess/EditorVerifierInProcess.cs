@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
@@ -20,13 +21,9 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal class EditorVerifierInProcess : InProcComponent
+    [TestService]
+    internal partial class EditorVerifierInProcess
     {
-        public EditorVerifierInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         public async Task CurrentLineTextAsync(
             string expectedText,
             bool assertCaretPosition = false,

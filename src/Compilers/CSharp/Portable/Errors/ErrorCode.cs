@@ -2016,6 +2016,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MisplacedSlicePattern = 8980,
 
         WRN_LowerCaseTypeName = 8981,
+        ERR_RecordStructConstructorCallsDefaultConstructor = 8982,
+        ERR_StructHasInitializersAndNoDeclaredConstructor = 8983,
+        ERR_EncUpdateFailedDelegateTypeChanged = 8984,
+
+        ERR_IncorrectNullCheckSyntax = 8990,
+        ERR_MustNullCheckInImplementation = 8991,
+        ERR_NonNullableValueTypeIsNullChecked = 8992,
+        WRN_NullCheckedHasDefaultNull = 8993,
+        ERR_NullCheckingOnOutParameter = 8994,
+        WRN_NullCheckingOnNullableType = 8995,
 
         #endregion
 

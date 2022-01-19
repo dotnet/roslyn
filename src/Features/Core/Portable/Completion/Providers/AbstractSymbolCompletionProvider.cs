@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     completionContext.AddItems(regularItems);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
