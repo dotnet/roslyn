@@ -52,21 +52,21 @@ namespace Roslyn.Utilities
         [InterpolatedStringHandler]
         public struct ThrowIfNullInterpolatedStringHandler<T>
         {
-            private readonly StringBuilder? _stringBuilder;
+            private readonly StringBuilder _stringBuilder;
 
 #pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/58168
             public ThrowIfNullInterpolatedStringHandler(int literalLength, int formattedCount, T? value, out bool success)
 #pragma warning restore IDE0060 // Remove unused parameter
             {
-                _stringBuilder = value is null ? new StringBuilder(capacity: literalLength) : null;
+                _stringBuilder = value is null ? new StringBuilder(capacity: literalLength) : null!;
                 success = value is null;
             }
 
-            public void AppendLiteral(string value) => _stringBuilder?.Append(value);
+            public void AppendLiteral(string value) => _stringBuilder.Append(value);
 
-            public void AppendFormatted<T2>(T2 value) => _stringBuilder?.Append(value?.ToString());
+            public void AppendFormatted<T2>(T2 value) => _stringBuilder.Append(value?.ToString());
 
-            public string GetFormattedText() => _stringBuilder!.ToString();
+            public string GetFormattedText() => _stringBuilder.ToString();
         }
     }
 }
