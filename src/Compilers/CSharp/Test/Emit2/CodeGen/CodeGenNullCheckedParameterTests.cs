@@ -2352,5 +2352,98 @@ class C
 }
 ");
         }
+
+        [Fact]
+        public void TestNullCheckedRefString()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        var s = ""1"";
+        Console.Write(s);
+        M(ref s);
+        Console.Write(s);
+        s = null;
+        try
+        {
+            M(ref s!);
+            Console.Write(0);
+        }
+        catch (ArgumentNullException)
+        {
+            Console.Write(3);
+        }
+    }
+
+    public static void M(ref string x!!)
+    {
+        x = ""2"";
+    }
+}";
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.ref
+  IL_0002:  ldstr      ""x""
+  IL_0007:  call       ""ThrowIfNull""
+  IL_000c:  ldarg.0
+  IL_000d:  ldstr      ""2""
+  IL_0012:  stind.ref
+  IL_0013:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCheckedInString()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        var s = ""1"";
+        Console.Write(s);
+        M(in s);
+        s = null;
+        try
+        {
+            M(in s!);
+            Console.Write(0);
+        }
+        catch (ArgumentNullException)
+        {
+            Console.Write(2);
+        }
+    }
+
+    public static void M(in string x!!)
+    {
+    }
+}";
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.ref
+  IL_0002:  ldstr      ""x""
+  IL_0007:  call       ""ThrowIfNull""
+  IL_000c:  ret
+}");
+        }
     }
 }

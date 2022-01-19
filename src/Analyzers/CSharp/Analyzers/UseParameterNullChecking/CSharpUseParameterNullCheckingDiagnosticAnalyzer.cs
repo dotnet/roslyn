@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 if (parameter is null)
                     return false;
 
-                if (parameter.RefKind != RefKind.None)
+                if (parameter.RefKind == RefKind.Out)
                     return false;
 
                 if (parameter.Type.IsValueType)

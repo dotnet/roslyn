@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
-                if (refKind != RefKind.None && parameterSyntax is ParameterSyntax { ExclamationExclamationToken: var exExToken, Identifier: var identifier } && exExToken.Kind() != SyntaxKind.None)
+                if (refKind == RefKind.Out && parameterSyntax is ParameterSyntax { ExclamationExclamationToken: var exExToken, Identifier: var identifier } && exExToken.Kind() != SyntaxKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, exExToken.GetLocation(), identifier.ValueText);
+                    diagnostics.Add(ErrorCode.ERR_NullCheckingOnOutParameter, exExToken.GetLocation(), identifier.ValueText);
                 }
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
                 {
