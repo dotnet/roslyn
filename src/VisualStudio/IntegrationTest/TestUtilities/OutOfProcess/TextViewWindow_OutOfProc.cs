@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -97,8 +98,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.DiagnosticService);
 
-            ShowLightBulb();
-            WaitForLightBulbSession();
+            try
+            {
+                ShowLightBulb();
+                WaitForLightBulbSession();
+            }
+            catch (InvalidOperationException)
+            {
+                // At times it appears that the async lightbulb dropdown will open, show that it is calculating
+                // actions, and cancel the lightbulb session on completion. When the session is canceled instead
+                // of completed we throw an InvalidOperationException.
+
+                // This will retry opening the lightbulb session with the actions already calculated.
+                ShowLightBulb();
+                WaitForLightBulbSession();
+            }
+
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
         }
 
