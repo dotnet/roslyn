@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             private readonly bool _forceIndentation;
             private readonly int _indentation;
             private readonly int _indentationDelta;
-            private readonly AnalyzerConfigOptions _options;
+            private readonly SyntaxFormattingOptions _options;
 
             public DocumentationCommentExteriorCommentRewriter(
                 bool forceIndentation,
                 int indentation,
                 int indentationDelta,
-                AnalyzerConfigOptions options,
+                SyntaxFormattingOptions options,
                 bool visitStructuredTrivia = true)
                 : base(visitIntoStructuredTrivia: visitStructuredTrivia)
             {
