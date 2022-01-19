@@ -72,24 +72,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return false;
                 }
 
-                var analyzerEnabled = analysisScope switch
+                bool analyzerEnabled;
+                if (analyzer.IsCompilerAnalyzer())
                 {
-                    // Analyzers are only enabled for active document.
-                    // Compiler analyzer is special and enabled for all open documents.
-                    BackgroundAnalysisScope.ActiveFile => analyzer.IsCompilerAnalyzer() ? isOpenDocument : isActiveDocument,
+                    // Compiler analyze is treated specially.
+                    // It is executed for both all documents (open and closed) for 'BackgroundAnalysisScope.FullSolution'
+                    // and executed for just open documents for other analysis scopes.
+                    analyzerEnabled = analysisScope == BackgroundAnalysisScope.FullSolution ? true : isOpenDocument;
+                }
+                else
+                {
+                    analyzerEnabled = analysisScope switch
+                    {
+                        // Analyzers are disabled for all documents.
+                        BackgroundAnalysisScope.None => false,
 
-                    // Analyzers are disabled for all documents.
-                    // Compiler analyzer is special and enabled for all open documents.
-                    BackgroundAnalysisScope.None => isOpenDocument && analyzer.IsCompilerAnalyzer(),
+                        // Analyzers are enabled for active document.
+                        BackgroundAnalysisScope.ActiveFile => isActiveDocument,
 
-                    // All analyzers, including compiler analyzer, are enabled for all open documents.
-                    BackgroundAnalysisScope.OpenFiles => isOpenDocument,
+                        // Analyzers are enabled for all open documents.
+                        BackgroundAnalysisScope.OpenFiles => isOpenDocument,
 
-                    // All analyzers, including compiler analyzer, are enabled for all documents.
-                    BackgroundAnalysisScope.FullSolution => true,
+                        // Analyzers are enabled for all documents.
+                        BackgroundAnalysisScope.FullSolution => true,
 
-                    _ => throw ExceptionUtilities.UnexpectedValue(analysisScope)
-                };
+                        _ => throw ExceptionUtilities.UnexpectedValue(analysisScope)
+                    };
+                }
 
                 return !analyzerEnabled;
             }
