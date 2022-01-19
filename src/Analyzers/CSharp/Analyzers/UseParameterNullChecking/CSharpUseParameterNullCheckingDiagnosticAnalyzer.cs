@@ -183,7 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                     // if (param is null) { throw new ArgumentNullException(nameof(param)); }
                     // if (object.ReferenceEquals(param, null)) { throw new ArgumentNullException(nameof(param)); }
                     case IfStatementSyntax ifStatement:
-
                         ExpressionSyntax left, right;
                         switch (ifStatement)
                         {
