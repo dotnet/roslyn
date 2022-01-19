@@ -6169,8 +6169,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DuplicateNullSuppression" xml:space="preserve">
     <value>Duplicate null suppression operator ('!')</value>
   </data>
-  <data name="ERR_IncorrectNullCheckSyntax" xml:space="preserve">
-    <value>Incorrect parameter null checking syntax. Should be '!!'.</value>
+  <data name="ERR_DiscardCannotBeNullChecked" xml:space="preserve">
+    <value>Discard parameter cannot be null-checked.</value>
   </data>
   <data name="ERR_MustNullCheckInImplementation" xml:space="preserve">
     <value>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</value>

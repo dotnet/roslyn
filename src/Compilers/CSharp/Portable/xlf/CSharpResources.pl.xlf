@@ -357,6 +357,11 @@
         <target state="translated">Nie można deklarować zmiennej we wzorcu „not” ani „or”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DiscardCannotBeNullChecked">
+        <source>Discard parameter cannot be null-checked.</source>
+        <target state="new">Discard parameter cannot be null-checked.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">Wzorzec odrzucania nie jest dozwolony jako etykieta instrukcji case w instrukcji switch. Użyj instrukcji „case var _:” w przypadku wzorca odrzucania lub użyj instrukcji „case @_:” w przypadku stałej o nazwie „_”.</target>
@@ -630,11 +635,6 @@
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Nie można używać argumentów z modyfikatorem „in” w wyrażeniach przydzielanych dynamicznie.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_IncorrectNullCheckSyntax">
-        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
-        <target state="translated">Niepoprawna składnia sprawdzania wartości null parametru. Powinien mieć wartość „!!".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
