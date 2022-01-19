@@ -192,7 +192,7 @@ class C
     private readonly string s;
     public C(string s)
     {
-        [|this.s = s ?? throw new ArgumentNullException(nameof(s));|]
+        this.s = s ?? [|throw new ArgumentNullException(nameof(s))|];
     }
 }",
                 FixedCode = @"
@@ -204,6 +204,34 @@ class C
     public C(string s!!)
     {
         this.s = s;
+    }
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNullCoalescingThrow_AssignSameVariable()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public void M(string s)
+    {
+        [|s = s ?? throw new ArgumentNullException(nameof(s));|]
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public void M(string s!!)
+    {
     }
 }",
                 LanguageVersion = LanguageVersionExtensions.CSharpNext
