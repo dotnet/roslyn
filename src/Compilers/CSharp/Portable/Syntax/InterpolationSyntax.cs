@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static InterpolationSyntax Interpolation(ExpressionSyntax expression)
             => Interpolation(Token(SyntaxKind.OpenBraceToken), expression, Token(SyntaxKind.CloseBraceToken));
 
-        public static InterpolationSyntax Interpolation(ExpressionSyntax expression, InterpolationAlignmentClauseSyntax alignmentClause, InterpolationFormatClauseSyntax formatClause)
+        public static InterpolationSyntax Interpolation(ExpressionSyntax expression, InterpolationAlignmentClauseSyntax? alignmentClause, InterpolationFormatClauseSyntax? formatClause)
             => Interpolation(Token(SyntaxKind.OpenBraceToken), expression, alignmentClause, formatClause, Token(SyntaxKind.CloseBraceToken));
     }
 }
