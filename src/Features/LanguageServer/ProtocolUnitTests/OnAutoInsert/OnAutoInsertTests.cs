@@ -57,7 +57,7 @@ End Class";
     Sub M()
     End Sub
 End Class";
-            await VerifyMarkupAndExpected("/", markup, expected);
+            await VerifyMarkupAndExpected("'", markup, expected, languageName: LanguageNames.VisualBasic);
         }
 
         [Fact]
