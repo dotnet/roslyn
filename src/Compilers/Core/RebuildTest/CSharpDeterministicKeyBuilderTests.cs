@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""additionalTexts"": [],
   ""analyzers"": [],
   ""generators"": [],
-  ""emitOptions"": {}
+  ""emitOptions"": null
 }
 ", key);
         }
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""additionalTexts"": [],
   ""analyzers"": [],
   ""generators"": [],
-  ""emitOptions"": {{}}
+  ""emitOptions"": null
 }}
 ", key, "references", "syntaxTrees", "extensions");
         }

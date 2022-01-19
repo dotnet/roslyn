@@ -385,32 +385,38 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             DeterministicKeyOptions deterministicKeyOptions)
         {
-            writer.WriteObjectStart();
-            if (options is not null)
+            if (options is null)
             {
-                writer.Write("emitMetadataOnly", options.EmitMetadataOnly);
-                writer.Write("tolerateErrors", options.TolerateErrors);
-                writer.Write("includePrivateMembers", options.IncludePrivateMembers);
-                writer.WriteKey("instrumentationKinds");
-                writer.WriteArrayStart();
+                writer.WriteNull();
+                return;
+            }
+
+            writer.WriteObjectStart();
+            writer.Write("emitMetadataOnly", options.EmitMetadataOnly);
+            writer.Write("tolerateErrors", options.TolerateErrors);
+            writer.Write("includePrivateMembers", options.IncludePrivateMembers);
+            writer.WriteKey("instrumentationKinds");
+            writer.WriteArrayStart();
+            if (!options.InstrumentationKinds.IsDefault)
+            {
                 foreach (var kind in options.InstrumentationKinds)
                 {
                     writer.Write(kind);
                 }
-                writer.WriteArrayEnd();
-
-                writeSubsystemVersion(writer, options.SubsystemVersion);
-                writer.Write("fileAlignment", options.FileAlignment);
-                writer.Write("highEntropyVirtualAddressSpace", options.HighEntropyVirtualAddressSpace);
-                writer.WriteInvariant("baseAddress", options.BaseAddress);
-                writer.Write("debugInformationFormat", options.DebugInformationFormat);
-                writer.Write("outputNameOverride", options.OutputNameOverride);
-                WriteFilePath(writer, "pdbFilePath", options.PdbFilePath, pathMap, deterministicKeyOptions);
-                writer.Write("pdbChecksumAlgorithm", options.PdbChecksumAlgorithm.Name);
-                writer.Write("runtimeMetadataVersion", options.RuntimeMetadataVersion);
-                writer.Write("defaultSourceFileEncoding", options.DefaultSourceFileEncoding?.CodePage);
-                writer.Write("fallbackSourceFileEncoding", options.FallbackSourceFileEncoding?.CodePage);
             }
+            writer.WriteArrayEnd();
+
+            writeSubsystemVersion(writer, options.SubsystemVersion);
+            writer.Write("fileAlignment", options.FileAlignment);
+            writer.Write("highEntropyVirtualAddressSpace", options.HighEntropyVirtualAddressSpace);
+            writer.WriteInvariant("baseAddress", options.BaseAddress);
+            writer.Write("debugInformationFormat", options.DebugInformationFormat);
+            writer.Write("outputNameOverride", options.OutputNameOverride);
+            WriteFilePath(writer, "pdbFilePath", options.PdbFilePath, pathMap, deterministicKeyOptions);
+            writer.Write("pdbChecksumAlgorithm", options.PdbChecksumAlgorithm.Name);
+            writer.Write("runtimeMetadataVersion", options.RuntimeMetadataVersion);
+            writer.Write("defaultSourceFileEncoding", options.DefaultSourceFileEncoding?.CodePage);
+            writer.Write("fallbackSourceFileEncoding", options.FallbackSourceFileEncoding?.CodePage);
             writer.WriteObjectEnd();
 
             static void writeSubsystemVersion(JsonWriter writer, SubsystemVersion version)
