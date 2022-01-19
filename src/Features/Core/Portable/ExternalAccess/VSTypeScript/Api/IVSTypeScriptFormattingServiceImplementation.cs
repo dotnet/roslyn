@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         int TabSize,
         int IndentSize);
 
-    internal interface IVSTypeScriptFormattingServiceImplementation
+    internal interface IVSTypeScriptFormattingServiceImplementation : ILanguageService
     {
         Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, VSTypeScriptIndentationOptions options, CancellationToken cancellationToken);
     }

@@ -15,13 +15,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    [ExportLanguageService(typeof(IFormattingService), InternalLanguageNames.TypeScript), Shared]
     internal sealed class VSTypeScriptFormattingService : IFormattingService
     {
         private readonly IVSTypeScriptFormattingServiceImplementation _impl;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public VSTypeScriptFormattingService(IVSTypeScriptFormattingServiceImplementation impl)
             => _impl = impl;
 
