@@ -615,9 +615,9 @@ using System;
 
 class C
 {
-    public C(out string s)
+    public {|CS0177:C|}(out string s)
     {
-        if (s is null)
+        if ({|CS0269:s|} is null)
             throw new ArgumentNullException(nameof(s));
     }
 }";
@@ -625,7 +625,6 @@ class C
             {
                 TestCode = testCode,
                 FixedCode = testCode,
-                CompilerDiagnostics = Testing.CompilerDiagnostics.None,
                 LanguageVersion = LanguageVersionExtensions.CSharpNext
             }.RunAsync();
         }
