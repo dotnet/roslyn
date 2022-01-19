@@ -82,9 +82,8 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</source>
-        <target state="needs-review-translation">Neu zugewiesene Variablen unterstreichen;
+Inheritance Margin;</source>
+        <target state="translated">Neu zugewiesene Variablen unterstreichen;
 Inlinehinweise anzeigen;
 Diagnoseinformationen für geschlossene Dateien anzeigen;
 Reguläre Ausdrücke farbig hervorheben;

@@ -82,9 +82,8 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</source>
-        <target state="needs-review-translation">Podkreślaj ponownie przypisane zmienne;
+Inheritance Margin;</source>
+        <target state="translated">Podkreślaj ponownie przypisane zmienne;
 Wyświetlaj wskazówki w tekście;
 Pokaż dane diagnostyczne dla zamkniętych plików;
 Koloruj wyrażenia regularne; 

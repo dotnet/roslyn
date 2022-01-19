@@ -82,9 +82,8 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</source>
-        <target state="needs-review-translation">Podtrhnout znovu přiřazené proměnné;
+Inheritance Margin;</source>
+        <target state="translated">Podtrhnout znovu přiřazené proměnné;
 Zobrazovat vložené nápovědy;
 Zobrazit diagnostiku pro zavřené soubory;
 Vybarvit regulární výraz;
