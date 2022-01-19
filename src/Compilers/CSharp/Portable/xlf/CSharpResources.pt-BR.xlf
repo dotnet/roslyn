@@ -937,9 +937,9 @@
         <target state="translated">'{0}' precisa permitir a substituição porque o registro contentor não está selado.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NullCheckingOnByRefParameter">
-        <source>By-reference parameter '{0}' cannot be null-checked.</source>
-        <target state="translated">O parâmetro por referência '{0}' não pode ser verificado com o valor nulo.</target>
+      <trans-unit id="ERR_NullCheckingOnOutParameter">
+        <source>'out' parameter '{0}' cannot be null-checked.</source>
+        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">

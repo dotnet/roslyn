@@ -6184,8 +6184,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullCheckedHasDefaultNull_Title" xml:space="preserve">
     <value>Parameter is null-checked but is null by default.</value>
   </data>
-  <data name="ERR_NullCheckingOnByRefParameter" xml:space="preserve">
-    <value>By-reference parameter '{0}' cannot be null-checked.</value>
+  <data name="ERR_NullCheckingOnOutParameter" xml:space="preserve">
+    <value>'out' parameter '{0}' cannot be null-checked.</value>
   </data>
   <data name="WRN_NullCheckingOnNullableType" xml:space="preserve">
     <value>Nullable type '{0}' is null-checked and will throw if null.</value>

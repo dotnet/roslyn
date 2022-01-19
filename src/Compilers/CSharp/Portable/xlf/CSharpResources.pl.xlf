@@ -937,9 +937,9 @@
         <target state="translated">Element „{0}” musi zezwalać na przesłanianie, ponieważ zawierający go rekord nie jest zapieczętowany.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NullCheckingOnByRefParameter">
-        <source>By-reference parameter '{0}' cannot be null-checked.</source>
-        <target state="translated">Parametru referencyjny „{0}” nie może zostać sprawdzony przy użyciu wartości null.</target>
+      <trans-unit id="ERR_NullCheckingOnOutParameter">
+        <source>'out' parameter '{0}' cannot be null-checked.</source>
+        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">

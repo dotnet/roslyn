@@ -937,9 +937,9 @@
         <target state="translated">'{0}' deve consentire l'override perché il record contenitore non è sealed.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NullCheckingOnByRefParameter">
-        <source>By-reference parameter '{0}' cannot be null-checked.</source>
-        <target state="translated">Il parametro '{0}' per riferimento non può essere controllato Null.</target>
+      <trans-unit id="ERR_NullCheckingOnOutParameter">
+        <source>'out' parameter '{0}' cannot be null-checked.</source>
+        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">

@@ -937,9 +937,9 @@
         <target state="translated">{0} musí povolovat přepisování, protože obsahující záznam není zapečetěný.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NullCheckingOnByRefParameter">
-        <source>By-reference parameter '{0}' cannot be null-checked.</source>
-        <target state="translated">Parametr podle odkazu '{0}' nemůže mít hodnotu null.</target>
+      <trans-unit id="ERR_NullCheckingOnOutParameter">
+        <source>'out' parameter '{0}' cannot be null-checked.</source>
+        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">

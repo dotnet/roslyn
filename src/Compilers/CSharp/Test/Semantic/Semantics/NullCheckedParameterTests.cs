@@ -680,9 +680,9 @@ class C
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
-                    // (5,31): error CS8720: By-reference parameter 'x' cannot be null-checked.
+                    // (5,31): error CS8994: 'out' parameter 'x' cannot be null-checked.
                     //     public void M(out string x!!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!!").WithArguments("x").WithLocation(5, 31));
+                    Diagnostic(ErrorCode.ERR_NullCheckingOnOutParameter, "!!").WithArguments("x").WithLocation(5, 31));
         }
 
         [Fact]
@@ -698,10 +698,7 @@ class C
     }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics(
-                    // (5,31): error CS8720: By-reference parameter 'x' cannot be null-checked.
-                    //     public void M(ref string x!!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!!").WithArguments("x").WithLocation(5, 31));
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -714,10 +711,7 @@ class C
     public void M(in string x!!) { }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics(
-                    // (5,30): error CS8720: By-reference parameter 'x' cannot be null-checked.
-                    //     public void M(in string x!!) { }
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!!").WithArguments("x").WithLocation(5, 30));
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
