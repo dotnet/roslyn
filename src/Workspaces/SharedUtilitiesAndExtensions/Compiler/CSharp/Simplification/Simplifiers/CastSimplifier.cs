@@ -85,7 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // warning CS8974: Converting method group 'ToString' to non-delegate type 'object'. Did you intend to invoke the method?
             if (semanticModel.GetOperation(cast.Expression, cancellationToken)?.Kind == OperationKind.MethodReference &&
                 semanticModel.GetTypeInfo(cast.Type, cancellationToken).Type is { SpecialType: SpecialType.System_Object })
+            {
                 return false;
+            }
 
             return IsCastSafeToRemove(cast, cast.Expression, semanticModel, cancellationToken);
         }
