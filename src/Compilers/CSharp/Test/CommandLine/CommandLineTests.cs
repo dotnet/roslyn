@@ -1410,7 +1410,9 @@ class C
             Assert.Equal("blah", args.Win32Manifest);
         }
 
-        [Fact]
+        // The following test is failing in the Linux Debug test leg of CI.
+        // This issus is being tracked by https://github.com/dotnet/roslyn/issues/58077
+        [ConditionalFact(typeof(WindowsOrMacOSOnly))]
         public void ArgumentParsing()
         {
             var sdkDirectory = SdkDirectory;
@@ -10014,6 +10016,186 @@ class C
             void RunWithTwoGenerators() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
+        [Fact]
+        public void Compiler_Updates_Cached_Driver_AdditionalTexts()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C { }");
+            var additionalFile = dir.CreateFile("additionalFile.txt").WriteAllText("some text");
+
+            int sourceCallbackCount = 0;
+            int additionalFileCallbackCount = 0;
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    sourceCallbackCount++;
+                });
+
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (spc, po) =>
+                {
+                    additionalFileCallbackCount++;
+                });
+
+            });
+
+            GeneratorDriverCache cache = new GeneratorDriverCache();
+
+            RunWithCache();
+            Assert.Equal(1, sourceCallbackCount);
+            Assert.Equal(1, additionalFileCallbackCount);
+
+            RunWithCache();
+            Assert.Equal(1, sourceCallbackCount);
+            Assert.Equal(1, additionalFileCallbackCount);
+
+            additionalFile.WriteAllText("some new content");
+
+            RunWithCache();
+            Assert.Equal(1, sourceCallbackCount);
+            Assert.Equal(2, additionalFileCallbackCount); // additional file was updated
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+
+            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache", "/additionalFile:" + additionalFile.Path }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+        }
+
+        [Fact]
+        public void Compiler_DoesNotCache_Driver_ConfigProvider()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C { }");
+            var editorconfig = dir.CreateFile(".editorconfig").WriteAllText(@"
+[temp.cs]
+a = localA
+");
+
+            var globalconfig = dir.CreateFile(".globalconfig").WriteAllText(@"
+is_global = true
+a = globalA");
+
+            int sourceCallbackCount = 0;
+            int configOptionsCallbackCount = 0;
+            int filteredGlobalCallbackCount = 0;
+            int filteredLocalCallbackCount = 0;
+            string globalA = "";
+            string localA = "";
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    sourceCallbackCount++;
+                });
+
+                ctx.RegisterSourceOutput(ctx.AnalyzerConfigOptionsProvider, (spc, po) =>
+                {
+                    configOptionsCallbackCount++;
+                    po.GlobalOptions.TryGetValue("a", out globalA);
+                });
+
+                ctx.RegisterSourceOutput(ctx.AnalyzerConfigOptionsProvider.Select((p, _) => { p.GlobalOptions.TryGetValue("a", out var value); return value; }), (spc, value) =>
+                {
+                    filteredGlobalCallbackCount++;
+                    globalA = value;
+                });
+
+                var syntaxTreeInput = ctx.CompilationProvider.Select((c, _) => c.SyntaxTrees.First());
+                ctx.RegisterSourceOutput(ctx.AnalyzerConfigOptionsProvider.Combine(syntaxTreeInput).Select((p, _) => { p.Left.GetOptions(p.Right).TryGetValue("a", out var value); return value; }), (spc, value) =>
+                {
+                    filteredLocalCallbackCount++;
+                    localA = value;
+                });
+            });
+
+            GeneratorDriverCache cache = new GeneratorDriverCache();
+
+            RunWithCache();
+            Assert.Equal(1, sourceCallbackCount);
+            Assert.Equal(1, configOptionsCallbackCount);
+            Assert.Equal(1, filteredGlobalCallbackCount);
+            Assert.Equal(1, filteredLocalCallbackCount);
+            Assert.Equal("globalA", globalA);
+            Assert.Equal("localA", localA);
+
+
+            RunWithCache();
+            Assert.Equal(1, sourceCallbackCount);
+            Assert.Equal(2, configOptionsCallbackCount); // we can't compare the provider directly, so we consider it modified
+            Assert.Equal(1, filteredGlobalCallbackCount); // however, the values in it will cache out correctly.
+            Assert.Equal(1, filteredLocalCallbackCount);
+
+            editorconfig.WriteAllText(@"
+[temp.cs]
+a = diffLocalA
+");
+
+            RunWithCache();
+            Assert.Equal(1, sourceCallbackCount);
+            Assert.Equal(3, configOptionsCallbackCount);
+            Assert.Equal(1, filteredGlobalCallbackCount); // the provider changed, but only the local value changed
+            Assert.Equal(2, filteredLocalCallbackCount);
+            Assert.Equal("globalA", globalA);
+            Assert.Equal("diffLocalA", localA);
+
+
+            globalconfig.WriteAllText(@"
+is_global = true
+a = diffGlobalA
+");
+
+            RunWithCache();
+            Assert.Equal(1, sourceCallbackCount);
+            Assert.Equal(4, configOptionsCallbackCount);
+            Assert.Equal(2, filteredGlobalCallbackCount); // only the global value was changed
+            Assert.Equal(2, filteredLocalCallbackCount);
+            Assert.Equal("diffGlobalA", globalA);
+            Assert.Equal("diffLocalA", localA);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+
+            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache", "/analyzerConfig:" + editorconfig.Path, "/analyzerConfig:" + globalconfig.Path }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+        }
+
+        [Fact]
+        public void Compiler_DoesNotCache_Compilation()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            int sourceCallbackCount = 0;
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, po) =>
+                {
+                    sourceCallbackCount++;
+                });
+            });
+
+            // now re-run with a cache
+            GeneratorDriverCache cache = new GeneratorDriverCache();
+
+            RunWithCache();
+            Assert.Equal(1, sourceCallbackCount);
+
+            RunWithCache();
+            Assert.Equal(2, sourceCallbackCount);
+
+            RunWithCache();
+            Assert.Equal(3, sourceCallbackCount);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+
+            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+        }
+
         private static int OccurrenceCount(string source, string word)
         {
             var n = 0;
@@ -14009,6 +14191,76 @@ public class Generator : ISourceGenerator
                 return generatorPath;
             }
         }
+
+        [Theory]
+        [InlineData("a.txt", "b.txt", 2)]
+        [InlineData("a.txt", "a.txt", 1)]
+        [InlineData("abc/a.txt", "def/a.txt", 2)]
+        [InlineData("abc/a.txt", "abc/a.txt", 1)]
+        [InlineData("abc/a.txt", "abc/../a.txt", 2)]
+        [InlineData("abc/a.txt", "abc/./a.txt", 1)]
+        [InlineData("abc/a.txt", "abc/../abc/a.txt", 1)]
+        [InlineData("abc/a.txt", "abc/.././abc/a.txt", 1)]
+        [InlineData("abc/a.txt", "./abc/a.txt", 1)]
+        [InlineData("abc/a.txt", "../abc/../abc/a.txt", 2)]
+        [InlineData("abc/a.txt", "./abc/../abc/a.txt", 1)]
+        [InlineData("../abc/a.txt", "../abc/../abc/a.txt", 1)]
+        [InlineData("../abc/a.txt", "../abc/a.txt", 1)]
+        [InlineData("./abc/a.txt", "abc/a.txt", 1)]
+        public void TestDuplicateAdditionalFiles(string additionalFilePath1, string additionalFilePath2, int expectedCount)
+        {
+            var srcDirectory = Temp.CreateDirectory();
+            var srcFile = srcDirectory.CreateFile("a.cs").WriteAllText("class C { }");
+
+            // make sure any parent or sub dirs exist too
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(srcDirectory.Path, additionalFilePath1)));
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(srcDirectory.Path, additionalFilePath2)));
+
+            var additionalFile1 = srcDirectory.CreateFile(additionalFilePath1);
+            var additionalFile2 = expectedCount == 2 ? srcDirectory.CreateFile(additionalFilePath2) : null;
+
+            string path1 = additionalFile1.Path;
+            string path2 = additionalFile2?.Path ?? Path.Combine(srcDirectory.Path, additionalFilePath2);
+
+            int count = 0;
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (spc, t) =>
+                {
+                    count++;
+                });
+            });
+
+            var output = VerifyOutput(srcDirectory, srcFile, includeCurrentAssemblyAsAnalyzerReference: false,
+                additionalFlags: new[] { "/additionalfile:" + path1, "/additionalfile:" + path2 },
+                generators: new[] { generator.AsSourceGenerator() });
+
+            Assert.Equal(expectedCount, count);
+
+            CleanupAllGeneratedFiles(srcDirectory.Path);
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData("abc/a.txt", "abc\\a.txt", 1)]
+        [InlineData("abc\\a.txt", "abc\\a.txt", 1)]
+        [InlineData("abc/a.txt", "abc\\..\\a.txt", 2)]
+        [InlineData("abc/a.txt", "abc\\..\\abc\\a.txt", 1)]
+        [InlineData("abc/a.txt", "../abc\\../abc\\a.txt", 2)]
+        [InlineData("abc/a.txt", "./abc\\../abc\\a.txt", 1)]
+        [InlineData("../abc/a.txt", "../abc\\../abc\\a.txt", 1)]
+        [InlineData("a.txt", "A.txt", 1)]
+        [InlineData("abc/a.txt", "ABC\\a.txt", 1)]
+        [InlineData("abc/a.txt", "ABC\\A.txt", 1)]
+        public void TestDuplicateAdditionalFiles_Windows(string additionalFilePath1, string additionalFilePath2, int expectedCount) => TestDuplicateAdditionalFiles(additionalFilePath1, additionalFilePath2, expectedCount);
+
+        [ConditionalTheory(typeof(LinuxOnly))]
+        [InlineData("a.txt", "A.txt", 2)]
+        [InlineData("abc/a.txt", "abc/A.txt", 2)]
+        [InlineData("abc/a.txt", "ABC/a.txt", 2)]
+        [InlineData("abc/a.txt", "./../abc/A.txt", 2)]
+        [InlineData("abc/a.txt", "./../ABC/a.txt", 2)]
+        public void TestDuplicateAdditionalFiles_Linux(string additionalFilePath1, string additionalFilePath2, int expectedCount) => TestDuplicateAdditionalFiles(additionalFilePath1, additionalFilePath2, expectedCount);
+
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]

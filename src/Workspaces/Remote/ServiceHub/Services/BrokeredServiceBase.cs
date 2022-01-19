@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
             SolutionAssetSource = new SolutionAssetSource(ServiceBrokerClient);
         }
 
-        public void Dispose()
+        public virtual void Dispose()
             => ServiceBrokerClient.Dispose();
 
         public RemoteWorkspace GetWorkspace()

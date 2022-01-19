@@ -19,8 +19,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
 
         Friend Overrides Async Function GetBlockSpansWorkerAsync(document As Document, position As Integer) As Task(Of ImmutableArray(Of BlockSpan))
             Dim outliningService = document.GetLanguageService(Of BlockStructureService)()
+            Dim options = BlockStructureOptions.From(document.Project)
 
-            Return (Await outliningService.GetBlockStructureAsync(document, CancellationToken.None)).Spans
+            Return (Await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None)).Spans
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>

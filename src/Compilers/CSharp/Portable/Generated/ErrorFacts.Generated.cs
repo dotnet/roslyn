@@ -279,6 +279,9 @@
                 case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
                 case ErrorCode.WRN_CompileTimeCheckedOverflow:
                 case ErrorCode.WRN_MethGrpToNonDel:
+                case ErrorCode.WRN_NullCheckedHasDefaultNull:
+                case ErrorCode.WRN_NullCheckingOnNullableType:
+                case ErrorCode.WRN_LowerCaseTypeName:
                     return true;
                 default:
                     return false;

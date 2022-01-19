@@ -2847,7 +2847,7 @@ class C
         /*<bind>*/var (x1, x2) = (1, 2)/*</bind>*/;
     }
 }
-class var { }
+class @var { }
 ";
             string expectedOperationTree = @"
 IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (var x1, var x2), IsInvalid) (Syntax: 'var (x1, x2) = (1, 2)')
@@ -2888,7 +2888,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         public void DeclarationVarFormWithAliasedVarType()
         {
             string source = @"
-using var = D;
+using @var = D;
 class C
 {
     static void Main()

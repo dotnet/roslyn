@@ -440,6 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return method.MethodKind == MethodKind.Constructor && method.ParameterCount == 0;
         }
 
+#nullable enable
         /// <summary>
         /// Returns true if the method is the default constructor synthesized for struct types, and
         /// if <paramref name="requireZeroInit"/> is true, the constructor simply zero-inits the instance.
@@ -453,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsDefaultValueTypeConstructor(this MethodSymbol method, bool requireZeroInit)
         {
             if (method.IsImplicitlyDeclared &&
-                method.ContainingType.IsValueType &&
+                method.ContainingType?.IsValueType == true &&
                 method.IsParameterlessConstructor())
             {
                 if (!requireZeroInit)
@@ -469,6 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return false;
         }
+#nullable disable
 
         /// <summary>
         /// Indicates whether the method should be emitted.

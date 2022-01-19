@@ -1931,7 +1931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (anonymousFunction.FunctionType is { } functionType &&
-                    functionType.GetValue() is null)
+                    functionType.GetInternalDelegateType() is null)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     if (Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo))
@@ -3497,7 +3497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool thisInitializer = initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) == true;
             if (!thisInitializer &&
-                ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any())
+                hasAnyRecordConstructors())
             {
                 var constructorSymbol = (MethodSymbol)this.ContainingMember();
                 if (!constructorSymbol.IsStatic &&
@@ -3514,6 +3514,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && thisInitializer
                 && ContainingType.IsDefaultValueTypeConstructor(initializer);
 
+            if (skipInitializer &&
+                hasAnyRecordConstructors())
+            {
+                Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+            }
+
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
@@ -3524,6 +3530,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       null :
                                                       bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
                                                                                            constructor.Body == null ? diagnostics : BindingDiagnosticBag.Discarded));
+
+            bool hasAnyRecordConstructors() =>
+                ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any();
         }
 
         internal virtual BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax initializer, BindingDiagnosticBag diagnostics)

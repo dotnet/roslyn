@@ -327,7 +327,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
 
             public void Visit(RegexAlternationNode node)
-                => AddClassification(node.BarToken, ClassificationTypeNames.RegexAlternation);
+            {
+                for (var i = 1; i < node.SequenceList.NodesAndTokens.Length; i += 2)
+                    AddClassification(node.SequenceList.NodesAndTokens[i].Token, ClassificationTypeNames.RegexAlternation);
+            }
 
             public void Visit(RegexSimpleEscapeNode node)
                 => ClassifyWholeNode(node, node.IsSelfEscape()
