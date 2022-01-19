@@ -32,9 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 
             protected override SyntaxNode GetNodeToReplace() => _interpolatedStringExpression;
 
-            // Don't offer on $@"" strings.  They support newlines directly in their content.
+            // Don't offer on $@"" strings and raw string literals.  They support newlines directly in their content.
             protected override bool CheckToken()
-                => _interpolatedStringExpression.StringStartToken.Kind() != SyntaxKind.InterpolatedVerbatimStringStartToken;
+                => _interpolatedStringExpression.StringStartToken.Kind() != SyntaxKind.InterpolatedVerbatimStringStartToken &&
+                _interpolatedStringExpression.StringStartToken.Kind() != SyntaxKind.InterpolatedSingleLineRawStringStartToken &&
+                _interpolatedStringExpression.StringStartToken.Kind() != SyntaxKind.InterpolatedMultiLineRawStringStartToken;
 
             protected override BinaryExpressionSyntax CreateSplitString()
             {
