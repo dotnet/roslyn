@@ -523,7 +523,6 @@ namespace NS
             var expectedItems = new[]
             {
                 "Rename 'P2' to 'Foober'",
-                "Generate type 'Foober'",
                 "Generate class 'Foober' in new file",
                 "Generate class 'Foober'",
                 "Generate nested class 'Foober'",

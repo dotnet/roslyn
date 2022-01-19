@@ -2539,7 +2539,7 @@ outerDefault:
                 BoundLambda lambda = ((UnboundLambda)node).BindForReturnTypeInference(d);
 
                 // - an inferred return type X exists for E in the context of the parameter list of D(§7.5.2.12), and an identity conversion exists from X to Y
-                var x = lambda.GetInferredReturnType(ref useSiteInfo);
+                var x = lambda.GetInferredReturnType(ref useSiteInfo, out _);
                 if (x.HasType && Conversions.HasIdentityConversion(x.Type, y))
                 {
                     return true;
@@ -2962,7 +2962,7 @@ outerDefault:
                             return true;
                         }
 
-                        var x = lambda.InferReturnType(Conversions, d1, ref useSiteInfo);
+                        var x = lambda.InferReturnType(Conversions, d1, ref useSiteInfo, out _);
                         if (!x.HasType)
                         {
                             return true;

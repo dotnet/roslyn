@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"
 namespace x
 {
-    public class b
+    public class @b
     {
         public static void Main()
         {
@@ -123,8 +123,8 @@ class Program
         {
             var text =
 @"using System;
-delegate void boo();
-public class abc
+delegate void @boo();
+public class @abc
 {
     public void bar() { System.Console.WriteLine(""bar""); }
     static public void far() { System.Console.WriteLine(""far""); }
@@ -199,7 +199,7 @@ class C
         public void CS0019ERR_BadBinaryOps06()
         {
             var text =
-@"delegate void boo(int x);
+@"delegate void @boo(int x);
 class C
 {
     static void Main(string[] args)
@@ -232,7 +232,7 @@ class C
         public void CS0019ERR_BadBinaryOps07()
         {
             var text =
-@"delegate void boo(int x);
+@"delegate void @boo(int x);
 class C
 {
     static void Main(string[] args)
@@ -266,7 +266,7 @@ class C
         {
             var text =
 @"using System;
-delegate void boo(int x);
+delegate void @boo(int x);
 class C
 {
     public void bar(int x) { Console.WriteLine("""", x); }
@@ -355,7 +355,7 @@ class C
         public void CS0019ERR_BadBinaryOps10()
         {
             var text =
-@"delegate void boo<T>(T x);
+@"delegate void @boo<T>(T x);
 class C
 {
     public void bar(int x) { System.Console.WriteLine(""bar:{0}"", x); }
@@ -430,7 +430,7 @@ class C
         public void CS0019ERR_BadBinaryOps11()
         {
             var text =
-@"delegate void boo<T>(T x);
+@"delegate void @boo<T>(T x);
 class C
 {
     static void far<T>(T x) { }
@@ -456,7 +456,7 @@ class C
         public void CS0019ERR_BadBinaryOps12()
         {
             var text =
-@"delegate void boo<T>(T x);
+@"delegate void @boo<T>(T x);
 class C
 {
     static void far<T>(T x) { }
@@ -884,7 +884,7 @@ class B : A<S>
             var text = @"
 namespace x
 {
-    public class b
+    public class @b
     {
         public static int Main()
         {
@@ -903,7 +903,7 @@ namespace x
             var text = @"
 namespace x
 {
-    public class b
+    public class @b
     {
         public static void Main()
         {
@@ -957,7 +957,7 @@ class C
             var text = @"
 namespace x
 {
-    public class b
+    public class @b
     {
         public static void Main()
         {
@@ -1664,7 +1664,7 @@ class C
             var text = @"
 namespace x
 {
-    public class iii
+    public class @iii
     {
         public static iii operator ++(iii aa)
         {
@@ -1735,7 +1735,7 @@ public class Test
         public void CS0031ERR_ConstOutOfRange01()
         {
             var text =
-@"public class a
+@"public class @a
 {
     int num = (int)2147483648M; //CS0031
 }
@@ -2516,7 +2516,7 @@ class Program
         }
     }
 }
-enum color
+enum @color
 {
     blue,
     green
@@ -2894,7 +2894,7 @@ class C
 class Program
 {
     private readonly int v = 5;
-    delegate int del(int i);
+    delegate int @del(int i);
     static void Main(string[] args)
     {
         del myDelegate = (int x) => x * v;
@@ -2910,12 +2910,12 @@ class Program
         public void CS0120ERR_ObjectRequired03()
         {
             var source =
-@"delegate int boo();
+@"delegate int @boo();
 interface I
 {
     int bar();
 }
-public struct abc : I
+public struct @abc : I
 {
     public int bar() { System.Console.WriteLine(""bar""); return 0x01; }
 }
@@ -3435,7 +3435,7 @@ public class C
         public void CS0123ERR_MethDelegateMismatch_01()
         {
             var text = @"
-delegate void boo(short x);
+delegate void @boo(short x);
 class C
 {
     static void far<T>(T x) { }
@@ -3458,7 +3458,7 @@ class C
         public void CS0123ERR_MethDelegateMismatch_02()
         {
             var text = @"
-delegate void boo(short x);
+delegate void @boo(short x);
 class C<T>
 {
     public static void far(T x) { }
@@ -4105,7 +4105,7 @@ class Test
             var text = @"
 namespace x
 {
-    public class a
+    public class @a
     {
         public static void Main(bool b)
         {
@@ -4158,12 +4158,12 @@ using System;
 
 namespace A
 {
-    class var { }
+    class @var { }
     class XAttribute : Attribute { }
 }
 namespace B
 {
-    class var { }
+    class @var { }
     class XAttribute : Attribute { }
     class X : Attribute { }
 }
@@ -4189,11 +4189,11 @@ using B;
 
 namespace A
 {
-    class var { }
+    class @var { }
 }
 namespace B
 {
-    class var { }
+    class @var { }
 }
 class Xyzzy
 {
@@ -4215,15 +4215,15 @@ class Xyzzy
         public void CS0144ERR_NoNewAbstract()
         {
             var text = @"
-interface ii
+interface @ii
 {
 }
 
-abstract class aa
+abstract class @aa
 {
 }
 
-public class a
+public class @a
 {
    public static void Main()
    {
@@ -4270,7 +4270,7 @@ class C
         public void CS0151ERR_IntegralTypeValueExpected()
         {
             var text = @"
-public class iii
+public class @iii
 {
    public static implicit operator int (iii aa)
    {
@@ -4310,7 +4310,7 @@ public class iii
             var text = @"
 namespace x
 {
-   public class a
+   public class @a
    {
       public static void Main()
       {
@@ -4341,7 +4341,7 @@ namespace x
         public void CS0153ERR_InvalidGotoCase()
         {
             var text = @"
-public class a
+public class @a
 {
    public static void Main()
    {
@@ -4802,11 +4802,11 @@ using System;
 
 namespace x
 {
-   public class b : Exception
+   public class @b : Exception
    {
    }
 
-   public class a
+   public class @a
    {
       public static void Main()
       {
@@ -5184,7 +5184,7 @@ namespace MyNamespace
         public void CS0158ERR_LabelShadow_02()
         {
             var text = @"
-delegate int del(int i);
+delegate int @del(int i);
 class C
 {
     static void Main(string[] args)
@@ -5414,7 +5414,7 @@ class Program
         public void CS0159ERR_LabelNotFound_8()
         {
             var text = @"
-delegate int del(int i);
+delegate int @del(int i);
 class C
 {
     static void Main(string[] args)
@@ -6424,7 +6424,7 @@ class Test
         public void CS0170ERR_UseDefViolationField()
         {
             var text = @"
-public struct error
+public struct @error
 {
    public int i;
 }
@@ -7355,7 +7355,7 @@ unsafe public class MyClass
 
             compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'i[1,2]')
+IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'i[1,2]')
   Children(2):
       ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32*, IsInvalid) (Syntax: 'i')
       IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i[1,2]')
@@ -10909,7 +10909,7 @@ class Test
             var text = @"
 namespace x
 {
-   public class clx
+   public class @clx
    {
       public clx() : this()   // CS0516
       {
@@ -10993,7 +10993,7 @@ public class A
         public void CS0522ERR_StructWithBaseConstructorCall()
         {
             var text = @"
-public class clx
+public class @clx
 {
    public clx(int i)
    {
@@ -11004,7 +11004,7 @@ public class clx
    }
 }
 
-public struct cly
+public struct @cly
 {
    public cly(int i):base(0)   // CS0522
    // try the following line instead
@@ -11352,7 +11352,7 @@ class D : C
             var test = @"
 namespace x
 {
-    public class iii
+    public class @iii
     {
         ~iiii(){}
         public static void Main()
@@ -11876,7 +11876,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 
-public delegate void dele();
+public delegate void @dele();
 
 public class ConClass
 {
@@ -12884,7 +12884,7 @@ namespace ConsoleApplication3
 {
     class Program
     {
-        delegate string dg(int x);
+        delegate string @dg(int x);
         static void Main(string[] args)
         {
             Expression<dg> myET = x => Index(minSessions:5);
@@ -12936,7 +12936,7 @@ namespace ConsoleApplication3
 {
     class Program
     {
-        delegate string dg(int x);
+        delegate string @dg(int x);
         static void Main(string[] args)
         {
             Expression<dg> myET = x => Index();
@@ -13688,7 +13688,7 @@ namespace ConsoleApplication1
             var text = @"
 namespace x
 {
-    public class a
+    public class @a
     {
         public a(char i)
         {
@@ -13713,7 +13713,7 @@ namespace x
             var text = @"
 namespace x
 {
-    public class a
+    public class @a
     {
         public a() : this(""string"") //CS1502, CS1503
         {
@@ -14543,9 +14543,9 @@ public class Test
         {
             var text = @"
 using System;
-delegate string func(int i);   // declare delegate
+delegate string @func(int i);   // declare delegate
 
-class a
+class @a
 {
     public static void Main()
     {
@@ -14616,9 +14616,9 @@ class Program
         {
             var text = @"
 using System;
-delegate string func(int i);   // declare delegate
+delegate string @func(int i);   // declare delegate
 
-class a
+class @a
 {
     public static void Main()
     {
@@ -14793,7 +14793,7 @@ class C
             var text = @"
 using System.Diagnostics;
 
-delegate void del();
+delegate void @del();
 
 class MakeAnError
 {
@@ -14820,7 +14820,7 @@ class MakeAnError
 using System;
 using System.Diagnostics;
 
-delegate void del();
+delegate void @del();
 
 class MakeAnError
 {
@@ -18845,7 +18845,7 @@ class Program
         public void CS0164WRN_UnreferencedLabel()
         {
             var text = @"
-public class a
+public class @a
 {
    public int i = 0;
 
@@ -18863,12 +18863,12 @@ public class a
         public void CS0168WRN_UnreferencedVar01()
         {
             var text = @"
-public class clx
+public class @clx
 {
     public int i;
 }
 
-public class clz
+public class @clz
 {
     public static void Main()
     {
@@ -19184,7 +19184,7 @@ class Derived : ByRef
         public void CS0219WRN_UnreferencedVarAssg02()
         {
             var text = @"
-public class clx
+public class @clx
 {
     static void Main(string[] args)
     {
@@ -19199,7 +19199,7 @@ public class clx
         public void CS0219WRN_UnreferencedVarAssg03()
         {
             var text = @"
-public class clx
+public class @clx
 {
     static void Main(string[] args)
     {
@@ -19215,7 +19215,7 @@ public class clx
         public void CS0219WRN_UnreferencedVarAssg_StructString()
         {
             var text = @"
-class program
+class @program
 {
     static void Main(string[] args)
     {
@@ -19223,7 +19223,7 @@ class program
         string s = """";
     }
 }
-struct s1 { }
+struct @s1 { }
 ";
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,12): warning CS0219: The variable 'y' is assigned but its value is never used
@@ -21042,7 +21042,7 @@ class B
         public void CS0675WRN_BitwiseOrSignExtend()
         {
             var text = @"
-public class sign
+public class @sign
 {
    public static void Main()
    {

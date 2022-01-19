@@ -171,9 +171,6 @@
   <data name="FeatureName_SemanticClassification" xml:space="preserve">
     <value>Semantic classification</value>
   </data>
-  <data name="FeatureName_SemanticClassificationCache" xml:space="preserve">
-    <value>Semantic classification cache</value>
-  </data>
   <data name="FeatureName_SymbolFinder" xml:space="preserve">
     <value>Symbol finder</value>
   </data>
@@ -212,5 +209,8 @@
   </data>
   <data name="FeatureName_CompilationAvailable" xml:space="preserve">
     <value>Project semantics availability</value>
+  </data>
+  <data name="FeatureName_StackTraceExplorer" xml:space="preserve">
+    <value>Stack Trace Explorer</value>
   </data>
 </root>

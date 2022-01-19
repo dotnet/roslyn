@@ -9,22 +9,22 @@
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
         <source>Stack Trace Explorer</source>
-        <target state="new">Stack Trace Explorer</target>
+        <target state="translated">Explorateur de traces de pile</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|CommandName">
         <source>ShowStackTraceExplorerCommandName</source>
-        <target state="new">ShowStackTraceExplorerCommandName</target>
+        <target state="translated">ShowStackTraceExplorerCommandName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|LocCanonicalName">
         <source>ShowStackTraceExplorer</source>
-        <target state="new">ShowStackTraceExplorer</target>
+        <target state="translated">ShowStackTraceExplorer</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
         <source>&amp;Current Document</source>
-        <target state="translated">&amp;Document actif</target>
+        <target state="translated">Document a&amp;ctif</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|CommandName">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
         <source>&amp;Open Documents</source>
-        <target state="translated">&amp;Documents ouverts</target>
+        <target state="translated">Documents &amp;ouverts</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|CommandName">
@@ -554,7 +554,7 @@
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
         <source>ShowValueTracking</source>
-        <target state="needs-review-translation">ViewEditorConfigSettings</target>
+        <target state="translated">ShowValueTracking</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

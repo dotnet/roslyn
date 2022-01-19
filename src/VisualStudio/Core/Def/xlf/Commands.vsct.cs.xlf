@@ -4,22 +4,22 @@
     <body>
       <trans-unit id="ECMD_RUNFXCOPSEL|ButtonText">
         <source>Run Code &amp;Analysis on Selection</source>
-        <target state="translated">&amp;Spustit analýzu kódu na výběr</target>
+        <target state="translated">Spustit &amp;analýzu kódu při výběru</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
         <source>Stack Trace Explorer</source>
-        <target state="new">Stack Trace Explorer</target>
+        <target state="translated">Průzkumník trasování zásobníku</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|CommandName">
         <source>ShowStackTraceExplorerCommandName</source>
-        <target state="new">ShowStackTraceExplorerCommandName</target>
+        <target state="translated">ShowStackTraceExplorerCommandName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|LocCanonicalName">
         <source>ShowStackTraceExplorer</source>
-        <target state="new">ShowStackTraceExplorer</target>
+        <target state="translated">ShowStackTraceExplorer</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="cmdidRunCodeAnalysisForProject|ButtonText">
         <source>Run C&amp;ode Analysis</source>
-        <target state="translated">Spustit &amp;analýzu kódu</target>
+        <target state="translated">Spustit analýzu &amp;kódu</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRunCodeAnalysisForProject|CommandName">
@@ -529,7 +529,7 @@
       </trans-unit>
       <trans-unit id="cmdidSyncNamespaces|ButtonText">
         <source>Sync &amp;Namespaces</source>
-        <target state="translated">Synchronizovat &amp;obory názvů</target>
+        <target state="translated">Synchronizovat obory &amp;názvů</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSyncNamespaces|CommandName">
@@ -554,7 +554,7 @@
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
         <source>ShowValueTracking</source>
-        <target state="needs-review-translation">ViewEditorConfigSettings</target>
+        <target state="translated">ShowValueTracking</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

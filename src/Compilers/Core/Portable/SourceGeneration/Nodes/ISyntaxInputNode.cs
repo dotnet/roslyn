@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal interface ISyntaxInputNode
     {
-        ISyntaxInputBuilder GetBuilder(DriverStateTable table);
+        ISyntaxInputBuilder GetBuilder(DriverStateTable table, bool trackIncrementalSteps);
     }
 
     internal interface ISyntaxInputBuilder

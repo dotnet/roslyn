@@ -1036,12 +1036,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 formattingRules = additionalRules.Concat(formattingRules);
             }
 
-            return _threadingContext.JoinableTaskFactory.Run(() => Formatter.FormatAsync(
-                document,
-                new TextSpan[] { formattingSpan },
-                options: null,
-                rules: formattingRules,
-                cancellationToken: cancellationToken));
+            return _threadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
+                return await Formatter.FormatAsync(
+                    document,
+                    new TextSpan[] { formattingSpan },
+                    options,
+                    formattingRules,
+                    cancellationToken).ConfigureAwait(false);
+            });
         }
 
         private SyntaxNode InsertNode(

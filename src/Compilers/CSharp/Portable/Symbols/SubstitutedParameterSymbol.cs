@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -113,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // ReferenceEquals.
 
             var other = obj as SubstitutedParameterSymbol;
-            return (object)other != null &&
+            return other is not null &&
                 this.Ordinal == other.Ordinal &&
                 this.ContainingSymbol.Equals(other.ContainingSymbol, compareKind);
         }

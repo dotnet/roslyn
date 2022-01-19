@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             {
                 SnippetsBehavior = SnippetsRule.NeverInclude,
                 ShowItemsFromUnimportedNamespaces = false,
-                IsExpandedCompletion = false
+                IsExpandedCompletion = false,
+                TargetTypedCompletionFilter = false
             };
 
             var (completionList, _) = await service.GetCompletionsInternalAsync(
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                     continue;
                 }
 
-                var insertionText = await GetInsertionTextAsync(document, item, completionList.Span, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var insertionText = await GetInsertionTextAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
                 results.Add(matchCost, insertionText);
             }
 
@@ -191,7 +192,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
 
         private static readonly char[] s_punctuation = new[] { '(', '[', '<' };
 
-        private static async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, TextSpan completionListSpan, CancellationToken cancellationToken)
+        private static async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var service = CompletionService.GetService(document);
             var change = await service.GetChangeAsync(document, item, commitCharacter: null, cancellationToken).ConfigureAwait(false);

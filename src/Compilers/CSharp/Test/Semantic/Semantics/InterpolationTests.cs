@@ -422,6 +422,25 @@ class Program
         }
 
         [Fact]
+        public void InvalidCharInFormatSpecifier()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine( $""{3:{}"" );
+    }
+}";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (6,33): error CS1056: Unerwartetes Zeichen "{".
+                //         Console.WriteLine( $"{3:{}" );
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "{").WithArguments("{").WithLocation(6, 33)
+                );
+        }
+
+        [Fact]
         public void TrailingSpaceInFormatSpecifier()
         {
             string source =
@@ -1114,6 +1133,116 @@ class Program {
 }");
         }
 
+
+
+        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+#if NETCOREAPP
+        [InlineData(TargetFramework.Net60)]
+        [InlineData(TargetFramework.Net50)]
+#endif
+        [InlineData(TargetFramework.NetFramework)]
+        [InlineData(TargetFramework.NetStandard20)]
+        [InlineData(TargetFramework.Mscorlib461)]
+        [InlineData(TargetFramework.Mscorlib40)]
+        [Theory]
+        public void InterpolatedStringWithCurlyBracesFollowerAfterFormatSpecifierTest(TargetFramework framework)
+        {
+            var text =
+@"using System;
+
+class App{
+  public static void Main(){
+    var str = $""Before {{{12:X}}} After"";
+    Console.WriteLine(str);
+  }
+}";
+            var parseOptions = new CSharpParseOptions(
+                languageVersion: LanguageVersion.CSharp10,
+                documentationMode: DocumentationMode.Parse,
+                kind: SourceCodeKind.Regular
+            );
+            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+
+            //string.Format was fixed in dotnet core 3
+            var expectedOutput =
+#if NETCOREAPP3_0_OR_GREATER
+                "Before {C} After"
+#else
+                "Before {X} After"
+#endif
+                ;
+
+
+            var comp = CreateCompilation(text, targetFramework: framework,
+                    parseOptions: parseOptions, options: compOptions);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            switch (framework)
+            {
+                case TargetFramework.Net60:
+                    checkNet60IL(verifier);
+                    break;
+                default:
+                    checkNet50IL(verifier);
+                    break;
+            }
+
+            static void checkNet50IL(CompilationVerifier verifier)
+            {
+                verifier.VerifyIL("App.Main", @"{
+   // Code size       27 (0x1b)
+   .maxstack  2
+   .locals init (string V_0) //str
+   IL_0000:  nop
+   IL_0001:  ldstr      ""Before {{{0:X}}} After""
+   IL_0006:  ldc.i4.s   12
+   IL_0008:  box        ""int""
+   IL_000d:  call       ""string string.Format(string, object)""
+   IL_0012:  stloc.0
+   IL_0013:  ldloc.0
+   IL_0014:  call       ""void System.Console.WriteLine(string)""
+   IL_0019:  nop
+   IL_001a:  ret
+}");
+            }
+
+            static void checkNet60IL(CompilationVerifier verifier)
+            {
+                verifier.VerifyIL("App.Main", @"{
+   // Code size       68 (0x44)
+   .maxstack  3
+   .locals init (string V_0, //str
+                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+   IL_0000:  nop
+   IL_0001:  ldloca.s   V_1
+   IL_0003:  ldc.i4.s   15
+   IL_0005:  ldc.i4.1
+   IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+   IL_000b:  ldloca.s   V_1
+   IL_000d:  ldstr      ""Before {""
+   IL_0012:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
+   IL_0017:  nop
+   IL_0018:  ldloca.s   V_1
+   IL_001a:  ldc.i4.s   12
+   IL_001c:  ldstr      ""X""
+   IL_0021:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, string)""
+   IL_0026:  nop
+   IL_0027:  ldloca.s   V_1
+   IL_0029:  ldstr      ""} After""
+   IL_002e:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
+   IL_0033:  nop
+   IL_0034:  ldloca.s   V_1
+   IL_0036:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+   IL_003b:  stloc.0
+   IL_003c:  ldloc.0
+   IL_003d:  call       ""void System.Console.WriteLine(string)""
+   IL_0042:  nop
+   IL_0043:  ret
+}");
+            }
+        }
+
         [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
         [Fact]
         public void Syntax01()
@@ -1126,9 +1255,8 @@ class Program
     {
         var x = $""{ Math.Abs(value: 1):\}"";
         var y = x;
-        }
     } 
-";
+}";
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,40): error CS8087: A '}' character may only be escaped by doubling '}}' in an interpolated string.
                 //         var x = $"{ Math.Abs(value: 1):\}";
@@ -1172,9 +1300,12 @@ class Program
     } 
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,18): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+                // (6,39): error CS8089: Empty format specifier.
                 //         var x = $"{ Math.Abs(value: 1):}}";
-                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, @"""{").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_EmptyFormatSpecifier, ":").WithLocation(6, 39),
+                // (6,41): error CS8086: A '}' character must be escaped (by doubling) in an interpolated string.
+                //         var x = $"{ Math.Abs(value: 1):}}";
+                Diagnostic(ErrorCode.ERR_UnescapedCurly, "}").WithArguments("}").WithLocation(6, 41)
                 );
         }
 
@@ -6688,7 +6819,7 @@ End Structure
         [Theory]
         [InlineData(@"$""""")]
         [InlineData(@"$"""" + $""""")]
-        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant(string expression)
+        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_01(string expression)
         {
             var code = @"
 using System.Runtime.CompilerServices;
@@ -6711,6 +6842,39 @@ class C
                 // (8,34): error CS8943: null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
                 //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute(new string[] { null })] CustomHandler c) {}
                 Diagnostic(ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName, "InterpolatedStringHandlerArgumentAttribute(new string[] { null })").WithLocation(8, 34)
+            );
+
+            var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
+            Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
+        }
+
+        [Fact, WorkItem(58025, "https://github.com/dotnet/roslyn/issues/58025")]
+        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_02()
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+C.M(1, $"""");
+
+class C
+{
+    public static void M(int i, [InterpolatedStringHandlerArgumentAttribute((string[])null)] CustomHandler c) {}
+}
+";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
+            comp.VerifyDiagnostics(
+                // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // C.M(1, $"");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 8),
+                // (8,34): error CS8943: null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
+                //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute((string[])null)] CustomHandler c) {}
+                Diagnostic(ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName, "InterpolatedStringHandlerArgumentAttribute((string[])null)").WithLocation(8, 34)
             );
 
             var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
@@ -6807,6 +6971,46 @@ End Structure
 Imports System.Runtime.CompilerServices
 Public Class C
     Public Shared Sub M(i As Integer, <InterpolatedStringHandlerArgument(CStr(Nothing))> c As CustomHandler)
+    End Sub
+End Class
+<InterpolatedStringHandler>
+Public Structure CustomHandler
+End Structure
+";
+
+            var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
+            vbComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() });
+            comp.VerifyEmitDiagnostics(
+                // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // C.M(1, $"");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 8),
+                // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
+                // C.M(1, $"");
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""").WithArguments("CustomHandler", "2").WithLocation(1, 8),
+                // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
+                // C.M(1, $"");
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""").WithArguments("CustomHandler", "3").WithLocation(1, 8)
+            );
+
+            var customHandler = comp.GetTypeByMetadataName("CustomHandler");
+            Assert.True(customHandler.IsInterpolatedStringHandlerType);
+
+            var cParam = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters.Skip(1).Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
+            Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
+        }
+
+        [Fact]
+        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_FromMetadata_04()
+        {
+            var vbCode = @"
+Imports System.Runtime.CompilerServices
+Public Class C
+    Public Shared Sub M(i As Integer, <InterpolatedStringHandlerArgument(DirectCast(Nothing, String()))> c As CustomHandler)
     End Sub
 End Class
 <InterpolatedStringHandler>
@@ -9003,17 +9207,17 @@ public partial struct CustomHandler
 
             comp.VerifyDiagnostics(extraConstructorArg != ""
                 ? new[] {
+                    // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                    // GetC(ref c).M($"literal" + $"");
+                    Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1),
                     // (6,15): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, ref C, out bool)'
-                    // GetC(ref c).M($"literal");
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, ref C, out bool)").WithLocation(6, 15),
-                    // (6,15): error CS1620: Argument 3 must be passed with the 'ref' keyword
-                    // GetC(ref c).M($"literal");
-                    Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("3", "ref").WithLocation(6, 15)
+                    // GetC(ref c).M($"literal" + $"");
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, ref C, out bool)").WithLocation(6, 15)
                 }
                 : new[] {
-                    // (6,15): error CS1620: Argument 3 must be passed with the 'ref' keyword
-                    // GetC(ref c).M($"literal");
-                    Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("3", "ref").WithLocation(6, 15)
+                    // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                    // GetC(ref c).M($"literal" + $"");
+                    Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1)
                 });
         }
 
@@ -9045,9 +9249,9 @@ public partial struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
-                // (5,10): error CS1620: Argument 3 must be passed with the 'ref' keyword
-                // GetC().M($"literal");
-                Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("3", "ref").WithLocation(5, 10)
+                // (5,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                // GetC().M($"literal" + $"");
+                Diagnostic(ErrorCode.ERR_BadArgRef, "GetC()").WithArguments("3", "ref").WithLocation(5, 1)
             );
         }
 
@@ -9351,9 +9555,9 @@ public partial struct CustomHandler
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
-                // (8,14): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                // (8,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
                 // s1.M(ref s2, $"");
-                Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("3", "ref").WithLocation(8, 14)
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s1").WithArguments("3", "ref").WithLocation(8, 1)
             );
         }
 
@@ -14060,6 +14264,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14079,9 +14284,9 @@ partial struct CustomHandler
                 // (5,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // s.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(5, 5),
-                // (14,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                // (15,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
                 //     public static void M(this S1 s, [InterpolatedStringHandlerArgument("")] CustomHandler c) => throw null;
-                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(14, 38)
+                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(15, 38)
             );
         }
 
@@ -14097,6 +14302,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14127,6 +14333,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14177,6 +14384,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14225,6 +14433,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14258,6 +14467,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14464,6 +14674,44 @@ get_C2
 Indexer
 get_C2
 Indexer");
+        }
+
+        [Fact]
+        public void InterpolatedStringBeforeCSharp6()
+        {
+            var text = @"
+class C
+{
+    string M()
+    {
+        return $""hello"";
+    }
+}";
+
+            CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
+                // (6,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
+                //         return $"hello";
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello""").WithArguments("interpolated strings", "6").WithLocation(6, 16));
+        }
+
+        [Fact]
+        public void InterpolatedStringWithReplacementBeforeCSharp6()
+        {
+            var text = @"
+class C
+{
+    string M()
+    {
+        string other = ""world"";
+        return $""hello + {other}"";
+    }
+}";
+
+
+            CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
+                // (7,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
+                //         return $"hello + {other}";
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello + {other}""").WithArguments("interpolated strings", "6").WithLocation(7, 16));
         }
     }
 }

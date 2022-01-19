@@ -1802,6 +1802,12 @@ Additional information: {1}</value>
   <data name="Run_code_analysis_in_separate_process_requires_restart" xml:space="preserve">
     <value>Run code analysis in separate process (requires restart)</value>
   </data>
+  <data name="Compute_Quick_Actions_asynchronously_experimental" xml:space="preserve">
+    <value>Compute Quick Actions asynchronously (experimental, requires restart)</value>
+  </data>
+  <data name="Quick_Actions" xml:space="preserve">
+    <value>Quick Actions</value>
+  </data>
   <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
     <value>Combine inheritance margin with indicator margin</value>
   </data>
@@ -1884,5 +1890,21 @@ Additional information: {1}</value>
   <data name="Stack_trace_0" xml:space="preserve">
     <value>Stack Trace {0}</value>
     <comment>Header for numbered stack trace view tabs</comment>
+  </data>
+  <data name="Remove_unnecessary_usings" xml:space="preserve">
+    <value>Remove unnecessary usings</value>
+  </data>
+  <data name="Sort_usings" xml:space="preserve">
+    <value>Sort usings</value>
+  </data>
+  <data name="Navigate_to_external_sources" xml:space="preserve">
+    <value>Navigate to External Sources</value>
+  </data>
+  <data name="Automatically_open_stack_trace_explorer_on_focus" xml:space="preserve">
+    <value>Automatically open Stack Trace Explorer on focus</value>
+    <comment>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</comment>
+  </data>
+  <data name="Prefer_method_group_conversion" xml:space="preserve">
+    <value>Prefer method group conversion</value>
   </data>
 </root>

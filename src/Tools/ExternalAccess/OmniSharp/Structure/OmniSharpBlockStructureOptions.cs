@@ -3,17 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure
 {
-    internal static class OmniSharpBlockStructureOptions
+    internal readonly record struct OmniSharpBlockStructureOptions(
+        bool ShowBlockStructureGuidesForCommentsAndPreprocessorRegions,
+        bool ShowOutliningForCommentsAndPreprocessorRegions)
     {
-        public static readonly PerLanguageOption<bool> ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = (PerLanguageOption<bool>)BlockStructureOptions.Metadata.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions;
-
-        public static readonly PerLanguageOption<bool> ShowOutliningForCommentsAndPreprocessorRegions = (PerLanguageOption<bool>)BlockStructureOptions.Metadata.ShowOutliningForCommentsAndPreprocessorRegions;
+        internal BlockStructureOptions ToBlockStructureOptions()
+            => BlockStructureOptions.Default with
+            {
+                ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = ShowBlockStructureGuidesForCommentsAndPreprocessorRegions,
+                ShowOutliningForCommentsAndPreprocessorRegions = ShowOutliningForCommentsAndPreprocessorRegions,
+            };
     }
 }

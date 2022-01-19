@@ -242,12 +242,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression">
         <source>Await the preceding expression</source>
-        <target state="new">Await the preceding expression</target>
+        <target state="translated">Ожидание предыдущего выражения</target>
         <note />
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
         <source>Await the preceding expression and add ConfigureAwait({0}).</source>
-        <target state="new">Await the preceding expression and add ConfigureAwait({0}).</target>
+        <target state="translated">Ожидание предыдущего выражения и добавление ConfigureAwait({0}).</target>
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -470,6 +470,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Преобразовать тип в "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
+        <source>Could not find portable PDB on disk or embedded.</source>
+        <target state="translated">Не удалось найти переносимый PDB-файл на диске или во внедренном источнике.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded_or_server">
+        <source>Could not find PDB on disk, or embedded, or on a symbol server.</source>
+        <target state="translated">Не удалось найти PDB-файл на диске, во внедренном источнике или на сервере символов.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="translated">Создать и назначить поле "{0}"</target>
@@ -550,6 +560,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Ошибка при создании экземпляра CodeFixProvider "{0}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_reading_PDB_0">
+        <source>Error reading PDB: '{0}'</source>
+        <target state="translated">Ошибка чтения PDB-файла: "{0}"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="translated">Пример:</target>
@@ -567,7 +582,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Explicitly_inherit_documentation">
         <source>Explicitly inherit documentation</source>
-        <target state="new">Explicitly inherit documentation</target>
+        <target state="translated">Явно наследовать документацию</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -615,14 +630,34 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Форматирование документа</target>
         <note />
       </trans-unit>
+      <trans-unit id="Found_PDB_file_at_0">
+        <source>Found PDB file at '{0}'</source>
+        <target state="translated">Найден PDB-файл в "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server">
+        <source>Found PDB on symbol server.</source>
+        <target state="translated">Найден PDB-файл на сервере символов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server_but_could_not_read_file">
+        <source>Found PDB on symbol server but could not read file.</source>
+        <target state="translated">Найден PDB-файл на сервере символов, но не удалось прочитать файл.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_embedded_PDB_file">
+        <source>Found embedded PDB file.</source>
+        <target state="translated">Найден внедренный PDB-файл.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
         <source>Generate abstract method '{0}'</source>
-        <target state="new">Generate abstract method '{0}'</target>
+        <target state="translated">Создать абстрактный метод "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_property_0">
         <source>Generate abstract property '{0}'</source>
-        <target state="new">Generate abstract property '{0}'</target>
+        <target state="translated">Создать абстрактное свойство "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">
@@ -632,7 +667,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_constant_0">
         <source>Generate constant '{0}'</source>
-        <target state="new">Generate constant '{0}'</target>
+        <target state="translated">Создать константу "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -647,12 +682,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
-        <target state="new">Generate enum member '{0}'</target>
+        <target state="translated">Создать элемент перечисления "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_field_0">
         <source>Generate field '{0}'</source>
-        <target state="new">Generate field '{0}'</target>
+        <target state="translated">Создать поле "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -662,7 +697,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_method_0">
         <source>Generate method '{0}'</source>
-        <target state="new">Generate method '{0}'</target>
+        <target state="translated">Создать метод "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -677,17 +712,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_property_0">
         <source>Generate property '{0}'</source>
-        <target state="new">Generate property '{0}'</target>
+        <target state="translated">Создать свойство "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_field_0">
         <source>Generate read-only field '{0}'</source>
-        <target state="new">Generate read-only field '{0}'</target>
+        <target state="translated">Создать поле только для чтения "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_property_0">
         <source>Generate read-only property '{0}'</source>
-        <target state="new">Generate read-only property '{0}'</target>
+        <target state="translated">Создать свойство только для чтения "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -912,7 +947,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
-        <target state="new">Miscellaneous Files</target>
+        <target state="translated">Прочие файлы</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_control_character">
@@ -1022,7 +1057,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Move_static_members_to_another_type">
         <source>Move static members to another type...</source>
-        <target state="new">Move static members to another type...</target>
+        <target state="translated">Переместить статические элементы в другой тип...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1035,6 +1070,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Для перемещения {0} требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigating_to_symbol_0_from_1">
+        <source>Navigating to symbol '{0}' from '{1}'.</source>
+        <target state="translated">Переход к символу "{0}" от "{1}".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
         <target state="translated">Вложенный квантификатор {0}</target>
@@ -1043,6 +1083,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction.</source>
         <target state="translated">Нет стандартного корневого узла для извлечения.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_source_document_info_found_in_PDB">
+        <source>No source document info found in PDB.</source>
+        <target state="translated">В PDB-файле не найдены сведения об исходном документе.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
@@ -1230,11 +1275,11 @@ This option is recommended if you know that backtracking will not succeed. Preve
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="needs-review-translation">Сбалансированное определение группы удаляет определение ранее определенной группы и сохраняет (в текущей группе) интервал между ранее определенной группой и текущей группой.
-    
-Значение "имя1" является текущей группой (необязательная), "имя2" является ранее определенной группой, а "часть выражения" является любым допустимым шаблоном регулярного выражения. Сбалансированное определение группы удаляет определение "имя2" и сохраняет интервал между "имя2" и "имя1" в "имя1". Если группа "имя2" не определена, соответствие определяется по обратному отслеживанию. Так как удаление последнего определения name2 приводит к раскрытию предыдущего определения "имя2", эта конструкция позволяет использовать стек записей для группы "имя2" в качестве счетчика для отслеживания вложенных конструкций, таких как круглые скобки или открывающие и закрывающие скобки.
+        <target state="translated">Сбалансированное определение группы удаляет определение ранее определенной группы и сохраняет (в текущей группе) интервал между ранее определенной группой и текущей группой.
 
-Сбалансированное определение группы использует "имя2" в качестве стека. Начальный символ каждой вложенной конструкции помещается в группу и ее коллекцию Group.Captures. При появлении совпадения для закрывающего символа соответствующий ему открывающий символ удаляется из группы, а коллекция Captures уменьшается на единицу. После обнаружения совпадений для всех открывающих и закрывающих символов всех вложенных конструкций "имя1" остается пустой.</target>
+Значение "имя1" является текущей группой (необязательная), "имя2" является ранее определенной группой, а "часть выражения" является любым допустимым шаблоном регулярного выражения. Сбалансированное определение группы удаляет определение "имя2" и сохраняет интервал между "имя2" и "имя1" в "имя1". Если группа "имя2" не определена, соответствие определяется по обратному отслеживанию. Так как удаление последнего определения "имя2" приводит к раскрытию предыдущего определения "имя2", эта конструкция позволяет использовать стек записей для группы "имя2" в качестве счетчика для отслеживания вложенных конструкций, таких как круглые скобки или открывающие и закрывающие скобки.
+
+Сбалансированное определение группы использует "имя2" в качестве стека. Начальный символ каждой вложенной конструкции помещается в группу и ее коллекцию Group.Captures. При появлении совпадения для закрывающего символа соответствующий ему открывающий символ удаляется из группы, а коллекция Captures уменьшается на единицу. После обнаружения совпадений для всех открывающих и закрывающих символов всех вложенных конструкций группа "имя1" остается пустой.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
@@ -2305,9 +2350,24 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Выделенный фрагмент не входит в тип.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Silent">
+        <source>Silent</source>
+        <target state="translated">Тихий</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Сортировать модификаторы доступности</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_code_language_information_was_not_found_in_PDB">
+        <source>Source code language information was not found in PDB.</source>
+        <target state="translated">Сведения о языке исходного кода не найдены в PDB-файле.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_is_a_reference_assembly">
+        <source>Source is a reference assembly, not enough information to find PDB.</source>
+        <target state="translated">Источник является базовой сборкой. Недостаточно сведений для поиска PDB-файла.</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -2335,6 +2395,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Для переключения между лямбда-выражением и локальной функцией требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="translated">Найден символ в пути сборки "{0}"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
         <target state="translated">TODO: освободить неуправляемые ресурсы (неуправляемые объекты) и переопределить метод завершения</target>
@@ -2360,6 +2425,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Выделенный фрагмент содержит вызов локальной функции без ее объявления.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Timeout_SourceLink">
+        <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
+        <target state="translated">Истекло время ожидания при попытке скачать исходный код из SourceLink. Последующие запросы могут быть успешными.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Timeout_symbol_server">
+        <source>Timed out trying to download PDB from symbol server. Subsequent requests may succeed.</source>
+        <target state="translated">Истекло время ожидания при попытке скачать PDB-файл с сервера символов. Последующие запросы могут быть успешными.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Too_many_bars_in_conditional_grouping">
         <source>Too many | in (?()|)</source>
         <target state="translated">Слишком много операторов "|" в "(?()|)"</target>
@@ -2372,7 +2447,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
-        <target state="new">Types:</target>
+        <target state="translated">Типы:</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
@@ -2658,6 +2733,46 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_dash_1">
         <source>{0} - {1}</source>
         <target state="translated">{0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB">
+        <source>'{0}' found in embedded PDB.</source>
+        <target state="translated">Найдено "{0}" во внедренном PDB-файле.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_checksum_failed">
+        <source>'{0}' found in embedded PDB but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">Найдено "{0}" во внедренном PDB-файле, но контрольная сумма неверна или не удалось прочитать временный файл.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_could_not_write_file_1">
+        <source>'{0}' found in embedded PDB but could not write to temp file: '{1}'</source>
+        <target state="translated">Найдено "{0}" во внедренном PDB-файле, но не удалось выполнить запись во временном файле: "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_cached_source_file">
+        <source>'{0}' found in embedded PDB and found cached source file.</source>
+        <target state="translated">Обнаружено "{0}" во внедренном PDB-файле и найден кэшированный исходный файл.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location">
+        <source>'{0}' found in original location.</source>
+        <target state="translated">Найдено "{0}" в исходном расположении.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location_but_checksum_failed">
+        <source>'{0}' found in original location but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">Найдено "{0}" в исходном расположении, но контрольная сумма неверна или не удалось прочитать временный файл.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink">
+        <source>'{0}' found via SourceLink.</source>
+        <target state="translated">Найдено "{0}" с помощью SourceLink.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink_but_couldnt_read_file">
+        <source>'{0}' found via SourceLink but couldn't read temp file.</source>
+        <target state="translated">Найдено "{0}" с помощью SourceLink, но не удалось прочитать временный файл.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -2987,6 +3102,16 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <source>discard</source>
         <target state="translated">отменить</target>
         <note />
+      </trans-unit>
+      <trans-unit id="embedded">
+        <source>embedded</source>
+        <target state="translated">внедренный</target>
+        <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
+      </trans-unit>
+      <trans-unit id="external">
+        <source>external</source>
+        <target state="translated">внешний</target>
+        <note>External means "external source", meaning source files that are not part of the current solution</note>
       </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>

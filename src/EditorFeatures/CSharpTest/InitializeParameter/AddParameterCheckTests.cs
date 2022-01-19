@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -30,6 +31,98 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestSimpleReferenceType()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(string s!!)
+    {
+    }
+}"
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSimpleReferenceType_AlreadyNullChecked1()
+        {
+            var testCode = @"
+using System;
+
+class C
+{
+    public C([||]string s!!)
+    {
+    }
+}";
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = testCode,
+                FixedCode = testCode
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestRecordPrimaryConstructor()
+        {
+            // https://github.com/dotnet/roslyn/issues/58779
+            // Note: we declare a field within the record to work around missing IsExternalInit errors
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = @"
+using System;
+
+record Rec([||]string s) { public string s = s; }
+",
+                FixedCode = @"
+using System;
+
+record Rec(string s) { public string s = s; }
+"
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSimpleReferenceType_AlreadyNullChecked2()
+        {
+            var testCode = @"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+        if (s is null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}";
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = testCode,
+                FixedCode = testCode
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSimpleReferenceType_CSharp8()
         {
             await VerifyCS.VerifyRefactoringAsync(
 @"
@@ -204,8 +297,11 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnPartialMethodDefinition1()
+        [Theory]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [InlineData(LanguageVersionExtensions.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp8)]
+        public async Task TestNotOnPartialMethodDefinition1(LanguageVersion languageVersion)
         {
             var code = @"
 using System;
@@ -218,7 +314,12 @@ partial class C
     {
     }
 }";
-            await VerifyCS.VerifyRefactoringAsync(code, code);
+            await new VerifyCS.Test
+            {
+                LanguageVersion = languageVersion,
+                TestCode = code,
+                FixedCode = code
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -243,8 +344,11 @@ partial class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnPartialMethodDefinition2()
+        [Theory]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [InlineData(LanguageVersionExtensions.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp8)]
+        public async Task TestNotOnPartialMethodDefinition2(LanguageVersion languageVersion)
         {
             var code = @"
 using System;
@@ -257,7 +361,12 @@ partial class C
 
     partial void M([||]string s);
 }";
-            await VerifyCS.VerifyRefactoringAsync(code, code);
+            await new VerifyCS.Test
+            {
+                LanguageVersion = languageVersion,
+                TestCode = code,
+                FixedCode = code
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -284,6 +393,37 @@ partial class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestOnPartialMethodImplementation1()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = @"
+using System;
+
+partial class C
+{
+    partial void M(string s);
+
+    partial void M([||]string s)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+partial class C
+{
+    partial void M(string s);
+
+    partial void M(string s!!)
+    {
+    }
+}"
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnPartialMethodImplementation1_CSharp8()
         {
             await VerifyCS.VerifyRefactoringAsync(
 @"
@@ -351,6 +491,37 @@ partial class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestOnPartialMethodImplementation2()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = @"
+using System;
+
+partial class C
+{
+    partial void M([||]string s)
+    {
+    }
+
+    partial void M(string s);
+}",
+                FixedCode = @"
+using System;
+
+partial class C
+{
+    partial void M(string s!!)
+    {
+    }
+
+    partial void M(string s);
+}"
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnPartialMethodImplementation2_CSharp9()
         {
             await VerifyCS.VerifyRefactoringAsync(
 @"
@@ -2571,6 +2742,70 @@ class C
                 CodeActionIndex = 1,
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
             }.RunAsync();
+        }
+
+        [WorkItem(58811, "https://github.com/dotnet/roslyn/issues/58811")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingParameter1()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public C(string s,[||]{|CS1031:{|CS1001:)|}|}
+    {
+    }
+}";
+            await VerifyCS.VerifyRefactoringAsync(source, source);
+        }
+
+        [WorkItem(58811, "https://github.com/dotnet/roslyn/issues/58811")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingParameter2()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public C(string s,[||] {|CS1031:{|CS1001:)|}|}
+    {
+    }
+}";
+            await VerifyCS.VerifyRefactoringAsync(source, source);
+        }
+
+        [WorkItem(58811, "https://github.com/dotnet/roslyn/issues/58811")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingParameter3()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public C(string s, [||]{|CS1031:{|CS1001:)|}|}
+    {
+    }
+}";
+            await VerifyCS.VerifyRefactoringAsync(source, source);
+        }
+
+        [WorkItem(58811, "https://github.com/dotnet/roslyn/issues/58811")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingParameter4()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public C(string s, [||] {|CS1031:{|CS1001:)|}|}
+    {
+    }
+}";
+            await VerifyCS.VerifyRefactoringAsync(source, source);
         }
     }
 }

@@ -75,9 +75,8 @@ class SomeOtherClass
                     }
                 });
 
-            VisualStudio.FindReferencesWindow.NavigateTo(activeWindowCaption, results[0], isPreview: false);
+            VisualStudio.FindReferencesWindow.NavigateTo(activeWindowCaption, results[0], isPreview: false, shouldActivate: true);
             // Assert we are in the right file now
-            VisualStudio.Editor.Activate();
             Assert.Equal("Class1.cs", VisualStudio.Shell.GetActiveWindowCaption());
             Assert.Equal("Program", VisualStudio.Editor.GetLineTextAfterCaret());
         }

@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
@@ -622,7 +623,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
-            root = Formatter.Format(root, Formatter.Annotation, documentWithAddedImports.Project.Solution.Workspace, optionSet, cancellationToken);
+            var services = documentWithAddedImports.Project.Solution.Workspace.Services;
+            var formattingOptions = SyntaxFormattingOptions.Create(optionSet, services, root.Language);
+            root = Formatter.Format(root, Formatter.Annotation, services, formattingOptions, cancellationToken);
 
             root = root.WithAdditionalAnnotations(Simplifier.Annotation);
             var formattedDocument = documentWithAddedImports.WithSyntaxRoot(root);
@@ -688,6 +691,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
 
             // We need a dummy import to figure out the container for given reference.
             var dummyImport = CreateImport(generator, "Dummy", withFormatterAnnotation: false);
@@ -728,9 +732,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     }
                 }
 
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var preferences = await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
                 // Use a dummy import node to figure out which container the new import will be added to.
-                var container = addImportService.GetImportContainer(root, refNode, dummyImport, options);
+                var container = addImportService.GetImportContainer(root, refNode, dummyImport, preferences);
                 containers.Add(container);
             }
 
@@ -818,7 +823,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 containers = containers.Sort(SyntaxNodeSpanStartComparer.Instance);
             }
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var preferences = await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             var imports = CreateImports(document, names, withFormatterAnnotation: true);
             foreach (var container in containers)
@@ -832,8 +838,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
-                root = addImportService.AddImports(compilation, root, contextLocation, imports, generator, options, allowInHiddenRegions, cancellationToken);
+                root = addImportService.AddImports(compilation, root, contextLocation, imports, generator, preferences, allowInHiddenRegions, cancellationToken);
                 document = document.WithSyntaxRoot(root);
             }
 
