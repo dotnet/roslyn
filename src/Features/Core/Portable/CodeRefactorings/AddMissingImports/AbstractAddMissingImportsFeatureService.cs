@@ -140,8 +140,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
         private static async Task<Document> CleanUpNewLinesAsync(Document document, IEnumerable<TextSpan> insertSpans, CancellationToken cancellationToken)
         {
-            var languageFormatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             var newDocument = document;
 
@@ -150,21 +149,19 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // to separate the import section from the other content.
             foreach (var insertSpan in insertSpans)
             {
-                newDocument = await CleanUpNewLinesAsync(newDocument, insertSpan, languageFormatter, options, cancellationToken).ConfigureAwait(false);
+                newDocument = await CleanUpNewLinesAsync(newDocument, insertSpan, options, cancellationToken).ConfigureAwait(false);
             }
 
             return newDocument;
         }
 
-        private static async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, ISyntaxFormattingService languageFormatter, OptionSet optionSet, CancellationToken cancellationToken)
+        private static async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-            var shouldUseFormattingSpanCollapse = optionSet.GetOption(FormattingBehaviorOptions.AllowDisjointSpanMerging);
-            var options = optionSet.AsAnalyzerConfigOptions(optionService, root.Language);
+            var services = document.Project.Solution.Workspace.Services;
 
-            var textChanges = languageFormatter.Format(root, new[] { insertSpan }, shouldUseFormattingSpanCollapse, options, new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken).GetTextChanges(cancellationToken);
+            var textChanges = Formatter.GetFormattedTextChanges(root, new[] { insertSpan }, services, options, rules: new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken);
 
             // If there are no changes then, do less work.
             if (textChanges.Count == 0)

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -76,7 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                     if (typeof(TProvider) == typeof(DiagnosticsSquiggleTaggerProvider)
                         || typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider)
-                        || typeof(TProvider) == typeof(DiagnosticsClassificationTaggerProvider))
+                        || typeof(TProvider) == typeof(DiagnosticsClassificationTaggerProvider)
+                        || typeof(TProvider) == typeof(InlineDiagnosticsTaggerProvider))
                     {
                         _taggerProvider = _workspace.ExportProvider.GetExportedValues<ITaggerProvider>()
                             .OfType<TProvider>()

@@ -32,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private PackageInstallerService _packageInstallerService;
         private VisualStudioSymbolSearchService _symbolSearchService;
-        private IComponentModel _componentModel_doNotAccessDirectly;
 
         protected AbstractPackage()
         {
@@ -41,9 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
-
-            await TaskScheduler.Default;
-            _componentModel_doNotAccessDirectly = await this.GetServiceAsync<SComponentModel, IComponentModel>(throwOnFailure: true).ConfigureAwait(false);
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -104,15 +100,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             _packageInstallerService?.Connect(this.RoslynLanguageName);
             _symbolSearchService?.Connect(this.RoslynLanguageName);
-        }
-
-        internal IComponentModel ComponentModel
-        {
-            get
-            {
-                Contract.ThrowIfNull(_componentModel_doNotAccessDirectly);
-                return _componentModel_doNotAccessDirectly;
-            }
         }
 
         protected abstract void RegisterMiscellaneousFilesWorkspaceInformation(MiscellaneousFilesWorkspace miscellaneousFilesWorkspace);

@@ -94,5 +94,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 #nullable disable
 
         bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Finds all local function definitions within the syntax references for a given <paramref name="symbol"/>
+        /// </summary>
+        ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken);
+
+        bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken);
     }
 }

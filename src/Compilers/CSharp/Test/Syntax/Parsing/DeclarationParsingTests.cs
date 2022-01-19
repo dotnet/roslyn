@@ -7273,6 +7273,83 @@ class C<T> where T : struct? {}
         }
 
         [Fact]
+        public void TestMethodDeclarationNullValidation_SingleExclamation()
+        {
+            UsingStatement(@"void M(string name!) { }", options: TestOptions.RegularPreview,
+                    // (1,19): error CS1003: Syntax error, '!!' expected
+                    // void M(string name!) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 19));
+
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestMethodDeclarationNullValidation_SingleExclamation_ExtraTrivia()
+        {
+            UsingStatement(@"void M(string name
+                /*comment1*/!/*comment2*/) { }", options: TestOptions.RegularPreview,
+                // (2,1): error CS1003: Syntax error, '!!' expected
+                //                 /*comment1*/!/*comment2*/) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, " ").WithArguments("!!", "!").WithLocation(2, 1));
+
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestOptParamMethodDeclarationWithNullValidation()
         {
             UsingStatement(@"void M(string name!! = null) { }", options: TestOptions.RegularPreview);
@@ -7355,7 +7432,7 @@ class C<T> where T : struct? {}
         }
 
         [Fact]
-        public void TestNullCheckedArgList()
+        public void TestNullCheckedArgList1()
         {
             UsingStatement(@"void M(__arglist!) { }", options: TestOptions.RegularPreview,
                     // (1,17): error CS1003: Syntax error, ',' expected
@@ -7383,8 +7460,269 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
+        [Fact]
+        public void TestNullCheckedArgList2()
+        {
+            UsingStatement(@"void M(__arglist!!) { }", options: TestOptions.RegularPreview,
+                    // (1,17): error CS1003: Syntax error, ',' expected
+                    // void M(__arglist!!) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedArgList3()
+        {
+            UsingStatement(@"void M(__arglist!! = null) { }", options: TestOptions.RegularPreview,
+                    // (1,17): error CS1003: Syntax error, ',' expected
+                    // void M(__arglist!! = null) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedArgList4()
+        {
+            UsingStatement(@"void M(__arglist!!= null) { }", options: TestOptions.RegularPreview,
+                    // (1,17): error CS1003: Syntax error, ',' expected
+                    // void M(__arglist!!= null) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestNullCheckedArgList5()
+        {
+            UsingStatement(@"void M(__arglist[]!!= null) { }", options: TestOptions.RegularPreview,
+                // (1,17): error CS1003: Syntax error, ',' expected
+                // void M(__arglist[]!!= null) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",", "[").WithLocation(1, 17),
+                // (1,18): error CS1001: Identifier expected
+                // void M(__arglist[]!!= null) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 18),
+                // (1,19): error CS1031: Type expected
+                // void M(__arglist[]!!= null) { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "!").WithLocation(1, 19),
+                // (1,19): error CS1001: Identifier expected
+                // void M(__arglist[]!!= null) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "!").WithLocation(1, 19));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            M(SyntaxKind.Attribute);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestArgListWithBrackets()
+        {
+            UsingStatement(@"void M(__arglist[]) { }", options: TestOptions.RegularPreview,
+                    // (1,17): error CS1003: Syntax error, ',' expected
+                    // void M(__arglist[]) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",", "[").WithLocation(1, 17),
+                    // (1,18): error CS1001: Identifier expected
+                    // void M(__arglist[]) { }
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 18),
+                    // (1,19): error CS1031: Type expected
+                    // void M(__arglist[]) { }
+                    Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(1, 19),
+                    // (1,19): error CS1001: Identifier expected
+                    // void M(__arglist[]) { }
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 19));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            M(SyntaxKind.Attribute);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestArgListWithDefaultValue()
+        {
+            UsingStatement(@"void M(__arglist = null) { }", options: TestOptions.RegularPreview,
+                    // (1,18): error CS1003: Syntax error, ',' expected
+                    // void M(__arglist = null) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",", "=").WithLocation(1, 18));
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
 
         [Fact]
         public void TestNullCheckedArgWithLeadingSpace()
@@ -7554,9 +7892,9 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgWithSpaceInbetween()
         {
             UsingStatement(@"void M(string name! !=null) { }", options: TestOptions.RegularPreview,
-                    // (1,21): error CS1525: Invalid expression term '!'
+                    // (1,19): error CS1003: Syntax error, '!!' expected
                     // void M(string name! !=null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 21));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(1, 19));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7574,7 +7912,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        M(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -7592,6 +7930,7 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -7639,9 +7978,9 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgWithSpaceAfterBangs()
         {
             UsingStatement(@"void M(string name! ! =null) { }", options: TestOptions.RegularPreview,
-                    // (1,21): error CS1525: Invalid expression term '!'
+                    // (1,19): error CS1003: Syntax error, '!!' expected
                     // void M(string name! ! =null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 21));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 19));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7659,7 +7998,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        M(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -7677,15 +8016,16 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
         public void TestNullCheckedArgWithSpaceBeforeBangs()
         {
             UsingStatement(@"void M(string name ! !=null) { }", options: TestOptions.RegularPreview,
-                    // (1,22): error CS1525: Invalid expression term '!'
+                    // (1,20): error CS1003: Syntax error, '!!' expected
                     // void M(string name ! !=null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 22));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(1, 20));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7703,7 +8043,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        M(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -7721,6 +8061,7 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -7762,6 +8103,60 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+        }
+
+        [Fact]
+        public void TestMethodDeclarationNullValidation_ExtraEquals()
+        {
+            UsingStatement(@"void M(string name!!= = null) { }", options: TestOptions.RegularPreview,
+                // (1,23): error CS1525: Invalid expression term '='
+                // void M(string name!!= = null) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(1, 23));
+
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
         }
 
         [Fact]

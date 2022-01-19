@@ -156,10 +156,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             RoslynDebug.AssertNotNull(location.SourceTree);
             var document = solution.GetRequiredDocument(location.SourceTree);
+            var options = ClassificationOptions.From(document.Project);
 
             var sourceText = await location.SourceTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(document, location.SourceSpan, cancellationToken).ConfigureAwait(false);
-            var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, cancellationToken).ConfigureAwait(false);
+            var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(document, location.SourceSpan, options, cancellationToken).ConfigureAwait(false);
+            var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, options, cancellationToken).ConfigureAwait(false);
 
             var root = new TreeItemViewModel(
                 location.SourceSpan,
