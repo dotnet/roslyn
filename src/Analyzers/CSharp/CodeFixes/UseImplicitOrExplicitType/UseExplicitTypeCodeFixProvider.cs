@@ -62,10 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             Document document, SyntaxEditor editor,
             SyntaxNode node, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declarationContext = node.Parent;
 
-            if (declarationContext is RefTypeSyntax refType)
+            if (declarationContext is RefTypeSyntax)
             {
                 declarationContext = declarationContext.Parent;
             }
