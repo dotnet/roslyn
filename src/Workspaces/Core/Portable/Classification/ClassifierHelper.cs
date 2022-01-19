@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 if (i > 0 && intersection != null)
                 {
                     var isAdditiveClassification = spans[i - 1].TextSpan == span.TextSpan &&
-                        ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType);
+                        ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType) || ClassificationTypeNames.AdditiveTypeNames.Contains(spans[i - 1].ClassificationType);
 
                     // Additive classifications are intended to overlap so do not ignore it.
                     if (!isAdditiveClassification && spans[i - 1].TextSpan.End > intersection.Value.Start)

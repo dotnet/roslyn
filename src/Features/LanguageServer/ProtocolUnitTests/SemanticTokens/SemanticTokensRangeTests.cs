@@ -73,6 +73,63 @@ static class C { }
         }
 
         [Fact]
+        public async Task TestGetSemanticTokensRange_FullDoc_RazorAsync_StaticClassName()
+        {
+            // Razor docs should be returning semantic + syntactic reuslts.
+            var markup =
+@"{|caret:|}// Comment
+static class C {
+public static bool Param = true;
+}
+class D {
+C.Param;
+}
+";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+            var range = new LSP.Range { Start = new Position(0, 0), End = new Position(7, 0) };
+            var (results, _) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+                document, SemanticTokensHelpers.TokenTypeToIndex, range, includeSyntacticClassifications: true, CancellationToken.None);
+
+            var expectedResults = new LSP.SemanticTokens
+            {
+                Data = new int[]
+                {
+                    // Line | Char | Len | Token type                                                               | Modifier
+                       0,     0,     10,   SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment],      0, // '// Comment'
+                       1,     0,     6,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],      0, // 'static'
+                       0,     7,     5,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],      0, // 'class'
+                       0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.ClassName],   (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
+                       1,     0,     6,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],      0, // public
+                       0,     7,     6,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],      0, // static
+                       0,     7,     4,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],      0, // bool
+                       0,     5,     5,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.FieldName],   (int)TokenModifiers.Static, // Param
+                       0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Operator],     0, // =
+                       0,     2,     4,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],      0, // true
+                       0,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // ';'
+                       1,     0,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
+                       1,     0,     5,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],      0, // class
+                       0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.ClassName],   0, // D
+                       0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // {
+                       1,     0,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.ClassName],   (int)TokenModifiers.Static, // C
+                       0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Operator], 0, // .
+                       0,     1,     5,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Variable],    0, // Param
+                       0,     5,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // ;
+                       1,     0,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // }
+                },
+            };
+
+            await VerifyNoMultiLineTokens(testLspServer, results).ConfigureAwait(false);
+            for (var i = 0; i < expectedResults.Data.Length; i++)
+            {
+                Assert.True(expectedResults.Data[i] == results[i], $"i: {i} e: {expectedResults.Data[i]} r: {results[i]}");
+            }
+            Assert.Equal(expectedResults.Data, results);
+        }
+
+        [Fact]
         public async Task TestGetSemanticTokensRange_PartialDoc_RazorAsync()
         {
             // Razor docs should be returning semantic + syntactic reuslts.
