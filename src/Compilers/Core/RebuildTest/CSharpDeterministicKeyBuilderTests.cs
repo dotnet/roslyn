@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 filename: "file.cs",
                 checksumAlgorithm: HashAlgorithm);
             var additionalText = new TestAdditionalText(content, Encoding.UTF8, path: "file.txt", HashAlgorithm);
-            var contentChecksum = GetChecksum(additionalText.GetText());
+            var contentChecksum = GetChecksum(additionalText.GetText()!);
 
             var compilation = CSharpTestBase.CreateCompilation(syntaxTree);
             var key = compilation.GetDeterministicKey(additionalTexts: ImmutableArray.Create<AdditionalText>(additionalText));
@@ -424,6 +424,74 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var compilation = CreateCompilation(new SyntaxTree[] { }, options: options);
             var obj = GetCompilationValue(compilation);
             Assert.Equal(publicKeyStr, obj.Value<string>("publicKey"));
+        }
+
+        [Fact]
+        public void MetadataReferenceCompilation()
+        {
+            var utilCompilation = CSharpCompilation.Create(
+                assemblyName: "util",
+                syntaxTrees: new[] { CSharpSyntaxTree.ParseText(@"// this is a comment", CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.CSharp10)) },
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, deterministic: true));
+            var compilation = CreateCompilation(
+                Array.Empty<SyntaxTree>(),
+                references: new[] { utilCompilation.ToMetadataReference() });
+            var references = GetReferenceValues(compilation);
+            var compilationValue = references.Values<JObject>().Single()!;
+            var expected = @"
+{
+  ""compilation"": {
+    ""publicKey"": """",
+    ""options"": {
+      ""outputKind"": ""DynamicallyLinkedLibrary"",
+      ""moduleName"": null,
+      ""scriptClassName"": ""Script"",
+      ""mainTypeName"": null,
+      ""cryptoPublicKey"": """",
+      ""cryptoKeyFile"": null,
+      ""delaySign"": null,
+      ""publicSign"": false,
+      ""checkOverflow"": false,
+      ""platform"": ""AnyCpu"",
+      ""optimizationLevel"": ""Debug"",
+      ""generalDiagnosticOption"": ""Default"",
+      ""warningLevel"": 4,
+      ""deterministic"": true,
+      ""debugPlusMode"": false,
+      ""referencesSupersedeLowerVersions"": false,
+      ""reportSuppressedDiagnostics"": false,
+      ""nullableContextOptions"": ""Disable"",
+      ""specificDiagnosticOptions"": [],
+      ""localtime"": null,
+      ""unsafe"": false,
+      ""topLevelBinderFlags"": ""None"",
+      ""usings"": []
+    },
+    ""syntaxTrees"": [
+      {
+        ""fileName"": """",
+        ""text"": {
+          ""checksum"": ""053e2a4aa83f63193c1069d651b63bedca1e97"",
+          ""checksumAlgorithm"": ""Sha1"",
+          ""encodingName"": null
+        },
+        ""parseOptions"": {
+          ""kind"": ""Regular"",
+          ""specifiedKind"": ""Regular"",
+          ""documentationMode"": ""Parse"",
+          ""language"": ""C#"",
+          ""features"": {},
+          ""languageVersion"": ""CSharp10"",
+          ""specifiedLanguageVersion"": ""CSharp10"",
+          ""preprocessorSymbols"": []
+        }
+      }
+    ]
+  }
+}
+";
+
+            AssertJson(expected, compilationValue.ToString(Formatting.Indented), "toolsVersions", "references", "extensions");
         }
     }
 }

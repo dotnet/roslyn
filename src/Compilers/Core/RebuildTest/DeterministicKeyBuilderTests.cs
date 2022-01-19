@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -24,7 +25,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
-    public abstract class DeterministicKeyBuilderTests<TCompilation, TCompilationOptions, TParseOptions>
+    public abstract partial class DeterministicKeyBuilderTests<TCompilation, TCompilationOptions, TParseOptions>
         where TCompilation : Compilation
         where TCompilationOptions : CompilationOptions
         where TParseOptions : ParseOptions
@@ -41,8 +42,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
         protected static void AssertJson(
             string expected,
-            string actual,
-            bool removeStandard = true) => AssertJson(expected, actual, "references", "extensions");
+            string actual) => AssertJson(expected, actual, "references", "extensions");
 
         protected static void AssertJson(
             string expected,
@@ -143,12 +143,22 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             static string getFullName(JProperty property)
             {
                 string name = property.Name;
-                while (
-                    property.Parent is JObject obj &&
-                    obj.Parent is JProperty parent)
+                while (property.Parent is JObject obj)
                 {
-                    name = $"{parent.Name}.{name}";
-                    property = parent;
+                    if (obj.Parent is JProperty parent)
+                    {
+                        name = $"{parent.Name}.{name}";
+                        property = parent;
+                    }
+                    else if (obj.Parent is JArray { Parent: JProperty arrayParent } array)
+                    {
+                        name = $"[].{name}";
+                        property = arrayParent;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
 
                 return name;
@@ -178,13 +188,18 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             return (JObject)(obj.Property("parseOptions")?.Value!);
         }
 
+        protected JArray GetReferenceValues(Compilation compilation)
+        {
+            var property = GetJsonProperty(compilation.GetDeterministicKey(), "compilation.references");
+            return (JArray)property.Value;
+        }
+
         protected JObject GetReferenceValue(MetadataReference reference)
         {
-            var compilation = CreateCompilation(syntaxTrees: new SyntaxTree[] { }, references: new[] { reference });
-            var property = GetJsonProperty(compilation.GetDeterministicKey(), "compilation.references");
             var expectedMvid = DeterministicKeyBuilder.GetGuidValue(reference.GetModuleVersionId());
+            var compilation = CreateCompilation(syntaxTrees: new SyntaxTree[] { }, references: new[] { reference });
+            var array = GetReferenceValues(compilation);
 
-            var array = (JArray)property.Value;
             foreach (var item in array!.Values<JObject>())
             {
                 if (item?.Value<string>("mvid") == expectedMvid)
@@ -206,6 +221,18 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         protected static JArray GetAdditionalTextValues(Compilation compilation, ImmutableArray<AdditionalText> additionalTexts, ImmutableArray<KeyValuePair<string, string>> pathMap = default)
         {
             var property = GetJsonProperty(compilation.GetDeterministicKey(additionalTexts: additionalTexts, pathMap: pathMap), "additionalTexts");
+            return (JArray)property.Value;
+        }
+
+        protected static JArray GetAnalyzerValues(Compilation compilation, params DiagnosticAnalyzer[] analyzers)
+        {
+            var property = GetJsonProperty(compilation.GetDeterministicKey(analyzers: analyzers.ToImmutableArray()), "analyzers");
+            return (JArray)property.Value;
+        }
+
+        protected static JArray GetGeneratorValues(Compilation compilation, params ISourceGenerator[] generators)
+        {
+            var property = GetJsonProperty(compilation.GetDeterministicKey(generators: generators.ToImmutableArray()), "generators");
             return (JArray)property.Value;
         }
 
@@ -689,6 +716,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             AssertJsonCore(expected, obj.ToString(Formatting.Indented));
         }
 
+
         [Theory]
         [InlineData(@"c:\src\data.txt", null, null)]
         [InlineData(@"d:\src\data.txt", @"d:\", @"c:\")]
@@ -721,6 +749,78 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 ]
 ";
 
+            AssertJsonCore(expected, array.ToString(Formatting.Indented));
+        }
+
+        [Fact]
+        public void AdditionalTextError()
+        {
+            var additionalText = new TestAdditionalText(path: @"test.txt", text: null);
+            var array = GetAdditionalTextValues(
+                CreateCompilation(new SyntaxTree[] { }),
+                ImmutableArray.Create<AdditionalText>(additionalText));
+
+            var expected = @"
+[
+  {
+    ""fileName"": ""test.txt"",
+    ""text"": null
+  }
+]
+";
+
+            AssertJsonCore(expected, array.ToString(Formatting.Indented));
+        }
+
+        [Fact]
+        public void Analyzers()
+        {
+            var array = GetAnalyzerValues(
+                CreateCompilation(Array.Empty<SyntaxTree>()),
+                new Analyzer(),
+                new Analyzer2());
+
+            var assembly = typeof(Analyzer).Assembly;
+            var expected = @$"
+[
+  {{
+    ""fullName"": ""{typeof(Analyzer).FullName}"",
+    ""assemblyName"": ""{assembly.FullName}"",
+    ""mvid"": ""{DeterministicKeyBuilder.GetGuidValue(assembly.ManifestModule.ModuleVersionId)}""
+  }},
+  {{
+    ""fullName"": ""{typeof(Analyzer2).FullName}"",
+    ""assemblyName"": ""{assembly.FullName}"",
+    ""mvid"": ""{DeterministicKeyBuilder.GetGuidValue(assembly.ManifestModule.ModuleVersionId)}""
+  }}
+]
+";
+            AssertJsonCore(expected, array.ToString(Formatting.Indented));
+        }
+
+        [Fact]
+        public void Generators()
+        {
+            var array = GetGeneratorValues(
+                CreateCompilation(Array.Empty<SyntaxTree>()),
+                new Generator(),
+                new Generator2());
+
+            var assembly = typeof(Generator).Assembly;
+            var expected = @$"
+[
+  {{
+    ""fullName"": ""{typeof(Generator).FullName}"",
+    ""assemblyName"": ""{assembly.FullName}"",
+    ""mvid"": ""{DeterministicKeyBuilder.GetGuidValue(assembly.ManifestModule.ModuleVersionId)}""
+  }},
+  {{
+    ""fullName"": ""{typeof(Generator2).FullName}"",
+    ""assemblyName"": ""{assembly.FullName}"",
+    ""mvid"": ""{DeterministicKeyBuilder.GetGuidValue(assembly.ManifestModule.ModuleVersionId)}""
+  }}
+]
+";
             AssertJsonCore(expected, array.ToString(Formatting.Indented));
         }
     }

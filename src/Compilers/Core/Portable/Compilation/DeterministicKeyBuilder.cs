@@ -73,12 +73,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected static void WriteByteArrayValue(JsonWriter writer, string name, ReadOnlySpan<byte> value)
-        {
-            var builder = PooledStringBuilder.GetInstance();
-            EncodeByteArrayValue(value, builder.Builder);
-            writer.Write(name, builder.ToStringAndFree());
-        }
+        protected static void WriteByteArrayValue(JsonWriter writer, string name, ReadOnlySpan<byte> value) =>
+            writer.Write(name, EncodeByteArrayValue(value));
 
         protected static void WriteVersion(JsonWriter writer, string key, Version version)
         {
@@ -274,6 +270,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (sourceText is null)
             {
+                writer.WriteNull();
                 return;
             }
 
@@ -321,30 +318,10 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteKey("properties");
                 writeMetadataReferenceProperties(writer, reference.Properties);
 
-                void writeModuleMetadata(ModuleMetadata moduleMetadata)
-                {
-                    // The path of a reference, unlike the path of a file, does not contribute to the output
-                    // of the compilation. Only the MVID, name and version contribute here hence the file path
-                    // is deliberately omitted here.
-                    var peReader = moduleMetadata.GetMetadataReader();
-                    if (peReader.IsAssembly)
-                    {
-                        var assemblyDef = peReader.GetAssemblyDefinition();
-                        writer.Write("name", peReader.GetString(assemblyDef.Name));
-                        WriteVersion(writer, "version", assemblyDef.Version);
-                        WriteByteArrayValue(writer, "publicKey", peReader.GetBlobBytes(assemblyDef.PublicKey).AsSpan());
-                    }
-                    else
-                    {
-                        var moduleDef = peReader.GetModuleDefinition();
-                        writer.Write("name", peReader.GetString(moduleDef.Name));
-                    }
-
-                    writer.Write("mvid", GetGuidValue(moduleMetadata.GetModuleVersionId()));
-                }
             }
             else if (reference is CompilationReference compilationReference)
             {
+                writer.WriteKey("compilation");
                 var compilation = compilationReference.Compilation;
                 var builder = compilation.Options.CreateDeterministicKeyBuilder();
                 builder.WriteCompilation(
@@ -363,6 +340,28 @@ namespace Microsoft.CodeAnalysis
             }
 
             writer.WriteObjectEnd();
+
+            void writeModuleMetadata(ModuleMetadata moduleMetadata)
+            {
+                // The path of a reference, unlike the path of a file, does not contribute to the output
+                // of the compilation. Only the MVID, name and version contribute here hence the file path
+                // is deliberately omitted here.
+                var peReader = moduleMetadata.GetMetadataReader();
+                if (peReader.IsAssembly)
+                {
+                    var assemblyDef = peReader.GetAssemblyDefinition();
+                    writer.Write("name", peReader.GetString(assemblyDef.Name));
+                    WriteVersion(writer, "version", assemblyDef.Version);
+                    WriteByteArrayValue(writer, "publicKey", peReader.GetBlobBytes(assemblyDef.PublicKey).AsSpan());
+                }
+                else
+                {
+                    var moduleDef = peReader.GetModuleDefinition();
+                    writer.Write("name", peReader.GetString(moduleDef.Name));
+                }
+
+                writer.Write("mvid", GetGuidValue(moduleMetadata.GetModuleVersionId()));
+            }
 
             static void writeMetadataReferenceProperties(JsonWriter writer, MetadataReferenceProperties properties)
             {

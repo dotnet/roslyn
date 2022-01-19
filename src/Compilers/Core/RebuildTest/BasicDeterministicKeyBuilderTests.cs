@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
 using System.Collections.Generic;
+using System;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 "",
                 path: "file.vb");
             var additionalText = new TestAdditionalText(content, Encoding.UTF8, path: "file.txt", HashAlgorithm);
-            var contentChecksum = GetChecksum(additionalText.GetText());
+            var contentChecksum = GetChecksum(additionalText.GetText()!);
 
             var compilation = VisualBasicCompilation.Create(
                 "test",
@@ -228,6 +229,81 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   }
 ]
 ", compiler);
+        }
+
+        [Fact]
+        public void MetadataReferenceCompilation()
+        {
+            var utilCompilation = VisualBasicCompilation.Create(
+                assemblyName: "util",
+                syntaxTrees: new[] { VisualBasicSyntaxTree.ParseText(@"// this is a comment", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic15)) },
+                options: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, deterministic: true));
+            var compilation = CreateCompilation(
+                Array.Empty<SyntaxTree>(),
+                references: new[] { utilCompilation.ToMetadataReference() });
+            var references = GetReferenceValues(compilation);
+            var compilationValue = references.Values<JObject>().Single()!;
+            var expected = @"
+{
+  ""compilation"": {
+    ""publicKey"": """",
+    ""options"": {
+      ""outputKind"": ""DynamicallyLinkedLibrary"",
+      ""moduleName"": null,
+      ""scriptClassName"": ""Script"",
+      ""mainTypeName"": null,
+      ""cryptoPublicKey"": """",
+      ""cryptoKeyFile"": null,
+      ""delaySign"": null,
+      ""publicSign"": false,
+      ""checkOverflow"": true,
+      ""platform"": ""AnyCpu"",
+      ""optimizationLevel"": ""Debug"",
+      ""generalDiagnosticOption"": ""Default"",
+      ""warningLevel"": 1,
+      ""deterministic"": true,
+      ""debugPlusMode"": false,
+      ""referencesSupersedeLowerVersions"": false,
+      ""reportSuppressedDiagnostics"": false,
+      ""nullableContextOptions"": ""Disable"",
+      ""specificDiagnosticOptions"": [],
+      ""localtime"": null,
+      ""rootNamespace"": """",
+      ""optionStrict"": ""Off"",
+      ""optionInfer"": true,
+      ""optionExplicit"": true,
+      ""optionCompareText"": false,
+      ""embedVbCoreRuntime"": false,
+      ""globalImports"": [],
+      ""parseOptions"": {}
+    },
+    ""syntaxTrees"": [
+      {
+        ""fileName"": """",
+        ""text"": {
+          ""checksum"": ""053e2a4aa83f63193c1069d651b63bedca1e97"",
+          ""checksumAlgorithm"": ""Sha1"",
+          ""encodingName"": null
+        },
+        ""parseOptions"": {
+          ""kind"": ""Regular"",
+          ""specifiedKind"": ""Regular"",
+          ""documentationMode"": ""Parse"",
+          ""language"": ""Visual Basic"",
+          ""features"": {},
+          ""languageVersion"": ""VisualBasic15"",
+          ""specifiedLanguageVersion"": ""VisualBasic15"",
+          ""preprocessorSymbols"": {
+            ""_MYTYPE"": ""Empty""
+          }
+        }
+      }
+    ]
+  }
+}
+";
+
+            AssertJson(expected, compilationValue.ToString(Formatting.Indented), "toolsVersions", "references", "extensions");
         }
     }
 }
