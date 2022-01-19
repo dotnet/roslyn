@@ -97,13 +97,16 @@ namespace Microsoft.CodeAnalysis
                     // now, using the obtained syntax nodes, run the transform
                     foreach (SyntaxNode node in nodes)
                     {
-                        var stopwatch = SharedStopwatch.StartNew();
-                        var value = new GeneratorSyntaxContext(node, model);
-                        var transformed = _owner._transformFunc(value, cancellationToken);
-
-                        if (state == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer, stopwatch.Elapsed, noInputStepsStepInfo, state))
+                        if (state != EntryState.Cached || !_transformTable.TryUseCachedEntries(TimeSpan.Zero, noInputStepsStepInfo))
                         {
-                            _transformTable.AddEntry(transformed, EntryState.Added, stopwatch.Elapsed, noInputStepsStepInfo, EntryState.Added);
+                            var stopwatch = SharedStopwatch.StartNew();
+                            var value = new GeneratorSyntaxContext(node, model);
+                            var transformed = _owner._transformFunc(value, cancellationToken);
+
+                            if (state == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer, stopwatch.Elapsed, noInputStepsStepInfo, state))
+                            {
+                                _transformTable.AddEntry(transformed, EntryState.Added, stopwatch.Elapsed, noInputStepsStepInfo, EntryState.Added);
+                            }
                         }
                     }
                 }
