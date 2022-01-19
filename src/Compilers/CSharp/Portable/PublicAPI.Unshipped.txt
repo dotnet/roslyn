@@ -245,3 +245,5 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorDeclarationSyntax.WithExp
 static Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver.Create(params Microsoft.CodeAnalysis.IIncrementalGenerator![]! incrementalGenerators) -> Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver!
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitListPattern(Microsoft.CodeAnalysis.CSharp.Syntax.ListPatternSyntax! node) -> TResult?
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitSlicePattern(Microsoft.CodeAnalysis.CSharp.Syntax.SlicePatternSyntax! node) -> TResult?
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.InterpolatedStringExpression(Microsoft.CodeAnalysis.SyntaxToken stringStartToken, Microsoft.CodeAnalysis.SyntaxToken stringEndToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.InterpolatedStringExpressionSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Interpolation(Microsoft.CodeAnalysis.SyntaxToken openBraceToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression, Microsoft.CodeAnalysis.SyntaxToken closeBraceToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.InterpolationSyntax!
