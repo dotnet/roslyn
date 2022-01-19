@@ -267,6 +267,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             RaiseDiagnosticsRemovedForDocument(document.Id, stateSets);
         }
 
+        public async Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
+        {
+            // When the analysis scope is set to 'ActiveFile' and the active document is switched,
+            // we retrigger analysis of newly active document.
+            if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) != BackgroundAnalysisScope.ActiveFile)
+            {
+                return;
+            }
+
+            // First reset the document states.
+            await TextDocumentResetAsync(document, cancellationToken).ConfigureAwait(false);
+
+            // Trigger syntax analysis.
+            await AnalyzeDocumentForKindAsync(document, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
+
+            // Trigger semantic analysis for source documents. Non-source documents do not support semantic analysis.
+            if (document is Document)
+                await AnalyzeDocumentForKindAsync(document, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false);
+        }
+
         public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_RemoveDocument, GetRemoveLogMessage, documentId, CancellationToken.None))

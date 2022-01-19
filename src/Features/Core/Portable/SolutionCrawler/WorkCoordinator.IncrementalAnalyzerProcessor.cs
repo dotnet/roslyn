@@ -131,7 +131,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 public ImmutableArray<IIncrementalAnalyzer> Analyzers => _normalPriorityProcessor.Analyzers;
-                public ImmutableArray<IIncrementalAnalyzer> AnalyzersForActiveDocumentChanged => _normalPriorityProcessor.AnalyzersForActiveDocumentChanged;
 
                 private ProjectDependencyGraph DependencyGraph => _registration.GetSolutionToAnalyze().GetProjectDependencyGraph();
                 private IDiagnosticAnalyzerService? DiagnosticAnalyzerService => _lazyDiagnosticAnalyzerService?.Value;
@@ -165,6 +164,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private async Task ProcessDocumentAnalyzersAsync(
                     TextDocument textDocument, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                 {
+                    // process special active document switched request, if any.
+                    if (await ProcessActiveDocumentSwitchedAsync(analyzers, workItem, textDocument, cancellationToken).ConfigureAwait(false))
+                    {
+                        return;
+                    }
+
                     // process all analyzers for each categories in this order - syntax, body, document
                     var reasons = workItem.InvocationReasons;
                     if (workItem.MustRefresh || reasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
@@ -199,6 +204,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         else if (analyzer is IIncrementalAnalyzer2 analyzer2)
                         {
                             await analyzer2.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
+                        }
+                    }
+
+                    async Task<bool> ProcessActiveDocumentSwitchedAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, TextDocument document, CancellationToken cancellationToken)
+                    {
+                        try
+                        {
+                            if (!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.ActiveDocumentSwitched))
+                            {
+                                return false;
+                            }
+
+                            await RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.ActiveDocumentSwitchedAsync(d, c), cancellationToken).ConfigureAwait(false);
+                            return true;
+                        }
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                        {
+                            throw ExceptionUtilities.Unreachable;
                         }
                     }
                 }

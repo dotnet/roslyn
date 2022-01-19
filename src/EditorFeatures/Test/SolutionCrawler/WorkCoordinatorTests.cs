@@ -1723,6 +1723,24 @@ class C
                 return Task.CompletedTask;
             }
 
+            public async Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
+            {
+                if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) != BackgroundAnalysisScope.ActiveFile)
+                {
+                    return;
+                }
+
+                if (document is Document sourceDocument)
+                {
+                    await AnalyzeSyntaxAsync(sourceDocument, InvocationReasons.ActiveDocumentSwitched, cancellationToken).ConfigureAwait(false);
+                    await AnalyzeDocumentAsync(sourceDocument, bodyOpt: null, InvocationReasons.ActiveDocumentSwitched, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    await AnalyzeNonSourceDocumentAsync(document, InvocationReasons.ActiveDocumentSwitched, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
             public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 InvalidateDocumentIds.Add(documentId);
@@ -1761,8 +1779,6 @@ class C
                     || e.Option == SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption;
             }
 
-            public bool IsDocumentAnalysisDependentOnItBeingActiveDocumentOrNot => true;
-
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
                 => Task.CompletedTask;
@@ -1799,11 +1815,11 @@ class C
 
             #region unused 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e) => false;
-            public bool IsDocumentAnalysisDependentOnItBeingActiveDocumentOrNot => false;
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken) => Task.CompletedTask;

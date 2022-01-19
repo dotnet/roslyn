@@ -37,10 +37,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
         public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             => _implementation.DocumentResetAsync(document, cancellationToken);
 
+        public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             => _implementation.NeedsReanalysisOnOptionChanged(sender, new UnitTestingOptionChangedEventArgsWrapper(e));
-
-        public bool IsDocumentAnalysisDependentOnItBeingActiveDocumentOrNot => false;
 
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             => _implementation.NewSolutionSnapshotAsync(solution, cancellationToken);

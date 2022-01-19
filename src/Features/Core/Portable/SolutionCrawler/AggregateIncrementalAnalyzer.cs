@@ -61,13 +61,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
+        public async Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
+        {
+            if (TryGetAnalyzer(document.Project, out var analyzer))
+            {
+                await analyzer.ActiveDocumentSwitchedAsync(document, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
         {
             // TODO: Is this correct?
             return false;
         }
-
-        public bool IsDocumentAnalysisDependentOnItBeingActiveDocumentOrNot => false;
 
         public async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {

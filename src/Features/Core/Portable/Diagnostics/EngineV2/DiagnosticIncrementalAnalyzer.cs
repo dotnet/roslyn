@@ -81,8 +81,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        public bool IsDocumentAnalysisDependentOnItBeingActiveDocumentOrNot => true;
-
         private void OnProjectAnalyzerReferenceChanged(object? sender, ProjectAnalyzerReferenceChangedEventArgs e)
         {
             if (e.Removed.Length == 0)

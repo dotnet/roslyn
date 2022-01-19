@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         Task DocumentOpenAsync(Document document, CancellationToken cancellationToken);
         Task DocumentCloseAsync(Document document, CancellationToken cancellationToken);
+        Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken);
 
         /// <summary>
         /// Resets all the document state cached by the analyzer.
@@ -30,10 +31,5 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
 
         bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e);
-
-        /// <summary>
-        /// Flag indicating if the analysis result for documents are dependent on whether or not it is an active document.
-        /// </summary>
-        bool IsDocumentAnalysisDependentOnItBeingActiveDocumentOrNot { get; }
     }
 }

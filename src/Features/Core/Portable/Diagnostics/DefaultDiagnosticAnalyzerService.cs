@@ -78,8 +78,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            public bool IsDocumentAnalysisDependentOnItBeingActiveDocumentOrNot => false;
-
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
                 => AnalyzeSyntaxOrNonSourceDocumentAsync(document, cancellationToken);
 
@@ -231,6 +229,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 => Task.CompletedTask;
 
             public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)

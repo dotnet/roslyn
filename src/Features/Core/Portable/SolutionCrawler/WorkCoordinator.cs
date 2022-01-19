@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _optionService.OptionChanged += OnOptionChanged;
 
                 // subscribe to active document changed event for active file background analysis scope.
-                _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
+                _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
             }
 
             public int CorrelationId => _registration.CorrelationId;
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public void Shutdown(bool blockingShutdown)
             {
                 _optionService.OptionChanged -= OnOptionChanged;
-                _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
+                _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentSwitched;
 
                 // detach from the workspace
                 _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
@@ -205,26 +205,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            private void OnActiveDocumentChanged(object? sender, DocumentId? activeDocumentId)
+            private void OnActiveDocumentSwitched(object? sender, DocumentId? activeDocumentId)
             {
-                var solution = _registration.GetSolutionToAnalyze();
-                if (solution.GetProject(activeDocumentId?.ProjectId) is not { } activeProject)
+                if (activeDocumentId == null)
                     return;
 
-                RoslynDebug.AssertNotNull(activeDocumentId);
-
-                // When the analysis scope is set to 'ActiveFile' and the active document changes,
-                // analysis results might change for the analyzers whose document analysis results depends on
-                // whether or not the document is active. We trigger reanalysis for the active document for these analyzers.
-                var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(activeProject);
-                if (analysisScope == BackgroundAnalysisScope.ActiveFile)
-                {
-                    var scope = new ReanalyzeScope(documentIds: new[] { activeDocumentId });
-                    foreach (var analyzer in _documentAndProjectWorkerProcessor.AnalyzersForActiveDocumentChanged)
-                    {
-                        Reanalyze(analyzer, scope, highPriority: true);
-                    }
-                }
+                var solution = _registration.GetSolutionToAnalyze();
+                EnqueueFullDocumentEvent(solution, activeDocumentId, InvocationReasons.ActiveDocumentSwitched, eventName: nameof(OnActiveDocumentSwitched));
             }
 
             private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
