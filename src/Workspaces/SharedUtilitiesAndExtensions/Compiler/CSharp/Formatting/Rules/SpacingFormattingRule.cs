@@ -475,8 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Preserve space after { or before } in interpolations (i.e. between the braces and the expression)
-            if ((previousKind == SyntaxKind.OpenBraceToken && previousToken.Parent is InterpolationSyntax) ||
-                (currentKind == SyntaxKind.CloseBraceToken && currentToken.Parent is InterpolationSyntax))
+            if (((previousKind is SyntaxKind.OpenBraceToken or SyntaxKind.RawInterpolationOpenToken) && previousToken.Parent is InterpolationSyntax) ||
+                ((currentKind is SyntaxKind.CloseBraceToken or SyntaxKind.RawInterpolationCloseToken) && currentToken.Parent is InterpolationSyntax))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);
             }

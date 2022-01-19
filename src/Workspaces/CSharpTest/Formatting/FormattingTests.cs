@@ -10730,5 +10730,17 @@ f([Attribute] () => { });
 f( [Attribute] () => { });
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRawStringInterpolation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+var s = $""""""{s}""""""
+",
+                code: @"
+var s = $""""""{s}""""""
+");
+        }
     }
 }

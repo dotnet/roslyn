@@ -900,5 +900,35 @@ $""[||]"";
 }",
             useTabs: true);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingInRawStringLiteral()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"""Hello[||]there
+world
+"""""";
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingInRawStringLiteralInterpolation()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = $""""""Hello[||]there
+world
+"""""";
+    }
+}");
+        }
     }
 }
