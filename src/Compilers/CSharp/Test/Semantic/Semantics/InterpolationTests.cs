@@ -6818,7 +6818,7 @@ End Structure
         [Theory]
         [InlineData(@"$""""")]
         [InlineData(@"$"""" + $""""")]
-        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant(string expression)
+        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_01(string expression)
         {
             var code = @"
 using System.Runtime.CompilerServices;
@@ -6841,6 +6841,39 @@ class C
                 // (8,34): error CS8943: null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
                 //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute(new string[] { null })] CustomHandler c) {}
                 Diagnostic(ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName, "InterpolatedStringHandlerArgumentAttribute(new string[] { null })").WithLocation(8, 34)
+            );
+
+            var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
+            Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
+        }
+
+        [Fact, WorkItem(58025, "https://github.com/dotnet/roslyn/issues/58025")]
+        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_02()
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+C.M(1, $"""");
+
+class C
+{
+    public static void M(int i, [InterpolatedStringHandlerArgumentAttribute((string[])null)] CustomHandler c) {}
+}
+";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
+            comp.VerifyDiagnostics(
+                // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // C.M(1, $"");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 8),
+                // (8,34): error CS8943: null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
+                //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute((string[])null)] CustomHandler c) {}
+                Diagnostic(ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName, "InterpolatedStringHandlerArgumentAttribute((string[])null)").WithLocation(8, 34)
             );
 
             var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
@@ -6937,6 +6970,46 @@ End Structure
 Imports System.Runtime.CompilerServices
 Public Class C
     Public Shared Sub M(i As Integer, <InterpolatedStringHandlerArgument(CStr(Nothing))> c As CustomHandler)
+    End Sub
+End Class
+<InterpolatedStringHandler>
+Public Structure CustomHandler
+End Structure
+";
+
+            var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
+            vbComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() });
+            comp.VerifyEmitDiagnostics(
+                // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // C.M(1, $"");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 8),
+                // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
+                // C.M(1, $"");
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""").WithArguments("CustomHandler", "2").WithLocation(1, 8),
+                // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
+                // C.M(1, $"");
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""").WithArguments("CustomHandler", "3").WithLocation(1, 8)
+            );
+
+            var customHandler = comp.GetTypeByMetadataName("CustomHandler");
+            Assert.True(customHandler.IsInterpolatedStringHandlerType);
+
+            var cParam = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters.Skip(1).Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
+            Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
+        }
+
+        [Fact]
+        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_FromMetadata_04()
+        {
+            var vbCode = @"
+Imports System.Runtime.CompilerServices
+Public Class C
+    Public Shared Sub M(i As Integer, <InterpolatedStringHandlerArgument(DirectCast(Nothing, String()))> c As CustomHandler)
     End Sub
 End Class
 <InterpolatedStringHandler>
@@ -14190,6 +14263,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14209,9 +14283,9 @@ partial struct CustomHandler
                 // (5,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // s.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(5, 5),
-                // (14,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                // (15,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
                 //     public static void M(this S1 s, [InterpolatedStringHandlerArgument("")] CustomHandler c) => throw null;
-                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(14, 38)
+                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(15, 38)
             );
         }
 
@@ -14227,6 +14301,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14257,6 +14332,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14307,6 +14383,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14355,6 +14432,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14388,6 +14466,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 

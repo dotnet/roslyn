@@ -398,12 +398,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 });
 
                 var annotatedNodes = newRoot.GetAnnotatedNodes<SyntaxNode>(syntaxAnnotation: changeSignatureFormattingAnnotation);
+                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(doc, cancellationToken).ConfigureAwait(false);
 
                 var formattedRoot = Formatter.Format(
                     newRoot,
                     changeSignatureFormattingAnnotation,
-                    doc.Project.Solution.Workspace,
-                    options: await doc.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
+                    doc.Project.Solution.Workspace.Services,
+                    options: formattingOptions,
                     rules: GetFormattingRules(doc),
                     cancellationToken: CancellationToken.None);
 

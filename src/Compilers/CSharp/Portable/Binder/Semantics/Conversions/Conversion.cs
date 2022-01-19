@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if the conversion is an implicit object creation expression conversion.
         /// </summary>
-        internal bool IsObjectCreation
+        public bool IsObjectCreation
         {
             get
             {

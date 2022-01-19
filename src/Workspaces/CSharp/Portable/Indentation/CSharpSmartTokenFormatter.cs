@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -21,28 +22,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 {
     internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
     {
-        private readonly OptionSet _optionSet;
+        private readonly IndentationOptions _options;
         private readonly IEnumerable<AbstractFormattingRule> _formattingRules;
 
         private readonly CompilationUnitSyntax _root;
 
         public CSharpSmartTokenFormatter(
-            OptionSet optionSet,
+            IndentationOptions options,
             IEnumerable<AbstractFormattingRule> formattingRules,
             CompilationUnitSyntax root)
         {
-            Contract.ThrowIfNull(optionSet);
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(root);
 
-            _optionSet = optionSet;
+            _options = options;
             _formattingRules = formattingRules;
 
             _root = root;
         }
 
         public IList<TextChange> FormatRange(
-            Workspace workspace, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
+            HostWorkspaceServices services, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(startToken.Kind() is SyntaxKind.None or SyntaxKind.EndOfFileToken);
             Contract.ThrowIfTrue(endToken.Kind() is SyntaxKind.None or SyntaxKind.EndOfFileToken);
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 smartTokenformattingRules = (new NoLineChangeFormattingRule()).Concat(_formattingRules);
             }
 
-            return Formatter.GetFormattedTextChanges(_root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, workspace, _optionSet, smartTokenformattingRules, cancellationToken);
+            return Formatter.GetFormattedTextChanges(_root, new[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, services, _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
         }
 
         private static bool CloseBraceOfTryOrDoBlock(SyntaxToken endToken)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         }
 
         public async Task<IList<TextChange>> FormatTokenAsync(
-            Workspace workspace, SyntaxToken token, CancellationToken cancellationToken)
+            HostWorkspaceServices services, SyntaxToken token, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(token.Kind() is SyntaxKind.None or SyntaxKind.EndOfFileToken);
 
@@ -100,11 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
             }
 
-            var smartTokenformattingRules = (new SmartTokenFormattingRule()).Concat(_formattingRules);
+            var smartTokenformattingRules = new SmartTokenFormattingRule().Concat(_formattingRules);
             var adjustedStartPosition = previousToken.SpanStart;
-            var indentStyle = _optionSet.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
             if (token.IsKind(SyntaxKind.OpenBraceToken) &&
-                indentStyle != FormattingOptions.IndentStyle.Smart)
+                _options.AutoFormattingOptions.IndentStyle != FormattingOptions.IndentStyle.Smart)
             {
                 RoslynDebug.AssertNotNull(token.SyntaxTree);
                 var text = await token.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -114,9 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
             }
 
-            return Formatter.GetFormattedTextChanges(_root,
-                new TextSpan[] { TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition) },
-                workspace, _optionSet, smartTokenformattingRules, cancellationToken);
+            return Formatter.GetFormattedTextChanges(_root, new[] { TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition) }, services, _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
         }
 
         private class NoLineChangeFormattingRule : AbstractFormattingRule

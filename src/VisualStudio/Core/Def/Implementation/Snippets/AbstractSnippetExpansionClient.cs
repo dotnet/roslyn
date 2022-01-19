@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
@@ -131,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public abstract int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction? pFunc);
         protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
-        internal abstract Document AddImports(Document document, OptionSet options, int position, XElement snippetNode, bool allowInHiddenRegions, CancellationToken cancellationToken);
+        internal abstract Document AddImports(Document document, CodeGenerationPreferences preferences, int position, XElement snippetNode, bool allowInHiddenRegions, CancellationToken cancellationToken);
         protected abstract string FallbackDefaultLiteral { get; }
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
@@ -880,6 +881,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             // Now compute the new arguments for the new call
+            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var semanticModel = document.GetRequiredSemanticModelAsync(cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
             var position = SubjectBuffer.CurrentSnapshot.GetPosition(adjustedTextSpan.iStartLine, adjustedTextSpan.iStartIndex);
 
@@ -889,7 +891,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 foreach (var provider in GetArgumentProviders(document.Project.Solution.Workspace))
                 {
-                    var context = new ArgumentContext(provider, semanticModel, position, parameter, value, cancellationToken);
+                    var context = new ArgumentContext(provider, options, semanticModel, position, parameter, value, cancellationToken);
                     ThreadingContext.JoinableTaskFactory.Run(() => provider.ProvideArgumentAsync(context));
 
                     if (context.DefaultValue is not null)
@@ -1052,10 +1054,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var documentOptions = documentWithImports.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var preferences = CodeGenerationPreferences.FromDocumentAsync(documentWithImports, cancellationToken).WaitAndGetResult(cancellationToken);
             var allowInHiddenRegions = documentWithImports.CanAddImportsInHiddenRegions();
 
-            documentWithImports = AddImports(documentWithImports, documentOptions, position, snippetNode, allowInHiddenRegions, cancellationToken);
+            documentWithImports = AddImports(documentWithImports, preferences, position, snippetNode, allowInHiddenRegions, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
         }
 
