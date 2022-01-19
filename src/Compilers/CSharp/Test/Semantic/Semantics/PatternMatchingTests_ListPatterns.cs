@@ -3880,14 +3880,14 @@ class C<T>
             rest.ToString(); // 1
 
         if (new C<int?>() is [1, ..var rest2])
-            rest2.Value.ToString(); // 2 (assumed not-null)
+            rest2.Value.ToString(); // (assumed not-null)
         else
-            rest2.Value.ToString(); // 3, 4
+            rest2.Value.ToString(); // 2, 3
 
         if (new C<string?>() is [1, ..var rest3])
-            rest3.ToString(); // 5 (assumed not-null)
+            rest3.ToString(); // (assumed not-null)
         else
-            rest3.ToString(); // 6, 7
+            rest3.ToString(); // 4, 5
 
         if (new C<string>() is [1, ..var rest4])
         {
@@ -3895,11 +3895,11 @@ class C<T>
             rest4 = null;
         }
         else
-            rest4.ToString(); // 8, 9
+            rest4.ToString(); // 6, 7
 
         if (new C<T>() is [1, ..var rest5])
         {
-            rest5.ToString(); // 10 (assumed not-null)
+            rest5.ToString(); // (assumed not-null)
             rest5 = default;
         }
     }
@@ -3911,22 +3911,22 @@ class C<T>
             //             rest.ToString(); // 1
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest").WithArguments("rest").WithLocation(14, 13),
             // (19,13): warning CS8629: Nullable value type may be null.
-            //             rest2.Value.ToString(); // 3, 4
+            //             rest2.Value.ToString(); // 2, 3
             Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(19, 13),
             // (19,13): error CS0165: Use of unassigned local variable 'rest2'
-            //             rest2.Value.ToString(); // 3, 4
+            //             rest2.Value.ToString(); // 2, 3
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest2").WithArguments("rest2").WithLocation(19, 13),
             // (24,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest3.ToString(); // 6, 7
+            //             rest3.ToString(); // 4, 5
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(24, 13),
             // (24,13): error CS0165: Use of unassigned local variable 'rest3'
-            //             rest3.ToString(); // 6, 7
+            //             rest3.ToString(); // 4, 5
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest3").WithArguments("rest3").WithLocation(24, 13),
             // (32,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest4.ToString(); // 8, 9
+            //             rest4.ToString(); // 6, 7
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest4").WithLocation(32, 13),
             // (32,13): error CS0165: Use of unassigned local variable 'rest4'
-            //             rest4.ToString(); // 8, 9
+            //             rest4.ToString(); // 6, 7
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest4").WithArguments("rest4").WithLocation(32, 13)
             );
 
@@ -4016,14 +4016,14 @@ class C<T>
             rest.ToString(); // 1
 
         if (new C<int?>() is [1, ..var rest2])
-            rest2.Value.ToString(); // 2 (assumed not-null)
+            rest2.Value.ToString(); // (assumed not-null)
         else
-            rest2.Value.ToString(); // 3, 4
+            rest2.Value.ToString(); // 2, 3
 
         if (new C<string?>() is [1, ..var rest3])
-            rest3.ToString(); // 5 (assumed not-null)
+            rest3.ToString(); // (assumed not-null)
         else
-            rest3.ToString(); // 6, 7
+            rest3.ToString(); // 4, 5
 
         if (new C<string>() is [1, ..var rest4])
         {
@@ -4031,7 +4031,7 @@ class C<T>
             rest4 = null;
         }
         else
-            rest4.ToString(); // 8, 9
+            rest4.ToString(); // 6, 7
     }
 }
 ";
@@ -4041,22 +4041,22 @@ class C<T>
             //             rest.ToString(); // 1
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest").WithArguments("rest").WithLocation(15, 13),
             // (20,13): warning CS8629: Nullable value type may be null.
-            //             rest2.Value.ToString(); // 3, 4
+            //             rest2.Value.ToString(); // 2, 3
             Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(20, 13),
             // (20,13): error CS0165: Use of unassigned local variable 'rest2'
-            //             rest2.Value.ToString(); // 3, 4
+            //             rest2.Value.ToString(); // 2, 3
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest2").WithArguments("rest2").WithLocation(20, 13),
             // (25,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest3.ToString(); // 6, 7
+            //             rest3.ToString(); // 4, 5
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(25, 13),
             // (25,13): error CS0165: Use of unassigned local variable 'rest3'
-            //             rest3.ToString(); // 6, 7
+            //             rest3.ToString(); // 4, 5
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest3").WithArguments("rest3").WithLocation(25, 13),
             // (33,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest4.ToString(); // 8, 9
+            //             rest4.ToString(); // 6, 7
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest4").WithLocation(33, 13),
             // (33,13): error CS0165: Use of unassigned local variable 'rest4'
-            //             rest4.ToString(); // 8, 9
+            //             rest4.ToString(); // 6, 7
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest4").WithArguments("rest4").WithLocation(33, 13)
             );
     }
