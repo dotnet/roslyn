@@ -902,7 +902,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(new List<Exception>(), exceptions);
         }
 
-        private void DoSimultaneousWrites(Func<string, Task> write)
+        private static void DoSimultaneousWrites(Func<string, Task> write)
         {
             var barrier = new Barrier(NumThreads);
             var countdown = new CountdownEvent(NumThreads);
