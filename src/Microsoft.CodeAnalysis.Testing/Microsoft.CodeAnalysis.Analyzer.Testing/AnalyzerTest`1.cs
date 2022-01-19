@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.Testing
             foreach (var project in solution.Projects)
             {
                 var compilation = await GetProjectCompilationAsync(project, verifier, cancellationToken).ConfigureAwait(false);
-                var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, GetAnalyzerOptions(project), cancellationToken);
+                var compilationWithAnalyzers = CreateCompilationWithAnalyzers(compilation, analyzers, GetAnalyzerOptions(project), cancellationToken);
                 var allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
 
                 diagnostics.AddRange(allDiagnostics.Where(diagnostic => !IsCompilerDiagnostic(diagnostic) || IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics)).Select(diagnostic => (project, diagnostic)));
@@ -1105,6 +1105,17 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>The effective <see cref="AnalyzerOptions"/> for the project.</returns>
         protected virtual AnalyzerOptions GetAnalyzerOptions(Project project)
             => project.AnalyzerOptions;
+
+        /// <summary>
+        /// Combine a compilation with analyzers and options.
+        /// </summary>
+        /// <param name="compilation">The compilation the analyzers will be run on.</param>
+        /// <param name="analyzers">The analyzer to run on the documents.</param>
+        /// <param name="options">The <see cref="AnalyzerOptions"/> for the project.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
+        /// <returns>A <see cref="CompilationWithAnalyzers"/> object representing the provided compilation, analyzers, and options.</returns>
+        protected virtual CompilationWithAnalyzers CreateCompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
+            => compilation.WithAnalyzers(analyzers, options, cancellationToken);
 
         /// <summary>
         /// Given an array of strings as sources and a language, turn them into a <see cref="Project"/> and return the
