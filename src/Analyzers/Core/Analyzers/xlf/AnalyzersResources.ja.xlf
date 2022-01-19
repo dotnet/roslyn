@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Avoid_multiple_blank_lines">
         <source>Avoid multiple blank lines</source>
-        <target state="new">Avoid multiple blank lines</target>
+        <target state="translated">複数の空白行は使用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
         <source>Blank line required between block and subsequent statement</source>
-        <target state="new">Blank line required between block and subsequent statement</target>
+        <target state="translated">ブロックと後続のステートメントの間に空白行が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_match_folder_structure">
         <source>Change namespace to match folder structure</source>
-        <target state="new">Change namespace to match folder structure</target>
+        <target state="translated">フォルダー構造に合わせて namespace を変更してください</target>
         <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
@@ -79,17 +79,12 @@
       </trans-unit>
       <trans-unit id="Conditional_expression_can_be_simplified">
         <source>Conditional expression can be simplified</source>
-        <target state="translated">条件式を簡略化できます</target>
+        <target state="translated">条件式を簡素化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
         <target state="translated">条件式に変換します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">タプルに変換</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -99,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Collection_initialization_can_be_simplified">
         <source>Collection initialization can be simplified</source>
-        <target state="translated">コレクションの初期化を簡略化できます</target>
+        <target state="translated">コレクションの初期化を簡素化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
@@ -109,12 +104,12 @@
       </trans-unit>
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
-        <target state="translated">'GetHashCode' の実装を簡略化できます</target>
+        <target state="translated">'GetHashCode' の実装を簡素化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
         <source>Interpolation can be simplified</source>
-        <target state="translated">補間を簡略化することができます</target>
+        <target state="translated">補間を簡素化することができます</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_format_string">
@@ -154,7 +149,7 @@
       </trans-unit>
       <trans-unit id="Member_name_can_be_simplified">
         <source>Member name can be simplified</source>
-        <target state="translated">メンバーの名前を単純化できます</target>
+        <target state="translated">メンバーの名前を簡素化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
@@ -164,12 +159,12 @@
       </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
         <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
-        <target state="new">Namespace "{0}" does not match folder structure, expected "{1}"</target>
+        <target state="translated">Namespace "{0}" はフォルダー構造と一致しません。"{1}" が必要です</target>
         <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Namespace_does_not_match_folder_structure">
         <source>Namespace does not match folder structure</source>
-        <target state="new">Namespace does not match folder structure</target>
+        <target state="translated">Namespace がフォルダー構造と一致しません</target>
         <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Naming_Styles">
@@ -184,7 +179,7 @@
       </trans-unit>
       <trans-unit id="Null_check_can_be_simplified">
         <source>Null check can be simplified</source>
-        <target state="translated">Null チェックを簡略化できます</target>
+        <target state="translated">Null チェックを簡素化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Order_modifiers">
@@ -204,7 +199,7 @@
       </trans-unit>
       <trans-unit id="Object_initialization_can_be_simplified">
         <source>Object initialization can be simplified</source>
-        <target state="translated">オブジェクトの初期化を簡略化できます</target>
+        <target state="translated">オブジェクトの初期化を簡素化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_can_be_removed">
@@ -229,12 +224,12 @@
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
         <source>Private member '{0}' can be removed as the value assigned to it is never read</source>
-        <target state="needs-review-translation">割り当てられている値が読み取られることがないようにプライベートメンバー '{0}' を削除できます。</target>
+        <target state="translated">割り当てられた値が読み取られることがないので、プライベート メンバー '{0}' を削除できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_is_unused">
         <source>Private member '{0}' is unused</source>
-        <target state="needs-review-translation">プライベート メンバー '{0}' は使用されていません。</target>
+        <target state="translated">プライベート メンバー '{0}' は使用されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
@@ -299,7 +294,7 @@
       </trans-unit>
       <trans-unit id="Simplify_LINQ_expression">
         <source>Simplify LINQ expression</source>
-        <target state="new">Simplify LINQ expression</target>
+        <target state="translated">LINQ 式を簡略化する</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

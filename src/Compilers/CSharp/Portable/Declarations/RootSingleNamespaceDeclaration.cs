@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -13,28 +14,40 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly ImmutableArray<ReferenceDirective> _referenceDirectives;
         private readonly bool _hasAssemblyAttributes;
+        private readonly bool _hasGlobalUsings;
         private readonly bool _hasUsings;
         private readonly bool _hasExternAliases;
 
+        /// <summary>
+        /// Any special attributes we may be referencing directly through a global using alias in the file.
+        /// <c>global using X = System.Runtime.CompilerServices.TypeForwardedToAttribute</c>.
+        /// </summary>
+        public QuickAttributes GlobalAliasedQuickAttributes { get; }
+
         public RootSingleNamespaceDeclaration(
+            bool hasGlobalUsings,
             bool hasUsings,
             bool hasExternAliases,
             SyntaxReference treeNode,
             ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
             ImmutableArray<ReferenceDirective> referenceDirectives,
-            bool hasAssemblyAttributes)
+            bool hasAssemblyAttributes,
+            ImmutableArray<Diagnostic> diagnostics,
+            QuickAttributes globalAliasedQuickAttributes)
             : base(string.Empty,
                    treeNode,
                    nameLocation: new SourceLocation(treeNode),
                    children: children,
-                   diagnostics: ImmutableArray<Diagnostic>.Empty)
+                   diagnostics: diagnostics)
         {
             Debug.Assert(!referenceDirectives.IsDefault);
 
             _referenceDirectives = referenceDirectives;
             _hasAssemblyAttributes = hasAssemblyAttributes;
+            _hasGlobalUsings = hasGlobalUsings;
             _hasUsings = hasUsings;
             _hasExternAliases = hasExternAliases;
+            GlobalAliasedQuickAttributes = globalAliasedQuickAttributes;
         }
 
         public ImmutableArray<ReferenceDirective> ReferenceDirectives
@@ -50,6 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return _hasAssemblyAttributes;
+            }
+        }
+
+        public override bool HasGlobalUsings
+        {
+            get
+            {
+                return _hasGlobalUsings;
             }
         }
 

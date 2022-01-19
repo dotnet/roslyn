@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.ConvertTypeOfToNameOf;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
 {
@@ -25,15 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
         protected override string GetCodeFixTitle()
             => CSharpCodeFixesResources.Convert_typeof_to_nameof;
 
-        protected override SyntaxNode? GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
+        protected override SyntaxNode GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
-            if (node is MemberAccessExpressionSyntax { Expression: TypeOfExpressionSyntax typeOfExpression })
-            {
-                var typeSymbol = model.GetSymbolInfo(typeOfExpression.Type, cancellationToken).Symbol.GetSymbolType();
-                return typeSymbol?.GenerateTypeSyntax();
-            }
-
-            return null;
+            // The corresponding analyzer (CSharpConvertTypeOfToNameOfDiagnosticAnalyzer) validated the syntax
+            var typeOfExpression = (TypeOfExpressionSyntax)((MemberAccessExpressionSyntax)node).Expression;
+            var typeSymbol = model.GetSymbolInfo(typeOfExpression.Type, cancellationToken).Symbol.GetSymbolType();
+            Contract.ThrowIfNull(typeSymbol);
+            return typeSymbol.GenerateExpressionSyntax();
         }
     }
 }

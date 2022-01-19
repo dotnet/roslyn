@@ -122,6 +122,11 @@
         <target state="translated">Declarar como anulável</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_project">
+        <source>Enable nullable reference types in project</source>
+        <target state="translated">Habilitar os tipos de referência anuláveis no projeto</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
         <target state="translated">Corrigir o tipo de retorno</target>
@@ -162,6 +167,16 @@
         <target state="translated">Reverter instrução 'for'</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Selection_cannot_include_global_statements">
+        <source>Selection cannot include global statements</source>
+        <target state="translated">A seleção não pode incluir instruções globais</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_cannot_include_top_level_statements">
+        <source>Selection cannot include top-level statements</source>
+        <target state="translated">A seleção não pode incluir instruções de nível superior</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>
         <target state="translated">Simplificar expressão lambda</target>
@@ -180,6 +195,16 @@
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="translated">Desselar a classe '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="translated">Usar padrões recursivos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Expression_may_change_code_meaning">
+        <source>Warning: Expression may have side effects. Code meaning may change.</source>
+        <target state="translated">Aviso: A expressão pode ter efeitos colaterais. O significado do código pode alterar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -204,7 +229,7 @@
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
-        <target state="new">extern alias</target>
+        <target state="translated">alias externo</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -224,7 +249,7 @@
       </trans-unit>
       <trans-unit id="member_name">
         <source>&lt;member name&gt; = </source>
-        <target state="translated">&lt;nome do membro&gt; =</target>
+        <target state="translated">&lt;nome do membro&gt; = </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation">
@@ -234,7 +259,7 @@
       </trans-unit>
       <trans-unit id="element_name">
         <source>&lt;element name&gt; : </source>
-        <target state="translated">&lt;nome do elemento&gt; :</target>
+        <target state="translated">&lt;nome do elemento&gt; : </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
@@ -295,21 +320,6 @@
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">Seleção inválida.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">A seleção não contém um token válido.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">Nenhuma seleção válida para realizar a extração.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">Nenhum nó de raiz comum para extração.</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
@@ -414,7 +424,12 @@
       </trans-unit>
       <trans-unit id="record_">
         <source>record</source>
-        <target state="new">record</target>
+        <target state="translated">registro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="translated">registrar struct</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

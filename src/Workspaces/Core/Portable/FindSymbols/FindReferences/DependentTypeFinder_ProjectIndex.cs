@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                 enums.Add(document, info);
                                 break;
                             case DeclaredSymbolInfoKind.Struct:
+                            case DeclaredSymbolInfoKind.RecordStruct:
                                 valueTypes.Add(document, info);
                                 break;
                             case DeclaredSymbolInfoKind.Delegate:

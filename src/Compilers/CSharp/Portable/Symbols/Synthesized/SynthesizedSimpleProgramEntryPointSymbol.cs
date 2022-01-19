@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,9 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private WeakReference<ExecutableCodeBinder>? _weakBodyBinder;
         private WeakReference<ExecutableCodeBinder>? _weakIgnoreAccessibilityBodyBinder;
 
-        internal SynthesizedSimpleProgramEntryPointSymbol(SimpleProgramNamedTypeSymbol containingType, SingleTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
+        internal SynthesizedSimpleProgramEntryPointSymbol(SourceMemberContainerTypeSymbol containingType, SingleTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
             : base(containingType, syntaxReferenceOpt: declaration.SyntaxReference, ImmutableArray.Create(declaration.SyntaxReference.GetLocation()), isIterator: declaration.IsIterator)
         {
+            Debug.Assert(declaration.SyntaxReference.GetSyntax() is CompilationUnitSyntax);
             _declaration = declaration;
 
             bool hasAwait = declaration.HasAwaitExpressions;
@@ -63,6 +65,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                               TypeWithAnnotations.Create(
                                   ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly,
                                       TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_String, NoLocation.Singleton, diagnostics)))), 0, RefKind.None, "args"));
+        }
+
+        internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation, CompilationUnitSyntax compilationUnit, bool fallbackToMainEntryPoint)
+        {
+            var type = GetSimpleProgramNamedTypeSymbol(compilation);
+            if (type is null)
+            {
+                return null;
+            }
+
+            ImmutableArray<SynthesizedSimpleProgramEntryPointSymbol> entryPoints = type.GetSimpleProgramEntryPoints();
+
+            foreach (var entryPoint in entryPoints)
+            {
+                if (entryPoint.SyntaxTree == compilationUnit.SyntaxTree && entryPoint.SyntaxNode == compilationUnit)
+                {
+                    return entryPoint;
+                }
+            }
+
+            return fallbackToMainEntryPoint ? entryPoints[0] : null;
+        }
+
+        internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation)
+        {
+            return GetSimpleProgramNamedTypeSymbol(compilation)?.GetSimpleProgramEntryPoints().First();
+        }
+
+        private static SourceNamedTypeSymbol? GetSimpleProgramNamedTypeSymbol(CSharpCompilation compilation)
+        {
+            return compilation.SourceModule.GlobalNamespace.GetTypeMembers(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName).OfType<SourceNamedTypeSymbol>().SingleOrDefault(s => s.IsSimpleProgram);
         }
 
         public override string Name
@@ -107,14 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _parameters;
-            }
-        }
-
-        public override Accessibility DeclaredAccessibility
-        {
-            get
-            {
-                return Accessibility.Private;
             }
         }
 
@@ -195,12 +220,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation = DeclaringCompilation;
 
             Binder result = new BuckStopsHereBinder(compilation);
-            result = new InContainerBinder(compilation.GlobalNamespace, result, SyntaxNode, inUsing: false);
+            var globalNamespace = compilation.GlobalNamespace;
+            var declaringSymbol = (SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace;
+            var syntaxNode = SyntaxNode;
+            result = WithExternAndUsingAliasesBinder.Create(declaringSymbol, syntaxNode, WithUsingNamespacesAndTypesBinder.Create(declaringSymbol, syntaxNode, result));
+            result = new InContainerBinder(globalNamespace, result);
             result = new InContainerBinder(ContainingType, result);
             result = new InMethodBinder(this, result);
             result = result.WithAdditionalFlags(ignoreAccessibility ? BinderFlags.IgnoreAccessibility : BinderFlags.None);
 
-            return new ExecutableCodeBinder(SyntaxNode, this, result);
+            return new ExecutableCodeBinder(syntaxNode, this, result);
         }
 
         internal ExecutableCodeBinder GetBodyBinder(bool ignoreAccessibility)

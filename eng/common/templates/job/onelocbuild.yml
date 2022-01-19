@@ -4,7 +4,7 @@ parameters:
 
   # Optional: A defined YAML pool - https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=vsts&tabs=schema#pool
   pool:
-    vmImage: vs2017-win2016
+    vmImage: 'windows-2019'
 
   CeapexPat: $(dn-bot-ceapex-package-r) # PAT for the loc AzDO instance https://dev.azure.com/ceapex
   GithubPat: $(BotAccount-dotnet-bot-repo-PAT)
@@ -12,11 +12,17 @@ parameters:
   SourcesDirectory: $(Build.SourcesDirectory)
   CreatePr: true
   AutoCompletePr: false
+  ReusePr: true
+  UseLfLineEndings: true
   UseCheckedInLocProjectJson: false
   LanguageSet: VS_Main_Languages
   LclSource: lclFilesInRepo
   LclPackageId: ''
   RepoType: gitHub
+  GitHubOrg: dotnet
+  MirrorRepo: ''
+  MirrorBranch: main
+  condition: ''
 
 jobs:
 - job: OneLocBuild
@@ -44,25 +50,34 @@ jobs:
         filePath: $(Build.SourcesDirectory)/eng/common/generate-locproject.ps1
         arguments: $(_GenerateLocProjectArguments)
       displayName: Generate LocProject.json
+      condition: ${{ parameters.condition }}
 
     - task: OneLocBuild@2
       displayName: OneLocBuild
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       inputs:
-        locProj: Localize/LocProject.json
+        locProj: eng/Localize/LocProject.json
         outDir: $(Build.ArtifactStagingDirectory)
         lclSource: ${{ parameters.LclSource }}
         lclPackageId: ${{ parameters.LclPackageId }}
         isCreatePrSelected: ${{ parameters.CreatePr }}
         ${{ if eq(parameters.CreatePr, true) }}:
           isAutoCompletePrSelected: ${{ parameters.AutoCompletePr }}
+          isUseLfLineEndingsSelected: ${{ parameters.UseLfLineEndings }}
+          ${{ if eq(parameters.RepoType, 'gitHub') }}:
+            isShouldReusePrSelected: ${{ parameters.ReusePr }}
         packageSourceAuth: patAuth
         patVariable: ${{ parameters.CeapexPat }}
         ${{ if eq(parameters.RepoType, 'gitHub') }}:
           repoType: ${{ parameters.RepoType }}
           gitHubPatVariable: "${{ parameters.GithubPat }}"
-      condition: always()
+        ${{ if ne(parameters.MirrorRepo, '') }}:
+          isMirrorRepoSelected: true
+          gitHubOrganization: ${{ parameters.GitHubOrg }}
+          mirrorRepo: ${{ parameters.MirrorRepo }}
+          mirrorBranch: ${{ parameters.MirrorBranch }}
+      condition: ${{ parameters.condition }}
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Localization Files
@@ -70,12 +85,12 @@ jobs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/loc'
         PublishLocation: Container
         ArtifactName: Loc
-      condition: always()
+      condition: ${{ parameters.condition }}
 
     - task: PublishBuildArtifacts@1
       displayName: Publish LocProject.json
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/Localize/'
+        PathtoPublish: '$(Build.SourcesDirectory)/eng/Localize/'
         PublishLocation: Container
         ArtifactName: Loc
-      condition: always()
+      condition: ${{ parameters.condition }}

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             using var _2 = PooledHashSet<SyntaxNode>.GetInstance(out var statementParentScopes);
 
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var languageVersion = ((CSharpParseOptions)tree.Options).LanguageVersion;
+            var languageVersion = tree.Options.LanguageVersion();
 
             foreach (var diagnostic in diagnostics)
             {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             void RemoveStatement(StatementSyntax statement)
             {
                 editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
-                if (statement.Parent is BlockSyntax || statement.Parent is SwitchSectionSyntax)
+                if (statement.Parent is BlockSyntax or SwitchSectionSyntax)
                 {
                     statementParentScopes.Add(statement.Parent);
                 }
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument)
+                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, nameof(CSharpAsAndNullCheckCodeFixProvider))
             {
             }
         }

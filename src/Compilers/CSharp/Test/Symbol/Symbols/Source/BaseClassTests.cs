@@ -1238,13 +1238,13 @@ public class ClassC : ClassB {}
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B2.BaseType());
         }
 
-        [Fact]
-        public void NestedNames1()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void NestedNames1(string ob, string cb)
         {
             var text =
 @"
 namespace N
-{
+" + ob + @"
     static class C
     {
         class A<T>
@@ -1253,7 +1253,7 @@ namespace N
             private class D { }
         }
     }
-}
+" + cb + @"
 ";
             var comp = CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;

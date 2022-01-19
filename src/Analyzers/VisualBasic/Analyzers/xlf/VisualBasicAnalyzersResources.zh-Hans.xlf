@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
         <source>'If' statement can be simplified</source>
-        <target state="translated">可简化“If”语句</target>
+        <target state="translated">可简化 "if" 语句</target>
         <note />
       </trans-unit>
       <trans-unit id="Imports_statement_is_unnecessary">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Object_creation_can_be_simplified">
         <source>Object creation can be simplified</source>
-        <target state="new">Object creation can be simplified</target>
+        <target state="translated">可简化对象创建</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_ByVal">

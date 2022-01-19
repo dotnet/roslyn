@@ -17,11 +17,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         End Function
 
         Protected Overrides Function CreateSmartTokenFormatter(indenter As Indenter) As ISmartTokenFormatter
-            Dim workspace = indenter.Document.Project.Solution.Workspace
-            Dim formattingRuleFactory = workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
+            Dim services = indenter.Document.Project.Solution.Workspace.Services
+            Dim formattingRuleFactory = services.GetService(Of IHostDependentFormattingRuleFactoryService)()
             Dim rules = {New SpecialFormattingRule(indenter.OptionSet.GetOption(FormattingOptions.SmartIndent, indenter.Document.Root.Language)), formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start)}.Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document))
-
-            Return New VisualBasicSmartTokenFormatter(indenter.OptionSet, rules, indenter.Root)
+            Dim options = SyntaxFormattingOptions.Create(indenter.OptionSet, services, indenter.Document.Project.Language)
+            Return New VisualBasicSmartTokenFormatter(options, rules, indenter.Root)
         End Function
 
         Protected Overrides Function GetDesiredIndentationWorker(
@@ -135,6 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 (containingToken.IsKind(SyntaxKind.CloseBraceToken) AndAlso token.Parent.IsKind(SyntaxKind.Interpolation)) Then
                 Return indenter.IndentFromStartOfLine(0)
             End If
+
             If containingToken.Kind = SyntaxKind.StringLiteralToken AndAlso containingToken.FullSpan.Contains(position) Then
                 Return indenter.IndentFromStartOfLine(0)
             End If

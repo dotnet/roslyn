@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             // Don't offer a fix on an accessor, if we would also offer it on the property/indexer.
             if (UseExpressionBodyForAccessorsHelper.Instance.SyntaxKinds.Contains(nodeKind))
             {
-                var grandparent = context.Node.Parent.Parent;
+                var grandparent = context.Node.GetRequiredParent().GetRequiredParent();
 
                 if (grandparent.Kind() == SyntaxKind.PropertyDeclaration &&
                     AnalyzeSyntax(optionSet, grandparent, UseExpressionBodyForPropertiesHelper.Instance) != null)
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
         }
 
-        private static Diagnostic AnalyzeSyntax(
+        private static Diagnostic? AnalyzeSyntax(
             OptionSet optionSet, SyntaxNode declaration, UseExpressionBodyHelper helper)
         {
             var preferExpressionBodiedOption = optionSet.GetOption(helper.Option);
@@ -103,26 +102,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     : helper.GetDiagnosticLocation(declaration);
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
-                var properties = ImmutableDictionary<string, string>.Empty.Add(nameof(UseExpressionBody), "");
+                var properties = ImmutableDictionary<string, string?>.Empty.Add(nameof(UseExpressionBody), "");
                 return DiagnosticHelper.Create(
                     CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle),
                     location, severity, additionalLocations: additionalLocations, properties: properties);
             }
 
-            var (canOffer, fixesError) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: true);
-            if (canOffer)
+            if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: true, out var fixesError, out var expressionBody))
             {
                 // They have an expression body.  Create a diagnostic to convert it to a block
                 // if they don't want expression bodies for this member.  
                 var location = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
                     ? declaration.GetLocation()
-                    : helper.GetExpressionBody(declaration).GetLocation();
+                    : expressionBody.GetLocation();
 
-                var properties = ImmutableDictionary<string, string>.Empty;
+                var properties = ImmutableDictionary<string, string?>.Empty;
                 if (fixesError)
-                {
                     properties = properties.Add(FixesError, "");
-                }
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return DiagnosticHelper.Create(

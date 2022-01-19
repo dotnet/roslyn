@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
                     bool initializeLazily,
                     Registration registration,
-                    int highBackOffTimeSpanInMs,
-                    int normalBackOffTimeSpanInMs,
-                    int lowBackOffTimeSpanInMs,
+                    TimeSpan highBackOffTimeSpan,
+                    TimeSpan normalBackOffTimeSpan,
+                    TimeSpan lowBackOffTimeSpan,
                     CancellationToken shutdownToken)
                 {
                     _logAggregator = new LogAggregator();
@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     var globalNotificationService = _registration.Workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
 
-                    _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpanInMs, shutdownToken);
-                    _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpanInMs, shutdownToken);
-                    _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpanInMs, shutdownToken);
+                    _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpan, shutdownToken);
+                    _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpan, shutdownToken);
+                    _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpan, shutdownToken);
                 }
 
                 private static IDiagnosticAnalyzerService? GetDiagnosticAnalyzerService(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         await RunAnalyzersAsync(analyzers, textDocument, workItem, (a, d, c) => AnalyzeSyntaxAsync(a, d, reasons, c), cancellationToken).ConfigureAwait(false);
                     }
 
-                    if (!(textDocument is Document document))
+                    if (textDocument is not Document document)
                     {
                         // Semantic analysis is not supported for non-source documents.
                         return;
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 // Sort list so DiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
                                 analyzers = _analyzerProviders.Select(p => (analyzer: p.Value.CreateIncrementalAnalyzer(workspace), highPriorityForActiveFile: p.Metadata.HighPriorityForActiveFile))
                                                 .Where(t => t.analyzer != null)
-                                                .OrderBy(t => !(t.analyzer is DiagnosticIncrementalAnalyzer))
+                                                .OrderBy(t => t.analyzer is not DiagnosticIncrementalAnalyzer)
                                                 .ToImmutableArray()!;
 
                                 _analyzerMap[workspace] = analyzers;
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             if (onlyHighPriorityAnalyzer)
                             {
                                 // include only high priority analyzer for active file
-                                return analyzers.Where(t => t.highPriorityForActiveFile).Select(t => t.analyzer).ToImmutableArray();
+                                return analyzers.SelectAsArray(t => t.highPriorityForActiveFile, t => t.analyzer);
                             }
 
                             // return all analyzers

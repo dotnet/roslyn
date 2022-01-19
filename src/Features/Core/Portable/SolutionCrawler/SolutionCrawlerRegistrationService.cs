@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
 
             public Solution GetSolutionToAnalyze()
-                => Workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCurrentCompileTimeSolution();
+                => Workspace.CurrentSolution;
         }
     }
 }

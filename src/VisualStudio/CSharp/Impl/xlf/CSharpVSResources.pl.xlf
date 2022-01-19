@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
-        <target state="new">Allow blank line after colon in constructor initializer</target>
+        <target state="translated">Zezwalaj na pusty wiersz po dwukropku w inicjatorze konstruktora</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
         <source>Allow blank lines between consecutive braces</source>
-        <target state="new">Allow blank lines between consecutive braces</target>
+        <target state="translated">Zezwalaj na puste wiersze między kolejnymi nawiasami klamrowymi</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_embedded_statements_on_same_line">
         <source>Allow embedded statements on same line</source>
-        <target state="new">Allow embedded statements on same line</target>
+        <target state="translated">Zezwalaj na osadzone instrukcje w tym samym wierszu</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
@@ -29,12 +29,17 @@
       </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
         <source>Automatically complete statement on semicolon</source>
-        <target state="new">Automatically complete statement on semicolon</target>
+        <target state="translated">Automatyczne uzupełniaj instrukcje po naciśnięciu średnika</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
-        <target state="needs-review-translation">Automatycznie pokaż listę uzupełniania na listach argumentów (eksperymentalne)</target>
+        <target state="translated">Automatycznie pokaż listę uzupełniania na listach argumentów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="translated">Blok objęty zakresem</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -54,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Completion">
         <source>Completion</source>
-        <target state="new">Completion</target>
+        <target state="translated">Uzupełnianie</target>
         <note />
       </trans-unit>
       <trans-unit id="Discard">
@@ -65,6 +70,11 @@
       <trans-unit id="Edit_color_scheme">
         <source>Edit color scheme</source>
         <target state="translated">Edytuj schemat kolorów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="translated">Plik objęty zakresem</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -109,8 +119,13 @@
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
         <source>Place open brace on new line for object, collection, array, and with initializers</source>
-        <target state="new">Place open brace on new line for object, collection, array, and with initializers</target>
+        <target state="translated">Umieść otwierający nawias klamrowy w nowym wierszu dla inicjatorów obiektów, kolekcji, tablic i with</target>
         <note>{Locked="with"}</note>
+      </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="translated">Preferuj wzorzec właściwości rozszerzonej</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
@@ -121,6 +136,16 @@
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">Preferuj wyrażenie „is null” w przypadku sprawdzeń odwołań pod kątem równości</target>
         <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">Ustaw preferencje na sprawdzanie wartości „null” zamiast sprawdzania typu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_parameter_null_checking">
+        <source>Prefer parameter null checking</source>
+        <target state="new">Prefer parameter null checking</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>

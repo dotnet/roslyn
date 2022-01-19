@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 {
@@ -18,15 +20,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
     internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
+        private const string SafeKey = "safe";
+
+        private static readonly LocalizableResourceString s_safePatternTitle = new(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
+        private static readonly LocalizableResourceString s_unsafePatternTitle = new(nameof(CSharpAnalyzersResources.Use_pattern_matching_may_change_code_meaning), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
+
+        private static readonly ImmutableDictionary<string, string?> s_safeProperties = ImmutableDictionary<string, string?>.Empty.Add(SafeKey, "");
+        private static readonly DiagnosticDescriptor s_unsafeDescriptor = CreateDescriptorWithId(
+            IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
+            EnforceOnBuildValues.UsePatternCombinators,
+            s_unsafePatternTitle);
+
         public CSharpUsePatternCombinatorsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
                 EnforceOnBuildValues.UsePatternCombinators,
                 CSharpCodeStyleOptions.PreferPatternMatching,
                 LanguageNames.CSharp,
-                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+                s_safePatternTitle,
+                s_safePatternTitle)
         {
         }
+
+        public static bool IsSafe(Diagnostic diagnostic)
+            => diagnostic.Properties.ContainsKey(SafeKey);
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeNode,
@@ -46,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 return;
 
             var syntaxTree = expression.SyntaxTree;
-            if (!((CSharpParseOptions)syntaxTree.Options).LanguageVersion.IsCSharp9OrAbove())
+            if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp9)
                 return;
 
             var cancellationToken = context.CancellationToken;
@@ -55,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 return;
 
             var semanticModel = context.SemanticModel;
-            var expressionTypeOpt = semanticModel.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
-            if (expression.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken))
+            var expressionType = semanticModel.Compilation.ExpressionOfTType();
+            if (expression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
                 return;
 
             var operation = semanticModel.GetOperation(expression, cancellationToken);
@@ -76,13 +92,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             if (HasIllegalPatternVariables(pattern, isTopLevel: true))
                 return;
 
+            // if the target (the common expression in the pattern) is a method call,
+            // then we can't guarantee that the rewritting won't have side-effects,
+            // so we should warn the user
+            var isSafe = UnwrapImplicitConversion(pattern.Target) is not Operations.IInvocationOperation;
+
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor,
+                descriptor: isSafe ? this.Descriptor : s_unsafeDescriptor,
                 expression.GetLocation(),
                 styleOption.Notification.Severity,
                 additionalLocations: null,
-                properties: null));
+                properties: isSafe ? s_safeProperties : null));
         }
+
+        private static IOperation UnwrapImplicitConversion(IOperation operation)
+            => operation is IConversionOperation conversion && conversion.IsImplicit
+                ? conversion.Operand
+                : operation;
 
         private static bool HasIllegalPatternVariables(AnalyzedPattern pattern, bool permitDesignations = true, bool isTopLevel = false)
         {

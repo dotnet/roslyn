@@ -31,7 +31,7 @@
       <DotNetExecutable Condition="'$(DotNetExecutable)' == ''">$(DotNetRoot)dotnet</DotNetExecutable>
     </PropertyGroup>
 
-    <Exec Command='"$(DotNetExecutable)" "$(ArtifactsBinDir)CodeStyleConfigFileGenerator\$(Configuration)\netcoreapp3.1\CodeStyleConfigFileGenerator.dll" "VisualBasic" "$(VisualBasicCodeStyleFixesArtifactsBinDir)" "$(VisualBasicCodeStyleTargetsFileName)" "$(CodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CodeStyle.dll;$(VisualBasicCodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll"' />
+    <Exec Command='"$(DotNetExecutable)" "$(ArtifactsBinDir)CodeStyleConfigFileGenerator\$(Configuration)\net6.0\CodeStyleConfigFileGenerator.dll" "VisualBasic" "$(VisualBasicCodeStyleFixesArtifactsBinDir)" "$(VisualBasicCodeStyleTargetsFileName)" "$(CodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CodeStyle.dll;$(VisualBasicCodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll"' />
 
     <ItemGroup>
       <_File Include="$(VisualBasicCodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll" TargetDir="analyzers/dotnet/vb" />
@@ -54,6 +54,9 @@
     <ProjectReference Include="..\..\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
     <ProjectReference Include="..\..\Core\CodeFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj" />
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.vbproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />

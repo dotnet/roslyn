@@ -142,7 +142,8 @@
     <comment>"C#" node help text in profile Import/Export.</comment>
   </data>
   <data name="306" xml:space="preserve">
-    <value>Display inline hints;
+    <value>Underline reassigned variables;
+Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -189,7 +190,9 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</value>
+Editor Color Scheme;
+Inheritance Margin;
+Stack Trace Explorer;</value>
     <comment>C# Advanced options page keywords</comment>
   </data>
   <data name="307" xml:space="preserve">

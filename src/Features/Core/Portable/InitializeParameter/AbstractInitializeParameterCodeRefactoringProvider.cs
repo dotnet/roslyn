@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document,
+            TParameterSyntax parameterSyntax,
             IParameterSymbol parameter,
             SyntaxNode functionDeclaration,
             IMethodSymbol methodSymbol,
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract void InsertStatement(
             SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid,
-            SyntaxNode? statementToAddAfterOpt, TStatementSyntax statement);
+            SyntaxNode? statementToAddAfter, TStatementSyntax statement);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -102,12 +103,20 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
+            // We shouldn't offer a refactoring if the compilation doesn't contain the ArgumentNullException type,
+            // as we use it later on in our computations.
+            var argumentNullExceptionType = typeof(ArgumentNullException).FullName;
+            if (argumentNullExceptionType is null || semanticModel.Compilation.GetTypeByMetadataName(argumentNullExceptionType) is null)
+            {
+                return;
+            }
+
             if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
             {
                 // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
                 // actually determine if there are any viable refactorings here.
                 var refactorings = await GetRefactoringsForSingleParameterAsync(
-                    document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
+                    document, selectedParameter, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
                 context.RegisterRefactorings(refactorings, context.Span);
             }
 
@@ -165,7 +174,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // get it via `IAnonymousFunctionOperation.Body` instead of getting it directly from the body syntax.
 
             var operation = semanticModel.GetOperation(
-                syntaxFacts.IsAnonymousFunction(functionDeclaration) ? functionDeclaration : functionBody,
+                syntaxFacts.IsAnonymousFunctionExpression(functionDeclaration) ? functionDeclaration : functionBody,
                 cancellationToken);
 
             if (operation == null)
@@ -243,8 +252,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (operation is IMemberReferenceOperation memberReference &&
                 memberReference.Member.ContainingType.Equals(containingType))
             {
-                if (memberReference.Member is IFieldSymbol ||
-                    memberReference.Member is IPropertySymbol)
+                if (memberReference.Member is IFieldSymbol or
+                    IPropertySymbol)
                 {
                     fieldOrProperty = memberReference.Member;
                     return true;

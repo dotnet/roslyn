@@ -170,35 +170,25 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void EnqueueWork(bool initialTags)
             {
-                lock (_cancellationSeries)
-                {
-                    try
-                    {
-                        // cancel the last piece of computation work and enqueue the next.  This doesn't apply for the very
-                        // first tag request we make.  We don't want that to be cancellable as we want that result to be 
-                        // shown as soon as possible.
-                        var cancellationToken = initialTags ? _disposalTokenSource.Token : _cancellationSeries.CreateNext();
+                using var stateRef = _tagSourceState.TryAddReference();
 
-                        // Continue after the preceeding task unilaterally.  Note that we pass LazyCancellation so that 
-                        // we still wait for that task to complete even if cancelled before we proceed.  This is necessary
-                        // as that prior task may mutate state (even if cancelled) so we cannot proceed until we know it
-                        // is completely done.
-                        _eventWorkQueue = _eventWorkQueue.ContinueWithAfterDelayFromAsync(
-                            async _ =>
-                            {
-                                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                                await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
-                            },
-                            cancellationToken,
-                            (int)_dataSource.EventChangeDelay.ComputeTimeDelay().TotalMilliseconds,
-                            TaskContinuationOptions.None,
-                            TaskScheduler.Default).CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(EnqueueWork)));
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        // can happen if our type was disposed and we try to get a new token from _cancellationSeries.
-                    }
-                }
+                // No point proceeding if we've been disposed.
+                if (stateRef is null)
+                    return;
+
+                var state = stateRef.Target;
+
+                var cancellationToken = state.GetCancellationToken(initialTags);
+
+                // Continue after the preceeding task unilaterally.  Note that we pass LazyCancellation so that 
+                // we still wait for that task to complete even if cancelled before we proceed.  This is necessary
+                // as that prior task may mutate state (even if cancelled) so we cannot proceed until we know it
+                // is completely done.
+                state.EnqueueWork(async () =>
+                {
+                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
+                }, _dataSource.EventChangeDelay, _asyncListener, _asyncListener.BeginAsyncOperation(nameof(EnqueueWork)), cancellationToken);
             }
 
             /// <summary>
@@ -235,8 +225,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     // Create a context to store pass the information along and collect the results.
                     var context = new TaggerContext<TTag>(
-                        oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
-                    await ProduceTagsAsync(context).ConfigureAwait(false);
+                        oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees);
+                    await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
 
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -381,19 +371,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private bool ShouldSkipTagProduction()
             {
-                var options = _dataSource.Options ?? SpecializedCollections.EmptyEnumerable<Option2<bool>>();
-                var perLanguageOptions = _dataSource.PerLanguageOptions ?? SpecializedCollections.EmptyEnumerable<PerLanguageOption2<bool>>();
+                if (_dataSource.Options.Any(option => !_dataSource.GlobalOptions.GetOption(option)))
+                    return true;
 
-                return options.Any(option => !_subjectBuffer.GetFeatureOnOffOption(option)) ||
-                       perLanguageOptions.Any(option => !_subjectBuffer.GetFeatureOnOffOption(option));
+                var languageName = _subjectBuffer.GetLanguageName();
+                return _dataSource.PerLanguageOptions.Any(option => languageName == null || !_dataSource.GlobalOptions.GetOption(option, languageName));
             }
 
-            private Task ProduceTagsAsync(TaggerContext<TTag> context)
+            private Task ProduceTagsAsync(TaggerContext<TTag> context, CancellationToken cancellationToken)
             {
                 // If the feature is disabled, then just produce no tags.
                 return ShouldSkipTagProduction()
                     ? Task.CompletedTask
-                    : _dataSource.ProduceTagsAsync(context);
+                    : _dataSource.ProduceTagsAsync(context, cancellationToken);
             }
 
             private static Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(
@@ -529,8 +519,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _dataSource.ComputeInitialTagsSynchronously(buffer) &&
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
-                    this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                        this.RecomputeTagsForegroundAsync(initialTags: true, _disposalTokenSource.Token));
+                    using var stateRef = _tagSourceState.TryAddReference();
+                    if (stateRef != null)
+                    {
+                        var disposalToken = stateRef.Target.DisposalToken;
+
+                        this.ThreadingContext.JoinableTaskFactory.Run(() =>
+                            this.RecomputeTagsForegroundAsync(initialTags: true, disposalToken));
+                    }
                 }
 
                 _firstTagsRequest = false;

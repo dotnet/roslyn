@@ -122,6 +122,11 @@
         <target state="translated">Deklarovat jako s možnou hodnotou null</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_project">
+        <source>Enable nullable reference types in project</source>
+        <target state="translated">Povolit v projektu typy odkazů s možnou hodnotou null</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
         <target state="translated">Opravit návratový typ</target>
@@ -162,6 +167,16 @@
         <target state="translated">Obrátit příkaz for</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Selection_cannot_include_global_statements">
+        <source>Selection cannot include global statements</source>
+        <target state="translated">Výběr nemůže obsahovat globální příkazy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_cannot_include_top_level_statements">
+        <source>Selection cannot include top-level statements</source>
+        <target state="translated">Výběr nemůže obsahovat příkazy nejvyšší úrovně.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>
         <target state="translated">Zjednodušit výraz lambda</target>
@@ -180,6 +195,16 @@
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="translated">Rozpečetit třídu {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="translated">Použít rekurzivní vzory</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Expression_may_change_code_meaning">
+        <source>Warning: Expression may have side effects. Code meaning may change.</source>
+        <target state="translated">Upozornění: Výraz může mít vedlejší účinky. Význam kódu se může změnit.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -204,7 +229,7 @@
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
-        <target state="new">extern alias</target>
+        <target state="translated">externí alias</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -274,7 +299,7 @@
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified</source>
-        <target state="translated">Název se dá zjednodušit.</target>
+        <target state="translated">Název může být zjednodušený.</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
@@ -295,21 +320,6 @@
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">Neplatný výběr</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">Výběr neobsahuje platný token.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">Žádný platný výběr k provedení extrakce</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">Žádný společný kořenový uzel pro extrakci</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
@@ -414,7 +424,12 @@
       </trans-unit>
       <trans-unit id="record_">
         <source>record</source>
-        <target state="new">record</target>
+        <target state="translated">záznam</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="translated">struktura záznamu</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

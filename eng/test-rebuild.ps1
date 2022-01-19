@@ -1,5 +1,5 @@
 <#
-  This script tests that Roslyn artifacts are rebuildable--i.e. that the source code and resources can be identified 
+  This script tests that Roslyn artifacts are rebuildable--i.e. that the source code and resources can be identified
 #>
 
 [CmdletBinding(PositionalBinding=$false)]
@@ -36,6 +36,8 @@ try {
     Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -build -bootstrap -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
   }
 
+  Subst-TempDir
+
   $dotnetInstallDir = (InitializeDotNetCli -install:$true)
   $rebuildArgs = ("--verbose" +
   " --assembliesPath `"$ArtifactsDir/obj/`"" +
@@ -63,7 +65,7 @@ try {
   " --exclude net472\Zip\tools\vsixexpinstaller\VSIXExpInstaller.exe" +
 
   " --debugPath `"$ArtifactsDir/BuildValidator`"" +
-  " --sourcePath `"$RepoRoot`"" +
+  " --sourcePath `"$RepoRoot/`"" +
   " --referencesPath `"$ArtifactsDir/bin`"" +
   " --referencesPath `"$dotnetInstallDir/packs`"")
   Exec-Console "$ArtifactsDir/bin/BuildValidator/$configuration/net472/BuildValidator.exe" $rebuildArgs
@@ -76,5 +78,6 @@ catch [exception] {
   exit 1
 }
 finally {
+  Unsubst-TempDir
   Pop-Location
 }

@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         Class,
 
+        /// <summary>
+        /// Represents a struct declaration, including record struct declarations in C#.
+        /// </summary>
         Struct,
         Interface,
         Enum,

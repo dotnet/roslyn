@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -64,6 +66,63 @@ testHost, composition, @"class Goo
 testHost, composition, @"record Goo
 {
 }", async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindRecordClass(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"record class Goo
+{
+}", async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindRecordStruct(TestHost testHost, Composition composition)
+        {
+            var content = XElement.Parse(@"
+<Workspace>
+    <Project Language=""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"">
+record struct Goo
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+");
+            await TestAsync(testHost, composition, content, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Structure, Glyph.StructureInternal);
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindClassInFileScopedNamespace(TestHost testHost, Composition composition)
+        {
+            var content = XElement.Parse(@"
+<Workspace>
+    <Project Language=""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"">
+namespace FileScopedNS;
+class Goo { }
+        </Document>
+    </Project>
+</Workspace>
+");
+            await TestAsync(testHost, composition, content, async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
@@ -1411,6 +1470,36 @@ testHost, composition, @"class C
             VerifyNavigateToResultItems(
                 new()
                 {
+                    new NavigateToItem("C", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
+                },
+                await _aggregator.GetItemsAsync("C"));
+        }
+
+        [Fact]
+        public async Task DoIncludeSymbolsFromMultipleSourceGeneratedFiles()
+        {
+            using var workspace = TestWorkspace.CreateCSharp(
+                files: Array.Empty<string>(),
+                sourceGeneratedFiles: new[]
+                {
+                    @"
+public partial class C
+{
+}",
+                    @"
+public partial class C
+{
+}",
+                },
+                composition: EditorTestCompositions.EditorFeatures);
+
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _aggregator = new NavigateToTestAggregator(_provider);
+
+            VerifyNavigateToResultItems(
+                new()
+                {
+                    new NavigateToItem("C", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
                     new NavigateToItem("C", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
                 },
                 await _aggregator.GetItemsAsync("C"));

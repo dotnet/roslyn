@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected override void AddMatches(ArrayBuilder<TExpressionStatementSyntax> matches)
         {
-            var containingBlock = _containingStatement.Parent;
+            var containingBlock = _containingStatement.GetRequiredParent();
             var foundStatement = false;
 
             var seenInvocation = false;
@@ -80,37 +80,23 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     return;
                 }
 
-                if (!(child.AsNode() is TExpressionStatementSyntax statement))
+                if (child.AsNode() is not TExpressionStatementSyntax statement)
                 {
                     return;
                 }
 
-                SyntaxNode instance = null;
-                if (!seenIndexAssignment)
-                {
-                    if (TryAnalyzeAddInvocation(statement, out instance))
-                    {
-                        seenInvocation = true;
-                    }
-                }
+                SyntaxNode? instance = null;
+                if (!seenIndexAssignment && TryAnalyzeAddInvocation(statement, out instance))
+                    seenInvocation = true;
 
-                if (!seenInvocation)
-                {
-                    if (TryAnalyzeIndexAssignment(statement, out instance))
-                    {
-                        seenIndexAssignment = true;
-                    }
-                }
+                if (!seenInvocation && TryAnalyzeIndexAssignment(statement, out instance))
+                    seenIndexAssignment = true;
 
                 if (instance == null)
-                {
                     return;
-                }
 
                 if (!ValuePatternMatches((TExpressionSyntax)instance))
-                {
                     return;
-                }
 
                 matches.Add(statement);
             }
@@ -135,86 +121,64 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         private bool TryAnalyzeIndexAssignment(
             TExpressionStatementSyntax statement,
-            out SyntaxNode instance)
+            [NotNullWhen(true)] out SyntaxNode? instance)
         {
             instance = null;
             if (!_syntaxFacts.SupportsIndexingInitializer(statement.SyntaxTree.Options))
-            {
                 return false;
-            }
 
             if (!_syntaxFacts.IsSimpleAssignmentStatement(statement))
-            {
                 return false;
-            }
 
             _syntaxFacts.GetPartsOfAssignmentStatement(statement,
                 out var left, out var right);
 
             if (!_syntaxFacts.IsElementAccessExpression(left))
-            {
                 return false;
-            }
 
             // If we're initializing a variable, then we can't reference that variable on the right 
             // side of the initialization.  Rewriting this into a collection initializer would lead
             // to a definite-assignment error.
             if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(right))
-            {
                 return false;
-            }
 
             instance = _syntaxFacts.GetExpressionOfElementAccessExpression(left);
-            return true;
+            return instance != null;
         }
 
         private bool TryAnalyzeAddInvocation(
             TExpressionStatementSyntax statement,
-            out SyntaxNode instance)
+            [NotNullWhen(true)] out SyntaxNode? instance)
         {
             instance = null;
-            if (!(_syntaxFacts.GetExpressionOfExpressionStatement(statement) is TInvocationExpressionSyntax invocationExpression))
-            {
+            if (_syntaxFacts.GetExpressionOfExpressionStatement(statement) is not TInvocationExpressionSyntax invocationExpression)
                 return false;
-            }
 
             var arguments = _syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
             if (arguments.Count < 1)
-            {
                 return false;
-            }
 
             foreach (var argument in arguments)
             {
                 if (!_syntaxFacts.IsSimpleArgument(argument))
-                {
                     return false;
-                }
 
                 var argumentExpression = _syntaxFacts.GetExpressionOfArgument(argument);
                 if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(argumentExpression))
-                {
                     return false;
-                }
             }
 
-            if (!(_syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) is TMemberAccessExpressionSyntax memberAccess))
-            {
+            if (_syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) is not TMemberAccessExpressionSyntax memberAccess)
                 return false;
-            }
 
             if (!_syntaxFacts.IsSimpleMemberAccessExpression(memberAccess))
-            {
                 return false;
-            }
 
             _syntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
             _syntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
 
-            if (arity != 0 || !name.Equals(WellKnownMemberNames.CollectionInitializerAddMethodName))
-            {
+            if (arity != 0 || !Equals(name, WellKnownMemberNames.CollectionInitializerAddMethodName))
                 return false;
-            }
 
             instance = localInstance;
             return true;

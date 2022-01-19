@@ -46,15 +46,6 @@
     -->
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND '$(DisableNullableWarnings)' == 'true'">false</RoslynCheckCodeStyle>
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RoslynEnforceCodeStyle)' == 'true')">true</RoslynCheckCodeStyle>
-
-    <!-- 
-        When markup compilation is involved, WPF generates .g.cs files via the GenerateTemporaryTargetAssembly task. 
-        These do not always have the correct full-paths to their respective .xaml files annotated in them in the #line directives.
-        This can cause compile errors if these files are included in Source Link. 
-        https://github.com/dotnet/wpf/issues/1718
-    -->
-    <EmbedUntrackedSources Condition="$(UseWpf) == 'true'">false</EmbedUntrackedSources>
-    <EmbedUntrackedSources Condition="$(EmbedUntrackedSources) == ''">true</EmbedUntrackedSources>
   </PropertyGroup>
 
   <!--
@@ -65,7 +56,7 @@
           Otherwise, default to 'true'.
   -->
   <PropertyGroup Condition="'$(RunAnalyzersDuringBuild)' == ''">
-    <RunAnalyzersDuringBuild Condition="'$(DesignTimeBuild)' != 'true' AND '$(ContinuousIntegrationBuild)' != 'true' AND !('$(RoslynEnforceCodeStyle)' == 'true' OR '$(RunCodeAnalysis)' == 'true')">false</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringBuild Condition="'$(RoslynEnforceCodeStyle)' != 'true' AND '$(RunCodeAnalysis)' != 'true'">false</RunAnalyzersDuringBuild>
     <RunAnalyzersDuringBuild Condition="'$(RunAnalyzersDuringBuild)' == ''">true</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
@@ -376,5 +367,14 @@
     <ItemGroup>
       <Reference Remove="@(Reference)" Condition=" '%(FileName)' == 'Microsoft.VisualBasic' or '%(FileName)' == 'Microsoft.VisualBasic.Core' " />
     </ItemGroup>
+  </Target>
+
+  <!-- Workaround for https://github.com/dotnet/msbuild/issues/7161 -->
+  <Target Name="WorkaroundDotnetMsbuild7161"
+          AfterTargets="_CopyFilesMarkedCopyLocal"
+          Condition="'$(BuildingInsideVisualStudio)' == 'true' AND '@(ReferenceCopyLocalPaths)' != ''">
+    <Touch Files="@(CopyUpToDateMarker)"
+           AlwaysCreate="true"
+           Condition="'@(ReferencesCopiedInThisBuild)' != ''"/>
   </Target>
 </Project>

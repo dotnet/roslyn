@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -35,17 +39,25 @@ namespace Microsoft.CodeAnalysis
                 // Replacing a single tree doesn't impact the generated trees in a compilation, so we can use this against
                 // compilations that have generated trees.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
+                {
+                    if (priorAction is TouchDocumentAction priorTouchAction &&
+                        priorTouchAction._newState == _oldState)
+                    {
+                        return new TouchDocumentAction(priorTouchAction._oldState, _newState);
+                    }
+
+                    return null;
+                }
             }
 
             internal sealed class TouchAdditionalDocumentAction : CompilationAndGeneratorDriverTranslationAction
             {
-#pragma warning disable IDE0052 // Remove unread private members
-                // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an additional document changed
-                private readonly TextDocumentState _oldState;
-                private readonly TextDocumentState _newState;
-#pragma warning restore IDE0052 // Remove unread private members
+                private readonly AdditionalDocumentState _oldState;
+                private readonly AdditionalDocumentState _newState;
 
-                public TouchAdditionalDocumentAction(TextDocumentState oldState, TextDocumentState newState)
+                public TouchAdditionalDocumentAction(AdditionalDocumentState oldState, AdditionalDocumentState newState)
                 {
                     _oldState = oldState;
                     _newState = newState;
@@ -55,6 +67,25 @@ namespace Microsoft.CodeAnalysis
                 // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
                 // the compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
+                {
+                    if (priorAction is TouchAdditionalDocumentAction priorTouchAction &&
+                        priorTouchAction._newState == _oldState)
+                    {
+                        return new TouchAdditionalDocumentAction(priorTouchAction._oldState, _newState);
+                    }
+
+                    return null;
+                }
+
+                public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
+                {
+                    var oldText = _oldState.AdditionalText;
+                    var newText = _newState.AdditionalText;
+
+                    return generatorDriver.ReplaceAdditionalText(oldText, newText);
+                }
             }
 
             internal sealed class RemoveDocumentsAction : CompilationAndGeneratorDriverTranslationAction
@@ -110,10 +141,12 @@ namespace Microsoft.CodeAnalysis
             internal sealed class ReplaceAllSyntaxTreesAction : CompilationAndGeneratorDriverTranslationAction
             {
                 private readonly ProjectState _state;
+                private readonly bool _isParseOptionChange;
 
-                public ReplaceAllSyntaxTreesAction(ProjectState state)
+                public ReplaceAllSyntaxTreesAction(ProjectState state, bool isParseOptionChange)
                 {
                     _state = state;
+                    _isParseOptionChange = isParseOptionChange;
                 }
 
                 public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
@@ -131,25 +164,57 @@ namespace Microsoft.CodeAnalysis
 
                 // Because this removes all trees, it'd also remove the generated trees.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => false;
+
+                public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
+                {
+                    if (_isParseOptionChange)
+                    {
+                        RoslynDebug.AssertNotNull(_state.ParseOptions);
+                        return generatorDriver.WithUpdatedParseOptions(_state.ParseOptions);
+                    }
+                    else
+                    {
+                        // We are using this as a way to reorder syntax trees -- we don't need to do anything as the driver
+                        // will get the new compilation once we pass it to it.
+                        return generatorDriver;
+                    }
+                }
             }
 
             internal sealed class ProjectCompilationOptionsAction : CompilationAndGeneratorDriverTranslationAction
             {
-                private readonly CompilationOptions _options;
+                private readonly ProjectState _state;
+                private readonly bool _isAnalyzerConfigChange;
 
-                public ProjectCompilationOptionsAction(CompilationOptions options)
+                public ProjectCompilationOptionsAction(ProjectState state, bool isAnalyzerConfigChange)
                 {
-                    _options = options;
+                    _state = state;
+                    _isAnalyzerConfigChange = isAnalyzerConfigChange;
                 }
 
                 public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    return Task.FromResult(oldCompilation.WithOptions(_options));
+                    RoslynDebug.AssertNotNull(_state.CompilationOptions);
+                    return Task.FromResult(oldCompilation.WithOptions(_state.CompilationOptions));
                 }
 
                 // Updating the options of a compilation doesn't require us to reparse trees, so we can use this to update
                 // compilations with stale generated trees.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
+                {
+                    if (_isAnalyzerConfigChange)
+                    {
+                        return generatorDriver.WithUpdatedAnalyzerConfigOptions(_state.AnalyzerOptions.AnalyzerConfigOptionsProvider);
+                    }
+                    else
+                    {
+                        // Changing any other option is fine and the driver can be reused. The driver
+                        // will get the new compilation once we pass it to it.
+                        return generatorDriver;
+                    }
+                }
             }
 
             internal sealed class ProjectAssemblyNameAction : CompilationAndGeneratorDriverTranslationAction
@@ -173,11 +238,8 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class AddAnalyzerReferencesAction : CompilationAndGeneratorDriverTranslationAction
             {
-#pragma warning disable IDE0052 // Remove unread private members
-                // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an analyzer reference has been added
                 private readonly ImmutableArray<AnalyzerReference> _analyzerReferences;
                 private readonly string _language;
-#pragma warning restore IDE0052 // Remove unread private members
 
                 public AddAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences, string language)
                 {
@@ -189,15 +251,17 @@ namespace Microsoft.CodeAnalysis
                 // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
                 // the compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
+                {
+                    return generatorDriver.AddGenerators(_analyzerReferences.SelectMany(r => r.GetGenerators(_language)).ToImmutableArray());
+                }
             }
 
             internal sealed class RemoveAnalyzerReferencesAction : CompilationAndGeneratorDriverTranslationAction
             {
-#pragma warning disable IDE0052 // Remove unread private members
-                // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an analyzer reference has been removed
                 private readonly ImmutableArray<AnalyzerReference> _analyzerReferences;
                 private readonly string _language;
-#pragma warning restore IDE0052 // Remove unread private members
 
                 public RemoveAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences, string language)
                 {
@@ -209,16 +273,17 @@ namespace Microsoft.CodeAnalysis
                 // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
                 // the compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+                public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
+                {
+                    return generatorDriver.RemoveGenerators(_analyzerReferences.SelectMany(r => r.GetGenerators(_language)).ToImmutableArray());
+                }
             }
 
             internal sealed class AddAdditionalDocumentsAction : CompilationAndGeneratorDriverTranslationAction
             {
-#pragma warning disable IDE0052 // Remove unread private members
-                // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an additional file has been added
-                private readonly ImmutableArray<TextDocumentState> _additionalDocuments;
-#pragma warning restore IDE0052 // Remove unread private members
+                private readonly ImmutableArray<AdditionalDocumentState> _additionalDocuments;
 
-                public AddAdditionalDocumentsAction(ImmutableArray<TextDocumentState> additionalDocuments)
+                public AddAdditionalDocumentsAction(ImmutableArray<AdditionalDocumentState> additionalDocuments)
                 {
                     _additionalDocuments = additionalDocuments;
                 }
@@ -227,16 +292,18 @@ namespace Microsoft.CodeAnalysis
                 // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
                 // the compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
+                {
+                    return generatorDriver.AddAdditionalTexts(_additionalDocuments.SelectAsArray(static documentState => documentState.AdditionalText));
+                }
             }
 
             internal sealed class RemoveAdditionalDocumentsAction : CompilationAndGeneratorDriverTranslationAction
             {
-#pragma warning disable IDE0052 // Remove unread private members
-                // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an additional file has been added
-                private readonly ImmutableArray<TextDocumentState> _additionalDocuments;
-#pragma warning restore IDE0052 // Remove unread private members
+                private readonly ImmutableArray<AdditionalDocumentState> _additionalDocuments;
 
-                public RemoveAdditionalDocumentsAction(ImmutableArray<TextDocumentState> additionalDocuments)
+                public RemoveAdditionalDocumentsAction(ImmutableArray<AdditionalDocumentState> additionalDocuments)
                 {
                     _additionalDocuments = additionalDocuments;
                 }
@@ -245,6 +312,11 @@ namespace Microsoft.CodeAnalysis
                 // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
                 // the compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
+                {
+                    return generatorDriver.RemoveAdditionalTexts(_additionalDocuments.SelectAsArray(static documentState => documentState.AdditionalText));
+                }
             }
         }
     }

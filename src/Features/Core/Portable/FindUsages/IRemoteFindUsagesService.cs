@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,8 +23,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
         internal interface ICallback
         {
             ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
-            ValueTask ItemCompletedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+            ValueTask ItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken);
+            ValueTask ReportInformationalMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken);
             ValueTask SetSearchTitleAsync(RemoteServiceCallbackId callbackId, string title, CancellationToken cancellationToken);
             ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableDefinitionItem definition, CancellationToken cancellationToken);
             ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSourceReferenceItem reference, CancellationToken cancellationToken);
@@ -58,8 +60,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
             => GetCallback(callbackId).AddItemsAsync(count, cancellationToken);
 
-        public ValueTask ItemCompletedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
-            => GetCallback(callbackId).ItemCompletedAsync(cancellationToken);
+        public ValueTask ItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
+            => GetCallback(callbackId).ItemsCompletedAsync(count, cancellationToken);
 
         public ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableDefinitionItem definition, CancellationToken cancellationToken)
             => GetCallback(callbackId).OnDefinitionFoundAsync(definition, cancellationToken);
@@ -69,6 +71,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken)
             => GetCallback(callbackId).ReportMessageAsync(message, cancellationToken);
+
+        public ValueTask ReportInformationalMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken)
+            => GetCallback(callbackId).ReportInformationalMessageAsync(message, cancellationToken);
 
         public ValueTask SetSearchTitleAsync(RemoteServiceCallbackId callbackId, string title, CancellationToken cancellationToken)
             => GetCallback(callbackId).SetSearchTitleAsync(title, cancellationToken);
@@ -89,11 +94,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
             => _context.ProgressTracker.AddItemsAsync(count, cancellationToken);
 
-        public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
-            => _context.ProgressTracker.ItemCompletedAsync(cancellationToken);
+        public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
+            => _context.ProgressTracker.ItemsCompletedAsync(count, cancellationToken);
 
         public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
             => _context.ReportMessageAsync(message, cancellationToken);
+
+        public ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+            => _context.ReportInformationalMessageAsync(message, cancellationToken);
 
         public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
             => _context.SetSearchTitleAsync(title, cancellationToken);
@@ -218,7 +226,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                    item.DisplayableProperties,
                    item.DisplayIfNoReferences);
 
-        public async ValueTask<DefinitionItem> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
+        public async ValueTask<DefinitionItem.DefaultDefinitionItem> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {
             var sourceSpans = await SourceSpans.SelectAsArrayAsync((ss, cancellationToken) => ss.RehydrateAsync(solution, cancellationToken), cancellationToken).ConfigureAwait(false);
 

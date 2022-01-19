@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
         {
             // TODO: https://github.com/dotnet/roslyn/issues/5777
             // Not supported in REPL for now.
-            if (context.Project.IsSubmission)
+            if (context.Document.Project.IsSubmission)
             {
                 return;
             }
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
             }
         }
 
-        protected virtual SyntaxNode GetTargetNode(SyntaxNode node)
+        protected virtual SyntaxNode? GetTargetNode(SyntaxNode node)
             => node;
 
         private IEnumerable<SyntaxNode> GetTargetNodes(

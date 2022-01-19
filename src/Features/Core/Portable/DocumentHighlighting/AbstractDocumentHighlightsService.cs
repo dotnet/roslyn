@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,16 +24,18 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     internal abstract partial class AbstractDocumentHighlightsService : IDocumentHighlightsService
     {
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
 
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
+                // Call the project overload.  We don't need the full solution synchronized over to the OOP
+                // in order to highlight values in this document.
                 var result = await client.TryInvokeAsync<IRemoteDocumentHighlightsService, ImmutableArray<SerializableDocumentHighlights>>(
-                    solution,
-                    (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), cancellationToken),
+                    document.Project,
+                    (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), options, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -47,20 +47,20 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(
-                document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
             var result = await TryGetEmbeddedLanguageHighlightsAsync(
-                document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefaultOrEmpty)
                 return result;
 
             var solution = document.Project.Solution;
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                 semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
             var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
             if (languagesProvider != null)
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     if (highlighter != null)
                     {
                         var highlights = await highlighter.GetDocumentHighlightsAsync(
-                            document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                            document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
 
                         if (!highlights.IsDefaultOrEmpty)
                         {
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                             // Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
                             if (document == null)
                             {
-                                Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
+                                Debug.Assert(solution.Workspace.Kind is WorkspaceKind.Interactive or WorkspaceKind.MiscellaneousFiles);
                                 continue;
                             }
 
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 {
                     var tree = location.SourceTree;
 
-                    var document = solution.GetDocument(tree);
+                    var document = solution.GetRequiredDocument(tree);
                     var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
                     if (syntaxFacts != null)

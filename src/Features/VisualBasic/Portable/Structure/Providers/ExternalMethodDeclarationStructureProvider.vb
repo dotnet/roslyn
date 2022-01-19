@@ -11,11 +11,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class ExternalMethodDeclarationStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of DeclareStatementSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(externalMethodDeclaration As DeclareStatementSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  externalMethodDeclaration As DeclareStatementSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(externalMethodDeclaration, spans, optionProvider)
+            CollectCommentsRegions(externalMethodDeclaration, spans, options)
         End Sub
     End Class
 End Namespace

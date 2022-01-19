@@ -242,6 +242,7 @@ namespace Roslyn.Test.Utilities
             var assembly = default(ImmutableArray<byte>);
             var pdbStream = (emitOptions.DebugInformationFormat != DebugInformationFormat.Embedded) ? new MemoryStream() : null;
 
+            // Note: don't forget to name the source inputs to get them embedded for debugging
             var embeddedTexts = compilation.SyntaxTrees
                 .Select(t => (filePath: t.FilePath, text: t.GetText()))
                 .Where(t => t.text.CanBeEmbedded && !string.IsNullOrEmpty(t.filePath))
@@ -257,13 +258,12 @@ namespace Roslyn.Test.Utilities
                     pdbStream: pdbStream,
                     xmlDocumentationStream: null,
                     win32Resources: null,
-                    useRawWin32Resources: false,
                     manifestResources: manifestResources,
                     options: emitOptions,
                     debugEntryPoint: null,
                     sourceLinkStream: null,
                     embeddedTexts,
-                    pdbOptionsBlobReader: null,
+                    rebuildData: null,
                     testData: testData,
                     cancellationToken: default);
             }

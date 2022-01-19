@@ -24,10 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         protected override ISmartTokenFormatter CreateSmartTokenFormatter(Indenter indenter)
         {
-            var workspace = indenter.Document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+            var services = indenter.Document.Project.Solution.Workspace.Services;
+            var formattingRuleFactory = services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
             var rules = formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start).Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document));
-
             return new CSharpSmartTokenFormatter(indenter.OptionSet, rules, indenter.Root);
         }
 
@@ -309,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             }
 
             // find query body that has a token that is a first token on the line
-            if (!(queryExpressionClause.Parent is QueryBodySyntax queryBody))
+            if (queryExpressionClause.Parent is not QueryBodySyntax queryBody)
             {
                 return indenter.GetIndentationOfToken(firstToken);
             }
@@ -338,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private static SyntaxNode? GetQueryExpressionClause(SyntaxToken token)
         {
-            var clause = token.GetAncestors<SyntaxNode>().FirstOrDefault(n => n is QueryClauseSyntax || n is SelectOrGroupClauseSyntax);
+            var clause = token.GetAncestors<SyntaxNode>().FirstOrDefault(n => n is QueryClauseSyntax or SelectOrGroupClauseSyntax);
 
             if (clause != null)
             {

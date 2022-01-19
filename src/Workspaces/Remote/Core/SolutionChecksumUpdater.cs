@@ -4,10 +4,12 @@
 
 #nullable disable
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Threading;
@@ -31,10 +33,10 @@ namespace Microsoft.CodeAnalysis.Remote
         // hold the async token from WaitAsync so ExecuteAsync can complete it
         private IAsyncToken _currentToken;
 
-        public SolutionChecksumUpdater(Workspace workspace, IAsynchronousOperationListenerProvider listenerProvider, CancellationToken shutdownToken)
+        public SolutionChecksumUpdater(Workspace workspace, IGlobalOptionService globalOptions, IAsynchronousOperationListenerProvider listenerProvider, CancellationToken shutdownToken)
             : base(listenerProvider.GetListener(FeatureAttribute.SolutionChecksumUpdater),
                    workspace.Services.GetService<IGlobalOperationNotificationService>(),
-                   workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
+                   TimeSpan.FromMilliseconds(globalOptions.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS)), shutdownToken)
         {
             _workspace = workspace;
             _textChangeQueue = new TaskQueue(Listener, TaskScheduler.Default);
@@ -126,11 +128,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
-            if (solution.BranchId != _workspace.PrimaryBranchId)
-            {
-                return;
-            }
-
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {

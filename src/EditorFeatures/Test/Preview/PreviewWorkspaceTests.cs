@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -25,6 +26,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
@@ -125,9 +127,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             Assert.IsType<PreviewSolutionCrawlerRegistrationServiceFactory.Service>(service);
 
-            var persistentService = previewWorkspace.Services.GetRequiredService<IPersistentStorageService>();
+            var persistentService = previewWorkspace.Services.GetPersistentStorageService(previewWorkspace.CurrentSolution.Options);
 
-            await using var storage = await persistentService.GetStorageAsync(previewWorkspace.CurrentSolution, CancellationToken.None);
+            await using var storage = await persistentService.GetStorageAsync(SolutionKey.ToSolutionKey(previewWorkspace.CurrentSolution), CancellationToken.None);
             Assert.IsType<NoOpPersistentStorage>(storage);
         }
 
@@ -136,9 +138,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         public async Task TestPreviewDiagnostic()
         {
             var hostServices = EditorTestCompositions.EditorFeatures.GetHostServices();
+            var exportProvider = (IMefHostExportProvider)hostServices;
 
-            var diagnosticService = (IDiagnosticUpdateSource)((IMefHostExportProvider)hostServices).GetExportedValue<IDiagnosticAnalyzerService>();
+            var diagnosticService = (IDiagnosticUpdateSource)exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
             RoslynDebug.AssertNotNull(diagnosticService);
+            var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
             var taskSource = new TaskCompletionSource<DiagnosticsUpdatedArgs>();
             diagnosticService.DiagnosticsUpdated += (s, a) => taskSource.TrySetResult(a);
@@ -164,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.True(taskSource.Task.IsCompleted);
 
             var args = taskSource.Task.Result;
-            Assert.True(args.GetPushDiagnostics(previewWorkspace, InternalDiagnosticsOptions.NormalDiagnosticMode).Length > 0);
+            Assert.True(args.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode).Length > 0);
         }
 
         [WpfFact]
@@ -181,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             // enable preview diagnostics
             previewWorkspace.EnableDiagnostic();
 
-            var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider>(workspace);
+            var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
             const string AnalyzerCount = "Analyzer Count: ";
             Assert.Equal(AnalyzerCount + 1, AnalyzerCount + diagnosticsAndErrorsSpans.Item1.Length);
 

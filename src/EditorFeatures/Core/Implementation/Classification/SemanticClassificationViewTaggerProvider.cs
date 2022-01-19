@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -16,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     internal partial class SemanticClassificationViewTaggerProvider : AsynchronousViewTaggerProvider<IClassificationTag>
     {
         private readonly ClassificationTypeMap _typeMap;
+        private readonly IGlobalOptionService _globalOptions;
 
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
@@ -49,10 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public SemanticClassificationViewTaggerProvider(
             IThreadingContext threadingContext,
             ClassificationTypeMap typeMap,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
+            _globalOptions = globalOptions;
         }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
@@ -72,7 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 AsyncListener,
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, this.AsyncListener),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer));
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, ClassificationOptions.Metadata.ClassifyReassignedVariables));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
@@ -91,32 +95,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
-        protected override Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
+        protected override Task ProduceTagsAsync(
+            TaggerContext<IClassificationTag> context, CancellationToken cancellationToken)
         {
             Debug.Assert(context.SpansToTag.IsSingle());
 
             var spanToTag = context.SpansToTag.Single();
 
             var document = spanToTag.Document;
+            if (document == null)
+                return Task.CompletedTask;
 
             // Attempt to get a classification service which will actually produce the results.
             // If we can't (because we have no Document, or because the language doesn't support
             // this service), then bail out immediately.
-            var classificationService = document?.GetLanguageService<IClassificationService>();
+            var classificationService = document.GetLanguageService<IClassificationService>();
             if (classificationService == null)
-            {
                 return Task.CompletedTask;
-            }
 
             // The LSP client will handle producing tags when running under the LSP editor.
             // Our tagger implementation should return nothing to prevent conflicts.
-            var workspaceContextService = document?.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
+            var workspaceContextService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
             if (workspaceContextService?.IsInLspEditorContext() == true)
+                return Task.CompletedTask;
+
+            // If the LSP semantic tokens feature flag is enabled, return nothing to prevent conflicts.
+            var isLspSemanticTokensEnabled = _globalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
+            if (isLspSemanticTokensEnabled)
             {
                 return Task.CompletedTask;
             }
 
-            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
+            return SemanticClassificationUtilities.ProduceTagsAsync(
+                context, spanToTag, classificationService, _typeMap, cancellationToken);
         }
     }
 }

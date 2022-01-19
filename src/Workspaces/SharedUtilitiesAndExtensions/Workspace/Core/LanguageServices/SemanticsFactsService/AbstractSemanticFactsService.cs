@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             s.Kind == SymbolKind.Parameter ||
             s.Kind == SymbolKind.RangeVariable ||
             s.Kind == SymbolKind.Field ||
-            s.Kind == SymbolKind.Property;
+            s.Kind == SymbolKind.Property ||
+            (s.Kind == SymbolKind.NamedType && s.IsStatic);
 
         public SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
@@ -158,6 +159,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => SemanticFacts.IsInsideNameOfExpression(semanticModel, node, cancellationToken);
+
+        public ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken)
+            => SemanticFacts.GetLocalFunctionSymbols(compilation, symbol, cancellationToken);
+
+        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+            => SemanticFacts.IsInExpressionTree(semanticModel, node, expressionTypeOpt, cancellationToken);
+
         #endregion
     }
 }

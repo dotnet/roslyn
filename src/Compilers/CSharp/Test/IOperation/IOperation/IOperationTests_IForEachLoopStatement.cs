@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IForEachLoopStatement : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
@@ -1608,7 +1608,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
         Expression: 
           IInvalidOperation (OperationKind.Invalid, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
             Children(2):
-                IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Console')
+                IOperation:  (OperationKind.None, Type: System.Console) (Syntax: 'System.Console')
                 ILocalReferenceOperation: value (OperationKind.LocalReference, Type: var) (Syntax: 'value')
   NextVariables(0)";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree, parseOptions: TestOptions.Regular9);
@@ -1822,7 +1822,7 @@ IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, E
         Expression: 
           IInvalidOperation (OperationKind.Invalid, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
             Children(2):
-                IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Console')
+                IOperation:  (OperationKind.None, Type: System.Console) (Syntax: 'System.Console')
                 ILocalReferenceOperation: value (OperationKind.LocalReference, Type: var) (Syntax: 'value')
   NextVariables(0)";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.Regular9);
@@ -4563,7 +4563,7 @@ Block[B2] - Block
               Expression: 
                 IInvalidOperation (OperationKind.Invalid, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
                   Children(2):
-                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Console')
+                      IOperation:  (OperationKind.None, Type: System.Console) (Syntax: 'System.Console')
                       ILocalReferenceOperation: value (OperationKind.LocalReference, Type: var) (Syntax: 'value')
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -5089,7 +5089,7 @@ Block[B2] - Block
               Expression: 
                 IInvalidOperation (OperationKind.Invalid, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
                   Children(2):
-                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Console')
+                      IOperation:  (OperationKind.None, Type: System.Console) (Syntax: 'System.Console')
                       ILocalReferenceOperation: value (OperationKind.LocalReference, Type: var) (Syntax: 'value')
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -7186,7 +7186,7 @@ Block[B7] - Exit
 ");
         }
 
-        private static readonly string s_ValueTask = @"
+        internal static readonly string s_ValueTask = @"
 namespace System.Threading.Tasks
 {
     [System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(System.Runtime.CompilerServices.ValueTaskMethodBuilder))]

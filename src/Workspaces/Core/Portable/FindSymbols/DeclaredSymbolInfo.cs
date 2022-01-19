@@ -29,8 +29,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Interface,
         Method,
         Module,
+        Namespace,
         Property,
         Record,
+        RecordStruct,
         Struct,
     }
 
@@ -79,13 +81,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         [DataMember(Order = 5)]
         public ImmutableArray<string> InheritanceNames { get; }
 
-        // Store the kind, accessibility, parameter-count, and type-parameter-count
-        // in a single int.  Each gets 4 bits which is ample and gives us more space
-        // for flags in the future.
+        // Store the kind (5 bits), accessibility (4 bits), parameter-count (4 bits), and type-parameter-count (4 bits)
+        // in a single int.
         [DataMember(Order = 6)]
         private readonly uint _flags;
 
         private const uint Lower4BitMask = 0b1111;
+        private const uint Lower5BitMask = 0b11111;
 
         public DeclaredSymbolInfoKind Kind => GetKind(_flags);
         public Accessibility Accessibility => GetAccessibility(_flags);
@@ -124,23 +126,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Accessibility accessibility,
             TextSpan span,
             ImmutableArray<string> inheritanceNames,
-            bool isNestedType = false, int parameterCount = 0, int typeParameterCount = 0)
+            bool isNestedType = false,
+            int parameterCount = 0,
+            int typeParameterCount = 0)
         {
-            const uint MaxFlagValue = 0b1111;
+            // Max value that we can store depending on how many bits we have to store that particular value in.
+            const uint Max5BitValue = 0b11111;
+            const uint Max4BitValue = 0b1111;
 
-            Contract.ThrowIfTrue((uint)accessibility > MaxFlagValue);
-            Contract.ThrowIfTrue((uint)kind > MaxFlagValue);
+            Contract.ThrowIfTrue((uint)accessibility > Max4BitValue);
+            Contract.ThrowIfTrue((uint)kind > Max5BitValue);
 
-            parameterCount = Math.Min(parameterCount, (byte)MaxFlagValue);
-            typeParameterCount = Math.Min(typeParameterCount, (byte)MaxFlagValue);
+            parameterCount = Math.Min(parameterCount, (byte)Max4BitValue);
+            typeParameterCount = Math.Min(typeParameterCount, (byte)Max4BitValue);
 
             var flags =
                 (uint)kind |
-                ((uint)accessibility << 4) |
-                ((uint)parameterCount << 8) |
-                ((uint)typeParameterCount << 12) |
-                ((isNestedType ? 1u : 0u) << 16) |
-                ((isPartial ? 1u : 0u) << 17);
+                ((uint)accessibility << 5) |
+                ((uint)parameterCount << 9) |
+                ((uint)typeParameterCount << 13) |
+                ((isNestedType ? 1u : 0u) << 17) |
+                ((isPartial ? 1u : 0u) << 18);
 
 #pragma warning disable CS0618 // Type or member is obsolete
             return new DeclaredSymbolInfo(
@@ -159,22 +165,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => name == null ? null : stringTable.Add(name);
 
         private static DeclaredSymbolInfoKind GetKind(uint flags)
-            => (DeclaredSymbolInfoKind)(flags & Lower4BitMask);
+            => (DeclaredSymbolInfoKind)(flags & Lower5BitMask);
 
         private static Accessibility GetAccessibility(uint flags)
-            => (Accessibility)((flags >> 4) & Lower4BitMask);
+            => (Accessibility)((flags >> 5) & Lower4BitMask);
 
         private static byte GetParameterCount(uint flags)
-            => (byte)((flags >> 8) & Lower4BitMask);
+            => (byte)((flags >> 9) & Lower4BitMask);
 
         private static byte GetTypeParameterCount(uint flags)
-            => (byte)((flags >> 12) & Lower4BitMask);
+            => (byte)((flags >> 13) & Lower4BitMask);
 
         private static bool GetIsNestedType(uint flags)
-            => ((flags >> 16) & 1) == 1;
+            => ((flags >> 17) & 1) == 1;
 
         private static bool GetIsPartial(uint flags)
-            => ((flags >> 17) & 1) == 1;
+            => ((flags >> 18) & 1) == 1;
 
         internal void WriteTo(ObjectWriter writer)
         {
