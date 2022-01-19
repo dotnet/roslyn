@@ -3880,12 +3880,12 @@ class C<T>
             rest.ToString(); // 1
 
         if (new C<int?>() is [1, ..var rest2])
-            rest2.Value.ToString(); // 2
+            rest2.Value.ToString(); // 2 (assumed not-null)
         else
             rest2.Value.ToString(); // 3, 4
 
         if (new C<string?>() is [1, ..var rest3])
-            rest3.ToString(); // 5
+            rest3.ToString(); // 5 (assumed not-null)
         else
             rest3.ToString(); // 6, 7
 
@@ -3899,7 +3899,7 @@ class C<T>
 
         if (new C<T>() is [1, ..var rest5])
         {
-            rest5.ToString(); // 10
+            rest5.ToString(); // 10 (assumed not-null)
             rest5 = default;
         }
     }
@@ -3910,18 +3910,12 @@ class C<T>
             // (14,13): error CS0165: Use of unassigned local variable 'rest'
             //             rest.ToString(); // 1
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest").WithArguments("rest").WithLocation(14, 13),
-            // (17,13): warning CS8629: Nullable value type may be null.
-            //             rest2.Value.ToString(); // 2
-            Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(17, 13),
             // (19,13): warning CS8629: Nullable value type may be null.
             //             rest2.Value.ToString(); // 3, 4
             Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(19, 13),
             // (19,13): error CS0165: Use of unassigned local variable 'rest2'
             //             rest2.Value.ToString(); // 3, 4
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest2").WithArguments("rest2").WithLocation(19, 13),
-            // (22,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest3.ToString(); // 5
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(22, 13),
             // (24,13): warning CS8602: Dereference of a possibly null reference.
             //             rest3.ToString(); // 6, 7
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(24, 13),
@@ -3933,10 +3927,7 @@ class C<T>
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest4").WithLocation(32, 13),
             // (32,13): error CS0165: Use of unassigned local variable 'rest4'
             //             rest4.ToString(); // 8, 9
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "rest4").WithArguments("rest4").WithLocation(32, 13),
-            // (36,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest5.ToString(); // 10
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest5").WithLocation(36, 13)
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "rest4").WithArguments("rest4").WithLocation(32, 13)
             );
 
         var tree = compilation.SyntaxTrees.First();
@@ -3979,14 +3970,7 @@ class C
 }
 ";
         var compilation = CreateCompilationWithIndexAndRange(source);
-        compilation.VerifyEmitDiagnostics(
-            // (12,13): warning CS8602: Dereference of a possibly null reference.
-            //             slice.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "slice").WithLocation(12, 13),
-            // (14,13): warning CS8602: Dereference of a possibly null reference.
-            //             list.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "list").WithLocation(14, 13)
-            );
+        compilation.VerifyEmitDiagnostics();
 
         var tree = compilation.SyntaxTrees.Single();
         var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -4032,12 +4016,12 @@ class C<T>
             rest.ToString(); // 1
 
         if (new C<int?>() is [1, ..var rest2])
-            rest2.Value.ToString(); // 2
+            rest2.Value.ToString(); // 2 (assumed not-null)
         else
             rest2.Value.ToString(); // 3, 4
 
         if (new C<string?>() is [1, ..var rest3])
-            rest3.ToString(); // 5
+            rest3.ToString(); // 5 (assumed not-null)
         else
             rest3.ToString(); // 6, 7
 
@@ -4056,18 +4040,12 @@ class C<T>
             // (15,13): error CS0165: Use of unassigned local variable 'rest'
             //             rest.ToString(); // 1
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest").WithArguments("rest").WithLocation(15, 13),
-            // (18,13): warning CS8629: Nullable value type may be null.
-            //             rest2.Value.ToString(); // 2
-            Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(18, 13),
             // (20,13): warning CS8629: Nullable value type may be null.
             //             rest2.Value.ToString(); // 3, 4
             Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "rest2").WithLocation(20, 13),
             // (20,13): error CS0165: Use of unassigned local variable 'rest2'
             //             rest2.Value.ToString(); // 3, 4
             Diagnostic(ErrorCode.ERR_UseDefViolation, "rest2").WithArguments("rest2").WithLocation(20, 13),
-            // (23,13): warning CS8602: Dereference of a possibly null reference.
-            //             rest3.ToString(); // 5
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(23, 13),
             // (25,13): warning CS8602: Dereference of a possibly null reference.
             //             rest3.ToString(); // 6, 7
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "rest3").WithLocation(25, 13),
@@ -4777,63 +4755,63 @@ class C
             [not null] => 0,
         };
 
-        _ = this switch // we didn't test for [.. null] but we're looking for an example with Length=1. // 1
+        _ = this switch // didn't test for [.. null] but the slice is assumed not-null
         {
             null or { Length: not 1 } => 0,
             [.. [null]] => 0,
             [not null] => 0,
         };
 
-        _ = this switch // didn't test for [.. [not null]] // // 2
+        _ = this switch // didn't test for [.. [not null]] // 1
         {
             null or { Length: not 1 } => 0,
             [.. [null]] => 0,
         };
 
-        _ = this switch // didn't test for [.. [not null]] // // 3
+        _ = this switch // didn't test for [.. [not null]] // 2
         {
             null or { Length: not 1 } => 0,
             [.. null] => 0,
             [.. [null]] => 0,
         };
 
-        _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1, the slice may not be null // 4
+        _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1, the slice may not be null // 3
         {
             null or { Length: not 1 } => 0,
             [.. [not null]] => 0,
         };
 
-        _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 5
+        _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 4
         {
             null or { Length: not 4 } => 0,
             [_, .. [_, not null], _] => 0,
         };
 
-        _ = this switch // we should consider this switch exhaustive // 6
+        _ = this switch // exhaustive
         {
             null or { Length: not 4 } => 0,
             [_, .. [_, _], _] => 0,
         };
 
-        _ = this switch // didn't test for [_, .. [_, null], _] // 7
+        _ = this switch // didn't test for [_, .. [_, null], _] // 5
         {
             null or { Length: not 4 } => 0,
             [_, .. null or [_, not null], _] => 0,
         };
 
-        _ = this switch // didn't test for [_, .. [_, null], _, _] // 8
+        _ = this switch // didn't test for [_, .. [_, null], _, _] // 6
         {
             null or { Length: not 5 } => 0,
             [_, .. null or [_, not null], _, _] => 0,
         };
 
-        _ = this switch // didn't test for [_, .. [_, null, _], _] // 9
+        _ = this switch // didn't test for [_, .. [_, null, _], _] // 7
         {
             null or { Length: not 5 } => 0,
             [_, .. null or [_, not null, _], _] => 0,
         };
 
-        _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1 but a null slice // 10
+        _ = this switch // didn't test for [.. null, _] but the slice is assumed not-null
         {
             null or { Length: not 1 } => 0,
             [.. { Length: 1 }] => 0,
@@ -4845,25 +4823,25 @@ class C
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics(
             // (27,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [.. [not null]] // // 2
+            //         _ = this switch // didn't test for [.. [not null]] // 1
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(27, 18),
             // (33,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [.. [not null]] // // 3
+            //         _ = this switch // didn't test for [.. [not null]] // 2
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(33, 18),
             // (40,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1, the slice may not be null // 4
+            //         _ = this switch // didn't test for [.. null, _] // we're trying to construct an example with Length=1, the slice may not be null // 3
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(40, 18),
             // (46,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 5
+            //         _ = this switch // didn't test for [_, .. null, _, _, _] // we're trying to construct an example with Length=4, the slice may not be null // 4
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(46, 18),
             // (58,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. [_, null], _] // 7
+            //         _ = this switch // didn't test for [_, .. [_, null], _] // 5
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(58, 18),
             // (64,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. [_, null], _, _] // 8
+            //         _ = this switch // didn't test for [_, .. [_, null], _, _] // 6
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(64, 18),
             // (70,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         _ = this switch // didn't test for [_, .. [_, null, _], _] // 9
+            //         _ = this switch // didn't test for [_, .. [_, null, _], _] // 7
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("_").WithLocation(70, 18)
             );
     }
@@ -6785,6 +6763,8 @@ class C
            "[1, ..[2, ..[], 3]]"
         };
 
+        // testing every possible combination takes too long,
+        // covering a random subset instead.
         var r = new Random();
         for (int i = 0; i < 50; i++)
         {
