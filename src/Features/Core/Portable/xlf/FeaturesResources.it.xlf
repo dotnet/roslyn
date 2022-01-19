@@ -242,12 +242,12 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression">
         <source>Await the preceding expression</source>
-        <target state="new">Await the preceding expression</target>
+        <target state="translated">Attendi l'espressione precedente</target>
         <note />
       </trans-unit>
       <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
         <source>Await the preceding expression and add ConfigureAwait({0}).</source>
-        <target state="new">Await the preceding expression and add ConfigureAwait({0}).</target>
+        <target state="translated">Attendi l'espressione precedente e aggiungi ConfigureAwait({0}).</target>
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -470,6 +470,16 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Converti il tipo in '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
+        <source>Could not find portable PDB on disk or embedded.</source>
+        <target state="translated">Impossibile trovare PDB portabile su disco o incorporato.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded_or_server">
+        <source>Could not find PDB on disk, or embedded, or on a symbol server.</source>
+        <target state="translated">Impossibile trovare PDB su disco, incorporato o su un server di simboli.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="translated">Crea e assegna il campo '{0}'</target>
@@ -550,6 +560,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Si è verificato un errore durante la creazione dell'istanza di CodeFixProvider '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_reading_PDB_0">
+        <source>Error reading PDB: '{0}'</source>
+        <target state="translated">Errore durante la lettura del PDB: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="translated">Esempio:</target>
@@ -567,7 +582,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Explicitly_inherit_documentation">
         <source>Explicitly inherit documentation</source>
-        <target state="new">Explicitly inherit documentation</target>
+        <target state="translated">Eredita esplicitamente la documentazione</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -615,14 +630,34 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Formattazione del documento</target>
         <note />
       </trans-unit>
+      <trans-unit id="Found_PDB_file_at_0">
+        <source>Found PDB file at '{0}'</source>
+        <target state="translated">Trovato file PDB in '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server">
+        <source>Found PDB on symbol server.</source>
+        <target state="translated">È stato trovato il PDB nel server dei simboli.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server_but_could_not_read_file">
+        <source>Found PDB on symbol server but could not read file.</source>
+        <target state="translated">Il file PDB è stato trovato nel server dei simboli ma non è stato possibile leggere il file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_embedded_PDB_file">
+        <source>Found embedded PDB file.</source>
+        <target state="translated">Trovato file PDB incorporato.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
         <source>Generate abstract method '{0}'</source>
-        <target state="new">Generate abstract method '{0}'</target>
+        <target state="translated">Genera il metodo astratto '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_property_0">
         <source>Generate abstract property '{0}'</source>
-        <target state="new">Generate abstract property '{0}'</target>
+        <target state="translated">Genera la proprietà astratta '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">
@@ -632,7 +667,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Generate_constant_0">
         <source>Generate constant '{0}'</source>
-        <target state="new">Generate constant '{0}'</target>
+        <target state="translated">Genera la costante '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -647,12 +682,12 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
-        <target state="new">Generate enum member '{0}'</target>
+        <target state="translated">Genera il membro di enumerazione '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_field_0">
         <source>Generate field '{0}'</source>
-        <target state="new">Generate field '{0}'</target>
+        <target state="translated">Genera il campo '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -662,7 +697,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Generate_method_0">
         <source>Generate method '{0}'</source>
-        <target state="new">Generate method '{0}'</target>
+        <target state="translated">Genera il metodo '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -677,17 +712,17 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Generate_property_0">
         <source>Generate property '{0}'</source>
-        <target state="new">Generate property '{0}'</target>
+        <target state="translated">Genera la proprietà '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_field_0">
         <source>Generate read-only field '{0}'</source>
-        <target state="new">Generate read-only field '{0}'</target>
+        <target state="translated">Genera il campo di sola lettura '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_property_0">
         <source>Generate read-only property '{0}'</source>
-        <target state="new">Generate read-only property '{0}'</target>
+        <target state="translated">Genera la proprietà di sola lettura '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -912,7 +947,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
-        <target state="new">Miscellaneous Files</target>
+        <target state="translated">File esterni</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_control_character">
@@ -1022,7 +1057,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Move_static_members_to_another_type">
         <source>Move static members to another type...</source>
-        <target state="new">Move static members to another type...</target>
+        <target state="translated">Sposta membri statici in un altro tipo...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1035,6 +1070,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Se si sposta {0}, è necessario riavviare l'applicazione.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigating_to_symbol_0_from_1">
+        <source>Navigating to symbol '{0}' from '{1}'.</source>
+        <target state="translated">Passaggio al simbolo '{0}' da '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
         <target state="translated">Quantificatore nidificato {0}</target>
@@ -1043,6 +1083,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction.</source>
         <target state="translated">Non esiste un nodo radice comune per l'estrazione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_source_document_info_found_in_PDB">
+        <source>No source document info found in PDB.</source>
+        <target state="translated">Nessuna informazione sul documento di origine trovata nel PDB.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
@@ -1230,11 +1275,11 @@ Questa opzione è consigliata solo se si è certi che il backtracking avrà esit
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="needs-review-translation">Una definizione di gruppo di bilanciamento elimina la definizione di un gruppo precedentemente definito e archivia nel gruppo corrente l'intervallo tra il gruppo precedentemente definito e il gruppo corrente.
-    
-'name1' è il gruppo corrente (facoltativo), 'name2' è un gruppo precedentemente definito e 'subexpression' è qualsiasi criterio di ricerca di espressioni regolari valido. La definizione di gruppo di bilanciamento elimina la definizione di name2 e archivia l'intervallo tra name2 e name1 in name1. Se non è definito alcun gruppo name2, viene eseguito il backtracking della corrispondenza. Dal momento che l'eliminazione dell'ultima definizione di name2 rivela la definizione precedente di name2, questo costrutto consente di usare lo stack di acquisizioni per il gruppo name2 come contatore per tenere traccia dei costrutti annidati, come ad esempio le parentesi o le parentesi quadre di apertura e chiusura.
+        <target state="translated">La definizione di gruppo di bilanciamento elimina la definizione di un gruppo definito in precedenza e archivia, nel gruppo corrente, l'intervallo tra il gruppo definito in precedenza e il gruppo corrente.
 
-La definizione del gruppo di bilanciamento usa 'name2' come uno stack. Il carattere iniziale di ogni costrutto annidato viene posizionato nel gruppo e nella relativa raccolta Group.Captures. Quando viene trovata la corrispondenza con il carattere di chiusura, il carattere di apertura associato viene rimosso dal gruppo e la raccolta Captures viene ridotta di uno. Dopo che la corrispondenza dei caratteri di apertura e chiusura di tutti i costrutti annidati è stata trovata, 'name1' è vuoto.</target>
+'name1' è il gruppo corrente (facoltativo), 'name2' è un gruppo definito in precedenza e 'subexpression' è qualsiasi criterio di espressione regolare valido. La definizione del gruppo di bilanciamento elimina la definizione di name2 e archivia l'intervallo tra name2 e name1 in name1. Se non viene definito alcun gruppo name2, viene eseguito il backtracking della corrispondenza. Dal momento che l'eliminazione dell'ultima definizione di name2 rivela la definizione precedente di name2, questo costrutto consente di usare lo stack di acquisizioni per il gruppo name2 come contatore per tenere traccia dei costrutti annidati, come ad esempio le parentesi o le parentesi quadre di apertura e chiusura.
+
+La definizione del gruppo di bilanciamento utilizza 'name2' come stack. Il carattere iniziale di ogni costrutto annidato viene inserito nel gruppo e nella relativa raccolta Group.Captures. Quando viene trovata una corrispondenza con il carattere di chiusura, il carattere di apertura corrispondente viene rimosso dal gruppo e la raccolta Captures viene ridotta di uno. Dopo che la corrispondenza dei caratteri di apertura e chiusura di tutti i costrutti annidati è stata trovata, 'name1' risulta vuoto.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
@@ -2307,12 +2352,22 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Silent">
         <source>Silent</source>
-        <target state="new">Silent</target>
+        <target state="translated">Silent</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Ordina i modificatori di accessibilità</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_code_language_information_was_not_found_in_PDB">
+        <source>Source code language information was not found in PDB.</source>
+        <target state="translated">Le informazioni sul linguaggio del codice sorgente non sono state trovate nel PDB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_is_a_reference_assembly">
+        <source>Source is a reference assembly, not enough information to find PDB.</source>
+        <target state="translated">L'origine è un assembly di riferimento, informazioni insufficienti per trovare il PDB.</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -2340,6 +2395,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Se si passa da un'espressione lambda a una funzione locale, è necessario riavviare l'applicazione.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="translated">Simbolo trovato nel percorso assembly '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
         <target state="translated">TODO: liberare risorse non gestite (oggetti non gestiti) ed eseguire l'override del finalizzatore</target>
@@ -2365,6 +2425,16 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">La selezione contiene una chiamata di funzione locale senza la relativa dichiarazione.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Timeout_SourceLink">
+        <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
+        <target state="translated">Timeout durante il tentativo di scaricare il codice sorgente da SourceLink. Le richieste successive potrebbero avere esito positivo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Timeout_symbol_server">
+        <source>Timed out trying to download PDB from symbol server. Subsequent requests may succeed.</source>
+        <target state="translated">Timeout durante il tentativo di scaricare PDB dal server dei simboli. Le richieste successive potrebbero avere esito positivo.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Too_many_bars_in_conditional_grouping">
         <source>Too many | in (?()|)</source>
         <target state="translated">Troppi | in (?()|)</target>
@@ -2377,7 +2447,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
-        <target state="new">Types:</target>
+        <target state="translated">Tipi:</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
@@ -2663,6 +2733,46 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="_0_dash_1">
         <source>{0} - {1}</source>
         <target state="translated">{0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB">
+        <source>'{0}' found in embedded PDB.</source>
+        <target state="translated">'{0}' trovati nel PDB incorporato.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_checksum_failed">
+        <source>'{0}' found in embedded PDB but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">'{0}' è stato trovato nel PDB incorporato, ma il checksum non è corretto o non è stato possibile leggere il file temporaneo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_could_not_write_file_1">
+        <source>'{0}' found in embedded PDB but could not write to temp file: '{1}'</source>
+        <target state="translated">'{0}' trovato nel PDB incorporato ma non è stato possibile scrivere nel file temporaneo: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_cached_source_file">
+        <source>'{0}' found in embedded PDB and found cached source file.</source>
+        <target state="translated">'{0}' trovato nel PDB incorporato e trovato file di origine memorizzato nella cache.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location">
+        <source>'{0}' found in original location.</source>
+        <target state="translated">'{0}' trovato nella posizione originale.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location_but_checksum_failed">
+        <source>'{0}' found in original location but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">'{0}' trovato nel percorso originale, ma il checksum non è corretto o non è stato possibile leggere il file temporaneo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink">
+        <source>'{0}' found via SourceLink.</source>
+        <target state="translated">'{0}' trovato tramite SourceLink.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink_but_couldnt_read_file">
+        <source>'{0}' found via SourceLink but couldn't read temp file.</source>
+        <target state="translated">'{0}' trovato tramite SourceLink ma non è stato possibile leggere il file temporaneo.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -2992,6 +3102,16 @@ Se l'identificatore di formato "d" viene usato senza altri identificatori di for
         <source>discard</source>
         <target state="translated">variabile discard</target>
         <note />
+      </trans-unit>
+      <trans-unit id="embedded">
+        <source>embedded</source>
+        <target state="translated">Incorporata</target>
+        <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
+      </trans-unit>
+      <trans-unit id="external">
+        <source>external</source>
+        <target state="translated">external</target>
+        <note>External means "external source", meaning source files that are not part of the current solution</note>
       </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>

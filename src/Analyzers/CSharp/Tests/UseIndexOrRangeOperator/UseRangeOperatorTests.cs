@@ -94,7 +94,43 @@ class C
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp20,
                 TestCode = source,
                 FixedCode = source,
-                LanguageVersion = LanguageVersion.CSharp7,
+                LanguageVersion = LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestNotWithInaccessibleSystemRange()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring(1, s.Length - 1);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp20,
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalProjects =
+                    {
+                        ["AdditionalProject"] =
+                        {
+                            Sources =
+                            {
+                                "namespace System { internal struct Range { } }"
+                            }
+                        }
+                    },
+                    AdditionalProjectReferences = { "AdditionalProject" },
+                },
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp8,
             }.RunAsync();
         }
 

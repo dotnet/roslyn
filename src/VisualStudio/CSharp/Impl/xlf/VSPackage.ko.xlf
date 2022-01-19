@@ -82,8 +82,9 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;</source>
-        <target state="translated">다시 할당된 변수에 밑줄 긋기;
+Inheritance Margin;
+Stack Trace Explorer;</source>
+        <target state="needs-review-translation">다시 할당된 변수에 밑줄 긋기;
 인라인 힌트 표시;
 닫힌 파일에 대한 진단 표시;
 정규식 색 지정; 
@@ -305,10 +306,10 @@ Show items from unimported namespaces (experimental);</source>
 코드 조각 포함 안 함;
 코드 조각 항상 포함;
 식별자 뒤에 ?-Tab을 입력하면 코드 조각 포함;
-&amp;lt;Enter&amp;gt; 키 동작;
-&amp;lt;Enter&amp;gt; 키를 누를 때 새 줄 추가 안 함;
-단어를 모두 입력한 후 &amp;lt;Enter&amp;gt; 키를 누를 때만 새 줄 추가;
-&amp;lt;Enter&amp;gt; 키를 누를 때 항상 새 줄 추가;
+&lt;Enter&gt; 키 동작;
+&lt;Enter&gt; 키를 누를 때 새 줄 추가 안 함;
+단어를 모두 입력한 후 &lt;Enter&gt; 키를 누를 때만 새 줄 추가;
+&lt;Enter&gt; 키를 누를 때 항상 새 줄 추가;
 이름 제안 표시;
 가져오지 않은 네임스페이스의 항목 표시(실험적);</target>
         <note>C# IntelliSense options page keywords</note>

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private struct CodeShapeAnalyzer
         {
             private readonly FormattingContext _context;
-            private readonly AnalyzerConfigOptions _options;
+            private readonly SyntaxFormattingOptions _options;
             private readonly TriviaList _triviaList;
 
             private int _indentation;

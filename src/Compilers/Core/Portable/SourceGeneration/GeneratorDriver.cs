@@ -193,7 +193,9 @@ namespace Microsoft.CodeAnalysis
                     {
                         generator.Initialize(pipelineContext);
                     }
-                    catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
+                    catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e, cancellationToken))
+#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
                     {
                         ex = e;
                     }

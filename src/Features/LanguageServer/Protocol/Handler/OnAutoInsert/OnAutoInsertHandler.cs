@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -80,8 +81,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Once LSP supports overtype we can move all of brace completion to LSP.
             if (request.Character == "\n" && context.ClientName == document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName)
             {
+                var indentationOptions = IndentationOptions.From(documentOptions, document.Project.Solution.Workspace.Services, document.Project.Language);
+
                 var braceCompletionAfterReturnResponse = await GetBraceCompletionAfterReturnResponseAsync(
-                    request, document, documentOptions, cancellationToken).ConfigureAwait(false);
+                    request, document, indentationOptions, cancellationToken).ConfigureAwait(false);
                 if (braceCompletionAfterReturnResponse != null)
                 {
                     return braceCompletionAfterReturnResponse;
@@ -127,7 +130,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetBraceCompletionAfterReturnResponseAsync(
             LSP.VSInternalDocumentOnAutoInsertParams autoInsertParams,
             Document document,
-            DocumentOptionSet documentOptions,
+            IndentationOptions options,
             CancellationToken cancellationToken)
         {
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -140,7 +143,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var (service, context) = serviceAndContext.Value;
-            var postReturnEdit = await service.GetTextChangeAfterReturnAsync(context, documentOptions, cancellationToken).ConfigureAwait(false);
+            var postReturnEdit = await service.GetTextChangeAfterReturnAsync(context, options, cancellationToken).ConfigureAwait(false);
             if (postReturnEdit == null)
             {
                 return null;
@@ -156,7 +159,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (caretLine.Span.IsEmpty)
                 {
                     // We have an empty line with the caret column at an indented position, let's add whitespace indentation to the text.
-                    var indentedText = GetIndentedText(newSourceText, caretLine, desiredCaretLinePosition, documentOptions);
+                    var indentedText = GetIndentedText(newSourceText, caretLine, desiredCaretLinePosition, options);
 
                     // Get the overall text changes between the original text and the formatted + indented text.
                     textChanges = indentedText.GetTextChanges(sourceText).ToImmutableArray();
@@ -192,13 +195,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 SourceText textToIndent,
                 TextLine lineToIndent,
                 LinePosition desiredCaretLinePosition,
-                DocumentOptionSet documentOptions)
+                IndentationOptions options)
             {
                 // Indent by the amount needed to make the caret line contain the desired indentation column.
                 var amountToIndent = desiredCaretLinePosition.Character - lineToIndent.Span.Length;
 
                 // Create and apply a text change with whitespace for the indentation amount.
-                var indentText = amountToIndent.CreateIndentationString(documentOptions.GetOption(FormattingOptions.UseTabs), documentOptions.GetOption(FormattingOptions.TabSize));
+                var indentText = amountToIndent.CreateIndentationString(options.FormattingOptions.GetOption(FormattingOptions2.UseTabs), options.FormattingOptions.GetOption(FormattingOptions2.TabSize));
                 var indentedText = textToIndent.WithChanges(new TextChange(new TextSpan(lineToIndent.End, 0), indentText));
                 return indentedText;
             }

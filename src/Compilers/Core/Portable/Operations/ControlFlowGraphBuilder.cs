@@ -1764,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     IOperation? rewrittenThrow = base.Visit(whenTrueConversion.Operand, null);
                     Debug.Assert(rewrittenThrow!.Kind == OperationKind.None);
-                    Debug.Assert(rewrittenThrow.Children.IsEmpty());
+                    Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
 
                     UnconditionalBranch(afterIf);
 
@@ -1782,7 +1782,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                     IOperation rewrittenThrow = BaseVisitRequired(whenFalseConversion.Operand, null);
                     Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
-                    Debug.Assert(rewrittenThrow.Children.IsEmpty());
+                    Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
                 }
                 else
                 {
@@ -2984,7 +2984,7 @@ oneMoreTime:
                         IOperation? rewrittenThrow = base.Visit(conversion.Operand, null);
                         Debug.Assert(rewrittenThrow != null);
                         Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
-                        Debug.Assert(rewrittenThrow.Children.IsEmpty());
+                        Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
                         dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
                         return;
                     }
@@ -3115,7 +3115,7 @@ oneMoreTime:
                 IOperation? rewrittenThrow = base.Visit(conversion.Operand, null);
                 Debug.Assert(rewrittenThrow != null);
                 Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
-                Debug.Assert(rewrittenThrow.Children.IsEmpty());
+                Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
             }
             else
             {

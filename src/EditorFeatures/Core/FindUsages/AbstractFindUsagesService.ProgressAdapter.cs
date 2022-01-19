@@ -27,21 +27,23 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         {
             private readonly IFindUsagesContext _context;
             private readonly DefinitionItem _definition;
+            private readonly ClassificationOptions _classificationOptions;
 
             public IStreamingProgressTracker ProgressTracker
                 => _context.ProgressTracker;
 
             public FindLiteralsProgressAdapter(
-                IFindUsagesContext context, DefinitionItem definition)
+                IFindUsagesContext context, DefinitionItem definition, ClassificationOptions classificationOptions)
             {
                 _context = context;
                 _definition = definition;
+                _classificationOptions = classificationOptions;
             }
 
             public async ValueTask OnReferenceFoundAsync(Document document, TextSpan span, CancellationToken cancellationToken)
             {
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
-                    document, span, cancellationToken).ConfigureAwait(false);
+                    document, span, _classificationOptions, cancellationToken).ConfigureAwait(false);
                 await _context.OnReferenceFoundAsync(
                     new SourceReferenceItem(_definition, documentSpan, SymbolUsageInfo.None), cancellationToken).ConfigureAwait(false);
             }

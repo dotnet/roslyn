@@ -49,7 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             List<string> allTypeNames,
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
-            string languageName)
+            string languageName,
+            CancellationToken cancellationToken)
         {
             using var cancellationTokenSource = new CancellationTokenSource();
 

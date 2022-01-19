@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_CompilationAvailable">
         <source>Project semantics availability</source>
-        <target state="new">Project semantics availability</target>
+        <target state="translated">프로젝트 의미 체계 가용성</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
@@ -119,7 +119,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">
         <source>Stack Trace Explorer</source>
-        <target state="new">Stack Trace Explorer</target>
+        <target state="translated">스택 추적 탐색기</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">

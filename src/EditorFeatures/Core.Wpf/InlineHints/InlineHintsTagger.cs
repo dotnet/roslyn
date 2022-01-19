@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
                 return selectedSpans;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable;
             }

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.InlineHints
 {
-    internal record struct InlineParameterHintsOptions(
+    internal readonly record struct InlineParameterHintsOptions(
         bool EnabledForParameters,
         bool ForLiteralParameters,
         bool ForIndexerParameters,
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             => From(project.Solution.Options, project.Language);
 
         public static InlineParameterHintsOptions From(OptionSet options, string language)
-          => new(
+            => new(
                 EnabledForParameters: options.GetOption(Metadata.EnabledForParameters, language),
                 ForLiteralParameters: options.GetOption(Metadata.ForLiteralParameters, language),
                 ForIndexerParameters: options.GetOption(Metadata.ForIndexerParameters, language),
@@ -103,65 +103,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     nameof(SuppressForParametersThatMatchArgumentName),
                     defaultValue: true,
                     storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchArgumentName"));
-        }
-    }
-
-    internal record struct InlineTypeHintsOptions(
-        bool EnabledForTypes,
-        bool ForImplicitVariableTypes,
-        bool ForLambdaParameterTypes,
-        bool ForImplicitObjectCreation)
-    {
-        public static InlineTypeHintsOptions From(Project project)
-            => From(project.Solution.Options, project.Language);
-
-        public static InlineTypeHintsOptions From(OptionSet options, string language)
-          => new(
-                EnabledForTypes: options.GetOption(Metadata.EnabledForTypes, language),
-                ForImplicitVariableTypes: options.GetOption(Metadata.ForImplicitVariableTypes, language),
-                ForLambdaParameterTypes: options.GetOption(Metadata.ForLambdaParameterTypes, language),
-                ForImplicitObjectCreation: options.GetOption(Metadata.ForImplicitObjectCreation, language));
-
-        [ExportSolutionOptionProvider, Shared]
-        internal sealed class Metadata : IOptionProvider
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Metadata()
-            {
-            }
-
-            public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-                EnabledForTypes,
-                ForImplicitVariableTypes,
-                ForLambdaParameterTypes,
-                ForImplicitObjectCreation);
-
-            private const string FeatureName = "InlineHintsOptions";
-
-            public static readonly PerLanguageOption2<bool> EnabledForTypes =
-                new(FeatureName,
-                    nameof(EnabledForTypes),
-                    defaultValue: false,
-                    storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineTypeHints"));
-
-            public static readonly PerLanguageOption2<bool> ForImplicitVariableTypes =
-                new(FeatureName,
-                    nameof(ForImplicitVariableTypes),
-                    defaultValue: true,
-                    storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForImplicitVariableTypes"));
-
-            public static readonly PerLanguageOption2<bool> ForLambdaParameterTypes =
-                new(FeatureName,
-                    nameof(ForLambdaParameterTypes),
-                    defaultValue: true,
-                    storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForLambdaParameterTypes"));
-
-            public static readonly PerLanguageOption2<bool> ForImplicitObjectCreation =
-                new(FeatureName,
-                    nameof(ForImplicitObjectCreation),
-                    defaultValue: true,
-                    storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForImplicitObjectCreation"));
         }
     }
 }

@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             get { return this.Context.TreeData; }
         }
 
-        protected AnalyzerConfigOptions Options
+        protected SyntaxFormattingOptions Options
         {
             get { return this.Context.Options; }
         }

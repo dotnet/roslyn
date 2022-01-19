@@ -4,17 +4,14 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal class SolutionVerifierInProcess : InProcComponent
+    [TestService]
+    internal partial class SolutionVerifierInProcess
     {
-        public SolutionVerifierInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
         public async Task AssemblyReferencePresentAsync(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken, CancellationToken cancellationToken)
         {
             var assemblyReferences = await TestServices.SolutionExplorer.GetAssemblyReferencesAsync(projectName, cancellationToken);
