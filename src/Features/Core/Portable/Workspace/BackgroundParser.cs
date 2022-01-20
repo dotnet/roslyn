@@ -208,14 +208,6 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     try
                     {
-                        // PERF: Skip performing background parsing for non-active documents where user has explicitly
-                        // set the background analysis scope to only analyze active document.
-                        if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) is BackgroundAnalysisScope.ActiveFile or BackgroundAnalysisScope.None
-                            && _documentTrackingService?.TryGetActiveDocument() != document.Id)
-                        {
-                            return;
-                        }
-
                         await document.GetSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false);
                     }
                     finally

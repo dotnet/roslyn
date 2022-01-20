@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     {
         private static readonly TestComposition s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService = FeaturesTestCompositions.Features
             .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService))
+            .AddParts(typeof(TestDocumentTrackingService));
 
         private static readonly TestComposition s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
             .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
@@ -46,6 +47,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private static AdhocWorkspace CreateWorkspace(Type[] additionalParts = null)
             => new AdhocWorkspace(s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(additionalParts).GetHostServices());
+
+        private static void OpenDocumentAndMakeActive(Document document, Workspace workspace)
+        {
+            workspace.OpenDocument(document.Id);
+
+            var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            documentTrackingService.SetActiveDocument(document.Id);
+        }
 
         [Fact]
         public async Task TestHasSuccessfullyLoadedBeingFalse()
@@ -91,8 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options).WithAnalyzerReferences(new[] { analyzerReference }));
             var document = GetDocumentFromIncompleteProject(workspace);
 
-            // open document
-            workspace.OpenDocument(document.Id);
+            OpenDocumentAndMakeActive(document, workspace);
 
             await TestAnalyzerAsync(workspace, document, AnalyzerResultSetter, expectedSyntax: true, expectedSemantic: true);
         }
@@ -107,8 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var document = GetDocumentFromIncompleteProject(workspace);
 
-            // open document
-            workspace.OpenDocument(document.Id);
+            OpenDocumentAndMakeActive(document, workspace);
 
             await TestAnalyzerAsync(workspace, document, AnalyzerResultSetter, expectedSyntax: true, expectedSemantic: true);
         }
@@ -956,7 +963,7 @@ class A
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
 
-            workspace.OpenDocument(document.Id);
+            OpenDocumentAndMakeActive(document, workspace);
 
             // First invoke analysis with cancellation token, and verify canceled compilation and no reported diagnostics.
             Assert.Empty(analyzer.CanceledCompilations);

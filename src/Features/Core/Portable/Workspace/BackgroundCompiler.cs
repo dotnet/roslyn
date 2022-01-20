@@ -161,14 +161,6 @@ namespace Microsoft.CodeAnalysis.Host
                     if (p is null)
                         return null;
 
-                    // PERF: Skip performing background compilation for projects where user has explicitly
-                    // set the background analysis scope to only analyze active document.
-                    if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(p) is BackgroundAnalysisScope.ActiveFile or BackgroundAnalysisScope.None
-                        && p.Id != activeProject)
-                    {
-                        return null;
-                    }
-
                     return await p.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 })
                 .ToArray();
