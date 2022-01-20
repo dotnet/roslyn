@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class StateTableStore
+    internal sealed class StateTableStore
     {
         private readonly ImmutableSegmentedDictionary<object, IStateTable> _tables;
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
             return NodeStateTable<T>.Empty;
         }
 
-        public class Builder
+        public sealed class Builder
         {
             private readonly ImmutableSegmentedDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableSegmentedDictionary.CreateBuilder<object, IStateTable>();
 

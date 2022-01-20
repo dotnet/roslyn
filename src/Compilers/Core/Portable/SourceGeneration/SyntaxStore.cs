@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class SyntaxStore
+    internal sealed class SyntaxStore
     {
         private readonly StateTableStore _tables;
         private readonly Compilation? _compilation;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             _compilation = compilation;
         }
 
-        public class Builder
+        public sealed class Builder
         {
             private readonly ImmutableDictionary<ISyntaxInputNode, Exception>.Builder _syntaxExceptions = ImmutableDictionary.CreateBuilder<ISyntaxInputNode, Exception>();
             private readonly StateTableStore.Builder _tableBuilder = new StateTableStore.Builder();
