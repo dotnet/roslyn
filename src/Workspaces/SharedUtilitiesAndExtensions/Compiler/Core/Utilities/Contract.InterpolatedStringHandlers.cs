@@ -10,7 +10,7 @@ namespace Roslyn.Utilities
     internal static partial class Contract
     {
         [InterpolatedStringHandler]
-        public struct ThrowIfTrueInterpolatedStringHandler
+        public readonly struct ThrowIfTrueInterpolatedStringHandler
         {
             private readonly StringBuilder _stringBuilder;
 
@@ -30,7 +30,7 @@ namespace Roslyn.Utilities
         }
 
         [InterpolatedStringHandler]
-        public struct ThrowIfFalseInterpolatedStringHandler
+        public readonly struct ThrowIfFalseInterpolatedStringHandler
         {
             private readonly StringBuilder _stringBuilder;
 
@@ -50,7 +50,7 @@ namespace Roslyn.Utilities
         }
 
         [InterpolatedStringHandler]
-        public struct ThrowIfNullInterpolatedStringHandler<T>
+        public readonly struct ThrowIfNullInterpolatedStringHandler<T>
         {
             private readonly StringBuilder _stringBuilder;
 
