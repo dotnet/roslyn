@@ -536,5 +536,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         AssetService_Perf = 520,
 
         NavigateToExternalSources = 531,
+
+        StackTraceToolWindow_ShowOnActivated = 540,
     }
 }
