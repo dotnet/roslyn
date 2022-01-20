@@ -264,12 +264,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return false;
             }
 
-            if (parameter.IsNullChecked)
+            if (parameter.IsDiscard)
             {
                 return false;
             }
 
-            if (parameter.IsDiscard)
+            if (document.GetRequiredLanguageService<ISemanticFactsService>().IsNullChecked(parameter, cancellationToken))
             {
                 return false;
             }

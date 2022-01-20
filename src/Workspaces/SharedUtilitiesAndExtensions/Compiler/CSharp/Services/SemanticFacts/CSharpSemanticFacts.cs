@@ -236,6 +236,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntaxRefs.Any(n => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword));
         }
 
+        public bool IsNullChecked(IParameterSymbol parameterSymbol, CancellationToken cancellationToken)
+        {
+            var syntaxRefs = parameterSymbol.DeclaringSyntaxReferences;
+            // We never expect multiple declarations for a parameter symbol.
+            // Partial method parameters are distinct symbols on each method declaration
+            Contract.ThrowIfTrue(syntaxRefs.Length > 1);
+            return syntaxRefs.SingleOrDefault() is SyntaxReference syntaxReference
+                && syntaxReference.GetSyntax(cancellationToken) is ParameterSyntax parameterSyntax
+                && parameterSyntax.ExclamationExclamationToken.IsKind(SyntaxKind.ExclamationExclamationToken);
+        }
+
         public IEnumerable<ISymbol> GetDeclaredSymbols(
             SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
         {
