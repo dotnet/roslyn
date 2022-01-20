@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         }
 
                         first = false;
-                        builder.Append(typeArgument.Name);
+                        builder.Append(typeArgument.Name.EscapeIdentifier());
                     }
 
                     builder.Append('>');

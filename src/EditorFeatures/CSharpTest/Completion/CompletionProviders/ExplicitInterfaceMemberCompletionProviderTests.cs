@@ -5,6 +5,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -827,6 +828,36 @@ class C : I
 ";
 
             await VerifyProviderCommitAsync(markup, "M(string @class)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestEscapeIdentifier2()
+        {
+            var markup = @"
+interface I
+{
+    void M<@class>();
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M<@class>();
+}
+
+class C : I
+{
+    void I.M<@class>()
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M<@class>()", expected, '\t');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
