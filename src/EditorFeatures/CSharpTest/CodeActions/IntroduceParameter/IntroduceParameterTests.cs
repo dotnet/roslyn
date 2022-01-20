@@ -1951,5 +1951,43 @@ class Program
 
             await TestMissingInRegularAndScriptAsync(code);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestIntroduceParameterOnExpressionContainingParameter()
+        {
+            var code =
+@"
+public class C
+{
+    public void M(string s)
+    {
+        localFunction();
+
+        void localFunction()
+        {
+            _ = [|s|].ToString();
+        }
+    }
+}
+";
+
+            var expected =
+@"
+public class C
+{
+    public void M(string s)
+    {
+        localFunction(s);
+
+        void localFunction(string s)
+        {
+            _ = s.ToString();
+        }
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected, 0);
+        }
     }
 }

@@ -58,12 +58,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return;
             }
 
-            var expressionSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
-            if (expressionSymbol is IParameterSymbol)
-            {
-                return;
-            }
-
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // Need to special case for expressions that are contained within a parameter
@@ -93,6 +87,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var containingMethod = expression.FirstAncestorOrSelf<SyntaxNode>(node => generator.GetParameterListNode(node) is not null);
 
             if (containingMethod is null)
+            {
+                return;
+            }
+
+            var expressionSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
+            if (expressionSymbol is IParameterSymbol && !syntaxFacts.IsLocalFunctionStatement(containingMethod))
             {
                 return;
             }
