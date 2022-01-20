@@ -34,9 +34,7 @@ namespace Roslyn.Utilities
         {
             private readonly StringBuilder _stringBuilder;
 
-#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/58168
             public ThrowIfFalseInterpolatedStringHandler(int literalLength, int formattedCount, bool condition, out bool success)
-#pragma warning restore IDE0060 // Remove unused parameter
             {
                 _stringBuilder = condition ? null! : new StringBuilder(capacity: literalLength);
                 success = !condition;
