@@ -8055,5 +8055,25 @@ TResult {FeaturesResources.is_} string"));
     'a {FeaturesResources.is_} new {{ 'b x, 'b y }}
     'b {FeaturesResources.is_} (int a, string b)"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringInterpolation_SingleLine()
+        {
+            await TestInMethodAsync(
+@"var x = 1;
+var s = $""""""Hello world {$$x}""""""",
+                MainDescription("(local variable) int x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringInterpolation_MultiLine()
+        {
+            await TestInMethodAsync(
+@"var x = 1;
+var s = $""""""
+Hello world {$$x}
+""""""",
+                MainDescription("(local variable) int x"));
+        }
     }
 }

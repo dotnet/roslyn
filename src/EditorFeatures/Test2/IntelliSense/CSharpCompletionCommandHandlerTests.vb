@@ -9505,7 +9505,48 @@ public class C
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CompletionInRawStringLiteralInterpolation(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function CompletionInRawStringLiteralInterpolation_SingleLine(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+	void M(int y)
+	{
+        var s = $"""""{$$}""""";
+    }        
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("ne")
+                Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInRawStringLiteralInterpolation_SingleLine_Partial(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+	void M(int y)
+	{
+        var s = $"""""{$$
+    }        
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("ne")
+                Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
+            End Using
+        End Function
+
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInRawStringLiteralInterpolation_MultiLine(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
 class C
@@ -9515,6 +9556,27 @@ class C
         var s = $"""""
         {$$}
         """"";
+    }        
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("ne")
+                Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInRawStringLiteralInterpolation_MultiLine_Partial(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+class C
+{
+	void M(int y)
+	{
+        var s = $"""""
+        {$$
     }        
 }
                 </Document>,
