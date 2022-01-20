@@ -1977,7 +1977,7 @@ public class C
 {
     public void M(string s)
     {
-        localFunction(s);
+        localFunction(""test"");
 
         void localFunction(string s)
         {

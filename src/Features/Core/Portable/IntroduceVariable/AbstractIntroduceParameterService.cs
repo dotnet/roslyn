@@ -91,14 +91,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return;
             }
 
-            var expressionSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
-            if (expressionSymbol is IParameterSymbol && !syntaxFacts.IsLocalFunctionStatement(containingMethod))
+            var containingSymbol = semanticModel.GetDeclaredSymbol(containingMethod, cancellationToken);
+            if (containingSymbol is not IMethodSymbol methodSymbol)
             {
                 return;
             }
 
-            var containingSymbol = semanticModel.GetDeclaredSymbol(containingMethod, cancellationToken);
-            if (containingSymbol is not IMethodSymbol methodSymbol)
+            var expressionSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
+            if (expressionSymbol is IParameterSymbol parameterSymbol && parameterSymbol.ContainingSymbol.Equals(containingSymbol))
             {
                 return;
             }
